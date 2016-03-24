@@ -1,0 +1,397 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>cfelpyutils package &mdash; cfelpyutils 0.5 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="top" title="cfelpyutils 0.5 documentation" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cfelpyutils 0.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">cfelpyutils package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-cfelpyutils.cfelfabio">cfelpyutils.cfelfabio module</a></li>
+<li><a class="reference internal" href="#module-cfelpyutils.cfelgeom">cfelpyutils.cfelgeom module</a></li>
+<li><a class="reference internal" href="#module-cfelpyutils.cfelhdf5">cfelpyutils.cfelhdf5 module</a></li>
+<li><a class="reference internal" href="#module-cfelpyutils.cfeloptarg">cfelpyutils.cfeloptarg module</a></li>
+<li><a class="reference internal" href="#module-cfelpyutils.cfelpsana">cfelpyutils.cfelpsana module</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/cfelpyutils.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-cfelpyutils">
+<span id="cfelpyutils-package"></span><h1>cfelpyutils package<a class="headerlink" href="#module-cfelpyutils" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for CFEL software projects.</p>
+<p>This module provides utilities (functions, classes, etc.) used by many CFEL projects.</p>
+<p>It contains the following submodules (non of which are automatically imported):</p>
+<p>cfelfabio: utilities based on the fabio python module (a module that allows
+python to work with several file format used in x-ray imaging).</p>
+<p>cfelgeom: utilities for processing CrystFEL-style geometry files.</p>
+<p>cfelhdf5: utilities for processing HDF5 files (based on the h5py python module).</p>
+<p>cfeloptarg: utilities to parse command line arguments and parameter files.</p>
+<p>cfelpsana: utilities that expand the functionality of the psana python module.</p>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cfelpyutils.cfelfabio">
+<span id="cfelpyutils-cfelfabio-module"></span><h2>cfelpyutils.cfelfabio module<a class="headerlink" href="#module-cfelpyutils.cfelfabio" title="Permalink to this headline">¶</a></h2>
+<p>Utilities based on the fabio python module</p>
+<p>This module contains utilities derived from the fabio python module.
+This module allows python to understand and process several file format used in
+x-ray crystallography. The utilites in this modules expand on what the fabio
+module alread provides.</p>
+<dl class="function">
+<dt id="cfelpyutils.cfelfabio.read_cbf_from_stream">
+<code class="descclassname">cfelpyutils.cfelfabio.</code><code class="descname">read_cbf_from_stream</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelfabio.read_cbf_from_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8220;Reads a cbfimage object out of a data string buffer.</p>
+<p>Read a data string buffer received as a payload from the PETRAIII P11
+sender, and creates a cbfimage object from it (See the documentation of the
+fabio python module).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stream</strong> (<em>str</em>) &#8211; a data string buffer received from the PETRAIII P11 sender.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>cbf_obj</strong> &#8211;
+a cbfimage object containing the data
+extracted from the string buffer.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">fabio.cbfimage</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cfelpyutils.cfelgeom">
+<span id="cfelpyutils-cfelgeom-module"></span><h2>cfelpyutils.cfelgeom module<a class="headerlink" href="#module-cfelpyutils.cfelgeom" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for CrystFEL-style geometry files.</p>
+<p>This module contains utilities for the processing of CrystFEL-style geometry
+files.</p>
+<dl class="function">
+<dt id="cfelpyutils.cfelgeom.coffset_from_geometry_file">
+<code class="descclassname">cfelpyutils.cfelgeom.</code><code class="descname">coffset_from_geometry_file</code><span class="sig-paren">(</span><em>fnam</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelgeom.coffset_from_geometry_file" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Extracts detector distance offset information from a CrystFEL-style</dt>
+<dd>geometry file.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fnam</strong> (<em>str</em>) &#8211; geometry filename.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>coffset</strong> &#8211;
+the detector distance offset</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.cfelgeom.pixel_maps_from_geometry_file">
+<code class="descclassname">cfelpyutils.cfelgeom.</code><code class="descname">pixel_maps_from_geometry_file</code><span class="sig-paren">(</span><em>fnam</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelgeom.pixel_maps_from_geometry_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts pixel maps from a CrystFEL-style geometry file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fnam</strong> (<em>str</em>) &#8211; geometry filename.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>x,y,r</strong> &#8211;
+slab-like pixel maps with respectively x, y coordinates of the pixel
+and distance of the pixel from the center of the reference system
+(usually the beam position).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray float, numpy.ndarray float, numpy.ndarray float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.cfelgeom.res_from_geometry_file">
+<code class="descclassname">cfelpyutils.cfelgeom.</code><code class="descname">res_from_geometry_file</code><span class="sig-paren">(</span><em>fnam</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelgeom.res_from_geometry_file" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Extracts pixel resolution information from a CrystFEL-style</dt>
+<dd>geometry file.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fnam</strong> (<em>str</em>) &#8211; geometry filename.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>res</strong> &#8211;
+the pixel resolution</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cfelpyutils.cfelhdf5">
+<span id="cfelpyutils-cfelhdf5-module"></span><h2>cfelpyutils.cfelhdf5 module<a class="headerlink" href="#module-cfelpyutils.cfelhdf5" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for HDF5 files.</p>
+<p>This module contains utilities for the processing of HDF5. This module builds
+on what the h5py module already provides.</p>
+<dl class="function">
+<dt id="cfelpyutils.cfelhdf5.load_nparray_from_hdf5_file">
+<code class="descclassname">cfelpyutils.cfelhdf5.</code><code class="descname">load_nparray_from_hdf5_file</code><span class="sig-paren">(</span><em>data_filename</em>, <em>data_group</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelhdf5.load_nparray_from_hdf5_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a numpy.ndarray from an HDF5 file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data_filename</strong> (<em>str</em>) &#8211; filename of the file to read.</li>
+<li><strong>data_group</strong> (<em>str</em>) &#8211; internal HDF5 path of the data block to read.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>nparray</strong> &#8211;
+numpy array with the data read from the file.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cfelpyutils.cfeloptarg">
+<span id="cfelpyutils-cfeloptarg-module"></span><h2>cfelpyutils.cfeloptarg module<a class="headerlink" href="#module-cfelpyutils.cfeloptarg" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for parsing command line options and configuration files.</p>
+<p>This module contains utilities for parsing of command line options and
+configuration files.</p>
+<dl class="function">
+<dt id="cfelpyutils.cfeloptarg.parse_cmdline_args">
+<code class="descclassname">cfelpyutils.cfeloptarg.</code><code class="descname">parse_cmdline_args</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfeloptarg.parse_cmdline_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses command line arguments for source and monitor.ini file.</p>
+<p>Uses the argparse module to parse command line arguments.
+It parses the following arguments:</p>
+<blockquote>
+<div><p>source (1st positional argument): data source (file list, psana source
+string, etc.).</p>
+<p>configuration file (-i/&#8211;ini): file containing user-provided
+parameters.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.cfeloptarg.parse_parameters">
+<code class="descclassname">cfelpyutils.cfeloptarg.</code><code class="descname">parse_parameters</code><span class="sig-paren">(</span><em>config</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfeloptarg.parse_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets correct types for parameter dictionaries.</p>
+<p>Reads a parameter dictionary returned by the ConfigParser python modue,
+and assigns correct types to parameters, without changing the structure of
+the dictionary.</p>
+<p>The parser tries to interpret each entry in the dictionary according to the
+following rules:</p>
+<ul>
+<li><p class="first">If the entry starts and ends with a single quote, it is interpreted as a
+string.</p>
+</li>
+<li><p class="first">If the entry is the word None, without quotes, then the entry is
+interpreted as NoneType.</p>
+</li>
+<li><p class="first">If the entry is the word False, without quotes, then the entry is
+interpreted as a boolean False.</p>
+</li>
+<li><p class="first">If the entry is the word True, without quotes, then the entry is
+interpreted as a boolean True.</p>
+</li>
+<li><p class="first">If non of the previous options match the content of the entry,
+the parser tries to interpret the entry in order as:</p>
+<blockquote>
+<div><ul class="simple">
+<li>An integer number.</li>
+<li>A float number.</li>
+<li>A string.</li>
+</ul>
+</div></blockquote>
+<p>The first choice that succeeds determines the entry type.</p>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<em>dict</em>) &#8211; parameter dictionary returned by ConfigParser.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>monitor_params</strong> &#8211;
+dictionary with the same structure as the input
+dictionary, but with correct types assigned to each entry.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cfelpyutils.cfelpsana">
+<span id="cfelpyutils-cfelpsana-module"></span><h2>cfelpyutils.cfelpsana module<a class="headerlink" href="#module-cfelpyutils.cfelpsana" title="Permalink to this headline">¶</a></h2>
+<p>Utilities based on the psana python module.</p>
+<p>This module provides utilities that build on the functionality provided by the
+psana python module.</p>
+<dl class="function">
+<dt id="cfelpyutils.cfelpsana.dirname_from_source_runs">
+<code class="descclassname">cfelpyutils.cfelpsana.</code><code class="descname">dirname_from_source_runs</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelpsana.dirname_from_source_runs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a directory name based on a psana source string.</p>
+<p>Takes a psana source string (e.g exp=CXI/cxix....) and returns
+a string that can be used as a subdirectory name or a prefix for files and
+directories.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<em>str</em>) &#8211; a psana source string (e.g. exp=CXI/cxi....).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>dirname</strong> &#8211;
+a string that can be used as a filename or a prefix .</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.cfelpsana.psana_event_inspection">
+<code class="descclassname">cfelpyutils.cfelpsana.</code><code class="descname">psana_event_inspection</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelpsana.psana_event_inspection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the structure of psana events.</p>
+<p>Takes a psana source string (e.g. exp=CXI/cxix....) and inspects the
+structure of the first event in the data, printing information about
+the the content of the event.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<em>str</em>) &#8211; a psana source string (e.g. exp=CXI/cxix....).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.cfelpsana.psana_obj_from_string">
+<code class="descclassname">cfelpyutils.cfelpsana.</code><code class="descname">psana_obj_from_string</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfelpsana.psana_obj_from_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a string into a psana object type.</p>
+<p>Takes a string and returns the python object type described by the string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) &#8211; a string describing a python type.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>mod</strong> &#8211;
+the python type described by the string.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">cfelpyutils 0.5 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, CFEL Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
+    </div>
+  </body>
+</html>
