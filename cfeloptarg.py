@@ -26,33 +26,6 @@ import argparse
 import os
 
 
-def parse_cmdline_args():
-    """Parses command line arguments for source and monitor.ini file.
-
-    Uses the argparse module to parse command line arguments.
-    It parses the following arguments:
-
-        source (1st positional argument): data source (file list, psana source
-        string, etc.).
-
-        configuration file (-i/--ini): file containing user-provided
-        parameters.
-    """
-
-    parser = argparse.ArgumentParser(prog='mpirun [MPI OPTIONS] onda.py', description='OnDA - Online Data Analysis')
-    parser.add_argument('source', type=str,
-                        help="data source (file list, psana source string, etc.")
-    parser.add_argument('-i', '--ini', type=str, default='monitor.ini',
-                        help="monitor.ini file (default: monitor.ini), see monitor.ini.template for an example")
-
-    args = parser.parse_args()
-
-    # check that args.ini exists
-    if not os.path.exists(args.ini):
-        raise NameError('ini file does not exist: ' + args.ini)
-    return args
-
-
 def parse_parameters(config):
     """Sets correct types for parameter dictionaries.
 
@@ -82,7 +55,7 @@ def parse_parameters(config):
 
     Args:
 
-        config (dict): parameter dictionary returned by ConfigParser.
+        config (class RawConfigParser): ConfigParser instance.
 
     Returns:
 
