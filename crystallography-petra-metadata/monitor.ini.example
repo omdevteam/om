@@ -1,0 +1,48 @@
+[Backend]
+processing_layer = 'process_collect_crystallography_hit_viewer'
+parallelization_layer = 'petraIII_master_worker_metadata'
+data_extraction_layer = 'hdf5_file_data_extraction'
+instrument_layer = 'eiger_petra'
+required_data = 'raw_data,detector_distance,beam_energy,timestamp,filename_and_event'
+
+[PetraIIIMetadataParallelizationLayer]
+images_per_file_to_process = 20
+base_port = 50100
+data_base_path = '/data/zeromq-data-transfer/output/'
+
+[General]
+publish_ip = None
+publish_port = None
+geometry_file = 'eiger.geom'
+max_saturated_peaks = 3
+min_num_peaks_for_hit = 10
+max_num_peaks_for_hit = 5000
+saturation_value = 14000
+send_non_hits = False
+running_average_size = 100
+geometry_is_optimized = False
+fallback_detector_distance = 200.0
+fallback_beam_energy = 9.0
+speed_report_interval = 1
+hit_sending_interval = 1
+
+[DarkCalCorrection]
+filename = 'empty_darkcal.h5'
+hdf5_group = '/data/data'
+
+[Peakfinder8PeakDetection]
+max_num_peaks = 2048
+asics_nx = 194
+asics_ny = 185
+nasics_x = 8
+nasics_y = 8
+adc_threshold = 150
+minimum_snr = 8
+min_pixel_count = 2
+max_pixel_count = 40
+local_bg_radius = 6
+mask_filename = 'empty_mask.h5'
+mask_hdf5_path = '/data/data'
+accumulated_shots = 40
+min_res = 20
+max_res = 400
