@@ -59,11 +59,9 @@ def apply_geometry_from_pixel_maps(data_as_slab, yx, im_out=None):
 
         data_as_slab (numpy.ndarray): the pixel values to which geometry is to be applied.
 
-        yx (tuple): the yx pixel maps describing the geometry of the detector.
-        Each map is a numpy.ndarray
+        yx (tuple): the yx pixel maps describing the geometry of the detector; each map is a numpy.ndarray.
 
-        im_out (numpy.ndarray) optional: array to hold the output. If not provided,
-        one will be generated automatically.
+        im_out (Optional[numpy.ndarray]): array to hold the output; if not provided, one will be generated automatically.
 
 
     Returns:
@@ -128,11 +126,7 @@ def parse_xy(string):
 
     Returns:
        
-        [x, y] [float, float]: 
-        len two list of floats, e.g.:
-            1x + 2.y --> [1., 2.]
-            1x       --> [1., 0.]
-            x        --> [1., 0.]
+        x, y (float, float): the values of x and y. 
     """
     x = y = 0
 
@@ -149,7 +143,7 @@ def parse_xy(string):
             y = float(ys)
         else:
             y = 1.
-    return [x, y]
+    return x, y
 
 
 def pixel_maps_from_geometry_file(fnam):
@@ -200,8 +194,8 @@ def pixel_maps_from_geometry_file(fnam):
         parsed_detector_dict[p]['max_fs'] = int(detector_dict[p]['max_fs'])
         parsed_detector_dict[p]['min_ss'] = int(detector_dict[p]['min_ss'])
         parsed_detector_dict[p]['max_ss'] = int(detector_dict[p]['max_ss'])
-        parsed_detector_dict[p]['fs'] = parse_xy(detector_dict[p]['fs'])
-        parsed_detector_dict[p]['ss'] = parse_xy(detector_dict[p]['ss'])
+        parsed_detector_dict[p]['fs'] = list(parse_xy(detector_dict[p]['fs']))
+        parsed_detector_dict[p]['ss'] = list(parse_xy(detector_dict[p]['ss']))
         parsed_detector_dict[p]['corner_x'] = float(detector_dict[p]['corner_x'])
         parsed_detector_dict[p]['corner_y'] = float(detector_dict[p]['corner_y'])
 

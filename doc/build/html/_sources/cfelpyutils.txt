@@ -1,11 +1,6 @@
 cfelpyutils package
 ===================
 
-.. automodule:: cfelpyutils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Submodules
 ----------
 
@@ -50,3 +45,10 @@ cfelpyutils.cfelpsana module
     :show-inheritance:
 
 
+Module contents
+---------------
+
+.. automodule:: cfelpyutils
+    :members:
+    :undoc-members:
+    :show-inheritance:
