@@ -231,8 +231,6 @@ class MainFrame(QtGui.QMainWindow):
         else:
             return
 
-        print self.local_data['hit_rate']
-
         QtGui.QApplication.processEvents()
 
         if math.isnan(self.local_data['hit_rate']):
