@@ -1,0 +1,50 @@
+[Backend]
+processing_layer = 'process_collect_crystallography_hit_viewer'
+parallelization_layer = 'psana_master_worker'
+data_extraction_layer = 'psana_data_extraction'
+instrument_layer = 'cspad_slac'
+required_data = 'raw_data,detector_distance,beam_energy'
+
+[PsanaParallelizationLayer]
+detector_name = 'DscCsPad'
+detector_dist_epics_pv = 'CXI:DS1:MMS:06.RBV'
+psana_calib_dir = '/reg/d/psdm/cxi/cxij9415/calib'
+event_rejection_threshold = None
+
+[General]
+publish_ip = None
+publish_port = None
+geometry_file = '2015-06-27-cxih9615.geom'
+max_saturated_peaks = 3
+min_num_peaks_for_hit = 10
+max_num_peaks_for_hit = 5000
+saturation_value = 14000
+send_non_hits = False
+running_average_size = 100
+geometry_is_optimized = False
+fallback_detector_distance = 200.0
+fallback_beam_energy = 9.0
+speed_report_interval = 1
+hit_sending_interval = -1
+
+[DarkCalCorrection]
+filename = 'cxii9515-r0002-detector0-darkcal.h5'
+hdf5_group = '/data/data'
+
+[Peakfinder8PeakDetection]
+max_num_peaks = 2048
+asics_nx = 194
+asics_ny = 185
+nasics_x = 8
+nasics_y = 8
+adc_threshold = 150
+minimum_snr = 6
+min_pixel_count = 3
+max_pixel_count = 20
+local_bg_radius = 3
+mask_filename = 'badpixelmask-run02.h5'
+mask_hdf5_path = '/data/data'
+accumulated_shots = 40
+min_res = 80
+max_res = 900
+
