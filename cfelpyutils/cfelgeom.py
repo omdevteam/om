@@ -83,7 +83,7 @@ def pixel_maps_for_image_view(geometry_filename):
     of the physical layout of the detector in a pyqtgraph ImageView widget (i.e.
     they apply the detector geometry setting the origin of the reference
     system is in the top left corner of the output array).
-    
+
     Args:
 
         geometry_filename (str): geometry filename.
@@ -108,8 +108,8 @@ def pixel_maps_for_image_view(geometry_filename):
     m = 2 * int(max(abs(x.max()), abs(x.min()))) + 2
 
     # convert y x values to i j values
-    i = numpy.array(y, dtype=numpy.int) + n/2 - 1
-    j = numpy.array(x, dtype=numpy.int) + m/2 - 1
+    i = numpy.array(y, dtype=numpy.int) + n//2 - 1
+    j = numpy.array(x, dtype=numpy.int) + m//2 - 1
 
     yx = (i.flatten(), j.flatten())
     img_shape = (n, m)
@@ -125,8 +125,8 @@ def parse_xy(string):
         string (str): the string to be parsed.
 
     Returns:
-       
-        x, y (float, float): the values of x and y. 
+
+        x, y (float, float): the values of x and y.
     """
     x = y = 0
 
@@ -136,7 +136,7 @@ def parse_xy(string):
             x = float(xs)
         else:
             x = 1.
-    
+
     if string.find('y') is not -1:
         ys = string.split('y')[0].split(' ')[-1]
         if len(ys) > 0:
