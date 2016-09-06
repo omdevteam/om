@@ -19,9 +19,13 @@ This module contains utilities for the processing of HDF5. This module builds
 on what the h5py module already provides.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
-import numpy
 import h5py
+import numpy
 
 
 def load_nparray_from_hdf5_file(data_filename, data_group):
@@ -37,8 +41,11 @@ def load_nparray_from_hdf5_file(data_filename, data_group):
 
        nparray (numpy.ndarray): numpy array with the data read from the file.
     """
-
-    hdfile = h5py.File(data_filename, 'r')
-    nparray = numpy.array(hdfile[data_group])
-    hdfile.close()
-    return nparray
+    try:
+        with h5py.File(data_filename, 'r') as hdfile:
+            nparray = numpy.array(hdfile[data_group])
+            hdfile.close()
+    except:
+        raise RuntimeError('Error reading file {0} (data block: {1}).'.format(data_filename, data_group))
+    else:
+        return nparray

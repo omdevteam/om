@@ -19,15 +19,20 @@ This module contains utilities for the processing of CrystFEL-style geometry
 files.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 import numpy
 
 
 def apply_geometry_from_file(data_as_slab, geometry_filename):
-    """Parse a geometry file and applies the geometry to detector data in 'slab' format.
-    Turns a 2d array of pixel values into an array containing a representation of the
-    physical layout of the detector, keeping the origin of the  reference system at the
-    beam interaction point.
+    """Parses a geometry file and applies the geometry to data.
+
+    Parses a geometry file and applies the geometry to detector data in 'slab' format. Turns a 2d array of pixel
+    values into an array containing a representation of the physical layout of the detector, keeping the origin of
+    the reference system at the beam interaction point.
 
     Args:
 
@@ -37,9 +42,8 @@ def apply_geometry_from_file(data_as_slab, geometry_filename):
 
     Returns:
 
-        im_out (numpy.ndarray data_as_slab.dtype): Array containing a representation of the
-        physical layout of the detector, with the origin of the  reference system at the
-        beam interaction point.
+        im_out (numpy.ndarray data_as_slab.dtype): Array containing a representation of the physical layout of the
+        detector, with the origin of the  reference system at the beam interaction point.
     """
 
     yx, slab_shape, img_shape = pixel_maps_for_image_view(geometry_filename)
@@ -50,10 +54,11 @@ def apply_geometry_from_file(data_as_slab, geometry_filename):
 
 
 def apply_geometry_from_pixel_maps(data_as_slab, yx, im_out=None):
-    """Applies geometry, in the form of pixel maps, to detector data in 'slab' format.
-    Turns a 2d array of pixel values into an array containing a representation of the
-    physical layout of the detector, keeping the origin of the  reference system at the
-    beam interaction point.
+    """Applies geometry in pixel map format to data.
+
+    Applies geometry, in the form of pixel maps, to detector data in 'slab' format. Turns a 2d array of pixel values
+    into an array containing a representation of the physical layout of the detector, keeping the origin of the
+    reference system at the beam interaction point.
 
     Args:
 
@@ -61,15 +66,15 @@ def apply_geometry_from_pixel_maps(data_as_slab, yx, im_out=None):
 
         yx (tuple): the yx pixel maps describing the geometry of the detector; each map is a numpy.ndarray.
 
-        im_out (Optional[numpy.ndarray]): array to hold the output; if not provided, one will be generated automatically.
-
+        im_out (Optional[numpy.ndarray]): array to hold the output; if not provided, one will be generated
+        automatically.
 
     Returns:
 
-        im_out (numpy.ndarray data_as_slab.dtype): Array containing a representation of the
-        physical layout of the detector, with the origin of the  reference system at the
-        beam interaction point.
+        im_out (numpy.ndarray data_as_slab.dtype): Array containing a representation of the physical layout of the
+        detector, with the origin of the  reference system at the beam interaction point.
     """
+
     if im_out is None:
         im_out = numpy.zeros(data_as_slab.shape, dtype=data_as_slab.dtype)
 
@@ -78,11 +83,12 @@ def apply_geometry_from_pixel_maps(data_as_slab, yx, im_out=None):
 
 
 def pixel_maps_for_image_view(geometry_filename):
-    """Parse the geometry file and pixel maps for an  array in 'slab' format
-    containing pixel values. The pixel maps can be used to create a representation
-    of the physical layout of the detector in a pyqtgraph ImageView widget (i.e.
-    they apply the detector geometry setting the origin of the reference
-    system is in the top left corner of the output array).
+    """Parses a geometry file and creates pixel maps for pyqtgraph visualization.
+
+    Parse the geometry file and creates pixel maps for an  array in 'slab' format containing pixel values. The pixel
+    maps can be used to create a representation of the physical layout of the detector in a pyqtgraph ImageView
+    widget (i.e. they apply the detector geometry setting the origin of the reference system is in the top left corner
+    of the output array).
 
     Args:
 
@@ -92,12 +98,13 @@ def pixel_maps_for_image_view(geometry_filename):
 
         (y, x) (numpy.ndarray int, numpy.ndarray int): pixel maps
 
-        slab_shape tuple (int, int): shape of the original geometry uncorrected array
-        (the pixel values in "slab" format).
+        slab_shape tuple (int, int): shape of the original geometry uncorrected array (the pixel values in "slab"
+        format).
 
-        img_shape tuple (int, int): shape of the array needed to contain the
-        representation of the physical layout of the detector.
+        img_shape tuple (int, int): shape of the array needed to contain the representation of the physical layout
+        of the detector.
     """
+
     pixm = pixel_maps_from_geometry_file(geometry_filename)
     x, y = pixm[0], pixm[1]
     slab_shape = x.shape
@@ -117,8 +124,9 @@ def pixel_maps_for_image_view(geometry_filename):
 
 
 def parse_xy(string):
-    """Parse the x, y values from strings that have the format:
-    '1x + 2.0y'.
+    """Extracts x and y values from strings in a geometry file.
+
+    Parse the x, y values from strings in that have the format: '1x + 2.0y'.
 
     Args:
 
@@ -128,6 +136,7 @@ def parse_xy(string):
 
         x, y (float, float): the values of x and y.
     """
+
     x = y = 0
 
     if string.find('x') is not -1:
@@ -147,9 +156,10 @@ def parse_xy(string):
 
 
 def pixel_maps_from_geometry_file(fnam):
-    """Extracts pixel maps from a CrystFEL-style geometry file. The pixel maps
-    can be used to create a representation of the physical layout of the
-    detector, keeping the origin of the  reference system at the beam interaction
+    """Parses a geometry file and creates pixel maps.
+
+    Extracts pixel maps from a CrystFEL-style geometry file. The pixel maps can be used to create a representation of
+    the physical layout of the detector, keeping the origin of the  reference system at the beam interaction
     point.
 
     Args:
@@ -158,9 +168,8 @@ def pixel_maps_from_geometry_file(fnam):
 
     Returns:
 
-        x,y,r (numpy.ndarray float, numpy.ndarray float, numpy.ndarray float):
-        slab-like pixel maps with respectively x, y coordinates of the pixel
-        and distance of the pixel from the center of the reference system
+        x,y,r (numpy.ndarray float, numpy.ndarray float, numpy.ndarray float): slab-like pixel maps with
+        respectively x, y coordinates of the pixel and distance of the pixel from the center of the reference system.
     """
 
     f = open(fnam, 'r')
@@ -231,8 +240,9 @@ def pixel_maps_from_geometry_file(fnam):
 
 
 def coffset_from_geometry_file(fnam):
-    """Extracts detector distance offset information from a CrystFEL-style
-       geometry file.
+    """Extracts detector distance information from a geometry file.
+
+    Extracts detector distance offset information from a CrystFEL-style geometry file.
 
     Args:
 
@@ -242,6 +252,7 @@ def coffset_from_geometry_file(fnam):
 
         coffset (float): the detector distance offset
     """
+
     f = open(fnam, 'r')
     f_lines = f.readlines()
     f.close()
@@ -256,8 +267,9 @@ def coffset_from_geometry_file(fnam):
 
 
 def res_from_geometry_file(fnam):
-    """Extracts pixel resolution information from a CrystFEL-style
-       geometry file.
+    """Extracts pixel resolution information from a geometry file.
+
+    Extracts pixel resolution information from a CrystFEL-style geometry file.
 
     Args:
 
@@ -267,6 +279,7 @@ def res_from_geometry_file(fnam):
 
         res (float): the pixel resolution
     """
+
     f = open(fnam, 'r')
     f_lines = f.readlines()
     f.close()

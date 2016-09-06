@@ -17,9 +17,14 @@
 """
 Utilities based on the psana python module.
 
-This module provides utilities that build on the functionality provided by the
-psana python module.
+This module provides utilities that build on the functionality provided by the psana python module.
 """
+
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 
 def psana_obj_from_string(name):
@@ -46,9 +51,8 @@ def psana_obj_from_string(name):
 def psana_event_inspection(source):
     """Prints the structure of psana events.
 
-    Takes a psana source string (e.g. exp=CXI/cxix....) and inspects the
-    structure of the first event in the data, printing information about
-    the the content of the event.
+    Takes a psana source string (e.g. exp=CXI/cxix....) and inspects the structure of the first event in the data,
+    printing information about the the content of the event.
 
     Args:
 
@@ -57,22 +61,8 @@ def psana_event_inspection(source):
 
     import psana
 
-    def my_import(name):
-        mod = __import__(name)
-        components = name.split('.')
-        for comp in components[1:]:
-            mod = getattr(mod, comp)
-        return mod
-
-    def my_psana_from_string(name):
-        components = name.split('.')
-        mod = __import__(components[0])
-        for comp in components[1:]:
-            mod = getattr(mod, comp)
-        return mod
-
     print('\n\n')
-    print('data source : %s' % source)
+    print('data source :', source)
 
     print('\n')
     print('Opening dataset...')
@@ -91,8 +81,8 @@ def psana_event_inspection(source):
     itr = ds.events()
     evt = itr.next()
     for k in evt.keys():
-        print('Type: %s   Source: %s   Alias: %s   Key: %s') % (k.type(), k.src(), k.alias(), k.key())
-        print('\n')
+        print('Type: {0}   Source: {1}   Alias: {2}   Key: {3}'.format(k.type(), k.src(), k.alias(), k.key()))
+        print('')
 
     for k in evt.keys():
         print(k)
@@ -104,9 +94,8 @@ def psana_event_inspection(source):
 def dirname_from_source_runs(source):
     """Returns a directory name based on a psana source string.
 
-    Takes a psana source string (e.g exp=CXI/cxix....) and returns
-    a string that can be used as a subdirectory name or a prefix for files and
-    directories.
+    Takes a psana source string (e.g exp=CXI/cxix....) and returns a string that can be used as a subdirectory name or
+    a prefix for files and directories.
 
     Args:
 
@@ -125,5 +114,5 @@ def dirname_from_source_runs(source):
     nums = runs.split(',')
     if len(nums) == 0:
         nums = runs
-    dirname = 'run_' + "_".join(nums)
+    dirname = 'run_' + '_'.join(nums)
     return dirname
