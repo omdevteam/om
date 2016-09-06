@@ -14,6 +14,12 @@
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+
 """
 Utilities for parsing command line options and configuration files.
 
@@ -22,30 +28,20 @@ configuration files.
 """
 
 
-import argparse
-import os
-
-
 def parse_parameters(config):
     """Sets correct types for parameter dictionaries.
 
-    Reads a parameter dictionary returned by the ConfigParser python modue,
-    and assigns correct types to parameters, without changing the structure of
-    the dictionary.
+    Reads a parameter dictionary returned by the ConfigParser python module, and assigns correct types to parameters,
+    without changing the structure of the dictionary.
 
-    The parser tries to interpret each entry in the dictionary according to the
-    following rules:
+    The parser tries to interpret each entry in the dictionary according to the following rules:
 
-    - If the entry starts and ends with a single quote, it is interpreted as a
-      string.
-    - If the entry is the word None, without quotes, then the entry is
-      interpreted as NoneType.
-    - If the entry is the word False, without quotes, then the entry is
-      interpreted as a boolean False.
-    - If the entry is the word True, without quotes, then the entry is
-      interpreted as a boolean True.
-    - If non of the previous options match the content of the entry,
-      the parser tries to interpret the entry in order as:
+    - If the entry starts and ends with a single quote, it is interpreted as a string.
+    - If the entry is the word None, without quotes, then the entry is interpreted as NoneType.
+    - If the entry is the word False, without quotes, then the entry is interpreted as a boolean False.
+    - If the entry is the word True, without quotes, then the entry is interpreted as a boolean True.
+    - If non of the previous options match the content of the entry, the parser tries to interpret the entry in order
+      as:
 
         - An integer number.
         - A float number.
@@ -59,8 +55,8 @@ def parse_parameters(config):
 
     Returns:
 
-        monitor_params (dict): dictionary with the same structure as the input
-        dictionary, but with correct types assigned to each entry.
+        monitor_params (dict): dictionary with the same structure as the input dictionary, but with correct types
+        assigned to each entry.
     """
 
     monitor_params = {}
@@ -84,11 +80,11 @@ def parse_parameters(config):
             try:
                 monitor_params[sect][op] = int(monitor_params[sect][op])
                 continue
-            except:
+            except ValueError:
                 try:
                     monitor_params[sect][op] = float(monitor_params[sect][op])
                     continue
-                except:
+                except ValueError:
                     pass
 
     return monitor_params
