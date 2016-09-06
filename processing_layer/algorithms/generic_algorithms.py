@@ -41,31 +41,29 @@ class DarkCalCorrection:
 
             role (str): node role ('worker' or 'master').
 
-            filename (str): name of the hdf5 5 with dark calibration.
-            data
+            filename (str): name of the hdf5 5 with dark calibration data
 
-            hdf5_group (str): path of the dark calibration data within the
-            hdf5 file.
+            hdf5_group (str): path of the dark calibration data within the hdf5 file.
 
-            apply_mask (Optional[bool]): whether a mask should be applied
-            (optional, if omitted no mask is applied).
+            apply_mask (Optional[bool]): whether a mask should be applied (optional, if omitted no mask is applied).
 
-            mask_filename (Optional[str]) : if the mask is applied, name of
-            the hdf5 file with gain_map, otherwise ignored (optional).
+            mask_filename (Optional[str]) : if the mask is applied, name of the hdf5 file with gain_map, otherwise
+            ignored. This argument must be only be provided if the apply_mask argument is set to True.
 
-            mask_hdf5_group (Optional[str]): if the mask is applied,
-            internal hdf5 path of the data block containing the mask,
-            otherwise ignored (optional).
+            mask_hdf5_group (Optional[str]): if the mask is applied, internal hdf5 path of the data block containing
+            the mask, otherwise ignored. This argument must be only be provided if the apply_mask argument is set to
+            True.
 
-            gain_map_correction (Optional[bool]): whether a gain_map should be
-            applied (optional, if omitted no gain map is applied).
+            gain_map_correction (Optional[bool]): whether a gain_map should be applied. This is optional, and if
+            omitted no gain map is applied.
 
-            gain_map_filename (Optional[str]) : if the gain map is applied,
-            name of the hdf5 file with gain_map, otherwise ignored (optional).
+            gain_map_filename (Optional[str]): if the gain map is applied, name of the hdf5 file with gain_map,
+            otherwise ignored (optional). This argument must be only be provided if the gain_map_correction
+            argument is set to True.
 
-            gain_map_hdf5_group (Optional[str]): if the gain map is applied,
-            internal hdf5 path of the data block containing the mask,
-            otherwise ignored (optional).
+            gain_map_hdf5_group (Optional[str]): if the gain map is applied, internal hdf5 path of the data block
+            containing the mask, otherwise ignored (optional). This argument must be only be provided if the
+            gain_map_correction argument is set to True.
          """
 
         # Initialized on worker
@@ -94,8 +92,7 @@ class DarkCalCorrection:
 
         Args:
 
-            data_as_slab (numpy.ndarray): the data on which to apply the
-            DarkCal correction, in 'slab' format.
+            data_as_slab (numpy.ndarray): the data on which to apply the DarkCal correction, in 'slab' format.
         """
 
         return (data_as_slab*self.mask - self.darkcal)*self.gain_map
@@ -108,11 +105,9 @@ class DarkCalCorrection:
 class SimplePeakDetection:
     """Peak finding using a simple threshold-based algorithm.
 
-    Implements a simple threshold-based peak finding algorithm. The algorithm
-    finds peaks by thresholding the input data, identifying 'islands' of
-    pixels with values above the threshold, and using as peak location the
-    center of mass of the 'islands' (computed with a window of predefined
-    size).
+    Implements a simple threshold-based peak finding algorithm. The algorithm finds peaks by thresholding the input
+    data, identifying 'islands' of pixels with values above the threshold, and using as peak location the center of
+    mass of the 'islands' (computed with a window of predefined size).
     """
 
     def __init__(self, role, threshold, window_size, accumulated_shots):
@@ -122,25 +117,23 @@ class SimplePeakDetection:
 
             threshold (float): threshold for peak detection.
 
-            window_size (int): edge size of the window used to determine the
-            center of mass of each peak (the window is centered around
-            the pixel with highest intensity).
+            window_size (int): edge size of the window used to determine the center of mass of each peak (the window
+            is centered around the pixel with highest intensity).
 
-            accumulated_shots (int): the number of accumulated shots before
-            the peak list is returned.
+            accumulated_shots (int): the number of accumulated shots before the peak list is returned.
         """
 
         self.threshold = threshold
         self.peak_window_size = window_size
         self.accumulated_shots = accumulated_shots
-        self.neighborhood = scipy.ndimage.morphology.generate_binary_structure(2,5)
+        self.neighborhood = scipy.ndimage.morphology.generate_binary_structure(2, 5)
 
         if role == 'master':
 
             self.accumulator = ([], [], [])
             self.events_in_accumulator = 0
 
-    def find_peaks(self, data_as_slab):
+    def find_peaks(self, raw_data):
         """Finds peaks.
 
         Performs the peak finding.
@@ -149,26 +142,23 @@ class SimplePeakDetection:
 
         Args:
 
-            raw_data (numpy.ndarray): the data on which peak finding is
-            performed, in 'slab' format.
+            raw_data (numpy.ndarray): the data on which peak finding is performed, in 'slab' format.
 
         Returns:
 
             peak_list (tuple):  the peak list, as a tuple of three
 
-            lists: ([peak_x], [peak_y], [peak_value]). The first two
-            contain the coordinates of the peaks in the input data array,
-            the third the intensity of the peaks. All are lists of float
-            numbers.
+            lists: ([peak_x], [peak_y], [peak_value]). The first two contain the coordinates of the peaks in the
+            input data array, the third the intensity of the peaks. All are lists of float numbers.
         """
 
         local_max = scipy.ndimage.filters.maximum_filter(
-            data_as_slab, footprint=self.neighborhood)
-        data_as_slab_peak = (data_as_slab == local_max)
-        data_as_slab_thresh = (data_as_slab > self.threshold)
+            raw_data, footprint=self.neighborhood)
+        data_as_slab_peak = (raw_data == local_max)
+        data_as_slab_thresh = (raw_data > self.threshold)
         data_as_slab_peak[data_as_slab_thresh == 0] = 0
         peak_list = numpy.where(data_as_slab_peak == 1)
-        peak_values = data_as_slab[peak_list]
+        peak_values = raw_data[peak_list]
 
         if len(peak_list[0]) > 10000:
             print ('Silly number of peaks {0}'.format(len(peak_list[0])))
@@ -177,8 +167,8 @@ class SimplePeakDetection:
             subpixel_x = []
             subpixel_y = []
             for x_peak, y_peak in zip(peak_list[0], peak_list[1]):
-                peak_window = data_as_slab[x_peak-self.peak_window_size:x_peak+self.peak_window_size+1,
-                                           y_peak-self.peak_window_size:y_peak+self.peak_window_size+1]
+                peak_window = raw_data[x_peak - self.peak_window_size:x_peak + self.peak_window_size + 1,
+                                       y_peak-self.peak_window_size:y_peak+self.peak_window_size+1]
                 if peak_window.shape[0] != 0 and peak_window.shape[1] != 0:
                     offset = scipy.ndimage.measurements.center_of_mass(peak_window)
                     offset_x = offset[0]-self.peak_window_size
@@ -198,24 +188,20 @@ class SimplePeakDetection:
     def add_peaks(self, peak_list):
         """Accumulates peaks.
 
-        Accumulates peaks. The peaks are added to an internal list of
-        peaks. When peaks have been added to the list for a numer of times
-        specified by the accumulated_shots algorithm parameter, the function
-        returns the accumulated peak list to the user and empties it.
+        Accumulates peaks. The peaks are added to an internal list of peaks. When peaks have been added to the list
+        for a numer of times specified by the accumulated_shots algorithm parameter, the function returns the
+        accumulated peak list to the user and empties it.
 
         Designed to be run on the master node.
 
         Args:
 
-            peak_list (tuple): list of peaks (as returned by the peak_find
-                function) to be added to the internal list.
+            peak_list (tuple): list of peaks (as returned by the peak_find function) to be added to the internal list.
 
         Returns:
 
-            peak_list (tuple or None):  the accumulated peak_list if
-                peaks have been added to the list for the number of times
-                specified by the accumulated_shots parameter,
-                None otherwise.
+            peak_list (tuple or None):  the accumulated peak_list if peaks have been added to the list for the number
+            of times specified by the accumulated_shots parameter, None otherwise.
         """
 
         if self.events_in_accumulator == self.accumulated_shots:
@@ -239,8 +225,7 @@ class SimplePeakDetection:
 class RawDataAveraging:
     """Averages raw data.
 
-    Accumulates raw data images and returns the average image when the required
-    number of shots have been collected.
+    Accumulates raw data images and returns the average image when the required number of shots have been collected.
     """
 
     def __init__(self, role, accumulated_shots, slab_shape):
@@ -248,11 +233,9 @@ class RawDataAveraging:
 
         Args:
 
-            accumulated_shots (int): the number images to accumulate before
-            returning the average image.
+            accumulated_shots (int): the number images to accumulate before returning the average image.
 
-            slab_shape (tuple): shape of the numpy.ndarray containing the
-            data to be accumulated.
+            slab_shape (tuple): shape of the numpy.ndarray containing the data to be accumulated.
         """
 
         self.accumulated_shots = accumulated_shots
@@ -267,22 +250,19 @@ class RawDataAveraging:
     def accumulate_raw_data(self, data_as_slab):
         """Accumulates peaks.
 
-        Accumulates raw data images. When the number of images specified
-        specified by the accumulated_shots class attribute is reached, the
-        function returns the average image.
+        Accumulates raw data images. When the number of images specified specified by the accumulated_shots class
+        attribute is reached, the function returns the average image.
 
         Designed to be run on the master node.
 
         Args:
 
-            data_as_slab (numpy.ndarray): raw data image to add, in 'slab'
-            format.
+            data_as_slab (numpy.ndarray): raw data image to add, in 'slab' format.
 
         Returns:
 
-            avg_raw_data (tuple or None):  the average image if the
-            number of images specified by the accumulated_shots class
-            attribute has been reached, None otherwise.
+            avg_raw_data (tuple or None):  the average image if the number of images specified by the accumulated_shots
+            class attribute has been reached, None otherwise.
         """
 
         if self.num_raw_data == self.accumulated_shots:

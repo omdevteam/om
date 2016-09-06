@@ -134,6 +134,7 @@ class Onda(MasterWorker):
         if self.role == 'master':
 
             self.collected_data = {}
+            self.collected_rawdata = {}
             self.publish_ip = gen_params['publish_ip']
             self.publish_port = gen_params['publish_port']
             self.speed_rep_int = gen_params['speed_report_interval']
@@ -173,15 +174,14 @@ class Onda(MasterWorker):
         corr_raw_data = self.dark_cal_correction.apply_darkcal_correction(self.raw_data)
         peak_list = self.peakfinder8_peak_det.find_peaks(corr_raw_data)
 
-        sat = len([ x for x in peak_list[2] if x > self.saturation_value]) > self.max_saturated_peaks
-        hit = len(peak_list[2]) > self.min_num_peaks_for_hit and len(peak_list[2]) < self.max_num_peaks_for_hit
+        sat = len([x for x in peak_list[2] if x > self.saturation_value]) > self.max_saturated_peaks
+        hit = self.min_num_peaks_for_hit < len(peak_list[2]) < self.max_num_peaks_for_hit
         self.results_dict['timestamp'] = self.event_timestamp
         self.results_dict['peak_list'] = peak_list
         self.results_dict['sat_flag'] = sat
         self.results_dict['hit_flag'] = hit
         self.results_dict['detector_distance'] = self.detector_distance
         self.results_dict['beam_energy'] = self.beam_energy
-
 
         if not hit:
             self.results_dict['peak_list'] = ([], [], [])

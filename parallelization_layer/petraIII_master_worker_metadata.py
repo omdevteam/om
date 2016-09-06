@@ -84,7 +84,7 @@ class MasterWorker(object):
             print('Announcing OnDA to sender.')
             sys.stdout.flush()
 
-            self.query = dataTransferAPI('queryMetadata', self.sender_hostname, useLog=False)
+            self.query = dataTransferAPI.dataTransfer('queryMetadata', self.sender_hostname, useLog=False)
             self.query.initiate(self.targets[1:])
 
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
@@ -95,7 +95,7 @@ class MasterWorker(object):
 
             self._buffer = None
 
-            self.query = dataTransferAPI('queryNext', self.sender_hostname, useLog=None)
+            self.query = dataTransferAPI.dataTransfer('queryNext', self.sender_hostname, useLog=None)
             self.worker_port = self.targets[self.mpi_rank][1]
 
             print('Worker {0} listening at port {1}'.format(self.mpi_rank, int(self.worker_port)))

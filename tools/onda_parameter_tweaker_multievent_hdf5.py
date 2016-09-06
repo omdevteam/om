@@ -52,7 +52,7 @@ def check_changed_parameter(param, param_conv_vers, lineedit_element):
                 return new_param, True
             else:
                 return param, False
-        except Exception:
+        except ValueError:
             lineedit_element.setText(str(param))
             return param, False
 
@@ -67,7 +67,8 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
 
         self.img_to_draw[self.pixel_maps[0], self.pixel_maps[1]] = img.ravel()
         self.ui.imageView.setImage(self.img_to_draw.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
-        self.mask_image_view.setImage(numpy.transpose(self.mask_to_draw, axes=(1,0,2)), autoLevels=False, autoRange=False, opacity=0.1)
+        self.mask_image_view.setImage(numpy.transpose(self.mask_to_draw, axes=(1, 0, 2)), autoLevels=False,
+                                      autoRange=False, opacity=0.1)
 
         peak_list = peakfinder_8(
             self.max_num_peaks,
@@ -93,7 +94,7 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
                 try:
                     peak_x.append(self.pixel_maps[0][peak_in_slab])
                     peak_y.append(self.pixel_maps[1][peak_in_slab])
-                except Exception:
+                except IndexError:
                     pass
             self.peak_canvas.setData(peak_y, peak_x, symbol='o', size=15, pen=self.ring_pen, brush=(0, 0, 0, 0),
                                      pxMode=False)
@@ -313,7 +314,6 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
         self.hlayout6.addWidget(self.max_res_label)
         self.hlayout6.addWidget(self.max_res_lineedit)
 
-
         self.param_label = PyQt4.QtGui.QLabel(self)
         self.param_label.setText('<b>Peakfinder Parameters:</b>')
 
@@ -358,7 +358,7 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
 def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     config = configparser.ConfigParser()
-    if len (sys.argv) != 3:
+    if len(sys.argv) != 3:
         print('Usage: onda_parameter_tweaker_multievent_hdf5.py <hdf5_file_name> <hdf5_data_path>')
         sys.exit()
 

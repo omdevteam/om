@@ -85,7 +85,7 @@ class MainFrame(QtGui.QMainWindow):
         self.init_ui()
 
         self.proxy = pg.SignalProxy(self.ui.hitRatePlotWidget.scene().sigMouseClicked,
-                                       rateLimit=60, slot=self.mouse_clicked)
+                                    rateLimit=60, slot=self.mouse_clicked)
         self.hitrate_plot = self.ui.hitRatePlotWidget.plot(self.hitrate_history)
         self.satrate_plot = self.ui.saturationPlotViewer.plot(self.satrate_history)
         for ti in self.resolution_rings_textitems:
@@ -143,7 +143,6 @@ class MainFrame(QtGui.QMainWindow):
 
         self.ui.resolutionRingsCheckBox.setEnabled(False)
         self.ui.resolutionRingsLineEdit.setEnabled(False)
-
 
     def mouse_clicked(self, mouse_evt):
         mouse_pos_in_scene = mouse_evt[0].scenePos()
