@@ -14,33 +14,32 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+from datetime import datetime
+from mpi4py import MPI
+from numpy import ceil
+from sys import exit, stdout
+from time import strptime, mktime
+
 import psana
-import mpi4py.MPI
-import math
-import time
-import datetime
+from cfelpyutils.cfel_psana import dirname_from_source_runs
+from parallelization_layer.utils.onda_params import monitor_params, param
+from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
 
-
-import cfelpyutils.cfelpsana as cpsana
-
-from parallelization_layer.utils import (
-    global_params as gp,
-    dynamic_import as dyn_imp
-)
-
-de_layer = dyn_imp.import_layer_module('data_extraction_layer',
-                                       gp.monitor_params)
-extract = getattr(de_layer, 'extract')
+de_layer = import_correct_layer_module('data_extraction_layer', monitor_params)
+extract = import_function_from_layer('extract', de_layer)
 
 
 class MasterWorker(object):
-
     NOMORE = 998
     DIETAG = 999
     DEADTAG = 1000
 
-    def __init__(self, map_func, reduce_func, source, monitor_params):
+    def __init__(self, map_func, reduce_func, source):
 
         debug = False
 
@@ -48,18 +47,12 @@ class MasterWorker(object):
         self._buffer = None
         self.event_timestamp = None
 
-        self.mpi_rank = mpi4py.MPI.COMM_WORLD.Get_rank()
-        self.mpi_size = mpi4py.MPI.COMM_WORLD.Get_size()
+        self.mpi_rank = MPI.COMM_WORLD.Get_rank()
+        self.mpi_size = MPI.COMM_WORLD.Get_size()
         if self.mpi_rank == 0:
             self.role = 'master'
         else:
             self.role = 'worker'
-
-        self.monitor_params = monitor_params
-        psana_params = monitor_params['PsanaParallelizationLayer']
-        self.detector_name = psana_params['detector_name']
-        self.detector_dist_epics_pv = psana_params['detector_dist_epics_pv']
-        self.psana_calib_dir = psana_params['psana_calib_dir']
 
         self.event_rejection_threshold = 10000000000
         self.offline = False
@@ -72,8 +65,9 @@ class MasterWorker(object):
                 self.source += ':idx'
 
         # Set event_rejection threshold
-        if psana_params['event_rejection_threshold'] is not None:
-            self.event_rejection_threshold = float(psana_params['event_rejection_threshold'])
+        rej_thr = param('PsanaParallelizationLayer','event_rejection_threshold')
+        if rej_thr is not None:
+            self.event_rejection_threshold = rej_thr
 
         # Set map,reduce and extract functions
         self.map = map_func
@@ -87,37 +81,37 @@ class MasterWorker(object):
             self.num_nomore = 0
 
             if self.offline is True:
-                self.source_runs_dirname = cpsana.dirname_from_source_runs(source)
+                self.source_runs_dirname = dirname_from_source_runs(source)
 
         return
 
     def shutdown(self, msg='Reason not provided.'):
 
-        print ('Shutting down: {0}'.format(msg))
+        print('Shutting down:', msg)
 
         if self.role == 'worker':
-            self._buffer = mpi4py.MPI.COMM_WORLD.send(dest=0, tag=self.DEADTAG)
-            mpi4py.MPI.Finalize()
-            sys.exit(0)
+            self._buffer = MPI.COMM_WORLD.send(dest=0, tag=self.DEADTAG)
+            MPI.Finalize()
+            exit(0)
 
         if self.role == 'master':
 
             try:
                 for nod_num in range(1, self.mpi_size()):
-                    mpi4py.MPI.COMM_WORLD.isend(0, dest=nod_num,
-                                                tag=self.DIETAG)
+                    MPI.COMM_WORLD.isend(0, dest=nod_num,
+                                         tag=self.DIETAG)
                 num_shutdown_confirm = 0
                 while True:
-                    if mpi4py.MPI.COMM_WORLD.Iprobe(source=mpi4py.MPI.ANY_SOURCE, tag=0):
-                        self._buffer = mpi4py.MPI.COMM_WORLD.recv(source=mpi4py.MPI.ANY_SOURCE, tag=0)
-                    if mpi4py.MPI.COMM_WORLD.Iprobe(source=mpi4py.MPI.ANY_SOURCE, tag=self.DEADTAG):
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=0):
+                        self._buffer = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=self.DEADTAG):
                         num_shutdown_confirm += 1
                     if num_shutdown_confirm == self.mpi_size() - 1:
                         break
-                mpi4py.MPI.Finalize()
+                MPI.Finalize()
             except Exception:
-                mpi4py.MPI.COMM_WORLD.Abort(0)
-            sys.exit(0)
+                MPI.COMM_WORLD.Abort(0)
+            exit(0)
         return
 
     def start(self, verbose=False):
@@ -125,7 +119,7 @@ class MasterWorker(object):
         if self.role == 'worker':
 
             req = None
-            
+
             psana.setOption('psana.calib-dir', self.psana_calib_dir)
 
             self.psana_source = psana.DataSource(self.source)
@@ -136,18 +130,16 @@ class MasterWorker(object):
                 def psana_events_generator():
                     for r in self.psana_source.runs():
                         times = r.times()
-                        mylength = int(math.ceil(len(times) / float(self.mpi_size-1)))
-                        mytimes = times[(self.mpi_rank-1) * mylength: self.mpi_rank * mylength]
+                        mylength = int(ceil(len(times) / float(self.mpi_size - 1)))
+                        mytimes = times[(self.mpi_rank - 1) * mylength: self.mpi_rank * mylength]
                         for mt in mytimes:
                             yield r.event(mt)
+
                 psana_events = psana_events_generator()
 
-            event = {'monitor_params': self.monitor_params}
+            event = {'monitor_params': monitor_params}
 
-            det = psana.Detector(self.detector_name)
-            det_dist = psana.Detector(self.detector_dist_epics_pv)
-
-            # Loop over events and process
+             # Loop over events and process
             for evt in psana_events:
 
                 if evt is None:
@@ -156,9 +148,9 @@ class MasterWorker(object):
                 # Reject events above the rejection threshold
                 event_id = str(evt.get(psana.EventId))
                 timestring = event_id.split('time=')[1].split(',')[0]
-                timestamp = time.strptime(timestring[:-6], '%Y-%m-%d %H:%M:%S.%f')
-                timestamp = datetime.datetime.fromtimestamp(time.mktime(timestamp))
-                timenow = datetime.datetime.now()
+                timestamp = strptime(timestring[:-6], '%Y-%m-%d %H:%M:%S.%f')
+                timestamp = datetime.fromtimestamp(mktime(timestamp))
+                timenow = datetime.now()
 
                 if (timenow - timestamp).total_seconds() > self.event_rejection_threshold:
                     continue
@@ -166,12 +158,10 @@ class MasterWorker(object):
                 self.event_timestamp = timestamp
 
                 # Check if a shutdown message is coming from the server
-                if mpi4py.MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
-                    self.shutdown('Shutting down RANK: {0}.'.format(self.mpi_rank))
+                if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
+                    self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
 
                 event['evt'] = evt
-                event['det'] = det
-                event['det_dist'] = det_dist
 
                 self.extract_data(event, self)
 
@@ -183,56 +173,56 @@ class MasterWorker(object):
                 # send the mapped event data to the master process
                 if req:
                     req.Wait()  # be sure we're not still sending something
-                req = mpi4py.MPI.COMM_WORLD.isend(result, dest=0, tag=0)
+                req = MPI.COMM_WORLD.isend(result, dest=0, tag=0)
 
             # When all events have been processed, send the master a
             # dictionary with an 'end' flag and die
             end_dict = {'end': True}
             if req:
                 req.Wait()  # be sure we're not still sending something
-            mpi4py.MPI.COMM_WORLD.isend((end_dict, self.mpi_rank), dest=0, tag=0)
-            mpi4py.MPI.Finalize()
-            sys.exit(0)
+            MPI.COMM_WORLD.isend((end_dict, self.mpi_rank), dest=0, tag=0)
+            MPI.Finalize()
+            exit(0)
 
         # The following is executed on the master
         elif self.role == 'master':
 
             if verbose:
-                print ('Starting master.')
+                print('Starting master.')
 
             # Loops continuously waiting for processed data from workers
             while True:
 
                 try:
 
-                    buffer_data = mpi4py.MPI.COMM_WORLD.recv(
-                        source=mpi4py.MPI.ANY_SOURCE,
+                    buffer_data = MPI.COMM_WORLD.recv(
+                        source=MPI.ANY_SOURCE,
                         tag=0)
                     if 'end' in buffer_data[0].keys():
-                        print ('Finalizing {0}'.format(buffer_data[1]))
+                        print('Finalizing', buffer_data[1])
                         self.num_nomore += 1
                         if self.num_nomore == self.mpi_size - 1:
                             print('All workers have run out of events.')
                             print('Shutting down.')
                             self.end_processing()
-                            mpi4py.MPI.Finalize()
-                            sys.exit(0)
+                            MPI.Finalize()
+                            exit(0)
                         continue
 
                     self.reduce(buffer_data)
                     self.num_reduced_events += 1
 
                 except KeyboardInterrupt as e:
-                    print ('Recieved keyboard sigterm...')
-                    print (str(e))
-                    print ('shutting down MPI.')
+                    print('Recieved keyboard sigterm...')
+                    print(str(e))
+                    print('shutting down MPI.')
                     self.shutdown()
-                    print ('---> execution finished.')
-                    sys.exit(0)
+                    print('---> execution finished.')
+                    exit(0)
 
         return
 
     def end_processing(self):
-        print('Processing finished. Processed {0} events in total.'.format(self.num_reduced_events))
-
+        print('Processing finished. Processed', self.num_reduced_events, 'events in total.')
+        stdout.flush()
         pass

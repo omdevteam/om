@@ -14,65 +14,96 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import psana
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
-from parallelization_layer.utils import (
-    global_params as gp,
-    dynamic_import as dyn_imp
-)
+from psana import Detector
 
-
-def pulse_energy_dataext(event):
-    gas = event['evt'].get(psana.Bld.BldDataFEEGasDetEnergyV1, psana.Source('BldInfo(FEEGasDetEnergy)'))
-
-    return (gas.f_11_ENRC() + gas.f_12_ENRC() + gas.f_21_ENRC() + gas.f_22_ENRC()) / 4.
+from parallelization_layer.utils import onda_params as gp
+from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module
 
 
-def beam_energy_dataext(event):
-    return event['evt'].get(psana.Bld.BldDataEBeamV7, psana.Source('BldInfo(EBeam)')).ebeamPhotonEnergy()
+def detector_distance_init(det):
+    det['det_dist'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['detector_dist_epics_pv'])
+
+
+def timetool_data_init(det):
+    det['time_tools'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['timetool_epics_pv'])
+
+
+def acqiris1_data_init(det):
+    det['acqiris1'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer1_psana_source'])
+
+
+def acqiris2_data_init(det):
+    det['acqiris2'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer2_psana_source'])
+
+
+def pulse_energy_init(det):
+    det['pulse_energy'] = Detector('FEEGasDetEnergy')
+
+
+def beam_energy_init(det):
+    det['beam_energy'] = Detector('EBeam')
 
 
 def detector_distance_dataext(event):
-    return event['det_dist']()
+    return event['det']['det_dist']()
 
 
-def acqiris_data_dataext(event):
-    return event['evt'].get(psana.Acqiris.DataDescV1,
-                            psana.Source(gp.monitor_params['PsanaParallelizationLayer']['digitizer_psana_source'])
-                            ).data(gp.monitor_params['PsanaParallelizationLayer'][
-                                                     'digitizer_psana_channel']).waveforms()
+def timetool_data_dataext(event):
+    return event['det']['timetool']()
 
 
-in_layer = dyn_imp.import_layer_module('instrument_layer', gp.monitor_params)
+def acqiris1_data_dataext(event):
+    return event['det']['acqiris1'].waveform(event['evt'])
 
-data_ext_funcs = ['raw_data', 'opal_data', 'detector_distance', 'beam_energy', 'pulse_energy', 'timestamp',
-                  'acqiris_data']
 
-for data_entry in data_ext_funcs:
-    locals()[data_entry] = lambda x: None
+def acqiris2_data_dataext(event):
+    return event['det']['acqiris2'].waveform(event['evt'])
+
+
+in_layer = import_correct_layer_module('instrument_layer', gp.monitor_params)
+
+avail_data_sources = ['raw_data', 'opal_data', 'detector_distance', 'beam_energy', 'pulse_energy', 'timestamp',
+                      'timetool_data', 'acqiris1_data', 'acqiris2_data']
+
+for data_source in avail_data_sources:
+    locals()[data_source] = lambda x: None
+
+for data_source in avail_data_sources:
+    locals()[data_source + '_initialize'] = lambda x: None
 
 required_data = gp.monitor_params['Backend']['required_data'].split(',')
-for data_entry in required_data:
-    data_entry = data_entry.strip()
-    if data_entry not in data_ext_funcs:
-        raise RuntimeError('Unknown data type: {0}'.format(data_entry))
+for data_source in required_data:
+    data_source = data_source.strip()
+    if data_source not in avail_data_sources:
+        raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        locals()[data_entry] = getattr(in_layer, data_entry)
+        locals()[data_source + '_initialize'] = getattr(in_layer, data_source + '_init')
+        locals()[data_source] = getattr(in_layer, data_source)
     except AttributeError:
         try:
-            locals()[data_entry] = locals()[data_entry+'_dataext']
+            locals()[data_source + '_initialize'] = locals()[data_source + '_init']
+            locals()[data_source] = locals()[data_source + '_dataext']
         except KeyError:
-            raise RuntimeError('Undefined data type: {0}'.format(data_entry))
+            raise RuntimeError('Undefined data type: {0}'.format(data_source))
+
+
+def initialize(det):
+    for init_data_source in avail_data_sources:
+        locals()[init_data_source + '_initialize'](det)
 
 
 def extract(event, monitor):
-
     # Extract detector data in slab format
     try:
         monitor.raw_data = raw_data(event)
 
     except Exception as e:
-        print ('Error when extracting raw_data: {0}'.format(e))
+        print('Error when extracting raw_data:', e)
         monitor.raw_data = None
 
     # Extract pulse energy in mJ
@@ -80,7 +111,7 @@ def extract(event, monitor):
         monitor.pulse_energy = pulse_energy(event)
 
     except Exception as e:
-        print ('Error when extracting pulse_energy: {0}'.format(e))
+        print('Error when extracting pulse_energy:', e)
         monitor.pulse_energy = None
 
     # Extract beam energy in eV
@@ -88,7 +119,7 @@ def extract(event, monitor):
         monitor.beam_energy = beam_energy(event)
 
     except Exception as e:
-        print ('Error when extracting beam_energy: {0}'.format(e))
+        print('Error when extracting beam_energy:', e)
         monitor.beam_energy = None
 
     # Extract detector distance in mm
@@ -96,7 +127,7 @@ def extract(event, monitor):
         monitor.detector_distance = detector_distance(event)
 
     except Exception as e:
-        print ('Error when extracting detector_distance: {0}'.format(e))
+        print('Error when extracting detector_distance:', e)
         monitor.detector_distance = None
 
     # Extract Opal camera data
@@ -104,13 +135,29 @@ def extract(event, monitor):
         monitor.opal_data = opal_data(event)
 
     except Exception as e:
-        print ('Error when extracting opal_data: {0}'.format(e))
+        print('Error when extracting opal_data:', e)
         monitor.opal_data = None
+
+    # Extract timetool data
+    try:
+        monitor.timetool_data = timetool_data(event)
+
+    except Exception as e:
+        print('Error when extracting timetool_data:', e)
+        monitor.timetool_data = None
 
     # Extract Acquiris data
     try:
-        monitor.acqiris_data = acqiris_data(event)
+        monitor.acqiris1_data = acqiris1_data(event)
 
     except Exception as e:
-        print ('Error when extracting tof_data: {0}'.format(e))
+        print('Error when extracting tof_data:', e)
+        monitor.tof_data = None
+
+    # Extract Acquiris data
+    try:
+        monitor.acqiris2_data = acqiris2_data(event)
+
+    except Exception as e:
+        print('Error when extracting tof_data:', e)
         monitor.tof_data = None

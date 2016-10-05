@@ -15,9 +15,9 @@
 
 
 import numpy
-import scipy.ndimage
+from scipy import ndimage
 
-from cfelpyutils.cfelhdf5 import load_nparray_from_hdf5_file
+from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
 
 
 ######################
@@ -95,7 +95,7 @@ class DarkCalCorrection:
             data_as_slab (numpy.ndarray): the data on which to apply the DarkCal correction, in 'slab' format.
         """
 
-        return (data_as_slab*self.mask - self.darkcal)*self.gain_map
+        return (data_as_slab * self.mask - self.darkcal) * self.gain_map
 
 
 #########################
@@ -126,10 +126,9 @@ class SimplePeakDetection:
         self.threshold = threshold
         self.peak_window_size = window_size
         self.accumulated_shots = accumulated_shots
-        self.neighborhood = scipy.ndimage.morphology.generate_binary_structure(2, 5)
+        self.neighborhood = ndimage.morphology.generate_binary_structure(2, 5)
 
         if role == 'master':
-
             self.accumulator = ([], [], [])
             self.events_in_accumulator = 0
 
@@ -152,7 +151,7 @@ class SimplePeakDetection:
             input data array, the third the intensity of the peaks. All are lists of float numbers.
         """
 
-        local_max = scipy.ndimage.filters.maximum_filter(
+        local_max = ndimage.filters.maximum_filter(
             raw_data, footprint=self.neighborhood)
         data_as_slab_peak = (raw_data == local_max)
         data_as_slab_thresh = (raw_data > self.threshold)
@@ -161,18 +160,18 @@ class SimplePeakDetection:
         peak_values = raw_data[peak_list]
 
         if len(peak_list[0]) > 10000:
-            print ('Silly number of peaks {0}'.format(len(peak_list[0])))
+            print('Silly number of peaks {0}'.format(len(peak_list[0])))
             peak_list = ([], [], [])
         elif len(peak_list[0]) != 0:
             subpixel_x = []
             subpixel_y = []
             for x_peak, y_peak in zip(peak_list[0], peak_list[1]):
                 peak_window = raw_data[x_peak - self.peak_window_size:x_peak + self.peak_window_size + 1,
-                                       y_peak-self.peak_window_size:y_peak+self.peak_window_size+1]
+                                       y_peak - self.peak_window_size:y_peak + self.peak_window_size + 1]
                 if peak_window.shape[0] != 0 and peak_window.shape[1] != 0:
                     offset = scipy.ndimage.measurements.center_of_mass(peak_window)
-                    offset_x = offset[0]-self.peak_window_size
-                    offset_y = offset[1]-self.peak_window_size
+                    offset_x = offset[0] - self.peak_window_size
+                    offset_y = offset[1] - self.peak_window_size
                     subpixel_x.append(x_peak + offset_x)
                     subpixel_y.append(y_peak + offset_y)
                 else:
@@ -242,7 +241,6 @@ class RawDataAveraging:
 
         # Initialized on master
         if role == 'master':
-
             self.slab_shape = slab_shape
             self.num_raw_data = 0
             self.avg_raw_data = numpy.zeros(slab_shape)
@@ -274,6 +272,3 @@ class RawDataAveraging:
         if self.num_raw_data == self.accumulated_shots:
             return self.avg_raw_data
         return None
-
-
-

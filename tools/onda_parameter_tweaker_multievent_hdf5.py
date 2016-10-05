@@ -14,28 +14,24 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import PyQt4.QtCore
-import PyQt4.QtGui
-import pyqtgraph
-import numpy
-import random
-import signal
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 
 import h5py
-import GUI.UI.parameter_tweaker_UI
+import sys
+import numpy
+from PyQt4 import QtCore, QtGui
+import pyqtgraph as pg
+from signal import signal, SIGINT, SIG_DFL
 
-from cfelpyutils.cfeloptarg import parse_parameters
-from cfelpyutils.cfelhdf5 import load_nparray_from_hdf5_file
-from python_extensions.peakfinder8_extension import peakfinder_8
-from cfelpyutils.cfelgeom import (
-    pixel_maps_from_geometry_file,
-    pixel_maps_for_image_view
-)
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
+
+from cfelpyutils.cfel_optarg import parse_parameters
+from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
+from cfelpyutils.cfel_geom import pixel_maps_from_geometry_file, pixel_maps_for_image_view
+from GUI.UI import parameter_tweaker_UI
+from peakfinder8_extension import peakfinder_8
 
 
 def load_file(filename, hdf5_path, index):
@@ -57,7 +53,7 @@ def check_changed_parameter(param, param_conv_vers, lineedit_element):
             return param, False
 
 
-class MainFrame(PyQt4.QtGui.QMainWindow):
+class MainFrame(QtGui.QMainWindow):
     """
     The main frame of the application
     """
@@ -195,7 +191,7 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
 
     def __init__(self, input_file, data_path, monitor_params):
 
-        PyQt4.QtCore.QObject.__init__(self)
+        QtCore.QObject.__init__(self)
 
         self.filename = input_file
         self.data_path = data_path
@@ -210,8 +206,8 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
         gen_params = monitor_params['General']
         p8pd_params = monitor_params['Peakfinder8PeakDetection']
 
-        self.ring_pen = pyqtgraph.mkPen('r', width=2)
-        self.circle_pen = pyqtgraph.mkPen('b', width=2)
+        self.ring_pen = pg.mkPen('r', width=2)
+        self.circle_pen = pg.mkPen('b', width=2)
 
         pix_maps = pixel_maps_from_geometry_file(gen_params['geometry_file'])
         self.pixelmap_radius = pix_maps[2]
@@ -247,82 +243,82 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
         mask = 255. - mask
         self.mask_to_draw[self.pixel_maps[0], self.pixel_maps[1], 1] = mask.ravel()
 
-        self.mask_image_view = pyqtgraph.ImageItem()
-        self.peak_canvas = pyqtgraph.ScatterPlotItem()
-        self.circle_canvas = pyqtgraph.ScatterPlotItem()
+        self.mask_image_view = pg.ImageItem()
+        self.peak_canvas = pg.ScatterPlotItem()
+        self.circle_canvas = pg.ScatterPlotItem()
 
-        self.adc_threshold_label = PyQt4.QtGui.QLabel(self)
+        self.adc_threshold_label = QtGui.QLabel(self)
         self.adc_threshold_label.setText('adc_threshold')
-        self.adc_threshold_lineedit = PyQt4.QtGui.QLineEdit(self)
+        self.adc_threshold_lineedit = QtGui.QLineEdit(self)
         self.adc_threshold_lineedit.setText(str(p8pd_params['adc_threshold']))
         self.adc_threshold_lineedit.editingFinished.connect(self.update_peaks)
-        self.hlayout0 = PyQt4.QtGui.QHBoxLayout()
+        self.hlayout0 = QtGui.QHBoxLayout()
         self.hlayout0.addWidget(self.adc_threshold_label)
         self.hlayout0.addWidget(self.adc_threshold_lineedit)
 
-        self.min_snr_label = PyQt4.QtGui.QLabel(self)
+        self.min_snr_label = QtGui.QLabel(self)
         self.min_snr_label.setText('minmum_snr')
-        self.min_snr_lineedit = PyQt4.QtGui.QLineEdit(self)
+        self.min_snr_lineedit = QtGui.QLineEdit(self)
         self.min_snr_lineedit.setText(str(p8pd_params['minimum_snr']))
         self.min_snr_lineedit.editingFinished.connect(self.update_peaks)
-        self.hlayout1 = PyQt4.QtGui.QHBoxLayout()
+        self.hlayout1 = QtGui.QHBoxLayout()
         self.hlayout1.addWidget(self.min_snr_label)
         self.hlayout1.addWidget(self.min_snr_lineedit)
 
-        self.min_pixel_count_label = PyQt4.QtGui.QLabel(self)
+        self.min_pixel_count_label = QtGui.QLabel(self)
         self.min_pixel_count_label.setText('min_pixel_count')
-        self.min_pixel_count_lineedit = PyQt4.QtGui.QLineEdit(self)
+        self.min_pixel_count_lineedit = QtGui.QLineEdit(self)
         self.min_pixel_count_lineedit.setText(str(p8pd_params['min_pixel_count']))
         self.min_pixel_count_lineedit.editingFinished.connect(self.update_peaks)
-        self.hlayout2 = PyQt4.QtGui.QHBoxLayout()
+        self.hlayout2 = QtGui.QHBoxLayout()
         self.hlayout2.addWidget(self.min_pixel_count_label)
         self.hlayout2.addWidget(self.min_pixel_count_lineedit)
 
-        self.max_pixel_count_label = PyQt4.QtGui.QLabel(self)
+        self.max_pixel_count_label = QtGui.QLabel(self)
         self.max_pixel_count_label.setText('max_pixel_count')
-        self.max_pixel_count_lineedit = PyQt4.QtGui.QLineEdit(self)
+        self.max_pixel_count_lineedit = QtGui.QLineEdit(self)
         self.max_pixel_count_lineedit.setText(str(p8pd_params['max_pixel_count']))
         self.max_pixel_count_lineedit.editingFinished.connect(self.update_peaks)
-        self.hlayout3 = PyQt4.QtGui.QHBoxLayout()
+        self.hlayout3 = QtGui.QHBoxLayout()
         self.hlayout3.addWidget(self.max_pixel_count_label)
         self.hlayout3.addWidget(self.max_pixel_count_lineedit)
 
-        self.local_bg_radius_label = PyQt4.QtGui.QLabel(self)
+        self.local_bg_radius_label = QtGui.QLabel(self)
         self.local_bg_radius_label.setText('local_bg_raidus')
-        self.local_bg_radius_lineedit = PyQt4.QtGui.QLineEdit(self)
+        self.local_bg_radius_lineedit = QtGui.QLineEdit(self)
         self.local_bg_radius_lineedit.setText(str(p8pd_params['local_bg_radius']))
         self.local_bg_radius_lineedit.editingFinished.connect(self.update_peaks)
-        self.hlayout4 = PyQt4.QtGui.QHBoxLayout()
+        self.hlayout4 = QtGui.QHBoxLayout()
         self.hlayout4.addWidget(self.local_bg_radius_label)
         self.hlayout4.addWidget(self.local_bg_radius_lineedit)
 
-        self.min_res_label = PyQt4.QtGui.QLabel(self)
+        self.min_res_label = QtGui.QLabel(self)
         self.min_res_label.setText('min_res')
-        self.min_res_lineedit = PyQt4.QtGui.QLineEdit(self)
+        self.min_res_lineedit = QtGui.QLineEdit(self)
         self.min_res_lineedit.setText(str(self.min_res))
         self.min_res_lineedit.editingFinished.connect(self.update_peaks)
-        self.hlayout5 = PyQt4.QtGui.QHBoxLayout()
+        self.hlayout5 = QtGui.QHBoxLayout()
         self.hlayout5.addWidget(self.min_res_label)
         self.hlayout5.addWidget(self.min_res_lineedit)
 
-        self.max_res_label = PyQt4.QtGui.QLabel(self)
+        self.max_res_label = QtGui.QLabel(self)
         self.max_res_label.setText('max_res')
-        self.max_res_lineedit = PyQt4.QtGui.QLineEdit(self)
+        self.max_res_lineedit = QtGui.QLineEdit(self)
         self.max_res_lineedit.setText(str(self.max_res))
         self.max_res_lineedit.editingFinished.connect(self.update_peaks)
-        self.hlayout6 = PyQt4.QtGui.QHBoxLayout()
+        self.hlayout6 = QtGui.QHBoxLayout()
         self.hlayout6.addWidget(self.max_res_label)
         self.hlayout6.addWidget(self.max_res_lineedit)
 
-        self.param_label = PyQt4.QtGui.QLabel(self)
+        self.param_label = QtGui.QLabel(self)
         self.param_label.setText('<b>Peakfinder Parameters:</b>')
 
-        self.ui = GUI.UI.parameter_tweaker_UI.Ui_MainWindow()
+        self.ui = parameter_tweaker_UI.Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
         
-        self.proxy = pyqtgraph.SignalProxy(self.ui.imageView.getView().scene().sigMouseClicked,
-                                           slot=self.mouse_clicked)
+        self.proxy = pg.SignalProxy(self.ui.imageView.getView().scene().sigMouseClicked,
+                                    slot=self.mouse_clicked)
 
         self.update_peaks()
         self.draw_things()
@@ -356,8 +352,8 @@ class MainFrame(PyQt4.QtGui.QMainWindow):
 
 
 def main():
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    config = configparser.ConfigParser()
+    signal(SIGINT, SIG_DFL)
+    config = ConfigParser()
     if len(sys.argv) != 3:
         print('Usage: onda_parameter_tweaker_multievent_hdf5.py <hdf5_file_name> <hdf5_data_path>')
         sys.exit()
@@ -367,7 +363,7 @@ def main():
     config.read('monitor.ini')
     monitor_params = parse_parameters(config)
 
-    app = PyQt4.QtGui.QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
     _ = MainFrame(input_file, data_path, monitor_params)
     sys.exit(app.exec_())
 

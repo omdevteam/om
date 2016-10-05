@@ -13,13 +13,22 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 import numpy
 
-from cfelpyutils.cfelhdf5 import load_nparray_from_hdf5_file
-from peakfinder8_extension import peakfinder_8
-from peakfinder9_extension import peakfinder_9
-from streakfinder_extension import StreakDetectionClass
+from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
+
+try:
+    from peakfinder8_extension import peakfinder_8
+    from peakfinder9_extension import peakfinder_9
+    from streakfinder_extension import StreakDetectionClass
+except:
+    raise RuntimeError('Error importing cheetah wrappers. Make sure that they are compiled for the correct ' +
+                       'python version.')
 
 
 ##############################
@@ -76,18 +85,6 @@ class Peakfinder8PeakDetection:
             center of the detector, in pixels.
         """
 
-        self.max_num_peaks = max_num_peaks
-        self.asic_nx = asic_nx
-        self.asic_ny = asic_ny
-        self.nasics_x = nasics_x
-        self.nasics_y = nasics_y
-        self.adc_thresh = adc_threshold
-        self.minimum_snr = minimum_snr
-        self.min_pixel_count = min_pixel_count
-        self.max_pixel_count = max_pixel_count
-        self.local_bg_radius = local_bg_radius
-        self.pixelmap_radius = pixelmap_radius
-
         if role == 'master':
 
             self.accumulated_shots = accumulated_shots
@@ -97,11 +94,24 @@ class Peakfinder8PeakDetection:
         # Initialized on worker
         if role == 'worker':
 
+            self.max_num_peaks = max_num_peaks
+            self.asic_nx = asic_nx
+            self.asic_ny = asic_ny
+            self.nasics_x = nasics_x
+            self.nasics_y = nasics_y
+            self.adc_thresh = adc_threshold
+            self.minimum_snr = minimum_snr
+            self.min_pixel_count = min_pixel_count
+            self.max_pixel_count = max_pixel_count
+            self.local_bg_radius = local_bg_radius
+            self.pixelmap_radius = pixelmap_radius
             self.mask = load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
-            self.res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
-            self.res_mask[numpy.where(pixelmap_radius < min_res)] = 0
-            self.res_mask[numpy.where(pixelmap_radius > max_res)] = 0
-            self.mask *= self.res_mask
+
+            res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
+            res_mask[numpy.where(pixelmap_radius < min_res)] = 0
+            res_mask[numpy.where(pixelmap_radius > max_res)] = 0
+
+            self.mask *= res_mask
 
     def find_peaks(self, raw_data):
         """Finds peaks.

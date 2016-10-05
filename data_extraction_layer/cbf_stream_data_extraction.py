@@ -14,44 +14,47 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 try:
-    import StringIO as strio
+    from StringIO import StringIO
 except ImportError:
-    import io as strio
+    from io import StringIO
 
-from cfelpyutils.cfelfabio import read_cbf_from_stream
+from cfelpyutils.cfel_fabio import read_cbf_from_stream
+from parallelization_layer.utils import onda_params as gp
+from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
 
-from parallelization_layer.utils import (
-    global_params as gp,
-    dynamic_import as dyn_imp
-)
 
-in_layer = dyn_imp.import_layer_module('instrument_layer', gp.monitor_params)
-num_events_in_file = getattr(in_layer, 'num_events_in_file')
+in_layer = import_correct_layer_module('instrument_layer', gp.monitor_params)
+num_events_in_file = import_function_from_layer('num_events_in_file', in_layer)
 
 file_extensions = ['.cbf']
 
-data_ext_funcs = ['raw_data', 'detector_distance', 'beam_energy', 'pulse_energy', 'timestamp', 'filename_and_event']
+avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'pulse_energy', 'timestamp', 'filename_and_event']
 
-for data_entry in data_ext_funcs:
-    locals()[data_entry] = lambda x: None
+for data_source in avail_data_sources:
+    locals()[data_source] = lambda x: None
 
 required_data = gp.monitor_params['Backend']['required_data'].split(',')
-for data_entry in required_data:
-    data_entry = data_entry.strip()
-    if data_entry not in data_ext_funcs:
-        raise RuntimeError('Unknown data type: {0}'.format(data_entry))
+for data_source in required_data:
+    data_source = data_source.strip()
+    if data_source not in avail_data_sources:
+        raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        locals()[data_entry] = getattr(in_layer, data_entry)
+        locals()[data_source] = getattr(in_layer, data_source)
     except AttributeError:
         try:
-            locals()[data_entry] = locals()[data_entry+'_dataext']
+            locals()[data_source] = locals()[data_source + '_dataext']
         except KeyError:
-            raise RuntimeError('Undefined data type: {0}'.format(data_entry))
+            raise RuntimeError('Undefined data type: {0}'.format(data_source))
 
 
 def open_file(data):
-    data_stringio = strio.StringIO(data)
+    data_stringio = StringIO(data)
     f = read_cbf_from_stream(data_stringio)
     data_stringio.close()
     return f
@@ -66,13 +69,12 @@ def num_events(filehandle):
 
 
 def extract(evt, monitor):
-
     # Extract timestamp
     try:
         monitor.event_timestamp = timestamp(evt)
 
     except Exception as e:
-        print ('Error while extracting timestamp: {0}'.format(e))
+        print('Error while extracting timestamp:', e)
         monitor.event_timestamp = None
 
     # Extract detector data in slab format
@@ -80,7 +82,7 @@ def extract(evt, monitor):
         monitor.raw_data = raw_data(evt)
 
     except Exception as e:
-        print ('Error while extracting raw_data: {0}'.format(e))
+        print('Error while extracting raw_data:', e)
         monitor.raw_data = None
 
     # Extract beam energy in eV
@@ -88,7 +90,7 @@ def extract(evt, monitor):
         monitor.beam_energy = beam_energy(evt)
 
     except Exception as e:
-        print ('Error while extracting beam_energy: {0}'.format(e))
+        print('Error while extracting beam_energy:', e)
         monitor.beam_energy = None
 
     # Extract detector distance in mm
@@ -96,7 +98,7 @@ def extract(evt, monitor):
         monitor.detector_distance = detector_distance(evt)
 
     except Exception as e:
-        print ('Error while extracting detector_distance: {0}'.format(e))
+        print('Error while extracting detector_distance:', e)
         monitor.detector_distance = None
 
     # Extract filename and event
@@ -104,6 +106,6 @@ def extract(evt, monitor):
         monitor.filename, monitor.event = filename_and_event(evt)
 
     except Exception as e:
-        print ('Error while extracting filename and event: {0}'.format(e))
+        print('Error while extracting filename and event:', e)
         monitor.filename = None
         monitor.event = None

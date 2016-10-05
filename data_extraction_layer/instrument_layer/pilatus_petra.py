@@ -14,8 +14,14 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+
 import datetime
-import scipy.constants
+from scipy.constants import h, c, electron_volt
 
 slab_shape = (2527, 2463)
 native_shape = (2527, 2463)
@@ -38,7 +44,7 @@ def beam_energy(evt):
     try:
         header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
         wavelength = float(header_data_list[15].split()[2])
-        return float(scipy.costants.h * scipy.constants.c / (wavelength * scipy.constants.electron_volt))
+        return float(h * c / (wavelength * electron_volt))
     except AttributeError:
         return float(evt['monitor_params']['General']['fallback_beam_energy'])
 

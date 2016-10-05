@@ -20,9 +20,21 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 
-slab_shape = (1920, 1920)
-native_shape = (1920, 1920)
+monitor_params = {}
 
 
-def raw_data(event):
-    return event['det'].raw(event['evt'])
+def param(section, par, typ = None):
+    if section not in monitor_params:
+        raise RuntimeError('Section {0} is not in the configuration file'.format(section))
+    else:
+        ret = monitor_params[section].get(par)
+        if ret is not None and typ is not None:
+            if type(ret) != typ:
+                raise RuntimeError('Wrong type for parameter {0}: should be {1}, is {2}.'.format(
+                    par, str(typ).split()[1][1:-2], str(type(ret)).split()[1][1:-2]))
+            else:
+                return ret
+        else:
+            return ret
+
+

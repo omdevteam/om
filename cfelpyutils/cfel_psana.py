@@ -21,6 +21,12 @@ This module provides utilities that build on the functionality provided by the p
 """
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+
 def psana_obj_from_string(name):
     """Converts a string into a psana object type.
 
@@ -56,7 +62,7 @@ def psana_event_inspection(source):
     import psana
 
     print('\n\n')
-    print('data source : %s' % source)
+    print('data source :', source)
 
     print('\n')
     print('Opening dataset...')
@@ -75,7 +81,7 @@ def psana_event_inspection(source):
     itr = ds.events()
     evt = itr.next()
     for k in evt.keys():
-        print('Type: %s   Source: %s   Alias: %s   Key: %s' % (k.type(), k.src(), k.alias(), k.key()))
+        print('Type: {0}   Source: {1}   Alias: {2}   Key: {3}'.format(k.type(), k.src(), k.alias(), k.key()))
         print('')
 
     for k in evt.keys():
@@ -108,5 +114,5 @@ def dirname_from_source_runs(source):
     nums = runs.split(',')
     if len(nums) == 0:
         nums = runs
-    dirname = 'run_' + "_".join(nums)
+    dirname = 'run_' + '_'.join(nums)
     return dirname

@@ -14,12 +14,20 @@
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import zmq
-import pickle
-import PyQt4.QtCore
+try:
+    from cPickle import loads
+except ImportError:
+    from pickle import loads
+from PyQt4 import QtCore
 
 
-class ZMQListener(PyQt4.QtCore.QObject):
+class ZMQListener(QtCore.QObject):
     """
     ZMQ Listener class, to be used for GUIs and data receivers in general.
     It is designed to be run in a separate Qt thread. It instantiates
@@ -28,11 +36,11 @@ class ZMQListener(PyQt4.QtCore.QObject):
     The signal brings the received data as payload
     """
 
-    zmqmessage = PyQt4.QtCore.pyqtSignal(dict)
+    zmqmessage = QtCore.pyqtSignal(dict)
 
     def __init__(self, sub_ip, sub_port, subscribe_string):
 
-        PyQt4.QtCore.QObject.__init__(self)
+        QtCore.QObject.__init__(self)
 
         self.sub_ip = sub_ip
         self.sub_port = sub_port
@@ -47,7 +55,7 @@ class ZMQListener(PyQt4.QtCore.QObject):
         self.zmq_poller = zmq.Poller()
         self.zmq_poller.register(self.zmq_subscribe, zmq.POLLIN)
 
-        self.listening_timer = PyQt4.QtCore.QTimer()
+        self.listening_timer = QtCore.QTimer()
         self.listening_timer.timeout.connect(self.listen)
 
     def start_listening(self):
@@ -63,5 +71,5 @@ class ZMQListener(PyQt4.QtCore.QObject):
         if self.zmq_subscribe in socks and socks[self.zmq_subscribe] == zmq.POLLIN:
             full_msg = self.zmq_subscribe.recv_multipart()
             msg = full_msg[1]
-            zmq_dict = pickle.loads(msg)
+            zmq_dict = loads(msg)
             self.zmqmessage.emit(zmq_dict)

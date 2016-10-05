@@ -14,30 +14,48 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
+import sys
 try:
-    import configparser
+    from configparser import ConfigParser
 except ImportError:
-    import ConfigParser as configparser
+    from ConfigParser import ConfigParser
+from traceback import extract_tb, print_exception
 
-import cfelpyutils.cfeloptarg as cfel_oa
-from parallelization_layer.utils import (
-    onda_optargs as onda_oa,
-    global_params as gp,
-    dynamic_import as dyn_imp
-)
+import parallelization_layer.utils.onda_params as op
+from cfelpyutils.cfel_optarg import parse_parameters
+from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_class_from_layer
+from parallelization_layer.utils.onda_optargs import parse_onda_cmdline_args
+
+
+def exception_handler(exception_type, exception, traceback):
+
+    if exception_type == SyntaxError:
+        print_exception(exception_type, exception, traceback)
+    else:
+        print('OnDA Error:', exception)
+        print('           ', 'Error Type:', exception_type.__name__)
+        print('           ', 'File:', extract_tb(traceback)[-1][0])
+        print('           ', 'Line:', extract_tb(traceback)[-1][1])
+
 
 if __name__ == "__main__":
-    args = onda_oa.parse_onda_cmdline_args()
+    args = parse_onda_cmdline_args()
 
-    config = configparser.ConfigParser()
+    config = ConfigParser()
     config.read(args.ini)
 
-    monitor_params = cfel_oa.parse_parameters(config)
-    gp.monitor_params = monitor_params
+    if not args.debug:
+        sys.excepthook = exception_handler
 
-    processing_layer = dyn_imp.import_layer_module('processing_layer', monitor_params)
-    Onda = getattr(processing_layer, 'Onda')
+    op.monitor_params = parse_parameters(config)
 
-    mon = Onda(args.source, monitor_params)
+    processing_layer = import_correct_layer_module('processing_layer', op.monitor_params)
+    Onda = import_class_from_layer('Onda', processing_layer)
+
+    mon = Onda(args.source)
     mon.start(verbose=False)

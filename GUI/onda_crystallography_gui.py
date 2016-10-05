@@ -14,29 +14,23 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
-import sys
-import datetime
 import numpy
-import scipy.constants
-import math
-import signal
 import pyqtgraph as pg
-import copy
-import GUI.UI.onda_crystallography_UI
+import sys
+from copy import deepcopy
+from datetime import datetime
+from PyQt4 import QtCore, QtGui
+from scipy.constants import h, c, e
+from signal import signal, SIGINT, SIG_DFL
 
-from cfelpyutils.cfelgeom import (
-    coffset_from_geometry_file,
-    res_from_geometry_file,
-    pixel_maps_for_image_view
-)
-
-from PyQt4 import (
-    QtGui,
-    QtCore
-)
-
+from cfelpyutils.cfel_geom import coffset_from_geometry_file, res_from_geometry_file, pixel_maps_for_image_view
 from GUI.utils.zmq_gui_utils import ZMQListener
+from GUI.UI import onda_crystallography_UI
 
 
 class MainFrame(QtGui.QMainWindow):
@@ -80,7 +74,7 @@ class MainFrame(QtGui.QMainWindow):
         self.resolution_rings_validator = QtGui.QRegExpValidator()
         self.resolution_rings_validator.setRegExp(self.resolution_rings_regex)
         pg.setConfigOption('background', 0.2)
-        self.ui = GUI.UI.onda_crystallography_UI.Ui_mainWindow()
+        self.ui = onda_crystallography_UI.Ui_mainWindow()
         self.ui.setupUi(self)
         self.init_ui()
 
@@ -163,7 +157,7 @@ class MainFrame(QtGui.QMainWindow):
                 self.ui.hitRatePlotWidget.addItem(vertical_line, ignoreBounds=True)
 
     def data_received(self, datdict):
-        self.data = copy.deepcopy(datdict)
+        self.data = deepcopy(datdict)
 
     def update_resolution_rings(self):
         items = str(self.ui.resolutionRingsLineEdit.text()).split(',')
@@ -196,7 +190,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def draw_resolution_rings(self):
 
-        lambd = scipy.constants.h * scipy.constants.c / (scipy.constants.e * self.local_data['beam_energy'])
+        lambd = h * c / (e * self.local_data['beam_energy'])
         resolution_rings_in_pix = [1.0]
 
         resolution_rings_in_pix.extend([2.0 * self.res *
@@ -224,7 +218,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def update_image_plot(self):
 
-        if len(self.data.keys()) != 0:
+        if len(self.data) != 0:
             self.local_data = self.data
             self.data = {}
         else:
@@ -232,7 +226,7 @@ class MainFrame(QtGui.QMainWindow):
 
         QtGui.QApplication.processEvents()
 
-        if math.isnan(self.local_data['hit_rate']):
+        if numpy.isnan(self.local_data['hit_rate']):
             self.hitrate_history.append(0)
             hr = 0
         else:
@@ -240,7 +234,7 @@ class MainFrame(QtGui.QMainWindow):
             hr = self.local_data['hit_rate']
         self.hitrate_history.pop(0)
 
-        if math.isnan(self.local_data['sat_rate']):
+        if numpy.isnan(self.local_data['sat_rate']):
             self.hitrate_history.append(0)
         else:
             self.satrate_history.append(self.local_data['sat_rate'])
@@ -281,7 +275,7 @@ class MainFrame(QtGui.QMainWindow):
         if timestamp is not None:
             self.ui.hitRatePlotWidget.setTitle('Hit Rate vs. Events - {0} - {1}%'.format(timestamp.strftime("%H:%M:%S"),
                                                                                          round(hr*100, 1)))
-            timenow = datetime.datetime.now()
+            timenow = datetime.now()
             self.ui.delayLabel.setText('Estimated delay: {0}.{1} seconds'.format((timenow - timestamp).seconds,
                                        str((timenow - timestamp).microseconds)[0:3]))
         else:
@@ -306,7 +300,7 @@ class MainFrame(QtGui.QMainWindow):
 
 
 def main():
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal(SIGINT, SIG_DFL)
     app = QtGui.QApplication(sys.argv)
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]
