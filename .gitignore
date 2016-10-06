@@ -1,6 +1,7 @@
 .idea
 __pycache__
 *.so
+*.pyc
 build/
 pre-setup-bash.sh
 
