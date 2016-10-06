@@ -22,13 +22,12 @@ from __future__ import unicode_literals
 from collections import deque
 from sys import stdout
 from time import time
-from zmq import SNDMORE
 
 from cfelpyutils.cfel_geom import pixel_maps_from_geometry_file
 from parallelization_layer.utils.onda_params import monitor_params, param
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_class_from_layer
+from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module
 
-from parallelization_layer.utils.onda_zmq_monitor_utils import init_zmq_to_gui
+from parallelization_layer.utils.onda_zmq_monitor_utils import zmq_onda_publisher_socket
 from processing_layer.algorithms.generic_algorithms import DarkCalCorrection
 from processing_layer.algorithms.cheetah_algorithms import Peakfinder8PeakDetection
 
@@ -103,7 +102,8 @@ class Onda(MasterWorker):
             print('Starting the monitor...')
             stdout.flush()
 
-            init_zmq_to_gui(self, param('General', 'publish_ip', int), param('General', 'publish_port', int))
+            self.sending_socket = zmq_onda_publisher_socket(param('General', 'publish_ip', int),
+                                                            param('General', 'publish_port', int))
 
             self.hit_rate = 0
             self.sat_rate = 0
@@ -163,15 +163,13 @@ class Onda(MasterWorker):
             collected_data['beam_energy'] = results_dict['beam_energy']
             collected_data['optimized_geometry'] = self.optimized_geometry
 
-            self.zmq_publish.send(b'ondadata', SNDMORE)
-            self.zmq_publish.send_pyobj(collected_data)
+            self.sending_socket.send_data('ondadata', collected_data)
 
         if 'raw_data' in results_dict:
             collected_rawdata['raw_data'] = results_dict['raw_data']
             collected_rawdata['peak_list'] = results_dict['peak_list']
 
-            self.zmq_publish.send(b'ondarawdata', SNDMORE)
-            self.zmq_publish.send_pyobj(collected_rawdata)
+            self.sending_socket.send_data('ondarawdata', collected_rawdata)
 
         if self.num_events % self.speed_report_interval == 0:
             now_time = time()
