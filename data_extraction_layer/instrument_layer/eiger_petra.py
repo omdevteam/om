@@ -45,4 +45,4 @@ def beam_energy(evt):
 
 
 def filename_and_event(evt):
-    return evt['filename'], evt['filehandle']['/entry/data/data'].shape[0]+evt['shot_offset']
+    return (evt['filename'], evt['filehandle']['/entry/data/data'].shape[0]+evt['shot_offset'])

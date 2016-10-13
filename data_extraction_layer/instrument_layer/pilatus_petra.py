@@ -23,6 +23,7 @@ from __future__ import unicode_literals
 import datetime
 from scipy.constants import h, c, electron_volt
 
+
 slab_shape = (2527, 2463)
 native_shape = (2527, 2463)
 
@@ -45,7 +46,7 @@ def beam_energy(evt):
         header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
         wavelength = float(header_data_list[15].split()[2])
         return float(h * c / (wavelength * electron_volt))
-    except AttributeError:
+    except (AttributeError, IndexError):
         return float(evt['monitor_params']['General']['fallback_beam_energy'])
 
 
@@ -53,9 +54,9 @@ def detector_distance(evt):
     try:
         header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
         return float(header_data_list[16].split()[2])
-    except AttributeError:
+    except (AttributeError, IndexError):
         return float(evt['monitor_params']['General']['fallback_detector_distance'])
 
 
 def filename_and_event(evt):
-    return evt['filename'], 0
+    return (evt['filename'], 0)

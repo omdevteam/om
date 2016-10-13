@@ -45,14 +45,14 @@ class Onda(MasterWorker):
         _, _, pixelmap_radius = pixel_maps_from_geometry_file(param('General', 'geometry_file'))
 
         self.dark_cal_correction = DarkCalCorrection(self.role,
-                                                     param('DarkCalCorrection', 'filename', unicode),
-                                                     param('DarkCalCorrection', 'hdf5_group', unicode),
+                                                     param('DarkCalCorrection', 'filename', str),
+                                                     param('DarkCalCorrection', 'hdf5_group', str),
                                                      param('DarkCalCorrection', 'apply_mask', bool),
-                                                     param('DarkCalCorrection', 'mask_filename', unicode),
-                                                     param('DarkCalCorrection', 'mask_hdf5_group', unicode),
+                                                     param('DarkCalCorrection', 'mask_filename', str),
+                                                     param('DarkCalCorrection', 'mask_hdf5_group', str),
                                                      param('DarkCalCorrection', 'gain_map_correction', bool),
-                                                     param('DarkCalCorrection', 'gain_map_filename', unicode),
-                                                     param('DarkCalCorrection', 'gain_map_hdf5_group', unicode))
+                                                     param('DarkCalCorrection', 'gain_map_filename', str),
+                                                     param('DarkCalCorrection', 'gain_map_hdf5_group', str))
 
         self.peakfinder8_peak_det = Peakfinder8PeakDetection(self.role,
                                                              param('Peakfinder8PeakDetection', 'max_num_peaks', int),
@@ -70,9 +70,9 @@ class Onda(MasterWorker):
                                                              param('Peakfinder8PeakDetection', 'min_res', int),
                                                              param('Peakfinder8PeakDetection', 'max_res', int),
                                                              param('Peakfinder8PeakDetection', 'mask_filename',
-                                                                   unicode),
+                                                                   str),
                                                              param('Peakfinder8PeakDetection', 'mask_hdf5_path',
-                                                                   unicode),
+                                                                   str),
                                                              pixelmap_radius)
 
         if self.role == 'worker':

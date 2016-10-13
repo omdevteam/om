@@ -30,7 +30,7 @@ except ImportError:
 from cfelpyutils.cfel_optarg import parse_parameters
 from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
 from cfelpyutils.cfel_geom import pixel_maps_from_geometry_file, pixel_maps_for_image_view
-from GUI.UI import parameter_tweaker_UI
+from GUI.UI import onda_crystallography_parameter_tweaker_UI
 from peakfinder8_extension import peakfinder_8
 
 
@@ -313,7 +313,7 @@ class MainFrame(QtGui.QMainWindow):
         self.param_label = QtGui.QLabel(self)
         self.param_label.setText('<b>Peakfinder Parameters:</b>')
 
-        self.ui = parameter_tweaker_UI.Ui_MainWindow()
+        self.ui = onda_crystallography_parameter_tweaker_UI.Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
         

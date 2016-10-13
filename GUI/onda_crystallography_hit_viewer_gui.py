@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -29,10 +30,11 @@ from signal import signal, SIGINT, SIG_DFL
 
 from cfelpyutils.cfel_geom import pixel_maps_for_image_view
 from GUI.utils.zmq_gui_utils import ZMQListener
-from GUI.UI import onda_hit_viewer_UI
+from GUI.UI import onda_crystallography_hit_viewer_UI
 
 
 class MainFrame(QtGui.QMainWindow):
+
     listening_thread_start_processing = QtCore.pyqtSignal()
     listening_thread_stop_processing = QtCore.pyqtSignal()
     
@@ -56,7 +58,7 @@ class MainFrame(QtGui.QMainWindow):
 
         self.ring_pen = pg.mkPen('r', width=2)
         self.peak_canvas = pg.ScatterPlotItem()
-        self.ui = onda_hit_viewer_UI.Ui_MainWindow()
+        self.ui = onda_crystallography_hit_viewer_UI.Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
 

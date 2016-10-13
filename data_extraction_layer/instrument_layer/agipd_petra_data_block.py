@@ -46,4 +46,4 @@ def beam_energy(evt):
 
 
 def filename_and_event(evt):
-    return evt['filename'], 0
+    return (evt['filename'], 0)

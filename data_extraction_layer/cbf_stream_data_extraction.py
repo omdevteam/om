@@ -107,5 +107,4 @@ def extract(evt, monitor):
 
     except Exception as e:
         print('Error while extracting filename and event:', e)
-        monitor.filename = None
-        monitor.event = None
+        monitor.filename_and_event = None

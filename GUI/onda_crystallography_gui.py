@@ -34,9 +34,7 @@ from GUI.UI import onda_crystallography_UI
 
 
 class MainFrame(QtGui.QMainWindow):
-    """
-    The main frame of the application
-    """
+
     listening_thread_start_processing = QtCore.pyqtSignal()
     listening_thread_stop_processing = QtCore.pyqtSignal()
 
