@@ -46,7 +46,7 @@ def beam_energy(evt):
         header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
         wavelength = float(header_data_list[15].split()[2])
         return float(h * c / (wavelength * electron_volt))
-    except (AttributeError, IndexError):
+    except (AttributeError, IndexError, ValueError):
         return float(evt['monitor_params']['General']['fallback_beam_energy'])
 
 
@@ -54,7 +54,7 @@ def detector_distance(evt):
     try:
         header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
         return float(header_data_list[16].split()[2])
-    except (AttributeError, IndexError):
+    except (AttributeError, IndexError, ValueError):
         return float(evt['monitor_params']['General']['fallback_detector_distance'])
 
 
