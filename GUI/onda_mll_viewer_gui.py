@@ -24,7 +24,7 @@ import sys
 import pyqtgraph as pg
 from copy import deepcopy
 from datetime import datetime
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from signal import signal, SIGINT, SIG_DFL
 
 from GUI.utils.zmq_gui_utils import ZMQListener
@@ -42,22 +42,34 @@ class MainFrame(QtGui.QMainWindow):
         self.data = {}
         self.img = None
         self.alt_img = None
-        self.curr_type = 0
-        self.curr_run_num = 0
+
         self.init_listening_thread(rec_ip, rec_port)
+
         pg.setConfigOption('background', 0.2)
+
         self.ui = onda_mll_viewer_UI.Ui_MainWindow()
         self.ui.setupUi(self)
-        self.initUI()
+        self.init_ui()
+
+        self.bot_axis = self.ui.imageView.view.getAxis('bottom')
+        self.lef_axis = self.ui.imageView.view.getAxis('left')
+
+        self.data = {}
+        self.local_data = {}
+        self.pos = (0,0)
+        self.scale = (0,0)
+        self.curr_run_num = 0
+        self.curr_type = 0
+
         self.init_timer()
 
     def init_listening_thread(self, rec_ip, rec_port):
         self.zeromq_listener_thread = QtCore.QThread()
         self.zeromq_listener = ZMQListener(rec_ip, rec_port, u'ondadata')
-        self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
         self.listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
+        self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
         self.zeromq_listener_thread.start()
         self.listening_thread_start_processing.emit()
 
@@ -66,10 +78,8 @@ class MainFrame(QtGui.QMainWindow):
         self.refresh_timer.timeout.connect(self.update_image)
         self.refresh_timer.start(500)
 
-    def initUI(self):
+    def init_ui(self):
         self.ui.imageView = pg.ImageView(view=pg.PlotItem())
-        self.bot_axis = self.ui.imageView.view.getAxis('bottom')
-        self.lef_axis = self.ui.imageView.view.getAxis('left')
         self.ui.imageViewLayout.addWidget(self.ui.imageView)
         self.ui.imageView.ui.menuBtn.hide()
         self.ui.imageView.ui.roiBtn.hide()
@@ -93,13 +103,13 @@ class MainFrame(QtGui.QMainWindow):
     def draw_image(self):
 
         if self.curr_type == 2:
-            if self.ui.stxmButton.isChecked() == True:
+            if self.ui.stxmButton.isChecked():
                 self.ui.imageView.setImage(self.local_data['stxm'], autoRange=False, autoLevels=False)
             else:
                 self.ui.imageView.setImage(self.local_data['dpc'], autoRange=False, autoLevels=False)
   
         if self.curr_type == 1:
-            if self.ui.ssIntegrButton.isChecked() == True:
+            if self.ui.ssIntegrButton.isChecked():
                 self.ui.imageView.setImage(self.local_data['ss_integr_image'], autoRange=False, autoLevels=False)
             else:
                 self.ui.imageView.setImage(self.local_data['fs_integr_image'], autoRange=False, autoLevels=False)
@@ -133,7 +143,14 @@ class MainFrame(QtGui.QMainWindow):
             self.bot_axis.setLabel(self.local_data['fs_name'])
             self.lef_axis.setLabel(self.local_data['ss_name'])
             self.curr_run_num = self.local_data['num_run']
-            self.autolevels = True
+
+            self.pos = (self.local_data['fs_start'], self.local_data['ss_start'])
+
+            self.scale = (
+                (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']+ 1),
+                (self.local_data['ss_end'] - self.local_data['ss_start']) / (self.local_data['ss_steps']+ 1)
+            )
+
 
         if scan_type != self.curr_type:
     
@@ -157,8 +174,7 @@ class MainFrame(QtGui.QMainWindow):
        
         QtGui.QApplication.processEvents()
         self.draw_image()
-        self.autolevels = False
-     
+
 
 def main():
     signal(SIGINT, SIG_DFL)
@@ -174,7 +190,7 @@ def main():
         print('Usage: onda-mll-gui.py <listening ip> <listening port>')
         sys.exit()
 
-    ex = MainFrame(rec_ip, rec_port)
+    _ = MainFrame(rec_ip, rec_port)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
