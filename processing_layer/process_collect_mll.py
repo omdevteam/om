@@ -30,7 +30,6 @@ from parallelization_layer.utils.onda_params import monitor_params, param
 from parallelization_layer.utils.onda_zmq_monitor_utils import zmq_onda_publisher_socket
 from processing_layer.utils.onda_mll_log_file_utils import read_mll_logfile
 
-
 par_layer = import_correct_layer_module('parallelization_layer', monitor_params)
 MasterWorker = getattr(par_layer, 'MasterWorker')
 
@@ -75,6 +74,8 @@ class Onda(MasterWorker):
             else:
                 self.whitefield = True
 
+            self.new_scan = False
+
             self.hit_sending_counter = 0
 
             print('Starting worker: {0}.'.format(self.mpi_rank))
@@ -86,7 +87,10 @@ class Onda(MasterWorker):
 
             self.current_run_num = 0
 
+            self.num_accumulated_shots = 0
+
             self.speed_report_interval = param('General', 'speed_report_interval', int)
+            self.num_shots_to_accumulate = param('General', 'accumulated_shots', int)
 
             self.log_dir = param('General', 'log_base_path', str)
             self.data_dir = param('General', 'data_base_path', str)
@@ -104,13 +108,14 @@ class Onda(MasterWorker):
             self.fs_steps = 0
 
             self.stxm = numpy.zeros((0, 0))
-            self.dpc = numpy.zeros((0,0))
+            self.dpc = numpy.zeros((0, 0))
 
             self.fs_integr_image = numpy.zeros((0, 0))
             self.ss_integr_image = numpy.zeros((0, 0))
 
             print('Starting the monitor...')
             stdout.flush()
+
 
             self.sending_socket = zmq_onda_publisher_socket(param('General', 'publish_ip'),
                                                             param('General', 'publish_port'))
@@ -174,7 +179,10 @@ class Onda(MasterWorker):
             log_file_name = '{0}.dat'.format('_'.join(filename_parts[0:2]))
             log_class = read_mll_logfile(join(self.log_dir, log_file_name))
 
-            if 'Slow axis' in log_class.log:
+            self.grid = tuple(log_class.log['Grid'])
+            self.physical_grid_axes = tuple(log_class.log['Physical_grid_axes'])
+
+            if len(self.physical_grid_axes) == 2:
 
                 print('New 2D scan. Log file:', log_file_name + '.')
                 stdout.flush()
@@ -211,8 +219,10 @@ class Onda(MasterWorker):
 
         if self.scan_type == 2:
 
-            self.stxm.ravel()[num_file + num_event] = results_dict['stxm']
-            self.dpc.ravel()[num_file + num_event] = results_dict['dpc']
+            ind = numpy.unravel_index(num_file + num_event, self.grid)
+
+            self.stxm[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['stxm']
+            self.dpc[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['dpc']
 
             collected_data['scan_type'] = 2
             collected_data['stxm'] = self.stxm.transpose()
@@ -230,8 +240,10 @@ class Onda(MasterWorker):
 
         else:
 
-            self.fs_integr_image[:, num_file + num_event] = results_dict['integr_fs']
-            self.ss_integr_image[:, num_file + num_event] = results_dict['integr_ss']
+            ind = numpy.unravel_index(num_file + num_event, self.grid)
+
+            self.fs_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_fs']
+            self.ss_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_ss']
 
             collected_data['scan_type'] = 1
             collected_data['fs_start'] = self.fs_start
@@ -246,7 +258,10 @@ class Onda(MasterWorker):
         self.current_run_num = num_run
         self.new_scan = False
 
-        self.sending_socket.send_data('ondadata', collected_data)
+
+        if self.num_accumulated_shots == self.num_shots_to_accumulate:
+            self.sending_socket.send_data('ondadata', collected_data)
+            self.num_accumulated_shots = 0
 
         if self.num_events % self.speed_report_interval == 0:
             now_time = time()
@@ -256,4 +271,3 @@ class Onda(MasterWorker):
                 float(self.speed_report_interval) / float(now_time - self.old_time)))
             stdout.flush()
             self.old_time = now_time
-
