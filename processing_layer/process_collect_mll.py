@@ -224,6 +224,8 @@ class Onda(MasterWorker):
             self.stxm[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['stxm']
             self.dpc[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['dpc']
 
+            self.num_accumulated_shots += 1
+            
             collected_data['scan_type'] = 2
             collected_data['stxm'] = self.stxm.transpose()
             collected_data['dpc'] = self.dpc.transpose()
@@ -244,6 +246,8 @@ class Onda(MasterWorker):
 
             self.fs_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_fs']
             self.ss_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_ss']
+
+            self.num_accumulated_shots += 1
 
             collected_data['scan_type'] = 1
             collected_data['fs_start'] = self.fs_start
