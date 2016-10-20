@@ -268,7 +268,7 @@ class Onda(MasterWorker):
 
         else:
 
-           print('Data from 0D scan, not processed')
+           print('Data from 0D scan, not processed.')
 
 
         self.current_run_num = num_run
