@@ -202,7 +202,7 @@ class Onda(MasterWorker):
                 self.stxm = numpy.zeros((self.ss_steps, self.fs_steps))
                 self.dpc = numpy.zeros((self.ss_steps, self.fs_steps))
 
-            else:
+            elif len(self.physical_grid_axes) == 1:
 
                 print('New 1D scan. Log file:', log_file_name + '.')
                 stdout.flush()
@@ -216,6 +216,13 @@ class Onda(MasterWorker):
 
                 self.fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0], self.fs_steps))
                 self.ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0], self.fs_steps))
+            
+            else: 
+
+                print('New 0D scan. Log file:', log_file_name + '.')
+                stdout.flush()
+
+                self.scan_type = 0
 
         if self.scan_type == 2:
 
@@ -240,7 +247,7 @@ class Onda(MasterWorker):
             collected_data['timestamp'] = results_dict['timestamp']
             collected_data['num_run'] = num_run
 
-        else:
+        elif self.scan_type == 1:
 
             ind = numpy.unravel_index(num_file + num_event, self.grid)
 
@@ -259,9 +266,13 @@ class Onda(MasterWorker):
             collected_data['timestamp'] = results_dict['timestamp']
             collected_data['num_run'] = num_run
 
+        else:
+
+           print('Data from 0D scan, not processed')
+
+
         self.current_run_num = num_run
         self.new_scan = False
-
 
         if self.num_accumulated_shots == self.num_shots_to_accumulate:
             self.sending_socket.send_data('ondadata', collected_data)
