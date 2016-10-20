@@ -60,6 +60,7 @@ class MainFrame(QtGui.QMainWindow):
         self.scale = (0,0)
         self.curr_run_num = 0
         self.curr_type = 0
+        self.img = None
 
         self.init_timer()
 
@@ -94,26 +95,34 @@ class MainFrame(QtGui.QMainWindow):
         self.ui.ssIntegrButton.clicked.connect(self.draw_image)
         self.ui.fsIntegrButton.clicked.connect(self.draw_image)
 
+        self.ui.rescaleButton.clicked.connect(self.rescale_image)
+        
         self.resize(800, 800)
         self.show()
 
     def data_received(self, datdict):
         self.data = deepcopy(datdict)
 
+    def rescale_image(self):
+        
+        self.ui.imageView.setLevels(self.img.min(), self.img.max())
+        self.draw_image()
+
     def draw_image(self):
 
         if self.curr_type == 2:
             if self.ui.stxmButton.isChecked():
-                self.ui.imageView.setImage(self.local_data['stxm'], autoRange=False, autoLevels=False)
+                self.img = self.local_data['stxm']
             else:
-                self.ui.imageView.setImage(self.local_data['dpc'], autoRange=False, autoLevels=False)
+                self.img = self.local_data['dpc']
   
         if self.curr_type == 1:
             if self.ui.ssIntegrButton.isChecked():
-                self.ui.imageView.setImage(self.local_data['ss_integr_image'], autoRange=False, autoLevels=False)
+                self.img = self.local_data['ss_integr_image']
             else:
-                self.ui.imageView.setImage(self.local_data['fs_integr_image'], autoRange=False, autoLevels=False)
+                self.img = self.local_data['fs_integr_image']
                 
+        self.ui.imageView.setImage(self.img, autoRange=False, autoLevels=False)
         QtGui.QApplication.processEvents()
 
         timestamp = self.local_data['timestamp']

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>985</width>
-    <height>946</height>
+    <width>1280</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,6 +70,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="rescaleButton">
+          <property name="text">
+           <string>Auto Rescale</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="delayLabel">

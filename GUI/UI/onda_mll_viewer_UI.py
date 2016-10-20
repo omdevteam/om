@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'OnDAMLLViewer.ui'
+# Form implementation generated from reading ui file 'OndaMLLViewer.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(985, 946)
+        MainWindow.resize(1280, 800)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -42,6 +42,9 @@ class Ui_MainWindow(object):
         self.buttonLayout.addLayout(self.buttonLayout1)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.buttonLayout.addItem(spacerItem)
+        self.rescaleButton = QtWidgets.QPushButton(self.centralwidget)
+        self.rescaleButton.setObjectName("rescaleButton")
+        self.buttonLayout.addWidget(self.rescaleButton)
         self.delayLabel = QtWidgets.QLabel(self.centralwidget)
         self.delayLabel.setObjectName("delayLabel")
         self.buttonLayout.addWidget(self.delayLabel)
@@ -76,6 +79,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "OnDA MLL"))
         self.stxmButton.setText(_translate("MainWindow", "STXM"))
         self.dpcButton.setText(_translate("MainWindow", "DPC"))
+        self.rescaleButton.setText(_translate("MainWindow", "Auto Rescale"))
         self.delayLabel.setText(_translate("MainWindow", "Estimated delay: -"))
         self.fsIntegrButton.setText(_translate("MainWindow", "FS Integr"))
         self.ssIntegrButton.setText(_translate("MainWindow", "SS Integr"))
