@@ -136,10 +136,14 @@ class Onda(MasterWorker):
 
         stxm = sum1 + sum2 + sum3 + sum4
 
-        dpc = numpy.sqrt(
-            ((sum1 + sum3 - sum2 - sum4) ** 2 + (sum1 + sum2 - sum3 - sum4) ** 2) /
-            (sum1 ** 2 + sum2 ** 2 + sum3 ** 2 + sum4 ** 2)
-        )
+        dpc = 0
+
+        if numpy.count_nonzero(sum1) != 0 and numpy.count_nonzero(sum2) != 0 and numpy.count_nonzero(sum3) != 0 and numpy.count_nonzero(sum4) != 0:
+
+            dpc = numpy.sqrt(
+                ((sum1 + sum3 - sum2 - sum4) ** 2 + (sum1 + sum2 - sum3 - sum4) ** 2) /
+                (sum1 ** 2 + sum2 ** 2 + sum3 ** 2 + sum4 ** 2)
+            )
 
         integr_ss = corrected_data.sum(axis=0)
         integr_fs = corrected_data.sum(axis=1)
@@ -199,8 +203,8 @@ class Onda(MasterWorker):
                 self.fs_name = log_class.log['Fast axis']['name']
                 self.fs_steps = log_class.log['Fast axis']['Steps']
 
-                self.stxm = numpy.zeros((self.ss_steps, self.fs_steps))
-                self.dpc = numpy.zeros((self.ss_steps, self.fs_steps))
+                self.stxm = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
+                self.dpc = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
 
             elif len(self.physical_grid_axes) == 1:
 
@@ -214,8 +218,8 @@ class Onda(MasterWorker):
                 self.fs_steps = log_class.log['Fast axis']['Steps']
                 self.fs_name = log_class.log['Fast axis']['name']
 
-                self.fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0], self.fs_steps))
-                self.ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0], self.fs_steps))
+                self.fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0], self.grid[self.physical_grid_axes[0]]))
+                self.ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0], self.grid[self.physical_grid_axes[0]]))
             
             else: 
 
@@ -268,8 +272,7 @@ class Onda(MasterWorker):
 
         else:
 
-           print('Data from 0D scan, not processed.')
-
+            print('Data from 0D scan, not processed.')
 
         self.current_run_num = num_run
         self.new_scan = False
