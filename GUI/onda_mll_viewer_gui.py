@@ -157,14 +157,14 @@ class MainFrame(QtGui.QMainWindow):
                 self.lef_axis.setLabel(self.local_data['ss_name'])
                 self.pos = (self.local_data['fs_start'], self.local_data['ss_start'])
                 self.scale = (
-                    (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']+ 1),
-                    (self.local_data['ss_end'] - self.local_data['ss_start']) / (self.local_data['ss_steps']+ 1)
+                    (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']),
+                    (self.local_data['ss_end'] - self.local_data['ss_start']) / (self.local_data['ss_steps'])
                 )
             else:
                 self.lef_axis.setLabel('')
                 self.pos = (self.local_data['fs_start'], 0)
                 self.scale = (
-                    (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']+ 1),
+                    (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']),
                     1.0
                 )
 
