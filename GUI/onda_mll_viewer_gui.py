@@ -121,8 +121,7 @@ class MainFrame(QtGui.QMainWindow):
                 self.img = self.local_data['ss_integr_image']
             else:
                 self.img = self.local_data['fs_integr_image']
-                
-        self.ui.imageView.setImage(self.img, autoRange=False, autoLevels=False)
+        self.ui.imageView.setImage(self.img, autoRange=True, autoLevels=False)
         QtGui.QApplication.processEvents()
 
         timestamp = self.local_data['timestamp']
@@ -149,17 +148,24 @@ class MainFrame(QtGui.QMainWindow):
 
         if self.local_data['num_run'] > self.curr_run_num:
             print('Starting new run.')
+         
             self.bot_axis.setLabel(self.local_data['fs_name'])
-            self.lef_axis.setLabel(self.local_data['ss_name'])
             self.curr_run_num = self.local_data['num_run']
 
-            self.pos = (self.local_data['fs_start'], self.local_data['ss_start'])
-
-            self.scale = (
-                (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']+ 1),
-                (self.local_data['ss_end'] - self.local_data['ss_start']) / (self.local_data['ss_steps']+ 1)
-            )
-
+            if self.local_data['scan_type'] == 2:
+                self.lef_axis.setLabel(self.local_data['ss_name'])
+                self.pos = (self.local_data['fs_start'], self.local_data['ss_start'])
+                self.scale = (
+                    (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']+ 1),
+                    (self.local_data['ss_end'] - self.local_data['ss_start']) / (self.local_data['ss_steps']+ 1)
+                )
+            else:
+                self.lef_axis.setLabel('')
+                self.pos = (self.local_data['fs_start'], 0)
+                self.scale = (
+                    (self.local_data['fs_end'] - self.local_data['fs_start']) / (self.local_data['fs_steps']+ 1),
+                    1.0
+                )
 
         if scan_type != self.curr_type:
     
