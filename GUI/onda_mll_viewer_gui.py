@@ -104,7 +104,6 @@ class MainFrame(QtGui.QMainWindow):
         self.data = deepcopy(datdict)
 
     def rescale_image(self):
-        
         self.ui.imageView.setLevels(self.img.min(), self.img.max())
         self.draw_image()
 
@@ -144,6 +143,8 @@ class MainFrame(QtGui.QMainWindow):
 
         QtGui.QApplication.processEvents()
 
+        autorange = False
+
         scan_type = self.local_data['scan_type']
 
         if self.local_data['num_run'] > self.curr_run_num:
@@ -167,6 +168,8 @@ class MainFrame(QtGui.QMainWindow):
                     1.0
                 )
 
+            autorange = True
+
         if scan_type != self.curr_type:
     
             if scan_type == 2:
@@ -189,6 +192,8 @@ class MainFrame(QtGui.QMainWindow):
        
         QtGui.QApplication.processEvents()
         self.draw_image()
+        if autorange:
+            self.ui.imageView.autoRange()
 
 
 def main():
