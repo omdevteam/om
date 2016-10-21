@@ -819,6 +819,7 @@ def convert(a):
 
 units = {
     'deg': np.pi / 180.,
+    'ndeg': 1.0e-9 * np.pi / 180.,
     '%': 1.0e-2,
     'm': 1.0,
     'cm': 1.0e-2,
