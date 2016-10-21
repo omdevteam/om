@@ -97,15 +97,7 @@ class Onda(MasterWorker):
 
             self.scan_type = 0
 
-            self.ss_start = 0
-            self.ss_end = 0
-            self.ss_name = 0
-            self.ss_steps = 0
-
-            self.fs_start = 0
-            self.fs_end = 0
-            self.fs_name = 0
-            self.fs_steps = 0
+            self.scan_data = []
 
             self.stxm = numpy.zeros((0, 0))
             self.dpc = numpy.zeros((0, 0))
@@ -186,22 +178,41 @@ class Onda(MasterWorker):
             self.grid = tuple(log_class.log['Grid'])
             self.physical_grid_axes = tuple(log_class.log['Physical_grid_axes'])
 
+            self.scan_data = []
+
+            if 'Slower axis' in log_class.log:
+                slower_data = {}
+                slower_data['start'] = log_class.log['Slower axis']['Start position']
+                slower_data['end'] = log_class.log['Slower axis']['End position']
+                slower_data['name'] = log_class.log['Slower axis']['name']
+                slower_data['steps'] = log_class.log['Slower axis']['Steps']
+                self.scan_data.append(slower_data)
+
+            if 'Slow axis' in log_class.log:
+                slow_data = {}
+                slow_data['start'] = log_class.log['Slow axis']['Start position']
+                slow_data['end'] = log_class.log['Slow axis']['End position']
+                slow_data['name'] = log_class.log['Slow axis']['name']
+                slow_data['steps'] = log_class.log['Slow axis']['Steps']
+                self.scan_data.append(slow_data)
+
+            if 'Fast axis' in log_class.log:
+                fast_data = {}
+                fast_data['start'] = log_class.log['Fast axis']['Start position']
+                fast_data['end'] = log_class.log['Fast axis']['End position']
+                fast_data['name'] = log_class.log['Fast axis']['name']
+                fast_data['steps'] = log_class.log['Fast axis']['Steps']
+                self.scan_data.append(fast_data)
+
+                if log_class.log['Fast axis']['StayStill hack'] == True:
+                    self.scan_data.pop()
+
             if len(self.physical_grid_axes) == 2:
 
                 print('New 2D scan. Log file:', log_file_name + '.')
                 stdout.flush()
 
                 self.scan_type = 2
-
-                self.ss_start = log_class.log['Slow axis']['Start position']
-                self.ss_end = log_class.log['Slow axis']['End position']
-                self.ss_name = log_class.log['Slow axis']['name']
-                self.ss_steps = log_class.log['Slow axis']['Steps']
-
-                self.fs_start = log_class.log['Fast axis']['Start position']
-                self.fs_end = log_class.log['Fast axis']['End position']
-                self.fs_name = log_class.log['Fast axis']['name']
-                self.fs_steps = log_class.log['Fast axis']['Steps']
 
                 self.stxm = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
                 self.dpc = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
@@ -212,11 +223,6 @@ class Onda(MasterWorker):
                 stdout.flush()
 
                 self.scan_type = 1
-
-                self.fs_start = log_class.log['Fast axis']['Start position']
-                self.fs_end = log_class.log['Fast axis']['End position']
-                self.fs_steps = log_class.log['Fast axis']['Steps']
-                self.fs_name = log_class.log['Fast axis']['name']
 
                 self.fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0], self.grid[self.physical_grid_axes[0]]))
                 self.ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0], self.grid[self.physical_grid_axes[0]]))
@@ -240,14 +246,14 @@ class Onda(MasterWorker):
             collected_data['scan_type'] = 2
             collected_data['stxm'] = self.stxm.transpose()
             collected_data['dpc'] = self.dpc.transpose()
-            collected_data['fs_start'] = self.fs_start
-            collected_data['fs_end'] = self.fs_end
-            collected_data['ss_start'] = self.ss_start
-            collected_data['ss_end'] = self.ss_end
-            collected_data['fs_name'] = self.fs_name
-            collected_data['ss_name'] = self.ss_name
-            collected_data['fs_steps'] = self.fs_steps
-            collected_data['ss_steps'] = self.ss_steps
+            collected_data['fs_start'] = self.scan_data[-1]['start']
+            collected_data['fs_end'] = self.scan_data[-1]['end']
+            collected_data['ss_start'] = self.scan_data[-2]['start']
+            collected_data['ss_end'] = self.scan_data[-2]['end']
+            collected_data['fs_name'] = self.scan_data[-1]['name']
+            collected_data['ss_name'] = self.scan_data[-2]['name']
+            collected_data['fs_steps'] = self.scan_data[-1]['steps']
+            collected_data['ss_steps'] = self.scan_data[-2]['steps']
             collected_data['timestamp'] = results_dict['timestamp']
             collected_data['num_run'] = num_run
 
@@ -261,10 +267,11 @@ class Onda(MasterWorker):
             self.num_accumulated_shots += 1
 
             collected_data['scan_type'] = 1
-            collected_data['fs_start'] = self.fs_start
-            collected_data['fs_end'] = self.fs_end
-            collected_data['fs_steps'] = self.fs_steps
-            collected_data['fs_name'] = self.fs_name
+            collected_data['scan_data'] = self.scan_data
+            collected_data['fs_start'] = self.scan_data[-1]['start']
+            collected_data['fs_end'] = self.scan_datai[-1]['end']
+            collected_data['fs_name'] = self.scan_data[-1]['name']
+            collected_data['fs_steps'] = self.scan_data[-1]['steps']
             collected_data['ss_integr_image'] = self.ss_integr_image
             collected_data['fs_integr_image'] = self.fs_integr_image
             collected_data['timestamp'] = results_dict['timestamp']
