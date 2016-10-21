@@ -121,7 +121,7 @@ class MainFrame(QtGui.QMainWindow):
                 self.img = self.local_data['ss_integr_image']
             else:
                 self.img = self.local_data['fs_integr_image']
-        self.ui.imageView.setImage(self.img, autoRange=True, autoLevels=False)
+        self.ui.imageView.setImage(self.img, autoRange=False, autoLevels=False)
         QtGui.QApplication.processEvents()
 
         timestamp = self.local_data['timestamp']
