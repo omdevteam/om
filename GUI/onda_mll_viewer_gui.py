@@ -54,7 +54,7 @@ class MainFrame(QtGui.QMainWindow):
         self.bot_axis = self.ui.imageView.view.getAxis('bottom')
         self.lef_axis = self.ui.imageView.view.getAxis('left')
 
-        self.signal_proxy = pg.SignalProxy(self.ui.imageView.scene.sigMouseClicked, rateLimit=60, slot=self.mouse_clicked)
+        self.ui.imageView.scene.sigMouseClicked.connect(self.mouse_clicked)
  
         self.data = {}
         self.local_data = {}
@@ -104,8 +104,8 @@ class MainFrame(QtGui.QMainWindow):
         self.show()
 
     def mouse_clicked(self, evt):
-        if self.ui.imageView.getView().sceneBoundingRect().contains(evt[0].pos()):
-             mouse_point = self.ui.imageView.getView().vb.mapSceneToView(evt[0].pos())
+        if self.ui.imageView.getView().sceneBoundingRect().contains(evt.scenePos()):
+             mouse_point = self.ui.imageView.getView().vb.mapSceneToView(evt.scenePos())
              self.ui.lastClickedPosLabel.setText('Last Clicked Position:    ss {0:.2f} / fs: {1:.2f}'.format(mouse_point.y(), mouse_point.x()))
 
     def data_received(self, datdict):
