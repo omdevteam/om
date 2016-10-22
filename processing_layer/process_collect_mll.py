@@ -269,7 +269,7 @@ class Onda(MasterWorker):
             collected_data['scan_type'] = 1
             collected_data['scan_data'] = self.scan_data
             collected_data['fs_start'] = self.scan_data[-1]['start']
-            collected_data['fs_end'] = self.scan_datai[-1]['end']
+            collected_data['fs_end'] = self.scan_data[-1]['end']
             collected_data['fs_name'] = self.scan_data[-1]['name']
             collected_data['fs_steps'] = self.scan_data[-1]['steps']
             collected_data['ss_integr_image'] = self.ss_integr_image
