@@ -84,6 +84,7 @@ class MainFrame(QtGui.QMainWindow):
         self.ui.imageViewLayout.addWidget(self.ui.imageView)
         self.ui.imageView.ui.menuBtn.hide()
         self.ui.imageView.ui.roiBtn.hide()
+        #self.ui.imageView.getView().setAspectLocked(False)
 
         self.ui.stxmButton.setEnabled(False)
         self.ui.dpcButton.setEnabled(False)
@@ -168,6 +169,12 @@ class MainFrame(QtGui.QMainWindow):
                     1.0
                 )
 
+            if self.scale[1] > self.scale[0]:
+                ratio = max(self.scale)/min(self.scale)
+            else:
+                ratio = min(self.scale)/max(self.scale)
+
+            self.ui.imageView.getView().setAspectLocked(True, ratio=ratio)
             autorange = True
 
         if scan_type != self.curr_type:
@@ -191,10 +198,10 @@ class MainFrame(QtGui.QMainWindow):
             self.curr_type = scan_type
        
         QtGui.QApplication.processEvents()
+        
         self.draw_image()
         if autorange:
             self.ui.imageView.autoRange()
-
 
 def main():
     signal(SIGINT, SIG_DFL)
