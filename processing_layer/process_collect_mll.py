@@ -204,7 +204,7 @@ class Onda(MasterWorker):
                 fast_data['steps'] = log_class.log['Fast axis']['Steps']
                 self.scan_data.append(fast_data)
 
-                if log_class.log['Fast axis']['StayStill hack'] == True:
+                if 'StayStill hack' in log_class.log['Fast axis'] and log_class.log['Fast axis']['StayStill hack'] == True:
                     self.scan_data.pop()
 
             if len(self.physical_grid_axes) == 2:
