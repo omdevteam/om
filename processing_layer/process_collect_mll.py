@@ -182,24 +182,24 @@ class Onda(MasterWorker):
 
             if 'Slower axis' in log_class.log:
                 slower_data = {}
-                slower_data['start'] = log_class.log['Slower axis']['Start position']
-                slower_data['end'] = log_class.log['Slower axis']['End position']
+                slower_data['start'] = 1e6*log_class.log['Slower axis']['Start position']
+                slower_data['end'] = 1e6*log_class.log['Slower axis']['End position']
                 slower_data['name'] = log_class.log['Slower axis']['name']
                 slower_data['steps'] = log_class.log['Slower axis']['Steps']
                 self.scan_data.append(slower_data)
 
             if 'Slow axis' in log_class.log:
                 slow_data = {}
-                slow_data['start'] = log_class.log['Slow axis']['Start position']
-                slow_data['end'] = log_class.log['Slow axis']['End position']
+                slow_data['start'] = 1e6*log_class.log['Slow axis']['Start position']
+                slow_data['end'] = 1e6*log_class.log['Slow axis']['End position']
                 slow_data['name'] = log_class.log['Slow axis']['name']
                 slow_data['steps'] = log_class.log['Slow axis']['Steps']
                 self.scan_data.append(slow_data)
 
             if 'Fast axis' in log_class.log:
                 fast_data = {}
-                fast_data['start'] = log_class.log['Fast axis']['Start position']
-                fast_data['end'] = log_class.log['Fast axis']['End position']
+                fast_data['start'] = 1e6*log_class.log['Fast axis']['Start position']
+                fast_data['end'] = 1e6*log_class.log['Fast axis']['End position']
                 fast_data['name'] = log_class.log['Fast axis']['name']
                 fast_data['steps'] = log_class.log['Fast axis']['Steps']
                 self.scan_data.append(fast_data)

@@ -106,7 +106,7 @@ class MainFrame(QtGui.QMainWindow):
     def mouse_clicked(self, evt):
         if self.ui.imageView.getView().sceneBoundingRect().contains(evt[0].pos()):
              mouse_point = self.ui.imageView.getView().vb.mapSceneToView(evt[0].pos())
-             self.ui.lastClickedPosLabel.setText('Last Clicked Position:    ss {0:.10f} / fs: {1:.10f}'.format(mouse_point.y(), mouse_point.x()))
+             self.ui.lastClickedPosLabel.setText('Last Clicked Position:    ss {0:.2f} / fs: {1:.2f}'.format(mouse_point.y(), mouse_point.x()))
 
     def data_received(self, datdict):
         self.data = deepcopy(datdict)
