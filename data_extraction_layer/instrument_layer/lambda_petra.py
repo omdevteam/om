@@ -21,6 +21,7 @@ native_shape = (516, 1556)
 def num_events_in_file(evt):
     return evt['filehandle']['/entry/instrument/detector/data'].shape[0]
 
+
 def raw_data(evt):
     return evt['filehandle']['/entry/instrument/detector/data'][evt['shot_offset'], :, :]
 
@@ -38,5 +39,4 @@ def beam_energy(evt):
 
 
 def filename_and_event(evt):
-    return evt['filename'], evt['filehandle']['/entry/instrument/detector/data'].shape[0]+evt['shot_offset']
-
+    return evt['filename'], evt['filehandle']['/entry/instrument/detector/data'].shape[0] + evt['shot_offset']

@@ -58,8 +58,8 @@ class MainFrame(QtGui.QMainWindow):
  
         self.data = {}
         self.local_data = {}
-        self.pos = (0,0)
-        self.scale = (0,0)
+        self.pos = (0, 0)
+        self.scale = (0, 0)
         self.curr_run_num = 0
         self.curr_type = 0
         self.img = None
@@ -86,7 +86,6 @@ class MainFrame(QtGui.QMainWindow):
         self.ui.imageViewLayout.addWidget(self.ui.imageView)
         self.ui.imageView.ui.menuBtn.hide()
         self.ui.imageView.ui.roiBtn.hide()
-        #self.ui.imageView.getView().setAspectLocked(False)
 
         self.ui.stxmButton.setEnabled(False)
         self.ui.dpcButton.setEnabled(False)
@@ -105,8 +104,10 @@ class MainFrame(QtGui.QMainWindow):
 
     def mouse_clicked(self, evt):
         if self.ui.imageView.getView().sceneBoundingRect().contains(evt.scenePos()):
-             mouse_point = self.ui.imageView.getView().vb.mapSceneToView(evt.scenePos())
-             self.ui.lastClickedPosLabel.setText('Last clicked position:    ss {0:.6f} / fs: {1:.6f}'.format(mouse_point.y(), mouse_point.x()))
+            mouse_point = self.ui.imageView.getView().vb.mapSceneToView(evt.scenePos())
+            self.ui.lastClickedPosLabel.setText(
+                'Last clicked position:    ss {0:.6f} / fs: {1:.6f}'.format(mouse_point.y(), mouse_point.x())
+            )
 
     def data_received(self, datdict):
         self.data = deepcopy(datdict)
@@ -212,6 +213,7 @@ class MainFrame(QtGui.QMainWindow):
         self.draw_image()
         if autorange:
             self.ui.imageView.autoRange()
+
 
 def main():
     signal(SIGINT, SIG_DFL)

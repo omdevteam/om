@@ -37,23 +37,18 @@ class MainFrame(QtGui.QMainWindow):
 
     listening_thread_start_processing = QtCore.pyqtSignal()
     listening_thread_stop_processing = QtCore.pyqtSignal()
-    
+
     def __init__(self, geom_filename, rec_ip, rec_port):
         super(MainFrame, self).__init__()
 
         self.yx, slab_shape, img_shape = pixel_maps_for_image_view(geom_filename)
 
         self.img = numpy.zeros(img_shape, dtype=numpy.float)
-        
+
         self.rec_ip, self.rec_port = rec_ip, rec_port
         self.data = deque(maxlen=20)
         self.data_index = -1
-        self.image_update_us = 250
-        
-        self.zeromq_listener_thread = QtCore.QThread()
 
-        self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
         self.init_listening_thread()
 
         self.ring_pen = pg.mkPen('r', width=2)
@@ -81,12 +76,12 @@ class MainFrame(QtGui.QMainWindow):
         if self.data_index > 0:
             self.data_index -= 1
             self.update_image_plot()
-    
+
     def forward_button_clicked(self):
         if (self.data_index + 1) < len(self.data):
             self.data_index += 1
             self.update_image_plot()
-    
+
     def play_pause_button_clicked(self):
         if self.refresh_timer.isActive():
             self.refresh_timer.stop()
@@ -95,6 +90,8 @@ class MainFrame(QtGui.QMainWindow):
             self.refresh_timer.start(self.image_update_us)
 
     def init_listening_thread(self):
+        self.zeromq_listener_thread = QtCore.QThread()
+        self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
         self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.zeromq_listener.start_listening()
@@ -105,7 +102,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def init_timer(self):
         self.refresh_timer.timeout.connect(self.update_image_plot)
-        self.refresh_timer.start(self.image_update_us)
+        self.refresh_timer.start(250)
 
     def data_received(self, datdict):
         self.data.append(deepcopy(datdict))
@@ -127,7 +124,7 @@ class MainFrame(QtGui.QMainWindow):
             self.peak_canvas.setData(peak_x, peak_y, symbol='o', size=[5]*len(data['peak_list'][0]),
                                      brush=(255, 255, 255, 0), pen=self.ring_pen,
                                      pxMode=False)
-    
+
 
 def main():
     signal(SIGINT, SIG_DFL)
@@ -141,7 +138,7 @@ def main():
         rec_ip = sys.argv[2]
         rec_port = int(sys.argv[3])
     else:
-        print('Usage: onda-hit-viewer-gui.py geometry_filename <listening ip> <listening port>')
+        print('Usage: onda_crystallography_hit_viewer_gui.py geometry_filename <listening ip> <listening port>')
         sys.exit()
 
     _ = MainFrame(geom_filename, rec_ip, rec_port)

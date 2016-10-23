@@ -98,6 +98,8 @@ class Onda(MasterWorker):
             self.scan_type = 0
 
             self.scan_data = []
+            self.grid = ()
+            self.physical_grid_axes = ()
 
             self.stxm = numpy.zeros((0, 0))
             self.dpc = numpy.zeros((0, 0))
@@ -107,7 +109,6 @@ class Onda(MasterWorker):
 
             print('Starting the monitor...')
             stdout.flush()
-
 
             self.sending_socket = zmq_onda_publisher_socket(param('General', 'publish_ip'),
                                                             param('General', 'publish_port'))
@@ -130,8 +131,10 @@ class Onda(MasterWorker):
 
         dpc = 0
 
-        if numpy.count_nonzero(sum1) != 0 and numpy.count_nonzero(sum2) != 0 and numpy.count_nonzero(sum3) != 0 and numpy.count_nonzero(sum4) != 0:
-
+        if (
+            numpy.count_nonzero(sum1) != 0 and numpy.count_nonzero(sum2) != 0 and
+            numpy.count_nonzero(sum3) != 0 and numpy.count_nonzero(sum4) != 0
+        ):
             dpc = numpy.sqrt(
                 ((sum1 + sum3 - sum2 - sum4) ** 2 + (sum1 + sum2 - sum3 - sum4) ** 2) /
                 (sum1 ** 2 + sum2 ** 2 + sum3 ** 2 + sum4 ** 2)
@@ -141,7 +144,7 @@ class Onda(MasterWorker):
         integr_fs = corrected_data.sum(axis=1)
 
         if 'Frame' in self.filename:
-            results_dict['raw_data'] = corrected_data 
+            results_dict['raw_data'] = corrected_data
 
         print('Received single frame.')
 
@@ -187,30 +190,28 @@ class Onda(MasterWorker):
             self.scan_data = []
 
             if 'Slower axis' in log_class.log:
-                slower_data = {}
-                slower_data['start'] = 1e6*log_class.log['Slower axis']['Start position']
-                slower_data['end'] = 1e6*log_class.log['Slower axis']['End position']
-                slower_data['name'] = log_class.log['Slower axis']['name']
-                slower_data['steps'] = log_class.log['Slower axis']['Steps']
+                slower_data = {'start': 1e6 * log_class.log['Slower axis']['Start position'],
+                               'end': 1e6 * log_class.log['Slower axis']['End position'],
+                               'name': log_class.log['Slower axis']['name'],
+                               'steps': log_class.log['Slower axis']['Steps']}
                 self.scan_data.append(slower_data)
 
             if 'Slow axis' in log_class.log:
-                slow_data = {}
-                slow_data['start'] = 1e6*log_class.log['Slow axis']['Start position']
-                slow_data['end'] = 1e6*log_class.log['Slow axis']['End position']
-                slow_data['name'] = log_class.log['Slow axis']['name']
-                slow_data['steps'] = log_class.log['Slow axis']['Steps']
+                slow_data = {'start': 1e6 * log_class.log['Slow axis']['Start position'],
+                             'end': 1e6 * log_class.log['Slow axis']['End position'],
+                             'name': log_class.log['Slow axis']['name'], 'steps': log_class.log['Slow axis']['Steps']}
                 self.scan_data.append(slow_data)
 
             if 'Fast axis' in log_class.log:
-                fast_data = {}
-                fast_data['start'] = 1e6*log_class.log['Fast axis']['Start position']
-                fast_data['end'] = 1e6*log_class.log['Fast axis']['End position']
-                fast_data['name'] = log_class.log['Fast axis']['name']
-                fast_data['steps'] = log_class.log['Fast axis']['Steps']
+                fast_data = {'start': 1e6 * log_class.log['Fast axis']['Start position'],
+                             'end': 1e6 * log_class.log['Fast axis']['End position'],
+                             'name': log_class.log['Fast axis']['name'], 'steps': log_class.log['Fast axis']['Steps']}
                 self.scan_data.append(fast_data)
 
-                if 'StayStill hack' in log_class.log['Fast axis'] and log_class.log['Fast axis']['StayStill hack'] == True:
+                if (
+                    'StayStill hack' in log_class.log['Fast axis'] and
+                    log_class.log['Fast axis']['StayStill hack'] is True
+                ):
                     self.scan_data.pop()
 
             if len(self.physical_grid_axes) == 2:
@@ -230,10 +231,12 @@ class Onda(MasterWorker):
 
                 self.scan_type = 1
 
-                self.fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0], self.grid[self.physical_grid_axes[0]]))
-                self.ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0], self.grid[self.physical_grid_axes[0]]))
-            
-            else: 
+                self.fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0],
+                                                    self.grid[self.physical_grid_axes[0]]))
+                self.ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0],
+                                                    self.grid[self.physical_grid_axes[0]]))
+
+            else:
 
                 print('New 0D scan. Log file:', log_file_name + '.')
                 stdout.flush()
@@ -248,7 +251,7 @@ class Onda(MasterWorker):
             self.dpc[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['dpc']
 
             self.num_accumulated_shots += 1
-            
+
             collected_data['scan_type'] = 2
             collected_data['stxm'] = self.stxm.transpose()
             collected_data['dpc'] = self.dpc.transpose()

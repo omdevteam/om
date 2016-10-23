@@ -20,7 +20,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import numpy
+
 import sys
 import pyqtgraph as pg
 from collections import deque
@@ -28,7 +28,6 @@ from copy import deepcopy
 from PyQt5 import QtCore, QtGui
 from signal import signal, SIGINT, SIG_DFL
 
-from cfelpyutils.cfel_geom import pixel_maps_for_image_view
 from GUI.utils.zmq_gui_utils import ZMQListener
 from GUI.UI import onda_mll_frame_viewer_UI
 
@@ -46,12 +45,9 @@ class MainFrame(QtGui.QMainWindow):
         self.rec_ip, self.rec_port = rec_ip, rec_port
         self.data = deque(maxlen=20)
         self.data_index = -1
-        self.image_update_us = 250
 
         self.init_listening_thread()
 
-        self.ring_pen = pg.mkPen('r', width=2)
-        self.peak_canvas = pg.ScatterPlotItem()
         self.ui = onda_mll_frame_viewer_UI.Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
@@ -64,8 +60,6 @@ class MainFrame(QtGui.QMainWindow):
 
         self.ui.imageView.ui.menuBtn.hide()
         self.ui.imageView.ui.roiBtn.hide()
-
-        self.ui.imageView.getView().addItem(self.peak_canvas)
 
         self.ui.backButton.clicked.connect(self.back_button_clicked)
         self.ui.forwardButton.clicked.connect(self.forward_button_clicked)
@@ -101,7 +95,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def init_timer(self):
         self.refresh_timer.timeout.connect(self.update_image_plot)
-        self.refresh_timer.start(self.image_update_us)
+        self.refresh_timer.start(250)
 
     def data_received(self, datdict):
         self.data.append(deepcopy(datdict))
@@ -123,7 +117,7 @@ def main():
         rec_ip = sys.argv[1]
         rec_port = int(sys.argv[2])
     else:
-        print('Usage: onda-hit-viewer-gui.py <listening ip> <listening port>')
+        print('Usage: onda_mll_frame_viewer_gui.py <listening ip> <listening port>')
         sys.exit()
 
     _ = MainFrame(rec_ip, rec_port)
