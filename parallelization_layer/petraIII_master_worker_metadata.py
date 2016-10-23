@@ -93,7 +93,7 @@ class MasterWorker(object):
             signal(SIGTERM, self.send_exit_announcement)
 
         if self.role == 'worker':
-            self.shots_to_proc = param('PetraIIIMetadataParallelizationLayer', 'images_per_file_to_process', int)
+            self.max_shots_to_proc = param('PetraIIIMetadataParallelizationLayer', 'images_per_file_to_process', int)
 
             self._buffer = None
 
@@ -165,10 +165,12 @@ class MasterWorker(object):
                     print('Cannot read file:', relative_filepath)
                     continue
 
-                if int(evt['num_events']) < self.shots_to_proc:
-                    self.shots_to_proc = int(evt['num_events'])
+                shots_to_proc = self.max_shots_to_proc  
 
-                for shot_offset in range(-self.shots_to_proc, 0, 1):
+                if int(evt['num_events']) < self.max_shots_to_proc:
+                    shots_to_proc = int(evt['num_events'])
+
+                for shot_offset in range(-shots_to_proc, 0, 1):
 
                     evt['shot_offset'] = shot_offset
 

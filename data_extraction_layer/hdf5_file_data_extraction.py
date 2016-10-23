@@ -29,7 +29,7 @@ num_events_in_file = import_function_from_layer('num_events_in_file', in_layer)
 
 file_extensions = ['.h5', '.nxs']
 
-avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'time_stamp', 'filename_and_event']
+avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'filename_and_event']
 
 for data_source in avail_data_sources:
     locals()[data_source] = lambda x: None
