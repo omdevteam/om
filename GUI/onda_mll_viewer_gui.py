@@ -106,7 +106,7 @@ class MainFrame(QtGui.QMainWindow):
     def mouse_clicked(self, evt):
         if self.ui.imageView.getView().sceneBoundingRect().contains(evt.scenePos()):
              mouse_point = self.ui.imageView.getView().vb.mapSceneToView(evt.scenePos())
-             self.ui.lastClickedPosLabel.setText('Last Clicked Position:    ss {0:.2f} / fs: {1:.2f}'.format(mouse_point.y(), mouse_point.x()))
+             self.ui.lastClickedPosLabel.setText('Last clicked position:    ss {0:.6f} / fs: {1:.6f}'.format(mouse_point.y(), mouse_point.x()))
 
     def data_received(self, datdict):
         self.data = deepcopy(datdict)
@@ -183,7 +183,7 @@ class MainFrame(QtGui.QMainWindow):
 
             self.ui.imageView.getView().setAspectLocked(True, ratio=ratio)
             
-            self.ui.lastClickedPosLabel.setText('Last Clicked Position:    ss: - / fs: -')
+            self.ui.lastClickedPosLabel.setText('Last clicked position:    ss: - / fs: -')
             
             autorange = True
 
