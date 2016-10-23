@@ -70,7 +70,7 @@ class Onda(MasterWorker):
             if param('General', 'whitefield_subtraction', bool) is True:
                 self.whitefield = load_nparray_from_hdf5_file(param('General', 'whitefield_filename', str),
                                                               param('General', 'whitefield_hdf5_group', str))
-                self.whitefiled[self.whitefield == 0] = 1
+                self.whitefield[self.whitefield == 0] = 1
             else:
                 self.whitefield = True
 
