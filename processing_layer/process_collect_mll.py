@@ -145,8 +145,7 @@ class Onda(MasterWorker):
 
         if 'Frame' in self.filename:
             results_dict['raw_data'] = corrected_data
-
-        print('Received single frame.')
+            print('Received single frame.')
 
         results_dict['timestamp'] = self.event_timestamp
         results_dict['stxm'] = stxm
