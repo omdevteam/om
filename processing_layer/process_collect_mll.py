@@ -143,6 +143,8 @@ class Onda(MasterWorker):
         if 'Frame' in self.filename:
             results_dict['raw_data'] = corrected_data 
 
+        print('Received single frame.')
+
         results_dict['timestamp'] = self.event_timestamp
         results_dict['stxm'] = stxm
         results_dict['dpc'] = dpc
@@ -163,6 +165,7 @@ class Onda(MasterWorker):
         filename_parts = (basename(results_dict['filename']).split('_'))
 
         if 'Frame' in results_dict['filename']:
+            print('Sending Frame to MLL Frame Viewer.')
             self.sending_socket.send_data('ondarawdata', results_dict)
         try:
             num_run = int(filename_parts[1])
