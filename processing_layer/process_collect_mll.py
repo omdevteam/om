@@ -140,6 +140,9 @@ class Onda(MasterWorker):
         integr_ss = corrected_data.sum(axis=0)
         integr_fs = corrected_data.sum(axis=1)
 
+        if 'Frame' in self.filename:
+            results_dict['raw_data'] = corrected_data 
+
         results_dict['timestamp'] = self.event_timestamp
         results_dict['stxm'] = stxm
         results_dict['dpc'] = dpc
@@ -160,7 +163,7 @@ class Onda(MasterWorker):
         filename_parts = (basename(results_dict['filename']).split('_'))
 
         if 'Frame' in results_dict['filename']:
-            return
+            self.sending_socket.send_data('ondarawdata', results_dict)
         try:
             num_run = int(filename_parts[1])
             num_file = int(filename_parts[2].split('.')[0])
