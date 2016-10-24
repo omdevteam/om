@@ -18,7 +18,7 @@
 import h5py
 import sys
 import numpy
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 import pyqtgraph as pg
 from signal import signal, SIGINT, SIG_DFL
 

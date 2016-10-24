@@ -25,7 +25,7 @@ import sys
 import pyqtgraph as pg
 from collections import deque
 from copy import deepcopy
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from signal import signal, SIGINT, SIG_DFL
 
 from cfelpyutils.cfel_geom import pixel_maps_for_image_view
@@ -92,11 +92,11 @@ class MainFrame(QtGui.QMainWindow):
     def init_listening_thread(self):
         self.zeromq_listener_thread = QtCore.QThread()
         self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
-        self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.zeromq_listener.start_listening()
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
         self.listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
+        self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
         self.zeromq_listener_thread.start()
         self.listening_thread_start_processing.emit()
 

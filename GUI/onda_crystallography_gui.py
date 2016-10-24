@@ -24,7 +24,7 @@ import pyqtgraph as pg
 import sys
 from copy import deepcopy
 from datetime import datetime
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from scipy.constants import h, c, e
 from signal import signal, SIGINT, SIG_DFL
 
@@ -61,8 +61,6 @@ class MainFrame(QtGui.QMainWindow):
         self.resolution_rings_in_A = [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
         self.resolution_rings_textitems = []
 
-        self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondadata')
         self.init_listening_thread()
 
         self.resolution_rings_pen = pg.mkPen('w', width=0.5)
@@ -88,10 +86,12 @@ class MainFrame(QtGui.QMainWindow):
         self.show()
 
     def init_listening_thread(self):
-        self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
+        self.zeromq_listener_thread = QtCore.QThread()
+        self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondadata')
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
         self.listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
+        self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
         self.zeromq_listener_thread.start()
         self.listening_thread_start_processing.emit()
 
