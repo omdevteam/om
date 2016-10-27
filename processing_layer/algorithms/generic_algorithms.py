@@ -272,3 +272,89 @@ class RawDataAveraging:
         if self.num_raw_data == self.accumulated_shots:
             return self.avg_raw_data
         return None
+
+
+####################
+# AGIPD Correction #
+####################
+
+class AGIPDCorrection:
+    """AGIPD Correction
+
+    Implements various corrections for AGIPD detectors. Applies DarkCal correction to
+    data, by simple subtraction. Optionally, a gain map can be also applied. A mask
+    can also optionally be applied to the data
+    """
+
+    def __init__(self, role, filename, hdf5_group, beam_energy_coeff = 1.0,
+                 apply_mask=False, mask_filename=None, mask_hdf5_group=False,
+                 gain_map_correction=False, gain_map_filename=None,
+                 gain_map_hdf5_group=None):
+        """Initializes the DarkCal correction algorithm.
+
+        Args:
+
+            role (str): node role ('worker' or 'master').
+
+            filename (str): name of the hdf5 with dark calibration.
+            data
+
+            hdf5_group (str): path of the dark calibration data within the
+            hdf5 file.
+
+            apply_mask (Optional[bool]): whether a mask should be applied
+            (optional, if omitted no mask is applied).
+
+            mask_filename (Optional[str]) : if the mask is applied, name of
+            the hdf5 file with gain_map, otherwise ignored (optional).
+
+            mask_hdf5_group (Optional[str]): if the mask is applied,
+            internal hdf5 path of the data block containing the mask,
+            otherwise ignored (optional).
+
+            gain_map_correction (Optional[bool]): whether a gain_map should be
+            applied (optional, if omitted no gain map is applied).
+
+            gain_map_filename (Optional[str]) : if the gain map is applied,
+            name of the hdf5 file with gain_map, otherwise ignored (optional).
+
+            gain_map_hdf5_group (Optional[str]): if the gain map is applied,
+            internal hdf5 path of the data block containing the mask,
+            otherwise ignored (optional).
+         """
+
+        # Initialized on worker
+        if role == 'worker':
+
+            self.beam_energy_coeff = beam_energy_coeff
+
+            # load the darkcals
+            self.darkcal = load_nparray_from_hdf5_file(filename, hdf5_group)
+
+            if apply_mask:
+                self.mask = load_nparray_from_hdf5_file(mask_filename,
+                                                        mask_hdf5_group)
+            else:
+                self.mask = True
+
+            if gain_map_correction:
+                self.gain_map = load_nparray_from_hdf5_file(
+                    gain_map_filename,
+                    gain_map_hdf5_group)
+                self.gain_map[numpy.where(self.gain_map==0)] = 1.0
+            else:
+                self.gain_map = numpy.ones((352,128,512), dtype=bool)
+
+    def apply_agipd_correction(self, data_as_slab, event):
+        """Applies the correction.
+
+        Designed to be run on worker nodes.
+
+        Args:
+
+            data_as_slab (numpy.ndarray): the data stack on which to apply the
+            AGIPD correction, in 'slab' format.
+        """
+
+        return ((data_as_slab*self.mask - self.darkcal) / self.gain_map /
+               self.beam_energy_coeff)
