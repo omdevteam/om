@@ -26,8 +26,8 @@ slab_shape = (1480, 1552)
 native_shape = (32, 185, 388)
 
 
-def raw_data(event):
-    cspad_np = event['det'].calib(event['evt'])
+def raw_data_dataext(event):
+    cspad_np = event['det']['detect'.encode('ascii')].calib(event['evt'])
     cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
     cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
     for i in range(cspad_np_og.shape[0]):

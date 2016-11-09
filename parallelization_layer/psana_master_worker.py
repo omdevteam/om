@@ -31,6 +31,7 @@ from parallelization_layer.utils.onda_params import monitor_params, param
 from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
 
 de_layer = import_correct_layer_module('data_extraction_layer', monitor_params)
+initialize = import_function_from_layer('initialize', de_layer)
 extract = import_function_from_layer('extract', de_layer)
 
 
@@ -73,6 +74,11 @@ class MasterWorker(object):
         self.map = map_func
         self.reduce = reduce_func
         self.extract_data = extract
+        self.initialize_data_extraction = initialize
+
+        if self.role == 'worker':
+
+            self.psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str)
 
         # The following is executed only on the master node
         if self.role == 'master':
@@ -120,9 +126,8 @@ class MasterWorker(object):
 
             req = None
 
-            psana.setOption('psana.calib-dir', self.psana_calib_dir)
-
-            self.psana_source = psana.DataSource(self.source)
+            psana.setOption('psana.calib-dir'.encode('ascii'), self.psana_calib_dir.encode('ascii'))
+            self.psana_source = psana.DataSource(self.source.encode('ascii'))
 
             if self.offline is False:
                 psana_events = self.psana_source.events()
@@ -138,6 +143,8 @@ class MasterWorker(object):
                 psana_events = psana_events_generator()
 
             event = {'monitor_params': monitor_params}
+            event['det'] = {}
+            self.initialize_data_extraction(event['det'])
 
              # Loop over events and process
             for evt in psana_events:
@@ -155,7 +162,7 @@ class MasterWorker(object):
                 if (timenow - timestamp).total_seconds() > self.event_rejection_threshold:
                     continue
 
-                self.event_timestamp = timestamp
+                event['det']['timestamp'] = timestamp
 
                 # Check if a shutdown message is coming from the server
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):

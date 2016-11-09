@@ -118,7 +118,7 @@ class Onda(MasterWorker):
         sat = len([x for x in peak_list[2] if x > self.saturation_value]) > self.max_saturated_peaks
         hit = self.min_num_peaks_for_hit < len(peak_list[2]) < self.max_num_peaks_for_hit
 
-        results_dict['timestamp'] = self.event_timestamp
+        results_dict['timestamp'] = self.timestamp
         results_dict['peak_list'] = peak_list
         results_dict['sat_flag'] = sat
         results_dict['hit_flag'] = hit

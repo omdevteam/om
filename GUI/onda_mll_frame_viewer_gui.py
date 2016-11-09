@@ -25,12 +25,17 @@ import sys
 import pyqtgraph as pg
 from collections import deque
 from copy import deepcopy
-from PyQt5 import QtCore, QtGui
+try:
+    from PyQt5 import QtCore, QtGui
+except ImportError:
+    from PyQt4 import QtCore, QtGui
 from signal import signal, SIGINT, SIG_DFL
 
 from GUI.utils.zmq_gui_utils import ZMQListener
-from GUI.UI import onda_mll_frame_viewer_UI
-
+try:
+    from GUI.UI.onda_mll_frame_viewer_ui_qt5 import Ui_MainWindow
+except ImportError:
+    from GUI.UI.onda_mll_frame_viewer_ui_qt4 import Ui_MainWindow
 
 class MainFrame(QtGui.QMainWindow):
 
@@ -48,7 +53,7 @@ class MainFrame(QtGui.QMainWindow):
 
         self.init_listening_thread()
 
-        self.ui = onda_mll_frame_viewer_UI.Ui_MainWindow()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
 

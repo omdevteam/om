@@ -19,45 +19,42 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from psana import Detector, EventID
+from psana import Detector
 
 from parallelization_layer.utils import onda_params as gp
 from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module
 
 
 def raw_data_init(det):
-    det['detect'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['detector_name'])
+    det['detect'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['detector_name'].encode('ascii'))
+
+
+def timestamp_init(_):
+    pass
 
 
 def detector_distance_init(det):
-    det['detect_dist'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['detector_dist_epics_name'])
-
+    det['detect_dist'] = Detector(gp.monitor_params['PsanaParallelizationLayer'][
+                                                    'detector_dist_epics_name'].encode('ascii'))
 
 def beam_energy_init(det):
-    det['beam_energy'] = Detector('EBeam')
+    det['beam_energy'] = Detector('EBeam'.encode('ascii'))
 
 
 def timetool_data_init(det):
-    det['timetool'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['timetool_epics_name'])
+    det['timetool'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['timetool_epics_name'].encode('ascii'))
 
 
-def acqiris_data_init(det):
-    det['digitizer'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer_name'])
+def digitizer_data_init(det):
+    det['digitizer'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer_name'].encode('ascii'))
 
 
-def acqiris2_data_init(det):
-    det['digitizer2'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer2_name'])
+def digitizer2_data_init(det):
+    det['digitizer2'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer2_name'].encode('ascii'))
 
 
-def lcls_extra_init(det):
-    det['LCLS_FEE_gas_enery_detect'] = Detector('FEEGasDetEnergy')
-    det['LCLS_EncoderValue'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['detector_dist_epics_name'])
-    det['LCLS_photon_energy_eV'] = Detector('EBeam')
-
-
-
-def raw_data_dataext(event):
-    return event['det']['detect']()
+def timestamp_dataext(event):
+    return event['det']['timestamp']
 
 
 def detector_distance_dataext(event):
@@ -65,60 +62,32 @@ def detector_distance_dataext(event):
 
 
 def beam_energy_dataext(event):
-    return event['det']['beam_energy'].ebeamPhotonEnergy()
+    return event['det']['beam_energy'].get(event['evt']).ebeamPhotonEnergy()
 
 
 def timetool_data_dataext(event):
     return event['det']['time_tool']()
 
 
-def acqiris_data_dataext(event):
+def digitizer_data_dataext(event):
     return event['det']['digitizer'].waveform(event['evt'])
 
 
-def acqiris2_data_dataext(event):
+def digitizer2_data_dataext(event):
     return event['det']['digitizer2'].waveform(event['evt'])
-
-
-
-
-def lcls_extra_dataext(event):
-
-
-    gas_energy_det = event['det']['LCLS_FEE_gas_enery_detect'].get()
-    enc_value = event['det']['LCLS_EncoderValue']()
-    evt_id = event['evt'].get(EventID)
-    phot_en = event['det']['beam_energy'].ebeamPhotonEnergy()
-
-
-
-
-
-    ret_dict = {}
-
-    ret_dict['LCLS_EncoderValue'] = enc_value
-    ret_dict['LCLS_f_11_ENRC'] = gas_energy_det.f11_ENRC
-    ret_dict['LCLS_f_12_ENRC'] = gas_energy_det.f12_ENRC
-    ret_dict['LCLS_f_21_ENRC'] = gas_energy_det.f21_ENRC
-    ret_dict['LCLS_f_22_ENRC'] = gas_energy_det.f22_ENRC
-    ret_dict['LCLS_machineTime'] = evt_id.time()[0]
-    ret_dict['LCLS_machineTimeNanoSeconds'] = evt_id.time()[1]
-    ret_dict['LCLS_photon_energy_eV'] = phot_en
-
-
-
 
 
 in_layer = import_correct_layer_module('instrument_layer', gp.monitor_params)
 
-avail_data_sources = ['raw_data', 'opal_data', 'detector_distance', 'beam_energy', 'pulse_energy', 'time_stamp',
-                      'timetool_data', 'digitizer_data', 'digitizer2_data', 'lcls_extra']
+avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'timetool_data', 'digitizer_data',
+                      'digitizer2_data']
 
 for data_source in avail_data_sources:
-    locals()[data_source] = lambda x: None
+    globals()[(data_source + '_initialize').encode('ascii')] = lambda x: None
 
 for data_source in avail_data_sources:
-    locals()[data_source + '_initialize'] = lambda x: None
+    print('Source:', data_source)
+    globals()[data_source.encode('ascii')] = lambda x: None
 
 required_data = gp.monitor_params['Backend']['required_data'].split(',')
 for data_source in required_data:
@@ -126,22 +95,43 @@ for data_source in required_data:
     if data_source not in avail_data_sources:
         raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        locals()[data_source + '_initialize'] = getattr(in_layer, data_source + '_init')
-        locals()[data_source] = getattr(in_layer, data_source)
+        globals()[(data_source + '_initialize').encode('ascii')] = getattr(in_layer, (data_source + '_init').encode('ascii'))
     except AttributeError:
         try:
-            locals()[data_source + '_initialize'] = locals()[data_source + '_init']
-            locals()[data_source] = locals()[data_source + '_dataext']
+            globals()[(data_source + '_initialize').encode('ascii')] = globals()[(data_source + '_init').encode('ascii')]
         except KeyError:
-            raise RuntimeError('Undefined data type: {0}'.format(data_source))
+            raise RuntimeError('Initialization function not defined for the following '
+                               'data type: {0}'.format(data_source))
+
+for data_source in required_data:
+    data_source = data_source.strip()
+    if data_source not in avail_data_sources:
+        raise RuntimeError('Unknown data type: {0}'.format(data_source))
+    try:
+        globals()[data_source.encode('ascii')] = getattr(in_layer, (data_source + '_dataext').encode('ascii'))
+    except AttributeError:
+        try:
+            globals()[data_source.encode('ascii')] = globals()[(data_source + '_dataext').encode('ascii')]
+        except KeyError:
+            raise RuntimeError('Data extraction function not defined for the following '
+                               'data type: {0}'.format(data_source))
 
 
 def initialize(det):
     for init_data_source in avail_data_sources:
-        locals()[init_data_source + '_initialize'](det)
+        if init_data_source in required_data:
+            globals()[(init_data_source + '_initialize').encode('ascii')](det)
 
 
 def extract(event, monitor):
+
+    # Extract time stamp data
+    #try:
+    monitor.timestamp = timestamp(event)
+
+    #except Exception as e:
+    #    print('Error when extracting raw data:', e)
+    #    monitor.timestamp = None
 
     # Extract detector data in slab format
     try:
@@ -167,14 +157,6 @@ def extract(event, monitor):
         print('Error when extracting beam energy:', e)
         monitor.beam_energy = None
 
-    # Extract Opal camera data
-    try:
-        monitor.opal_data = opal_data(event)
-
-    except Exception as e:
-        print('Error when extracting opal data:', e)
-        monitor.opal_data = None
-
     # Extract timetool data
     try:
         monitor.timetool_data = timetool_data(event)
@@ -185,16 +167,16 @@ def extract(event, monitor):
 
     # Extract Acquiris data
     try:
-        monitor.acqiris_data = acqiris_data(event)
+        monitor.digitizer_data = digitizer_data(event)
 
     except Exception as e:
-        print('Error when extracting aquiris data:', e)
-        monitor.acqiris_data = None
+        print('Error when extracting digitizer data:', e)
+        monitor.digitizer_data = None
 
     # Extract Acquiris data
     try:
-        monitor.acqiris2_data = acqiris2_data(event)
+        monitor.digitizer2_data = digitizer2_data(event)
 
     except Exception as e:
-        print('Error when extracting aquiris2 data:', e)
-        monitor.acqiris2_data = None
+        print('Error when extracting digitizer2 data:', e)
+        monitor.digitizer2_data = None

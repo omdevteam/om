@@ -24,13 +24,19 @@ import pyqtgraph as pg
 import sys
 from copy import deepcopy
 from datetime import datetime
-from PyQt5 import QtCore, QtGui
+try:
+    from PyQt5 import QtCore, QtGui
+except:
+    from PyQt4 import QtCore, QtGui
 from scipy.constants import h, c, e
 from signal import signal, SIGINT, SIG_DFL
 
 from cfelpyutils.cfel_geom import coffset_from_geometry_file, res_from_geometry_file, pixel_maps_for_image_view
 from GUI.utils.zmq_gui_utils import ZMQListener
-from GUI.UI import onda_crystallography_UI
+try:
+    from GUI.UI.onda_crystallography_ui_qt5 import Ui_MainWindow
+except ImportError:
+    from GUI.UI.onda_crystallography_ui_qt4 import Ui_MainWindow
 
 
 class MainFrame(QtGui.QMainWindow):
@@ -70,7 +76,7 @@ class MainFrame(QtGui.QMainWindow):
         self.resolution_rings_validator = QtGui.QRegExpValidator()
         self.resolution_rings_validator.setRegExp(self.resolution_rings_regex)
         pg.setConfigOption('background', 0.2)
-        self.ui = onda_crystallography_UI.Ui_mainWindow()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
 

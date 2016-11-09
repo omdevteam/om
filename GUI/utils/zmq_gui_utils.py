@@ -24,7 +24,10 @@ try:
     from cPickle import loads
 except ImportError:
     from pickle import loads
-from PyQt5 import QtCore
+try:
+    from PyQt5 import QtCore
+except ImportError:
+    from PyQt4 import QtCore
 
 
 class ZMQListener(QtCore.QObject):

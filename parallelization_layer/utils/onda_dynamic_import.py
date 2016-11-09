@@ -36,7 +36,7 @@ def import_correct_layer_module(layer, monitor_params):
         raise RuntimeError('[Backend] section is not present in the configuration file.')
 
     if layer not in monitor_params['Backend']:
-        raise RuntimeError('Module for layer {0} not specified in the configuration file.'.format(layer))
+        raise RuntimeError('Module for {0} not specified in the configuration file.'.format(layer))
 
     try:
         m = import_module(
@@ -45,8 +45,8 @@ def import_correct_layer_module(layer, monitor_params):
                 monitor_params['Backend'][layer])
         )
     except ImportError:
-        raise RuntimeError('Error when importing layer, module {0} does not exist.'.format(
-            monitor_params['Backend'][layer]))
+        raise RuntimeError('Error when importing the {0}.  Either the {1} module does not exist, or importing it '
+                           'causes an error.'.format(layer, monitor_params['Backend'][layer]))
     else:
         return m
 

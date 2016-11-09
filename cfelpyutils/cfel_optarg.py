@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from sys import version_info
 
 """
 Utilities for parsing command line options and configuration files.
@@ -67,6 +68,12 @@ def parse_parameters(config):
             monitor_params[sect][op] = config.get(sect, op)
             if monitor_params[sect][op].startswith("'") and monitor_params[sect][op].endswith("'"):
                 monitor_params[sect][op] = monitor_params[sect][op][1:-1]
+                if version_info[0] == 2:
+                    try:
+                        monitor_params[sect][op] = unicode(monitor_params[sect][op])
+                    except UnicodeDecodeError:
+                        raise RuntimeError('Error parsing parameters. Only ASCII characters are allowed in parameter '
+                                           'names and values.')
                 continue
             if monitor_params[sect][op] == 'None':
                 monitor_params[sect][op] = None
@@ -85,6 +92,8 @@ def parse_parameters(config):
                     monitor_params[sect][op] = float(monitor_params[sect][op])
                     continue
                 except ValueError:
-                    pass
+                    raise RuntimeError('Error parsing parameters. The parameter {0}/{1} parameter has an invalid type. '
+                                       'Allowed types are None, int, float, bool and str. Strings must be '
+                                       'single-quoted.')
 
     return monitor_params

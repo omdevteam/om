@@ -18,7 +18,11 @@
 import h5py
 import sys
 import numpy
-from PyQt5 import QtCore, QtGui
+try:
+    from PyQt5 import QtCore, QtGui
+export ImportError:
+    from PyQt4 import QtCore, QtGui
+
 import pyqtgraph as pg
 from signal import signal, SIGINT, SIG_DFL
 
@@ -30,7 +34,10 @@ except ImportError:
 from cfelpyutils.cfel_optarg import parse_parameters
 from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
 from cfelpyutils.cfel_geom import pixel_maps_from_geometry_file, pixel_maps_for_image_view
-from GUI.UI import onda_crystallography_parameter_tweaker_UI
+try:
+    from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt5 import Ui_MainWindow
+export ImportError:
+    from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt4 import Ui_MainWindow
 from peakfinder8_extension import peakfinder_8
 
 
@@ -313,7 +320,7 @@ class MainFrame(QtGui.QMainWindow):
         self.param_label = QtGui.QLabel(self)
         self.param_label.setText('<b>Peakfinder Parameters:</b>')
 
-        self.ui = onda_crystallography_parameter_tweaker_UI.Ui_MainWindow()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
         

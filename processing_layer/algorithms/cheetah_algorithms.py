@@ -25,10 +25,9 @@ from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
 try:
     from peakfinder8_extension import peakfinder_8
     from peakfinder9_extension import peakfinder_9
-    from streakfinder_extension import StreakDetectionClass
-except:
-    raise RuntimeError('Error importing cheetah wrappers. Make sure that they are compiled for the correct ' +
-                       'python version.')
+    #from streakfinder_extension import StreakDetectionClass
+except ImportError:
+    raise RuntimeError('Error importing one or more cheetah wrappers, or one of their dependecies')
 
 
 ##############################
