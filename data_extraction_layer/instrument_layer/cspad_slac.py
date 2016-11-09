@@ -27,7 +27,18 @@ native_shape = (32, 185, 388)
 
 
 def raw_data_dataext(event):
-    cspad_np = event['det']['detect'.encode('ascii')].calib(event['evt'])
+    cspad_np = event['det']['detect'].calib(event['evt'])
+    cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
+    cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
+    for i in range(cspad_np_og.shape[0]):
+        cspad_ij[:, i * cspad_np_og.shape[3]: (i+1) * cspad_np_og.shape[3]] = cspad_np_og[i].reshape(
+            (cspad_np_og.shape[1] * cspad_np_og.shape[2], cspad_np_og.shape[3]))
+
+    return cspad_ij
+
+
+def raw_data_dataext_pedestals_only(event):
+    cspad_np = event['det']['detect'].raw(event['evt'])-event['det']['detect'].pedestals(event['evt'])
     cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
     cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
     for i in range(cspad_np_og.shape[0]):

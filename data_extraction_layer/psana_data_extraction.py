@@ -21,12 +21,12 @@ from __future__ import unicode_literals
 
 from psana import Detector
 
-from parallelization_layer.utils import onda_params as gp
+from parallelization_layer.utils.onda_params import monitor_params, param
 from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module
 
 
 def raw_data_init(det):
-    det['detect'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['detector_name'].encode('ascii'))
+    det['detect'] = Detector(monitor_params['PsanaParallelizationLayer']['detector_name'].encode('ascii'))
 
 
 def timestamp_init(_):
@@ -34,23 +34,23 @@ def timestamp_init(_):
 
 
 def detector_distance_init(det):
-    det['detect_dist'] = Detector(gp.monitor_params['PsanaParallelizationLayer'][
-                                                    'detector_dist_epics_name'].encode('ascii'))
+    det['detect_dist'] = Detector(monitor_params['PsanaParallelizationLayer'][
+                                                 'detector_dist_epics_name'].encode('ascii'))
 
 def beam_energy_init(det):
     det['beam_energy'] = Detector('EBeam'.encode('ascii'))
 
 
 def timetool_data_init(det):
-    det['timetool'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['timetool_epics_name'].encode('ascii'))
+    det['timetool'] = Detector(monitor_params['PsanaParallelizationLayer']['timetool_epics_name'].encode('ascii'))
 
 
 def digitizer_data_init(det):
-    det['digitizer'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer_name'].encode('ascii'))
+    det['digitizer'] = Detector(monitor_params['PsanaParallelizationLayer']['digitizer_name'].encode('ascii'))
 
 
 def digitizer2_data_init(det):
-    det['digitizer2'] = Detector(gp.monitor_params['PsanaParallelizationLayer']['digitizer2_name'].encode('ascii'))
+    det['digitizer2'] = Detector(monitor_params['PsanaParallelizationLayer']['digitizer2_name'].encode('ascii'))
 
 
 def timestamp_dataext(event):
@@ -77,7 +77,7 @@ def digitizer2_data_dataext(event):
     return event['det']['digitizer2'].waveform(event['evt'])
 
 
-in_layer = import_correct_layer_module('instrument_layer', gp.monitor_params)
+in_layer = import_correct_layer_module('instrument_layer', monitor_params)
 
 avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'timetool_data', 'digitizer_data',
                       'digitizer2_data']
@@ -86,19 +86,21 @@ for data_source in avail_data_sources:
     globals()[(data_source + '_initialize').encode('ascii')] = lambda x: None
 
 for data_source in avail_data_sources:
-    print('Source:', data_source)
     globals()[data_source.encode('ascii')] = lambda x: None
 
-required_data = gp.monitor_params['Backend']['required_data'].split(',')
+required_data = monitor_params['Backend']['required_data'].split(',')
+
 for data_source in required_data:
     data_source = data_source.strip()
     if data_source not in avail_data_sources:
         raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        globals()[(data_source + '_initialize').encode('ascii')] = getattr(in_layer, (data_source + '_init').encode('ascii'))
+        globals()[(data_source + '_initialize').encode('ascii')] = getattr(in_layer, (data_source + '_init').encode(
+            'ascii'))
     except AttributeError:
         try:
-            globals()[(data_source + '_initialize').encode('ascii')] = globals()[(data_source + '_init').encode('ascii')]
+            globals()[(data_source + '_initialize').encode('ascii')] = globals()[(data_source + '_init').encode(
+                'ascii')]
         except KeyError:
             raise RuntimeError('Initialization function not defined for the following '
                                'data type: {0}'.format(data_source))
@@ -108,10 +110,18 @@ for data_source in required_data:
     if data_source not in avail_data_sources:
         raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        globals()[data_source.encode('ascii')] = getattr(in_layer, (data_source + '_dataext').encode('ascii'))
+        if data_source == 'raw_data' and param('PsanaParallelizationLayer', 'pedestals_only', bool):
+            globals()[data_source.encode('ascii')] = getattr(in_layer, (data_source + '_dataext_pedestals_only').encode(
+                'ascii'))
+        else:
+            globals()[data_source.encode('ascii')] = getattr(in_layer, (data_source + '_dataext').encode('ascii'))
     except AttributeError:
         try:
-            globals()[data_source.encode('ascii')] = globals()[(data_source + '_dataext').encode('ascii')]
+            if data_source == 'raw_data' and param('PsanaParallelizationLayer','pedestals_only', bool):
+                globals()[data_source.encode('ascii')] = globals()[(data_source + '_dataext_pedestals_only').encode(
+                    'ascii')]
+            else:
+                globals()[data_source.encode('ascii')] = globals()[(data_source + '_dataext').encode('ascii')]
         except KeyError:
             raise RuntimeError('Data extraction function not defined for the following '
                                'data type: {0}'.format(data_source))
@@ -126,12 +136,12 @@ def initialize(det):
 def extract(event, monitor):
 
     # Extract time stamp data
-    #try:
-    monitor.timestamp = timestamp(event)
+    try:
+        monitor.timestamp = timestamp(event)
 
-    #except Exception as e:
-    #    print('Error when extracting raw data:', e)
-    #    monitor.timestamp = None
+    except Exception as e:
+        print('Error when extracting raw data:', e)
+        monitor.timestamp = None
 
     # Extract detector data in slab format
     try:
