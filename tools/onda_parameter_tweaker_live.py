@@ -208,7 +208,7 @@ class MainFrame(QtGui.QMainWindow):
         self.ui.forwardButton.clicked.connect(self.next_event)
         self.ui.backButton.clicked.connect(self.previous_event)
         self.ui.randomButton.clicked.connect(self.play_pause_button_clicked)
-        self.ui.randomButton.setText('Play/Pause')
+        self.ui.randomButton.setText('Pause')
 
         self.ui.verticalLayout1.insertLayout(0, self.hlayout6)
         self.ui.verticalLayout1.insertLayout(0, self.hlayout5)
@@ -237,7 +237,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def init_timer(self):
         self.refresh_timer.timeout.connect(self.draw_things)
-        self.refresh_timer.start(self.image_update_us)
+        self.refresh_timer.start(250)
 
     def data_received(self, datdict):
         if self.refresh_timer.isActive():
@@ -358,8 +358,10 @@ class MainFrame(QtGui.QMainWindow):
         if self.refresh_timer.isActive():
             self.refresh_timer.stop()
             self.data_index = len(self.data) - 1
+            self.ui.randomButton.setText('Play')
         else:
-            self.refresh_timer.start(self.image_update_us)
+            self.refresh_timer.start(250)
+            self.ui.randomButton.setText('Pause')
 
     def mouse_clicked(self, event):
         pos = event[0].scenePos()
