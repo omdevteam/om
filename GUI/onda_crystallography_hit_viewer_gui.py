@@ -92,7 +92,7 @@ class MainFrame(QtGui.QMainWindow):
             self.refresh_timer.stop()
             self.data_index = len(self.data) - 1
         else:
-            self.refresh_timer.start(self.image_update_us)
+            self.refresh_timer.start(250)
 
     def init_listening_thread(self):
         self.zeromq_listener_thread = QtCore.QThread()
