@@ -90,9 +90,11 @@ class MainFrame(QtGui.QMainWindow):
     def play_pause_button_clicked(self):
         if self.refresh_timer.isActive():
             self.refresh_timer.stop()
+            self.ui.playPauseButton.setText('Play')
             self.data_index = len(self.data) - 1
         else:
             self.refresh_timer.start(250)
+            self.ui.playPauseButton.setText('Pause')
 
     def init_listening_thread(self):
         self.zeromq_listener_thread = QtCore.QThread()

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'OndaCrystallographyHitViewerGUI.ui'
 #
-# Created: Thu Nov  3 02:33:21 2016
+# Created: Thu Nov 10 18:19:10 2016
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -67,6 +67,6 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
         self.backButton.setText(_translate("MainWindow", "Back", None))
         self.forwardButton.setText(_translate("MainWindow", "Forward", None))
-        self.playPauseButton.setText(_translate("MainWindow", "Play/Pause", None))
+        self.playPauseButton.setText(_translate("MainWindow", "Pause", None))
 
 from pyqtgraph import ImageView

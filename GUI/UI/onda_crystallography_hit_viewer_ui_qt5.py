@@ -53,6 +53,6 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.backButton.setText(_translate("MainWindow", "Back"))
         self.forwardButton.setText(_translate("MainWindow", "Forward"))
-        self.playPauseButton.setText(_translate("MainWindow", "Play/Pause"))
+        self.playPauseButton.setText(_translate("MainWindow", "Pause"))
 
 from pyqtgraph import ImageView
