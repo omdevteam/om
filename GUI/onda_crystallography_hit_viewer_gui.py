@@ -67,7 +67,6 @@ class MainFrame(QtGui.QMainWindow):
         self.show()
 
     def init_ui(self):
-
         self.ui.imageView.ui.menuBtn.hide()
         self.ui.imageView.ui.roiBtn.hide()
 
@@ -78,23 +77,33 @@ class MainFrame(QtGui.QMainWindow):
         self.ui.playPauseButton.clicked.connect(self.play_pause_button_clicked)
 
     def back_button_clicked(self):
+        if self.refresh_timer.isActive():
+            self.stop_stream()
         if self.data_index > 0:
             self.data_index -= 1
             self.update_image_plot()
 
     def forward_button_clicked(self):
+        if self.refresh_timer.isActive():
+            self.stop_stream()
         if (self.data_index + 1) < len(self.data):
             self.data_index += 1
             self.update_image_plot()
 
+    def stop_stream(self):
+        self.refresh_timer.stop()
+        self.ui.playPauseButton.setText('Play')
+        self.data_index = len(self.data) - 1
+
+    def start_stream(self):
+        self.refresh_timer.start(250)
+        self.ui.playPauseButton.setText('Pause')
+
     def play_pause_button_clicked(self):
         if self.refresh_timer.isActive():
-            self.refresh_timer.stop()
-            self.ui.playPauseButton.setText('Play')
-            self.data_index = len(self.data) - 1
+            self.stop_stream()
         else:
-            self.refresh_timer.start(250)
-            self.ui.playPauseButton.setText('Pause')
+            self.start_stream()
 
     def init_listening_thread(self):
         self.zeromq_listener_thread = QtCore.QThread()

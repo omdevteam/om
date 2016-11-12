@@ -345,23 +345,33 @@ class MainFrame(QtGui.QMainWindow):
             self.draw_things()
 
     def previous_event(self):
+        if self.refresh_timer.isActive():
+            self.stop_stream()
         if self.data_index > 0:
             self.data_index -= 1
             self.draw_things()
 
     def next_event(self):
+        if self.refresh_timer.isActive():
+            self.stop_stream()
         if (self.data_index + 1) < len(self.data):
             self.data_index += 1
             self.draw_things()
 
+    def stop_stream(self):
+        self.refresh_timer.stop()
+        self.ui.randomButton.setText('Play')
+        self.data_index = len(self.data) - 1
+
+    def start_stream(self):
+        self.refresh_timer.start(250)
+        self.ui.randomButton.setText('Pause')
+
     def play_pause_button_clicked(self):
         if self.refresh_timer.isActive():
-            self.refresh_timer.stop()
-            self.data_index = len(self.data) - 1
-            self.ui.randomButton.setText('Play')
+            self.stop_stream()
         else:
-            self.refresh_timer.start(250)
-            self.ui.randomButton.setText('Pause')
+            self.start_stream()
 
     def mouse_clicked(self, event):
         pos = event[0].scenePos()
