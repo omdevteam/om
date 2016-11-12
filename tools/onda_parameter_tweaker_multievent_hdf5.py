@@ -20,7 +20,7 @@ import sys
 import numpy
 try:
     from PyQt5 import QtCore, QtGui
-export ImportError:
+except ImportError:
     from PyQt4 import QtCore, QtGui
 
 import pyqtgraph as pg
@@ -36,7 +36,7 @@ from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
 from cfelpyutils.cfel_geom import pixel_maps_from_geometry_file, pixel_maps_for_image_view
 try:
     from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt5 import Ui_MainWindow
-export ImportError:
+except ImportError:
     from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt4 import Ui_MainWindow
 from peakfinder8_extension import peakfinder_8
 
@@ -202,6 +202,7 @@ class MainFrame(QtGui.QMainWindow):
 
         self.filename = input_file
         self.data_path = data_path
+        print self.filename
         fh = h5py.File(self.filename, 'r')
         self.num_events = fh[self.data_path].shape[0]
         fh.close()
