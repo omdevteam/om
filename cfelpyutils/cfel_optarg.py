@@ -94,6 +94,6 @@ def parse_parameters(config):
                 except ValueError:
                     raise RuntimeError('Error parsing parameters. The parameter {0}/{1} parameter has an invalid type. '
                                        'Allowed types are None, int, float, bool and str. Strings must be '
-                                       'single-quoted.')
+                                       'single-quoted.'.format(sect, op))
 
     return monitor_params
