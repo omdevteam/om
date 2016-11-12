@@ -102,7 +102,7 @@ class Onda(MasterWorker):
             print('Starting the monitor...')
             stdout.flush()
 
-            self.sending_socket = zmq_onda_publisher_socket(param('General', 'publish_ip', int),
+            self.sending_socket = zmq_onda_publisher_socket(param('General', 'publish_ip', str),
                                                             param('General', 'publish_port', int))
 
             self.hit_rate = 0
