@@ -8,11 +8,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class Ui_mainWindow(object):
-    def setupUi(self, mainWindow):
-        mainWindow.setObjectName("mainWindow")
-        mainWindow.resize(1200, 800)
-        self.centralwidget = QtWidgets.QWidget(mainWindow)
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(1200, 800)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
@@ -60,21 +60,21 @@ class Ui_mainWindow(object):
         self.horizontalLayout0.addWidget(self.accumulatedPeaksCheckBox)
         self.verticalLayout0.addLayout(self.horizontalLayout0)
         self.gridLayout.addLayout(self.verticalLayout0, 0, 0, 1, 1)
-        mainWindow.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(mainWindow)
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
-        mainWindow.setStatusBar(self.statusbar)
+        MainWindow.setStatusBar(self.statusbar)
 
-        self.retranslateUi(mainWindow)
-        QtCore.QMetaObject.connectSlotsByName(mainWindow)
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, mainWindow):
+    def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        mainWindow.setWindowTitle(_translate("mainWindow", "OnDA Crystallography"))
-        self.resetPeaksButton.setText(_translate("mainWindow", "Reset Peaks"))
-        self.resetPlotsButton.setText(_translate("mainWindow", "Reset Plots"))
-        self.delayLabel.setText(_translate("mainWindow", "Estimated Delay: -"))
-        self.resolutionRingsCheckBox.setText(_translate("mainWindow", "Resolution Rings"))
-        self.accumulatedPeaksCheckBox.setText(_translate("mainWindow", "Show Accumulated Peaks"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "OnDA Crystallography"))
+        self.resetPeaksButton.setText(_translate("MainWindow", "Reset Peaks"))
+        self.resetPlotsButton.setText(_translate("MainWindow", "Reset Plots"))
+        self.delayLabel.setText(_translate("MainWindow", "Estimated Delay: -"))
+        self.resolutionRingsCheckBox.setText(_translate("MainWindow", "Resolution Rings"))
+        self.accumulatedPeaksCheckBox.setText(_translate("MainWindow", "Show Accumulated Peaks"))
 
 from pyqtgraph import ImageView, PlotWidget
