@@ -43,4 +43,4 @@ streakfinder_ext = Extension("streakfinder_extension", sources=["processing_laye
 
 setup(name="peakfinder8_extension", ext_modules=[peakfinder8_ext])
 setup(name="peakfinder9_extension", ext_modules=[peakfinder9_ext])
-#setup(name="streakfinder_extension", ext_modules=[streakfinder_ext])
+setup(name="streakfinder_extension", ext_modules=[streakfinder_ext])
