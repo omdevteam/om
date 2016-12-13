@@ -64,11 +64,11 @@ def num_events(filehandle):
 def extract(evt, monitor):
     # Extract timestamp
     try:
-        monitor.event_timestamp = timestamp(evt)
+        monitor.timestamp = timestamp(evt)
 
     except Exception as e:
         print('Error while extracting timestamp:', e)
-        monitor.event_timestamp = None
+        monitor.timestamp = None
 
     # Extract detector data in slab format
     try:
