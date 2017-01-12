@@ -19,20 +19,17 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from sys import version_info
-
+from builtins import str
 
 monitor_params = {}
 
 def param(section, par, type_to_check = None):
-    if version_info[0] == 2 and type_to_check == str:
-        type_to_check = unicode
     if section not in monitor_params:
         raise RuntimeError('Section {0} is not in the configuration file'.format(section))
     else:
         ret = monitor_params[section].get(par)
         if ret is not None and type_to_check is not None:
-            if type(ret) != type_to_check:
+            if not isinstance(ret, type_to_check):
                 raise RuntimeError('Wrong type for parameter {0}: should be {1}, is {2}.'.format(
                     par, str(type_to_check).split()[1][1:-2], str(type(ret)).split()[1][1:-2]))
             else:

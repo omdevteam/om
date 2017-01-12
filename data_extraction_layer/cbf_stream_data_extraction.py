@@ -19,27 +19,26 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
-from cfelpyutils.cfel_fabio import read_cbf_from_stream
-from parallelization_layer.utils import onda_params as gp
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
+from io import BytesIO
+import cfelpyutils.cfel_fabio as fb
+import parallelization_layer.utils.onda_dynamic_import as di
+import parallelization_layer.utils.onda_params as op
 
 
-in_layer = import_correct_layer_module('instrument_layer', gp.monitor_params)
-num_events_in_file = import_function_from_layer('num_events_in_file', in_layer)
+in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
+num_events_in_file = di.import_function_from_layer('num_events_in_file', in_layer)
 
 file_extensions = ['.cbf']
 
-avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'pulse_energy', 'timestamp', 'filename_and_event']
+raw_data = lambda x: None
+detector_distance = lambda x: None
+beam_energy = lambda x: None
+timestamp = lambda x: None
+filename_and_event = lambda x: None
 
-for data_source in avail_data_sources:
-    locals()[data_source] = lambda x: None
+avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'filename_and_event']
 
-required_data = gp.monitor_params['Backend']['required_data'].split(',')
+required_data = op.monitor_params['Backend']['required_data'].split(',')
 for data_source in required_data:
     data_source = data_source.strip()
     if data_source not in avail_data_sources:
@@ -54,8 +53,8 @@ for data_source in required_data:
 
 
 def open_file(data):
-    data_stringio = StringIO(data)
-    f = read_cbf_from_stream(data_stringio)
+    data_stringio = BytesIO(data)
+    f = fb.read_cbf_from_stream(data_stringio)
     data_stringio.close()
     return f
 

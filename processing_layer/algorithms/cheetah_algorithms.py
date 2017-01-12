@@ -20,7 +20,7 @@ from __future__ import unicode_literals
 
 import numpy
 
-from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
+import cfelpyutils.cfel_hdf5 as ch5
 
 try:
     from peakfinder8_extension import peakfinder_8
@@ -104,7 +104,7 @@ class Peakfinder8PeakDetection:
             self.max_pixel_count = max_pixel_count
             self.local_bg_radius = local_bg_radius
             self.pixelmap_radius = pixelmap_radius
-            self.mask = load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
+            self.mask = ch5.load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
 
             res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
             res_mask[numpy.where(pixelmap_radius < min_res)] = 0

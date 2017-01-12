@@ -19,20 +19,20 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import datetime
 from mpi4py import MPI
-from numpy import ceil
-from sys import exit, stdout
-from time import strptime, mktime
+import datetime
+import numpy
+import sys
+import time
 
 import psana
-from cfelpyutils.cfel_psana import dirname_from_source_runs
-from parallelization_layer.utils.onda_params import monitor_params, param
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
+import cfelpyutils.cfel_psana as cps
+import parallelization_layer.utils.onda_params as oa
+import parallelization_layer.utils.onda_dynamic_import as di
 
-de_layer = import_correct_layer_module('data_extraction_layer', monitor_params)
-initialize = import_function_from_layer('initialize', de_layer)
-extract = import_function_from_layer('extract', de_layer)
+de_layer = di.import_correct_layer_module('data_extraction_layer', oa.monitor_params)
+initialize = di.import_function_from_layer('initialize', de_layer)
+extract = di.import_function_from_layer('extract', de_layer)
 
 
 class MasterWorker(object):
@@ -66,7 +66,7 @@ class MasterWorker(object):
                 self.source += ':idx'
 
         # Set event_rejection threshold
-        rej_thr = param('PsanaParallelizationLayer','event_rejection_threshold')
+        rej_thr = oa.param('PsanaParallelizationLayer','event_rejection_threshold', float)
         if rej_thr is not None:
             self.event_rejection_threshold = rej_thr
 
@@ -78,7 +78,7 @@ class MasterWorker(object):
 
         if self.role == 'worker':
 
-            self.psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str)
+            self.psana_calib_dir = oa.param('PsanaParallelizationLayer', 'psana_calib_dir', str)
 
         # The following is executed only on the master node
         if self.role == 'master':
@@ -87,7 +87,7 @@ class MasterWorker(object):
             self.num_nomore = 0
 
             if self.offline is True:
-                self.source_runs_dirname = dirname_from_source_runs(source)
+                self.source_runs_dirname = cps.dirname_from_source_runs(source)
 
         return
 
@@ -135,14 +135,14 @@ class MasterWorker(object):
                 def psana_events_generator():
                     for r in self.psana_source.runs():
                         times = r.times()
-                        mylength = int(ceil(len(times) / float(self.mpi_size - 1)))
+                        mylength = int(numpy.ceil(len(times) / float(self.mpi_size - 1)))
                         mytimes = times[(self.mpi_rank - 1) * mylength: self.mpi_rank * mylength]
                         for mt in mytimes:
                             yield r.event(mt)
 
                 psana_events = psana_events_generator()
 
-            event = {'monitor_params': monitor_params}
+            event = {'monitor_params': oa.monitor_params}
             event['det'] = {}
             self.initialize_data_extraction(event['det'])
 
@@ -155,8 +155,8 @@ class MasterWorker(object):
                 # Reject events above the rejection threshold
                 event_id = str(evt.get(psana.EventId))
                 timestring = event_id.split('time=')[1].split(',')[0]
-                timestamp = strptime(timestring[:-6], '%Y-%m-%d %H:%M:%S.%f')
-                timestamp = datetime.fromtimestamp(mktime(timestamp))
+                timestamp = datetime.datetimestrptime(timestring[:-6], '%Y-%m-%d %H:%M:%S.%f')
+                timestamp = datetime.fromtimestamp(time.mktime(timestamp))
                 timenow = datetime.now()
 
                 if (timenow - timestamp).total_seconds() > self.event_rejection_threshold:
@@ -231,5 +231,5 @@ class MasterWorker(object):
 
     def end_processing(self):
         print('Processing finished. Processed', self.num_reduced_events, 'events in total.')
-        stdout.flush()
+        sys.stdout.flush()
         pass

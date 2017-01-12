@@ -13,28 +13,31 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
 import h5py
+import parallelization_layer.utils.onda_dynamic_import as di
+import parallelization_layer.utils.onda_params as op
 
-from parallelization_layer.utils import onda_params as gp
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
 
-
-in_layer = import_correct_layer_module('instrument_layer', gp.monitor_params)
-num_events_in_file = import_function_from_layer('num_events_in_file', in_layer)
+in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
+num_events_in_file = di.import_function_from_layer('num_events_in_file', in_layer)
 
 file_extensions = ['.h5', '.nxs']
 
+raw_data = lambda x: None
+detector_distance = lambda x: None
+beam_energy = lambda x: None
+timestamp = lambda x: None
+filename_and_event = lambda x: None
+
 avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'filename_and_event']
 
-for data_source in avail_data_sources:
-    locals()[data_source] = lambda x: None
-
-required_data = gp.monitor_params['Backend']['required_data'].split(',')
+required_data = op.monitor_params['Backend']['required_data'].split(',')
 for data_source in required_data:
     data_source = data_source.strip()
     if data_source not in avail_data_sources:
@@ -64,11 +67,11 @@ def num_events(filehandle):
 def extract(evt, monitor):
     # Extract time stamp data
     try:
-        monitor.time_stamp = times_tamp(evt)
+        monitor.timestamp = timestamp(evt)
 
     except Exception as e:
         print('Error while extracting time stamp:', e)
-        monitor.tim_estamp = None
+        monitor.timestamp = None
 
     # Extract detector data in slab format
     try:

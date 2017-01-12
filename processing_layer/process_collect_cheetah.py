@@ -19,22 +19,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from builtins import str
+
 import h5py
-from sys import stdout
-from time import time
+import sys
+import time
 
-from cfelpyutils.cfel_geom import pixel_maps_from_geometry_file
-from cfelpyutils.cfel_psana import string_from_psana_experiment, string_from_psana_run
-from parallelization_layer.utils.onda_params import monitor_params, param
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module
+import cfelpyutils.cfel_geom as cgm
+import parallelization_layer.utils.onda_dynamic_import as di
+import parallelization_layer.utils.onda_params as oa
+import parallelization_layer.utils.onda_zmq_monitor_utils as zut
+import processing_layer.algorithms.cheetah_algorithms as calg
+import processing_layer.algorithms.generic_algorithms as galg
 
-from parallelization_layer.utils.onda_zmq_monitor_utils import zmq_onda_publisher_socket
-from processing_layer.algorithms.generic_algorithms import DarkCalCorrection
-from processing_layer.algorithms.cheetah_algorithms import Peakfinder8PeakDetection
 
-par_layer = import_correct_layer_module('parallelization_layer', monitor_params)
-MasterWorker = getattr(par_layer, 'MasterWorker')
-
+par_layer = di.import_correct_layer_module('parallelization_layer', oa.monitor_params)
+MasterWorker = di.import_class_from_layer('MasterWorker', par_layer)
 
 
 class Onda(MasterWorker):
@@ -44,56 +44,62 @@ class Onda(MasterWorker):
                                    reduce_func=self.collect_data,
                                    source=source)
 
-        _, _, pixelmap_radius = pixel_maps_from_geometry_file(param('General', 'geometry_file'))
+        _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(oa.param('General', 'geometry_file', str))
 
-        self.dark_cal_correction = DarkCalCorrection(self.role,
-                                                     param('DarkCalCorrection', 'filename', str),
-                                                     param('DarkCalCorrection', 'hdf5_group', str),
-                                                     param('DarkCalCorrection', 'apply_mask', bool),
-                                                     param('DarkCalCorrection', 'mask_filename', str),
-                                                     param('DarkCalCorrection', 'mask_hdf5_group', str),
-                                                     param('DarkCalCorrection', 'gain_map_correction', bool),
-                                                     param('DarkCalCorrection', 'gain_map_filename', str),
-                                                     param('DarkCalCorrection', 'gain_map_hdf5_group', str))
+        self.dark_cal_correction = galg.DarkCalCorrection(self.role,
+                                                          oa.param('DarkCalCorrection', 'filename', str),
+                                                          oa.param('DarkCalCorrection', 'hdf5_group', str),
+                                                          oa.param('DarkCalCorrection', 'apply_mask', bool),
+                                                          oa.param('DarkCalCorrection', 'mask_filename', str),
+                                                          oa.param('DarkCalCorrection', 'mask_hdf5_group', str),
+                                                          oa.param('DarkCalCorrection', 'gain_map_correction', bool),
+                                                          oa.param('DarkCalCorrection', 'gain_map_filename', str),
+                                                          oa.param('DarkCalCorrection', 'gain_map_hdf5_group', str))
 
-        self.peakfinder8_peak_det = Peakfinder8PeakDetection(self.role,
-                                                             param('Peakfinder8PeakDetection', 'max_num_peaks', int),
-                                                             param('Peakfinder8PeakDetection', 'asics_nx', int),
-                                                             param('Peakfinder8PeakDetection', 'asics_ny', int),
-                                                             param('Peakfinder8PeakDetection', 'nasics_x', int),
-                                                             param('Peakfinder8PeakDetection', 'nasics_y', int),
-                                                             param('Peakfinder8PeakDetection', 'adc_threshold', float),
-                                                             param('Peakfinder8PeakDetection', 'minimum_snr', float),
-                                                             param('Peakfinder8PeakDetection', 'min_pixel_count', int),
-                                                             param('Peakfinder8PeakDetection', 'max_pixel_count', int),
-                                                             param('Peakfinder8PeakDetection', 'local_bg_radius', int),
-                                                             param('Peakfinder8PeakDetection', 'accumulated_shots',
-                                                                   int),
-                                                             param('Peakfinder8PeakDetection', 'min_res', int),
-                                                             param('Peakfinder8PeakDetection', 'max_res', int),
-                                                             param('Peakfinder8PeakDetection', 'mask_filename',
-                                                                   str),
-                                                             param('Peakfinder8PeakDetection', 'mask_hdf5_path',
-                                                                   str),
-                                                             pixelmap_radius)
+        self.peakfinder8_peak_det = calg.Peakfinder8PeakDetection(self.role,
+                                                                  oa.param('Peakfinder8PeakDetection', 'max_num_peaks',
+                                                                           int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'asics_nx', int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'asics_ny', int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'nasics_x', int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'nasics_y', int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'adc_threshold',
+                                                                           float),
+                                                                  oa.param('Peakfinder8PeakDetection', 'minimum_snr',
+                                                                           float),
+                                                                  oa.param('Peakfinder8PeakDetection',
+                                                                           'min_pixel_count', int),
+                                                                  oa.param('Peakfinder8PeakDetection',
+                                                                           'max_pixel_count', int),
+                                                                  oa.param('Peakfinder8PeakDetection',
+                                                                           'local_bg_radius', int),
+                                                                  oa.param('Peakfinder8PeakDetection',
+                                                                           'accumulated_shots', int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'min_res', int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'max_res', int),
+                                                                  oa.param('Peakfinder8PeakDetection', 'mask_filename',
+                                                                           str),
+                                                                  oa.param('Peakfinder8PeakDetection', 'mask_hdf5_path',
+                                                                           str),
+                                                                  pixelmap_radius)
 
         if self.role == 'worker':
-            self.max_saturated_peaks = param('General', 'max_saturated_peaks', int)
-            self.min_num_peaks_for_hit = param('General', 'min_num_peaks_for_hit', int)
-            self.max_num_peaks_for_hit = param('General', 'max_num_peaks_for_hit', int)
-            self.saturation_value = param('General', 'saturation_value', int)
-            self.hit_sending_interval = param('General', 'hit_sending_interval', int)
+            self.max_saturated_peaks = oa.param('General', 'max_saturated_peaks', int)
+            self.min_num_peaks_for_hit = oa.param('General', 'min_num_peaks_for_hit', int)
+            self.max_num_peaks_for_hit = oa.param('General', 'max_num_peaks_for_hit', int)
+            self.saturation_value = oa.param('General', 'saturation_value', int)
+            self.hit_sending_interval = oa.param('General', 'hit_sending_interval', int)
 
             self.hit_sending_counter = 0
 
             print('Starting worker: {0}.'.format(self.mpi_rank))
-            stdout.flush()
+            sys.stdout.flush()
 
         if self.role == 'master':
             self.num_events = 0
             self.old_time = time()
 
-            self.speed_report_interval = param('General', 'speed_report_interval', int)
+            self.speed_report_interval = oa.param('General', 'speed_report_interval', int)
 
             self.num_files_in_file = 0
             self.file_num = 0
@@ -104,10 +110,10 @@ class Onda(MasterWorker):
 
 
             print('Starting the monitor...')
-            stdout.flush()
+            sys.stdout.flush()
 
-            self.sending_socket = zmq_onda_publisher_socket(param('General', 'publish_ip', int),
-                                                            param('General', 'publish_port', int))
+            self.sending_socket = zut.zmq_onda_publisher_socket(oa.param('General', 'publish_ip', int),
+                                                                oa.param('General', 'publish_port', int))
 
             self.hit_rate = 0
             self.sat_rate = 0
@@ -129,17 +135,8 @@ class Onda(MasterWorker):
         results_dict['detector_distance'] = self.detector_distance
         results_dict['beam_energy'] = self.beam_energy
 
-        if self.lcls_extra is True:
-            
-            results_dict['FEE']
-
-
-
         if not hit:
             results_dict['peak_list'] = ([], [], [])
-
-
-
 
         return results_dict, self.mpi_rank
 
@@ -179,10 +176,10 @@ class Onda(MasterWorker):
             self.sending_socket.send_data('ondarawdata', collected_rawdata)
 
         if self.num_events % self.speed_report_interval == 0:
-            now_time = time()
+            now_time = time.time()
             print('Processed: {0} in {1:.2f} seconds ({2:.2f} Hz)'.format(
                 self.num_events,
                 now_time - self.old_time,
                 float(self.speed_report_interval) / float(now_time - self.old_time)))
-            stdout.flush()
+            sys.stdout.flush()
             self.old_time = now_time

@@ -19,19 +19,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from builtins import str
+
 import numpy
-from os.path import basename, join
-from sys import stdout
-from time import time
+import os.path
+import sys
+import time
 
-from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module
-from parallelization_layer.utils.onda_params import monitor_params, param
-from parallelization_layer.utils.onda_zmq_monitor_utils import zmq_onda_publisher_socket
-from processing_layer.utils.onda_mll_log_file_utils import read_mll_logfile
+import cfelpyutils.cfel_hdf5 as ch5
+import parallelization_layer.utils.onda_dynamic_import as di
+import parallelization_layer.utils.onda_params as oa
+import parallelization_layer.utils.onda_zmq_monitor_utils as zut
+import processing_layer.utils.onda_mll_log_file_utils as mlu
 
-par_layer = import_correct_layer_module('parallelization_layer', monitor_params)
-MasterWorker = getattr(par_layer, 'MasterWorker')
+
+par_layer = di.import_correct_layer_module('parallelization_layer', oa.monitor_params)
+MasterWorker = di.import_class_from_layer('MasterWorker', par_layer)
 
 
 def make_mll_mask(centre, size, shape):
@@ -58,18 +61,18 @@ class Onda(MasterWorker):
 
         if self.role == 'worker':
 
-            mask_shape = (param('General', 'mask_size_ss', int), param('General', 'mask_size_fs', int))
-            mask_center = (param('General', 'mask_center_ss', int), param('General', 'mask_center_fs', int))
-            mask_size = (param('General', 'mask_edge_ss', int) / 2, param('General', 'mask_edge_fs', int) / 2)
+            mask_shape = (oa.param('General', 'mask_size_ss', int), oa.param('General', 'mask_size_fs', int))
+            mask_center = (oa.param('General', 'mask_center_ss', int), oa.param('General', 'mask_center_fs', int))
+            mask_size = (oa.param('General', 'mask_edge_ss', int) / 2, oa.param('General', 'mask_edge_fs', int) / 2)
 
             self.mask = make_mll_mask(mask_center, mask_size, mask_shape)
 
-            self.bad_pixel_mask = load_nparray_from_hdf5_file(param('General', 'bad_pixel_mask_filename', str),
-                                                              param('General', 'bad_pixel_mask_hdf5_group', str))
+            self.bad_pixel_mask = ch5.load_nparray_from_hdf5_file(oa.param('General', 'bad_pixel_mask_filename', str),
+                                                                  oa.param('General', 'bad_pixel_mask_hdf5_group', str))
 
-            if param('General', 'whitefield_subtraction', bool) is True:
-                self.whitefield = load_nparray_from_hdf5_file(param('General', 'whitefield_filename', str),
-                                                              param('General', 'whitefield_hdf5_group', str))
+            if oa.param('General', 'whitefield_subtraction', bool) is True:
+                self.whitefield = ch5.load_nparray_from_hdf5_file(oa.param('General', 'whitefield_filename', str),
+                                                                  oa.param('General', 'whitefield_hdf5_group', str))
                 self.whitefield[self.whitefield == 0] = 1
             else:
                 self.whitefield = True
@@ -79,21 +82,21 @@ class Onda(MasterWorker):
             self.hit_sending_counter = 0
 
             print('Starting worker: {0}.'.format(self.mpi_rank))
-            stdout.flush()
+            sys.stdout.flush()
 
         if self.role == 'master':
             self.num_events = 0
-            self.old_time = time()
+            self.old_time = time.time()
 
             self.current_run_num = 0
 
             self.num_accumulated_shots = 0
 
-            self.speed_report_interval = param('General', 'speed_report_interval', int)
-            self.num_shots_to_accumulate = param('General', 'accumulated_shots', int)
+            self.speed_report_interval = oa.param('General', 'speed_report_interval', int)
+            self.num_shots_to_accumulate = oa.param('General', 'accumulated_shots', int)
 
-            self.log_dir = param('General', 'log_base_path', str)
-            self.data_dir = param('General', 'data_base_path', str)
+            self.log_dir = oa.param('General', 'log_base_path', str)
+            self.data_dir = oa.param('General', 'data_base_path', str)
 
             self.scan_type = 0
 
@@ -108,10 +111,10 @@ class Onda(MasterWorker):
             self.ss_integr_image = numpy.zeros((0, 0))
 
             print('Starting the monitor...')
-            stdout.flush()
+            sys.stdout.flush()
 
-            self.sending_socket = zmq_onda_publisher_socket(param('General', 'publish_ip'),
-                                                            param('General', 'publish_port'))
+            self.sending_socket = zut.zmq_onda_publisher_socket(oa.param('General', 'publish_ip', str),
+                                                                oa.param('General', 'publish_port', int))
 
             self.hit_rate = 0
             self.sat_rate = 0
@@ -164,7 +167,7 @@ class Onda(MasterWorker):
         results_dict, _ = new
         self.num_events += 1
 
-        filename_parts = (basename(results_dict['filename']).split('_'))
+        filename_parts = (os.path.basename(results_dict['filename']).split('_'))
 
         if 'Frame' in results_dict['filename']:
             print('Sending Frame to MLL Frame Viewer.')
@@ -181,7 +184,7 @@ class Onda(MasterWorker):
 
         if num_run > self.current_run_num:
             log_file_name = '{0}.dat'.format('_'.join(filename_parts[0:2]))
-            log_class = read_mll_logfile(join(self.log_dir, log_file_name))
+            log_class = mlu.read_mll_logfile(join(self.log_dir, log_file_name))
 
             self.grid = tuple(log_class.log['Grid'])
             self.physical_grid_axes = tuple(log_class.log['Physical_grid_axes'])
@@ -216,7 +219,7 @@ class Onda(MasterWorker):
             if len(self.physical_grid_axes) == 2:
 
                 print('New 2D scan. Log file:', log_file_name + '.')
-                stdout.flush()
+                sys.stdout.flush()
 
                 self.scan_type = 2
 
@@ -226,7 +229,7 @@ class Onda(MasterWorker):
             elif len(self.physical_grid_axes) == 1:
 
                 print('New 1D scan. Log file:', log_file_name + '.')
-                stdout.flush()
+                sys.stdout.flush()
 
                 self.scan_type = 1
 
@@ -238,7 +241,7 @@ class Onda(MasterWorker):
             else:
 
                 print('New 0D scan. Log file:', log_file_name + '.')
-                stdout.flush()
+                sys.stdout.flush()
 
                 self.scan_type = 0
 
@@ -297,10 +300,10 @@ class Onda(MasterWorker):
             self.num_accumulated_shots = 0
 
         if self.num_events % self.speed_report_interval == 0:
-            now_time = time()
+            now_time = time.time()
             print('Processed: {0} in {1:.2f} seconds ({2:.2f} Hz)'.format(
                 self.num_events,
                 now_time - self.old_time,
                 float(self.speed_report_interval) / float(now_time - self.old_time)))
-            stdout.flush()
+            sys.stdout.flush()
             self.old_time = now_time

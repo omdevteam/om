@@ -19,20 +19,17 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from argparse import ArgumentParser
-from os.path import exists
-
+import argparse
+import os.path
 
 def parse_onda_cmdline_args():
-    parser = ArgumentParser(prog='mpirun [MPI OPTIONS] onda.py', description='OnDA - Online Data Analysis')
+    parser = argparse.ArgumentParser(prog='mpirun [MPI OPTIONS] onda.py', description='OnDA - Online Data Analysis')
     parser.add_argument('source', type=str, help="data source (file list, psana source string, etc.")
     parser.add_argument('-i', '--ini', type=str, default='monitor.ini',
                         help="monitor.ini file (default: monitor.ini), see monitor.ini.template for an example")
-    parser.add_argument('-d', '--debug', action='store_true', default=False,
-                        help='debug mode, shows full traceback and additional information for errors.')
     args = parser.parse_args()
 
     # check that args.ini exists
-    if not exists(args.ini):
+    if not os.path.exists(args.ini):
         raise NameError('ini file does not exist: {0}'.format(args.ini))
     return args

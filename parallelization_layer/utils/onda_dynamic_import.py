@@ -18,8 +18,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from importlib import import_module
-from inspect import isfunction, isclass
+import importlib
+import inspect
 
 
 def import_correct_layer_module(layer, monitor_params):
@@ -39,14 +39,14 @@ def import_correct_layer_module(layer, monitor_params):
         raise RuntimeError('Module for {0} not specified in the configuration file.'.format(layer))
 
     try:
-        m = import_module(
+        m = importlib.import_module(
             '{0}{1}'.format(
                 layer_paths.get(layer, ''),
-                monitor_params['Backend'][layer])
+                (monitor_params['Backend'][layer]))
         )
     except ImportError:
         raise RuntimeError('Error when importing the {0}.  Either the {1} module does not exist, or importing it '
-                           'causes an error.'.format(layer, monitor_params['Backend'][layer]))
+                            'causes an error.'.format(layer, monitor_params['Backend'][layer]))
     else:
         return m
 
@@ -58,7 +58,7 @@ def import_function_from_layer(function, layer):
         raise RuntimeError('Error importing function {0} from layer {1}, the function does not exist,'.format(
             function, layer.__name__))
     else:
-        if not isfunction(ret):
+        if not inspect.isfunction(ret):
             raise RuntimeError('Error importing function {0} from layer {1}, {0} is not a function'.format(
                 function, layer.__name__))
         else:
@@ -72,7 +72,7 @@ def import_class_from_layer(cls, layer):
         raise RuntimeError('Error importing class {0} from layer {1}, {0} does not exist.'.format(
             cls, layer.__name__))
     else:
-        if not isclass(ret):
+        if not inspect.isclass(ret):
             raise RuntimeError('Error importing class {0} from layer {1}, {0} is not a class.'.format(
                 cls, layer.__name__))
         else:

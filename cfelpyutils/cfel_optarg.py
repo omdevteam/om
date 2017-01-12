@@ -12,15 +12,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
-
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-from sys import version_info
-
 """
 Utilities for parsing command line options and configuration files.
 
@@ -28,6 +19,10 @@ This module contains utilities for parsing of command line options and
 configuration files.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 def parse_parameters(config):
     """Sets correct types for parameter dictionaries.
@@ -68,10 +63,9 @@ def parse_parameters(config):
             monitor_params[sect][op] = config.get(sect, op)
             if monitor_params[sect][op].startswith("'") and monitor_params[sect][op].endswith("'"):
                 monitor_params[sect][op] = monitor_params[sect][op][1:-1]
-                if version_info[0] == 2:
-                    try:
-                        monitor_params[sect][op] = unicode(monitor_params[sect][op])
-                    except UnicodeDecodeError:
+                try:
+                    monitor_params[sect][op].encode('ascii')
+                except UnicodeEncodeError:
                         raise RuntimeError('Error parsing parameters. Only ASCII characters are allowed in parameter '
                                            'names and values.')
                 continue

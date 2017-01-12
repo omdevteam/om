@@ -19,14 +19,13 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from psana import Detector
-
-from parallelization_layer.utils.onda_params import monitor_params, param
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module
+import parallelization_layer.utils.onda_dynamic_import as di
+import parallelization_layer.utils.onda_params as op
+import psana
 
 
 def raw_data_init(det):
-    det['detect'] = Detector(monitor_params['PsanaParallelizationLayer']['detector_name'])
+    det['detect'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_name'])
 
 
 def timestamp_init(_):
@@ -34,23 +33,27 @@ def timestamp_init(_):
 
 
 def detector_distance_init(det):
-    det['detect_dist'] = Detector(monitor_params['PsanaParallelizationLayer']['detector_dist_epics_name'])
+    det['detect_dist'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_dist_epics_name'])
 
 
 def beam_energy_init(det):
-    det['beam_energy'] = Detector('EBeam'.encode('ascii'))
+    det['beam_energy'] = psana.Detector('EBeam'.encode('ascii'))
 
 
 def timetool_data_init(det):
-    det['timetool'] = Detector(monitor_params['PsanaParallelizationLayer']['timetool_epics_name'])
+    det['timetool'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['timetool_epics_name'])
 
 
 def digitizer_data_init(det):
-    det['digitizer'] = Detector(monitor_params['PsanaParallelizationLayer']['digitizer_name'])
+    det['digitizer'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer_name'])
 
 
 def digitizer2_data_init(det):
-    det['digitizer2'] = Detector(monitor_params['PsanaParallelizationLayer']['digitizer2_name'])
+    det['digitizer2'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer2_name'])
+
+
+def event_codes_init(det):
+    det['EVR'] = psana.Detector('evr0')
 
 
 def timestamp_dataext(event):
@@ -77,10 +80,14 @@ def digitizer2_data_dataext(event):
     return event['det']['digitizer2'].waveform(event['evt'])
 
 
-in_layer = import_correct_layer_module('instrument_layer', monitor_params)
+def event_codes_dataext(event):
+    return event['det']['evr'].eventCodes(event['evt'])
+
+
+in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
 
 avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'timetool_data', 'digitizer_data',
-                      'digitizer2_data']
+                      'digitizer2_data', 'event_codes']
 
 for data_source in avail_data_sources:
     globals()[data_source + '_initialize'] = lambda x: None
@@ -88,7 +95,7 @@ for data_source in avail_data_sources:
 for data_source in avail_data_sources:
     globals()[data_source] = lambda x: None
 
-required_data = monitor_params['Backend']['required_data'].split(',')
+required_data = op.monitor_params['Backend']['required_data'].split(',')
 
 for data_source in required_data:
     data_source = data_source.strip()
@@ -108,13 +115,13 @@ for data_source in required_data:
     if data_source not in avail_data_sources:
         raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        if data_source == 'raw_data' and param('PsanaParallelizationLayer', 'pedestals_only', bool):
+        if data_source == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
             globals()[data_source] = getattr(in_layer, data_source + '_dataext_pedestals_only')
         else:
             globals()[data_source] = getattr(in_layer, data_source + '_dataext')
     except AttributeError:
         try:
-            if data_source == 'raw_data' and param('PsanaParallelizationLayer','pedestals_only', bool):
+            if data_source == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
                 globals()[data_source] = globals()[data_source + '_dataext_pedestals_only']
             else:
                 globals()[data_source] = globals()[data_source + '_dataext']
@@ -186,3 +193,11 @@ def extract(event, monitor):
     except Exception as e:
         print('Error when extracting digitizer2 data:', e)
         monitor.digitizer2_data = None
+
+    # Extract Acquiris data
+    try:
+        monitor.event_codes = event_codes(event)
+
+    except Exception as e:
+        print('Error when extracting event_codes:', e)
+        monitor.event_codes = None

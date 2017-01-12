@@ -17,7 +17,7 @@
 import numpy
 from scipy import ndimage
 
-from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
+import cfelpyutils.cfel_hdf5 as ch5
 
 
 ######################
@@ -70,18 +70,16 @@ class DarkCalCorrection:
         if role == 'worker':
 
             # load the darkcals
-            self.darkcal = load_nparray_from_hdf5_file(filename, hdf5_group)
+            self.darkcal = ch5.load_nparray_from_hdf5_file(filename, hdf5_group)
 
             if apply_mask:
-                self.mask = load_nparray_from_hdf5_file(mask_filename,
+                self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
                                                         mask_hdf5_group)
             else:
                 self.mask = True
 
             if gain_map_correction:
-                self.gain_map = load_nparray_from_hdf5_file(
-                    gain_map_filename,
-                    gain_map_hdf5_group)
+                self.gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
             else:
                 self.gain_map = True
 
@@ -329,18 +327,16 @@ class AGIPDCorrection:
             self.beam_energy_coeff = beam_energy_coeff
 
             # load the darkcals
-            self.darkcal = load_nparray_from_hdf5_file(filename, hdf5_group)
+            self.darkcal = ch5.load_nparray_from_hdf5_file(filename, hdf5_group)
 
             if apply_mask:
-                self.mask = load_nparray_from_hdf5_file(mask_filename,
-                                                        mask_hdf5_group)
+                self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
+                                                           mask_hdf5_group)
             else:
                 self.mask = True
 
             if gain_map_correction:
-                self.gain_map = load_nparray_from_hdf5_file(
-                    gain_map_filename,
-                    gain_map_hdf5_group)
+                self.gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
                 self.gain_map[numpy.where(self.gain_map==0)] = 1.0
             else:
                 self.gain_map = numpy.ones((352,128,512), dtype=bool)
