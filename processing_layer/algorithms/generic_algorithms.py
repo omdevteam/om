@@ -31,15 +31,13 @@ class DarkCalCorrection:
     data, by simple subtraction. Optionally, a gain map can be also applied.
     """
 
-    def __init__(self, role, filename, hdf5_group, apply_mask=False,
+    def __init__(self, filename, hdf5_group, apply_mask=False,
                  mask_filename=None, mask_hdf5_group=False,
                  gain_map_correction=False, gain_map_filename=None,
                  gain_map_hdf5_group=None):
         """Initializes the DarkCal correction algorithm.
 
         Args:
-
-            role (str): node role ('worker' or 'master').
 
             filename (str): name of the hdf5 5 with dark calibration data
 
@@ -66,27 +64,22 @@ class DarkCalCorrection:
             gain_map_correction argument is set to True.
          """
 
-        # Initialized on worker
-        if role == 'worker':
+        # load the darkcals
+        self.darkcal = ch5.load_nparray_from_hdf5_file(filename, hdf5_group)
 
-            # load the darkcals
-            self.darkcal = ch5.load_nparray_from_hdf5_file(filename, hdf5_group)
-
-            if apply_mask:
-                self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
+        if apply_mask:
+            self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
                                                         mask_hdf5_group)
-            else:
-                self.mask = True
+        else:
+            self.mask = True
 
-            if gain_map_correction:
-                self.gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
-            else:
-                self.gain_map = True
+        if gain_map_correction:
+            self.gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
+        else:
+            self.gain_map = True
 
     def apply_darkcal_correction(self, data_as_slab):
         """Applies the correction.
-
-        Designed to be run on worker nodes.
 
         Args:
 
@@ -108,7 +101,7 @@ class SimplePeakDetection:
     mass of the 'islands' (computed with a window of predefined size).
     """
 
-    def __init__(self, role, threshold, window_size, accumulated_shots):
+    def __init__(self, threshold, window_size):
         """Initializes the peakfinder.
 
         Args:
@@ -117,18 +110,11 @@ class SimplePeakDetection:
 
             window_size (int): edge size of the window used to determine the center of mass of each peak (the window
             is centered around the pixel with highest intensity).
-
-            accumulated_shots (int): the number of accumulated shots before the peak list is returned.
         """
 
         self.threshold = threshold
         self.peak_window_size = window_size
-        self.accumulated_shots = accumulated_shots
         self.neighborhood = ndimage.morphology.generate_binary_structure(2, 5)
-
-        if role == 'master':
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
 
     def find_peaks(self, raw_data):
         """Finds peaks.
@@ -182,28 +168,52 @@ class SimplePeakDetection:
 
         return peak_list
 
-    def add_peaks(self, peak_list):
+
+####################
+# PEAK ACCUMULATOR #
+####################
+
+class PeakAccumulator:
+    """Accumulates found peaks
+
+    Accumulates peaks provided by the user until a predefinel number of additions have been reached, then it returns the
+    full list of accumulated peaks.
+    """
+
+    def __init__(self, accumulated_shots):
+        """Initializes the accumulator
+
+        Args:
+
+                accumulated_shots(int): the number of peak additions to accumulate before returning the peak list
+        """
+
+        self.accumulated_shots = accumulated_shots
+        self.accumulator = ([], [], [])
+        self.events_in_accumulator = 0
+
+    def accumulate_peaks(self, peak_list):
         """Accumulates peaks.
 
-        Accumulates peaks. The peaks are added to an internal list of peaks. When peaks have been added to the list
-        for a numer of times specified by the accumulated_shots algorithm parameter, the function returns the
-        accumulated peak list to the user and empties it.
+        Accumulates peaks. The peaks are added to an internal list of peaks. When peaks have been added to the list for
+        a numer of times specified by the accumulated_shots algorithm parameter, the function returns the accumulated
+        peak list to the user and empties it.
 
         Designed to be run on the master node.
 
         Args:
 
-            peak_list (tuple): list of peaks (as returned by the peak_find function) to be added to the internal list.
+            peak_list (tuple): list of peaks to be added to the internal list. The peak list should be a tuple of
+            three lists, containing, in order, the fs coordinate of the peaks, their respective ss coordinate , and
+            their intensity.
 
         Returns:
 
             peak_list (tuple or None):  the accumulated peak_list if peaks have been added to the list for the number
-            of times specified by the accumulated_shots parameter, None otherwise.
+            of times specified by the accumulated_shots parameter, None otherwise. If returned, the peak list is a tuple
+            of three lists, containing, in order, the fs coordinate of the peaks, their respective ss coordinate , and
+            their intensity.
         """
-
-        if self.events_in_accumulator == self.accumulated_shots:
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
 
         self.accumulator[0].extend(peak_list[0])
         self.accumulator[1].extend(peak_list[1])
@@ -211,7 +221,10 @@ class SimplePeakDetection:
         self.events_in_accumulator += 1
 
         if self.events_in_accumulator == self.accumulated_shots:
-            return self.accumulator
+            peak_list_to_return = self.accumulator
+            self.accumulator = ([], [], [])
+            self.events_in_accumulator = 0
+            return peak_list_to_return
         return None
 
 
@@ -225,7 +238,7 @@ class RawDataAveraging:
     Accumulates raw data images and returns the average image when the required number of shots have been collected.
     """
 
-    def __init__(self, role, accumulated_shots, slab_shape):
+    def __init__(self, accumulated_shots, slab_shape):
         """Initializes the raw data averaging algorithm.
 
         Args:
@@ -237,19 +250,15 @@ class RawDataAveraging:
 
         self.accumulated_shots = accumulated_shots
 
-        # Initialized on master
-        if role == 'master':
-            self.slab_shape = slab_shape
-            self.num_raw_data = 0
-            self.avg_raw_data = numpy.zeros(slab_shape)
+        self.slab_shape = slab_shape
+        self.num_raw_data = 0
+        self.avg_raw_data = numpy.zeros(slab_shape)
 
     def accumulate_raw_data(self, data_as_slab):
         """Accumulates peaks.
 
         Accumulates raw data images. When the number of images specified specified by the accumulated_shots class
         attribute is reached, the function returns the average image.
-
-        Designed to be run on the master node.
 
         Args:
 
@@ -270,87 +279,3 @@ class RawDataAveraging:
         if self.num_raw_data == self.accumulated_shots:
             return self.avg_raw_data
         return None
-
-
-####################
-# AGIPD Correction #
-####################
-
-class AGIPDCorrection:
-    """AGIPD Correction
-
-    Implements various corrections for AGIPD detectors. Applies DarkCal correction to
-    data, by simple subtraction. Optionally, a gain map can be also applied. A mask
-    can also optionally be applied to the data
-    """
-
-    def __init__(self, role, filename, hdf5_group, beam_energy_coeff = 1.0,
-                 apply_mask=False, mask_filename=None, mask_hdf5_group=False,
-                 gain_map_correction=False, gain_map_filename=None,
-                 gain_map_hdf5_group=None):
-        """Initializes the DarkCal correction algorithm.
-
-        Args:
-
-            role (str): node role ('worker' or 'master').
-
-            filename (str): name of the hdf5 with dark calibration.
-            data
-
-            hdf5_group (str): path of the dark calibration data within the
-            hdf5 file.
-
-            apply_mask (Optional[bool]): whether a mask should be applied
-            (optional, if omitted no mask is applied).
-
-            mask_filename (Optional[str]) : if the mask is applied, name of
-            the hdf5 file with gain_map, otherwise ignored (optional).
-
-            mask_hdf5_group (Optional[str]): if the mask is applied,
-            internal hdf5 path of the data block containing the mask,
-            otherwise ignored (optional).
-
-            gain_map_correction (Optional[bool]): whether a gain_map should be
-            applied (optional, if omitted no gain map is applied).
-
-            gain_map_filename (Optional[str]) : if the gain map is applied,
-            name of the hdf5 file with gain_map, otherwise ignored (optional).
-
-            gain_map_hdf5_group (Optional[str]): if the gain map is applied,
-            internal hdf5 path of the data block containing the mask,
-            otherwise ignored (optional).
-         """
-
-        # Initialized on worker
-        if role == 'worker':
-
-            self.beam_energy_coeff = beam_energy_coeff
-
-            # load the darkcals
-            self.darkcal = ch5.load_nparray_from_hdf5_file(filename, hdf5_group)
-
-            if apply_mask:
-                self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
-                                                           mask_hdf5_group)
-            else:
-                self.mask = True
-
-            if gain_map_correction:
-                self.gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
-                self.gain_map[numpy.where(self.gain_map==0)] = 1.0
-            else:
-                self.gain_map = numpy.ones((352,128,512), dtype=bool)
-
-    def apply_agipd_correction(self, data_as_slab, event):
-        """Applies the correction.
-
-        Designed to be run on worker nodes.
-
-        Args:
-
-            data_as_slab (numpy.ndarray): the data stack on which to apply the
-            AGIPD correction, in 'slab' format.
-        """
-
-        return ((data_as_slab*self.mask - self.darkcal) / self.gain_map /
-               self.beam_energy_coeff)

@@ -20,14 +20,13 @@ from __future__ import unicode_literals
 
 import numpy
 
-import cfelpyutils.cfel_hdf5 as ch5
-
 try:
     from peakfinder8_extension import peakfinder_8
     from peakfinder9_extension import peakfinder_9
-    #from streakfinder_extension import StreakDetectionClass
+    from streakfinder_extension import StreakDetectionClass
 except ImportError:
     raise RuntimeError('Error importing one or more cheetah wrappers, or one of their dependecies')
+import cfelpyutils.cfel_hdf5 as ch5
 
 
 ##############################
@@ -40,15 +39,13 @@ class Peakfinder8PeakDetection:
     Implements peak finding using the peakfinder8 algorithm from Cheetah.
     """
 
-    def __init__(self, role, max_num_peaks, asic_nx, asic_ny, nasics_x,
+    def __init__(self, max_num_peaks, asic_nx, asic_ny, nasics_x,
                  nasics_y, adc_threshold, minimum_snr, min_pixel_count,
-                 max_pixel_count, local_bg_radius, accumulated_shots, min_res,
+                 max_pixel_count, local_bg_radius, min_res,
                  max_res, mask_filename, mask_hdf5_path, pixelmap_radius):
         """Initializes the peakfinder.
 
         Args:
-
-            role (str): node role ('worker' or 'master')
 
             max_num_peaks (int): maximum number of peaks that will be returned by the algorithm.
 
@@ -70,8 +67,6 @@ class Peakfinder8PeakDetection:
 
             local_bg_radius (int): radius for the estimation of the local background.
 
-            accumulated_shots (int): the number of accumulated shots before the peak list is returned.
-
             min_res (int): minimum resolution for a peak to be considered (in pixels).
 
             max_res (int): minimum resolution for a peak to be considered (in pixels).
@@ -84,40 +79,29 @@ class Peakfinder8PeakDetection:
             center of the detector, in pixels.
         """
 
-        if role == 'master':
+        self.max_num_peaks = max_num_peaks
+        self.asic_nx = asic_nx
+        self.asic_ny = asic_ny
+        self.nasics_x = nasics_x
+        self.nasics_y = nasics_y
+        self.adc_thresh = adc_threshold
+        self.minimum_snr = minimum_snr
+        self.min_pixel_count = min_pixel_count
+        self.max_pixel_count = max_pixel_count
+        self.local_bg_radius = local_bg_radius
+        self.pixelmap_radius = pixelmap_radius
+        self.mask = ch5.load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
 
-            self.accumulated_shots = accumulated_shots
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
+        res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
+        res_mask[numpy.where(pixelmap_radius < min_res)] = 0
+        res_mask[numpy.where(pixelmap_radius > max_res)] = 0
 
-        # Initialized on worker
-        if role == 'worker':
-
-            self.max_num_peaks = max_num_peaks
-            self.asic_nx = asic_nx
-            self.asic_ny = asic_ny
-            self.nasics_x = nasics_x
-            self.nasics_y = nasics_y
-            self.adc_thresh = adc_threshold
-            self.minimum_snr = minimum_snr
-            self.min_pixel_count = min_pixel_count
-            self.max_pixel_count = max_pixel_count
-            self.local_bg_radius = local_bg_radius
-            self.pixelmap_radius = pixelmap_radius
-            self.mask = ch5.load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
-
-            res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
-            res_mask[numpy.where(pixelmap_radius < min_res)] = 0
-            res_mask[numpy.where(pixelmap_radius > max_res)] = 0
-
-            self.mask *= res_mask
+        self.mask *= res_mask
 
     def find_peaks(self, raw_data):
         """Finds peaks.
 
         Performs the peak finding.
-
-        Designed to be run on worker nodes.
 
         Args:
 
@@ -142,37 +126,6 @@ class Peakfinder8PeakDetection:
 
         return peak_list
 
-    def accumulate_peaks(self, peak_list):
-        """Accumulates peaks.
-
-        Accumulates peaks. The peaks are added to an internal list of peaks. When peaks have been added to the list for
-        a numer of times specified by the accumulated_shots algorithm parameter, the function returns the accumulated
-        peak list to the user and empties it.
-
-        Designed to be run on the master node.
-
-        Args:
-
-            peak_list (tuple): list of peaks (as returned by the peak_find function) to be added to the internal list.
-
-        Returns:
-
-            peak_list (tuple or None):  the accumulated peak_list if peaks have been added to the list for the number
-            of times specified by the accumulated_shots parameter, None otherwise.
-        """
-
-        self.accumulator[0].extend(peak_list[0])
-        self.accumulator[1].extend(peak_list[1])
-        self.accumulator[2].extend(peak_list[2])
-        self.events_in_accumulator += 1
-
-        if self.events_in_accumulator == self.accumulated_shots:
-            peak_list_to_return = self.accumulator
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
-            return peak_list_to_return
-        return None
-
 
 ##############################
 # PEAKFINDER9 PEAK DETECTION #
@@ -184,17 +137,15 @@ class Peakfinder9PeakDetection:
     Implements peak finding using the peakfinder9 algorithm from Cheetah.
     """
 
-    def __init__(self, role, max_num_peaks, asic_nx, asic_ny, nasics_x,
+    def __init__(self, max_num_peaks, asic_nx, asic_ny, nasics_x,
                  nasics_y, sigma_factor_biggest_pixel, sigma_factor_peak_pixel,
                  sigma_factor_whole_peak, minimum_sigma,
                  minimum_peak_oversize_over_neighbours,
-                 window_radius, accumulated_shots, min_res, max_res,
+                 window_radius, min_res, max_res,
                  mask_filename, mask_hdf5_path, pixelmap_radius):
         """Initializes the peakfinder.
 
         Args:
-
-            role (str): node role ('worker' or 'master')
 
             max_num_peaks (int): maximum number of peaks that will be returned by the algorithm.
 
@@ -222,8 +173,6 @@ class Peakfinder9PeakDetection:
 
             window_radius (int): radius of the window used to estimate background.
 
-            accumulated_shots (int): the number of accumulated shots before the peak list is returned.
-
             min_res (int): minimum resolution for a peak to be considered (in pixels).
 
             max_res (int): minimum resolution for a peak to be considered (in pixels).
@@ -245,27 +194,16 @@ class Peakfinder9PeakDetection:
         self.minimum_peak_oversize_over_neighbours = minimum_peak_oversize_over_neighbours
         self.window_radius = window_radius
 
-        if role == 'master':
-
-            self.accumulated_shots = accumulated_shots
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
-
-        # Initialized on worker
-        if role == 'worker':
-
-            self.mask = load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
-            self.res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
-            self.res_mask[numpy.where(pixelmap_radius < min_res)] = 0
-            self.res_mask[numpy.where(pixelmap_radius > max_res)] = 0
-            self.mask *= self.res_mask
+        self.mask = ch5.load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
+        self.res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
+        self.res_mask[numpy.where(pixelmap_radius < min_res)] = 0
+        self.res_mask[numpy.where(pixelmap_radius > max_res)] = 0
+        self.mask *= self.res_mask
 
     def find_peaks(self, raw_data):
         """Finds peaks.
 
         Performs the peak finding.
-
-        Designed to be run on worker nodes.
 
         Args:
 
@@ -291,37 +229,6 @@ class Peakfinder9PeakDetection:
                                  self.window_radius)
         return peak_list
 
-    def accumulate_peaks(self, peak_list):
-        """Accumulates peaks.
-
-        Accumulates peaks. The peaks are added to an internal list of peaks. When peaks have been added to the list for
-        a numer of times specified by the accumulated_shots algorithm parameter, the function returns the accumulated
-        peak list to the user and empties it.
-
-        Designed to be run on the master node.
-
-        Args:
-
-            peak_list (tuple): list of peaks (as returned by the peak_find function) to be added to the internal list.
-
-        Returns:
-
-            peak_list (tuple or None):  the accumulated peak_list if peaks have been added to the list for the number
-            of times specified by the accumulated_shots parameter, None otherwise.
-        """
-
-        self.accumulator[0].extend(peak_list[0])
-        self.accumulator[1].extend(peak_list[1])
-        self.accumulator[2].extend(peak_list[2])
-        self.events_in_accumulator += 1
-
-        if self.events_in_accumulator == self.accumulated_shots:
-            peak_list_to_return = self.accumulator
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
-            return peak_list_to_return
-        return None
-
 
 ####################
 # STREAK DETECTION #
@@ -333,7 +240,7 @@ class StreakDetection:
     Implements streak finding and masking using the streakfinder algorithm from Cheetah.
     """
 
-    def __init__(self, role, filter_length, min_filter_length, filter_step,
+    def __init__(self, filter_length, min_filter_length, filter_step,
                  sigma_factor, streak_elongation_min_steps_count,
                  streak_elongation_radius_factor,
                  streak_pixel_mask_radius, num_lines_to_check,
@@ -345,8 +252,6 @@ class StreakDetection:
         """Initializes the peakfinder.
 
         Args:
-
-            role (str): node role ('worker' or 'master')
 
             filter_length (int): length of the radial filter with which the image is prefiltered.
 
@@ -391,31 +296,28 @@ class StreakDetection:
         """
 
         # Initialized on worker
-        if role == 'worker':
 
-            self.mask = load_nparray_from_hdf5_file(mask_filename,
+        self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
                                                     mask_hdf5_path)
-            self.background_region_mask = numpy.zeros(self.mask.shape)
+        self.background_region_mask = numpy.zeros(self.mask.shape)
 
-            self.streak_detection = StreakDetectionClass(
-                min_filter_length,
-                filter_length, filter_step,
-                sigma_factor,
-                streak_elongation_min_steps_count,
-                streak_elongation_radius_factor,
-                streak_pixel_mask_radius, num_lines_to_check,
-                0, background_region_preset,
-                background_region_dist_from_edge,
-                asic_nx, asic_ny, nasics_x, nasics_y,
-                pixel_map_x, pixel_map_y, self.mask,
-                self.background_region_mask)
+        self.streak_detection = StreakDetectionClass(
+            min_filter_length,
+            filter_length, filter_step,
+            sigma_factor,
+            streak_elongation_min_steps_count,
+            streak_elongation_radius_factor,
+            streak_pixel_mask_radius, num_lines_to_check,
+            0, background_region_preset,
+            background_region_dist_from_edge,
+            asic_nx, asic_ny, nasics_x, nasics_y,
+            pixel_map_x, pixel_map_y, self.mask,
+            self.background_region_mask)
 
     def find_streaks(self, data, streak_mask):
         """Finds streaks.
 
         Performs the strek finding.
-
-        Designed to be run on worker nodes.
 
         Args:
 

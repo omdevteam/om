@@ -44,44 +44,38 @@ class Onda(MasterWorker):
                                    reduce_func=self.collect_data,
                                    source=source)
 
-        _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(oa.param('General', 'geometry_file', str))
-
-        self.dark_cal_correction = galg.DarkCalCorrection(self.role,
-                                                          oa.param('DarkCalCorrection', 'filename', str),
-                                                          oa.param('DarkCalCorrection', 'hdf5_group', str),
-                                                          oa.param('DarkCalCorrection', 'apply_mask', bool),
-                                                          oa.param('DarkCalCorrection', 'mask_filename', str),
-                                                          oa.param('DarkCalCorrection', 'mask_hdf5_group', str),
-                                                          oa.param('DarkCalCorrection', 'gain_map_correction', bool),
-                                                          oa.param('DarkCalCorrection', 'gain_map_filename', str),
-                                                          oa.param('DarkCalCorrection', 'gain_map_hdf5_group', str))
-
-        self.peakfinder8_peak_det = calg.Peakfinder8PeakDetection(self.role,
-                                                             oa.param('Peakfinder8PeakDetection', 'max_num_peaks', int),
-                                                             oa.param('Peakfinder8PeakDetection', 'asics_nx', int),
-                                                             oa.param('Peakfinder8PeakDetection', 'asics_ny', int),
-                                                             oa.param('Peakfinder8PeakDetection', 'nasics_x', int),
-                                                             oa.param('Peakfinder8PeakDetection', 'nasics_y', int),
-                                                             oa.param('Peakfinder8PeakDetection', 'adc_threshold',
-                                                                      float),
-                                                             oa.param('Peakfinder8PeakDetection', 'minimum_snr', float),
-                                                             oa.param('Peakfinder8PeakDetection', 'min_pixel_count',
-                                                                      int),
-                                                             oa.param('Peakfinder8PeakDetection', 'max_pixel_count',
-                                                                      int),
-                                                             oa.param('Peakfinder8PeakDetection', 'local_bg_radius',
-                                                                      int),
-                                                             oa.param('Peakfinder8PeakDetection', 'accumulated_shots',
-                                                                      int),
-                                                             oa.param('Peakfinder8PeakDetection', 'min_res', int),
-                                                             oa.param('Peakfinder8PeakDetection', 'max_res', int),
-                                                             oa.param('Peakfinder8PeakDetection', 'mask_filename',
-                                                                   str),
-                                                             oa.param('Peakfinder8PeakDetection', 'mask_hdf5_path',
-                                                                   str),
-                                                             pixelmap_radius)
-
         if self.role == 'worker':
+
+            _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(oa.param('General', 'geometry_file', str))
+
+            self.dark_cal_correction = galg.DarkCalCorrection(oa.param('DarkCalCorrection', 'filename', str),
+                                                              oa.param('DarkCalCorrection', 'hdf5_group', str),
+                                                              oa.param('DarkCalCorrection', 'apply_mask', bool),
+                                                              oa.param('DarkCalCorrection', 'mask_filename', str),
+                                                              oa.param('DarkCalCorrection', 'mask_hdf5_group', str),
+                                                              oa.param('DarkCalCorrection', 'gain_map_correction',
+                                                                       bool),
+                                                              oa.param('DarkCalCorrection', 'gain_map_filename', str),
+                                                              oa.param('DarkCalCorrection', 'gain_map_hdf5_group', str))
+
+            self.peakfinder8_peak_det = calg.Peakfinder8PeakDetection(
+                oa.param('Peakfinder8PeakDetection', 'max_num_peaks', int),
+                oa.param('Peakfinder8PeakDetection', 'asics_nx', int),
+                oa.param('Peakfinder8PeakDetection', 'asics_ny', int),
+                oa.param('Peakfinder8PeakDetection', 'nasics_x', int),
+                oa.param('Peakfinder8PeakDetection', 'nasics_y', int),
+                oa.param('Peakfinder8PeakDetection', 'adc_threshold', float),
+                oa.param('Peakfinder8PeakDetection', 'minimum_snr', float),
+                oa.param('Peakfinder8PeakDetection', 'min_pixel_count', int),
+                oa.param('Peakfinder8PeakDetection', 'max_pixel_count', int),
+                oa.param('Peakfinder8PeakDetection', 'local_bg_radius', int),
+                oa.param('Peakfinder8PeakDetection', 'min_res', int),
+                oa.param('Peakfinder8PeakDetection', 'max_res', int),
+                oa.param('Peakfinder8PeakDetection', 'mask_filename', str),
+                oa.param('Peakfinder8PeakDetection', 'mask_hdf5_path', str),
+                pixelmap_radius
+            )
+
             self.max_saturated_peaks = oa.param('General', 'max_saturated_peaks', int)
             self.min_num_peaks_for_hit = oa.param('General', 'min_num_peaks_for_hit', int)
             self.max_num_peaks_for_hit = oa.param('General', 'max_num_peaks_for_hit', int)
@@ -94,6 +88,11 @@ class Onda(MasterWorker):
             sys.stdout.flush()
 
         if self.role == 'master':
+
+            print('accumulated_shots', oa.param('General', 'accumulated_shots', int))
+
+            self.accumulator = galg.PeakAccumulator(oa.param('PeakAccumulator', 'accumulated_shots', int))
+
             self.num_events = 0
             self.old_time = time.time()
 
@@ -158,7 +157,7 @@ class Onda(MasterWorker):
         self.hit_rate = sum(self.hit_rate_running_w) / len(self.hit_rate_running_w)
         self.sat_rate = sum(self.saturation_rate_running_w) / len(self.saturation_rate_running_w)
 
-        collected_peaks = self.peakfinder8_peak_det.accumulate_peaks(results_dict['peak_list'])
+        collected_peaks = self.accumulator.accumulate_peaks(results_dict['peak_list'])
 
         if collected_peaks is not None:
             collected_data['peak_list'] = collected_peaks
