@@ -95,7 +95,7 @@ for data_source in avail_data_sources:
 for data_source in avail_data_sources:
     globals()[data_source] = lambda x: None
 
-required_data = op.monitor_params['Backend']['required_data'].split(',')
+required_data = op.monitor_params['Onda']['required_data'].split(',')
 
 for data_source in required_data:
     data_source = data_source.strip()

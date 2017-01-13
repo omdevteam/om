@@ -32,21 +32,21 @@ def import_correct_layer_module(layer, monitor_params):
             'data_extraction_layer.instrument_layer.',
     }
 
-    if 'Backend' not in monitor_params:
-        raise RuntimeError('[Backend] section is not present in the configuration file.')
+    if 'Onda' not in monitor_params:
+        raise RuntimeError('[Onda] section is not present in the configuration file.')
 
-    if layer not in monitor_params['Backend']:
+    if layer not in monitor_params['Onda']:
         raise RuntimeError('Module for {0} not specified in the configuration file.'.format(layer))
 
     try:
         m = importlib.import_module(
             '{0}{1}'.format(
                 layer_paths.get(layer, ''),
-                (monitor_params['Backend'][layer]))
+                (monitor_params['Onda'][layer]))
         )
     except ImportError:
         raise RuntimeError('Error when importing the {0}.  Either the {1} module does not exist, or importing it '
-                            'causes an error.'.format(layer, monitor_params['Backend'][layer]))
+                            'causes an error.'.format(layer, monitor_params['Onda'][layer]))
     else:
         return m
 

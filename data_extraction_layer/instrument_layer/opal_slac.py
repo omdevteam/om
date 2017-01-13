@@ -28,4 +28,4 @@ native_shape = (1024, 1024)
 
 def opal_data(event):
     return event['evt'].get(psana.Camera.FrameV1,
-                            psana.Source(event['monitor_params']['Backend']['camera_psana_source'])).data16()
+                            psana.Source(event['monitor_params']['PsanaParallelizationLayer']['camera_psana_source'])).data16()
