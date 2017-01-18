@@ -28,6 +28,9 @@ configuration files.
 """
 
 
+import ast
+
+
 def parse_parameters(config):
     """Sets correct types for parameter dictionaries.
 
@@ -36,12 +39,18 @@ def parse_parameters(config):
 
     The parser tries to interpret each entry in the dictionary according to the following rules:
 
-    - If the entry starts and ends with a single quote, it is interpreted as a string.
-    - If the entry is the word None, without quotes, then the entry is interpreted as NoneType.
-    - If the entry is the word False, without quotes, then the entry is interpreted as a boolean False.
-    - If the entry is the word True, without quotes, then the entry is interpreted as a boolean True.
-    - If non of the previous options match the content of the entry, the parser tries to interpret the entry in order
-      as:
+    - If the entry starts and ends with a single quote or double quote, it is
+      interpreted as a string.
+    - If the entry starts and ends with a square bracket, it is interpreted as a list.
+    - If the entry starts and ends with a brace, it is interpreted as a dictionary.
+    - If the entry is the word None, without quotes, then the entry is
+      interpreted as NoneType.
+    - If the entry is the word False, without quotes, then the entry is
+      interpreted as a boolean False.
+    - If the entry is the word True, without quotes, then the entry is
+      interpreted as a boolean True.
+    - If none of the previous options match the content of the entry,
+      the parser tries to interpret the entry in order as:
 
         - An integer number.
         - A float number.
@@ -68,6 +77,27 @@ def parse_parameters(config):
             if monitor_params[sect][op].startswith("'") and monitor_params[sect][op].endswith("'"):
                 monitor_params[sect][op] = monitor_params[sect][op][1:-1]
                 continue
+            if monitor_params[sect][op].startswith('"') and monitor_params[sect][op].endswith('"'):
+                monitor_params[sect][op] = monitor_params[sect][op][1:-1]
+                continue
+            if monitor_params[sect][op].startswith("[") and monitor_params[sect][op].endswith("]"):
+                try:
+                    monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
+                    continue
+                except (SyntaxError, ValueError):
+                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is '
+                                       'correct: list elements must be separated by commas and dict entries must '
+                                       'contain the colon symbol. Strings must be quoted, even in lists and '
+                                       'dicts.'.format(op, sect))
+            if monitor_params[sect][op].startswith("{") and monitor_params[sect][op].endswith("}"):
+                try:
+                    monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
+                    continue
+                except (SyntaxError, ValueError):
+                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is '
+                                       'correct: list elements must be separated by commas and dict entries must '
+                                       'contain the colon symbol. Strings must be quoted, even in lists and '
+                                       'dicts.'.format(op, sect))
             if monitor_params[sect][op] == 'None':
                 monitor_params[sect][op] = None
                 continue
