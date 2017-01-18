@@ -85,17 +85,19 @@ def parse_parameters(config):
                     monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
                     continue
                 except (SyntaxError, ValueError):
-                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is'
-                                       'correct: list elements are separated by comma, dict entries contain the colon'
-                                       'symbol and strings are quoted.'.format(op, sect))
+                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is '
+                                       'correct: list elements must be separated by commas and dict entries must '
+                                       'contain the colon symbol. Strings must be quoted, even in lists and '
+                                       'dicts.'.format(op, sect))
             if monitor_params[sect][op].startswith("{") and monitor_params[sect][op].endswith("}"):
                 try:
                     monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
                     continue
                 except (SyntaxError, ValueError):
-                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is'
-                                       'correct: list elements are separated by comma, dict entries contain the colon'
-                                       'symbol and strings are quoted.'.format(op, sect))
+                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is '
+                                       'correct: list elements must be separated by commas and dict entries must '
+                                       'contain the colon symbol. Strings must be quoted, even in lists and '
+                                       'dicts.'.format(op, sect))
             if monitor_params[sect][op] == 'None':
                 monitor_params[sect][op] = None
                 continue
