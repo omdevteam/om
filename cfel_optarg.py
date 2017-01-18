@@ -28,9 +28,7 @@ configuration files.
 """
 
 
-import argparse
-import os
-import json
+import ast
 
 
 def parse_parameters(config):
@@ -84,18 +82,20 @@ def parse_parameters(config):
                 continue
             if monitor_params[sect][op].startswith("[") and monitor_params[sect][op].endswith("]"):
                 try:
-                    monitor_params[sect][op] = json.loads(config.get(sect, op).replace("'", '"'))
+                    monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
                     continue
-                except:
-                    raise RuntimeError('Error parsing parameters. The parameter {0}/{1} parameter '
-                                       'has an invalid type.'.format(sect, op))
+                except (SyntaxError, ValueError):
+                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is'
+                                       'correct: list elements are separated by comma, dict entries contain the colon'
+                                       'symbol and strings are quoted.'.format(op, sect))
             if monitor_params[sect][op].startswith("{") and monitor_params[sect][op].endswith("}"):
                 try:
-                    monitor_params[sect][op] = json.loads(config.get(sect, op).replace("'", '"'))
+                    monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
                     continue
-                except:
-                    raise RuntimeError('Error parsing parameters. The parameter {0}/{1} parameter '
-                                       'has an invalid type.'.format(sect, op))
+                except (SyntaxError, ValueError):
+                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is'
+                                       'correct: list elements are separated by comma, dict entries contain the colon'
+                                       'symbol and strings are quoted.'.format(op, sect))
             if monitor_params[sect][op] == 'None':
                 monitor_params[sect][op] = None
                 continue
