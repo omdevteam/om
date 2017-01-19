@@ -46,41 +46,43 @@ class Onda(MasterWorker):
 
         if self.role == 'worker':
 
-            _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(oa.param('General', 'geometry_file', str))
+            _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(oa.param('General', 'geometry_file', str,
+                                                                               required=True))
 
-            self.dark_cal_correction = galg.DarkCalCorrection(oa.param('DarkCalCorrection', 'filename', str),
-                                                              oa.param('DarkCalCorrection', 'hdf5_group', str),
-                                                              oa.param('DarkCalCorrection', 'apply_mask', bool),
-                                                              oa.param('DarkCalCorrection', 'mask_filename', str),
-                                                              oa.param('DarkCalCorrection', 'mask_hdf5_group', str),
-                                                              oa.param('DarkCalCorrection', 'gain_map_correction',
-                                                                       bool),
-                                                              oa.param('DarkCalCorrection', 'gain_map_filename', str),
-                                                              oa.param('DarkCalCorrection', 'gain_map_hdf5_group', str))
+            self.dark_cal_correction = galg.DarkCalCorrection(
+                oa.param('DarkCalCorrection', 'filename', str, required=True),
+                oa.param('DarkCalCorrection', 'hdf5_group', str, required=True),
+                oa.param('DarkCalCorrection', 'apply_mask', bool),
+                oa.param('DarkCalCorrection', 'mask_filename', str),
+                oa.param('DarkCalCorrection', 'mask_hdf5_group', str),
+                oa.param('DarkCalCorrection', 'gain_map_correction', bool),
+                oa.param('DarkCalCorrection', 'gain_map_filename', str),
+                oa.param('DarkCalCorrection', 'gain_map_hdf5_group', str)
+            )
 
             self.peakfinder8_peak_det = calg.Peakfinder8PeakDetection(
-                oa.param('Peakfinder8PeakDetection', 'max_num_peaks', int),
-                oa.param('Peakfinder8PeakDetection', 'asics_nx', int),
-                oa.param('Peakfinder8PeakDetection', 'asics_ny', int),
-                oa.param('Peakfinder8PeakDetection', 'nasics_x', int),
-                oa.param('Peakfinder8PeakDetection', 'nasics_y', int),
-                oa.param('Peakfinder8PeakDetection', 'adc_threshold', float),
-                oa.param('Peakfinder8PeakDetection', 'minimum_snr', float),
-                oa.param('Peakfinder8PeakDetection', 'min_pixel_count', int),
-                oa.param('Peakfinder8PeakDetection', 'max_pixel_count', int),
-                oa.param('Peakfinder8PeakDetection', 'local_bg_radius', int),
-                oa.param('Peakfinder8PeakDetection', 'min_res', int),
-                oa.param('Peakfinder8PeakDetection', 'max_res', int),
-                oa.param('Peakfinder8PeakDetection', 'mask_filename', str),
-                oa.param('Peakfinder8PeakDetection', 'mask_hdf5_path', str),
+                oa.param('Peakfinder8PeakDetection', 'max_num_peaks', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'asics_nx', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'asics_ny', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'nasics_x', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'nasics_y', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'adc_threshold', float, required=True),
+                oa.param('Peakfinder8PeakDetection', 'minimum_snr', float, required=True),
+                oa.param('Peakfinder8PeakDetection', 'min_pixel_count', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'max_pixel_count', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'local_bg_radius', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'min_res', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'max_res', int, required=True),
+                oa.param('Peakfinder8PeakDetection', 'mask_filename', str, required=True),
+                oa.param('Peakfinder8PeakDetection', 'mask_hdf5_path', str, required=True),
                 pixelmap_radius
             )
 
-            self.max_saturated_peaks = oa.param('General', 'max_saturated_peaks', int)
-            self.min_num_peaks_for_hit = oa.param('General', 'min_num_peaks_for_hit', int)
-            self.max_num_peaks_for_hit = oa.param('General', 'max_num_peaks_for_hit', int)
-            self.saturation_value = oa.param('General', 'saturation_value', int)
-            self.hit_sending_interval = oa.param('General', 'hit_sending_interval', int)
+            self.max_saturated_peaks = oa.param('General', 'max_saturated_peaks', int, required=True)
+            self.min_num_peaks_for_hit = oa.param('General', 'min_num_peaks_for_hit', int, required=True)
+            self.max_num_peaks_for_hit = oa.param('General', 'max_num_peaks_for_hit', int, required=True)
+            self.saturation_value = oa.param('General', 'saturation_value', int, required=True)
+            self.hit_sending_interval = oa.param('General', 'hit_sending_interval', int, required=True)
 
             self.hit_sending_counter = 0
 
@@ -88,21 +90,21 @@ class Onda(MasterWorker):
             sys.stdout.flush()
 
         if self.role == 'master':
-
-            print('accumulated_shots', oa.param('General', 'accumulated_shots', int))
-
-            self.accumulator = galg.PeakAccumulator(oa.param('PeakAccumulator', 'accumulated_shots', int))
+            self.accumulator = galg.PeakAccumulator(oa.param('PeakAccumulator', 'accumulated_shots', int,
+                                                             required=True))
 
             self.num_events = 0
             self.old_time = time.time()
 
             self.time = None
 
-            self.speed_report_interval = oa.param('General', 'speed_report_interval', int)
-            self.optimized_geometry = oa.param('General', 'geometry_is_optimized', bool)
+            self.speed_report_interval = oa.param('General', 'speed_report_interval', int, required=True)
+            self.optimized_geometry = oa.param('General', 'geometry_is_optimized', bool, required=True)
 
-            self.hit_rate_running_w = collections.deque([0.0] * oa.param('General', 'running_average_size', int))
-            self.saturation_rate_running_w = collections.deque([0.0] * oa.param('General', 'running_average_size', int))
+            self.hit_rate_running_w = collections.deque([0.0] * oa.param('General', 'running_average_size', int,
+                                                                         required=True))
+            self.saturation_rate_running_w = collections.deque([0.0] * oa.param('General', 'running_average_size', int,
+                                                                                required=True))
 
             print('Starting the monitor...')
             sys.stdout.flush()

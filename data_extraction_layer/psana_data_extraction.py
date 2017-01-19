@@ -86,17 +86,28 @@ def event_codes_dataext(event):
 
 in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
 
+raw_data_initialize = lambda x: None
+detector_distance_initialize = lambda x: None
+beam_energy_initialize = lambda x: None
+timestamp_initialize = lambda x: None
+timetool_data_initialize = lambda x: None
+digitizer_data_initialize = lambda x: None
+digitizer2_data_initialize = lambda x: None
+event_codes_initialize = lambda x: None
+
+raw_data = lambda x: None
+detector_distance = lambda x: None
+beam_energy = lambda x: None
+timestamp = lambda x: None
+timetool_data = lambda x: None
+digitizer_data = lambda x: None
+digitizer2_data = lambda x: None
+event_codes = lambda x: None
+
 avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'timetool_data', 'digitizer_data',
                       'digitizer2_data', 'event_codes']
 
-for data_source in avail_data_sources:
-    globals()[data_source + '_initialize'] = lambda x: None
-
-for data_source in avail_data_sources:
-    globals()[data_source] = lambda x: None
-
 required_data = op.monitor_params['Onda']['required_data'].split(',')
-
 for data_source in required_data:
     data_source = data_source.strip()
     if data_source not in avail_data_sources:

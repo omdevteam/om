@@ -78,7 +78,7 @@ class MasterWorker(object):
 
         if self.role == 'worker':
 
-            self.psana_calib_dir = oa.param('PsanaParallelizationLayer', 'psana_calib_dir', str)
+            self.psana_calib_dir = oa.param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True)
 
         # The following is executed only on the master node
         if self.role == 'master':

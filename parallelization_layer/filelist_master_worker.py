@@ -67,7 +67,8 @@ class MasterWorker(object):
             self.num_reduced_events = 0
 
         if self.role == 'worker':
-            self.shots_to_proc = op.param('FilelistParallelizationLayer', 'images_per_file_to_process', int)
+            self.shots_to_proc = op.param('FilelistParallelizationLayer', 'images_per_file_to_process', int,
+                                          required= True)
 
             self._buffer = None
 

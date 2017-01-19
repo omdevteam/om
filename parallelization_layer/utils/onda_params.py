@@ -23,11 +23,15 @@ from builtins import str
 
 monitor_params = {}
 
-def param(section, par, type_to_check = None):
+
+def param(section, par, type_to_check = None, required = False):
     if section not in monitor_params:
         raise RuntimeError('Section {0} is not in the configuration file'.format(section))
     else:
         ret = monitor_params[section].get(par)
+        if ret is None and required is True:
+            raise RuntimeError('Parameter {0} in section {1} was not found, but is required.'.format(
+                section, par))
         if ret is not None and type_to_check is not None:
             if not isinstance(ret, type_to_check):
                 raise RuntimeError('Wrong type for parameter {0}: should be {1}, is {2}.'.format(

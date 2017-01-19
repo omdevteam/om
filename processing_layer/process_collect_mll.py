@@ -61,18 +61,31 @@ class Onda(MasterWorker):
 
         if self.role == 'worker':
 
-            mask_shape = (oa.param('General', 'mask_size_ss', int), oa.param('General', 'mask_size_fs', int))
-            mask_center = (oa.param('General', 'mask_center_ss', int), oa.param('General', 'mask_center_fs', int))
-            mask_size = (oa.param('General', 'mask_edge_ss', int) / 2, oa.param('General', 'mask_edge_fs', int) / 2)
+            mask_shape = (
+                oa.param('General', 'mask_size_ss', int, required=True),
+                oa.param('General', 'mask_size_fs', int, required=True)
+            )
+            mask_center = (
+                oa.param('General', 'mask_center_ss', int, required=True),
+                oa.param('General', 'mask_center_fs', int, required=True)
+            )
+            mask_size = (
+                oa.param('General', 'mask_edge_ss', int, required=True) / 2,
+                oa.param('General', 'mask_edge_fs', int, required=True) / 2
+            )
 
             self.mask = make_mll_mask(mask_center, mask_size, mask_shape)
 
-            self.bad_pixel_mask = ch5.load_nparray_from_hdf5_file(oa.param('General', 'bad_pixel_mask_filename', str),
-                                                                  oa.param('General', 'bad_pixel_mask_hdf5_group', str))
+            self.bad_pixel_mask = ch5.load_nparray_from_hdf5_file(
+                oa.param('General', 'bad_pixel_mask_filename', str, required=True),
+                oa.param('General', 'bad_pixel_mask_hdf5_group', str, required=True)
+            )
 
             if oa.param('General', 'whitefield_subtraction', bool) is True:
-                self.whitefield = ch5.load_nparray_from_hdf5_file(oa.param('General', 'whitefield_filename', str),
-                                                                  oa.param('General', 'whitefield_hdf5_group', str))
+                self.whitefield = ch5.load_nparray_from_hdf5_file(
+                    oa.param('General', 'whitefield_filename', str, required=True),
+                    oa.param('General', 'whitefield_hdf5_group', str, required=True)
+                )
                 self.whitefield[self.whitefield == 0] = 1
             else:
                 self.whitefield = True
@@ -92,11 +105,11 @@ class Onda(MasterWorker):
 
             self.num_accumulated_shots = 0
 
-            self.speed_report_interval = oa.param('General', 'speed_report_interval', int)
-            self.num_shots_to_accumulate = oa.param('General', 'accumulated_shots', int)
+            self.speed_report_interval = oa.param('General', 'speed_report_interval', int, required=True)
+            self.num_shots_to_accumulate = oa.param('General', 'accumulated_shots', int, required=True)
 
-            self.log_dir = oa.param('General', 'log_base_path', str)
-            self.data_dir = oa.param('General', 'data_base_path', str)
+            self.log_dir = oa.param('General', 'log_base_path', str, required=True)
+            self.data_dir = oa.param('General', 'data_base_path', str, required=True)
 
             self.scan_type = 0
 

@@ -66,7 +66,7 @@ class MasterWorker(object):
 
         self.hostname = socket.gethostname()
         self.sender_hostname = source
-        self.base_port = oa.param('PetraIIIMetadataParallelizationLayer', 'base_port', int)
+        self.base_port = oa.param('PetraIIIMetadataParallelizationLayer', 'base_port', int, required=True)
         self.priority = 1
 
         self.targets = [['', '', 1]]
@@ -91,7 +91,8 @@ class MasterWorker(object):
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
 
         if self.role == 'worker':
-            self.max_shots_to_proc = oa.param('PetraIIIMetadataParallelizationLayer', 'images_per_file_to_process', int)
+            self.max_shots_to_proc = oa.param('PetraIIIMetadataParallelizationLayer', 'images_per_file_to_process', int,
+                                              required=True)
 
             self._buffer = None
 
@@ -149,7 +150,7 @@ class MasterWorker(object):
                 relative_filepath = os.path.join(metadata['relativePath'], metadata['filename'])
 
                 absolute_filepath = os.path.join(oa.param('PetraIIIMetadataParallelizationLayer', 'data_base_path',
-                                                          str), relative_filepath)
+                                                          str, required=True), relative_filepath)
 
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}.'.format(self.mpi_rank))
