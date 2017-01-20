@@ -12,14 +12,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
-
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-
 """
 Utilities for parsing command line options and configuration files.
 
@@ -27,6 +19,10 @@ This module contains utilities for parsing of command line options and
 configuration files.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 import ast
 
@@ -76,6 +72,11 @@ def parse_parameters(config):
             monitor_params[sect][op] = config.get(sect, op)
             if monitor_params[sect][op].startswith("'") and monitor_params[sect][op].endswith("'"):
                 monitor_params[sect][op] = monitor_params[sect][op][1:-1]
+                try:
+                    monitor_params[sect][op].encode('ascii')
+                except UnicodeEncodeError:
+                        raise RuntimeError('Error parsing parameters. Only ASCII characters are allowed in parameter '
+                                           'names and values.')
                 continue
             if monitor_params[sect][op].startswith('"') and monitor_params[sect][op].endswith('"'):
                 monitor_params[sect][op] = monitor_params[sect][op][1:-1]
@@ -115,6 +116,8 @@ def parse_parameters(config):
                     monitor_params[sect][op] = float(monitor_params[sect][op])
                     continue
                 except ValueError:
-                    pass
+                    raise RuntimeError('Error parsing parameters. The parameter {0}/{1} parameter has an invalid type. '
+                                       'Allowed types are None, int, float, bool and str. Strings must be '
+                                       'single-quoted.'.format(sect, op))
 
     return monitor_params
