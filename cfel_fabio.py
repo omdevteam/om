@@ -51,24 +51,24 @@ def read_cbf_from_stream(stream):
 
     infile = stream
     cbf_obj._readheader(infile)
-    if fabio.cbfimage.CIF_BINARY_BLOCK_KEY not in cbf_obj.cif:
-        err = "Not key %s in CIF, no CBF image in stream" % fabio.cbfimage.CIF_BINARY_BLOCK_KEY
+    if cbf_obj.CIF_BINARY_BLOCK_KEY not in cbf_obj.cif:
+        err = "Not key %s in CIF, no CBF image in stream" % fabio.cbfobj.CIF_BINARY_BLOCK_KEY
         logger.error(err)
         for kv in cbf_obj.cif.items():
             print("%s: %s" % kv)
         raise RuntimeError(err)
-    if cbf_obj.cif[fabio.cbfimage.CIF_BINARY_BLOCK_KEY] == "CIF Binary Section":
-        cbf_obj.cbs += infile.read(len(fabio.cbfimage.STARTER) + int(cbf_obj.header["X-Binary-Size"])
+    if cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY] == "CIF Binary Section":
+        cbf_obj.cbs += infile.read(len(cbf_obj.STARTER) + int(cbf_obj.header["X-Binary-Size"])
                                    - len(cbf_obj.cbs) + cbf_obj.start_binary)
     else:
-        if len(cbf_obj.cif[fabio.cbfimage.CIF_BINARY_BLOCK_KEY]) > int(
-                cbf_obj.header["X-Binary-Size"]) + cbf_obj.start_binary + len(fabio.cbfimage.STARTER):
-            cbf_obj.cbs = cbf_obj.cif[fabio.cbfimage.CIF_BINARY_BLOCK_KEY][:int(cbf_obj.header["X-Binary-Size"]) +
-                                                                           cbf_obj.start_binary +
-                                                                           len(fabio.cbfimage.STARTER)]
+        if len(cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY]) > int(
+                cbf_obj.header["X-Binary-Size"]) + cbf_obj.start_binary + len(cbf_obj.STARTER):
+            cbf_obj.cbs = cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY][:int(cbf_obj.header["X-Binary-Size"]) +
+                                                                         cbf_obj.start_binary +
+                                                                         len(cbf_obj.STARTER)]
         else:
-            cbf_obj.cbs = cbf_obj.cif[fabio.cbfimage.CIF_BINARY_BLOCK_KEY]
-    binary_data = cbf_obj.cbs[cbf_obj.start_binary + len(fabio.cbfimage.STARTER):]
+            cbf_obj.cbs = cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY]
+    binary_data = cbf_obj.cbs[cbf_obj.start_binary + len(cbf_obj.STARTER):]
 
     if "Content-MD5" in cbf_obj.header:
         ref = numpy.string_(cbf_obj.header["Content-MD5"])
