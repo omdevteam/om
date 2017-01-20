@@ -107,7 +107,7 @@ event_codes = lambda x: None
 avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'timetool_data', 'digitizer_data',
                       'digitizer2_data', 'event_codes']
 
-required_data = op.monitor_params['Onda']['required_data'].split(',')
+required_data = op.param('Onda', 'required_data', list, required=True)
 for data_source in required_data:
     data_source = data_source.strip()
     if data_source not in avail_data_sources:
