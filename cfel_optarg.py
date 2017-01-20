@@ -72,11 +72,6 @@ def parse_parameters(config):
             monitor_params[sect][op] = config.get(sect, op)
             if monitor_params[sect][op].startswith("'") and monitor_params[sect][op].endswith("'"):
                 monitor_params[sect][op] = monitor_params[sect][op][1:-1]
-                try:
-                    monitor_params[sect][op].encode('ascii')
-                except UnicodeEncodeError:
-                        raise RuntimeError('Error parsing parameters. Only ASCII characters are allowed in parameter '
-                                           'names and values.')
                 continue
             if monitor_params[sect][op].startswith('"') and monitor_params[sect][op].endswith('"'):
                 monitor_params[sect][op] = monitor_params[sect][op][1:-1]
@@ -86,7 +81,7 @@ def parse_parameters(config):
                     monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
                     continue
                 except (SyntaxError, ValueError):
-                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is '
+                    raise RuntimeError('Error parsing parameter {0} in section [{1}]. Make sure that the syntax is '
                                        'correct: list elements must be separated by commas and dict entries must '
                                        'contain the colon symbol. Strings must be quoted, even in lists and '
                                        'dicts.'.format(op, sect))
@@ -95,7 +90,7 @@ def parse_parameters(config):
                     monitor_params[sect][op] = ast.literal_eval(config.get(sect, op))
                     continue
                 except (SyntaxError, ValueError):
-                    raise RuntimeError('Error parsing parameter {0} in section {1}. Make sure that the syntax is '
+                    raise RuntimeError('Error parsing parameter {0} in section [{1}]. Make sure that the syntax is '
                                        'correct: list elements must be separated by commas and dict entries must '
                                        'contain the colon symbol. Strings must be quoted, even in lists and '
                                        'dicts.'.format(op, sect))
@@ -116,8 +111,8 @@ def parse_parameters(config):
                     monitor_params[sect][op] = float(monitor_params[sect][op])
                     continue
                 except ValueError:
-                    raise RuntimeError('Error parsing parameters. The parameter {0}/{1} parameter has an invalid type. '
-                                       'Allowed types are None, int, float, bool and str. Strings must be '
-                                       'single-quoted.'.format(sect, op))
-
+                    raise RuntimeError('Error parsing parameter {0} in section [{1}]. Make sure that the syntax is '
+                                       'correct: list elements must be separated by commas and dict entries must '
+                                       'contain the colon symbol. Strings must be quoted, even in lists and '
+                                       'dicts.'.format(op, sect))
     return monitor_params
