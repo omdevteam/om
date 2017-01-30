@@ -26,14 +26,14 @@ import sys
 import time
 
 import cfelpyutils.cfel_geom as cgm
-import parallelization_layer.utils.onda_dynamic_import as di
-import parallelization_layer.utils.onda_params as oa
-import parallelization_layer.utils.onda_zmq_monitor_utils as zut
-import processing_layer.algorithms.cheetah_algorithms as calg
-import processing_layer.algorithms.generic_algorithms as galg
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
+import ondautils.onda_zmq_monitor_utils as zut
+import algorithms.cheetah_algorithms as calg
+import algorithms.generic_algorithms as galg
 
 
-par_layer = di.import_correct_layer_module('parallelization_layer', oa.monitor_params)
+par_layer = di.import_correct_layer_module('parallelization_layer', op.monitor_params)
 MasterWorker = di.import_class_from_layer('MasterWorker', par_layer)
 
 
@@ -46,43 +46,43 @@ class Onda(MasterWorker):
 
         if self.role == 'worker':
 
-            _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(oa.param('General', 'geometry_file', str,
+            _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file', str,
                                                                                required=True))
 
             self.dark_cal_correction = galg.DarkCalCorrection(
-                oa.param('DarkCalCorrection', 'filename', str, required=True),
-                oa.param('DarkCalCorrection', 'hdf5_group', str, required=True),
-                oa.param('DarkCalCorrection', 'apply_mask', bool),
-                oa.param('DarkCalCorrection', 'mask_filename', str),
-                oa.param('DarkCalCorrection', 'mask_hdf5_group', str),
-                oa.param('DarkCalCorrection', 'gain_map_correction', bool),
-                oa.param('DarkCalCorrection', 'gain_map_filename', str),
-                oa.param('DarkCalCorrection', 'gain_map_hdf5_group', str)
+                op.param('DarkCalCorrection', 'filename', str, required=True),
+                op.param('DarkCalCorrection', 'hdf5_group', str, required=True),
+                op.param('DarkCalCorrection', 'apply_mask', bool),
+                op.param('DarkCalCorrection', 'mask_filename', str),
+                op.param('DarkCalCorrection', 'mask_hdf5_group', str),
+                op.param('DarkCalCorrection', 'gain_map_correction', bool),
+                op.param('DarkCalCorrection', 'gain_map_filename', str),
+                op.param('DarkCalCorrection', 'gain_map_hdf5_group', str)
             )
 
             self.peakfinder8_peak_det = calg.Peakfinder8PeakDetection(
-                oa.param('Peakfinder8PeakDetection', 'max_num_peaks', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'asics_nx', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'asics_ny', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'nasics_x', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'nasics_y', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'adc_threshold', float, required=True),
-                oa.param('Peakfinder8PeakDetection', 'minimum_snr', float, required=True),
-                oa.param('Peakfinder8PeakDetection', 'min_pixel_count', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'max_pixel_count', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'local_bg_radius', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'min_res', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'max_res', int, required=True),
-                oa.param('Peakfinder8PeakDetection', 'mask_filename', str, required=True),
-                oa.param('Peakfinder8PeakDetection', 'mask_hdf5_path', str, required=True),
+                op.param('Peakfinder8PeakDetection', 'max_num_peaks', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'asics_nx', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'asics_ny', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'nasics_x', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'nasics_y', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'adc_threshold', float, required=True),
+                op.param('Peakfinder8PeakDetection', 'minimum_snr', float, required=True),
+                op.param('Peakfinder8PeakDetection', 'min_pixel_count', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'max_pixel_count', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'local_bg_radius', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'min_res', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'max_res', int, required=True),
+                op.param('Peakfinder8PeakDetection', 'mask_filename', str, required=True),
+                op.param('Peakfinder8PeakDetection', 'mask_hdf5_path', str, required=True),
                 pixelmap_radius
             )
 
-            self.max_saturated_peaks = oa.param('General', 'max_saturated_peaks', int, required=True)
-            self.min_num_peaks_for_hit = oa.param('General', 'min_num_peaks_for_hit', int, required=True)
-            self.max_num_peaks_for_hit = oa.param('General', 'max_num_peaks_for_hit', int, required=True)
-            self.saturation_value = oa.param('General', 'saturation_value', int, required=True)
-            self.hit_sending_interval = oa.param('General', 'hit_sending_interval', int, required=True)
+            self.max_saturated_peaks = op.param('General', 'max_saturated_peaks', int, required=True)
+            self.min_num_peaks_for_hit = op.param('General', 'min_num_peaks_for_hit', int, required=True)
+            self.max_num_peaks_for_hit = op.param('General', 'max_num_peaks_for_hit', int, required=True)
+            self.saturation_value = op.param('General', 'saturation_value', int, required=True)
+            self.hit_sending_interval = op.param('General', 'hit_sending_interval', int, required=True)
 
             self.hit_sending_counter = 0
 
@@ -90,7 +90,7 @@ class Onda(MasterWorker):
             sys.stdout.flush()
 
         if self.role == 'master':
-            self.accumulator = galg.PeakAccumulator(oa.param('PeakAccumulator', 'accumulated_shots', int,
+            self.accumulator = galg.PeakAccumulator(op.param('PeakAccumulator', 'accumulated_shots', int,
                                                              required=True))
 
             self.num_events = 0
@@ -98,19 +98,19 @@ class Onda(MasterWorker):
 
             self.time = None
 
-            self.speed_report_interval = oa.param('General', 'speed_report_interval', int, required=True)
-            self.optimized_geometry = oa.param('General', 'geometry_is_optimized', bool, required=True)
+            self.speed_report_interval = op.param('General', 'speed_report_interval', int, required=True)
+            self.optimized_geometry = op.param('General', 'geometry_is_optimized', bool, required=True)
 
-            self.hit_rate_running_w = collections.deque([0.0] * oa.param('General', 'running_average_size', int,
+            self.hit_rate_running_w = collections.deque([0.0] * op.param('General', 'running_average_size', int,
                                                                          required=True))
-            self.saturation_rate_running_w = collections.deque([0.0] * oa.param('General', 'running_average_size', int,
+            self.saturation_rate_running_w = collections.deque([0.0] * op.param('General', 'running_average_size', int,
                                                                                 required=True))
 
             print('Starting the monitor...')
             sys.stdout.flush()
 
-            self.sending_socket = zut.zmq_onda_publisher_socket(oa.param('General', 'publish_ip', str),
-                                                                oa.param('General', 'publish_port', int))
+            self.sending_socket = zut.zmq_onda_publisher_socket(op.param('General', 'publish_ip', str),
+                                                                op.param('General', 'publish_port', int))
 
             self.hit_rate = 0
             self.sat_rate = 0

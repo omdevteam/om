@@ -29,11 +29,10 @@ import socket
 import sys
 
 from hidra_api import dataTransferAPI
-import parallelization_layer.utils.onda_params as oa
-import parallelization_layer.utils.onda_dynamic_import as di
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
 
-
-de_layer = di.import_correct_layer_module('data_extraction_layer', oa.monitor_params)
+de_layer = di.import_correct_layer_module('data_extraction_layer', op.monitor_params)
 open_file = di.import_function_from_layer('open_file', de_layer)
 close_file = di.import_function_from_layer('close_file', de_layer)
 extract = di.import_function_from_layer('extract', de_layer)
@@ -66,7 +65,7 @@ class MasterWorker(object):
 
         self.hostname = socket.gethostname()
         self.sender_hostname = source
-        self.base_port = oa.param('PetraIIIMetadataParallelizationLayer', 'base_port', int, required=True)
+        self.base_port = op.param('PetraIIIMetadataParallelizationLayer', 'base_port', int, required=True)
         self.priority = 1
 
         self.targets = [['', '', 1]]
@@ -91,7 +90,7 @@ class MasterWorker(object):
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
 
         if self.role == 'worker':
-            self.max_shots_to_proc = oa.param('PetraIIIMetadataParallelizationLayer', 'images_per_file_to_process', int,
+            self.max_shots_to_proc = op.param('PetraIIIMetadataParallelizationLayer', 'images_per_file_to_process', int,
                                               required=True)
 
             self._buffer = None
@@ -142,14 +141,14 @@ class MasterWorker(object):
 
             req = None
 
-            evt = {'monitor_params': oa.monitor_params}
+            evt = {'monitor_params': op.monitor_params}
 
             while True:
 
                 [metadata, _] = self.query.get()
                 relative_filepath = os.path.join(metadata['relativePath'], metadata['filename'])
 
-                absolute_filepath = os.path.join(oa.param('PetraIIIMetadataParallelizationLayer', 'data_base_path',
+                absolute_filepath = os.path.join(op.param('PetraIIIMetadataParallelizationLayer', 'data_base_path',
                                                           str, required=True), relative_filepath)
 
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
@@ -222,8 +221,8 @@ class MasterWorker(object):
                     self.reduce(buffer_data)
                     self.num_reduced_events += 1
 
-                except KeyboardInterrupt as excp:
-                    print('Recieved keyboard sigterm...')
+                except KeyboprdInterrupt as excp:
+                    print('Recieved keyboprd sigterm...')
                     print(str(excp))
                     print('shutting down MPI.')
                     self.shutdown()

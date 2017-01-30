@@ -21,10 +21,10 @@ from __future__ import unicode_literals
 
 from configparser import ConfigParser
 
-import parallelization_layer.utils.onda_params as oa
 import cfelpyutils.cfel_optarg as coa
-import parallelization_layer.utils.onda_dynamic_import as di
-import parallelization_layer.utils.onda_optargs as ooa
+import ondautils.onda_param_utils as oa
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_optargs_utils as ooa
 
 
 if __name__ == "__main__":

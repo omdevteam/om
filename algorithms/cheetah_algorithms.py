@@ -21,9 +21,9 @@ from __future__ import unicode_literals
 import numpy
 
 try:
-    from peakfinder8_extension import peakfinder_8
-    from peakfinder9_extension import peakfinder_9
-    from streakfinder_extension import StreakDetectionClass
+    from python_extensions.peakfinder8_extension import peakfinder_8
+    from python_extensions.peakfinder9_extension import peakfinder_9
+    from python_extensions.streakfinder_extension import StreakDetectionClass
 except ImportError:
     raise RuntimeError('Error importing one or more cheetah wrappers, or one of their dependecies')
 import cfelpyutils.cfel_hdf5 as ch5

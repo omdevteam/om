@@ -32,11 +32,11 @@ try:
     from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt5 import Ui_MainWindow
 except ImportError:
     from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt4 import Ui_MainWindow
-import GUI.utils.zmq_gui_utils as zgut
+import ondautils.onda_zmq_gui_utils as zgut
 import cfelpyutils.cfel_optarg as coa
 import cfelpyutils.cfel_hdf5 as ch5
 import cfelpyutils.cfel_geom as cgm
-import peakfinder8_extension import pf8
+import python_extensions.peakfinder8_extension as pf8
 
 
 def check_changed_parameter(param, param_conv_vers, lineedit_element):

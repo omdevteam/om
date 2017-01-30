@@ -21,8 +21,8 @@ from __future__ import unicode_literals
 
 from io import BytesIO
 import cfelpyutils.cfel_fabio as fb
-import parallelization_layer.utils.onda_dynamic_import as di
-import parallelization_layer.utils.onda_params as op
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
 
 
 in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)

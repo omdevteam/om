@@ -27,10 +27,10 @@ import time
 
 import psana
 import cfelpyutils.cfel_psana as cps
-import parallelization_layer.utils.onda_params as oa
-import parallelization_layer.utils.onda_dynamic_import as di
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
 
-de_layer = di.import_correct_layer_module('data_extraction_layer', oa.monitor_params)
+de_layer = di.import_correct_layer_module('data_extraction_layer', op.monitor_params)
 initialize = di.import_function_from_layer('initialize', de_layer)
 extract = di.import_function_from_layer('extract', de_layer)
 
@@ -66,7 +66,7 @@ class MasterWorker(object):
                 self.source += ':idx'
 
         # Set event_rejection threshold
-        rej_thr = oa.param('PsanaParallelizationLayer','event_rejection_threshold', float)
+        rej_thr = op.param('PsanaParallelizationLayer','event_rejection_threshold', float)
         if rej_thr is not None:
             self.event_rejection_threshold = rej_thr
 
@@ -78,7 +78,7 @@ class MasterWorker(object):
 
         if self.role == 'worker':
 
-            self.psana_calib_dir = oa.param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True)
+            self.psana_calib_dir = op.param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True)
 
         # The following is executed only on the master node
         if self.role == 'master':
@@ -142,7 +142,7 @@ class MasterWorker(object):
 
                 psana_events = psana_events_generator()
 
-            event = {'monitor_params': oa.monitor_params}
+            event = {'monitor_params': op.monitor_params}
             event['det'] = {}
             self.initialize_data_extraction(event['det'])
 

@@ -19,8 +19,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import parallelization_layer.utils.onda_dynamic_import as di
-import parallelization_layer.utils.onda_params as op
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
 import psana
 
 

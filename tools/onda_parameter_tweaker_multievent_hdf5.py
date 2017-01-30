@@ -34,7 +34,7 @@ except ImportError:
 import cfelpyutils.cfel_optarg as coa
 import cfelpyutils.cfel_hdf5 as ch5
 import cfelpyutils.cfel_geom as cgm
-import peakfinder8_extension import pf8
+import python_extensions.peakfinder8_extension as pf8
 
 
 def load_file(filename, hdf5_path, index):

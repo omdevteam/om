@@ -26,10 +26,8 @@ def import_correct_layer_module(layer, monitor_params):
     layer_paths = {
         'processing_layer': 'processing_layer.',
         'parallelization_layer': 'parallelization_layer.',
-        'data_extraction_layer':
-            'data_extraction_layer.',
-        'instrument_layer':
-            'data_extraction_layer.instrument_layer.',
+        'data_extraction_layer': 'data_extraction_layer.',
+        'instrument_layer': 'instrument_layer.',
     }
 
     if 'Onda' not in monitor_params:

@@ -34,7 +34,7 @@ try:
     from GUI.UI.onda_mll_viewer_ui_qt5 import Ui_MainWindow
 except ImportError:
     from GUI.UI.onda_mll_viewer_ui_qt4  import Ui_MainWindow
-import GUI.utils.zmq_gui_utils as zgut
+import ondautils.onda_zmq_gui_utils as zgut
 
 
 class MainFrame(QtGui.QMainWindow):

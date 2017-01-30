@@ -36,7 +36,7 @@ try:
 except ImportError:
     from GUI.UI.onda_crystallography_ui_qt4 import Ui_MainWindow
 import cfelpyutils.cfel_geom as cgm
-import GUI.utils.zmq_gui_utils as zgut
+import ondautils.onda_zmq_gui_utils as zgut
 
 
 class MainFrame(QtGui.QMainWindow):

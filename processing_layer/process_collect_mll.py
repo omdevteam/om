@@ -27,13 +27,13 @@ import sys
 import time
 
 import cfelpyutils.cfel_hdf5 as ch5
-import parallelization_layer.utils.onda_dynamic_import as di
-import parallelization_layer.utils.onda_params as oa
-import parallelization_layer.utils.onda_zmq_monitor_utils as zut
-import processing_layer.utils.onda_mll_log_file_utils as mlu
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
+import ondautils.onda_zmq_monitor_utils as zut
+import ondautils.onda_mll_log_file_utils as mlu
 
 
-par_layer = di.import_correct_layer_module('parallelization_layer', oa.monitor_params)
+par_layer = di.import_correct_layer_module('parallelization_layer', op.monitor_params)
 MasterWorker = di.import_class_from_layer('MasterWorker', par_layer)
 
 
@@ -62,29 +62,29 @@ class Onda(MasterWorker):
         if self.role == 'worker':
 
             mask_shape = (
-                oa.param('General', 'mask_size_ss', int, required=True),
-                oa.param('General', 'mask_size_fs', int, required=True)
+                op.param('General', 'mask_size_ss', int, required=True),
+                op.param('General', 'mask_size_fs', int, required=True)
             )
             mask_center = (
-                oa.param('General', 'mask_center_ss', int, required=True),
-                oa.param('General', 'mask_center_fs', int, required=True)
+                op.param('General', 'mask_center_ss', int, required=True),
+                op.param('General', 'mask_center_fs', int, required=True)
             )
             mask_size = (
-                oa.param('General', 'mask_edge_ss', int, required=True) / 2,
-                oa.param('General', 'mask_edge_fs', int, required=True) / 2
+                op.param('General', 'mask_edge_ss', int, required=True) / 2,
+                op.param('General', 'mask_edge_fs', int, required=True) / 2
             )
 
             self.mask = make_mll_mask(mask_center, mask_size, mask_shape)
 
             self.bad_pixel_mask = ch5.load_nparray_from_hdf5_file(
-                oa.param('General', 'bad_pixel_mask_filename', str, required=True),
-                oa.param('General', 'bad_pixel_mask_hdf5_group', str, required=True)
+                op.param('General', 'bad_pixel_mask_filename', str, required=True),
+                op.param('General', 'bad_pixel_mask_hdf5_group', str, required=True)
             )
 
-            if oa.param('General', 'whitefield_subtraction', bool) is True:
+            if op.param('General', 'whitefield_subtraction', bool) is True:
                 self.whitefield = ch5.load_nparray_from_hdf5_file(
-                    oa.param('General', 'whitefield_filename', str, required=True),
-                    oa.param('General', 'whitefield_hdf5_group', str, required=True)
+                    op.param('General', 'whitefield_filename', str, required=True),
+                    op.param('General', 'whitefield_hdf5_group', str, required=True)
                 )
                 self.whitefield[self.whitefield == 0] = 1
             else:
@@ -105,11 +105,11 @@ class Onda(MasterWorker):
 
             self.num_accumulated_shots = 0
 
-            self.speed_report_interval = oa.param('General', 'speed_report_interval', int, required=True)
-            self.num_shots_to_accumulate = oa.param('General', 'accumulated_shots', int, required=True)
+            self.speed_report_interval = op.param('General', 'speed_report_interval', int, required=True)
+            self.num_shots_to_accumulate = op.param('General', 'accumulated_shots', int, required=True)
 
-            self.log_dir = oa.param('General', 'log_base_path', str, required=True)
-            self.data_dir = oa.param('General', 'data_base_path', str, required=True)
+            self.log_dir = op.param('General', 'log_base_path', str, required=True)
+            self.data_dir = op.param('General', 'data_base_path', str, required=True)
 
             self.scan_type = 0
 
@@ -126,8 +126,8 @@ class Onda(MasterWorker):
             print('Starting the monitor...')
             sys.stdout.flush()
 
-            self.sending_socket = zut.zmq_onda_publisher_socket(oa.param('General', 'publish_ip', str),
-                                                                oa.param('General', 'publish_port', int))
+            self.sending_socket = zut.zmq_onda_publisher_socket(op.param('General', 'publish_ip', str),
+                                                                op.param('General', 'publish_port', int))
 
             self.hit_rate = 0
             self.sat_rate = 0

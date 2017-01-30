@@ -25,8 +25,8 @@ import numpy
 import os.path
 import sys
 
-import parallelization_layer.utils.onda_dynamic_import as di
-import parallelization_layer.utils.onda_params as op
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
 
 
 de_layer = di.import_correct_layer_module('data_extraction_layer', op.monitor_params)
