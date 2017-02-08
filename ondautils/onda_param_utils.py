@@ -30,8 +30,8 @@ def param(section, par, type_to_check = None, required = False):
     else:
         ret = monitor_params[section].get(par)
         if ret is None and required is True:
-            raise RuntimeError('Parameter {0} in section {1} was not found, but is required.'.format(
-                section, par))
+            raise RuntimeError('Parameter {0} in section [{1}] was not found, but is required.'.format(
+                par, section))
         if ret is not None and type_to_check is not None:
             if not isinstance(ret, type_to_check):
                 raise RuntimeError('Wrong type for parameter {0}: should be {1}, is {2}.'.format(
