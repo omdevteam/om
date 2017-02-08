@@ -14,6 +14,11 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import numpy
 from scipy import ndimage
 
@@ -279,3 +284,52 @@ class RawDataAveraging:
         if self.num_raw_data == self.accumulated_shots:
             return self.avg_raw_data
         return None
+
+
+########################
+# OPTICAL LASER STATUS #
+########################
+
+class OpticalLaserStatus:
+    """Informs about optical laser status (ON or OFF).
+
+    Provides information about the optical laser status (ON or OFF) by inspecting the event codes for the event.
+    """
+
+    def __init__(self, role, laser_on_event_codes):
+        """Initializes the optical laser status algorithm.
+
+        Args:
+
+            laser on event codes (tuple): tuple containing the event codes (as ints) that correspond to the optical
+            laser being on. The optical laser is assumed to be on only if all event codes in the tuple are present in
+            the list of event codes for a specific event.
+
+            If the list of laser on event codes is set to None, the laser is reported as being always off.
+        """
+
+        self.laser_on_event_codes = laser_on_event_codes
+
+
+    def is_optical_laser_on(self, event_codes):
+        """Reports if optical laser is on.
+
+        Inspects the provided event codes and reports if the optical laser is on.
+
+        Designed to be run on the worker node.
+
+        Args:
+
+            data_as_slab (numpy.ndarray): raw data image to add, in 'slab' format.
+
+        Returns:
+
+            avg_raw_data (tuple or None):  the average image if the number of images specified by the accumulated_shots
+            class attribute has been reached, None otherwise.
+        """
+
+        try:
+            return all(x in event_codes for x in self.laser_on_event_codes)
+        except:
+            return False
+
