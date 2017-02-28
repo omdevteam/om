@@ -14,33 +14,13 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
+from distutils.core import setup, Extension
+from Cython.Build import cythonize
 import numpy
 
-from distutils.core import setup, Extension
-
-cheetah_include_dir = os.environ['ONDA_CHEETAH_INCLUDE_DIR']
-cheetah_library_dir = os.environ['ONDA_CHEETAH_LIBRARY_DIR']
-
-peakfinder8_ext = Extension("peakfinder8_extension", sources=["cython/peakfinder8_extension.cpp"],
-                            include_dirs=[cheetah_include_dir, numpy.get_include()],
-                            library_dirs=[cheetah_library_dir],
-                            libraries=["cheetah"],
+peakfinder8_ext = Extension(name="peakfinder8_extension",
+                            include_dirs=[numpy.get_include()],
+                            sources=["cython/peakfinder8_extension.pyx", "cython/peakfinder8.cpp"],
                             language="c++")
 
-peakfinder9_ext = Extension("peakfinder9_extension", sources=["cython/peakfinder9_extension.cpp"],
-                            include_dirs=[cheetah_include_dir, os.path.join(cheetah_include_dir, 'cheetah_extensions_yaroslav'), numpy.get_include()],
-                            library_dirs=[cheetah_library_dir],
-                            libraries=["cheetah"],
-                            language="c++")
-
-streakfinder_ext = Extension("streakfinder_extension", sources=["cython/streakfinder_extension.cpp"],
-                             include_dirs=[cheetah_include_dir, os.path.join(cheetah_include_dir, 'cheetah_extensions_yaroslav'), numpy.get_include()],
-                             library_dirs=[cheetah_library_dir],
-                             libraries=["cheetah"],
-                             language="c++")
-
-
-setup(name="peakfinder8_extension", ext_modules=[peakfinder8_ext])
-setup(name="peakfinder9_extension", ext_modules=[peakfinder9_ext])
-setup(name="streakfinder_extension", ext_modules=[streakfinder_ext])
+setup(ext_modules=cythonize(peakfinder8_ext))
