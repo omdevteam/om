@@ -6,8 +6,7 @@
         "depends": [
             "/data/Anaconda3/lib/python3.6/site-packages/numpy/core/include/numpy/arrayobject.h",
             "/data/Anaconda3/lib/python3.6/site-packages/numpy/core/include/numpy/ufuncobject.h",
-            "cython/peakfinder8.hh",
-            "cython/peakfinders.h"
+            "cython/peakfinder8.hh"
         ],
         "include_dirs": [
             "/data/Anaconda3/lib/python3.6/site-packages/numpy/core/include"
@@ -471,7 +470,6 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include <stdio.h>
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
-#include "peakfinders.h"
 #include "peakfinder8.hh"
 #ifdef _OPENMP
 #include <omp.h>
@@ -1465,6 +1463,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, cha
 
 /* Module declarations from 'peakfinder8_extension' */
 static PyObject *__pyx_convert_vector_to_py_double(const std::vector<double>  &); /*proto*/
+static PyObject *__pyx_convert_vector_to_py_long(const std::vector<long>  &); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t = { "float32_t", NULL, sizeof(__pyx_t_5numpy_float32_t), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_int8_t = { "int8_t", NULL, sizeof(__pyx_t_5numpy_int8_t), { 0 }, 0, IS_UNSIGNED(__pyx_t_5numpy_int8_t) ? 'U' : 'I', IS_UNSIGNED(__pyx_t_5numpy_int8_t), 0 };
 #define __Pyx_MODULE_NAME "peakfinder8_extension"
@@ -1495,6 +1494,7 @@ static const char __pyx_k_peak_maxi[] = "peak_maxi";
 static const char __pyx_k_peak_npix[] = "peak_npix";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_adc_thresh[] = "adc_thresh";
+static const char __pyx_k_peak_index[] = "peak_index";
 static const char __pyx_k_peak_sigma[] = "peak_sigma";
 static const char __pyx_k_peak_value[] = "peak_value";
 static const char __pyx_k_ImportError[] = "ImportError";
@@ -1507,6 +1507,7 @@ static const char __pyx_k_max_num_peaks[] = "max_num_peaks";
 static const char __pyx_k_peak_list_snr[] = "peak_list_snr";
 static const char __pyx_k_peak_list_maxi[] = "peak_list_maxi";
 static const char __pyx_k_peak_list_npix[] = "peak_list_npix";
+static const char __pyx_k_peak_list_index[] = "peak_list_index";
 static const char __pyx_k_peak_list_sigma[] = "peak_list_sigma";
 static const char __pyx_k_peak_list_value[] = "peak_list_value";
 static const char __pyx_k_hitfinder_min_snr[] = "hitfinder_min_snr";
@@ -1552,7 +1553,9 @@ static PyObject *__pyx_kp_u_ndarray_is_not_Fortran_contiguou;
 static PyObject *__pyx_n_s_num_peaks;
 static PyObject *__pyx_kp_s_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_s_numpy_core_umath_failed_to_impor;
+static PyObject *__pyx_n_s_peak_index;
 static PyObject *__pyx_n_s_peak_list;
+static PyObject *__pyx_n_s_peak_list_index;
 static PyObject *__pyx_n_s_peak_list_maxi;
 static PyObject *__pyx_n_s_peak_list_npix;
 static PyObject *__pyx_n_s_peak_list_sigma;
@@ -1771,12 +1774,14 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
   float __pyx_v_peak_value;
   std::vector<double>  __pyx_v_peak_list_x;
   std::vector<double>  __pyx_v_peak_list_y;
+  std::vector<long>  __pyx_v_peak_list_index;
   std::vector<double>  __pyx_v_peak_list_value;
   std::vector<double>  __pyx_v_peak_list_npix;
   std::vector<double>  __pyx_v_peak_list_maxi;
   std::vector<double>  __pyx_v_peak_list_sigma;
   std::vector<double>  __pyx_v_peak_list_snr;
   long __pyx_v_num_peaks;
+  long __pyx_v_peak_index;
   PyObject *__pyx_v_peak_npix = NULL;
   PyObject *__pyx_v_peak_maxi = NULL;
   PyObject *__pyx_v_peak_sigma = NULL;
@@ -1807,6 +1812,7 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
   PyObject *__pyx_t_16 = NULL;
   PyObject *__pyx_t_17 = NULL;
   PyObject *__pyx_t_18 = NULL;
+  PyObject *__pyx_t_19 = NULL;
   __Pyx_RefNannySetupContext("peakfinder_8", 0);
   __pyx_pybuffer_data.pybuffer.buf = NULL;
   __pyx_pybuffer_data.refcount = 0;
@@ -1925,7 +1931,7 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
  */
   peakfinder8((&__pyx_v_peak_list), (&(*__Pyx_BufPtrCContig2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_data.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_data.diminfo[0].strides, __pyx_t_5, __pyx_pybuffernd_data.diminfo[1].strides))), __pyx_v_mask_char_pointer, (&(*__Pyx_BufPtrCContig2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_pix_r.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_pix_r.diminfo[0].strides, __pyx_t_7, __pyx_pybuffernd_pix_r.diminfo[1].strides))), __pyx_v_asic_nx, __pyx_v_asic_ny, __pyx_v_nasics_x, __pyx_v_nasics_y, __pyx_v_adc_thresh, __pyx_v_hitfinder_min_snr, __pyx_v_hitfinder_min_pix_count, __pyx_v_hitfinder_max_pix_count, __pyx_v_hitfinder_local_bg_radius);
 
-  /* "peakfinder8_extension.pyx":92
+  /* "peakfinder8_extension.pyx":93
  *     cdef vector[double] peak_list_snr
  * 
  *     num_peaks = peak_list.nPeaks             # <<<<<<<<<<<<<<
@@ -1935,7 +1941,7 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
   __pyx_t_8 = __pyx_v_peak_list.nPeaks;
   __pyx_v_num_peaks = __pyx_t_8;
 
-  /* "peakfinder8_extension.pyx":94
+  /* "peakfinder8_extension.pyx":95
  *     num_peaks = peak_list.nPeaks
  * 
  *     if num_peaks > max_num_peaks:             # <<<<<<<<<<<<<<
@@ -1945,7 +1951,7 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
   __pyx_t_9 = ((__pyx_v_num_peaks > __pyx_v_max_num_peaks) != 0);
   if (__pyx_t_9) {
 
-    /* "peakfinder8_extension.pyx":95
+    /* "peakfinder8_extension.pyx":96
  * 
  *     if num_peaks > max_num_peaks:
  *         num_peaks = max_num_peaks             # <<<<<<<<<<<<<<
@@ -1954,7 +1960,7 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
  */
     __pyx_v_num_peaks = __pyx_v_max_num_peaks;
 
-    /* "peakfinder8_extension.pyx":94
+    /* "peakfinder8_extension.pyx":95
  *     num_peaks = peak_list.nPeaks
  * 
  *     if num_peaks > max_num_peaks:             # <<<<<<<<<<<<<<
@@ -1963,7 +1969,7 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
  */
   }
 
-  /* "peakfinder8_extension.pyx":97
+  /* "peakfinder8_extension.pyx":98
  *         num_peaks = max_num_peaks
  * 
  *     for i in range(0, num_peaks):             # <<<<<<<<<<<<<<
@@ -1974,112 +1980,135 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_8; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "peakfinder8_extension.pyx":99
+    /* "peakfinder8_extension.pyx":100
  *     for i in range(0, num_peaks):
  * 
  *         peak_x = peak_list.peak_com_x[i]             # <<<<<<<<<<<<<<
  *         peak_y = peak_list.peak_com_y[i]
- *         peak_value = peak_list.peak_totalintensity[i]
+ *         peak_index = peak_list.peak_com_index[i]
  */
     __pyx_v_peak_x = (__pyx_v_peak_list.peak_com_x[__pyx_v_i]);
 
-    /* "peakfinder8_extension.pyx":100
+    /* "peakfinder8_extension.pyx":101
  * 
  *         peak_x = peak_list.peak_com_x[i]
  *         peak_y = peak_list.peak_com_y[i]             # <<<<<<<<<<<<<<
+ *         peak_index = peak_list.peak_com_index[i]
  *         peak_value = peak_list.peak_totalintensity[i]
- *         peak_npix = peak_list.peak_npix[i]
  */
     __pyx_v_peak_y = (__pyx_v_peak_list.peak_com_y[__pyx_v_i]);
 
-    /* "peakfinder8_extension.pyx":101
+    /* "peakfinder8_extension.pyx":102
  *         peak_x = peak_list.peak_com_x[i]
  *         peak_y = peak_list.peak_com_y[i]
+ *         peak_index = peak_list.peak_com_index[i]             # <<<<<<<<<<<<<<
+ *         peak_value = peak_list.peak_totalintensity[i]
+ *         peak_npix = peak_list.peak_npix[i]
+ */
+    __pyx_v_peak_index = (__pyx_v_peak_list.peak_com_index[__pyx_v_i]);
+
+    /* "peakfinder8_extension.pyx":103
+ *         peak_y = peak_list.peak_com_y[i]
+ *         peak_index = peak_list.peak_com_index[i]
  *         peak_value = peak_list.peak_totalintensity[i]             # <<<<<<<<<<<<<<
  *         peak_npix = peak_list.peak_npix[i]
  *         peak_maxi = peak_list.peak_maxintensity[i]
  */
     __pyx_v_peak_value = (__pyx_v_peak_list.peak_totalintensity[__pyx_v_i]);
 
-    /* "peakfinder8_extension.pyx":102
- *         peak_y = peak_list.peak_com_y[i]
+    /* "peakfinder8_extension.pyx":104
+ *         peak_index = peak_list.peak_com_index[i]
  *         peak_value = peak_list.peak_totalintensity[i]
  *         peak_npix = peak_list.peak_npix[i]             # <<<<<<<<<<<<<<
  *         peak_maxi = peak_list.peak_maxintensity[i]
  *         peak_sigma = peak_list.peak_sigma[i]
  */
-    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_npix[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 102, __pyx_L1_error)
+    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_npix[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 104, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_XDECREF_SET(__pyx_v_peak_npix, __pyx_t_10);
     __pyx_t_10 = 0;
 
-    /* "peakfinder8_extension.pyx":103
+    /* "peakfinder8_extension.pyx":105
  *         peak_value = peak_list.peak_totalintensity[i]
  *         peak_npix = peak_list.peak_npix[i]
  *         peak_maxi = peak_list.peak_maxintensity[i]             # <<<<<<<<<<<<<<
  *         peak_sigma = peak_list.peak_sigma[i]
  *         peak_snr = peak_list.peak_snr[i]
  */
-    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_maxintensity[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 103, __pyx_L1_error)
+    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_maxintensity[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 105, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_XDECREF_SET(__pyx_v_peak_maxi, __pyx_t_10);
     __pyx_t_10 = 0;
 
-    /* "peakfinder8_extension.pyx":104
+    /* "peakfinder8_extension.pyx":106
  *         peak_npix = peak_list.peak_npix[i]
  *         peak_maxi = peak_list.peak_maxintensity[i]
  *         peak_sigma = peak_list.peak_sigma[i]             # <<<<<<<<<<<<<<
  *         peak_snr = peak_list.peak_snr[i]
  * 
  */
-    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_sigma[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 104, __pyx_L1_error)
+    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_sigma[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 106, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_XDECREF_SET(__pyx_v_peak_sigma, __pyx_t_10);
     __pyx_t_10 = 0;
 
-    /* "peakfinder8_extension.pyx":105
+    /* "peakfinder8_extension.pyx":107
  *         peak_maxi = peak_list.peak_maxintensity[i]
  *         peak_sigma = peak_list.peak_sigma[i]
  *         peak_snr = peak_list.peak_snr[i]             # <<<<<<<<<<<<<<
  * 
  *         peak_list_x.push_back(peak_x)
  */
-    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_snr[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_10 = PyFloat_FromDouble((__pyx_v_peak_list.peak_snr[__pyx_v_i])); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 107, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_XDECREF_SET(__pyx_v_peak_snr, __pyx_t_10);
     __pyx_t_10 = 0;
 
-    /* "peakfinder8_extension.pyx":107
+    /* "peakfinder8_extension.pyx":109
  *         peak_snr = peak_list.peak_snr[i]
  * 
  *         peak_list_x.push_back(peak_x)             # <<<<<<<<<<<<<<
  *         peak_list_y.push_back(peak_y)
- *         peak_list_value.push_back(peak_value)
+ *         peak_list_index.push_back(peak_index)
  */
     try {
       __pyx_v_peak_list_x.push_back(__pyx_v_peak_x);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 107, __pyx_L1_error)
+      __PYX_ERR(0, 109, __pyx_L1_error)
     }
 
-    /* "peakfinder8_extension.pyx":108
+    /* "peakfinder8_extension.pyx":110
  * 
  *         peak_list_x.push_back(peak_x)
  *         peak_list_y.push_back(peak_y)             # <<<<<<<<<<<<<<
+ *         peak_list_index.push_back(peak_index)
  *         peak_list_value.push_back(peak_value)
- *         peak_list_npix.push_back(peak_npix)
  */
     try {
       __pyx_v_peak_list_y.push_back(__pyx_v_peak_y);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 108, __pyx_L1_error)
+      __PYX_ERR(0, 110, __pyx_L1_error)
     }
 
-    /* "peakfinder8_extension.pyx":109
+    /* "peakfinder8_extension.pyx":111
  *         peak_list_x.push_back(peak_x)
  *         peak_list_y.push_back(peak_y)
+ *         peak_list_index.push_back(peak_index)             # <<<<<<<<<<<<<<
+ *         peak_list_value.push_back(peak_value)
+ *         peak_list_npix.push_back(peak_npix)
+ */
+    try {
+      __pyx_v_peak_list_index.push_back(__pyx_v_peak_index);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 111, __pyx_L1_error)
+    }
+
+    /* "peakfinder8_extension.pyx":112
+ *         peak_list_y.push_back(peak_y)
+ *         peak_list_index.push_back(peak_index)
  *         peak_list_value.push_back(peak_value)             # <<<<<<<<<<<<<<
  *         peak_list_npix.push_back(peak_npix)
  *         peak_list_maxi.push_back(peak_maxi)
@@ -2088,115 +2117,119 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
       __pyx_v_peak_list_value.push_back(__pyx_v_peak_value);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 109, __pyx_L1_error)
+      __PYX_ERR(0, 112, __pyx_L1_error)
     }
 
-    /* "peakfinder8_extension.pyx":110
- *         peak_list_y.push_back(peak_y)
+    /* "peakfinder8_extension.pyx":113
+ *         peak_list_index.push_back(peak_index)
  *         peak_list_value.push_back(peak_value)
  *         peak_list_npix.push_back(peak_npix)             # <<<<<<<<<<<<<<
  *         peak_list_maxi.push_back(peak_maxi)
  *         peak_list_sigma.push_back(peak_sigma)
  */
-    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_npix); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 110, __pyx_L1_error)
+    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_npix); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 113, __pyx_L1_error)
     try {
       __pyx_v_peak_list_npix.push_back(__pyx_t_11);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 110, __pyx_L1_error)
+      __PYX_ERR(0, 113, __pyx_L1_error)
     }
 
-    /* "peakfinder8_extension.pyx":111
+    /* "peakfinder8_extension.pyx":114
  *         peak_list_value.push_back(peak_value)
  *         peak_list_npix.push_back(peak_npix)
  *         peak_list_maxi.push_back(peak_maxi)             # <<<<<<<<<<<<<<
  *         peak_list_sigma.push_back(peak_sigma)
  *         peak_list_snr.push_back(peak_snr)
  */
-    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_maxi); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 111, __pyx_L1_error)
+    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_maxi); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 114, __pyx_L1_error)
     try {
       __pyx_v_peak_list_maxi.push_back(__pyx_t_11);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 111, __pyx_L1_error)
+      __PYX_ERR(0, 114, __pyx_L1_error)
     }
 
-    /* "peakfinder8_extension.pyx":112
+    /* "peakfinder8_extension.pyx":115
  *         peak_list_npix.push_back(peak_npix)
  *         peak_list_maxi.push_back(peak_maxi)
  *         peak_list_sigma.push_back(peak_sigma)             # <<<<<<<<<<<<<<
  *         peak_list_snr.push_back(peak_snr)
  * 
  */
-    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_sigma); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 112, __pyx_L1_error)
+    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_sigma); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 115, __pyx_L1_error)
     try {
       __pyx_v_peak_list_sigma.push_back(__pyx_t_11);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 112, __pyx_L1_error)
+      __PYX_ERR(0, 115, __pyx_L1_error)
     }
 
-    /* "peakfinder8_extension.pyx":113
+    /* "peakfinder8_extension.pyx":116
  *         peak_list_maxi.push_back(peak_maxi)
  *         peak_list_sigma.push_back(peak_sigma)
  *         peak_list_snr.push_back(peak_snr)             # <<<<<<<<<<<<<<
  * 
  *     freePeakList(peak_list)
  */
-    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_snr); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_v_peak_snr); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 116, __pyx_L1_error)
     try {
       __pyx_v_peak_list_snr.push_back(__pyx_t_11);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 113, __pyx_L1_error)
+      __PYX_ERR(0, 116, __pyx_L1_error)
     }
   }
 
-  /* "peakfinder8_extension.pyx":115
+  /* "peakfinder8_extension.pyx":118
  *         peak_list_snr.push_back(peak_snr)
  * 
  *     freePeakList(peak_list)             # <<<<<<<<<<<<<<
  * 
- *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
+ *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
  */
   freePeakList(__pyx_v_peak_list);
 
-  /* "peakfinder8_extension.pyx":117
+  /* "peakfinder8_extension.pyx":120
  *     freePeakList(peak_list)
  * 
- *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)             # <<<<<<<<<<<<<<
+ *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_10 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_x); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_10 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_x); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_12 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_y); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_12 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_y); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_13 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_value); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_13 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_value); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_13);
-  __pyx_t_14 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_npix); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_14 = __pyx_convert_vector_to_py_long(__pyx_v_peak_list_index); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_14);
-  __pyx_t_15 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_maxi); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_15 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_npix); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_15);
-  __pyx_t_16 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_sigma); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_16 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_maxi); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_16);
-  __pyx_t_17 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_snr); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_17 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_sigma); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_17);
-  __pyx_t_18 = PyTuple_New(7); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_18 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_snr); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_18);
+  __pyx_t_19 = PyTuple_New(8); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_19);
   __Pyx_GIVEREF(__pyx_t_10);
-  PyTuple_SET_ITEM(__pyx_t_18, 0, __pyx_t_10);
+  PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_12);
-  PyTuple_SET_ITEM(__pyx_t_18, 1, __pyx_t_12);
+  PyTuple_SET_ITEM(__pyx_t_19, 1, __pyx_t_12);
   __Pyx_GIVEREF(__pyx_t_13);
-  PyTuple_SET_ITEM(__pyx_t_18, 2, __pyx_t_13);
+  PyTuple_SET_ITEM(__pyx_t_19, 2, __pyx_t_13);
   __Pyx_GIVEREF(__pyx_t_14);
-  PyTuple_SET_ITEM(__pyx_t_18, 3, __pyx_t_14);
+  PyTuple_SET_ITEM(__pyx_t_19, 3, __pyx_t_14);
   __Pyx_GIVEREF(__pyx_t_15);
-  PyTuple_SET_ITEM(__pyx_t_18, 4, __pyx_t_15);
+  PyTuple_SET_ITEM(__pyx_t_19, 4, __pyx_t_15);
   __Pyx_GIVEREF(__pyx_t_16);
-  PyTuple_SET_ITEM(__pyx_t_18, 5, __pyx_t_16);
+  PyTuple_SET_ITEM(__pyx_t_19, 5, __pyx_t_16);
   __Pyx_GIVEREF(__pyx_t_17);
-  PyTuple_SET_ITEM(__pyx_t_18, 6, __pyx_t_17);
+  PyTuple_SET_ITEM(__pyx_t_19, 6, __pyx_t_17);
+  __Pyx_GIVEREF(__pyx_t_18);
+  PyTuple_SET_ITEM(__pyx_t_19, 7, __pyx_t_18);
   __pyx_t_10 = 0;
   __pyx_t_12 = 0;
   __pyx_t_13 = 0;
@@ -2204,8 +2237,9 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
   __pyx_t_15 = 0;
   __pyx_t_16 = 0;
   __pyx_t_17 = 0;
-  __pyx_r = __pyx_t_18;
   __pyx_t_18 = 0;
+  __pyx_r = __pyx_t_19;
+  __pyx_t_19 = 0;
   goto __pyx_L0;
 
   /* "peakfinder8_extension.pyx":61
@@ -2226,6 +2260,7 @@ static PyObject *__pyx_pf_21peakfinder8_extension_peakfinder_8(CYTHON_UNUSED PyO
   __Pyx_XDECREF(__pyx_t_16);
   __Pyx_XDECREF(__pyx_t_17);
   __Pyx_XDECREF(__pyx_t_18);
+  __Pyx_XDECREF(__pyx_t_19);
   { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
     __Pyx_PyThreadState_declare
     __Pyx_PyThreadState_assign
@@ -4825,6 +4860,58 @@ static PyObject *__pyx_convert_vector_to_py_double(const std::vector<double>  &_
   return __pyx_r;
 }
 
+static PyObject *__pyx_convert_vector_to_py_long(const std::vector<long>  &__pyx_v_v) {
+  size_t __pyx_v_i;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  size_t __pyx_t_2;
+  size_t __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_RefNannySetupContext("__pyx_convert_vector_to_py_long", 0);
+
+  /* "vector.to_py":68
+ * @cname("__pyx_convert_vector_to_py_long")
+ * cdef object __pyx_convert_vector_to_py_long(vector[X]& v):
+ *     return [X_to_py(v[i]) for i in range(v.size())]             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 68, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_v_v.size();
+  for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
+    __pyx_v_i = __pyx_t_3;
+    __pyx_t_4 = __Pyx_PyInt_From_long((__pyx_v_v[__pyx_v_i])); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 68, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_4))) __PYX_ERR(2, 68, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  }
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "vector.to_py":67
+ * 
+ * @cname("__pyx_convert_vector_to_py_long")
+ * cdef object __pyx_convert_vector_to_py_long(vector[X]& v):             # <<<<<<<<<<<<<<
+ *     return [X_to_py(v[i]) for i in range(v.size())]
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("vector.to_py.__pyx_convert_vector_to_py_long", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
 static PyMethodDef __pyx_methods[] = {
   {0, 0, 0, 0}
 };
@@ -4876,7 +4963,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_num_peaks, __pyx_k_num_peaks, sizeof(__pyx_k_num_peaks), 0, 0, 1, 1},
   {&__pyx_kp_s_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 0, 1, 0},
   {&__pyx_kp_s_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 0, 1, 0},
+  {&__pyx_n_s_peak_index, __pyx_k_peak_index, sizeof(__pyx_k_peak_index), 0, 0, 1, 1},
   {&__pyx_n_s_peak_list, __pyx_k_peak_list, sizeof(__pyx_k_peak_list), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_index, __pyx_k_peak_list_index, sizeof(__pyx_k_peak_list_index), 0, 0, 1, 1},
   {&__pyx_n_s_peak_list_maxi, __pyx_k_peak_list_maxi, sizeof(__pyx_k_peak_list_maxi), 0, 0, 1, 1},
   {&__pyx_n_s_peak_list_npix, __pyx_k_peak_list_npix, sizeof(__pyx_k_peak_list_npix), 0, 0, 1, 1},
   {&__pyx_n_s_peak_list_sigma, __pyx_k_peak_list_sigma, sizeof(__pyx_k_peak_list_sigma), 0, 0, 1, 1},
@@ -4900,7 +4989,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 98, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 218, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 799, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 989, __pyx_L1_error)
@@ -5017,10 +5106,10 @@ static int __Pyx_InitCachedConstants(void) {
  *                  numpy.ndarray[numpy.float32_t, ndim=2, mode="c"] data,
  *                  numpy.ndarray[numpy.int8_t, ndim=2, mode="c"] mask,
  */
-  __pyx_tuple__10 = PyTuple_Pack(32, __pyx_n_s_max_num_peaks, __pyx_n_s_data, __pyx_n_s_mask, __pyx_n_s_pix_r, __pyx_n_s_asic_nx, __pyx_n_s_asic_ny, __pyx_n_s_nasics_x, __pyx_n_s_nasics_y, __pyx_n_s_adc_thresh, __pyx_n_s_hitfinder_min_snr, __pyx_n_s_hitfinder_min_pix_count, __pyx_n_s_hitfinder_max_pix_count, __pyx_n_s_hitfinder_local_bg_radius, __pyx_n_s_mask_pointer, __pyx_n_s_mask_char_pointer, __pyx_n_s_peak_list, __pyx_n_s_i, __pyx_n_s_peak_x, __pyx_n_s_peak_y, __pyx_n_s_peak_value, __pyx_n_s_peak_list_x, __pyx_n_s_peak_list_y, __pyx_n_s_peak_list_value, __pyx_n_s_peak_list_npix, __pyx_n_s_peak_list_maxi, __pyx_n_s_peak_list_sigma, __pyx_n_s_peak_list_snr, __pyx_n_s_num_peaks, __pyx_n_s_peak_npix, __pyx_n_s_peak_maxi, __pyx_n_s_peak_sigma, __pyx_n_s_peak_snr); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_tuple__10 = PyTuple_Pack(34, __pyx_n_s_max_num_peaks, __pyx_n_s_data, __pyx_n_s_mask, __pyx_n_s_pix_r, __pyx_n_s_asic_nx, __pyx_n_s_asic_ny, __pyx_n_s_nasics_x, __pyx_n_s_nasics_y, __pyx_n_s_adc_thresh, __pyx_n_s_hitfinder_min_snr, __pyx_n_s_hitfinder_min_pix_count, __pyx_n_s_hitfinder_max_pix_count, __pyx_n_s_hitfinder_local_bg_radius, __pyx_n_s_mask_pointer, __pyx_n_s_mask_char_pointer, __pyx_n_s_peak_list, __pyx_n_s_i, __pyx_n_s_peak_x, __pyx_n_s_peak_y, __pyx_n_s_peak_value, __pyx_n_s_peak_list_x, __pyx_n_s_peak_list_y, __pyx_n_s_peak_list_index, __pyx_n_s_peak_list_value, __pyx_n_s_peak_list_npix, __pyx_n_s_peak_list_maxi, __pyx_n_s_peak_list_sigma, __pyx_n_s_peak_list_snr, __pyx_n_s_num_peaks, __pyx_n_s_peak_index, __pyx_n_s_peak_npix, __pyx_n_s_peak_maxi, __pyx_n_s_peak_sigma, __pyx_n_s_peak_snr); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(13, 0, 32, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_data_Work_Software_onda_interna, __pyx_n_s_peakfinder_8, 61, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(13, 0, 34, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_data_Work_Software_onda_interna, __pyx_n_s_peakfinder_8, 61, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5163,8 +5252,8 @@ PyMODINIT_FUNC PyInit_peakfinder8_extension(void)
 
   /* "vector.to_py":67
  * 
- * @cname("__pyx_convert_vector_to_py_double")
- * cdef object __pyx_convert_vector_to_py_double(vector[X]& v):             # <<<<<<<<<<<<<<
+ * @cname("__pyx_convert_vector_to_py_long")
+ * cdef object __pyx_convert_vector_to_py_long(vector[X]& v):             # <<<<<<<<<<<<<<
  *     return [X_to_py(v[i]) for i in range(v.size())]
  * 
  */
