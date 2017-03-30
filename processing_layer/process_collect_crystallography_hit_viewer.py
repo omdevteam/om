@@ -29,7 +29,7 @@ import cfelpyutils.cfel_geom as cgm
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 import ondautils.onda_zmq_monitor_utils as zut
-import algorithms.cheetah_algorithms as calg
+import algorithms.peakfinding_algorithms as calg
 import algorithms.generic_algorithms as galg
 
 
