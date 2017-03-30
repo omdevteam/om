@@ -40,10 +40,11 @@ avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp
 required_data = op.param('Onda', 'required_data', list, required=True)
 for data_source in required_data:
     data_source = data_source.strip()
+
     if data_source not in avail_data_sources:
         raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        locals()[data_source] = getattr(in_layer, data_source)
+        locals()[data_source] = getattr(in_layer, data_source + '_dataext')
     except AttributeError:
         try:
             locals()[data_source] = locals()[data_source + '_dataext']
@@ -99,7 +100,7 @@ def extract(evt, monitor):
 
     # Extract filename and event
     try:
-        monitor.filename, monitor.event = filename_and_event(evt)
+        monitor.filename_and_event = filename_and_event(evt)
 
     except Exception as e:
         print('Error while extracting filename and event:', e)
