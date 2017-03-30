@@ -244,6 +244,7 @@ class MainFrame(QtGui.QMainWindow):
         mask = self.loaded_mask.copy().astype(numpy.float)
         mask = mask * 255./mask.max()
         mask = 255. - mask
+
         self.mask_to_draw[self.pixel_maps[0], self.pixel_maps[1], 1] = mask.ravel()
 
         self.mask_image_view = pg.ImageItem()
