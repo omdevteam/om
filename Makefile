@@ -1,9 +1,10 @@
-.PHONY: build_ext clean 
+.PHONY: default build_ext clean
 
-	@if test -z "$$ONDA_INSTALLATION_DIR"; then echo Please set ONDA_INSTALLATION_DIR correctly; exit 1; fi
-	@python setup.py build_ext
+default: build_ext
+
+build_ext:
+	python setup.py build_ext 
 
 clean:
-	@if [ -d "build" ] ; then rm -r build python_extensions ; fi 
-	@if [ -d "python extensions" ] ; then rm -r python_extensions/*so; fi
-
+	- rm -rf build
+	- find python_extensions/ -name "*.so" -delete
