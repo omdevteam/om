@@ -19,7 +19,7 @@ from libc.stdlib cimport malloc, free
 
 cimport numpy
 
-cdef extern from "peakfinders.h":
+cdef extern from "peakfinder8.hh":
 
     ctypedef struct tPeakList:
         long	    nPeaks
@@ -83,7 +83,12 @@ def peakfinder_8(int max_num_peaks,
     cdef float peak_x, peak_y, peak_value
     cdef vector[double] peak_list_x
     cdef vector[double] peak_list_y
+    cdef vector[long] peak_list_index
     cdef vector[double] peak_list_value
+    cdef vector[double] peak_list_npix
+    cdef vector[double] peak_list_maxi
+    cdef vector[double] peak_list_sigma
+    cdef vector[double] peak_list_snr
 
     num_peaks = peak_list.nPeaks
 
@@ -94,12 +99,22 @@ def peakfinder_8(int max_num_peaks,
 
         peak_x = peak_list.peak_com_x[i]
         peak_y = peak_list.peak_com_y[i]
+        peak_index = peak_list.peak_com_index[i]
         peak_value = peak_list.peak_totalintensity[i]
+        peak_npix = peak_list.peak_npix[i]
+        peak_maxi = peak_list.peak_maxintensity[i]
+        peak_sigma = peak_list.peak_sigma[i]
+        peak_snr = peak_list.peak_snr[i]
 
         peak_list_x.push_back(peak_x)
         peak_list_y.push_back(peak_y)
+        peak_list_index.push_back(peak_index)
         peak_list_value.push_back(peak_value)
+        peak_list_npix.push_back(peak_npix)
+        peak_list_maxi.push_back(peak_maxi)
+        peak_list_sigma.push_back(peak_sigma)
+        peak_list_snr.push_back(peak_snr)
 
     freePeakList(peak_list)
 
-    return (peak_list_x, peak_list_y, peak_list_value)
+    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)

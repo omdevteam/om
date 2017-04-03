@@ -19,43 +19,24 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import sys
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
-from traceback import extract_tb, print_exception
+from configparser import ConfigParser
 
-import parallelization_layer.utils.onda_params as op
-from cfelpyutils.cfel_optarg import parse_parameters
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_class_from_layer
-from parallelization_layer.utils.onda_optargs import parse_onda_cmdline_args
-
-
-def exception_handler(exception_type, exception, traceback):
-
-    if exception_type == SyntaxError:
-        print_exception(exception_type, exception, traceback)
-    else:
-        print('OnDA Error:', exception)
-        print('           ', 'Error Type:', exception_type.__name__)
-        print('           ', 'File:', extract_tb(traceback)[-1][0])
-        print('           ', 'Line:', extract_tb(traceback)[-1][1])
+import cfelpyutils.cfel_optarg as coa
+import ondautils.onda_param_utils as oa
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_optargs_utils as ooa
 
 
 if __name__ == "__main__":
-    args = parse_onda_cmdline_args()
+    args = ooa.parse_onda_cmdline_args()
 
     config = ConfigParser()
     config.read(args.ini)
 
-    if not args.debug:
-        sys.excepthook = exception_handler
+    oa.monitor_params = coa.parse_parameters(config)
 
-    op.monitor_params = parse_parameters(config)
-
-    processing_layer = import_correct_layer_module('processing_layer', op.monitor_params)
-    Onda = import_class_from_layer('Onda', processing_layer)
+    processing_layer = di.import_correct_layer_module('processing_layer', oa.monitor_params)
+    Onda = di.import_class_from_layer('Onda', processing_layer)
 
     mon = Onda(args.source)
     mon.start(verbose=False)

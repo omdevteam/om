@@ -20,22 +20,21 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-
-import sys
-import pyqtgraph as pg
-from collections import deque
-from copy import deepcopy
 try:
     from PyQt5 import QtCore, QtGui
 except ImportError:
     from PyQt4 import QtCore, QtGui
-from signal import signal, SIGINT, SIG_DFL
+import collections
+import copy
+import signal
+import sys
 
-from GUI.utils.zmq_gui_utils import ZMQListener
 try:
     from GUI.UI.onda_mll_frame_viewer_ui_qt5 import Ui_MainWindow
 except ImportError:
     from GUI.UI.onda_mll_frame_viewer_ui_qt4 import Ui_MainWindow
+import ondautils.onda_zmq_gui_utils as zgut
+
 
 class MainFrame(QtGui.QMainWindow):
 
@@ -48,7 +47,7 @@ class MainFrame(QtGui.QMainWindow):
         self.img = None
 
         self.rec_ip, self.rec_port = rec_ip, rec_port
-        self.data = deque(maxlen=20)
+        self.data = collections.deque(maxlen=20)
         self.data_index = -1
 
         self.init_listening_thread()
@@ -89,7 +88,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def init_listening_thread(self):
         self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
+        self.zeromq_listener = zgut.ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.zeromq_listener.start_listening()
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
@@ -103,7 +102,7 @@ class MainFrame(QtGui.QMainWindow):
         self.refresh_timer.start(250)
 
     def data_received(self, datdict):
-        self.data.append(deepcopy(datdict))
+        self.data.append(copy.deepcopy(datdict))
 
     def update_image_plot(self):
         if len(self.data) > 0:
@@ -113,7 +112,7 @@ class MainFrame(QtGui.QMainWindow):
 
 
 def main():
-    signal(SIGINT, SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QtGui.QApplication(sys.argv)
     if len(sys.argv) == 1:
         rec_ip = '127.0.0.1'

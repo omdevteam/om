@@ -19,24 +19,24 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import numpy
-import pyqtgraph as pg
-import sys
-from copy import deepcopy
-from datetime import datetime
 try:
     from PyQt5 import QtCore, QtGui
-except:
+except ImportError:
     from PyQt4 import QtCore, QtGui
-from scipy.constants import h, c, e
-from signal import signal, SIGINT, SIG_DFL
+import copy
+import datetime
+import numpy
+import pyqtgraph as pg
+import scipy.constants
+import signal
+import sys
 
-from cfelpyutils.cfel_geom import coffset_from_geometry_file, res_from_geometry_file, pixel_maps_for_image_view
-from GUI.utils.zmq_gui_utils import ZMQListener
 try:
     from GUI.UI.onda_crystallography_ui_qt5 import Ui_MainWindow
 except ImportError:
     from GUI.UI.onda_crystallography_ui_qt4 import Ui_MainWindow
+import cfelpyutils.cfel_geom as cgm
+import ondautils.onda_zmq_gui_utils as zgut
 
 
 class MainFrame(QtGui.QMainWindow):
@@ -54,10 +54,10 @@ class MainFrame(QtGui.QMainWindow):
         self.geom_filename = geom_filename
         self.local_data = {'peak_list': ([], [], []), 'hit_rate': 0, 'hit_flag': True, 'sat_rate': 0,
                            'time_string': None}
-        self.pixel_maps, self.slab_shape, self.img_shape = pixel_maps_for_image_view(self.geom_filename)
+        self.pixel_maps, self.slab_shape, self.img_shape = cgm.pixel_maps_for_image_view(self.geom_filename)
         self.image_center = (self.img_shape[0]/2, self.img_shape[1]/2)
-        self.coffset = coffset_from_geometry_file(self.geom_filename)
-        self.res = res_from_geometry_file(self.geom_filename)
+        self.coffset = cgm.coffset_from_geometry_file(self.geom_filename)
+        self.res = cgm.res_from_geometry_file(self.geom_filename)
         self.img = numpy.zeros(self.img_shape, dtype=numpy.float32)
         self.sum_img = numpy.zeros(self.img_shape, dtype=numpy.float32)
         self.hitrate_history_size = 10000
@@ -93,7 +93,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def init_listening_thread(self):
         self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondadata')
+        self.zeromq_listener = zgut.ZMQListener(self.rec_ip, self.rec_port, u'ondadata')
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
         self.listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
@@ -161,7 +161,7 @@ class MainFrame(QtGui.QMainWindow):
                 self.ui.hitRatePlotWidget.addItem(vertical_line, ignoreBounds=True)
 
     def data_received(self, datdict):
-        self.data = deepcopy(datdict)
+        self.data = copy.deepcopy(datdict)
 
     def update_resolution_rings(self):
         items = str(self.ui.resolutionRingsLineEdit.text()).split(',')
@@ -196,7 +196,7 @@ class MainFrame(QtGui.QMainWindow):
 
         try:
 
-            lambd = h * c / (e * self.local_data['beam_energy'])
+            lambd = scipy.constants.h * scipy.constants.c / (scipy.constants.e * self.local_data['beam_energy'])
             resolution_rings_in_pix = [1.0]
 
             resolution_rings_in_pix.extend([2.0 * self.res *
@@ -289,7 +289,7 @@ class MainFrame(QtGui.QMainWindow):
         if timestamp is not None:
             self.ui.hitRatePlotWidget.setTitle('Hit Rate vs. Events - {0} - {1}%'.format(timestamp.strftime("%H:%M:%S"),
                                                                                          round(hr*100, 1)))
-            timenow = datetime.now()
+            timenow = datetime.datetime.now()
             self.ui.delayLabel.setText('Estimated delay: {0}.{1} seconds'.format((timenow - timestamp).seconds,
                                        str((timenow - timestamp).microseconds)[0:3]))
         else:
@@ -314,7 +314,7 @@ class MainFrame(QtGui.QMainWindow):
 
 
 def main():
-    signal(SIGINT, SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QtGui.QApplication(sys.argv)
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]

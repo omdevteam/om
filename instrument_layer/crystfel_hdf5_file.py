@@ -13,31 +13,37 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from sys import version_info
+import datetime
 
 
-monitor_params = {}
-
-def param(section, par, type_to_check = None):
-    if version_info[0] == 2 and type_to_check == str:
-        type_to_check = unicode
-    if section not in monitor_params:
-        raise RuntimeError('Section {0} is not in the configuration file'.format(section))
-    else:
-        ret = monitor_params[section].get(par)
-        if ret is not None and type_to_check is not None:
-            if type(ret) != type_to_check:
-                raise RuntimeError('Wrong type for parameter {0}: should be {1}, is {2}.'.format(
-                    par, str(type_to_check).split()[1][1:-2], str(type(ret)).split()[1][1:-2]))
-            else:
-                return ret
-        else:
-            return ret
+slab_shape = (1480, 1552)
 
 
+def num_events_in_file(evt):
+    return 1
+
+
+def timestamp_dataext(evt):
+    return datetime.datetime.strptime(evt['filehandle'][
+                                          '/LCLS/eventTimeString'][()].decode('ascii').strip(), '%a %b  %d %H:%M:%S %Y')
+
+
+def raw_data_dataext(evt):
+    return evt['filehandle']['/data/data'][()]
+
+
+def detector_distance_dataext(evt):
+    return float(evt['filehandle']['/LCLS/detector0-EncoderValue'][()])
+
+
+def beam_energy_dataext(evt):
+    return float(evt['filehandle']['/LCLS/photon_energy_eV'][()])
+
+
+def filename_and_event_dataext(evt):
+    return (evt['filehandle'], 0)

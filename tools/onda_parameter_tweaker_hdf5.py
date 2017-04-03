@@ -37,9 +37,10 @@ import cfelpyutils.cfel_geom as cgm
 import python_extensions.peakfinder8_extension as pf8
 
 
-def load_file(filename, hdf5_path, index):
+def load_file(lines, data_path, index):
+    filename = lines[index].strip()
     hdf5_fh = h5py.File(filename, 'r')
-    data = hdf5_fh[hdf5_path][index, :, :]
+    data = hdf5_fh[data_path].value
     hdf5_fh.close()
     return data, filename
 
@@ -62,7 +63,7 @@ class MainFrame(QtGui.QMainWindow):
     """
 
     def draw_things(self):
-        img, title = load_file(self.filename, self.data_path, self.file_index)
+        img, title = load_file(self.fhlines, self.data_path, self.file_index)
 
         self.img_to_draw[self.pixel_maps[0], self.pixel_maps[1]] = img.ravel()
         self.ui.imageView.setImage(self.img_to_draw.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
@@ -123,7 +124,7 @@ class MainFrame(QtGui.QMainWindow):
 
             self.circle_canvas.setData([])
 
-        self.setWindowTitle('%g - %s' % (self.file_index, title))
+        self.setWindowTitle(str(self.file_index)+' - '+title)
 
     def update_peaks(self):
 
@@ -161,24 +162,22 @@ class MainFrame(QtGui.QMainWindow):
         if something_changed:
             self.draw_things()
 
-    def previous_event(self):
-
+    def previous_file(self):
         if self.file_index == 0:
-            self.file_index = self.num_events-1
+            self.file_index = len(self.fhlines)-1
         else:
             self.file_index -= 1
         self.draw_things()
 
-    def next_event(self):
-
-        if self.file_index == self.num_events-1:
+    def next_file(self):
+        if self.file_index == len(self.fhlines)-1:
             self.file_index = 0
         else:
             self.file_index += 1
         self.draw_things()
 
-    def random_event(self):
-        self.file_index = random.randrange(0, self.num_events)
+    def random_file(self):
+        self.file_index = random.randrange(0, self.num_lines)
         self.draw_things()
 
     def mouse_clicked(self, event):
@@ -198,8 +197,9 @@ class MainFrame(QtGui.QMainWindow):
 
         self.filename = input_file
         self.data_path = data_path
-        fh = h5py.File(self.filename, 'r')
-        self.num_events = fh[self.data_path].shape[0]
+
+        fh = open(input_file, 'r')
+        self.fhlines = fh.readlines()
         fh.close()
 
         self.file_index = 0
@@ -244,6 +244,7 @@ class MainFrame(QtGui.QMainWindow):
         mask = self.loaded_mask.copy().astype(numpy.float)
         mask = mask * 255./mask.max()
         mask = 255. - mask
+
         self.mask_to_draw[self.pixel_maps[0], self.pixel_maps[1], 1] = mask.ravel()
 
         self.mask_image_view = pg.ImageItem()
@@ -319,7 +320,7 @@ class MainFrame(QtGui.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_ui()
-        
+
         self.proxy = pg.SignalProxy(self.ui.imageView.getView().scene().sigMouseClicked,
                                     slot=self.mouse_clicked)
 
@@ -335,9 +336,9 @@ class MainFrame(QtGui.QMainWindow):
         self.ui.imageView.getView().addItem(self.mask_image_view)
         self.ui.imageView.getView().addItem(self.peak_canvas)
         self.ui.imageView.getView().addItem(self.circle_canvas)
-        self.ui.forwardButton.clicked.connect(self.next_event)
-        self.ui.backButton.clicked.connect(self.previous_event)
-        self.ui.randomButton.clicked.connect(self.random_event)
+        self.ui.forwardButton.clicked.connect(self.next_file)
+        self.ui.backButton.clicked.connect(self.previous_file)
+        self.ui.randomButton.clicked.connect(self.random_file)
 
         self.ui.verticalLayout1.insertLayout(0, self.hlayout6)
         self.ui.verticalLayout1.insertLayout(0, self.hlayout5)
@@ -358,7 +359,7 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     config = ConfigParser()
     if len(sys.argv) != 3:
-        print('Usage: onda_parameter_tweaker_multievent_hdf5.py <hdf5_file_name> <hdf5_data_path>')
+        print('Usage: onda_parameter_tweaker_multievent_hdf5.py <file_list> <hdf5_data_path>')
         sys.exit()
 
     input_file = sys.argv[1]

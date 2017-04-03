@@ -19,6 +19,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from builtins import str
+
 from datetime import datetime
 from mpi4py import MPI
 from numpy import ceil
@@ -27,8 +29,8 @@ from time import strptime, mktime
 
 import psana
 from cfelpyutils.cfel_psana import dirname_from_source_runs
-from parallelization_layer.utils.onda_params import monitor_params, param
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
+from ondautils.onda_param_utils import monitor_params, param
+from ondautils.onda_dynamic_import_utils import import_correct_layer_module, import_function_from_layer
 
 de_layer = import_correct_layer_module('data_extraction_layer', monitor_params)
 initialize = import_function_from_layer('initialize', de_layer)
@@ -78,7 +80,7 @@ class MasterWorker(object):
 
         if self.role == 'worker':
 
-            self.psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str)
+            self.psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True )
 
         # The following is executed only on the master node
         if self.role == 'master':

@@ -14,30 +14,29 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
+
+import collections
+import copy
 import numpy
-from collections import deque
-from copy import deepcopy
+import signal
+import sys
+
+from configparser import ConfigParser
 try:
     from PyQt5 import QtCore, QtGui
 except ImportError:
     from PyQt4 import QtCore, QtGui
 import pyqtgraph as pg
-from signal import signal, SIGINT, SIG_DFL
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
 
-from cfelpyutils.cfel_optarg import parse_parameters
-from cfelpyutils.cfel_hdf5 import load_nparray_from_hdf5_file
-from cfelpyutils.cfel_geom import pixel_maps_from_geometry_file, pixel_maps_for_image_view
 try:
     from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt5 import Ui_MainWindow
 except ImportError:
     from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt4 import Ui_MainWindow
-from GUI.utils.zmq_gui_utils import ZMQListener
-from peakfinder8_extension import peakfinder_8
+import ondautils.onda_zmq_gui_utils as zgut
+import cfelpyutils.cfel_optarg as coa
+import cfelpyutils.cfel_hdf5 as ch5
+import cfelpyutils.cfel_geom as cgm
+import python_extensions.peakfinder8_extension as pf8
 
 
 def check_changed_parameter(param, param_conv_vers, lineedit_element):
@@ -68,7 +67,7 @@ class MainFrame(QtGui.QMainWindow):
         p8pd_params = monitor_params['Peakfinder8PeakDetection']
         
         self.rec_ip, self.rec_port = rec_ip, rec_port
-        self.data = deque(maxlen=20)
+        self.data = collections.deque(maxlen=20)
         self.data_index = 0
         self.image_update_us = 250
 
@@ -77,10 +76,10 @@ class MainFrame(QtGui.QMainWindow):
         self.ring_pen = pg.mkPen('r', width=2)
         self.circle_pen = pg.mkPen('b', width=2)
 
-        pix_maps = pixel_maps_from_geometry_file(monitor_params['General']['geometry_file'])
+        pix_maps = cgm.pixel_maps_from_geometry_file(monitor_params['General']['geometry_file'])
         self.pixelmap_radius = pix_maps[2]
 
-        self.pixel_maps, self.slab_shape, self.img_shape = pixel_maps_for_image_view(gen_params['geometry_file'])
+        self.pixel_maps, self.slab_shape, self.img_shape = cgm.pixel_maps_for_image_view(gen_params['geometry_file'])
         self.img_to_draw = numpy.zeros(self.img_shape, dtype=numpy.float32)
         self.mask_to_draw = numpy.zeros(self.img_shape+(3,), dtype=numpy.int16)
         self.max_num_peaks = int(p8pd_params['max_num_peaks'])
@@ -97,7 +96,7 @@ class MainFrame(QtGui.QMainWindow):
         self.mask_hdf5_path = p8pd_params['mask_hdf5_path']
         self.min_res = int(p8pd_params['min_res'])
         self.max_res = int(p8pd_params['max_res'])
-        self.loaded_mask = load_nparray_from_hdf5_file(self.mask_filename, self.mask_hdf5_path)
+        self.loaded_mask = ch5.load_nparray_from_hdf5_file(self.mask_filename, self.mask_hdf5_path)
         self.min_num_peaks_for_hit = int(monitor_params['General']['min_num_peaks_for_hit'])
         self.max_num_peaks_for_hit = int(monitor_params['General']['max_num_peaks_for_hit'])
 
@@ -226,7 +225,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def init_listening_thread(self):
         self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
+        self.zeromq_listener = zgut.ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.zeromq_listener.start_listening()
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
@@ -241,7 +240,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def data_received(self, datdict):
         if self.refresh_timer.isActive():
-            self.data.append(deepcopy(datdict))
+            self.data.append(copy.deepcopy(datdict))
 
     def draw_things(self):
         if len(self.data) == 0:
@@ -254,7 +253,7 @@ class MainFrame(QtGui.QMainWindow):
         self.mask_image_view.setImage(numpy.transpose(self.mask_to_draw, axes=(1, 0, 2)), autoLevels=False,
                                       autoRange=False, opacity=0.1)
 
-        peak_list = peakfinder_8(
+        peak_list = pf8.peakfinder_8(
             self.max_num_peaks,
             img.astype(numpy.float32),
             self.mask.astype(numpy.int8),
@@ -388,7 +387,7 @@ class MainFrame(QtGui.QMainWindow):
 def main():
     config = ConfigParser()
 
-    signal(SIGINT, SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QtGui.QApplication(sys.argv)
     if len(sys.argv) == 1:
         rec_ip = '127.0.0.1'
@@ -401,7 +400,7 @@ def main():
         sys.exit()
 
     config.read("monitor.ini")
-    monitor_params = parse_parameters(config)
+    monitor_params = coa.parse_parameters(config)
 
     _ = MainFrame(monitor_params, rec_ip, rec_port)
     sys.exit(app.exec_())

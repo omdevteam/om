@@ -20,21 +20,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import sys
-import pyqtgraph as pg
-from copy import deepcopy
-from datetime import datetime
 try:
     from PyQt5 import QtCore, QtGui
 except ImportError:
     from PyQt4 import QtCore, QtGui
-from signal import signal, SIGINT, SIG_DFL
+import copy
+import datetime
+import pyqtgraph as pg
+import signal
+import sys
 
-from GUI.utils.zmq_gui_utils import ZMQListener
 try:
     from GUI.UI.onda_mll_viewer_ui_qt5 import Ui_MainWindow
-except:
-    from GUI.UI.onda_mll_viewer_ui_qt4 import Ui_MainWindow
+except ImportError:
+    from GUI.UI.onda_mll_viewer_ui_qt4  import Ui_MainWindow
+import ondautils.onda_zmq_gui_utils as zgut
+
 
 class MainFrame(QtGui.QMainWindow):
 
@@ -73,7 +74,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def init_listening_thread(self, rec_ip, rec_port):
         self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = ZMQListener(rec_ip, rec_port, u'ondadata')
+        self.zeromq_listener = zgut.ZMQListener(rec_ip, rec_port, u'ondadata')
         self.zeromq_listener.zmqmessage.connect(self.data_received)
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
         self.listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
@@ -115,7 +116,7 @@ class MainFrame(QtGui.QMainWindow):
             )
 
     def data_received(self, datdict):
-        self.data = deepcopy(datdict)
+        self.data = copy.deepcopy(datdict)
 
     def rescale_image(self):
         self.ui.imageView.setLevels(self.img.min(), self.img.max())
@@ -139,7 +140,7 @@ class MainFrame(QtGui.QMainWindow):
 
         timestamp = self.local_data['timestamp']
         if timestamp is not None:
-            timenow = datetime.now()
+            timenow = datetime.datetime.now()
             self.ui.delayLabel.setText('Estimated delay: ' + str((timenow - timestamp).seconds) + '.' +
                                        str((timenow - timestamp).microseconds)[0:3] + ' seconds')
         else:
@@ -221,7 +222,7 @@ class MainFrame(QtGui.QMainWindow):
 
 
 def main():
-    signal(SIGINT, SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     app = QtGui.QApplication(sys.argv)
 
     if len(sys.argv) == 1:

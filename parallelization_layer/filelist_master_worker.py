@@ -19,21 +19,21 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import datetime
 from mpi4py import MPI
-from numpy import ceil
-from os.path import getctime
-from sys import exit, stdout
+import datetime
+import numpy
+import os.path
+import sys
 
-from parallelization_layer.utils.onda_params import monitor_params, param
-from parallelization_layer.utils.onda_dynamic_import import import_correct_layer_module, import_function_from_layer
+import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_param_utils as op
 
 
-de_layer = import_correct_layer_module('data_extraction_layer', monitor_params)
-open_file = import_function_from_layer('open_file', de_layer)
-close_file = import_function_from_layer('close_file', de_layer)
-extract = import_function_from_layer('extract', de_layer)
-num_events = import_function_from_layer('num_events', de_layer)
+de_layer = di.import_correct_layer_module('data_extraction_layer', op.monitor_params)
+open_file = di.import_function_from_layer('open_file', de_layer)
+close_file = di.import_function_from_layer('close_file', de_layer)
+extract = di.import_function_from_layer('extract', de_layer)
+num_events = di.import_function_from_layer('num_events', de_layer)
 
 
 class MasterWorker(object):
@@ -67,7 +67,8 @@ class MasterWorker(object):
             self.num_reduced_events = 0
 
         if self.role == 'worker':
-            self.shots_to_proc = param('FilelistParallelizationLayer', 'images_per_file_to_process')
+            self.shots_to_proc = op.param('FilelistParallelizationLayer', 'images_per_file_to_process', int,
+                                          required= True)
 
             self._buffer = None
 
@@ -77,7 +78,7 @@ class MasterWorker(object):
         """Shuts down of the data processor.
         """
         print('Shutting down:', msg)
-        stdout.flush()
+        sys.stdout.flush()
 
         if self.role == 'worker':
             self._buffer = MPI.COMM_WORLD.send(dest=0, tag=self.DEADTAG)
@@ -110,9 +111,9 @@ class MasterWorker(object):
 
             req = None
 
-            evt = {'monitor_params': monitor_params}
+            evt = {'monitor_params': op.monitor_params}
 
-            mylength = int(ceil(len(self.filelist) / float(self.mpi_size - 1)))
+            mylength = int(numpy.ceil(len(self.filelist) / float(self.mpi_size - 1)))
             myfiles = self.filelist[(self.mpi_rank - 1) * mylength:self.mpi_rank * mylength]
 
             for filepath in myfiles:
@@ -124,10 +125,10 @@ class MasterWorker(object):
 
                 try:
                     evt['filehandle'] = open_file(filepath.strip())
-                    evt['filectime'] = datetime.fromtimestamp(getctime(filepath.strip()))
+                    evt['filectime'] = datetime.datetime.fromtimestamp(os.path.getctime(filepath.strip()))
                     evt['num_events'] = num_events(evt)
-                except RuntimeError:
-                    print('Cannot read file', filepath)
+                except (IOError, OSError):
+                    print('Cannot read file: {0}'.format(filepath.strip()))
                     continue
 
                 if int(evt['num_events']) < self.shots_to_proc:
@@ -164,7 +165,7 @@ class MasterWorker(object):
 
             if verbose:
                 print('Starting master.')
-                stdout.flush()
+                sys.stdout.flush()
 
             self.num_reduced_events = 0
 
@@ -180,7 +181,7 @@ class MasterWorker(object):
                         if self.num_nomore == self.mpi_size - 1:
                             print('All workers have run out of events.')
                             print('Shutting down.')
-                            stdout.flush()
+                            sys.stdout.flush()
                             self.end_processing()
                             MPI.Finalize()
                             exit(0)
@@ -195,12 +196,12 @@ class MasterWorker(object):
                     print('shutting down MPI.')
                     self.shutdown()
                     print('---> execution finished.')
-                    stdout.flush()
+                    sys.stdout.flush()
                     exit(0)
 
         return
 
     def end_processing(self):
         print('Processing finished. Processed', self.num_reduced_events, 'events in total.')
-        stdout.flush()
+        sys.stdout.flush()
         pass

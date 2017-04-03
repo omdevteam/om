@@ -24,22 +24,26 @@ import datetime
 slab_shape = (1480, 1552)
 
 
-def timestamp(evt):
-    return datetime.datetime.strptime(evt['filehandle'][
-                                          '/LCLS/eventTimeString'][()].decode('ascii').strip(), '%a %b  %d %H:%M:%S %Y')
+def num_events_in_file(evt):
+    return evt['filehandle']['/entry_1/instrument_1/detector_1/detector_corrected/data'].shape[0]
 
 
-def raw_data(evt):
-    return evt['filehandle']['/data/data'][()]
+def timestamp_dataext(evt):
+    return datetime.datetime.strptime(evt['filehandle']['/LCLS/eventTimeString'][evt['shot_offset']].decode(
+        'ascii').strip(), '%a %b  %d %H:%M:%S %Y')
 
 
-def detector_distance(evt):
-    return float(evt['filehandle']['/LCLS/detector0-EncoderValue'][()])
+def raw_data_dataext(evt):
+    return evt['filehandle']['/entry_1/instrument_1/detector_1/detector_corrected/data'][evt['shot_offset'], :, :]
 
 
-def beam_energy(evt):
-    return float(evt['filehandle']['/LCLS/photon_energy_eV'][()])
+def detector_distance_dataext(evt):
+    return float(evt['filehandle']['LCLS/detector_1/EncoderValue'][evt['shot_offset']])
 
 
-def filename_and_event(evt):
-    return (evt['filehandle'], 0)
+def beam_energy_dataext(evt):
+    return float(evt['filehandle']['/LCLS/photon_energy_eV'][evt['shot_offset']])
+
+
+def filename_and_event_dataext(evt):
+    return (evt['filename'], evt['filehandle']['/entry_1/instrument_1/detector_1/detector_corrected/data'].shape[0]+evt['shot_offset'])
