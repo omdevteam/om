@@ -84,6 +84,8 @@ def load_crystfel_geometry(filename):
 
         if v == 'ss' or v == 'fs' or v == '%':
             dim[dim_index] = v
+        elif v.isdigit():
+            dim[dim_index] = int(v)
         else:
             raise RuntimeError('Invalid dim entry: {}.'.format(v))
 
