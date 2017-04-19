@@ -46,7 +46,7 @@ for data_source in required_data:
         locals()[data_source] = getattr(in_layer, data_source)
     except AttributeError:
         try:
-            locals()[data_source] = locals()[data_source + '_dataext']
+            locals()[data_source] = locals()[data_source]]
         except KeyError:
             raise RuntimeError('Undefined data type: {0}'.format(data_source))
 

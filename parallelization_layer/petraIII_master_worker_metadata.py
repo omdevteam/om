@@ -28,7 +28,7 @@ import signal
 import socket
 import sys
 
-from hidra_api import dataTransferAPI
+from hidra_api import Transfer
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
@@ -84,7 +84,7 @@ class MasterWorker(object):
             print('Announcing OnDA to sender.')
             sys.stdout.flush()
 
-            self.query = dataTransferAPI.dataTransfer('queryMetadata', self.sender_hostname, useLog=False)
+            self.query = Transfer('QUERY_METADATA', self.sender_hostname, use_log=False)
             self.query.initiate(self.targets[1:])
 
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
@@ -95,7 +95,7 @@ class MasterWorker(object):
 
             self._buffer = None
 
-            self.query = dataTransferAPI.dataTransfer('queryNext', self.sender_hostname, useLog=None)
+            self.query = Transfer('QUERY_METADATA', self.sender_hostname, use_log=None)
             self.worker_port = self.targets[self.mpi_rank][1]
 
             print('Worker', self.mpi_rank, 'listening at port', self.worker_port)
@@ -146,7 +146,7 @@ class MasterWorker(object):
             while True:
 
                 [metadata, _] = self.query.get()
-                relative_filepath = os.path.join(metadata['relativePath'], metadata['filename'])
+                relative_filepath = os.path.join(metadata['relative_path'], metadata['filename'])
 
                 absolute_filepath = os.path.join(op.param('PetraIIIMetadataParallelizationLayer', 'data_base_path',
                                                           str, required=True), relative_filepath)
@@ -158,7 +158,7 @@ class MasterWorker(object):
                 evt['filename'] = absolute_filepath
                 try:
                     evt['filehandle'] = open_file(absolute_filepath)
-                    evt['filectime'] = datetime.datetime.fromtimestamp(metadata['fileCreateTime'])
+                    evt['filectime'] = datetime.datetime.fromtimestamp(metadata['file_create_time'])
                     evt['num_events'] = num_events(evt)
                 except (IOError, OSError):
                     print('Cannot read file: {0}'.format(absolute_filepath))
@@ -236,3 +236,4 @@ class MasterWorker(object):
         print('Processing finished. Processed', self.num_reduced_events, 'events in total.')
         sys.stdout.flush()
         pass
+

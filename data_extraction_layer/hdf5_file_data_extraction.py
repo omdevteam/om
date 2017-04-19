@@ -44,10 +44,10 @@ for data_source in required_data:
     if data_source not in avail_data_sources:
         raise RuntimeError('Unknown data type: {0}'.format(data_source))
     try:
-        locals()[data_source] = getattr(in_layer, data_source + '_dataext')
+        locals()[data_source] = getattr(in_layer, data_source)
     except AttributeError:
         try:
-            locals()[data_source] = locals()[data_source + '_dataext']
+            locals()[data_source] = locals()[data_source]
         except KeyError:
             raise RuntimeError('Undefined data type: {0}'.format(data_source))
 
