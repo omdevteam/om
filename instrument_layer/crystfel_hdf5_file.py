@@ -28,22 +28,22 @@ def num_events_in_file(evt):
     return 1
 
 
-def timestamp_dataext(evt):
+def timestamp(evt):
     return datetime.datetime.strptime(evt['filehandle'][
                                           '/LCLS/eventTimeString'][()].decode('ascii').strip(), '%a %b  %d %H:%M:%S %Y')
 
 
-def raw_data_dataext(evt):
+def raw_data(evt):
     return evt['filehandle']['/data/data'][()]
 
 
-def detector_distance_dataext(evt):
+def detector_distance(evt):
     return float(evt['filehandle']['/LCLS/detector0-EncoderValue'][()])
 
 
-def beam_energy_dataext(evt):
+def beam_energy(evt):
     return float(evt['filehandle']['/LCLS/photon_energy_eV'][()])
 
 
-def filename_and_event_dataext(evt):
+def filename_and_event(evt):
     return (evt['filehandle'], 0)
