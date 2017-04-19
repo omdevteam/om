@@ -3,7 +3,7 @@
 default: build_ext
 
 build_ext:
-	python setup.py build_ext 
+	CC=mpicc CXX=mpic++ python setup.py build_ext 
 
 clean:
 	- rm -rf build
