@@ -20,7 +20,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy
-from scipy import ndimage
+import scipy
 
 import cfelpyutils.cfel_hdf5 as ch5
 
@@ -94,143 +94,6 @@ class DarkCalCorrection:
         return (data_as_slab * self.mask - self.darkcal) * self.gain_map
 
 
-#########################
-# SIMPLE PEAK DETECTION #
-#########################
-
-class SimplePeakDetection:
-    """Peak finding using a simple threshold-based algorithm.
-
-    Implements a simple threshold-based peak finding algorithm. The algorithm finds peaks by thresholding the input
-    data, identifying 'islands' of pixels with values above the threshold, and using as peak location the center of
-    mass of the 'islands' (computed with a window of predefined size).
-    """
-
-    def __init__(self, threshold, window_size):
-        """Initializes the peakfinder.
-
-        Args:
-
-            threshold (float): threshold for peak detection.
-
-            window_size (int): edge size of the window used to determine the center of mass of each peak (the window
-            is centered around the pixel with highest intensity).
-        """
-
-        self.threshold = threshold
-        self.peak_window_size = window_size
-        self.neighborhood = ndimage.morphology.generate_binary_structure(2, 5)
-
-    def find_peaks(self, raw_data):
-        """Finds peaks.
-
-        Performs the peak finding.
-
-        Designed to be run on worker nodes.
-
-        Args:
-
-            raw_data (numpy.ndarray): the data on which peak finding is performed, in 'slab' format.
-
-        Returns:
-
-            peak_list (tuple):  the peak list, as a tuple of three
-
-            lists: ([peak_x], [peak_y], [peak_value]). The first two contain the coordinates of the peaks in the
-            input data array, the third the intensity of the peaks. All are lists of float numbers.
-        """
-
-        local_max = ndimage.filters.maximum_filter(
-            raw_data, footprint=self.neighborhood)
-        data_as_slab_peak = (raw_data == local_max)
-        data_as_slab_thresh = (raw_data > self.threshold)
-        data_as_slab_peak[data_as_slab_thresh == 0] = 0
-        peak_list = numpy.where(data_as_slab_peak == 1)
-        peak_values = raw_data[peak_list]
-
-        if len(peak_list[0]) > 10000:
-            print('Silly number of peaks {0}'.format(len(peak_list[0])))
-            peak_list = ([], [], [])
-        elif len(peak_list[0]) != 0:
-            subpixel_x = []
-            subpixel_y = []
-            for x_peak, y_peak in zip(peak_list[0], peak_list[1]):
-                peak_window = raw_data[x_peak - self.peak_window_size:x_peak + self.peak_window_size + 1,
-                                       y_peak - self.peak_window_size:y_peak + self.peak_window_size + 1]
-                if peak_window.shape[0] != 0 and peak_window.shape[1] != 0:
-                    offset = scipy.ndimage.measurements.center_of_mass(peak_window)
-                    offset_x = offset[0] - self.peak_window_size
-                    offset_y = offset[1] - self.peak_window_size
-                    subpixel_x.append(x_peak + offset_x)
-                    subpixel_y.append(y_peak + offset_y)
-                else:
-                    subpixel_x.append(x_peak)
-                    subpixel_y.append(y_peak)
-
-            peak_list = (subpixel_x, subpixel_y, peak_values)
-        else:
-            peak_list = ([], [], [])
-
-        return peak_list
-
-
-####################
-# PEAK ACCUMULATOR #
-####################
-
-class PeakAccumulator:
-    """Accumulates found peaks
-
-    Accumulates peaks provided by the user until a predefinel number of additions have been reached, then it returns the
-    full list of accumulated peaks.
-    """
-
-    def __init__(self, accumulated_shots):
-        """Initializes the accumulator
-
-        Args:
-
-                accumulated_shots(int): the number of peak additions to accumulate before returning the peak list
-        """
-
-        self.accumulated_shots = accumulated_shots
-        self.accumulator = ([], [], [])
-        self.events_in_accumulator = 0
-
-    def accumulate_peaks(self, peak_list):
-        """Accumulates peaks.
-
-        Accumulates peaks. The peaks are added to an internal list of peaks. When peaks have been added to the list for
-        a numer of times specified by the accumulated_shots algorithm parameter, the function returns the accumulated
-        peak list to the user and empties it.
-
-        Designed to be run on the master node.
-
-        Args:
-
-            peak_list (tuple): list of peaks to be added to the internal list. The peak list should be a tuple of
-            three lists, containing, in order, the fs coordinate of the peaks, their respective ss coordinate , and
-            their intensity.
-
-        Returns:
-
-            peak_list (tuple or None):  the accumulated peak_list if peaks have been added to the list for the number
-            of times specified by the accumulated_shots parameter, None otherwise. If returned, the peak list is a tuple
-            of three lists, containing, in order, the fs coordinate of the peaks, their respective ss coordinate , and
-            their intensity.
-        """
-
-        self.accumulator[0].extend(peak_list[0])
-        self.accumulator[1].extend(peak_list[1])
-        self.accumulator[2].extend(peak_list[2])
-        self.events_in_accumulator += 1
-
-        if self.events_in_accumulator == self.accumulated_shots:
-            peak_list_to_return = self.accumulator
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
-            return peak_list_to_return
-        return None
 
 
 ######################
@@ -296,7 +159,7 @@ class OpticalLaserStatus:
     Provides information about the optical laser status (ON or OFF) by inspecting the event codes for the event.
     """
 
-    def __init__(self, role, laser_on_event_codes):
+    def __init__(self, laser_on_event_codes):
         """Initializes the optical laser status algorithm.
 
         Args:
@@ -332,4 +195,250 @@ class OpticalLaserStatus:
             return all(x in event_codes for x in self.laser_on_event_codes)
         except:
             return False
+
+
+#######################
+# MINIMA IN WAVEFORMS #
+#######################
+
+class FindMinimaInWaveforms:
+    """Finds minima in waveforms.
+
+    Finds minima (negative peaks) in 1d waveform data.
+    """
+
+    def __init__(self, threshold, estimated_noise_width, minimum_peak_width, background_subtraction=False):
+        """Initializes the minima finding algorithm.
+
+        Args:
+
+            threshold (float): a negative number. The minimum value for a detected minimum to be
+            reported. Only minima with a value lower (more negative) than this parameter are
+            considered by the algorithm.
+
+            estimated_noise_width (int): the size in pixel of a smoothing function that is applied
+            to the data before the minima detection begins.
+
+            minimum_peak_width (int): minimum width of a peak in number of data points. All
+            minima found within the size specified by this parameter will be cosidered as belonging
+            to the same peak. Only the minimum with the lowest value will be reported: all the
+            other will be ignored.
+
+            background_subtraction (boolean): If true, subtracts the low pass filtered signal (filtering with
+            running median filter) from the signal as the first step in the algorithm
+        """
+
+        # Initialized on master
+        self.threshold = threshold
+        self.estimated_noise_width = estimated_noise_width
+        self.minimum_peak_width = minimum_peak_width
+        self.background_subtraction = background_subtraction
+        self.background_filterSize = 200
+        self.background_filterStep = 20
+
+    def find_minima(self, waveform):
+        """Finds minima in the waveform
+
+        Designed to be run on worker nodes.
+
+        Args:
+
+            waveform  (numpy.ndarray): 1d array containing the waveform data
+
+        Returns:
+
+            peak_list (list of int): list containing the position of the
+            minima in the waveform data array
+        """
+
+        if self.background_subtraction == True:
+            s = waveform - median_filter_course(waveform, self.background_filterSize, self.background_filterStep)
+        else:
+            s = waveform.copy()
+
+        window = numpy.ones(self.estimated_noise_width, dtype=numpy.float) / float(self.estimated_noise_width)
+        s = numpy.convolve(s.astype(numpy.float), window, mode='same')
+
+        ds = numpy.gradient(s)
+        dds = numpy.gradient(ds)
+
+        peak_locations = numpy.where((numpy.diff(numpy.sign(ds)) > 0) * (dds[:-1] > 0))[0]
+
+        offset = numpy.mean(s)
+        t = numpy.where(s[peak_locations] - offset < -abs(self.threshold))
+        peak_locations = peak_locations[t]
+
+        # reject peaks that are too close together
+        # when two peaks are too close together
+        # keep the more negative peaks
+        peak_list = list(peak_locations)
+
+        while True:
+            peaks_temp = []
+            any_too_close = False
+
+            for i in range(len(peak_list)):
+                # if peak i is too close to peaks i-1 or i+1
+                # then add peak i if it has the smallest value
+                p0 = peak_list[i]
+                v0 = s[p0]
+
+                n = []
+                if i > 0 and (p0 - peak_list[i - 1]) < self.minimum_peak_width:
+                    n.append(s[peak_list[i - 1]])
+
+                if i < len(peak_list) - 1 and (peak_list[i + 1] - p0) < self.minimum_peak_width:
+                    n.append(s[peak_list[i + 1]])
+
+                if numpy.all([v0 < v for v in n]):
+                    peaks_temp.append(p0)
+                else:
+                    any_too_close = True
+
+            peak_list = list(peaks_temp)
+            if any_too_close is False:
+                break
+
+        return peak_list
+
+
+def median_filter_course(f, window_size, steps):
+    import scipy.ndimage
+    i = np.arange(f.shape[0])
+    g = f[::steps]
+    j = i[::steps]
+    g = scipy.ndimage.median_filter(g, window_size)
+    h = np.interp(i, j, g)
+    return h
+
+
+################################################
+# MINIMA IN WAVEFORMS, WITH POLYNOMIAL FITTING #
+################################################
+
+class FindMinimaInWaveformsPolyFit:
+    """Finds minima in waveforms and fits a polynomial to the minima for increased accuracy
+
+    Finds minima (negative peaks) in 1d waveform data. The algorithm fits a polynomial to the values
+    of the waveform around the detected minima, with the goal of increasing minima location accuracy
+    """
+
+    def __init__(self, threshold, sigma_threshold, peak_width, background_subtraction=False):
+        """Initializes the minima finding algorithm.
+
+        Args:
+
+            role (str): node role ('worker' or 'master').
+
+            threshold (float): a negative number. The minimum value for a detected minimum to be
+            reported. Only minima with a value lower (more negative) than this parameter are
+            considered by the algorithm.
+
+            sigma_threshold (float): a float. The number of standard deviations of the waveform
+            below the median value to look for peaks. Only minima with a value lower (more negative) than this parameter are
+            considered by the algorithm.
+
+            peak_width (int): width of a peak in number of data points. All
+            minima found within the size specified by this parameter will be cosidered as belonging
+            to the same peak. Only the minimum with the lowest value will be reported: all the
+            other will be ignored.
+
+            background_subtraction (boolean): If true, subtracts the low pass filtered signal (filtering with
+            running median filter) from the signal as the first step in the algorithm
+        """
+
+        # Initialized on worker
+        self.threshold = threshold
+        self.sigma_threshold = sigma_threshold
+        self.minimum_peak_width = peak_width
+        self.background_subtraction = background_subtraction
+
+    def find_minima(self, waveform):
+        """Finds minima in the waveform
+
+        Designed to be run on worker nodes.
+
+        Args:
+
+            waveform  (numpy.ndarray): 1d array containing the waveform data
+
+        Returns:
+
+            peak_list (list of int): list containing the position of the
+            minima in the waveform data array
+        """
+        if self.background_subtraction == True:
+            filterSize = 501
+            lowpass = scipy.signal.medfilt(waveform,
+                                           filterSize)
+            lowpass[0:(filterSize + 1) / 2] = lowpass[(
+                                                      filterSize - 1) / 2]
+            lowpass[-(filterSize + 1) / 2:] = lowpass[-(filterSize - 1) / 2]
+            waveform = waveform - lowpass
+
+        # get mean and std-deviation of waveform
+        std = np.std(waveform)
+        median = np.median(waveform)
+
+        # 5 sigma outlier rejection
+        a = waveform[np.abs(waveform - median) < 5 * abs(std)]
+        std = np.std(a)
+        median = np.median(a)
+
+        # calculate the signal threshold
+        threshold = median - self.sigma_threshold * std
+
+        # find minimum values below threshold
+        peaks = scipy.ndimage.filters.minimum_filter1d(waveform, size=self.minimum_peak_width)
+        peaks = np.where((peaks == waveform) * (waveform < threshold))[0]
+
+        if len(peaks) == 0:
+            return []
+
+        # remove saturated peaks
+        peak_list = list(peaks)
+
+        while True:
+            peaks_temp = []
+            any_too_close = False
+
+            for i in range(len(peak_list)):
+                # if peak i is too close to peaks i-1 or i+1
+                # then add peak i if it has the smallest value
+                p0 = peak_list[i]
+                v0 = waveform[p0]
+
+                n = []
+                if i > 0 and (p0 - peak_list[i - 1]) < self.minimum_peak_width:
+                    n.append(waveform[peak_list[i - 1]])
+
+                if i < len(peak_list) - 1 and (peak_list[i + 1] - p0) < self.minimum_peak_width:
+                    n.append(waveform[peak_list[i + 1]])
+
+                if numpy.all([v0 < v for v in n]):
+                    peaks_temp.append(p0)
+                else:
+                    any_too_close = True
+
+            peak_list = list(peaks_temp)
+            if any_too_close is False:
+                break
+
+        peaks = list(peak_list)
+
+        peaks_poly = []
+        # fit polynomial in the neighbourhood of the peak
+        for p in peaks:
+            x = p - self.minimum_peak_width / 2. + np.arange(self.minimum_peak_width * 0.9)
+            x = np.rint(x).astype(np.int)
+            if (x[0] > 0) and (x[-1] < len(waveform)):
+                y = waveform[x]
+                poly = np.polyfit(x, y, 2)
+                # check that we have an 'up-right' parabola
+                if poly[0] > 0:
+                    # find minimum of polynomials
+                    poly_min = -poly[1] / (2. * poly[0])
+                    peaks_poly.append(poly_min)
+
+        return peaks_poly
 
