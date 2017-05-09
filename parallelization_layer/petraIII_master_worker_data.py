@@ -155,6 +155,7 @@ class MasterWorker(object):
                 try:
                     evt['filehandle'] = open_file(data)
                     evt['filectime'] = datetime.datetime.fromtimestamp(metadata['file_create_time'])
+                    evt['filesize'] = datetime.datetime.fromtimestamp(metadata['file_size'])
                     evt['num_events'] = num_events(evt)
                 except (IOError, OSError):
                     print('Cannot read file: {0}'.format(relative_filepath))
