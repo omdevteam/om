@@ -156,13 +156,13 @@ class MasterWorker(object):
 
                 print(absolute_filepath)
                 evt['filename'] = absolute_filepath
-                try:
-                    evt['filehandle'] = open_file(absolute_filepath)
-                    evt['filectime'] = datetime.datetime.fromtimestamp(metadata['file_create_time'])
-                    evt['num_events'] = num_events(evt)
-                except (IOError, OSError):
-                    print('Cannot read file: {0}'.format(absolute_filepath))
-                    continue
+                #try:
+                evt['filehandle'] = open_file(absolute_filepath)
+                evt['filectime'] = datetime.datetime.fromtimestamp(metadata['file_create_time'])
+                evt['num_events'] = num_events(evt)
+                #except (IOError, OSError):
+                #    print('Cannot read file: {0}'.format(absolute_filepath))
+                #    continue
 
                 shots_to_proc = self.max_shots_to_proc  
 

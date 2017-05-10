@@ -24,4 +24,10 @@ peakfinder8_ext = Extension(name='peakfinder8_extension',
                             sources=['cython/peakfinder8/peakfinder8_extension.pyx', 'cython/peakfinder8/peakfinder8.cpp'],
                             language='c++')
 
-setup(ext_modules=cythonize(peakfinder8_ext))
+peakfinder8old_ext = Extension(name='peakfinder8old_extension',
+                               include_dirs=[numpy.get_include()],
+                               libraries=['stdc++'],
+                               sources=['cython/peakfinder8_old/peakfinder8old_extension.pyx', 'cython/peakfinder8_old/peakfinder8.cpp'],
+                               language='c++')
+
+setup(ext_modules=cythonize([peakfinder8_ext, peakfinder8old_ext]))

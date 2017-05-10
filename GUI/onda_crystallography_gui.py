@@ -194,41 +194,43 @@ class MainFrame(QtGui.QMainWindow):
 
     def draw_resolution_rings(self):
 
-        try:
+        print(self.local_data['detector_distance'], self.local_data['beam_energy'], self.res, self.coffset )
 
-            lambd = scipy.constants.h * scipy.constants.c / (scipy.constants.e * self.local_data['beam_energy'])
-            resolution_rings_in_pix = [1.0]
+         #try:
 
-            resolution_rings_in_pix.extend([2.0 * self.res *
-                                            (self.local_data['detector_distance'] * 10e-4 + self.coffset) *
-                                            numpy.tan(2.0*numpy.arcsin(lambd/(2.0*resolution*10e-11)))
-                                            for resolution in self.resolution_rings_in_A])
-        except TypeError:
+        lambd = scipy.constants.h * scipy.constants.c / (scipy.constants.e * self.local_data['beam_energy'])
+        resolution_rings_in_pix = [1.0]
 
-            print('Beam energy or detector distance are not available. Resolution rings cannot be computed.')
-            self.resolution_rings_canvas.setData([], [])
-            for index, item in enumerate(self.resolution_rings_textitems):
-                item.setText('')
+        resolution_rings_in_pix.extend([2.0 * self.res *
+                                        (self.local_data['detector_distance'] * 10e-4 + self.coffset) *
+                                        numpy.tan(2.0*numpy.arcsin(lambd/(2.0*resolution*10e-11)))
+                                        for resolution in self.resolution_rings_in_A])
+        # except TypeError:
+        #
+        #     print('Beam energy or detector distance are not available. Resolution rings cannot be computed.')
+        #     self.resolution_rings_canvas.setData([], [])
+        #     for index, item in enumerate(self.resolution_rings_textitems):
+        #         item.setText('')
 
-        else:
-
-            if self.ui.resolutionRingsCheckBox.isEnabled() and self.ui.resolutionRingsCheckBox.isChecked():
-
-                self.resolution_rings_canvas.setData(
-                    [self.image_center[0]]*len(resolution_rings_in_pix),
-                    [self.image_center[1]]*len(resolution_rings_in_pix),
-                    symbol='o',
-                    size=resolution_rings_in_pix,
-                    pen=self.resolution_rings_pen,
-                    brush=(0, 0, 0, 0), pxMode=False)
-                for index, item in enumerate(self.resolution_rings_textitems):
-                    item.setText(str(self.resolution_rings_in_A[index])+'A')
-                    item.setPos(self.image_center[0], self.image_center[1] + resolution_rings_in_pix[index+1] / 2.0)
-
-            else:
-                self.resolution_rings_canvas.setData([], [])
-                for index, item in enumerate(self.resolution_rings_textitems):
-                    item.setText('')
+        # else:
+        #
+        #     if self.ui.resolutionRingsCheckBox.isEnabled() and self.ui.resolutionRingsCheckBox.isChecked():
+        #
+        #         self.resolution_rings_canvas.setData(
+        #             [self.image_center[0]]*len(resolution_rings_in_pix),
+        #             [self.image_center[1]]*len(resolution_rings_in_pix),
+        #             symbol='o',
+        #             size=resolution_rings_in_pix,
+        #             pen=self.resolution_rings_pen,
+        #             brush=(0, 0, 0, 0), pxMode=False)
+        #         for index, item in enumerate(self.resolution_rings_textitems):
+        #             item.setText(str(self.resolution_rings_in_A[index])+'A')
+        #             item.setPos(self.image_center[0], self.image_center[1] + resolution_rings_in_pix[index+1] / 2.0)
+        #
+        #     else:
+        #         self.resolution_rings_canvas.setData([], [])
+        #         for index, item in enumerate(self.resolution_rings_textitems):
+        #             item.setText('')
 
     def update_image_plot(self):
 
