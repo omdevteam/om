@@ -884,7 +884,9 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 		return 1;
 	}
 
-
+  for ( i=0; i<num_rad_bins; i++ ) {
+    rstats->rthreshold[i] = 0;
+  }
 
 	for ( it_counter=0 ; it_counter<iterations ; it_counter++ ) {
 
@@ -958,8 +960,6 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 	}
 
 	for ( pki=0 ; pki<peaks_to_add ; pki++ ) {
-
-    printf("COORD: %f, %f\n", pkdata->com_fs[pki], pkdata->com_ss[pki]);
 
 		peaklist->peak_maxintensity[pki] = pkdata->max_i[pki];
 		peaklist->peak_totalintensity[pki] = pkdata->tot_i[pki];
