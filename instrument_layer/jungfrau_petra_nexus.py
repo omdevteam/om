@@ -36,6 +36,7 @@ def raw_data(evt):
     adu_data[gain_data!=0] = -999.0
     return adu_data
 
+
 def timestamp(evt):
     return evt['filectime']
 
