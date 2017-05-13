@@ -31,7 +31,10 @@ def num_events_in_file(evt):
 
 def raw_data(evt):
     raw_data = evt['filehandle']['/entry/instrument/detector/data'][evt['shot_offset'], :, :].reshape(512,1024)
-    return numpy.bitwise_and(raw_data, 0x3fff)
+    adu_data = numpy.bitwise_and(raw_data, 0x3fff)
+    gain_data = numpy.bitwise_and(numpy.right_shift(raw_data, 14), 0x3)
+    adu_data[gain_data!=0] = -999.0
+    return adu_data
 
 def timestamp(evt):
     return evt['filectime']
