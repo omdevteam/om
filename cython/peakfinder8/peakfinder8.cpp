@@ -884,9 +884,9 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 		return 1;
 	}
 
-  for ( i=0; i<num_rad_bins; i++ ) {
-    rstats->rthreshold[i] = 0;
-  }
+	for ( i=0; i<num_rad_bins; i++ ) {
+		rstats->rthreshold[i] = 1e9;
+  	}
 
 	for ( it_counter=0 ; it_counter<iterations ; it_counter++ ) {
 
