@@ -206,6 +206,7 @@ class MainFrame(QtGui.QMainWindow):
         self.filename = input_file
         self.data_path = data_path
         self.apply_darkcal = apply_darkcal
+
         fh = h5py.File(self.filename, 'r')
         self.num_events = fh[self.data_path].shape[0]
         fh.close()
@@ -371,7 +372,8 @@ def main():
 
     config = ConfigParser()
 
-    parser = argparse.ArgumentParser(prog='mpirun [MPI OPTIONS] onda.py', description='OnDA - Online Data Analysis')
+    parser = argparse.ArgumentParser(prog='onda_parameter_tweaker_multievent_hdf5.py',
+                                     description='OnDA parameter tweaker for multievent hdf5 files')
     parser.add_argument('hdf5_file_name', type=str, help='multievent hdf5 file name')
     parser.add_argument('hdf5_data_path', type=str, help='internal path to data (in the hdf5 file structure)')
     parser.add_argument('-d', '--darkcal', action='store_true', default=False,

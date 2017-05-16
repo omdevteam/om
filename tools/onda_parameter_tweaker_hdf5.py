@@ -15,8 +15,10 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import argparse
 import h5py
 import numpy
+import random
 import signal
 import sys
 
@@ -64,6 +66,9 @@ class MainFrame(QtGui.QMainWindow):
 
     def draw_things(self):
         img, title = load_file(self.fhlines, self.data_path, self.file_index)
+
+        if self.apply_darkcal is True:
+            img -= self.darkcal
 
         self.img_to_draw[self.pixel_maps[0], self.pixel_maps[1]] = img.ravel()
         self.ui.imageView.setImage(self.img_to_draw.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
@@ -191,12 +196,13 @@ class MainFrame(QtGui.QMainWindow):
                 self.ui.lastClickedPixelValueLabel.setText('Pixel Value: %5.1f' % (self.img_to_draw[y_mouse,
                                                                                                     x_mouse]))
 
-    def __init__(self, input_file, data_path, monitor_params):
+    def __init__(self, input_file, data_path, apply_darkcal, monitor_params):
 
         QtCore.QObject.__init__(self)
 
         self.filename = input_file
         self.data_path = data_path
+        self.apply_darkcal = apply_darkcal
 
         fh = open(input_file, 'r')
         self.fhlines = fh.readlines()
@@ -208,12 +214,16 @@ class MainFrame(QtGui.QMainWindow):
 
         gen_params = monitor_params['General']
         p8pd_params = monitor_params['Peakfinder8PeakDetection']
+        dkc_params = monitor_params['DarkCalCorrection']
 
         self.ring_pen = pg.mkPen('r', width=2)
         self.circle_pen = pg.mkPen('b', width=2)
 
         pix_maps = cgm.pixel_maps_from_geometry_file(gen_params['geometry_file'])
         self.pixelmap_radius = pix_maps[2]
+
+        if apply_darkcal is True:
+            self.darkcal = ch5.load_nparray_from_hdf5_file(dkc_params['filename'], dkc_params['hdf5_group'])
 
         self.pixel_maps, self.slab_shape, self.img_shape = cgm.pixel_maps_for_image_view(gen_params['geometry_file'])
         self.img_to_draw = numpy.zeros(self.img_shape, dtype=numpy.float32)
@@ -358,17 +368,24 @@ class MainFrame(QtGui.QMainWindow):
 def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     config = ConfigParser()
-    if len(sys.argv) != 3:
-        print('Usage: onda_parameter_tweaker_multievent_hdf5.py <file_list> <hdf5_data_path>')
-        sys.exit()
 
-    input_file = sys.argv[1]
-    data_path = sys.argv[2]
+    parser = argparse.ArgumentParser(prog='onda_parameter_tweaker_hdf5.py',
+                                     description='OnDA parameter tweaker for hdf5 files')
+    parser.add_argument('hdf5_file_list', type=str, help='list of hdf5 files')
+    parser.add_argument('hdf5_data_path', type=str, help='internal path to data (in the hdf5 file structure)')
+    parser.add_argument('-d', '--darkcal', type=bool, default=False,
+                        help='subtract darkcal (file name taken from monitor.ini file)')
+    args = parser.parse_args()
+
+    file_list = args.hdf5_file_list
+    data_path = args.hdf5_data_path
+    apply_darkcal = args.darkcal
+
     config.read('monitor.ini')
     monitor_params = coa.parse_parameters(config)
 
     app = QtGui.QApplication(sys.argv)
-    _ = MainFrame(input_file, data_path, monitor_params)
+    _ = MainFrame(file_list, data_path, apply_darkcal, monitor_params)
     sys.exit(app.exec_())
 
 
