@@ -44,7 +44,7 @@ class DarkCalCorrection:
 
         Args:
 
-            filename (str): name of the hdf5 5 with dark calibration data
+            filename (str): name of the hdf5 with dark calibration data
 
             hdf5_group (str): path of the dark calibration data within the hdf5 file.
 

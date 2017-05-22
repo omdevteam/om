@@ -89,3 +89,17 @@ def import_list_from_layer(lst, layer):
                 lst, layer.__name__))
         else:
             return ret
+
+
+def import_calibration_algorithm(algorithm):
+    try:
+        ret = getattr('algorithms.calibration_algorithms', algorithm)
+    except AttributeError:
+        raise RuntimeError('Error importing calibration algorithm {0}. The algorithm does not exist.'.format(
+            algorithm))
+    else:
+        if not inspect.isclass(algorithm):
+            raise RuntimeError('Error importing calibration_algorithm {0}. The algorithm is not a class.'.format(
+                algorithm))
+        else:
+            return ret

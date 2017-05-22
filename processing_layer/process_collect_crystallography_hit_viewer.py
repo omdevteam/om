@@ -49,6 +49,15 @@ class Onda(MasterWorker):
             _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file', str,
                                                                                required=True))
 
+            if op.param('General', 'calibration_algorithm', str) is not None:
+                DetectorCalibration = di.import_calibration_algorithm(op.param('General', 'calibration_algorithm',
+                                                                                str, required=True))
+                detector_calibration = DetectorCalibration(op.param('General', 'calibration_file', str, required=True))
+                self.apply_calibration = detector_calibration.apply_calibration
+            else:
+                self.apply_calibration = lambda x: x
+
+
             self.dark_cal_correction = galg.DarkCalCorrection(
                 op.param('DarkCalCorrection', 'filename', str, required=True),
                 op.param('DarkCalCorrection', 'hdf5_group', str, required=True),
@@ -119,7 +128,9 @@ class Onda(MasterWorker):
 
         results_dict = {}
 
-        corr_raw_data = self.dark_cal_correction.apply_darkcal_correction(self.raw_data)
+        calib_raw_data = self.apply_calibration(self.raw_data)
+
+        corr_raw_data = self.dark_cal_correction.apply_darkcal_correction(calib_raw_data)
         peak_list = self.peakfinder8_peak_det.find_peaks(corr_raw_data)
 
         sat = len([x for x in peak_list[2] if x > self.saturation_value]) > self.max_saturated_peaks
