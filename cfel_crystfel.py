@@ -329,6 +329,23 @@ def _find_min_max_d(detector):
 
 
 def load_crystfel_geometry(filename):
+    """Loads a CrystFEL geometry file into a dictionary.
+    
+    Reimplements the get_detector_geometry_2 function from CrystFEL amost verbatim. Returns a dictionary with the
+    geometry information. Entries in the geometry file appears as keys in the returned dictionary. For a full
+    documentation on the CrystFEL geometry format, see:
+    
+    tfel/manual-crystfel_geometry.html
+    
+    Args:
+        
+        filename (str): filename of the geometry file
+        
+    Returns:
+        
+        detector (dict): dictionary with the geometry loaded from the file
+    
+    """
 
     fh = open(filename, 'r')
 
