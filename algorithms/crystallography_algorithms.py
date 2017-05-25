@@ -22,7 +22,7 @@ import numpy
 import scipy.ndimage as ndimage
 
 try:
-    from python_extensions.peakfinder8old_extension import peakfinder_8
+    from python_extensions.peakfinder8_extension import peakfinder_8
 except ImportError:
     raise RuntimeError('Error importing one or more cheetah wrappers, or one of their dependecies')
 import cfelpyutils.cfel_hdf5 as ch5
