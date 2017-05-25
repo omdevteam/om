@@ -64,8 +64,8 @@ def read_cbf_from_stream(stream):
         if len(cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY]) > int(
                 cbf_obj.header["X-Binary-Size"]) + cbf_obj.start_binary + len(cbf_obj.STARTER):
             cbf_obj.cbs = cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY][:int(cbf_obj.header["X-Binary-Size"]) +
-                                                                         cbf_obj.start_binary +
-                                                                         len(cbf_obj.STARTER)]
+                                                                    cbf_obj.start_binary +
+                                                                    len(cbf_obj.STARTER)]
         else:
             cbf_obj.cbs = cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY]
     binary_data = cbf_obj.cbs[cbf_obj.start_binary + len(cbf_obj.STARTER):]
