@@ -460,8 +460,12 @@ def scatterplot_3d(data, color=None, point_size=None, cmap="jet", point_shape=No
 
         color (Optional[numpy.ndimage]): 1D Array of floating points with same length as the data array.
             These numbers give the color of each point.
+            
         point_size (Optional[float]): The size of each points. Behaves differently depending on the point_shape.
             If shape is spheres the size is relative to the scene and if squares the size is relative to the window.
+            
+        cmap (Optional[str]): Color map
+        
         point_shape (Optional["spheres" or "squares"]): "spheres" plots each point as a sphere, recommended for
             small data sets. "squares" plot each point as a square without any 3D structure, recommended for
             large data sets.

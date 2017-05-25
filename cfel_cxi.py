@@ -33,6 +33,7 @@ import numpy
 
 _CXISimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
 
+
 class _Stack:
     def __init__(self, path, data, axes):
 
@@ -46,6 +47,13 @@ class _Stack:
         self._data_to_write = data
         self._path = path
         self._axes = axes
+
+    def is_there_data_to_write(self):
+
+        if self._data_to_write is not None:
+            return True
+        else:
+            return False
 
     def write_initial_slice(self, file_handle, max_num_slices):
 
@@ -337,7 +345,7 @@ class CXIWriter:
             raise RuntimeError('The file already holds the maximum allowed number of slices, and should be closed')
 
         for entry in self._cxi_stacks.values():
-            if entry._data_to_write is None:
+            if entry.is_there_data_to_write is False:
                 raise RuntimeError('The slice is incomplete and will not be written. The following stack is not '
                                    'present in the current slice:', entry.path)
 
