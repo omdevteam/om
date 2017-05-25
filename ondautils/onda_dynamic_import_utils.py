@@ -93,12 +93,13 @@ def import_list_from_layer(lst, layer):
 
 def import_calibration_algorithm(algorithm):
     try:
-        ret = getattr('algorithms.calibration_algorithms', algorithm)
+        calib_alg = importlib.import_module('algorithms.calibration_algorithms')
+        ret = getattr(calib_alg, algorithm)
     except AttributeError:
         raise RuntimeError('Error importing calibration algorithm {0}. The algorithm does not exist.'.format(
             algorithm))
     else:
-        if not inspect.isclass(algorithm):
+        if not inspect.isclass(ret):
             raise RuntimeError('Error importing calibration_algorithm {0}. The algorithm is not a class.'.format(
                 algorithm))
         else:
