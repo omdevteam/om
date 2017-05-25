@@ -25,7 +25,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy
-from cfel_crystfel import load_crystfel_geometry
+from cfelpyutils.cfel_crystfel import load_crystfel_geometry
 
 
 def apply_geometry_from_file(data_as_slab, geometry_filename):
