@@ -29,7 +29,7 @@ num_events_in_file = di.import_function_from_layer('num_events_in_file', in_laye
 
 file_extensions = ['.cbf']
 
-aw_data = lambda x: None
+raw_data = lambda x: None
 detector_distance = lambda x: None
 beam_energy = lambda x: None
 timestamp = lambda x: None
@@ -46,7 +46,7 @@ for data_source in required_data:
         locals()[data_source] = getattr(in_layer, data_source)
     except AttributeError:
         try:
-            locals()[data_source] = locals()[data_source]]
+            locals()[data_source] = locals()[data_source]
         except KeyError:
             raise RuntimeError('Undefined data type: {0}'.format(data_source))
 

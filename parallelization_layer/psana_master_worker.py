@@ -46,50 +46,50 @@ class MasterWorker(object):
 
         debug = False
 
-        self.psana_source = None
+        self._psana_source = None
         self._buffer = None
-        self.event_timestamp = None
+        self._event_timestamp = None
 
-        self.mpi_rank = MPI.COMM_WORLD.Get_rank()
-        self.mpi_size = MPI.COMM_WORLD.Get_size()
-        if self.mpi_rank == 0:
-            self.role = 'master'
+        self._mpi_rank = MPI.COMM_WORLD.Get_rank()
+        self._mpi_size = MPI.COMM_WORLD.Get_size()
+
+        if self._mpi_rank == 0:
+            self._role = 'master'
         else:
-            self.role = 'worker'
+            self._role = 'worker'
 
-        self.event_rejection_threshold = 10000000000
-        self.offline = False
-        self.source = source
+        self._event_rejection_threshold = 10000000000
+        self._offline = False
+        self._source = source
 
         # Set offline mode depending on source
-        if 'shmem' not in self.source and debug is False:
-            self.offline = True
-            if not self.source[-4:] == ':idx':
-                self.source += ':idx'
+        if 'shmem' not in self._source and debug is False:
+            self._offline = True
+            if not self._source[-4:] == ':idx':
+                self._source += ':idx'
 
         # Set event_rejection threshold
-        rej_thr = param('PsanaParallelizationLayer','event_rejection_threshold')
+        rej_thr = param('PsanaParallelizationLayer', 'event_rejection_threshold')
         if rej_thr is not None:
-            self.event_rejection_threshold = rej_thr
+            self._event_rejection_threshold = rej_thr
 
         # Set map,reduce and extract functions
-        self.map = map_func
-        self.reduce = reduce_func
-        self.extract_data = extract
-        self.initialize_data_extraction = initialize
+        self._map = map_func
+        self._reduce = reduce_func
+        self._extract_data = extract
+        self._initialize_data_extraction = initialize
 
-        if self.role == 'worker':
-
-            self.psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True )
+        if self._role == 'worker':
+            self._psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True)
 
         # The following is executed only on the master node
-        if self.role == 'master':
+        if self._role == 'master':
 
-            self.num_reduced_events = 0
-            self.num_nomore = 0
+            self._num_reduced_events = 0
+            self._num_nomore = 0
 
-            if self.offline is True:
-                self.source_runs_dirname = dirname_from_source_runs(source)
+            if self._offline is True:
+                self._source_runs_dirname = dirname_from_source_runs(source)
 
         return
 
@@ -97,15 +97,15 @@ class MasterWorker(object):
 
         print('Shutting down:', msg)
 
-        if self.role == 'worker':
+        if self._role == 'worker':
             self._buffer = MPI.COMM_WORLD.send(dest=0, tag=self.DEADTAG)
             MPI.Finalize()
             exit(0)
 
-        if self.role == 'master':
+        if self._role == 'master':
 
             try:
-                for nod_num in range(1, self.mpi_size()):
+                for nod_num in range(1, self._mpi_size()):
                     MPI.COMM_WORLD.isend(0, dest=nod_num,
                                          tag=self.DIETAG)
                 num_shutdown_confirm = 0
@@ -114,7 +114,7 @@ class MasterWorker(object):
                         self._buffer = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=self.DEADTAG):
                         num_shutdown_confirm += 1
-                    if num_shutdown_confirm == self.mpi_size() - 1:
+                    if num_shutdown_confirm == self._mpi_size() - 1:
                         break
                 MPI.Finalize()
             except Exception:
@@ -124,31 +124,30 @@ class MasterWorker(object):
 
     def start(self, verbose=False):
 
-        if self.role == 'worker':
+        if self._role == 'worker':
 
             req = None
 
-            psana.setOption('psana.calib-dir'.encode('ascii'), self.psana_calib_dir.encode('ascii'))
-            self.psana_source = psana.DataSource(self.source.encode('ascii'))
+            psana.setOption('psana.calib-dir'.encode('ascii'), self._psana_calib_dir.encode('ascii'))
+            self._psana_source = psana.DataSource(self._source.encode('ascii'))
 
-            if self.offline is False:
-                psana_events = self.psana_source.events()
+            if self._offline is False:
+                psana_events = self._psana_source.events()
             else:
                 def psana_events_generator():
-                    for r in self.psana_source.runs():
+                    for r in self._psana_source.runs():
                         times = r.times()
-                        mylength = int(ceil(len(times) / float(self.mpi_size - 1)))
-                        mytimes = times[(self.mpi_rank - 1) * mylength: self.mpi_rank * mylength]
+                        mylength = int(ceil(len(times) / float(self._mpi_size - 1)))
+                        mytimes = times[(self._mpi_rank - 1) * mylength: self._mpi_rank * mylength]
                         for mt in mytimes:
                             yield r.event(mt)
 
                 psana_events = psana_events_generator()
 
-            event = {'monitor_params': monitor_params}
-            event['det'] = {}
-            self.initialize_data_extraction(event['det'])
+            event = {'monitor_params': monitor_params, 'det': {}}
+            self._initialize_data_extraction(event['det'])
 
-             # Loop over events and process
+            # Loop over events and process
             for evt in psana_events:
 
                 if evt is None:
@@ -161,23 +160,23 @@ class MasterWorker(object):
                 timestamp = datetime.fromtimestamp(mktime(timestamp))
                 timenow = datetime.now()
 
-                if (timenow - timestamp).total_seconds() > self.event_rejection_threshold:
+                if (timenow - timestamp).total_seconds() > self._event_rejection_threshold:
                     continue
 
                 event['det']['timestamp'] = timestamp
 
                 # Check if a shutdown message is coming from the server
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
-                    self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
+                    self.shutdown('Shutting down RANK: {0}'.format(self._mpi_rank))
 
                 event['evt'] = evt
 
-                self.extract_data(event, self)
+                self._extract_data(event, self)
 
                 if self.raw_data is None:
                     continue
 
-                result = self.map()
+                result = self._map()
 
                 # send the mapped event data to the master process
                 if req:
@@ -189,12 +188,12 @@ class MasterWorker(object):
             end_dict = {'end': True}
             if req:
                 req.Wait()  # be sure we're not still sending something
-            MPI.COMM_WORLD.isend((end_dict, self.mpi_rank), dest=0, tag=0)
+            MPI.COMM_WORLD.isend((end_dict, self._mpi_rank), dest=0, tag=0)
             MPI.Finalize()
             exit(0)
 
         # The following is executed on the master
-        elif self.role == 'master':
+        elif self._role == 'master':
 
             if verbose:
                 print('Starting master.')
@@ -209,8 +208,8 @@ class MasterWorker(object):
                         tag=0)
                     if 'end' in buffer_data[0].keys():
                         print('Finalizing', buffer_data[1])
-                        self.num_nomore += 1
-                        if self.num_nomore == self.mpi_size - 1:
+                        self._num_nomore += 1
+                        if self._num_nomore == self._mpi_size - 1:
                             print('All workers have run out of events.')
                             print('Shutting down.')
                             self.end_processing()
@@ -218,8 +217,8 @@ class MasterWorker(object):
                             exit(0)
                         continue
 
-                    self.reduce(buffer_data)
-                    self.num_reduced_events += 1
+                    self._reduce(buffer_data)
+                    self._num_reduced_events += 1
 
                 except KeyboardInterrupt as e:
                     print('Recieved keyboard sigterm...')
@@ -232,6 +231,6 @@ class MasterWorker(object):
         return
 
     def end_processing(self):
-        print('Processing finished. Processed', self.num_reduced_events, 'events in total.')
+        print('Processing finished. Processed', self._num_reduced_events, 'events in total.')
         stdout.flush()
         pass

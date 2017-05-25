@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import argparse
 import os.path
 
+
 def parse_onda_cmdline_args():
     parser = argparse.ArgumentParser(prog='mpirun [MPI OPTIONS] onda.py', description='OnDA - Online Data Analysis')
     parser.add_argument('source', type=str, help="data source (file list, psana source string, etc.")

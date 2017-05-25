@@ -19,6 +19,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy
+import scipy.ndimage as ndimage
 
 try:
     from python_extensions.peakfinder8old_extension import peakfinder_8
@@ -50,9 +51,9 @@ class SimplePeakDetection:
             is centered around the pixel with highest intensity).
         """
 
-        self.threshold = threshold
-        self.peak_window_size = window_size
-        self.neighborhood = ndimage.morphology.generate_binary_structure(2, 5)
+        self._threshold = threshold
+        self._peak_window_size = window_size
+        self._neighborhood = ndimage.morphology.generate_binary_structure(2, 5)
 
     def find_peaks(self, raw_data):
         """Finds peaks.
@@ -74,9 +75,9 @@ class SimplePeakDetection:
         """
 
         local_max = ndimage.filters.maximum_filter(
-            raw_data, footprint=self.neighborhood)
+            raw_data, footprint=self._neighborhood)
         data_as_slab_peak = (raw_data == local_max)
-        data_as_slab_thresh = (raw_data > self.threshold)
+        data_as_slab_thresh = (raw_data > self._threshold)
         data_as_slab_peak[data_as_slab_thresh == 0] = 0
         peak_list = numpy.where(data_as_slab_peak == 1)
         peak_values = raw_data[peak_list]
@@ -88,12 +89,12 @@ class SimplePeakDetection:
             subpixel_x = []
             subpixel_y = []
             for x_peak, y_peak in zip(peak_list[0], peak_list[1]):
-                peak_window = raw_data[x_peak - self.peak_window_size:x_peak + self.peak_window_size + 1,
-                                       y_peak - self.peak_window_size:y_peak + self.peak_window_size + 1]
+                peak_window = raw_data[x_peak - self._peak_window_size:x_peak + self._peak_window_size + 1,
+                                       y_peak - self._peak_window_size:y_peak + self._peak_window_size + 1]
                 if peak_window.shape[0] != 0 and peak_window.shape[1] != 0:
-                    offset = scipy.ndimage.measurements.center_of_mass(peak_window)
-                    offset_x = offset[0] - self.peak_window_size
-                    offset_y = offset[1] - self.peak_window_size
+                    offset = ndimage.measurements.center_of_mass(peak_window)
+                    offset_x = offset[0] - self._peak_window_size
+                    offset_y = offset[1] - self._peak_window_size
                     subpixel_x.append(x_peak + offset_x)
                     subpixel_y.append(y_peak + offset_y)
                 else:
@@ -126,9 +127,9 @@ class PeakAccumulator:
                 accumulated_shots(int): the number of peak additions to accumulate before returning the peak list
         """
 
-        self.accumulated_shots = accumulated_shots
-        self.accumulator = ([], [], [])
-        self.events_in_accumulator = 0
+        self._accumulated_shots = accumulated_shots
+        self._accumulator = ([], [], [])
+        self._events_in_accumulator = 0
 
     def accumulate_peaks(self, peak_list):
         """Accumulates peaks.
@@ -153,15 +154,15 @@ class PeakAccumulator:
             their intensity.
         """
 
-        self.accumulator[0].extend(peak_list[0])
-        self.accumulator[1].extend(peak_list[1])
-        self.accumulator[2].extend(peak_list[2])
-        self.events_in_accumulator += 1
+        self._accumulator[0].extend(peak_list[0])
+        self._accumulator[1].extend(peak_list[1])
+        self._accumulator[2].extend(peak_list[2])
+        self._events_in_accumulator += 1
 
-        if self.events_in_accumulator == self.accumulated_shots:
-            peak_list_to_return = self.accumulator
-            self.accumulator = ([], [], [])
-            self.events_in_accumulator = 0
+        if self._events_in_accumulator == self._accumulated_shots:
+            peak_list_to_return = self._accumulator
+            self._accumulator = ([], [], [])
+            self._events_in_accumulator = 0
             return peak_list_to_return
         return None
 
@@ -216,24 +217,24 @@ class Peakfinder8PeakDetection:
             center of the detector, in pixels.
         """
 
-        self.max_num_peaks = max_num_peaks
-        self.asic_nx = asic_nx
-        self.asic_ny = asic_ny
-        self.nasics_x = nasics_x
-        self.nasics_y = nasics_y
-        self.adc_thresh = adc_threshold
-        self.minimum_snr = minimum_snr
-        self.min_pixel_count = min_pixel_count
-        self.max_pixel_count = max_pixel_count
-        self.local_bg_radius = local_bg_radius
-        self.pixelmap_radius = pixelmap_radius
-        self.mask = ch5.load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
+        self._max_num_peaks = max_num_peaks
+        self._asic_nx = asic_nx
+        self._asic_ny = asic_ny
+        self._nasics_x = nasics_x
+        self._nasics_y = nasics_y
+        self._adc_thresh = adc_threshold
+        self._minimum_snr = minimum_snr
+        self._min_pixel_count = min_pixel_count
+        self._max_pixel_count = max_pixel_count
+        self._local_bg_radius = local_bg_radius
+        self._pixelmap_radius = pixelmap_radius
+        self._mask = ch5.load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
 
-        res_mask = numpy.ones(self.mask.shape, dtype=numpy.int8)
+        res_mask = numpy.ones(self._mask.shape, dtype=numpy.int8)
         res_mask[numpy.where(pixelmap_radius < min_res)] = 0
         res_mask[numpy.where(pixelmap_radius > max_res)] = 0
 
-        self.mask *= res_mask
+        self._mask *= res_mask
 
     def find_peaks(self, raw_data):
         """Finds peaks.
@@ -251,14 +252,14 @@ class Peakfinder8PeakDetection:
             array, the third the intensity of the peaks. All are lists of float numbers.
         """
 
-        peak_list = peakfinder_8(self.max_num_peaks,
+        peak_list = peakfinder_8(self._max_num_peaks,
                                  raw_data.astype(numpy.float32),
-                                 self.mask.astype(numpy.int8),
-                                 self.pixelmap_radius,
-                                 self.asic_nx, self.asic_ny,
-                                 self.nasics_x, self.nasics_y,
-                                 self.adc_thresh, self.minimum_snr,
-                                 self.min_pixel_count, self.max_pixel_count,
-                                 self.local_bg_radius)
+                                 self._mask.astype(numpy.int8),
+                                 self._pixelmap_radius,
+                                 self._asic_nx, self._asic_ny,
+                                 self._nasics_x, self._nasics_y,
+                                 self._adc_thresh, self._minimum_snr,
+                                 self._min_pixel_count, self._max_pixel_count,
+                                 self._local_bg_radius)
 
         return peak_list

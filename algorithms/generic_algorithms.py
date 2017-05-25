@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import numpy
 import scipy
+import scipy.ndimage
 
 import cfelpyutils.cfel_hdf5 as ch5
 
@@ -70,18 +71,18 @@ class DarkCalCorrection:
          """
 
         # load the darkcals
-        self.darkcal = ch5.load_nparray_from_hdf5_file(filename, hdf5_group)
+        self._darkcal = ch5.load_nparray_from_hdf5_file(filename, hdf5_group)
 
         if apply_mask:
-            self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
-                                                        mask_hdf5_group)
+            self._mask = ch5.load_nparray_from_hdf5_file(mask_filename,
+                                                         mask_hdf5_group)
         else:
-            self.mask = True
+            self._mask = True
 
         if gain_map_correction:
-            self.gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
+            self._gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
         else:
-            self.gain_map = True
+            self._gain_map = True
 
     def apply_darkcal_correction(self, data_as_slab):
         """Applies the correction.
@@ -91,9 +92,7 @@ class DarkCalCorrection:
             data_as_slab (numpy.ndarray): the data on which to apply the DarkCal correction, in 'slab' format.
         """
 
-        return (data_as_slab * self.mask - self.darkcal) * self.gain_map
-
-
+        return (data_as_slab * self._mask - self._darkcal) * self._gain_map
 
 
 ######################
@@ -116,11 +115,10 @@ class RawDataAveraging:
             slab_shape (tuple): shape of the numpy.ndarray containing the data to be accumulated.
         """
 
-        self.accumulated_shots = accumulated_shots
-
-        self.slab_shape = slab_shape
-        self.num_raw_data = 0
-        self.avg_raw_data = numpy.zeros(slab_shape)
+        self._accumulated_shots = accumulated_shots
+        self._slab_shape = slab_shape
+        self._num_raw_data = 0
+        self._avg_raw_data = numpy.zeros(slab_shape)
 
     def accumulate_raw_data(self, data_as_slab):
         """Accumulates peaks.
@@ -138,14 +136,14 @@ class RawDataAveraging:
             class attribute has been reached, None otherwise.
         """
 
-        if self.num_raw_data == self.accumulated_shots:
-            self.num_raw_data = 0
-            self.avg_raw_data.fill(0)
+        if self._num_raw_data == self._accumulated_shots:
+            self._num_raw_data = 0
+            self._avg_raw_data.fill(0)
 
-        self.avg_raw_data += (data_as_slab / self.accumulated_shots)
-        self.num_raw_data += 1
-        if self.num_raw_data == self.accumulated_shots:
-            return self.avg_raw_data
+        self._avg_raw_data += (data_as_slab / self._accumulated_shots)
+        self._num_raw_data += 1
+        if self._num_raw_data == self._accumulated_shots:
+            return self._avg_raw_data
         return None
 
 
@@ -171,8 +169,7 @@ class OpticalLaserStatus:
             If the list of laser on event codes is set to None, the laser is reported as being always off.
         """
 
-        self.laser_on_event_codes = laser_on_event_codes
-
+        self._laser_on_event_codes = laser_on_event_codes
 
     def is_optical_laser_on(self, event_codes):
         """Reports if optical laser is on.
@@ -183,23 +180,29 @@ class OpticalLaserStatus:
 
         Args:
 
-            data_as_slab (numpy.ndarray): raw data image to add, in 'slab' format.
+            event_codes (list): list of event codes to evaluate (list of int)
 
         Returns:
 
-            avg_raw_data (tuple or None):  the average image if the number of images specified by the accumulated_shots
-            class attribute has been reached, None otherwise.
+            laser_is_on (bool):  True if the optical laser is on according to the event codes, False otherwise.
         """
 
-        try:
-            return all(x in event_codes for x in self.laser_on_event_codes)
-        except:
-            return False
-
+        return all(x in event_codes for x in self._laser_on_event_codes)
 
 #######################
 # MINIMA IN WAVEFORMS #
 #######################
+
+
+def _median_filter_course(f, window_size, steps):
+
+    i = numpy.arange(f.shape[0])
+    g = f[::steps]
+    j = i[::steps]
+    g = scipy.ndimage.median_filter(g, window_size)
+    h = numpy.interp(i, j, g)
+    return h
+
 
 class FindMinimaInWaveforms:
     """Finds minima in waveforms.
@@ -229,12 +232,12 @@ class FindMinimaInWaveforms:
         """
 
         # Initialized on master
-        self.threshold = threshold
-        self.estimated_noise_width = estimated_noise_width
-        self.minimum_peak_width = minimum_peak_width
-        self.background_subtraction = background_subtraction
-        self.background_filterSize = 200
-        self.background_filterStep = 20
+        self._threshold = threshold
+        self._estimated_noise_width = estimated_noise_width
+        self._minimum_peak_width = minimum_peak_width
+        self._background_subtraction = background_subtraction
+        self._background_filterSize = 200
+        self._background_filterStep = 20
 
     def find_minima(self, waveform):
         """Finds minima in the waveform
@@ -251,12 +254,12 @@ class FindMinimaInWaveforms:
             minima in the waveform data array
         """
 
-        if self.background_subtraction == True:
-            s = waveform - median_filter_course(waveform, self.background_filterSize, self.background_filterStep)
+        if self._background_subtraction is True:
+            s = waveform - _median_filter_course(waveform, self._background_filterSize, self._background_filterStep)
         else:
             s = waveform.copy()
 
-        window = numpy.ones(self.estimated_noise_width, dtype=numpy.float) / float(self.estimated_noise_width)
+        window = numpy.ones(self._estimated_noise_width, dtype=numpy.float) / float(self._estimated_noise_width)
         s = numpy.convolve(s.astype(numpy.float), window, mode='same')
 
         ds = numpy.gradient(s)
@@ -265,7 +268,7 @@ class FindMinimaInWaveforms:
         peak_locations = numpy.where((numpy.diff(numpy.sign(ds)) > 0) * (dds[:-1] > 0))[0]
 
         offset = numpy.mean(s)
-        t = numpy.where(s[peak_locations] - offset < -abs(self.threshold))
+        t = numpy.where(s[peak_locations] - offset < -abs(self._threshold))
         peak_locations = peak_locations[t]
 
         # reject peaks that are too close together
@@ -284,10 +287,10 @@ class FindMinimaInWaveforms:
                 v0 = s[p0]
 
                 n = []
-                if i > 0 and (p0 - peak_list[i - 1]) < self.minimum_peak_width:
+                if i > 0 and (p0 - peak_list[i - 1]) < self._minimum_peak_width:
                     n.append(s[peak_list[i - 1]])
 
-                if i < len(peak_list) - 1 and (peak_list[i + 1] - p0) < self.minimum_peak_width:
+                if i < len(peak_list) - 1 and (peak_list[i + 1] - p0) < self._minimum_peak_width:
                     n.append(s[peak_list[i + 1]])
 
                 if numpy.all([v0 < v for v in n]):
@@ -300,16 +303,6 @@ class FindMinimaInWaveforms:
                 break
 
         return peak_list
-
-
-def median_filter_course(f, window_size, steps):
-    import scipy.ndimage
-    i = np.arange(f.shape[0])
-    g = f[::steps]
-    j = i[::steps]
-    g = scipy.ndimage.median_filter(g, window_size)
-    h = np.interp(i, j, g)
-    return h
 
 
 ################################################
@@ -328,15 +321,13 @@ class FindMinimaInWaveformsPolyFit:
 
         Args:
 
-            role (str): node role ('worker' or 'master').
-
             threshold (float): a negative number. The minimum value for a detected minimum to be
             reported. Only minima with a value lower (more negative) than this parameter are
             considered by the algorithm.
 
             sigma_threshold (float): a float. The number of standard deviations of the waveform
-            below the median value to look for peaks. Only minima with a value lower (more negative) than this parameter are
-            considered by the algorithm.
+            below the median value to look for peaks. Only minima with a value lower (more negative) than this
+            parameter are considered by the algorithm.
 
             peak_width (int): width of a peak in number of data points. All
             minima found within the size specified by this parameter will be cosidered as belonging
@@ -348,10 +339,10 @@ class FindMinimaInWaveformsPolyFit:
         """
 
         # Initialized on worker
-        self.threshold = threshold
-        self.sigma_threshold = sigma_threshold
-        self.minimum_peak_width = peak_width
-        self.background_subtraction = background_subtraction
+        self._threshold = threshold
+        self._sigma_threshold = sigma_threshold
+        self._minimum_peak_width = peak_width
+        self._background_subtraction = background_subtraction
 
     def find_minima(self, waveform):
         """Finds minima in the waveform
@@ -367,30 +358,30 @@ class FindMinimaInWaveformsPolyFit:
             peak_list (list of int): list containing the position of the
             minima in the waveform data array
         """
-        if self.background_subtraction == True:
-            filterSize = 501
+        if self._background_subtraction is True:
+            filter_size = 501
             lowpass = scipy.signal.medfilt(waveform,
-                                           filterSize)
-            lowpass[0:(filterSize + 1) / 2] = lowpass[(
-                                                      filterSize - 1) / 2]
-            lowpass[-(filterSize + 1) / 2:] = lowpass[-(filterSize - 1) / 2]
+                                           filter_size)
+            lowpass[0:(filter_size + 1) / 2] = lowpass[(
+                                                      filter_size - 1) / 2]
+            lowpass[-(filter_size + 1) / 2:] = lowpass[-(filter_size - 1) / 2]
             waveform = waveform - lowpass
 
         # get mean and std-deviation of waveform
-        std = np.std(waveform)
-        median = np.median(waveform)
+        std = numpy.std(waveform)
+        median = numpy.median(waveform)
 
         # 5 sigma outlier rejection
-        a = waveform[np.abs(waveform - median) < 5 * abs(std)]
-        std = np.std(a)
-        median = np.median(a)
+        a = waveform[numpy.abs(waveform - median) < 5 * abs(std)]
+        std = numpy.std(a)
+        median = numpy.median(a)
 
         # calculate the signal threshold
-        threshold = median - self.sigma_threshold * std
+        threshold = median - self._sigma_threshold * std
 
         # find minimum values below threshold
-        peaks = scipy.ndimage.filters.minimum_filter1d(waveform, size=self.minimum_peak_width)
-        peaks = np.where((peaks == waveform) * (waveform < threshold))[0]
+        peaks = scipy.ndimage.filters.minimum_filter1d(waveform, size=self._minimum_peak_width)
+        peaks = numpy.where((peaks == waveform) * (waveform < threshold))[0]
 
         if len(peaks) == 0:
             return []
@@ -409,10 +400,10 @@ class FindMinimaInWaveformsPolyFit:
                 v0 = waveform[p0]
 
                 n = []
-                if i > 0 and (p0 - peak_list[i - 1]) < self.minimum_peak_width:
+                if i > 0 and (p0 - peak_list[i - 1]) < self._minimum_peak_width:
                     n.append(waveform[peak_list[i - 1]])
 
-                if i < len(peak_list) - 1 and (peak_list[i + 1] - p0) < self.minimum_peak_width:
+                if i < len(peak_list) - 1 and (peak_list[i + 1] - p0) < self._minimum_peak_width:
                     n.append(waveform[peak_list[i + 1]])
 
                 if numpy.all([v0 < v for v in n]):
@@ -429,11 +420,11 @@ class FindMinimaInWaveformsPolyFit:
         peaks_poly = []
         # fit polynomial in the neighbourhood of the peak
         for p in peaks:
-            x = p - self.minimum_peak_width / 2. + np.arange(self.minimum_peak_width * 0.9)
-            x = np.rint(x).astype(np.int)
+            x = p - self._minimum_peak_width / 2. + numpy.arange(self._minimum_peak_width * 0.9)
+            x = numpy.rint(x).astype(numpy.int)
             if (x[0] > 0) and (x[-1] < len(waveform)):
                 y = waveform[x]
-                poly = np.polyfit(x, y, 2)
+                poly = numpy.polyfit(x, y, 2)
                 # check that we have an 'up-right' parabola
                 if poly[0] > 0:
                     # find minimum of polynomials

@@ -25,6 +25,7 @@ import cfelpyutils.cfel_hdf5 as ch5
 # LAMBDA CALIBRATION  #
 #######################
 
+
 class LambdaCalibration:
     """Calibration of a Lambda detector module, with flatfield correction.
     
@@ -37,12 +38,12 @@ class LambdaCalibration:
 
         Args:
 
-            flatfield_filename (str): name of the hdf5 file with the
+            calibration filename (str): name of the hdf5 file with the
             calibration data.
         """
 
-        self.flatfield = ch5.load_nparray_from_hdf5_file(flatfield_filename,
-                                                         '/flatfield')
+        self._flatfield = ch5.load_nparray_from_hdf5_file(calibration_filename,
+                                                          '/flatfieldcorrect')
 
     def apply_calibration(self, raw_data):
         """Applies the calibration.
@@ -58,7 +59,7 @@ class LambdaCalibration:
             corrected_data(numpy.ndarray):  the calibrated data
         """
 
-        return raw_data - self.flatfield
+        return raw_data - self._flatfield
 
 
 

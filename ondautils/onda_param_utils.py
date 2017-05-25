@@ -24,7 +24,7 @@ from builtins import str
 monitor_params = {}
 
 
-def param(section, par, type_to_check = None, required = False):
+def param(section, par, type_to_check=None, required=False):
     if section not in monitor_params:
         raise RuntimeError('Section {0} is not in the configuration file'.format(section))
     else:

@@ -44,7 +44,7 @@ def import_correct_layer_module(layer, monitor_params):
         )
     except ImportError:
         raise RuntimeError('Error when importing the {0}.  Either the {1} module does not exist, or importing it '
-                            'causes an error.'.format(layer, monitor_params['Onda'][layer]))
+                           'causes an error.'.format(layer, monitor_params['Onda'][layer]))
     else:
         return m
 

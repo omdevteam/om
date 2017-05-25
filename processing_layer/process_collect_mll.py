@@ -37,7 +37,7 @@ par_layer = di.import_correct_layer_module('parallelization_layer', op.monitor_p
 MasterWorker = di.import_class_from_layer('MasterWorker', par_layer)
 
 
-def make_mll_mask(centre, size, shape):
+def _make_mll_mask(centre, size, shape):
     mask = numpy.zeros(shape, dtype=numpy.int)
 
     i, j = numpy.indices(mask.shape)
@@ -59,7 +59,7 @@ class Onda(MasterWorker):
                                    reduce_func=self.collect_data,
                                    source=source)
 
-        if self.role == 'worker':
+        if self._role == 'worker':
 
             mask_shape = (
                 op.param('General', 'mask_size_ss', int, required=True),
@@ -74,74 +74,75 @@ class Onda(MasterWorker):
                 op.param('General', 'mask_edge_fs', int, required=True) / 2
             )
 
-            self.mask = make_mll_mask(mask_center, mask_size, mask_shape)
+            self._mask = _make_mll_mask(mask_center, mask_size, mask_shape)
 
-            self.bad_pixel_mask = ch5.load_nparray_from_hdf5_file(
+            self._bad_pixel_mask = ch5.load_nparray_from_hdf5_file(
                 op.param('General', 'bad_pixel_mask_filename', str, required=True),
                 op.param('General', 'bad_pixel_mask_hdf5_group', str, required=True)
             )
 
             if op.param('General', 'whitefield_subtraction', bool) is True:
-                self.whitefield = ch5.load_nparray_from_hdf5_file(
+                self._whitefield = ch5.load_nparray_from_hdf5_file(
                     op.param('General', 'whitefield_filename', str, required=True),
                     op.param('General', 'whitefield_hdf5_group', str, required=True)
                 )
-                self.whitefield[self.whitefield == 0] = 1
+                self._whitefield[self._whitefield == 0] = 1
             else:
-                self.whitefield = True
+                self._whitefield = True
 
-            self.new_scan = False
+            self._new_scan = False
 
-            self.hit_sending_counter = 0
+            self._hit_sending_counter = 0
 
             print('Starting worker: {0}.'.format(self.mpi_rank))
             sys.stdout.flush()
 
-        if self.role == 'master':
-            self.num_events = 0
-            self.old_time = time.time()
+        if self._role == 'master':
 
-            self.current_run_num = 0
+            self._num_events = 0
+            self._old_time = time.time()
 
-            self.num_accumulated_shots = 0
+            self._current_run_num = 0
 
-            self.speed_report_interval = op.param('General', 'speed_report_interval', int, required=True)
-            self.num_shots_to_accumulate = op.param('General', 'accumulated_shots', int, required=True)
+            self._num_accumulated_shots = 0
 
-            self.log_dir = op.param('General', 'log_base_path', str, required=True)
-            self.data_dir = op.param('General', 'data_base_path', str, required=True)
+            self._speed_report_interval = op.param('General', 'speed_report_interval', int, required=True)
+            self._num_shots_to_accumulate = op.param('General', 'accumulated_shots', int, required=True)
 
-            self.scan_type = 0
+            self._log_dir = op.param('General', 'log_base_path', str, required=True)
+            self._data_dir = op.param('General', 'data_base_path', str, required=True)
 
-            self.scan_data = []
+            self._scan_type = 0
+
+            self._scan_data = []
             self.grid = ()
             self.physical_grid_axes = ()
 
-            self.stxm = numpy.zeros((0, 0))
-            self.dpc = numpy.zeros((0, 0))
+            self._stxm = numpy.zeros((0, 0))
+            self._dpc = numpy.zeros((0, 0))
 
-            self.fs_integr_image = numpy.zeros((0, 0))
-            self.ss_integr_image = numpy.zeros((0, 0))
+            self._fs_integr_image = numpy.zeros((0, 0))
+            self._ss_integr_image = numpy.zeros((0, 0))
 
             print('Starting the monitor...')
             sys.stdout.flush()
 
-            self.sending_socket = zut.zmq_onda_publisher_socket(op.param('General', 'publish_ip', str),
-                                                                op.param('General', 'publish_port', int))
+            self._sending_socket = zut.ZMQOndaPublisherSocket(op.param('General', 'publish_ip', str),
+                                                              op.param('General', 'publish_port', int))
 
-            self.hit_rate = 0
-            self.sat_rate = 0
+            self._hit_rate = 0
+            self._sat_rate = 0
 
     def process_data(self):
 
         results_dict = {}
 
-        corrected_data = self.raw_data * self.bad_pixel_mask / self.whitefield
+        corrected_data = self.raw_data * self._bad_pixel_mask / self._whitefield
 
-        sum1 = corrected_data[self.mask == 1].sum()
-        sum2 = corrected_data[self.mask == 2].sum()
-        sum3 = corrected_data[self.mask == 3].sum()
-        sum4 = corrected_data[self.mask == 4].sum()
+        sum1 = corrected_data[self._mask == 1].sum()
+        sum2 = corrected_data[self._mask == 2].sum()
+        sum3 = corrected_data[self._mask == 3].sum()
+        sum4 = corrected_data[self._mask == 4].sum()
 
         stxm = sum1 + sum2 + sum3 + sum4
 
@@ -178,13 +179,13 @@ class Onda(MasterWorker):
         collected_data = {}
 
         results_dict, _ = new
-        self.num_events += 1
+        self._num_events += 1
 
         filename_parts = (os.path.basename(results_dict['filename']).split('_'))
 
         if 'Frame' in results_dict['filename']:
             print('Sending Frame to MLL Frame Viewer.')
-            self.sending_socket.send_data('ondarawdata', results_dict)
+            self._sending_socket.send_data('ondarawdata', results_dict)
         try:
             num_run = int(filename_parts[1])
             num_file = int(filename_parts[2].split('.')[0])
@@ -192,112 +193,112 @@ class Onda(MasterWorker):
         except ValueError:
             return
 
-        if num_run < self.current_run_num:
+        if num_run < self._current_run_num:
             return
 
-        if num_run > self.current_run_num:
+        if num_run > self._current_run_num:
             log_file_name = '{0}.dat'.format('_'.join(filename_parts[0:2]))
-            log_class = mlu.read_mll_logfile(join(self.log_dir, log_file_name))
+            log_class = mlu.read_mll_logfile(join(self._log_dir, log_file_name))
 
             self.grid = tuple(log_class.log['Grid'])
             self.physical_grid_axes = tuple(log_class.log['Physical_grid_axes'])
 
-            self.scan_data = []
+            self._scan_data = []
 
             if 'Slower axis' in log_class.log:
                 slower_data = {'start': 1e6 * log_class.log['Slower axis']['Start position'],
                                'end': 1e6 * log_class.log['Slower axis']['End position'],
                                'name': log_class.log['Slower axis']['name'],
                                'steps': log_class.log['Slower axis']['Steps']}
-                self.scan_data.append(slower_data)
+                self._scan_data.append(slower_data)
 
             if 'Slow axis' in log_class.log:
                 slow_data = {'start': 1e6 * log_class.log['Slow axis']['Start position'],
                              'end': 1e6 * log_class.log['Slow axis']['End position'],
                              'name': log_class.log['Slow axis']['name'], 'steps': log_class.log['Slow axis']['Steps']}
-                self.scan_data.append(slow_data)
+                self._scan_data.append(slow_data)
 
             if 'Fast axis' in log_class.log:
                 fast_data = {'start': 1e6 * log_class.log['Fast axis']['Start position'],
                              'end': 1e6 * log_class.log['Fast axis']['End position'],
                              'name': log_class.log['Fast axis']['name'], 'steps': log_class.log['Fast axis']['Steps']}
-                self.scan_data.append(fast_data)
+                self._scan_data.append(fast_data)
 
                 if (
                     'StayStill hack' in log_class.log['Fast axis'] and
                     log_class.log['Fast axis']['StayStill hack'] is True
                 ):
-                    self.scan_data.pop()
+                    self._scan_data.pop()
 
             if len(self.physical_grid_axes) == 2:
 
                 print('New 2D scan. Log file:', log_file_name + '.')
                 sys.stdout.flush()
 
-                self.scan_type = 2
+                self._scan_type = 2
 
-                self.stxm = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
-                self.dpc = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
+                self._stxm = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
+                self._dpc = numpy.zeros((self.grid[self.physical_grid_axes[0]], self.grid[self.physical_grid_axes[1]]))
 
             elif len(self.physical_grid_axes) == 1:
 
                 print('New 1D scan. Log file:', log_file_name + '.')
                 sys.stdout.flush()
 
-                self.scan_type = 1
+                self._scan_type = 1
 
-                self.fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0],
-                                                    self.grid[self.physical_grid_axes[0]]))
-                self.ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0],
-                                                    self.grid[self.physical_grid_axes[0]]))
+                self._fs_integr_image = numpy.zeros((results_dict['integr_fs'].shape[0],
+                                                     self.grid[self.physical_grid_axes[0]]))
+                self._ss_integr_image = numpy.zeros((results_dict['integr_ss'].shape[0],
+                                                     self.grid[self.physical_grid_axes[0]]))
 
             else:
 
                 print('New 0D scan. Log file:', log_file_name + '.')
                 sys.stdout.flush()
 
-                self.scan_type = 0
+                self._scan_type = 0
 
-        if self.scan_type == 2:
+        if self._scan_type == 2:
 
             ind = numpy.unravel_index(num_file + num_event, self.grid)
 
-            self.stxm[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['stxm']
-            self.dpc[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['dpc']
+            self._stxm[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['stxm']
+            self._dpc[ind[self.physical_grid_axes[0]], ind[self.physical_grid_axes[1]]] += results_dict['dpc']
 
-            self.num_accumulated_shots += 1
+            self._num_accumulated_shots += 1
 
             collected_data['scan_type'] = 2
-            collected_data['stxm'] = self.stxm.transpose()
-            collected_data['dpc'] = self.dpc.transpose()
-            collected_data['fs_start'] = self.scan_data[-1]['start']
-            collected_data['fs_end'] = self.scan_data[-1]['end']
-            collected_data['ss_start'] = self.scan_data[-2]['start']
-            collected_data['ss_end'] = self.scan_data[-2]['end']
-            collected_data['fs_name'] = self.scan_data[-1]['name']
-            collected_data['ss_name'] = self.scan_data[-2]['name']
-            collected_data['fs_steps'] = self.scan_data[-1]['steps']
-            collected_data['ss_steps'] = self.scan_data[-2]['steps']
+            collected_data['stxm'] = self._stxm.transpose()
+            collected_data['dpc'] = self._dpc.transpose()
+            collected_data['fs_start'] = self._scan_data[-1]['start']
+            collected_data['fs_end'] = self._scan_data[-1]['end']
+            collected_data['ss_start'] = self._scan_data[-2]['start']
+            collected_data['ss_end'] = self._scan_data[-2]['end']
+            collected_data['fs_name'] = self._scan_data[-1]['name']
+            collected_data['ss_name'] = self._scan_data[-2]['name']
+            collected_data['fs_steps'] = self._scan_data[-1]['steps']
+            collected_data['ss_steps'] = self._scan_data[-2]['steps']
             collected_data['timestamp'] = results_dict['timestamp']
             collected_data['num_run'] = num_run
 
-        elif self.scan_type == 1:
+        elif self._scan_type == 1:
 
             ind = numpy.unravel_index(num_file + num_event, self.grid)
 
-            self.fs_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_fs']
-            self.ss_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_ss']
+            self._fs_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_fs']
+            self._ss_integr_image[:, ind[self.physical_grid_axes[0]]] += results_dict['integr_ss']
 
-            self.num_accumulated_shots += 1
+            self._num_accumulated_shots += 1
 
             collected_data['scan_type'] = 1
-            collected_data['scan_data'] = self.scan_data
-            collected_data['fs_start'] = self.scan_data[-1]['start']
-            collected_data['fs_end'] = self.scan_data[-1]['end']
-            collected_data['fs_name'] = self.scan_data[-1]['name']
-            collected_data['fs_steps'] = self.scan_data[-1]['steps']
-            collected_data['ss_integr_image'] = self.ss_integr_image
-            collected_data['fs_integr_image'] = self.fs_integr_image
+            collected_data['scan_data'] = self._scan_data
+            collected_data['fs_start'] = self._scan_data[-1]['start']
+            collected_data['fs_end'] = self._scan_data[-1]['end']
+            collected_data['fs_name'] = self._scan_data[-1]['name']
+            collected_data['fs_steps'] = self._scan_data[-1]['steps']
+            collected_data['ss_integr_image'] = self._ss_integr_image
+            collected_data['fs_integr_image'] = self._fs_integr_image
             collected_data['timestamp'] = results_dict['timestamp']
             collected_data['num_run'] = num_run
 
@@ -305,18 +306,18 @@ class Onda(MasterWorker):
 
             print('Data from 0D scan, not processed.')
 
-        self.current_run_num = num_run
-        self.new_scan = False
+        self._current_run_num = num_run
+        self._new_scan = False
 
-        if self.num_accumulated_shots == self.num_shots_to_accumulate:
-            self.sending_socket.send_data('ondadata', collected_data)
-            self.num_accumulated_shots = 0
+        if self._num_accumulated_shots == self._num_shots_to_accumulate:
+            self._sending_socket.send_data('ondadata', collected_data)
+            self._num_accumulated_shots = 0
 
-        if self.num_events % self.speed_report_interval == 0:
+        if self._num_events % self._speed_report_interval == 0:
             now_time = time.time()
             print('Processed: {0} in {1:.2f} seconds ({2:.2f} Hz)'.format(
-                self.num_events,
-                now_time - self.old_time,
-                float(self.speed_report_interval) / float(now_time - self.old_time)))
+                self._num_events,
+                now_time - self._old_time,
+                float(self._speed_report_interval) / float(now_time - self._old_time)))
             sys.stdout.flush()
-            self.old_time = now_time
+            self._old_time = now_time
