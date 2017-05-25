@@ -31,9 +31,10 @@ from collections import namedtuple
 import h5py
 import numpy
 
+_CXISimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
 
 class _Stack:
-    def __init__(self, path, data):
+    def __init__(self, path, data, axes):
 
         self._data_type = type(data)
 
@@ -44,6 +45,7 @@ class _Stack:
 
         self._data_to_write = data
         self._path = path
+        self._axes = axes
 
     def write_initial_slice(self, file_handle, max_num_slices):
 
@@ -51,6 +53,9 @@ class _Stack:
                                    maxshape=(max_num_slices,) + self._data_shape,
                                    chunks=(1,) + self._data_shape)
         file_handle[self._path][0] = self._data_to_write
+
+        if self._axes is not None:
+            file_handle[self._path].attrs['axes'] = self._axes
 
         self._data_to_write = None
 
@@ -126,8 +131,10 @@ class CXIWriter:
         f1 = CXIWriter('/data/test1.h5', )
         f2 = CXIWriter('/data/test2.h5', )
     
-        f1.add_stack_to_writer('detector1', '/entry_1/detector_1/data', numpy.random.rand(2, 2))
+        f1.add_stack_to_writer('detector1', '/entry_1/detector_1/data', numpy.random.rand(2, 2),
+                               'frame:y:x')
         f2.add_stack_to_writer('detector2', '/entry_1/detector_1/data', numpy.random.rand(3, 2))
+                               'frame:y:x')
     
         f1.add_stack_to_writer('counter1', '/entry_1/detector_1/count', c1)
         f2.add_stack_to_writer('counter2', '/entry_1/detector_1/count', c2)
@@ -141,7 +148,7 @@ class CXIWriter:
         for i in range(1, 60):
             print('Writing slice:', i)
             a = numpy.random.rand(2, 2)
-            b = numpy.random.rand(2, 2)
+            b = numpy.random.rand(3, 2)
     
             c1 += 1
             c2 += 2
@@ -196,7 +203,7 @@ class CXIWriter:
 
         self._fh.create_dataset(entry.path, data=entry.data)
 
-    def add_stack_to_writer(self, name, path, initial_data, overwrite=True):
+    def add_stack_to_writer(self, name, path, initial_data, axes=None, overwrite=True):
         """Adds a new stack to the file.
         
         Adds a new stack to the CXI Writer instance. The user must provide a name for the stack, that will identify
@@ -214,6 +221,8 @@ class CXIWriter:
             initial_data (Union: numpy.ndarray, str, int, float): initial entry in the stack. It gets written to the 
             stack as slice 0. Its characteristics are used to validate all data subsequently appended to the stack.
             
+            axes (str): the 'axes' attribute for the stack, as defined by the CXIDB file format.
+            
             overwrite (bool): if set to True, a stack already existing at the same location will be overwritten. If set
             to False, an attempt to overwrite a stack will raise an error.
         """
@@ -229,7 +238,7 @@ class CXIWriter:
             else:
                 raise RuntimeError('Cannot write the entry. Data is already present at the specified path.')
 
-        new_stack = _Stack(path, initial_data)
+        new_stack = _Stack(path, initial_data, axes)
         self._cxi_stacks[name] = new_stack
 
     def write_simple_entry(self, path, data, overwrite=False):
@@ -250,8 +259,7 @@ class CXIWriter:
 
         _validate_data(data)
 
-        SimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
-        new_entry = SimpleEntry(path, data, overwrite)
+        new_entry = _CXISimpleEntry(path, data, overwrite)
 
         if self._initialized is not True:
             self._pending_simple_entries.append(new_entry)
