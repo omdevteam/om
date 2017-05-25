@@ -24,7 +24,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import OrderedDict
-from math import inf, sqrt
+from math import sqrt
 import re
 
 
@@ -52,18 +52,18 @@ def _dir_conv(direction_x, direction_y, direction_z, value):
             raise RuntimeError('Invalid Symbol: {} (must be x, y or z).'.format(axis))
 
         if item[:-1] == '+':
-            v = '1.0'
+            value = '1.0'
         elif item[:-1] == '-':
-            v = '-1.0'
+            value = '-1.0'
         else:
-            v = item[-1]
+            value = item[:-1]
 
         if axis == 'x':
-            direction[0] = float(v)
+            direction[0] = float(value)
         elif axis == 'y':
-            direction[1] = float(v)
+            direction[1] = float(value)
         elif axis == 'z':
-            direction[2] = float(v)
+            direction[2] = float(value)
 
     return direction
 
@@ -318,7 +318,7 @@ def _check_point(name, panel, fs, ss, min_d, max_d, detector):
 
 
 def _find_min_max_d(detector):
-    min_d = inf
+    min_d = float('inf')
     max_d = 0.0
 
     for name, panel in detector['panels'].items():
@@ -384,7 +384,7 @@ def load_crystfel_geometry(filename):
         'clen_for_centering': None,
         'adu_per_eV': None,
         'adu_per_photon': None,
-        'max_adu': inf,
+        'max_adu': float('inf'),
         'mask': None,
         'mask_file': None,
         'satmap': None,
@@ -530,7 +530,7 @@ def load_crystfel_geometry(filename):
         elif dim_length != len(panel['dim_structure']):
             raise RuntimeError('Number of dim coordinates must be the same for all panels.')
 
-        if len(dim_length) == 1:
+        if dim_length == 1:
             raise RuntimeError('Number of dim coordinates must be at least two.')
 
     for panel in detector['panels'].values():
@@ -575,7 +575,7 @@ def load_crystfel_geometry(filename):
         panel['w'] = panel['origin_max_fs'] - panel['origin_min_fs'] + 1
         panel['h'] = panel['origin_max_ss'] - panel['origin_min_ss'] + 1
 
-    for bad_region in detector['bad']:
+    for bad_region in detector['bad'].values():
         if bad_region['is_fsss'] == 99:
             raise RuntimeError('Please specify the coordinate ranges for bad region {}.'.format(bad_region['name']))
 
