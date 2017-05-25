@@ -44,7 +44,7 @@ class Onda(MasterWorker):
                                    reduce_func=self.collect_data,
                                    source=source)
 
-        if self.role == 'worker':
+        if self._role == 'worker':
 
             _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file', str,
                                                                                required=True))
@@ -97,7 +97,7 @@ class Onda(MasterWorker):
             print('Starting worker: {0}.'.format(self.mpi_rank))
             sys.stdout.flush()
 
-        if self.role == 'master':
+        if self._role == 'master':
 
             self._accumulator = calg.PeakAccumulator(op.param('PeakAccumulator', 'accumulated_shots', int,
                                                               required=True))
