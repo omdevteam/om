@@ -50,13 +50,13 @@ class MasterWorker(object):
 
     def __init__(self, map_func, reduce_func, source):
 
-        self._mpi_rank = MPI.COMM_WORLD.Get_rank()
-        self._mpi_size = MPI.COMM_WORLD.Get_size()
+        self.mpi_rank = MPI.COMM_WORLD.Get_rank()
+        self.mpi_size = MPI.COMM_WORLD.Get_size()
 
-        if self._mpi_rank == 0:
-            self._role = 'master'
+        if self.mpi_rank == 0:
+            self.role = 'master'
         else:
-            self._role = 'worker'
+            self.role = 'worker'
 
         self._map = map_func
         self._reduce = reduce_func
@@ -69,14 +69,14 @@ class MasterWorker(object):
 
         self._targets = [['', '', 1]]
 
-        for node_rank in range(1, self._mpi_size):
+        for node_rank in range(1, self.mpi_size):
             target_entry = [self._hostname,
                             str(self._base_port + node_rank),
                             str(self._priority),
                             file_extensions]
             self._targets.append(target_entry)
 
-        if self._role == 'master':
+        if self.role == 'master':
             self._num_nomore = 0
             self._num_reduced_events = 0
 
@@ -88,19 +88,19 @@ class MasterWorker(object):
 
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
 
-        if self._role == 'worker':
+        if self.role == 'worker':
             self._shots_to_proc = op.param('PetraIIIDataParallelizationLayer', 'images_per_file_to_process', int,
                                            required=True)
 
             self._buffer = None
 
             self._query = Transfer('QUERY_NEXT', self._sender_hostname, use_log=None)
-            self.worker_port = self._targets[self._mpi_rank][1]
+            self.worker_port = self._targets[self.mpi_rank][1]
 
-            print('Worker', self._mpi_rank, 'listening at port', self.worker_port)
+            print('Worker', self.mpi_rank, 'listening at port', self.worker_port)
             sys.stdout.flush()
 
-            self._query.start(self._targets[self._mpi_rank][1])
+            self._query.start(self._targets[self.mpi_rank][1])
 
         return
 
@@ -109,15 +109,15 @@ class MasterWorker(object):
         print('Shutting down:', msg)
         sys.stdout.flush()
 
-        if self._role == 'worker':
+        if self.role == 'worker':
             self._buffer = MPI.COMM_WORLD.send(dest=0, tag=self.DEADTAG)
             MPI.Finalize()
             exit(0)
 
-        if self._role == 'master':
+        if self.role == 'master':
 
             try:
-                for nod_num in range(1, self._mpi_size()):
+                for nod_num in range(1, self.mpi_size()):
                     MPI.COMM_WORLD.isend(0, dest=nod_num,
                                          tag=self.DIETAG)
                 num_shutdown_confirm = 0
@@ -126,7 +126,7 @@ class MasterWorker(object):
                         self._buffer = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=self.DEADTAG):
                         num_shutdown_confirm += 1
-                    if num_shutdown_confirm == self._mpi_size() - 1:
+                    if num_shutdown_confirm == self.mpi_size() - 1:
                         break
                 MPI.Finalize()
             except Exception:
@@ -136,7 +136,7 @@ class MasterWorker(object):
 
     def start(self, verbose=False):
 
-        if self._role == 'worker':
+        if self.role == 'worker':
 
             req = None
 
@@ -148,7 +148,7 @@ class MasterWorker(object):
                 relative_filepath = os.path.join(metadata['relative_path'], metadata['filename'])
 
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
-                    self.shutdown('Shutting down RANK: {0}.'.format(self._mpi_rank))
+                    self.shutdown('Shutting down RANK: {0}.'.format(self.mpi_rank))
 
                 evt['filename'] = relative_filepath
                 try:
@@ -189,7 +189,7 @@ class MasterWorker(object):
             MPI.Finalize()
             exit(0)
 
-        elif self._role == 'master':
+        elif self.role == 'master':
 
             if verbose:
                 print('Starting master.')
@@ -203,7 +203,7 @@ class MasterWorker(object):
                     if 'end' in buffer_data[0].keys():
                         print('Finalizing', buffer_data[1])
                         self._num_nomore += 1
-                        if self._num_nomore == self._mpi_size - 1:
+                        if self._num_nomore == self.mpi_size - 1:
                             print('All workers have run out of events.')
                             print('Shutting down.')
                             sys.stdout.flush()

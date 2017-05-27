@@ -50,13 +50,13 @@ class MasterWorker(object):
         self._buffer = None
         self._event_timestamp = None
 
-        self._mpi_rank = MPI.COMM_WORLD.Get_rank()
-        self._mpi_size = MPI.COMM_WORLD.Get_size()
+        self.mpi_rank = MPI.COMM_WORLD.Get_rank()
+        self.mpi_size = MPI.COMM_WORLD.Get_size()
 
-        if self._mpi_rank == 0:
-            self._role = 'master'
+        if self.mpi_rank == 0:
+            self.role = 'master'
         else:
-            self._role = 'worker'
+            self.role = 'worker'
 
         self._event_rejection_threshold = 10000000000
         self._offline = False
@@ -79,11 +79,11 @@ class MasterWorker(object):
         self._extract_data = extract
         self._initialize_data_extraction = initialize
 
-        if self._role == 'worker':
+        if self.role == 'worker':
             self._psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True)
 
         # The following is executed only on the master node
-        if self._role == 'master':
+        if self.role == 'master':
 
             self._num_reduced_events = 0
             self._num_nomore = 0
@@ -97,15 +97,15 @@ class MasterWorker(object):
 
         print('Shutting down:', msg)
 
-        if self._role == 'worker':
+        if self.role == 'worker':
             self._buffer = MPI.COMM_WORLD.send(dest=0, tag=self.DEADTAG)
             MPI.Finalize()
             exit(0)
 
-        if self._role == 'master':
+        if self.role == 'master':
 
             try:
-                for nod_num in range(1, self._mpi_size()):
+                for nod_num in range(1, self.mpi_size()):
                     MPI.COMM_WORLD.isend(0, dest=nod_num,
                                          tag=self.DIETAG)
                 num_shutdown_confirm = 0
@@ -114,7 +114,7 @@ class MasterWorker(object):
                         self._buffer = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=self.DEADTAG):
                         num_shutdown_confirm += 1
-                    if num_shutdown_confirm == self._mpi_size() - 1:
+                    if num_shutdown_confirm == self.mpi_size() - 1:
                         break
                 MPI.Finalize()
             except Exception:
@@ -124,7 +124,7 @@ class MasterWorker(object):
 
     def start(self, verbose=False):
 
-        if self._role == 'worker':
+        if self.role == 'worker':
 
             req = None
 
@@ -137,8 +137,8 @@ class MasterWorker(object):
                 def psana_events_generator():
                     for r in self._psana_source.runs():
                         times = r.times()
-                        mylength = int(ceil(len(times) / float(self._mpi_size - 1)))
-                        mytimes = times[(self._mpi_rank - 1) * mylength: self._mpi_rank * mylength]
+                        mylength = int(ceil(len(times) / float(self.mpi_size - 1)))
+                        mytimes = times[(self.mpi_rank - 1) * mylength: self.mpi_rank * mylength]
                         for mt in mytimes:
                             yield r.event(mt)
 
@@ -167,7 +167,7 @@ class MasterWorker(object):
 
                 # Check if a shutdown message is coming from the server
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
-                    self.shutdown('Shutting down RANK: {0}'.format(self._mpi_rank))
+                    self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
 
                 event['evt'] = evt
 
@@ -188,12 +188,12 @@ class MasterWorker(object):
             end_dict = {'end': True}
             if req:
                 req.Wait()  # be sure we're not still sending something
-            MPI.COMM_WORLD.isend((end_dict, self._mpi_rank), dest=0, tag=0)
+            MPI.COMM_WORLD.isend((end_dict, self.mpi_rank), dest=0, tag=0)
             MPI.Finalize()
             exit(0)
 
         # The following is executed on the master
-        elif self._role == 'master':
+        elif self.role == 'master':
 
             if verbose:
                 print('Starting master.')
@@ -209,7 +209,7 @@ class MasterWorker(object):
                     if 'end' in buffer_data[0].keys():
                         print('Finalizing', buffer_data[1])
                         self._num_nomore += 1
-                        if self._num_nomore == self._mpi_size - 1:
+                        if self._num_nomore == self.mpi_size - 1:
                             print('All workers have run out of events.')
                             print('Shutting down.')
                             self.end_processing()
