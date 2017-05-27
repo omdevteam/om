@@ -24,6 +24,9 @@ import datetime
 from scipy.constants import h, c, electron_volt
 
 
+file_extensions = ['.cbf']
+
+
 slab_shape = (2527, 2463)
 native_shape = (2527, 2463)
 

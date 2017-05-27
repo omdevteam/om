@@ -27,8 +27,6 @@ import ondautils.onda_param_utils as op
 in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
 num_events_in_file = di.import_function_from_layer('num_events_in_file', in_layer)
 
-file_extensions = ['.h5', '.nxs']
-
 data_extraction_funcs = [x.strip() for x in op.param('Onda', 'required_data', list, required=True)]
 for func in data_extraction_funcs:
     try:

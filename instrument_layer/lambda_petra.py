@@ -17,6 +17,8 @@
 slab_shape = (516, 1556)
 native_shape = (516, 1556)
 
+file_extensions = ['.nxs']
+
 
 def num_events_in_file(evt):
     return evt['filehandle']['/entry/instrument/detector/data'].shape[0]

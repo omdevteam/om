@@ -35,6 +35,8 @@ close_file = di.import_function_from_layer('close_file', de_layer)
 extract = di.import_function_from_layer('extract', de_layer)
 num_events = di.import_function_from_layer('num_events', de_layer)
 
+in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
+file_extensions = di.import_list_from_layer('file_extensions', in_layer)
 
 class MasterWorker(object):
     NOMORE = 998
@@ -116,6 +118,10 @@ class MasterWorker(object):
 
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}.'.format(self.mpi_rank))
+
+                extension_match = [filepath.strip().endswith(x) for x in file_extensions]
+                if not any(extension_match) is True:
+                    continue
 
                 evt['filename'] = filepath.strip()
 

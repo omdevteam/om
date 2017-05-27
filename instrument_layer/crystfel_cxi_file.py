@@ -23,6 +23,8 @@ import datetime
 
 slab_shape = (1480, 1552)
 
+file_extensions = ['.nxs']
+
 
 def num_events_in_file(evt):
     return evt['filehandle']['/entry_1/instrument_1/detector_1/detector_corrected/data'].shape[0]

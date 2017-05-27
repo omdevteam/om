@@ -23,6 +23,8 @@ from __future__ import unicode_literals
 slab_shape = (516, 1556)
 native_shape = (516, 1556)
 
+file_extensions = ['.nxs']
+
 
 def num_events_in_file(evt):
     return evt['filehandle']['/entry/data/data'].shape[0]

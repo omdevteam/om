@@ -23,6 +23,8 @@ import datetime
 
 slab_shape = (1480, 1552)
 
+file_extensions = ['.nxs', '.h5']
+
 
 def num_events_in_file(evt):
     return 1
