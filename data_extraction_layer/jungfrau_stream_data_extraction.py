@@ -28,26 +28,14 @@ num_events_in_file = di.import_function_from_layer('num_events_in_file', in_laye
 
 file_extensions = ['.cbf']
 
-raw_data = lambda x: None
-detector_distance = lambda x: None
-beam_energy = lambda x: None
-timestamp = lambda x: None
-filename_and_event = lambda x: None
-
-avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'filename_and_event']
-
-required_data = op.param('Onda', 'required_data', list, required=True)
-for data_source in required_data:
-    data_source = data_source.strip()
-    if data_source not in avail_data_sources:
-        raise RuntimeError('Unknown data type: {0}'.format(data_source))
+data_extraction_funcs = [x.strip() for x in op.param('Onda', 'required_data', list, required=True)]
+for func in data_extraction_funcs:
     try:
-        locals()[data_source] = getattr(in_layer, data_source)
+        globals()[func] = getattr(in_layer, func)
     except AttributeError:
-        try:
-            locals()[data_source] = locals()[data_source + '_dataext']
-        except KeyError:
-            raise RuntimeError('Undefined data type: {0}'.format(data_source))
+        if func not in globals():
+            raise RuntimeError('Data extraction function not defined for the following '
+                               'data type: {0}'.format(func))
 
 
 def open_file(data):
@@ -64,42 +52,9 @@ def num_events(evt):
 
 
 def extract(evt, monitor):
-    # Extract timestamp
-    try:
-        monitor.timestamp = timestamp(evt)
-
-    except Exception as e:
-        print('Error while extracting timestamp:', e)
-        monitor.timestamp = None
-
-    # Extract detector data in slab format
-    try:
-        monitor.raw_data = raw_data(evt)
-
-    except Exception as e:
-        print('Error while extracting raw_data:', e)
-        monitor.raw_data = None
-
-    # Extract beam energy in eV
-    try:
-        monitor.beam_energy = beam_energy(evt)
-
-    except Exception as e:
-        print('Error while extracting beam_energy:', e)
-        monitor.beam_energy = None
-
-    # Extract detector distance in mm
-    try:
-        monitor.detector_distance = detector_distance(evt)
-
-    except Exception as e:
-        print('Error while extracting detector_distance:', e)
-        monitor.detector_distance = None
-
-    # Extract filename and event
-    try:
-        monitor.filename, monitor.event = filename_and_event(evt)
-
-    except Exception as e:
-        print('Error while extracting filename and event:', e)
-        monitor.filename_and_event = None
+    for entry in data_extraction_funcs:
+        try:
+            setattr(monitor, entry, globals()[entry](evt))
+        except:
+            print('Error extracting {}'.format(entry))
+            setattr(monitor, entry, None)

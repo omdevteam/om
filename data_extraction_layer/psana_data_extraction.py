@@ -56,7 +56,7 @@ def event_codes_init(det):
     det['EVR'] = psana.Detector('evr0')
 
 
-def timestamp_dataext(event):
+def timestamp(event):
     return event['det']['timestamp']
 
 
@@ -86,129 +86,42 @@ def event_codes_dataext(event):
 
 in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
 
-raw_data_initialize = lambda x: None
-detector_distance_initialize = lambda x: None
-beam_energy_initialize = lambda x: None
-timestamp_initialize = lambda x: None
-timetool_data_initialize = lambda x: None
-digitizer_data_initialize = lambda x: None
-digitizer2_data_initialize = lambda x: None
-event_codes_initialize = lambda x: None
+data_extraction_funcs = [x.strip() for x in op.param('Onda', 'required_data', list, required=True)]
 
-raw_data = lambda x: None
-detector_distance = lambda x: None
-beam_energy = lambda x: None
-timestamp = lambda x: None
-timetool_data = lambda x: None
-digitizer_data = lambda x: None
-digitizer2_data = lambda x: None
-event_codes = lambda x: None
-
-avail_data_sources = ['raw_data', 'detector_distance', 'beam_energy', 'timestamp', 'timetool_data', 'digitizer_data',
-                      'digitizer2_data', 'event_codes']
-
-required_data = op.param('Onda', 'required_data', list, required=True)
-for data_source in required_data:
-    data_source = data_source.strip()
-    if data_source not in avail_data_sources:
-        raise RuntimeError('Unknown data type: {0}'.format(data_source))
+for func in data_extraction_funcs:
     try:
-        globals()[data_source + '_initialize'] = getattr(in_layer, data_source + '_init')
+        globals()[func + '_init'] = getattr(in_layer, func + '_init')
     except AttributeError:
-        try:
-            globals()[data_source + '_initialize'] = globals()[data_source + '_init']
-        except KeyError:
+        if func + '_init' not in globals():
             raise RuntimeError('Initialization function not defined for the following '
-                               'data type: {0}'.format(data_source))
+                               'data type: {0}'.format(func))
 
-for data_source in required_data:
-    data_source = data_source.strip()
-    if data_source not in avail_data_sources:
-        raise RuntimeError('Unknown data type: {0}'.format(data_source))
+for func in data_extraction_funcs:
     try:
-        if data_source == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
-            globals()[data_source] = getattr(in_layer, data_source + '_dataext_pedestals_only')
+        if func == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
+            globals()[func] = getattr(in_layer, func + '_pedestals_only')
         else:
-            globals()[data_source] = getattr(in_layer, data_source + '_dataext')
+            globals()[func] = getattr(in_layer, func)
     except AttributeError:
-        try:
-            if data_source == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
-                globals()[data_source] = globals()[data_source + '_dataext_pedestals_only']
+            if func == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
+                if func + '_pedestals_only' not in globals():
+                    raise RuntimeError('Data extraction function not defined for the following '
+                                       'data type: {0} (pedestals_only)'.format(func))
             else:
-                globals()[data_source] = globals()[data_source + '_dataext']
-        except KeyError:
-            raise RuntimeError('Data extraction function not defined for the following '
-                               'data type: {0}'.format(data_source))
+                if func not in globals():
+                    raise RuntimeError('Data extraction function not defined for the following '
+                                       'data type: {0}'.format(func))
 
 
 def initialize(det):
-    for init_data_source in avail_data_sources:
-        if init_data_source in required_data:
-            globals()[init_data_source + '_initialize'](det)
+    for init_data_source in data_extraction_funcs:
+        globals()[init_data_source + '_init'](det)
 
 
-def extract(event, monitor):
-
-    # Extract time stamp data
-    try:
-        monitor.timestamp = timestamp(event)
-
-    except Exception as e:
-        print('Error when extracting raw data:', e)
-        monitor.timestamp = None
-
-    # Extract detector data in slab format
-    try:
-        monitor.raw_data = raw_data(event)
-
-    except Exception as e:
-        print('Error when extracting raw data:', e)
-        monitor.raw_data = None
-
-    # Extract detector distance in mm
-    try:
-        monitor.detector_distance = detector_distance(event)
-
-    except Exception as e:
-        print('Error when extracting detector distance:', e)
-        monitor.detector_distance = None
-
-    # Extract beam energy in eV
-    try:
-        monitor.beam_energy = beam_energy(event)
-
-    except Exception as e:
-        print('Error when extracting beam energy:', e)
-        monitor.beam_energy = None
-
-    # Extract timetool data
-    try:
-        monitor.timetool_data = timetool_data(event)
-
-    except Exception as e:
-        print('Error when extracting timetool data:', e)
-        monitor.timetool_data = None
-
-    # Extract Acquiris data
-    try:
-        monitor.digitizer_data = digitizer_data(event)
-
-    except Exception as e:
-        print('Error when extracting digitizer data:', e)
-        monitor.digitizer_data = None
-
-    # Extract Acquiris data
-    try:
-        monitor.digitizer2_data = digitizer2_data(event)
-
-    except Exception as e:
-        print('Error when extracting digitizer2 data:', e)
-        monitor.digitizer2_data = None
-
-    # Extract Acquiris data
-    try:
-        monitor.event_codes = event_codes(event)
-
-    except Exception as e:
-        print('Error when extracting event_codes:', e)
-        monitor.event_codes = None
+def extract(evt, monitor):
+    for entry in data_extraction_funcs:
+        try:
+            setattr(monitor, entry, globals()[entry](evt))
+        except:
+            print('Error extracting {}'.format(entry))
+            setattr(monitor, entry, None)
