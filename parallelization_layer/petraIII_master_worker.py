@@ -41,6 +41,15 @@ num_events = di.import_function_from_layer('num_events', de_layer)
 in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
 file_extensions = di.import_list_from_layer('file_extensions', in_layer)
 
+
+def _open_file_data(data, _):
+    return open_file(data)
+
+
+def _open_file_metadata(_, filepath):
+    return open_file(filepath)
+
+
 class MasterWorker(object):
     NOMORE = 998
     DIETAG = 999
@@ -66,8 +75,19 @@ class MasterWorker(object):
 
         self._hostname = socket.gethostname()
         self._sender_hostname = source
-        self._base_port = op.param('PetraIIIMetadataParallelizationLayer', 'base_port', int, required=True)
+        self._base_port = op.param('PetraIIIParallelizationLayer', 'base_port', int, required=True)
         self._priority = 1
+
+        transfer_type = op.param('PetraIIIParallelizationLayer', 'transfer_type', required=True)
+        if transfer_type == 'data':
+            self._query_text = 'QUERY_NEXT'
+            self._data_base_path = os.path.join(op.param('PetraIIIParallelizationLayer', 'data_base_path',
+                                                         str, required=True))
+            self._open_file = _open_file_data
+        else:
+            self._query_text = 'QUERY_METADATA'
+            self._data_base_path = ''
+            self._open_file = _open_file_metadata
 
         self._targets = [['', '', 1]]
 
@@ -85,7 +105,7 @@ class MasterWorker(object):
             print('Announcing OnDA to sender.')
             sys.stdout.flush()
 
-            self._query = Transfer('QUERY_METADATA', self._sender_hostname, use_log=False)
+            self._query = Transfer(self._query_text, self._sender_hostname, use_log=False)
             self._query.initiate(self._targets[1:])
 
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
@@ -96,7 +116,7 @@ class MasterWorker(object):
 
             self._buffer = None
 
-            self._query = Transfer('QUERY_METADATA', self._sender_hostname, use_log=None)
+            self._query = Transfer(self._query_text, self._sender_hostname, use_log=None)
             self._worker_port = self._targets[self.mpi_rank][1]
 
             print('Worker', self.mpi_rank, 'listening at port', self._worker_port)
@@ -146,23 +166,21 @@ class MasterWorker(object):
 
             while True:
 
-                [metadata, _] = self._query.get()
-                relative_filepath = os.path.join(metadata['relative_path'], metadata['filename'])
-
-                absolute_filepath = os.path.join(op.param('PetraIIIMetadataParallelizationLayer', 'data_base_path',
-                                                          str, required=True), relative_filepath)
+                [metadata, data] = self._query.get()
 
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}.'.format(self.mpi_rank))
 
-                print(absolute_filepath)
-                evt['filename'] = absolute_filepath
+                relative_filepath = os.path.join(metadata['relative_path'], metadata['filename'])
+                filepath = os.path.join(op.param(self._data_base_path, relative_filepath))
+
+                evt['filename'] = filepath
                 try:
-                    evt['filehandle'] = open_file(absolute_filepath)
+                    evt['filehandle'] = self._open_file(data, filepath)
                     evt['filectime'] = datetime.datetime.fromtimestamp(metadata['file_create_time'])
                     evt['num_events'] = num_events(evt)
                 except (IOError, OSError):
-                    print('Cannot read file: {0}'.format(absolute_filepath))
+                    print('Cannot read file: {0}'.format(filepath))
                     continue
 
                 shots_to_proc = self._max_shots_to_proc
@@ -237,4 +255,3 @@ class MasterWorker(object):
         print('Processing finished. Processed', self._num_reduced_events, 'events in total.')
         sys.stdout.flush()
         pass
-
