@@ -84,10 +84,12 @@ class MasterWorker(object):
             self._data_base_path = os.path.join(op.param('PetraIIIParallelizationLayer', 'data_base_path',
                                                          str, required=True))
             self._open_file = _open_file_data
-        else:
+        elif transfer_type == 'metadata':
             self._query_text = 'QUERY_METADATA'
             self._data_base_path = ''
             self._open_file = _open_file_metadata
+        else:
+            raise RuntimeError('Unrecognized transfer type for PetraIII parallelization layer.')
 
         self._targets = [['', '', 1]]
 
