@@ -49,10 +49,13 @@ class Onda(MasterWorker):
             _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file', str,
                                                                                required=True))
 
-            if op.param('General', 'calibration_algorithm', str) is not None:
-                DetectorCalibration = di.import_calibration_algorithm(op.param('General', 'calibration_algorithm',
-                                                                               str, required=True))
-                detector_calibration = DetectorCalibration(op.param('General', 'calibration_file', str, required=True))
+            if op.param('DetectorCalibration', 'calibration_algorithm') is not None:
+
+                detector_calibration_alg = di.import_calibration_algorithm(op.param('DetectorCalibration',
+                                                                                    'calibration_algorithm', str,
+                                                                                    required=True))
+                detector_calibration = detector_calibration_alg(op.param('DetectorCalibration', 'calibration_file',
+                                                                         str, required=True))
                 self._apply_calibration = detector_calibration.apply_calibration
             else:
                 self._apply_calibration = lambda x: x
