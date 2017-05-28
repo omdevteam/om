@@ -119,7 +119,7 @@ class MasterWorker(object):
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
 
         if self.role == 'worker':
-            self._max_shots_to_proc = op.param('PetraIIIMetadataParallelizationLayer', 'images_per_file_to_process',
+            self._max_shots_to_proc = op.param('PetraIIIParallelizationLayer', 'images_per_file_to_process',
                                                int, required=True)
 
             self._buffer = None
