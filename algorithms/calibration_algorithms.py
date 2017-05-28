@@ -59,7 +59,7 @@ class LambdaCalibration:
             corrected_data(numpy.ndarray):  the calibrated data
         """
 
-        return raw_data - self._flatfield
+        return raw_data * self._flatfield
 
 
 
