@@ -39,7 +39,13 @@ extract = di.import_function_from_layer('extract', de_layer)
 num_events = di.import_function_from_layer('num_events', de_layer)
 
 in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
-file_extensions = di.import_list_from_layer('file_extensions', in_layer)
+try:
+    file_extensions = di.import_list_from_layer('file_extensions', in_layer)
+except RuntimeError:
+    try:
+        file_extensions = di.import_str_from_layer('file_extensions', in_layer)
+    except RuntimeError:
+        raise RuntimeError('Could not import file extensions from the instrument layer.')
 
 
 def _open_file_data(data, _):
