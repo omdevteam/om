@@ -180,7 +180,7 @@ class MasterWorker(object):
                     self.shutdown('Shutting down RANK: {0}.'.format(self.mpi_rank))
 
                 relative_filepath = os.path.join(metadata['relative_path'], metadata['filename'])
-                filepath = os.path.join(op.param(self._data_base_path, relative_filepath))
+                filepath = os.path.join(self._data_base_path, relative_filepath)
 
                 evt['filename'] = filepath
                 try:
