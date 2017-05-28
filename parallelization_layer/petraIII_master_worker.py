@@ -87,12 +87,12 @@ class MasterWorker(object):
         transfer_type = op.param('PetraIIIParallelizationLayer', 'transfer_type', required=True)
         if transfer_type == 'data':
             self._query_text = 'QUERY_NEXT'
-            self._data_base_path = os.path.join(op.param('PetraIIIParallelizationLayer', 'data_base_path',
-                                                         str, required=True))
+            self._data_base_path = ''
             self._open_file = _open_file_data
         elif transfer_type == 'metadata':
             self._query_text = 'QUERY_METADATA'
-            self._data_base_path = ''
+            self._data_base_path = os.path.join(op.param('PetraIIIParallelizationLayer', 'data_base_path',
+                                                         str, required=True))
             self._open_file = _open_file_metadata
         else:
             raise RuntimeError('Unrecognized transfer type for PetraIII parallelization layer.')
