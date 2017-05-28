@@ -105,3 +105,16 @@ def import_str_from_layer(string, layer):
             return ret
 
 
+def import_class_from_module(cls, module):
+
+    try:
+        ret = getattr(module, cls)
+    except AttributeError:
+        raise RuntimeError('Error importing class {0} from layer {1}, {0} does not exist.'.format(
+            cls, module.__name__))
+    else:
+        if not inspect.isclass(ret):
+            raise RuntimeError('Error importing class {0} from layer {1}, {0} is not a class.'.format(
+                cls, module.__name__))
+        else:
+            return ret

@@ -29,6 +29,7 @@ import cfelpyutils.cfel_geom as cgm
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 import ondautils.onda_zmq_monitor_utils as zut
+import algorithms.calibration_algorithms as calibalg
 import algorithms.crystallography_algorithms as calg
 import algorithms.generic_algorithms as galg
 
@@ -51,9 +52,9 @@ class Onda(MasterWorker):
 
             if op.param('DetectorCalibration', 'calibration_algorithm') is not None:
 
-                detector_calibration_alg = di.import_calibration_algorithm(op.param('DetectorCalibration',
-                                                                                    'calibration_algorithm', str,
-                                                                                    required=True))
+                detector_calibration_alg = di.import_class_from_module(op.param('DetectorCalibration',
+                                                                                'calibration_algorithm', str,
+                                                                                required=True), calibalg)
                 detector_calibration = detector_calibration_alg(op.param('DetectorCalibration', 'calibration_file',
                                                                          str, required=True))
                 self._apply_calibration = detector_calibration.apply_calibration
