@@ -35,7 +35,7 @@ _CXISimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
 
 
 class _Stack:
-    def __init__(self, path, data, axes):
+    def __init__(self, path, data, axes, compression, chunk_size):
 
         self._data_type = type(data)
 
@@ -47,6 +47,12 @@ class _Stack:
         self._data_to_write = data
         self._path = path
         self._axes = axes
+        self._compression = compression
+
+        if chunk_size is None:
+            self._chunk_size = (1,) + self._data_shape
+        else:
+            self._chunk_size = chunk_size
 
     def is_there_data_to_write(self):
 
@@ -59,7 +65,7 @@ class _Stack:
 
         file_handle.create_dataset(self._path, shape=(max_num_slices,) + self._data_shape,
                                    maxshape=(max_num_slices,) + self._data_shape,
-                                   chunks=(1,) + self._data_shape)
+                                   compression = self._compression, chunks=self._chunk_size)
         file_handle[self._path][0] = self._data_to_write
 
         if self._axes is not None:
@@ -133,45 +139,43 @@ class CXIWriter:
     
     Example of usage of the stack API:
     
-        c1 = 0
-        c2 = 0
-    
-        f1 = CXIWriter('/data/test1.h5', )
-        f2 = CXIWriter('/data/test2.h5', )
-    
-        f1.add_stack_to_writer('detector1', '/entry_1/detector_1/data', numpy.random.rand(2, 2),
-                               'frame:y:x')
-        f2.add_stack_to_writer('detector2', '/entry_1/detector_1/data', numpy.random.rand(3, 2))
-                               'frame:y:x')
-    
-        f1.add_stack_to_writer('counter1', '/entry_1/detector_1/count', c1)
-        f2.add_stack_to_writer('counter2', '/entry_1/detector_1/count', c2)
-    
-        f1.write_simple_entry('/entry_1/detector_1/name', 'FrontCSPAD')
-        f2.write_simple_entry('/entry_1/detector_1/name', 'BackCSPAD')
-    
-        f1.initialize_stacks()
-        f2.initialize_stacks()
-    
-        for i in range(1, 60):
-            print('Writing slice:', i)
-            a = numpy.random.rand(2, 2)
-            b = numpy.random.rand(3, 2)
-    
-            c1 += 1
-            c2 += 2
-    
-            f1.append_data_to_stack('detector1', a)
-            f2.append_data_to_stack('detector2', b)
-    
-            f1.append_data_to_stack('counter1', c1)
-            f2.append_data_to_stack('counter2', c2)
-    
-            f1.write_stack_slice_and_increment()
-            f2.write_stack_slice_and_increment()
-    
-        f1.close_file()
-        f2.close_file()    
+    c1 = 0
+    c2 = 0
+
+    f1 = CXIWriter('test1.h5', )
+    f2 = CXIWriter('test2.h5', )
+
+    f1.add_stack_to_writer('detector1', '/entry_1/detector_1/data', numpy.random.rand(2, 2),
+                           'frame:y:x')
+    f2.add_stack_to_writer('detector2', '/entry_1/detector_1/data', numpy.random.rand(3, 2),
+                           'frame:y:x', compression=False, chunk_size=(1,3,2))
+
+    f1.add_stack_to_writer('counter1', '/entry_1/detector_1/count', c1)
+    f2.add_stack_to_writer('counter2', '/entry_1/detector_1/count', c2)
+
+    f1.write_simple_entry('/entry_1/detector_1/name', 'FrontCSPAD')
+    f2.write_simple_entry('/entry_1/detector_1/name', 'BackCSPAD')
+
+    f1.initialize_stacks()
+    f2.initialize_stacks()
+
+    a = numpy.random.rand(2, 2)
+    b = numpy.random.rand(3, 2)
+
+    c1 += 1
+    c2 += 2
+
+    f1.append_data_to_stack('detector1', a)
+    f2.append_data_to_stack('detector2', b)
+
+    f1.append_data_to_stack('counter1', c1)
+    f2.append_data_to_stack('counter2', c2)
+
+    f1.write_stack_slice_and_increment()
+    f2.write_stack_slice_and_increment()
+
+    f1.close_file()
+    f2.close_file()
     """
 
     def __init__(self, filename, max_num_slices=5000):
@@ -211,7 +215,8 @@ class CXIWriter:
 
         self._fh.create_dataset(entry.path, data=entry.data)
 
-    def add_stack_to_writer(self, name, path, initial_data, axes=None, overwrite=True):
+    def add_stack_to_writer(self, name, path, initial_data, axes=None, compression=True, chunk_size=None,
+                            overwrite=True):
         """Adds a new stack to the file.
         
         Adds a new stack to the CXI Writer instance. The user must provide a name for the stack, that will identify
@@ -226,10 +231,17 @@ class CXIWriter:
             
             path (str): path in the hdf5 file where the stack will be written.
             
-            initial_data (Union: numpy.ndarray, str, int, float): initial entry in the stack. It gets written to the 
+            initial_data (Union[numpy.ndarray, str, int, float]: initial entry in the stack. It gets written to the 
             stack as slice 0. Its characteristics are used to validate all data subsequently appended to the stack.
             
             axes (str): the 'axes' attribute for the stack, as defined by the CXIDB file format.
+            
+            compression (Union[None, bool,str]): compression parameter for the stack. This parameters works in the same
+            way as the normal compression parameter from h5py. The default value of this parameter is True.
+            
+            chunk_size (Union[None, tuple]): HDF5 chuck size for the stack. If this parameter is set to None, the
+            CXI writer will compute a chuck size automatically (this is the default behavior). Otherwise, the writer 
+            will use the provided tuple to set the chunk size.
             
             overwrite (bool): if set to True, a stack already existing at the same location will be overwritten. If set
             to False, an attempt to overwrite a stack will raise an error.
@@ -246,7 +258,7 @@ class CXIWriter:
             else:
                 raise RuntimeError('Cannot write the entry. Data is already present at the specified path.')
 
-        new_stack = _Stack(path, initial_data, axes)
+        new_stack = _Stack(path, initial_data, axes, compression, chunk_size)
         self._cxi_stacks[name] = new_stack
 
     def write_simple_entry(self, path, data, overwrite=False):
