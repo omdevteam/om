@@ -435,6 +435,18 @@ class CXIWriter:
 
         return self._fh
 
+    def are_stacks_initialized(self):
+        """Checks if stacks are initialized.
+        
+        Checks the status of the stacks in the file and returns the status to the user.
+        
+        Returns:
+            
+            status (bool): True if the stacks are initialized, False otherwise
+        """
+
+        return self._initialized
+
     def close_file(self):
         """Closes the file.
         
