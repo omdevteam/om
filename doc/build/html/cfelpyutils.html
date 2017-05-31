@@ -159,8 +159,8 @@ f2 = CXIWriter(&#8216;test2.h5&#8217;, )</p>
 </dl>
 <p>f1.add_stack_to_writer(&#8216;counter1&#8217;, &#8216;/entry_1/detector_1/count&#8217;, c1)
 f2.add_stack_to_writer(&#8216;counter2&#8217;, &#8216;/entry_1/detector_1/count&#8217;, c2)</p>
-<p>f1.write_simple_entry(&#8216;/entry_1/detector_1/name&#8217;, &#8216;FrontCSPAD&#8217;)
-f2.write_simple_entry(&#8216;/entry_1/detector_1/name&#8217;, &#8216;BackCSPAD&#8217;)</p>
+<p>f1.write_simple_entry(&#8216;detectorname1&#8217;, &#8216;/entry_1/detector_1/name&#8217;, &#8216;FrontCSPAD&#8217;)
+f2.write_simple_entry(&#8216;detectorname2&#8217;, &#8216;/entry_1/detector_1/name&#8217;, &#8216;BackCSPAD&#8217;)</p>
 <p>f1.initialize_stacks()
 f2.initialize_stacks()</p>
 <p>a = numpy.random.rand(2, 2)
@@ -173,6 +173,8 @@ f2.append_data_to_stack(&#8216;detector2&#8217;, b)</p>
 f2.append_data_to_stack(&#8216;counter2&#8217;, c2)</p>
 <p>f1.write_stack_slice_and_increment()
 f2.write_stack_slice_and_increment()</p>
+<p>f1.create_link(&#8216;detectorname1&#8217;, &#8216;/name&#8217;)
+f2.create_link(&#8216;detectorname2&#8217;, &#8216;/name&#8217;)</p>
 <p>f1.close_file()
 f2.close_file()</p>
 <dl class="method">
@@ -238,6 +240,29 @@ the write_slice_and_increment.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="cfelpyutils.cfel_cxi.CXIWriter.create_link">
+<code class="descname">create_link</code><span class="sig-paren">(</span><em>name</em>, <em>path</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.create_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a link to a stack or entry.</p>
+<p>Creates a link in the file, at the path specified, pointing to the stack or the entry identified by the
+provided name. If a link or entry already exists at the specified path, it is deleted and replaced only if the
+value of the overwrite parameter is True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) &#8211; name of the stack or entry to which the link points.</li>
+<li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 where the link is created.</li>
+<li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, an entry already existing at the same location will be overwritten. If set</li>
+<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="cfelpyutils.cfel_cxi.CXIWriter.get_file_handle">
 <code class="descname">get_file_handle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.get_file_handle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Access to the naked h5py file handle.</p>
@@ -265,15 +290,17 @@ stacks can be added to the CXI Writer after initialization.</p>
 
 <dl class="method">
 <dt id="cfelpyutils.cfel_cxi.CXIWriter.write_simple_entry">
-<code class="descname">write_simple_entry</code><span class="sig-paren">(</span><em>path</em>, <em>data</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.write_simple_entry" title="Permalink to this definition">¶</a></dt>
+<code class="descname">write_simple_entry</code><span class="sig-paren">(</span><em>name</em>, <em>path</em>, <em>data</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.write_simple_entry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a simple, non-stack entry in the file.</p>
 <p>Writes a simple, non-stack entry in the file, at the specified path. A simple entry can be written at all times,
-before or after the stack initialization.</p>
+before or after the stack initialization. THe user must provide a name that identifies the entry for further
+operations (for example, creating a link).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) &#8211; entry name</li>
 <li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 file where the entry will be written.</li>
 <li><strong></strong><strong>(</strong><strong>Union</strong> (<em>data</em>) &#8211; numpy.ndarray, str, int, float): data to write</li>
 <li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, an entry already existing at the same location will be overwritten. If set</li>
