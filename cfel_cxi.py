@@ -29,7 +29,6 @@ from builtins import str
 
 from collections import namedtuple
 import h5py
-import numpy
 
 _CXISimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
 
@@ -45,7 +44,7 @@ class _Stack:
             self._data_shape = data.shape
 
         self._data_to_write = data
-        self._path = path
+        self.path = path
         self._axes = axes
         self._compression = compression
 
@@ -61,28 +60,21 @@ class _Stack:
         else:
             return False
 
-    def is_there_data_to_write(self):
-
-        if self._data_to_write is not None:
-            return True
-        else:
-            return False
-
     def write_initial_slice(self, file_handle, max_num_slices):
 
-        file_handle.create_dataset(self._path, shape=(max_num_slices,) + self._data_shape,
+        file_handle.create_dataset(self.path, shape=(max_num_slices,) + self._data_shape,
                                    maxshape=(max_num_slices,) + self._data_shape,
-                                   compression = self._compression, chunks=self._chunk_size)
-        file_handle[self._path][0] = self._data_to_write
+                                   compression=self._compression, chunks=self._chunk_size)
+        file_handle[self.path][0] = self._data_to_write
 
         if self._axes is not None:
-            file_handle[self._path].attrs['axes'] = self._axes
+            file_handle[self.path].attrs['axes'] = self._axes
 
         self._data_to_write = None
 
     def write_slice(self, file_handle, curr_slice):
 
-        file_handle[self._path][curr_slice] = self._data_to_write
+        file_handle[self.path][curr_slice] = self._data_to_write
 
         self._data_to_write = None
 
@@ -90,7 +82,7 @@ class _Stack:
 
         if self._data_to_write is not None:
             raise RuntimeError('Cannot append data to the stack entry at {}. The previous slice has not been written '
-                               'yet.'.format(self._path))
+                               'yet.'.format(self.path))
 
         if type(data) != self._data_type:
             raise RuntimeError('The type of the input data does not match what is already present in the stack.')
@@ -109,11 +101,11 @@ class _Stack:
 
         if self._data_to_write is not None:
             raise RuntimeError('Cannot finalize the stack at {}, there is data waiting to be '
-                               'written.'.format(self._path))
+                               'written.'.format(self.path))
 
         final_size = curr_slice
 
-        file_handle[self._path].resize((final_size,) + self._data_shape)
+        file_handle[self.path].resize((final_size,) + self._data_shape)
 
 
 def _validate_data(data):
@@ -160,8 +152,8 @@ class CXIWriter:
     f1.add_stack_to_writer('counter1', '/entry_1/detector_1/count', c1)
     f2.add_stack_to_writer('counter2', '/entry_1/detector_1/count', c2)
 
-    f1.write_simple_entry('/entry_1/detector_1/name', 'FrontCSPAD')
-    f2.write_simple_entry('/entry_1/detector_1/name', 'BackCSPAD')
+    f1.write_simple_entry('detectorname1', '/entry_1/detector_1/name', 'FrontCSPAD')
+    f2.write_simple_entry('detectorname2', '/entry_1/detector_1/name', 'BackCSPAD')
 
     f1.initialize_stacks()
     f2.initialize_stacks()
@@ -181,6 +173,9 @@ class CXIWriter:
     f1.write_stack_slice_and_increment()
     f2.write_stack_slice_and_increment()
 
+    f1.create_link('detectorname1', '/name')
+    f2.create_link('detectorname2', '/name')
+
     f1.close_file()
     f2.close_file()
     """
@@ -199,6 +194,7 @@ class CXIWriter:
 
         self._cxi_stacks = {}
         self._pending_simple_entries = []
+        self._simple_entries = {}
         self._intialized = False
         self._curr_slice = 0
         self._max_num_slices = max_num_slices
@@ -256,6 +252,9 @@ class CXIWriter:
 
         _validate_data(initial_data)
 
+        if name in self._cxi_stacks:
+            raise RuntimeError('A stack with the provided name already exists.')
+
         if self._initialized is True:
             raise RuntimeError('Adding stacks to the writer is not possible after initialization.')
 
@@ -268,13 +267,16 @@ class CXIWriter:
         new_stack = _Stack(path, initial_data, axes, compression, chunk_size)
         self._cxi_stacks[name] = new_stack
 
-    def write_simple_entry(self, path, data, overwrite=False):
+    def write_simple_entry(self, name, path, data, overwrite=False):
         """Writes a simple, non-stack entry in the file.
         
         Writes a simple, non-stack entry in the file, at the specified path. A simple entry can be written at all times,
-        before or after the stack initialization.
+        before or after the stack initialization. THe user must provide a name that identifies the entry for further
+        operations (for example, creating a link).
         
         Args:
+        
+            name (str): entry name
         
             path (str): path in the hdf5 file where the entry will be written.
             
@@ -286,12 +288,56 @@ class CXIWriter:
 
         _validate_data(data)
 
+        if name in self._simple_entries:
+            raise RuntimeError('An entry with the provided name already exists.')
+
+        if path in self._fh:
+            if overwrite is True:
+                del (self._fh[path])
+            else:
+                raise RuntimeError('Cannot create the the entry. An entry already exists at the specified path.')
+
         new_entry = _CXISimpleEntry(path, data, overwrite)
 
         if self._initialized is not True:
             self._pending_simple_entries.append(new_entry)
         else:
             self._write_simple_entry(new_entry)
+
+        self._simple_entries[name] = new_entry
+
+    def create_link(self, name, path, overwrite=False):
+        """Creates a link to a stack or entry.
+         
+        Creates a link in the file, at the path specified, pointing to the stack or the entry identified by the
+        provided name. If a link or entry already exists at the specified path, it is deleted and replaced only if the
+        value of the overwrite parameter is True.
+         
+        Args:
+             
+            name (str): name of the stack or entry to which the link points.
+        
+            path (str): path in the hdf5 where the link is created.
+             
+            overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
+            to False, an attempt to overwrite an entry will raise an error.
+        """
+
+        if path in self._fh:
+            if overwrite is True:
+                del (self._fh[path])
+            else:
+                raise RuntimeError('Cannot create the link. An entry already exists at the specified path.')
+
+        try:
+            link_target = self._fh[self._cxi_stacks[name].path]
+        except KeyError:
+            try:
+                link_target = self._fh[self._simple_entries[name].path]
+            except:
+                raise RuntimeError('Cannot find an entry or stack with the proveded name.')
+
+        self._fh[path] = link_target
 
     def initialize_stacks(self):
         """Initializes the stacks.
@@ -404,3 +450,48 @@ class CXIWriter:
         self._fh.close()
 
         self._file_is_open = False
+
+
+if __name__ == '__main__':
+    import numpy
+
+    c1 = 0
+    c2 = 0
+
+    f1 = CXIWriter('test1.h5', )
+    f2 = CXIWriter('test2.h5', )
+
+    f1.add_stack_to_writer('detector1', '/entry_1/detector_1/data', numpy.random.rand(2, 2),
+                           'frame:y:x')
+    f2.add_stack_to_writer('detector2', '/entry_1/detector_1/data', numpy.random.rand(3, 2),
+                           'frame:y:x', compression=False, chunk_size=(1, 3, 2))
+
+    f1.add_stack_to_writer('counter1', '/entry_1/detector_1/count', c1)
+    f2.add_stack_to_writer('counter2', '/entry_1/detector_1/count', c2)
+
+    f1.write_simple_entry('detectorname1', '/entry_1/detector_1/name', 'FrontCSPAD')
+    f2.write_simple_entry('detectorname2', '/entry_1/detector_1/name', 'BackCSPAD')
+
+    f1.initialize_stacks()
+    f2.initialize_stacks()
+
+    a = numpy.random.rand(2, 2)
+    b = numpy.random.rand(3, 2)
+
+    c1 += 1
+    c2 += 2
+
+    f1.append_data_to_stack('detector1', a)
+    f2.append_data_to_stack('detector2', b)
+
+    f1.append_data_to_stack('counter1', c1)
+    f2.append_data_to_stack('counter2', c2)
+
+    f1.write_stack_slice_and_increment()
+    f2.write_stack_slice_and_increment()
+
+    f1.create_link('detectorname1', '/name')
+    f2.create_link('detectorname2', '/name')
+
+    f1.close_file()
+    f2.close_file()
