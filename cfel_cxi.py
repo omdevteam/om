@@ -435,7 +435,7 @@ class CXIWriter:
 
         return self._fh
 
-    def are_stacks_initialized(self):
+    def stacks_are_initialized(self):
         """Checks if stacks are initialized.
         
         Checks the status of the stacks in the file and returns the status to the user.
@@ -446,6 +446,19 @@ class CXIWriter:
         """
 
         return self._initialized
+
+    def file_is_full(self):
+        """Checks if the file is full.
+        
+        Checks if the file is full (i.e. the maximum number of slices have already been written), and returns the
+        information to the user.
+        
+        Returns:
+            
+            status (bool): True if the file is full, False otherwise.
+        """
+
+        return self._curr_slice >= self._max_num_slices
 
     def close_file(self):
         """Closes the file.
@@ -463,47 +476,3 @@ class CXIWriter:
 
         self._file_is_open = False
 
-
-if __name__ == '__main__':
-    import numpy
-
-    c1 = 0
-    c2 = 0
-
-    f1 = CXIWriter('test1.h5', )
-    f2 = CXIWriter('test2.h5', )
-
-    f1.add_stack_to_writer('detector1', '/entry_1/detector_1/data', numpy.random.rand(2, 2),
-                           'frame:y:x')
-    f2.add_stack_to_writer('detector2', '/entry_1/detector_1/data', numpy.random.rand(3, 2),
-                           'frame:y:x', compression=False, chunk_size=(1, 3, 2))
-
-    f1.add_stack_to_writer('counter1', '/entry_1/detector_1/count', c1)
-    f2.add_stack_to_writer('counter2', '/entry_1/detector_1/count', c2)
-
-    f1.write_simple_entry('detectorname1', '/entry_1/detector_1/name', 'FrontCSPAD')
-    f2.write_simple_entry('detectorname2', '/entry_1/detector_1/name', 'BackCSPAD')
-
-    f1.initialize_stacks()
-    f2.initialize_stacks()
-
-    a = numpy.random.rand(2, 2)
-    b = numpy.random.rand(3, 2)
-
-    c1 += 1
-    c2 += 2
-
-    f1.append_data_to_stack('detector1', a)
-    f2.append_data_to_stack('detector2', b)
-
-    f1.append_data_to_stack('counter1', c1)
-    f2.append_data_to_stack('counter2', c2)
-
-    f1.write_stack_slice_and_increment()
-    f2.write_stack_slice_and_increment()
-
-    f1.create_link('detectorname1', '/name')
-    f2.create_link('detectorname2', '/name')
-
-    f1.close_file()
-    f2.close_file()
