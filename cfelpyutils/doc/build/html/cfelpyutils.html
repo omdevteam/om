@@ -263,6 +263,28 @@ value of the overwrite parameter is True.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="cfelpyutils.cfel_cxi.CXIWriter.create_link_to_group">
+<code class="descname">create_link_to_group</code><span class="sig-paren">(</span><em>group</em>, <em>path</em>, <em>overwrite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.create_link_to_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a link to an HDF5 group.</p>
+<p>Creates a link to an HDF5 group (as opposed to a simple entry or stack). If a link or entry already exists at
+the specified path, it is deleted and replaced only if the value of the overwrite parameter is True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>group</strong> (<em>str</em>) &#8211; internal HDF5 path of the group to which the link points.</li>
+<li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 where the link is created.</li>
+<li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, an entry already existing at the same location will be overwritten. If set</li>
+<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="cfelpyutils.cfel_cxi.CXIWriter.file_is_full">
 <code class="descname">file_is_full</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.file_is_full" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if the file is full.</p>
