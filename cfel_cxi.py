@@ -339,6 +339,37 @@ class CXIWriter:
 
         self._fh[path] = link_target
 
+
+    def create_link_to_group(self, group, path, overwrite=False):
+        """Creates a link to an HDF5 group.
+        
+        Creates a link to an HDF5 group (as opposed to a simple entry or stack). If a link or entry already exists at
+        the specified path, it is deleted and replaced only if the value of the overwrite parameter is True.
+
+        Args: 
+
+            group (str): internal HDF5 path of the group to which the link points.
+        
+            path (str): path in the hdf5 where the link is created.
+             
+            overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
+            to False, an attempt to overwrite an entry will raise an error.
+        """
+
+        if path in self._fh:
+            if overwrite is True:
+                del (self._fh[path])
+            else:
+                raise RuntimeError('Cannot create the link. An entry already exists at the specified path.')
+
+        try:
+            link_target = self._fh[path]
+        except KeyError:
+            raise RuntimeError('Cannot create the link. The group to which the link points does not exist.')
+
+        self._fh[path] = link_target
+
+
     def initialize_stacks(self):
         """Initializes the stacks.
         
