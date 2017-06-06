@@ -31,8 +31,8 @@ import numpy
 
 _CXISimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
 
-def _assign_data_type(data):
 
+def _assign_data_type(data):
     if isinstance(data, numpy.ndarray):
         data_type = data.dtype
     elif isinstance(data, bytes):
@@ -41,6 +41,7 @@ def _assign_data_type(data):
         data_type = type(data)
 
     return data_type
+
 
 class _Stack:
     def __init__(self, path, data, axes, compression, chunk_size):
@@ -72,7 +73,7 @@ class _Stack:
     def write_initial_slice(self, file_handle, max_num_slices):
 
         file_handle.create_dataset(self.path, shape=(max_num_slices,) + self._data_shape,
-                                   dtype = self._data_type,
+                                   dtype=self._data_type,
                                    maxshape=(max_num_slices,) + self._data_shape,
                                    compression=self._compression, chunks=self._chunk_size)
 
@@ -123,7 +124,6 @@ class _Stack:
 
 
 def _validate_data(data):
-
     if not isinstance(data, (bytes, int, float, numpy.ndarray)):
         raise RuntimeError('The CXI Writer only accepts numpy objects, numbers and ascii strings.')
 
@@ -354,7 +354,6 @@ class CXIWriter:
 
         self._fh[path] = link_target
 
-
     def create_link_to_group(self, group, path, overwrite=False):
         """Creates a link to an HDF5 group.
         
@@ -383,7 +382,6 @@ class CXIWriter:
             raise RuntimeError('Cannot create the link. The group to which the link points does not exist.')
 
         self._fh[path] = link_target
-
 
     def initialize_stacks(self):
         """Initializes the stacks.
@@ -521,4 +519,3 @@ class CXIWriter:
         self._fh.close()
 
         self._file_is_open = False
-
