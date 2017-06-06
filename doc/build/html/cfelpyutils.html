@@ -193,9 +193,9 @@ the stack.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<em>str</em>) &#8211; stack name.</li>
 <li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 file where the stack will be written.</li>
-<li><strong></strong><strong>(</strong><strong>Union</strong><strong>[</strong><strong>numpy.ndarray</strong><strong>, </strong><strong>str</strong><strong>, </strong><strong>int</strong><strong>, </strong><strong>float</strong><strong>]</strong><strong></strong> (<em>initial_data</em>) &#8211; initial entry in the stack. It gets written to the</li>
+<li><strong></strong><strong>(</strong><strong>Union</strong><strong>[</strong><strong>numpy.ndarray</strong><strong>, </strong><strong>bytes</strong><strong>, </strong><strong>int</strong><strong>, </strong><strong>float</strong><strong>]</strong><strong></strong> (<em>initial_data</em>) &#8211; initial entry in the stack. It gets written to the</li>
 <li><strong>as slice 0. Its characteristics are used to validate all data subsequently appended to the stack.</strong> (<em>stack</em>) &#8211; </li>
-<li><strong>axes</strong> (<em>str</em>) &#8211; the &#8216;axes&#8217; attribute for the stack, as defined by the CXIDB file format.</li>
+<li><strong>axes</strong> (<em>bytes</em>) &#8211; the &#8216;axes&#8217; attribute for the stack, as defined by the CXIDB file format.</li>
 <li><strong>compression</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>bool</em><em>,</em><em>str</em><em>]</em><em></em>) &#8211; compression parameter for the stack. This parameters works in the same</li>
 <li><strong>as the normal compression parameter from h5py. The default value of this parameter is True.</strong> (<em>way</em>) &#8211; </li>
 <li><strong>chunk_size</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>tuple</em><em>]</em><em></em>) &#8211; HDF5 chuck size for the stack. If this parameter is set to None, the</li>
@@ -223,7 +223,7 @@ the write_slice_and_increment.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<em>str</em>) &#8211; stack name, defining the stack to which the data will be appended.</li>
-<li><strong></strong><strong>(</strong><strong>Union</strong> (<em>data</em>) &#8211; numpy.ndarray, str, int, float): data to write. The data will be validated against the type</li>
+<li><strong></strong><strong>(</strong><strong>Union</strong><strong>[</strong><strong>numpy.ndarray</strong><strong>, </strong><strong>bytes</strong><strong>, </strong><strong>int</strong><strong>, </strong><strong>float</strong><strong>]</strong><strong></strong> (<em>data</em>) &#8211; data to write. The data will be validated against the type</li>
 <li><strong>size of previous entries in the stack.</strong> (<em>and</em>) &#8211; </li>
 </ul>
 </td>
@@ -359,7 +359,7 @@ operations (for example, creating a link).</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name</strong> (<em>str</em>) &#8211; entry name</li>
 <li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 file where the entry will be written.</li>
-<li><strong></strong><strong>(</strong><strong>Union</strong> (<em>data</em>) &#8211; numpy.ndarray, str, int, float): data to write</li>
+<li><strong>data</strong> (<em>Union</em><em>[</em><em>numpy.ndarray</em><em>, </em><em>bytes</em><em>, </em><em>int</em><em>, </em><em>float</em><em>]</em><em></em>) &#8211; data to write</li>
 <li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, an entry already existing at the same location will be overwritten. If set</li>
 <li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) &#8211; </li>
 </ul>

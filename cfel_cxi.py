@@ -25,20 +25,29 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from builtins import str
-
 from collections import namedtuple
 import h5py
+import numpy
 
 _CXISimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
 
+def _assign_data_type(data):
+
+    if isinstance(data, numpy.ndarray):
+        data_type = data.dtype
+    elif isinstance(data, bytes):
+        data_type = numpy.dtype('S256')
+    else:
+        data_type = type(data)
+
+    return data_type
 
 class _Stack:
     def __init__(self, path, data, axes, compression, chunk_size):
 
-        self._data_type = type(data)
+        self._data_type = _assign_data_type(data)
 
-        if isinstance(data, (str, int, float)):
+        if isinstance(data, (bytes, int, float)):
             self._data_shape = (1,)
         else:
             self._data_shape = data.shape
@@ -63,9 +72,12 @@ class _Stack:
     def write_initial_slice(self, file_handle, max_num_slices):
 
         file_handle.create_dataset(self.path, shape=(max_num_slices,) + self._data_shape,
+                                   dtype = self._data_type,
                                    maxshape=(max_num_slices,) + self._data_shape,
                                    compression=self._compression, chunks=self._chunk_size)
-        file_handle[self.path][0] = self._data_to_write
+
+        dataset = file_handle[self.path]
+        dataset[0] = self._data_to_write
 
         if self._axes is not None:
             file_handle[self.path].attrs['axes'] = self._axes
@@ -84,10 +96,12 @@ class _Stack:
             raise RuntimeError('Cannot append data to the stack entry at {}. The previous slice has not been written '
                                'yet.'.format(self.path))
 
-        if type(data) != self._data_type:
+        data_type = _assign_data_type(data)
+
+        if data_type != self._data_type:
             raise RuntimeError('The type of the input data does not match what is already present in the stack.')
 
-        if isinstance(data, (str, int, float)):
+        if isinstance(data, (bytes, int, float)):
             curr_data_shape = (1,)
         else:
             curr_data_shape = data.shape
@@ -109,8 +123,9 @@ class _Stack:
 
 
 def _validate_data(data):
-    if not isinstance(data, (str, int, float, numpy.ndarray)):
-        raise RuntimeError('The CXI Writer only accepts numpy objects, numbers and strings.')
+
+    if not isinstance(data, (bytes, int, float, numpy.ndarray)):
+        raise RuntimeError('The CXI Writer only accepts numpy objects, numbers and ascii strings.')
 
 
 class CXIWriter:
@@ -234,10 +249,10 @@ class CXIWriter:
             
             path (str): path in the hdf5 file where the stack will be written.
             
-            initial_data (Union[numpy.ndarray, str, int, float]: initial entry in the stack. It gets written to the 
+            initial_data (Union[numpy.ndarray, bytes, int, float]: initial entry in the stack. It gets written to the 
             stack as slice 0. Its characteristics are used to validate all data subsequently appended to the stack.
             
-            axes (str): the 'axes' attribute for the stack, as defined by the CXIDB file format.
+            axes (bytes): the 'axes' attribute for the stack, as defined by the CXIDB file format.
             
             compression (Union[None, bool,str]): compression parameter for the stack. This parameters works in the same
             way as the normal compression parameter from h5py. The default value of this parameter is True.
@@ -280,7 +295,7 @@ class CXIWriter:
         
             path (str): path in the hdf5 file where the entry will be written.
             
-            data (Union: numpy.ndarray, str, int, float): data to write
+            data (Union[numpy.ndarray, bytes, int, float]): data to write
             
             overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
             to False, an attempt to overwrite an entry will raise an error.
@@ -363,7 +378,7 @@ class CXIWriter:
                 raise RuntimeError('Cannot create the link. An entry already exists at the specified path.')
 
         try:
-            link_target = self._fh[path]
+            link_target = self._fh[group]
         except KeyError:
             raise RuntimeError('Cannot create the link. The group to which the link points does not exist.')
 
@@ -405,7 +420,7 @@ class CXIWriter:
             
             name (str): stack name, defining the stack to which the data will be appended.
             
-            data (Union: numpy.ndarray, str, int, float): data to write. The data will be validated against the type
+            data (Union[numpy.ndarray, bytes, int, float]: data to write. The data will be validated against the type
             and size of previous entries in the stack.
         """
 
