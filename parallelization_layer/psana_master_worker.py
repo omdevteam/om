@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from builtins import str
 
+from collections import namedtuple
 from datetime import datetime
 from mpi4py import MPI
 from numpy import ceil
@@ -31,6 +32,9 @@ import psana
 from cfelpyutils.cfel_psana import dirname_from_source_runs
 from ondautils.onda_param_utils import monitor_params, param
 from ondautils.onda_dynamic_import_utils import import_correct_layer_module, import_function_from_layer
+
+
+EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp', 'monitor_params'])
 
 de_layer = import_correct_layer_module('data_extraction_layer', monitor_params)
 initialize = import_function_from_layer('initialize', de_layer)
@@ -144,8 +148,7 @@ class MasterWorker(object):
 
                 psana_events = psana_events_generator()
 
-            event = {'monitor_params': monitor_params, 'det': {}}
-            self._initialize_data_extraction(event['det'])
+            detector = self._initialize_data_extraction()
 
             # Loop over events and process
             for evt in psana_events:
@@ -163,13 +166,11 @@ class MasterWorker(object):
                 if (timenow - timestamp).total_seconds() > self._event_rejection_threshold:
                     continue
 
-                event['det']['timestamp'] = timestamp
-
                 # Check if a shutdown message is coming from the server
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
 
-                event['evt'] = evt
+                event = EventData(evt, detector, timestamp, monitor_params)
 
                 self._extract_data(event, self)
 

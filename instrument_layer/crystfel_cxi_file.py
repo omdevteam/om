@@ -31,26 +31,27 @@ native_shape = NativeShape(1480, 1552)
 file_extensions = ['.nxs']
 
 
-def num_events_in_file(evt):
-    return evt['filehandle']['/entry_1/instrument_1/detector_1/detector_corrected/data'].shape[0]
+def num_events_in_file(filehandle):
+    return filehandle['/entry_1/instrument_1/detector_1/detector_corrected/data'].shape[0]
 
 
-def timestamp_dataext(evt):
-    return datetime.datetime.strptime(evt['filehandle']['/LCLS/eventTimeString'][evt['shot_offset']].decode(
+def timestamp(event):
+    return datetime.datetime.strptime(event.filehandle['/LCLS/eventTimeString'][event['shot_offset']].decode(
         'ascii').strip(), '%a %b  %d %H:%M:%S %Y')
 
 
-def raw_data_dataext(evt):
-    return evt['filehandle']['/entry_1/instrument_1/detector_1/detector_corrected/data'][evt['shot_offset'], :, :]
+def raw_data(event):
+    return event.filehandle['/entry_1/instrument_1/detector_1/detector_corrected/data'][event.shot_offset, :, :]
 
 
-def detector_distance_dataext(evt):
-    return float(evt['filehandle']['LCLS/detector_1/EncoderValue'][evt['shot_offset']])
+def detector_distance(event):
+    return float(event.filehandle['LCLS/detector_1/EncoderValue'][event.shot_offset])
 
 
-def beam_energy_dataext(evt):
-    return float(evt['filehandle']['/LCLS/photon_energy_eV'][evt['shot_offset']])
+def beam_energy(event):
+    return float(event.filehandle['/LCLS/photon_energy_eV'][event.shot_offset])
 
 
-def filename_and_event_dataext(evt):
-    return (evt['filename'], evt['filehandle']['/entry_1/instrument_1/detector_1/detector_corrected/data'].shape[0]+evt['shot_offset'])
+def filename_and_event(event):
+    return (event.filename,
+            event.filehandle['/entry_1/instrument_1/detector_1/detector_corrected/data'].shape[0]+event.shot_offset)

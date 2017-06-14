@@ -31,25 +31,25 @@ native_shape = (128, 512)
 file_extensions = ['.nxs']
 
 
-def num_events_in_file(evt):
-    return evt['filehandle']['/entry/instrument/detector/data'].shape[0]
+def num_events_in_file(filehandle):
+    return filehandle['/entry/instrument/detector/data'].shape[0]
 
 
 def raw_data(evt):
-    return evt['filehandle']['/entry/instrument/detector/data'][2*evt['shot_offset'], :, :]
+    return evt.filehandle['/entry/instrument/detector/data'][2*evt['shot_offset'], :, :]
 
 
 def timestamp(evt):
-    return evt['filectime']
+    return evt.filectime
 
 
-def detector_distance(evt):
-    return float(evt['monitor_params']['General']['fallback_detector_distance'])
+def detector_distance(event):
+    return float(event.monitor_params['General']['fallback_detector_distance'])
 
 
-def beam_energy(evt):
-    return float(evt['monitor_params']['General']['fallback_beam_energy'])
+def beam_energy(event):
+    return float(event.monitor_params['General']['fallback_beam_energy'])
 
 
-def filename_and_event(evt):
-    return (evt['filename'], evt['filehandle']['/entry/instrument/detector/data'].shape[0]+2*evt['shot_offset'])
+def filename_and_event(event):
+    return (event.filename, event.filehandle['/entry/instrument/detector/data'].shape[0]+2*event.shot_offset)

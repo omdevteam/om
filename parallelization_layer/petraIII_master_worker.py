@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from builtins import str
 
+from collections import namedtuple
 from mpi4py import MPI
 import os.path
 import signal
@@ -28,8 +29,13 @@ import socket
 import sys
 
 from hidra_api import Transfer
+from hidra_api.transfer import CommunicationFailed
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
+
+
+EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events_per_file', 'shot_offset',
+                                     'monitor_params'])
 
 de_layer = di.import_correct_layer_module('data_extraction_layer', op.monitor_params)
 open_file = di.import_function_from_layer('open_file', de_layer)
@@ -112,8 +118,11 @@ class MasterWorker(object):
             print('Announcing OnDA to sender.')
             sys.stdout.flush()
 
-            self._query = Transfer(self._query_text, self._sender_hostname, use_log=False)
-            self._query.initiate(self._targets[1:])
+            try:
+                self._query = Transfer(self._query_text, self._sender_hostname, use_log=False)
+                self._query.initiate(self._targets[1:])
+            except CommunicationFailed as e:
+                raise RuntimeError('Failed to contact HiDRA.') from None
 
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
 
@@ -169,8 +178,6 @@ class MasterWorker(object):
 
             req = None
 
-            evt = {'monitor_params': op.monitor_params}
-
             while True:
 
                 [metadata, data] = self._query.get()
@@ -181,23 +188,25 @@ class MasterWorker(object):
                 relative_filepath = os.path.join(metadata['relative_path'], metadata['filename'])
                 filepath = os.path.join(self._data_base_path, relative_filepath)
 
-                evt['filename'] = filepath
+                filename = filepath
+
                 try:
-                    evt['filehandle'] = self._open_file(data, filepath)
-                    evt['filectime'] = metadata['file_create_time']
-                    evt['num_events'] = num_events(evt)
+                    filehandle = self._open_file(data, filepath)
+                    filectime = metadata['file_create_time']
+                    num_events_in_file = num_events(filehandle)
                 except (IOError, OSError):
                     print('Cannot read file: {0}'.format(filepath))
                     continue
 
                 shots_to_proc = self._max_shots_to_proc
 
-                if int(evt['num_events']) < self._max_shots_to_proc:
-                    shots_to_proc = int(evt['num_events'])
+                if num_events_in_file < self._max_shots_to_proc:
+                    shots_to_proc = num_events_in_file
 
                 for shot_offset in range(-shots_to_proc, 0, 1):
 
-                    evt['shot_offset'] = shot_offset
+                    evt = EventData(filehandle, filename, filectime, num_events_in_file, shot_offset,
+                                    op.monitor_params)
 
                     self._extract_data(evt, self)
 
@@ -212,7 +221,7 @@ class MasterWorker(object):
 
                 if req:
                     req.Wait()
-                close_file(evt['filehandle'])
+                close_file(evt.filehandle)
 
             end_dict = {'end': True}
             if req:

@@ -19,6 +19,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import namedtuple
 from mpi4py import MPI
 import numpy
 import os.path
@@ -27,6 +28,9 @@ import sys
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
+
+EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events_per_file', 'shot_offset',
+                                     'monitor_params'])
 
 de_layer = di.import_correct_layer_module('data_extraction_layer', op.monitor_params)
 open_file = di.import_function_from_layer('open_file', de_layer)
@@ -115,8 +119,6 @@ class MasterWorker(object):
 
             req = None
 
-            evt = {'monitor_params': op.monitor_params}
-
             mylength = int(numpy.ceil(len(self._filelist) / float(self.mpi_size - 1)))
             myfiles = self._filelist[(self.mpi_rank - 1) * mylength:self.mpi_rank * mylength]
 
@@ -129,24 +131,25 @@ class MasterWorker(object):
                 if not any(extension_match) is True:
                     continue
 
-                evt['filename'] = filepath.strip()
+                filename = filepath.strip()
 
                 try:
-                    evt['filehandle'] = open_file(filepath.strip())
-                    evt['filectime'] = os.path.getctime(filepath.strip())
-                    evt['num_events'] = num_events(evt)
+                    filehandle = open_file(filepath.strip())
+                    filectime = os.path.getctime(filepath.strip())
+                    num_events_in_file = num_events(filehandle)
                 except (IOError, OSError):
                     print('Cannot read file: {0}'.format(filepath.strip()))
                     continue
 
-                if int(evt['num_events']) < self._shots_to_proc:
-                    self._shots_to_proc = int(evt['num_events'])
+                if num_events_in_file < self._shots_to_proc:
+                    self._shots_to_proc = num_events_in_file
 
                 for shot_offset in range(-self._shots_to_proc, 0, 1):
 
-                    evt['shot_offset'] = shot_offset
+                    event = EventData(filehandle, filename, filectime, num_events_in_file, shot_offset,
+                                    op.monitor_params)
 
-                    self._extract_data(evt, self)
+                    self._extract_data(event, self)
 
                     if self.raw_data is None:
                         continue
@@ -159,7 +162,7 @@ class MasterWorker(object):
 
                 if req:
                     req.Wait()
-                close_file(evt['filehandle'])
+                close_file(event.filehandle)
 
             end_dict = {'end': True}
             if req:

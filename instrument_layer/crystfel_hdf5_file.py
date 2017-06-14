@@ -31,26 +31,26 @@ native_shape = NativeShape(1480, 1552)
 file_extensions = ['.nxs', '.h5']
 
 
-def num_events_in_file(evt):
+def num_events_in_file(_):
     return 1
 
 
-def timestamp(evt):
-    return datetime.datetime.strptime(evt['filehandle'][
+def timestamp(event):
+    return datetime.datetime.strptime(event['filehandle'][
                                           '/LCLS/eventTimeString'][()].decode('ascii').strip(), '%a %b  %d %H:%M:%S %Y')
 
 
-def raw_data(evt):
-    return evt['filehandle']['/data/data'][()]
+def raw_data(event):
+    return event.filehandle['/data/data'][()]
 
 
 def detector_distance(evt):
-    return float(evt['filehandle']['/LCLS/detector0-EncoderValue'][()])
+    return float(evt.filehandle['/LCLS/detector0-EncoderValue'][()])
 
 
 def beam_energy(evt):
-    return float(evt['filehandle']['/LCLS/photon_energy_eV'][()])
+    return float(evt.filehandle['/LCLS/photon_energy_eV'][()])
 
 
 def filename_and_event(evt):
-    return (evt['filehandle'], 0)
+    return (evt.filehandle, 0)

@@ -30,7 +30,7 @@ native_shape = NativeShape(4, 512, 512)
 
 
 def raw_data(event):
-    pnccd_np = event['det'].calib(event['evt'])
+    pnccd_np = event.detector['opal_data'].calib(event.evt)
     pnccd_ij = numpy.zeros(slab_shape, dtype=pnccd_np.dtype)
     pnccd_ij[0:512, 0:512] = pnccd_np[0]
     pnccd_ij[512:1024, 0:512] = pnccd_np[1][::-1, ::-1]

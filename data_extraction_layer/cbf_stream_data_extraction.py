@@ -52,10 +52,10 @@ def num_events(filehandle):
     return num_events_in_file(filehandle)
 
 
-def extract(evt, monitor):
+def extract(event, monitor):
     for entry in data_extraction_funcs:
         try:
-            setattr(monitor, entry, globals()[entry](evt))
+            setattr(monitor, entry, globals()[entry](event))
         except:
             print('Error extracting {}'.format(entry))
             setattr(monitor, entry, None)

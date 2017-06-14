@@ -32,34 +32,34 @@ native_shape = (2527, 2463)
 file_extensions = ['.cbf']
 
 
-def raw_data(evt):
-    return evt['filehandle'].data
+def raw_data(event):
+    return event.filehandle.data
 
 
 def num_events_in_file(_):
     return 1
 
 
-def timestamp(evt):
-    return evt['filectime']
+def timestamp(event):
+    return event.filectime
 
 
-def beam_energy(evt):
+def beam_energy(event):
     try:
-        header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
+        header_data_list = event.filehandle.header[u'_array_data.header_contents'].split('\r\n')
         wavelength = float(header_data_list[15].split()[2])
         return float(h * c / (wavelength * electron_volt))
     except (AttributeError, IndexError, ValueError):
-        return float(evt['monitor_params']['General']['fallback_beam_energy'])
+        return float(event.monitor_params['General']['fallback_beam_energy'])
 
 
-def detector_distance(evt):
+def detector_distance(event):
     try:
-        header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
+        header_data_list = event.filehandle.header[u'_array_data.header_contents'].split('\r\n')
         return float(header_data_list[16].split()[2])
     except (AttributeError, IndexError, ValueError):
-        return float(evt['monitor_params']['General']['fallback_detector_distance'])
+        return float(event.monitor_params['General']['fallback_detector_distance'])
 
 
-def filename_and_event(evt):
-    return (evt['filename'], 0)
+def filename_and_event(event):
+    return (event.filename, 0)

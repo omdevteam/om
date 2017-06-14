@@ -30,4 +30,4 @@ native_shape = NativeShape(1920, 1920)
 
 
 def raw_data(event):
-    return event['det'].raw(event['evt'])
+    return event.detector.raw_data(event.evt)

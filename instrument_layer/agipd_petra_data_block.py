@@ -35,22 +35,22 @@ def num_events_in_file(_):
     return 1
 
 
-def raw_data(evt):
-    _ = evt['filehandle']['/entry/instrument/detector/data'][351, 127, 511]
-    return evt['filehandle']['/entry/instrument/detector/data'][::2, :, :]
+def raw_data(event):
+    _ = event.filehandle['/entry/instrument/detector/data'][351, 127, 511]
+    return event.filehandle['/entry/instrument/detector/data'][::2, :, :]
 
 
-def timestamp(evt):
-    return evt['filectime']
+def timestamp(event):
+    return event.filectime
 
 
-def detector_distance(evt):
-    return float(evt['monitor_params']['General']['fallback_detector_distance'])
+def detector_distance(event):
+    return float(event.monitor_params['General']['fallback_detector_distance'])
 
 
-def beam_energy(evt):
-    return float(evt['monitor_params']['General']['fallback_beam_energy'])
+def beam_energy(event):
+    return float(event.monitor_params['General']['fallback_beam_energy'])
 
 
-def filename_and_event(evt):
-    return (evt['filename'], 0)
+def filename_and_event(event):
+    return (event['filename'], 0)

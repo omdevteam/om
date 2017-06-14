@@ -19,69 +19,74 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import namedtuple
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 import psana
 
 
-def raw_data_init(det):
-    det['detect'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_name'])
+EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events_per_file', 'shot_offset',
+                                     'monitor_params'])
+
+
+def raw_data_init(detector):
+    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_name'])
 
 
 def timestamp_init(_):
-    pass
+    return None
 
 
-def detector_distance_init(det):
-    det['detect_dist'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_dist_epics_name'])
+def detector_distance_init():
+    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_dist_epics_name'])
 
 
-def beam_energy_init(det):
-    det['beam_energy'] = psana.Detector('EBeam'.encode('ascii'))
+def beam_energy_init():
+    return psana.Detector('EBeam'.encode('ascii'))
 
 
-def timetool_data_init(det):
-    det['timetool'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['timetool_epics_name'])
+def timetool_data_init():
+    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['timetool_epics_name'])
 
 
-def digitizer_data_init(det):
-    det['digitizer'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer_name'])
+def digitizer_data_init():
+    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer_name'])
 
 
-def digitizer2_data_init(det):
-    det['digitizer2'] = psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer2_name'])
+def digitizer2_data_init():
+    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer2_name'])
 
 
-def event_codes_init(det):
-    det['EVR'] = psana.Detector('evr0')
+def event_codes_init():
+    return psana.Detector('evr0')
 
 
 def timestamp(event):
-    return event['det']['timestamp']
+    return event.detector['timestamp']
 
 
-def detector_distance_dataext(event):
-    return event['det']['detect_dist']()
+def detector_distance(event):
+    return event.detector['raw_data']['detect_dist']()
 
 
-def beam_energy_dataext(event):
-    return event['det']['beam_energy'].get(event['evt']).ebeamPhotonEnergy()
+def beam_energy(event):
+    return event.detector['beam_energy'].get(event.evt).ebeamPhotonEnergy()
 
 
-def timetool_data_dataext(event):
-    return event['det']['time_tool']()
+def timetool_data(event):
+    return event.det['timetool_data']()
 
 
-def digitizer_data_dataext(event):
-    return event['det']['digitizer'].waveform(event['evt'])
+def digitizer_data(event):
+    return event.det['digitizer_data'].waveform(event.evt)
 
 
-def digitizer2_data_dataext(event):
-    return event['det']['digitizer2'].waveform(event['evt'])
+def digitizer2_data(event):
+    return event.det['digitizer2_data'].waveform(event.evt)
 
 
 def event_codes_dataext(event):
-    return event['det']['evr'].eventCodes(event['evt'])
+    return event.det['event_codes'].eventCodes(event.evt)
 
 
 in_layer = di.import_correct_layer_module('instrument_layer', op.monitor_params)
@@ -114,14 +119,15 @@ for func in data_extraction_funcs:
 
 
 def initialize(det):
+    detector = {}
     for init_data_source in data_extraction_funcs:
-        globals()[init_data_source + '_init'](det)
+        detector[init_data_source] = globals().init_data_source + '_init'()
 
 
-def extract(evt, monitor):
+def extract(event, monitor):
     for entry in data_extraction_funcs:
         try:
-            setattr(monitor, entry, globals()[entry](evt))
+            setattr(monitor, entry, globals()[entry](event))
         except:
             print('Error extracting {}'.format(entry))
             setattr(monitor, entry, None)
