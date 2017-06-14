@@ -20,7 +20,6 @@
 
 #include "peakfinder8.hh"
 
-
 void allocatePeakList(tPeakList *peak, long NpeaksMax)
 {
     peak->nPeaks = 0;
@@ -99,24 +98,6 @@ struct peakfinder_peak_data
 	float *sigma;
 	float *snr;
 };
-
-
-static double compute_r_sigma(float *rsigma, int *rcount, float* roffset,
-                              int i)
-{
-	return sqrt(rsigma[i] / rcount[i] -
-	            ((roffset[i] / rcount[i]) *
-	             (roffset[i] / rcount[i])));
-}
-
-
-static void update_radial_stats (float *roffset, float *rsigma, int *rcount,
-                                 float value, int curr_radius)
-{
-	roffset[curr_radius] += value;
-	rsigma[curr_radius] += (value * value);
-	rcount[curr_radius] += 1;
-}
 
 
 static struct radial_stats* allocate_radial_stats(int num_rad_bins)
@@ -204,11 +185,10 @@ static void fill_radial_bins(float *data,
 
 				if ( value < rthreshold[curr_r ] ) {
 
-					update_radial_stats(roffset,
-					                    rsigma,
-					                    rcount,
-					                    value,
-					                    curr_r);
+          roffset[curr_r] += value;
+        	rsigma[curr_r] += (value * value);
+        	rcount[curr_r] += 1;
+
 				}
 			}
 		}
@@ -237,10 +217,7 @@ static void compute_radial_stats(float *rthreshold,
 		} else {
 			this_offset  = roffset[ri]/rcount[ri];
 
-			this_sigma = compute_r_sigma(rsigma,
-			                             rcount,
-			                             roffset,
-			                             ri);
+			this_sigma = 	sqrt(rsigma[ri] / rcount[ri] - ((roffset[ri] / rcount[ri]) * (roffset[ri] / rcount[ri])));
 
 			roffset[ri] = this_offset;
 			rsigma[ri] = this_sigma;
@@ -440,6 +417,7 @@ static void peak_search(int p,
 	int search_ss[9] = { 0, -1, -1, -1, 0, 0, 1, 1, 1 };
 	int search_n = 9;
 
+  // Loop through search pattern
 	for ( k=0; k<search_n; k++ ) {
 
 		if ( (pfinter->infs[p] + search_fs[k]) < 0 )
@@ -451,6 +429,7 @@ static void peak_search(int p,
 		if ( (pfinter->inss[p] + search_ss[k]) >= asic_size_ss )
 			continue;
 
+    // Neighbour point in big array
 		curr_fs = pfinter->infs[p] + search_fs[k] + aifs * asic_size_fs;
 		curr_ss = pfinter->inss[p] + search_ss[k] + aiss * asic_size_ss;
 		pi = curr_fs + curr_ss * num_pix_fs;
@@ -458,6 +437,7 @@ static void peak_search(int p,
 		curr_radius = (int)rint(r_map[pi]);
 		curr_threshold = rthreshold[curr_radius];
 
+    // Above threshold?
 		if ( copy[pi] > curr_threshold
 		  && pfinter->pix_in_peak_map[pi] == 0
 		  && mask[pi] != 0 ) {
@@ -466,8 +446,8 @@ static void peak_search(int p,
 			curr_i = copy[pi] - roffset[curr_radius];
 
 			*sum_i += curr_i;
-			*sum_com_fs += curr_i * ((float)curr_fs);
-			*sum_com_ss += curr_i * ((float)curr_ss);
+			*sum_com_fs += curr_i * ((float)curr_fs);  // for center of mass x
+			*sum_com_ss += curr_i * ((float)curr_ss);  // for center of mass y
 
 			pfinter->inss[*num_pix_in_peak] = pfinter->inss[p] +
 			                                  search_ss[k];
@@ -519,6 +499,7 @@ static void search_in_ring(int ring_width, int com_fs_int, int com_ss_int,
 	for ( ssj = -ring_width ; ssj<ring_width ; ssj++ ) {
 		for ( fsi = -ring_width ; fsi<ring_width ; fsi++ ) {
 
+      // Within-ASIC check
 			if ( (com_fs_int + fsi) < 0 )
 				continue;
 			if ( (com_fs_int + fsi) >= asic_size_fs )
@@ -528,18 +509,23 @@ static void search_in_ring(int ring_width, int com_fs_int, int com_ss_int,
 			if ( (com_ss_int + ssj) >= asic_size_ss )
 				continue;
 
+      // Within outer ring check
 			pix_radius = sqrt(fsi * fsi + ssj * ssj);
 			if ( pix_radius>ring_width )
 				continue;
 
+      // Position of this point in data stream
 			curr_fs = com_fs_int +fsi + aifs * asic_size_fs;
 			curr_ss = com_ss_int +ssj + aiss * asic_size_ss;
 			pi = curr_fs + curr_ss * num_pix_fs;
 
 			curr_radius = rint(r_map[pi]);
 			curr_threshold = rthreshold[curr_radius];
-			curr_i = copy[pi];
 
+      // Intensity above background
+      curr_i = copy[pi];
+
+      // Keep track of value and value-squared for offset and sigma calculation
 			if ( copy[pi] < curr_threshold
 			                && pix_in_peak_map[pi] == 0
 			                && mask[pi] != 0 ) {
@@ -556,6 +542,7 @@ static void search_in_ring(int ring_width, int com_fs_int, int com_ss_int,
 		}
 	}
 
+  // Calculate local background and standard deviation
 	if ( np_sigma != 0 ) {
 		*local_offset = sum_i / np_sigma;
 		*local_sigma = sqrt(sum_i_squared / np_sigma -
@@ -565,215 +552,6 @@ static void search_in_ring(int ring_width, int com_fs_int, int com_ss_int,
 		local_radius = rint(r_map[(int)rint(com_idx)]);
 		*local_offset = roffset[local_radius];
 		*local_sigma = 0.01;
-	}
-}
-
-
-static void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_fs,
-                          int aiss, int aifs, float *rthreshold,
-                          float *roffset, int *peak_count,
-                          float *copy, struct peakfinder_intern_data *pfinter,
-                          float *r_map, char *mask, int *npix, float *com_fs,
-                          float *com_ss, int *com_index, float *tot_i,
-                          float *max_i, float *sigma, float *snr,
-                          int min_pix_count, int max_pix_count,
-                          int local_bg_radius, float min_snr, int max_n_peaks)
-{
-	int pxss, pxfs;
-	int num_pix_in_peak;
-
-	for ( pxss=1 ; pxss<asic_size_ss-1 ; pxss++ ) {
-		for ( pxfs=1 ; pxfs<asic_size_fs-1 ; pxfs++ ) {
-
-			float curr_thresh;
-			int pxidx;
-			int curr_rad;
-
-			pxidx = (pxss + aiss * asic_size_ss) *
-			                num_pix_fs + pxfs +
-			                aifs * asic_size_fs;
-
-			curr_rad = (int)rint(r_map[pxidx]);
-			curr_thresh = rthreshold[curr_rad];
-
-			if ( copy[pxidx] > curr_thresh
-			  && pfinter->pix_in_peak_map[pxidx] == 0 ) {
-
-				float sum_com_fs, sum_com_ss;
-				float sum_i;
-				float peak_com_fs, peak_com_ss;
-				float peak_com_fs_int, peak_com_ss_int;
-				float peak_tot_i, pk_tot_i_raw;
-				float peak_max_i, pk_max_i_raw;
-				float peak_snr;
-				float local_sigma, local_offset;
-				float background_max_i;
-				float f_background_thresh;
-				int lt_num_pix_in_pk;
-				int ring_width;
-				int peak_idx;
-				int com_idx;
-				int p;
-
-				pfinter->infs[0] = pxfs;
-				pfinter->inss[0] = pxss;
-				pfinter->peak_pixels[0] = pxidx;
-				num_pix_in_peak = 1;
-
-				sum_i = 0;
-				sum_com_fs = 0;
-				sum_com_ss = 0;
-
-				do {
-					lt_num_pix_in_pk = num_pix_in_peak;
-
-					for ( p=0; p<num_pix_in_peak; p++ ) {
-						peak_search(p,
-						            pfinter, copy, mask,
-						            r_map,
-						            rthreshold,
-						            roffset,
-						            &num_pix_in_peak,
-						            asic_size_fs,
-						            asic_size_ss,
-						            aifs, aiss,
-						            num_pix_fs,
-						            &sum_com_fs,
-						            &sum_com_ss,
-						            &sum_i,
-						            max_pix_count);
-					}
-
-				} while ( lt_num_pix_in_pk != num_pix_in_peak );
-
-				if ( num_pix_in_peak < min_pix_count
-				  || num_pix_in_peak > max_pix_count) {
-					continue;
-				}
-
-				peak_com_fs = sum_com_fs / fabs(sum_i);
-				peak_com_ss = sum_com_ss / fabs(sum_i);
-
-				com_idx = rint(peak_com_fs) +
-				                rint(peak_com_ss) * num_pix_fs;
-
-				peak_com_fs_int = (int)rint(peak_com_fs) -
-				                  aifs * asic_size_fs;
-				peak_com_ss_int = (int)rint(peak_com_ss) -
-				                  aiss * asic_size_ss;
-
-				local_sigma = 0.0;
-				local_offset = 0.0;
-				background_max_i = 0.0;
-
-				ring_width = 2 * local_bg_radius;
-
-				search_in_ring(ring_width, peak_com_fs_int,
-				               peak_com_ss_int,
-				               copy, r_map, rthreshold,
-				               roffset,
-				               pfinter->pix_in_peak_map,
-				               mask, asic_size_fs,
-				               asic_size_ss,
-				               aifs, aiss,
-				               num_pix_fs,
-				               &local_sigma,
-				               &local_offset,
-				               &background_max_i,
-				               com_idx, local_bg_radius);
-
-				peak_tot_i = 0;
-				pk_tot_i_raw = 0;
-				peak_max_i = 0;
-				pk_max_i_raw = 0;
-				sum_com_fs = 0;
-				sum_com_ss = 0;
-
-				for ( peak_idx = 1 ;
-				      peak_idx < num_pix_in_peak &&
-				      peak_idx <= max_pix_count ;
-				      peak_idx++ ) {
-
-					int curr_idx;
-					float curr_i;
-					float curr_i_raw;
-					int curr_fs, curr_ss;
-
-					// BUG HERE, I THINK. PEAK_PIXELS
-					// HAS SIZE MAX_PIX_COUNT, BUT
-					// IN THE FOLLOWING LINE PEAK_IDX
-					// CAN HAVE VALUE EXACTLY MAX_PEAK_COUNT
-					// (SEE THE FOR LOOP ABOVE)
-					curr_idx =
-					         pfinter->peak_pixels[peak_idx];
-
-					curr_i_raw = copy[curr_idx];
-					curr_i = curr_i_raw - local_offset;
-
-					peak_tot_i += curr_i;
-					pk_tot_i_raw += curr_i_raw;
-
-					curr_fs = curr_idx % num_pix_fs;
-					curr_ss = curr_idx / num_pix_fs;
-					sum_com_fs += curr_i * ((float)curr_fs);
-					sum_com_ss += curr_i * ((float)curr_ss);
-
-					if ( curr_i_raw > pk_max_i_raw )
-						pk_max_i_raw = curr_i_raw;
-					if ( curr_i > peak_max_i )
-						peak_max_i = curr_i;
-				}
-
-
-				peak_com_fs = sum_com_fs / fabs(peak_tot_i);
-				peak_com_ss = sum_com_ss / fabs(peak_tot_i);
-
-				peak_snr = peak_tot_i / local_sigma;
-
-				if (peak_snr < min_snr) {
-					continue;
-				}
-
-				f_background_thresh = 1;
-				f_background_thresh *=
-				                background_max_i - local_offset;
-				if (peak_max_i < f_background_thresh) {
-					continue;
-				}
-
-				if ( num_pix_in_peak >= min_pix_count
-				  && num_pix_in_peak <= max_pix_count ) {
-
-					int peak_com_idx;
-
-					if ( peak_tot_i == 0 ) {
-						continue;
-					}
-
-					peak_com_idx = rint(peak_com_fs) +
-					               rint(peak_com_ss) *
-					               num_pix_fs;
-
-					if ( *peak_count < max_n_peaks ) {
-
-						int pidx;
-						pidx = *peak_count;
-
-						npix[pidx] = num_pix_in_peak;
-						com_fs[pidx] = peak_com_fs;
-						com_ss[pidx] = peak_com_ss;
-						com_index[pidx] = peak_com_idx;
-						tot_i[pidx] = peak_tot_i;
-						max_i[pidx] = peak_max_i;
-						sigma[pidx] = local_sigma;
-						snr[pidx] = peak_snr;
-						*peak_count = *peak_count + 1;
-					} else {
-						*peak_count = *peak_count + 1;
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -789,6 +567,8 @@ static int peakfinder8_base(float *roffset, float *rthreshold,
                             int min_pix_count, int max_pix_count,
                             int local_bg_radius, float min_snr)
 {
+  int pxss, pxfs;
+  int num_pix_in_peak;
 	int num_pix_fs, num_pix_ss, num_pix_tot;
 	int i, aifs, aiss;
 	int peak_count;
@@ -804,8 +584,14 @@ static int peakfinder8_base(float *roffset, float *rthreshold,
 		return 1;
 	}
 
+  /*
+   *	Create a buffer for image data so we don't nuke the main image by mistake
+   */
 	memcpy(copy, data, num_pix_tot*sizeof(float));
 
+  /*
+   *	Apply mask (multiply data by 0 to ignore regions - this makes data below threshold for peak finding)
+   */
 	for (i = 0; i < num_pix_tot; i++) {
 		copy[i] *= mask[i];
 	}
@@ -818,16 +604,228 @@ static int peakfinder8_base(float *roffset, float *rthreshold,
 
 	peak_count = 0;
 
+  // Loop over modules (nxn array)
 	for ( aiss=0 ; aiss<num_asics_ss ; aiss++ ) {
 		for ( aifs=0 ; aifs<num_asics_fs ; aifs++ ) {
 
-			process_panel(asic_size_fs, asic_size_ss, num_pix_fs,
-			              aiss, aifs, rthreshold, roffset,
-			              &peak_count, copy, pfinter, r_map, mask,
-			              npix, com_fs, com_ss, com_index, tot_i,
-			              max_i, sigma, snr, min_pix_count,
-			              max_pix_count, local_bg_radius, min_snr,
-			              max_n_peaks);
+      // Loop over pixels within a module
+    	for ( pxss=1 ; pxss<asic_size_ss-1 ; pxss++ ) {
+    		for ( pxfs=1 ; pxfs<asic_size_fs-1 ; pxfs++ ) {
+
+    			float curr_thresh;
+    			int pxidx;
+    			int curr_rad;
+
+    			pxidx = (pxss + aiss * asic_size_ss) *
+    			                num_pix_fs + pxfs +
+    			                aifs * asic_size_fs;
+
+    			curr_rad = (int)rint(r_map[pxidx]);
+    			curr_thresh = rthreshold[curr_rad];
+
+    			if ( copy[pxidx] > curr_thresh
+    			  && pfinter->pix_in_peak_map[pxidx] == 0 ) {
+
+            // This might be the start of a new peak - start searching
+    				float sum_com_fs, sum_com_ss;
+    				float sum_i;
+    				float peak_com_fs, peak_com_ss;
+    				float peak_com_fs_int, peak_com_ss_int;
+    				float peak_tot_i, pk_tot_i_raw;
+    				float peak_max_i, pk_max_i_raw;
+    				float peak_snr;
+    				float local_sigma, local_offset;
+    				float background_max_i;
+    				float f_background_thresh;
+    				int lt_num_pix_in_pk;
+    				int ring_width;
+    				int peak_idx;
+    				int com_idx;
+    				int p;
+
+    				pfinter->infs[0] = pxfs;
+    				pfinter->inss[0] = pxss;
+    				pfinter->peak_pixels[0] = pxidx;
+    				num_pix_in_peak = 1;
+
+    				sum_i = 0;
+    				sum_com_fs = 0;
+    				sum_com_ss = 0;
+
+            // Keep looping until the pixel count within this peak does not change
+    				do {
+    					lt_num_pix_in_pk = num_pix_in_peak;
+
+              // Loop through points known to be within this peak
+    					for ( p=0; p<num_pix_in_peak; p++ ) {
+    						peak_search(p,
+    						            pfinter, copy, mask,
+    						            r_map,
+    						            rthreshold,
+    						            roffset,
+    						            &num_pix_in_peak,
+    						            asic_size_fs,
+    						            asic_size_ss,
+    						            aifs, aiss,
+    						            num_pix_fs,
+    						            &sum_com_fs,
+    						            &sum_com_ss,
+    						            &sum_i,
+    						            max_pix_count);
+    					}
+
+    				} while ( lt_num_pix_in_pk != num_pix_in_peak );
+
+            // Too many or too few pixels means ignore this 'peak'; move on now
+    				if ( num_pix_in_peak < min_pix_count
+    				  || num_pix_in_peak > max_pix_count) {
+    					continue;
+    				}
+
+            /*
+             * 	Calculate center of mass for this peak from initial peak search
+             */
+    				peak_com_fs = sum_com_fs / fabs(sum_i);
+    				peak_com_ss = sum_com_ss / fabs(sum_i);
+
+    				com_idx = rint(peak_com_fs) +
+    				                rint(peak_com_ss) * num_pix_fs;
+
+    				peak_com_fs_int = (int)rint(peak_com_fs) -
+    				                  aifs * asic_size_fs;
+    				peak_com_ss_int = (int)rint(peak_com_ss) -
+    				                  aiss * asic_size_ss;
+
+            /*
+             *	Calculate the local signal-to-noise ratio and local background in an annulus around this peak
+             *	(excluding pixels which look like they might be part of another peak)
+             */
+    				local_sigma = 0.0;
+    				local_offset = 0.0;
+    				background_max_i = 0.0;
+
+    				ring_width = 2 * local_bg_radius;
+
+    				search_in_ring(ring_width, peak_com_fs_int,
+    				               peak_com_ss_int,
+    				               copy, r_map, rthreshold,
+    				               roffset,
+    				               pfinter->pix_in_peak_map,
+    				               mask, asic_size_fs,
+    				               asic_size_ss,
+    				               aifs, aiss,
+    				               num_pix_fs,
+    				               &local_sigma,
+    				               &local_offset,
+    				               &background_max_i,
+    				               com_idx, local_bg_radius);
+
+            /*
+             *	Re-integrate (and re-centroid) peak using local background estimates
+             */
+    				peak_tot_i = 0;
+    				pk_tot_i_raw = 0;
+    				peak_max_i = 0;
+    				pk_max_i_raw = 0;
+    				sum_com_fs = 0;
+    				sum_com_ss = 0;
+
+    				for ( peak_idx = 1 ;
+    				      peak_idx < num_pix_in_peak &&
+    				      peak_idx <= max_pix_count ;
+    				      peak_idx++ ) {
+
+    					int curr_idx;
+    					float curr_i;
+    					float curr_i_raw;
+    					int curr_fs, curr_ss;
+
+    					// BUG HERE, I THINK. PEAK_PIXELS
+    					// HAS SIZE MAX_PIX_COUNT, BUT
+    					// IN THE FOLLOWING LINE PEAK_IDX
+    					// CAN HAVE VALUE EXACTLY MAX_PEAK_COUNT
+    					// (SEE THE FOR LOOP ABOVE)
+    					curr_idx =
+    					         pfinter->peak_pixels[peak_idx];
+
+    					curr_i_raw = copy[curr_idx];
+    					curr_i = curr_i_raw - local_offset;
+
+    					peak_tot_i += curr_i;
+    					pk_tot_i_raw += curr_i_raw;
+
+              // Remember that e = thisx + thisy*pix_nx;
+    					curr_fs = curr_idx % num_pix_fs;
+    					curr_ss = curr_idx / num_pix_fs;
+    					sum_com_fs += curr_i * ((float)curr_fs);
+    					sum_com_ss += curr_i * ((float)curr_ss);
+
+    					if ( curr_i_raw > pk_max_i_raw )
+    						pk_max_i_raw = curr_i_raw;
+    					if ( curr_i > peak_max_i )
+    						peak_max_i = curr_i;
+    				}
+
+
+    				peak_com_fs = sum_com_fs / fabs(peak_tot_i);
+    				peak_com_ss = sum_com_ss / fabs(peak_tot_i);
+
+            /*
+            *	Calculate signal-to-noise and apply SNR criteria
+            */
+    				peak_snr = peak_tot_i / local_sigma;
+
+            // The more pixels there are in the peak, the more relaxed we are about this criterion
+    				if (peak_snr < min_snr) {
+    					continue;
+    				}
+
+            // Is the maximum intensity in the peak enough above intensity in background region to be a peak and not noise?
+            // The more pixels there are in the peak, the more relaxed we are about this criterion
+    				f_background_thresh = 1;
+    				f_background_thresh *=
+    				                background_max_i - local_offset;
+    				if (peak_max_i < f_background_thresh) {
+    					continue;
+    				}
+
+            // This is a peak? If so, add info to peak list
+    				if ( num_pix_in_peak >= min_pix_count
+    				  && num_pix_in_peak <= max_pix_count ) {
+
+    					int peak_com_idx;
+
+              // This CAN happen!
+    					if ( peak_tot_i == 0 ) {
+    						continue;
+    					}
+
+    					peak_com_idx = rint(peak_com_fs) +
+    					               rint(peak_com_ss) *
+    					               num_pix_fs;
+
+              // Remember peak information
+    					if ( peak_count < max_n_peaks ) {
+
+    						int pidx;
+    						pidx = peak_count;
+
+    						npix[pidx] = num_pix_in_peak;
+    						com_fs[pidx] = peak_com_fs;
+    						com_ss[pidx] = peak_com_ss;
+    						com_index[pidx] = peak_com_idx;
+    						tot_i[pidx] = peak_tot_i;
+    						max_i[pidx] = peak_max_i;
+    						sigma[pidx] = local_sigma;
+    						snr[pidx] = peak_snr;
+    						peak_count += 1;
+    					} else {
+    						peak_count += 1;
+    					}
+    				}
+    			}
+    		}
+    	}
 		}
 	}
 	*num_found_peaks = peak_count;
@@ -838,7 +836,13 @@ static int peakfinder8_base(float *roffset, float *rthreshold,
 	return 0;
 }
 
-
+/*
+ *
+ *	Cheetah Peakfinder8
+ *  Count peaks by searching for connected pixels above threshold
+ *	Includes modifications during Cherezov December 2014 LE80
+ *	Anton Barty
+ */
 int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
                 long asic_nx, long asic_ny, long nasics_x, long nasics_y,
                 float ADCthresh, float hitfinderMinSNR,
@@ -863,6 +867,7 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 
 	max_num_peaks = peaklist->nPeaks_max;
 
+  // Derived values
 	num_pix_fs = asic_nx * nasics_x;
 	num_pix_ss = asic_ny * nasics_y;
 	num_pix_tot = asic_nx * asic_ny * nasics_x * nasics_y;
@@ -871,6 +876,7 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 
 	int i;
 
+  // Figure out radius bounds
 	for ( i=0 ; i<num_pix_tot ; i++ ) {
 		if ( pix_r[i] > max_r ) {
 			max_r = pix_r[i];
@@ -879,6 +885,7 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 
 	num_rad_bins = (int)ceil(max_r) + 1;
 
+   // Allocate and zero arrays
 	rstats = allocate_radial_stats(num_rad_bins);
 	if ( rstats == NULL ) {
 		return 1;
@@ -888,6 +895,9 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 		rstats->rthreshold[i] = 1e9;
   	}
 
+  // Compute sigma and average of data values at each radius
+  // From this, compute the ADC threshold to be applied at each radius
+  // Iterate a few times to reduce the effect of positive outliers (ie: peaks)
 	for ( it_counter=0 ; it_counter<iterations ; it_counter++ ) {
 
 		for ( i=0; i<num_rad_bins; i++ ) {
