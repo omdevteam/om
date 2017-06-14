@@ -23,8 +23,9 @@ try:
     from PyQt5 import QtCore, QtGui
 except ImportError:
     from PyQt4 import QtCore, QtGui
+from collections import namedtuple
 import copy
-import datetime
+import time
 import numpy
 import pyqtgraph as pg
 import scipy.constants
@@ -39,6 +40,7 @@ import cfelpyutils.cfel_geom as cgm
 import cfelpyutils.cfel_crystfel as cfl
 import ondautils.onda_zmq_gui_utils as zgut
 
+_ImageCenter = namedtuple('ImageCenter', ['y', 'x'])
 
 class MainFrame(QtGui.QMainWindow):
 
@@ -51,7 +53,8 @@ class MainFrame(QtGui.QMainWindow):
         self._data = {}
         self._local_data = {'peak_list': ([], [], []), 'hit_rate': 0, 'hit_flag': True, 'sat_rate': 0,
                             'time_string': None}
-        self._pixel_maps, self.slab_shape, self.img_shape = cgm.pixel_maps_for_image_view(geom_filename)
+        self._pixel_maps = cgm.pixel_maps_for_image_view(geom_filename)
+        self._img_shape = cgm.get_image_shape(geom_filename)
 
         detector = cfl.load_crystfel_geometry(geom_filename)
         try:
@@ -63,9 +66,9 @@ class MainFrame(QtGui.QMainWindow):
         except KeyError:
             self._res = None
 
-        self._image_center = (self.img_shape[0] / 2, self.img_shape[1] / 2)
-        self._img = numpy.zeros(self.img_shape, dtype=numpy.float32)
-        self._sum_img = numpy.zeros(self.img_shape, dtype=numpy.float32)
+        self._image_center = _ImageCenter(self._img_shape[0] / 2, self._img_shape[1] / 2)
+        self._img = numpy.zeros(self._img_shape, dtype=numpy.float32)
+        self._sum_img = numpy.zeros(self._img_shape, dtype=numpy.float32)
         self._hitrate_history_size = 10000
         self._hitrate_history = self._hitrate_history_size * [0.0]
         self._satrate_history_size = 10000
@@ -189,7 +192,7 @@ class MainFrame(QtGui.QMainWindow):
         self._satrate_plot.setData(self._satrate_history)
 
     def _reset_peaks(self):
-        self._sum_img = numpy.zeros(self.img_shape, dtype=numpy.float32)
+        self._sum_img = numpy.zeros(self._img_shape, dtype=numpy.float32)
         self._ui.imageView.setImage(self._sum_img.T, autoHistogramRange=False, autoLevels=False, autoRange=False)
 
     def _toggle_acc(self):
@@ -222,15 +225,15 @@ class MainFrame(QtGui.QMainWindow):
             if self._ui.resolutionRingsCheckBox.isEnabled() and self._ui.resolutionRingsCheckBox.isChecked():
 
                 self._resolution_rings_canvas.setData(
-                    [self._image_center[0]] * len(resolution_rings_in_pix),
-                    [self._image_center[1]] * len(resolution_rings_in_pix),
+                    [self._image_center.y] * len(resolution_rings_in_pix),
+                    [self._image_center.x] * len(resolution_rings_in_pix),
                     symbol='o',
                     size=resolution_rings_in_pix,
                     pen=self._resolution_rings_pen,
                     brush=(0, 0, 0, 0), pxMode=False)
                 for index, item in enumerate(self._resolution_rings_textitems):
                     item.setText(str(self._resolution_rings_in_A[index]) + 'A')
-                    item.setPos(self._image_center[0], self._image_center[1] + resolution_rings_in_pix[index + 1] / 2.0)
+                    item.setPos(self._image_center.y, self._image_center.x + resolution_rings_in_pix[index + 1] / 2.0)
 
             else:
                 self._resolution_rings_canvas.setData([], [])
@@ -294,12 +297,10 @@ class MainFrame(QtGui.QMainWindow):
 
         timestamp = self._local_data['timestamp']
         if timestamp is not None:
-            self._ui.hitRatePlotWidget.setTitle('Hit Rate vs. Events - {0} - {1}%'.format(timestamp.strftime(
-                                                                                          "%H:%M:%S"),
-                                                                                          round(hr*100, 1)))
-            timenow = datetime.datetime.now()
-            self._ui.delayLabel.setText('Estimated delay: {0}.{1} seconds'.format((timenow - timestamp).seconds,
-                                        str((timenow - timestamp).microseconds)[0:3]))
+            self._ui.hitRatePlotWidget.setTitle('Hit Rate vs. Events - {0} - {1}%'.format(time.strftime('%H:%M:%S'),
+                                                                                          timestamp))
+            timenow = time.time()
+            self._ui.delayLabel.setText('Estimated delay: {0} seconds'.format(round(timenow - timestamp, 6)))
         else:
             self._ui.hitRatePlotWidget.setTitle('Hit Rate vs. Events {0}%'.format(round(hr * 100, 1)))
             self._ui.delayLabel.setText('Estimated delay: -')
@@ -308,14 +309,14 @@ class MainFrame(QtGui.QMainWindow):
 
         if len(self._local_data['peak_list'][0]) > 0:
 
-            self._img = numpy.zeros(self.img_shape, dtype=numpy.float32)
+            self._img = numpy.zeros(self._img_shape, dtype=numpy.float32)
 
-            for peak_fs, peak_ss, peak_value in zip(self._local_data['peak_list'][0],
-                                                    self._local_data['peak_list'][1],
-                                                    self._local_data['peak_list'][2]):
-                peak_in_slab = int(round(peak_ss))*self.slab_shape[1]+int(round(peak_fs))
-                self._img[self._pixel_maps[0][peak_in_slab], self._pixel_maps[1][peak_in_slab]] += peak_value
-                self._sum_img[self._pixel_maps[0][peak_in_slab], self._pixel_maps[1][peak_in_slab]] += peak_value
+            for peak_fs, peak_ss, peak_value in zip(self._local_data['peak_list'].fs,
+                                                    self._local_data['peak_list'].ss,
+                                                    self._local_data['peak_list'].intensity):
+                peak_in_slab = int(round(peak_ss))*self._local_data['native_shape'][1]+int(round(peak_fs))
+                self._img[self._pixel_maps.y[peak_in_slab], self._pixel_maps.x[peak_in_slab]] += peak_value
+                self._sum_img[self._pixel_maps.y[peak_in_slab], self._pixel_maps.x[peak_in_slab]] += peak_value
 
             self._toggle_acc()
             self._local_data['peak_list'] = ([], [], [])

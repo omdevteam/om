@@ -20,8 +20,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from builtins import str
-
-import collections
+from collections import deque, namedtuple
 import sys
 import time
 
@@ -47,8 +46,8 @@ class Onda(MasterWorker):
 
         if self.role == 'worker':
 
-            _, _, pixelmap_radius = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file', str,
-                                                                               required=True))
+            pixelmap_radius = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file',
+                                                                                         str, required=True)).r
 
             if op.param('DetectorCalibration', 'calibration_algorithm') is not None:
 
@@ -114,10 +113,10 @@ class Onda(MasterWorker):
             self._speed_report_interval = op.param('General', 'speed_report_interval', int, required=True)
             self._optimized_geometry = op.param('General', 'geometry_is_optimized', bool, required=True)
 
-            self._hit_rate_running_w = collections.deque([0.0] * op.param('General', 'running_average_size', int,
-                                                                          required=True))
-            self._saturation_rate_running_w = collections.deque([0.0] * op.param('General', 'running_average_size', int,
-                                                                                 required=True))
+            self._hit_rate_running_w = deque([0.0] * op.param('General', 'running_average_size', int,
+                                                              required=True))
+            self._saturation_rate_running_w = deque([0.0] * op.param('General', 'running_average_size', int,
+                                                                      required=True))
 
             print('Starting the monitor...')
             sys.stdout.flush()
@@ -137,8 +136,8 @@ class Onda(MasterWorker):
         corr_raw_data = self._dark_cal_correction.apply_darkcal_correction(calib_raw_data)
         peak_list = self._peakfinder8_peak_det.find_peaks(corr_raw_data)
 
-        sat = len([x for x in peak_list[2] if x > self._saturation_value]) > self._max_saturated_peaks
-        hit = self._min_num_peaks_for_hit < len(peak_list[2]) < self._max_num_peaks_for_hit
+        sat = len([x for x in peak_list.intensity if x > self._saturation_value]) > self._max_saturated_peaks
+        hit = self._min_num_peaks_for_hit < len(peak_list.intensity) < self._max_num_peaks_for_hit
 
         results_dict['timestamp'] = self.timestamp
         results_dict['peak_list'] = peak_list
@@ -146,9 +145,10 @@ class Onda(MasterWorker):
         results_dict['hit_flag'] = hit
         results_dict['detector_distance'] = self.detector_distance
         results_dict['beam_energy'] = self.beam_energy
+        results_dict['native_shape'] = corr_raw_data.shape
 
         if not hit:
-            results_dict['peak_list'] = ([], [], [])
+            results_dict['peak_list'] = calg.PeakList([], [], [])
 
         if hit or self._hit_sending_interval < 0:
             self._hit_sending_counter += 1
@@ -165,6 +165,7 @@ class Onda(MasterWorker):
 
         results_dict, _ = new
         self._num_events += 1
+
 
         self._hit_rate_running_w.append(float(results_dict['hit_flag']))
         self._hit_rate_running_w.popleft()
@@ -184,6 +185,7 @@ class Onda(MasterWorker):
             collected_data['detector_distance'] = results_dict['detector_distance']
             collected_data['beam_energy'] = results_dict['beam_energy']
             collected_data['optimized_geometry'] = self._optimized_geometry
+            collected_data['native_shape'] = results_dict['native_shape']
 
             self._sending_socket.send_data('ondadata', collected_data)
 

@@ -18,10 +18,15 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import datetime
+from collections import namedtuple
+from time import strptime, mktime
 
 
-slab_shape = (1480, 1552)
+SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
+NativeShape = namedtuple('NativeShape', ['ss', 'fs'])
+
+slab_shape = SlabShape(1480, 1552)
+native_shape = NativeShape(1480, 1552)
 
 file_extensions = ['.nxs', '.h5']
 

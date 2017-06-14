@@ -19,9 +19,14 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import namedtuple
 
-slab_shape = (1920, 1920)
-native_shape = (1920, 1920)
+
+SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
+NativeShape = namedtuple('NativeShape', ['panel','ss', 'fs'])
+
+slab_shape = SlabShape(1920, 1920)
+native_shape = NativeShape(1920, 1920)
 
 
 def raw_data(event):

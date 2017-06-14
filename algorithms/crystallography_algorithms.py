@@ -18,6 +18,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import namedtuple
 import numpy
 import scipy.ndimage as ndimage
 
@@ -26,6 +27,13 @@ try:
 except ImportError:
     raise RuntimeError('Error importing one or more cheetah wrappers, or one of their dependecies')
 import cfelpyutils.cfel_hdf5 as ch5
+
+
+
+
+PeakList = namedtuple('PeakList', ['fs', 'ss', 'intensity'])
+_InternalListOfPeaks = namedtuple('_InternalListOfPeaks', ['ss', 'fs'])
+_Offset = namedtuple('_Offset', ['ss', 'fs'])
 
 
 #########################
@@ -79,31 +87,31 @@ class SimplePeakDetection:
         data_as_slab_peak = (raw_data == local_max)
         data_as_slab_thresh = (raw_data > self._threshold)
         data_as_slab_peak[data_as_slab_thresh == 0] = 0
-        peak_list = numpy.where(data_as_slab_peak == 1)
-        peak_values = raw_data[peak_list]
+        internal_list_of_peaks = _InternalListOfPeaks(numpy.where(data_as_slab_peak == 1))
+        peak_values = raw_data[internal_list_of_peaks]
 
-        if len(peak_list[0]) > 10000:
-            print('Silly number of peaks {0}'.format(len(peak_list[0])))
+        if len([0]) > 10000:
+            print('Silly number of peaks {0}'.format(len(internal_list_of_peaks.ss)))
             peak_list = ([], [], [])
-        elif len(peak_list[0]) != 0:
+        elif len(internal_list_of_peaks[0]) != 0:
             subpixel_x = []
             subpixel_y = []
-            for x_peak, y_peak in zip(peak_list[0], peak_list[1]):
+            for x_peak, y_peak in zip(internal_list_of_peaks.ss, internal_list_of_peaks.fs):
                 peak_window = raw_data[x_peak - self._peak_window_size:x_peak + self._peak_window_size + 1,
                                        y_peak - self._peak_window_size:y_peak + self._peak_window_size + 1]
                 if peak_window.shape[0] != 0 and peak_window.shape[1] != 0:
-                    offset = ndimage.measurements.center_of_mass(peak_window)
-                    offset_x = offset[0] - self._peak_window_size
-                    offset_y = offset[1] - self._peak_window_size
+                    offset = _Offset(ndimage.measurements.center_of_mass(peak_window))
+                    offset_x = offset.ss - self._peak_window_size
+                    offset_y = offset.fs - self._peak_window_size
                     subpixel_x.append(x_peak + offset_x)
                     subpixel_y.append(y_peak + offset_y)
                 else:
                     subpixel_x.append(x_peak)
                     subpixel_y.append(y_peak)
 
-            peak_list = (subpixel_x, subpixel_y, peak_values)
+            peak_list = PeakList(subpixel_x, subpixel_y, peak_values)
         else:
-            peak_list = ([], [], [])
+            peak_list = PeakList([], [], [])
 
         return peak_list
 
@@ -128,7 +136,7 @@ class PeakAccumulator:
         """
 
         self._accumulated_shots = accumulated_shots
-        self._accumulator = ([], [], [])
+        self._accumulator = PeakList([], [], [])
         self._events_in_accumulator = 0
 
     def accumulate_peaks(self, peak_list):
@@ -142,7 +150,7 @@ class PeakAccumulator:
 
         Args:
 
-            peak_list (tuple): list of peaks to be added to the internal list. The peak list should be a tuple of
+            peak_list (PeakList): list of peaks to be added to the internal list. The peak list should be a tuple of
             three lists, containing, in order, the fs coordinate of the peaks, their respective ss coordinate , and
             their intensity.
 
@@ -154,14 +162,14 @@ class PeakAccumulator:
             their intensity.
         """
 
-        self._accumulator[0].extend(peak_list[0])
-        self._accumulator[1].extend(peak_list[1])
-        self._accumulator[2].extend(peak_list[2])
+        self._accumulator.fs.extend(peak_list.fs)
+        self._accumulator.ss.extend(peak_list.ss)
+        self._accumulator.intensity.extend(peak_list.intensity)
         self._events_in_accumulator += 1
 
         if self._events_in_accumulator == self._accumulated_shots:
             peak_list_to_return = self._accumulator
-            self._accumulator = ([], [], [])
+            self._accumulator = PeakList([], [], [])
             self._events_in_accumulator = 0
             return peak_list_to_return
         return None
@@ -262,4 +270,4 @@ class Peakfinder8PeakDetection:
                                  self._min_pixel_count, self._max_pixel_count,
                                  self._local_bg_radius)
 
-        return peak_list
+        return PeakList(*peak_list[0:3])

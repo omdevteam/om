@@ -13,6 +13,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+from collections import namedtuple
+
+
+SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
+NativeShape = namedtuple('NativeShape', ['ss', 'fs'])
 
 slab_shape = (516, 1556)
 native_shape = (516, 1556)

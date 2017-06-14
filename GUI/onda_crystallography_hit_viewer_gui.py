@@ -47,8 +47,9 @@ class MainFrame(QtGui.QMainWindow):
     def __init__(self, geom_filename, rec_ip, rec_port):
         super(MainFrame, self).__init__()
 
-        self._yx, slab_shape, img_shape = cgm.pixel_maps_for_image_view(geom_filename)
-        self._img = numpy.zeros(img_shape, dtype=numpy.float)
+        self._pixel_maps = cgm.pixel_maps_for_image_view(geom_filename)
+        self._img_shape = cgm.get_image_shape(geom_filename)
+        self._img = numpy.zeros(self._img_shape, dtype=numpy.float)
 
         self._data = collections.deque(maxlen=20)
         self._data_index = -1
@@ -126,17 +127,17 @@ class MainFrame(QtGui.QMainWindow):
         if len(self._data) > 0:
             data = self._data[self._data_index]
 
-            self._img[self._yx[0], self._yx[1]] = data['raw_data'].ravel().astype(self._img.dtype)
+            self._img[self._pixel_maps.y, self._pixel_maps.x] = data['raw_data'].ravel().astype(self._img.dtype)
 
             peak_x = []
             peak_y = []
-            for peak_fs, peak_ss in zip(data['peak_list'][0], data['peak_list'][1]):
+            for peak_fs, peak_ss in zip(data['peak_list'].fs, data['peak_list'].ss):
                 peak_in_slab = int(round(peak_ss))*data['raw_data'].shape[1]+int(round(peak_fs))
-                peak_x.append(self._yx[1][peak_in_slab])
-                peak_y.append(self._yx[0][peak_in_slab])
+                peak_x.append(self._pixel_maps.x[peak_in_slab])
+                peak_y.append(self._pixel_maps.y[peak_in_slab])
 
             self._ui.imageView.setImage(self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
-            self._peak_canvas.setData(peak_x, peak_y, symbol='o', size=[5] * len(data['peak_list'][0]),
+            self._peak_canvas.setData(peak_x, peak_y, symbol='o', size=[5] * len(data['peak_list'].intensity),
                                       brush=(255, 255, 255, 0), pen=self._ring_pen,
                                       pxMode=False)
 

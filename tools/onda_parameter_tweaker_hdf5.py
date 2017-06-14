@@ -27,6 +27,7 @@ try:
     from PyQt5 import QtCore, QtGui
 except ImportError:
     from PyQt4 import QtCore, QtGui
+from collections import namedtuple
 import pyqtgraph as pg
 
 try:
@@ -36,6 +37,7 @@ except ImportError:
 import cfelpyutils.cfel_optarg as coa
 import cfelpyutils.cfel_hdf5 as ch5
 import cfelpyutils.cfel_geom as cgm
+import ondautils.onda_param_utils as op
 import python_extensions.peakfinder8_extension as pf8
 
 
@@ -70,13 +72,12 @@ class MainFrame(QtGui.QMainWindow):
         if self._apply_darkcal is True:
             img -= self._darkcal
 
-        self._img_to_draw[self._pixel_maps[0], self._pixel_maps[1]] = img.ravel()
+        self._img_to_draw[self._pixel_map_y, self._pixel_map_x] = img.ravel()
         self._ui.imageView.setImage(self._img_to_draw.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
         self._mask_image_view.setImage(numpy.transpose(self._mask_to_draw, axes=(1, 0, 2)), autoLevels=False,
                                        autoRange=False, opacity=0.1)
 
-        peak_list = pf8.peakfinder_8(
-            self._max_num_peaks,
+        peak_list = pf8.peakfinder_8(self._max_num_peaks,
             img.astype(numpy.float32),
             self._mask.astype(numpy.int8),
             self._pixelmap_radius,
@@ -88,30 +89,29 @@ class MainFrame(QtGui.QMainWindow):
             self._minimum_snr,
             self._min_pixel_count,
             self._max_pixel_count,
-            self._local_bg_radius)
+            self._local_bg_radius
+        )
 
         if self._ui.showHidePeaksCheckBox.isChecked():
 
             peak_x = []
             peak_y = []
-            for peak_fs, peak_ss in zip(peak_list[0], peak_list[1]):
-                peak_in_slab = int(round(peak_ss))*self._slab_shape[1] + int(round(peak_fs))
-                try:
-                    peak_x.append(self._pixel_maps[0][peak_in_slab])
-                    peak_y.append(self._pixel_maps[1][peak_in_slab])
-                except IndexError:
-                    pass
+            for peak_fs, peak_ss in zip(peak_list.fs, peak_list.ss):
+                peak_in_slab = int(round(peak_ss)) * img.shape[1] + int(round(peak_fs))
+                peak_x.append(self._pixel_maps_x[peak_in_slab])
+                peak_y.append(self._pixel_maps_y[peak_in_slab])
+
             self._peak_canvas.setData(peak_y, peak_x, symbol='o', size=15, pen=self._ring_pen, brush=(0, 0, 0, 0),
                                       pxMode=False)
 
-            hit = self._min_num_peaks_for_hit < len(peak_list[2]) < self._max_num_peaks_for_hit
+            hit = self._min_num_peaks_for_hit < len(peak_list.intensity) < self._max_num_peaks_for_hit
 
             if hit:
                 self._ui.hitLabel.setText('Hit [{0}-{1} peaks]: <b>Yes</b> ({2} peaks)'.format(
-                    self._min_num_peaks_for_hit, self._max_num_peaks_for_hit, len(peak_list[2])))
+                    self._min_num_peaks_for_hit, self._max_num_peaks_for_hit, len(peak_list.intensity)))
             else:
                 self._ui.hitLabel.setText('Hit [{0}-{1} peaks]: No ({2} peaks)'.format(
-                    self._min_num_peaks_for_hit, self._max_num_peaks_for_hit, len(peak_list[2])))
+                    self._min_num_peaks_for_hit, self._max_num_peaks_for_hit, len(peak_list.intensity)))
 
         else:
 
@@ -120,8 +120,8 @@ class MainFrame(QtGui.QMainWindow):
             self._peak_canvas.setData([])
 
         if self._ui.resolutionRingsCheckBox.isChecked():
-            self._circle_canvas.setData([self._img_shape[1] / 2, self._img_shape[1] / 2],
-                                        [self._img_shape[0] / 2, self._img_shape[0] / 2],
+            self._circle_canvas.setData([self._img_shape.fs / 2, self._img_shape.fs / 2],
+                                        [self._img_shape.ss / 2, self._img_shape.ss / 2],
                                         symbol='o', size=[2 * self._min_res, 2 * self._max_res],
                                         pen=self._circle_pen, brush=(0, 0, 0, 0), pxMode=False)
 
@@ -159,7 +159,7 @@ class MainFrame(QtGui.QMainWindow):
         if changed:
             something_changed = True
 
-        self._res_mask = numpy.ones(self._slab_shape, dtype=numpy.int8)
+        self._res_mask = numpy.ones(self._loaded_mask.shape, dtype=numpy.int8)
         self._res_mask[numpy.where(self._pixelmap_radius < self._min_res)] = 0
         self._res_mask[numpy.where(self._pixelmap_radius > self._max_res)] = 0
         self._mask = self._loaded_mask * self._res_mask
@@ -209,41 +209,44 @@ class MainFrame(QtGui.QMainWindow):
 
         self._file_index = 0
 
-        gen_params = monitor_params['General']
-        p8pd_params = monitor_params['Peakfinder8PeakDetection']
-        dkc_params = monitor_params['DarkCalCorrection']
-
         self._ring_pen = pg.mkPen('r', width=2)
         self._circle_pen = pg.mkPen('b', width=2)
 
-        pix_maps = cgm.pixel_maps_from_geometry_file(gen_params['geometry_file'])
-        self._pixelmap_radius = pix_maps[2]
+        pix_maps = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file', str, required=True))
+        self._pixelmap_radius = pix_maps.r
 
         if apply_darkcal is True:
-            self._darkcal = ch5.load_nparray_from_hdf5_file(dkc_params['filename'], dkc_params['hdf5_group'])
+            self._darkcal = ch5.load_nparray_from_hdf5_file(
+                op.param('DarkCalCorrection', 'filename' , str, required=True),
+                op.param('DarkCalCorrection', 'hdf5_group', str, required=True)
+            )
 
-        self._pixel_maps, self._slab_shape, self._img_shape = cgm.pixel_maps_for_image_view(gen_params['geometry_file'])
+        self._pixel_map_x, self._pixel_map_y = cgm.pixel_maps_for_image_view(
+            op.param('General', 'geometry_file', str, required=True)
+        )
+        self._img_shape = cgm.get_image_shape(op.param('General', 'geometry_file', str, required=True))
         self._img_to_draw = numpy.zeros(self._img_shape, dtype=numpy.float32)
         self._mask_to_draw = numpy.zeros(self._img_shape + (3,), dtype=numpy.int16)
-        self._max_num_peaks = int(p8pd_params['max_num_peaks'])
-        self._asic_nx = int(p8pd_params['asics_nx'])
-        self._asic_ny = int(p8pd_params['asics_ny'])
-        self._nasics_x = int(p8pd_params['nasics_x'])
-        self._nasics_y = int(p8pd_params['nasics_y'])
-        self._adc_thresh = float(p8pd_params['adc_threshold'])
-        self._minimum_snr = float(p8pd_params['minimum_snr'])
-        self._min_pixel_count = int(p8pd_params['min_pixel_count'])
-        self._max_pixel_count = int(p8pd_params['max_pixel_count'])
-        self._local_bg_radius = int(p8pd_params['local_bg_radius'])
-        self._mask_filename = p8pd_params['mask_filename']
-        self._mask_hdf5_path = p8pd_params['mask_hdf5_path']
-        self._min_res = int(p8pd_params['min_res'])
-        self._max_res = int(p8pd_params['max_res'])
-        self._loaded_mask = ch5.load_nparray_from_hdf5_file(self._mask_filename, self._mask_hdf5_path)
-        self._min_num_peaks_for_hit = int(monitor_params['General']['min_num_peaks_for_hit'])
-        self._max_num_peaks_for_hit = int(monitor_params['General']['max_num_peaks_for_hit'])
 
-        self._res_mask = numpy.ones(self._slab_shape, dtype=numpy.int8)
+        self._max_num_peaks = op.param('Peakfinder8PeakDetection', 'max_num_peaks', int, required=True),
+        self._asics_nx = op.param('Peakfinder8PeakDetection', 'asics_nx', int, required=True),
+        self._asics_ny = op.param('Peakfinder8PeakDetection', 'asics_ny', int, required=True),
+        self._nasics_x = op.param('Peakfinder8PeakDetection', 'nasics_x', int, required=True),
+        self._nasics_y = op.param('Peakfinder8PeakDetection', 'nasics_y', int, required=True),
+        self._adc_threshold = op.param('Peakfinder8PeakDetection', 'adc_threshold', float, required=True),
+        self._minimum_snr = op.param('Peakfinder8PeakDetection', 'minimum_snr', float, required=True),
+        self._min_pixel_count = op.param('Peakfinder8PeakDetection', 'min_pixel_count', int, required=True),
+        self._max_pixel_count = op.param('Peakfinder8PeakDetection', 'max_pixel_count', int, required=True),
+        self._local_bg_radius = op.param('Peakfinder8PeakDetection', 'local_bg_radius', int, required=True),
+        self._min_res = op.param('Peakfinder8PeakDetection', 'min_res', int, required=True),
+        self._max_res = op.param('Peakfinder8PeakDetection', 'max_res', int, required=True),
+        self._mask_filename = op.param('Peakfinder8PeakDetection', 'mask_filename', str, required=True),
+        self._mask_hdf5_path = op.param('Peakfinder8PeakDetection', 'mask_hdf5_path', str, required=True),
+        self._loaded_mask = ch5.load_nparray_from_hdf5_file(self._mask_filename, self._mask_hdf5_path)
+        self._min_num_peaks_for_hit = op.param('General', 'min_num_peaks_for_hit', int, required=True)
+        self._max_num_peaks_for_hit = op.param('General', 'max_num_peaks_for_hit', int, required=True)
+
+        self._res_mask = numpy.ones(self._loaded_mask.shape, dtype=numpy.int8)
         self._res_mask[numpy.where(self._pixelmap_radius < self._min_res)] = 0
         self._res_mask[numpy.where(self._pixelmap_radius > self._max_res)] = 0
         self._mask = self._loaded_mask * self._res_mask
@@ -252,7 +255,7 @@ class MainFrame(QtGui.QMainWindow):
         mask = mask * 255./mask.max()
         mask = 255. - mask
 
-        self._mask_to_draw[self._pixel_maps[0], self._pixel_maps[1], 1] = mask.ravel()
+        self._mask_to_draw[self._pixel_maps.ss, self._pixel_maps.fs, 1] = mask.ravel()
 
         self._mask_image_view = pg.ImageItem()
         self._peak_canvas = pg.ScatterPlotItem()
@@ -261,7 +264,7 @@ class MainFrame(QtGui.QMainWindow):
         self._adc_threshold_label = QtGui.QLabel(self)
         self._adc_threshold_label.setText('adc_threshold')
         self._adc_threshold_lineedit = QtGui.QLineEdit(self)
-        self._adc_threshold_lineedit.setText(str(p8pd_params['adc_threshold']))
+        self._adc_threshold_lineedit.setText(str(self._adc_threshold))
         self._adc_threshold_lineedit.editingFinished.connect(self._update_peaks)
         self._hlayout0 = QtGui.QHBoxLayout()
         self._hlayout0.addWidget(self._adc_threshold_label)
@@ -270,7 +273,7 @@ class MainFrame(QtGui.QMainWindow):
         self._min_snr_label = QtGui.QLabel(self)
         self._min_snr_label.setText('minmum_snr')
         self._min_snr_lineedit = QtGui.QLineEdit(self)
-        self._min_snr_lineedit.setText(str(p8pd_params['minimum_snr']))
+        self._min_snr_lineedit.setText(str(self._minimum_snr))
         self._min_snr_lineedit.editingFinished.connect(self._update_peaks)
         self._hlayout1 = QtGui.QHBoxLayout()
         self._hlayout1.addWidget(self._min_snr_label)
@@ -279,7 +282,7 @@ class MainFrame(QtGui.QMainWindow):
         self._min_pixel_count_label = QtGui.QLabel(self)
         self._min_pixel_count_label.setText('min_pixel_count')
         self._min_pixel_count_lineedit = QtGui.QLineEdit(self)
-        self._min_pixel_count_lineedit.setText(str(p8pd_params['min_pixel_count']))
+        self._min_pixel_count_lineedit.setText(str(self._min_pixel_count))
         self._min_pixel_count_lineedit.editingFinished.connect(self._update_peaks)
         self._hlayout2 = QtGui.QHBoxLayout()
         self._hlayout2.addWidget(self._min_pixel_count_label)
@@ -288,7 +291,7 @@ class MainFrame(QtGui.QMainWindow):
         self._max_pixel_count_label = QtGui.QLabel(self)
         self._max_pixel_count_label.setText('max_pixel_count')
         self._max_pixel_count_lineedit = QtGui.QLineEdit(self)
-        self._max_pixel_count_lineedit.setText(str(p8pd_params['max_pixel_count']))
+        self._max_pixel_count_lineedit.setText(str(self._max_pixel_count))
         self._max_pixel_count_lineedit.editingFinished.connect(self._update_peaks)
         self._hlayout3 = QtGui.QHBoxLayout()
         self._hlayout3.addWidget(self._max_pixel_count_label)
@@ -297,7 +300,7 @@ class MainFrame(QtGui.QMainWindow):
         self._local_bg_radius_label = QtGui.QLabel(self)
         self._local_bg_radius_label.setText('local_bg_raidus')
         self._local_bg_radius_lineedit = QtGui.QLineEdit(self)
-        self._local_bg_radius_lineedit.setText(str(p8pd_params['local_bg_radius']))
+        self._local_bg_radius_lineedit.setText(str(self._local_bg_radius))
         self._local_bg_radius_lineedit.editingFinished.connect(self._update_peaks)
         self._hlayout4 = QtGui.QHBoxLayout()
         self._hlayout4.addWidget(self._local_bg_radius_label)

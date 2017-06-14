@@ -25,6 +25,32 @@ import numpy
 # DELAYLINE DETECTOR ANALYSIS #
 ###############################
 
+def _time_sum_radius_rejection(mcp_peak, x1_corr_peak,
+                               x2_corr_peak, y1_corr_peak,
+                               y2_corr_peak, min_sum_x,
+                               max_sum_x, min_sum_y,
+                               max_sum_y, max_radius):
+    for x1 in x1_corr_peak:
+        for x2 in x2_corr_peak:
+            for y1 in y1_corr_peak:
+                for y2 in y2_corr_peak:
+
+                    # candidate hit
+                    x = (x1, x2, y1, y2)
+
+                    # is the time sum acceptable?
+                    if (
+                        (min_sum_x < (x[0] + x[1] - 2 * mcp_peak) < max_sum_x) and
+                        (min_sum_y < (x[2] + x[3] - 2 * mcp_peak) < max_sum_y)
+                       ):
+
+                        # is x,y the position of the peak within the detector?
+                        y = (mcp_peak, (x[0] - x[1], x[2] - x[3]), (x[0], x[1], x[2], x[3]))
+                        if numpy.sqrt((y[1][0] * y[1][0] + y[1][1] * y[1][1])) < max_radius:
+                            return y
+    return None
+
+
 class DelaylineDetectorAnalysis:
     """Processes data from delayline detectors.
 
@@ -110,38 +136,14 @@ class DelaylineDetectorAnalysis:
                             scaled_mcp_peak + self._peak_search_delay < x <
                             scaled_mcp_peak + self._peak_search_delay + self._pst]
 
-            y = time_sum_radius_rejection(scaled_mcp_peak, x1_corr_peak,
-                                          x2_corr_peak, y1_corr_peak,
-                                          y2_corr_peak, self._min_sum_x,
-                                          self._max_sum_x, self._min_sum_y,
-                                          self._max_sum_y, self._max_radius)
+            y = _time_sum_radius_rejection(scaled_mcp_peak, x1_corr_peak,
+                                           x2_corr_peak, y1_corr_peak,
+                                           y2_corr_peak, self._min_sum_x,
+                                           self._max_sum_x, self._min_sum_y,
+                                           self._max_sum_y, self._max_radius)
             if y is not None:
                 hit_list.append(y)
 
         return hit_list
 
 
-def time_sum_radius_rejection(mcp_peak, x1_corr_peak,
-                              x2_corr_peak, y1_corr_peak,
-                              y2_corr_peak, min_sum_x,
-                              max_sum_x, min_sum_y,
-                              max_sum_y, max_radius):
-    for x1 in x1_corr_peak:
-        for x2 in x2_corr_peak:
-            for y1 in y1_corr_peak:
-                for y2 in y2_corr_peak:
-
-                    # candidate hit
-                    x = (x1, x2, y1, y2)
-
-                    # is the time sum acceptable?
-                    if (
-                        (min_sum_x < (x[0] + x[1] - 2 * mcp_peak) < max_sum_x) and
-                        (min_sum_y < (x[2] + x[3] - 2 * mcp_peak) < max_sum_y)
-                       ):
-
-                        # is x,y the position of the peak within the detector?
-                        y = (mcp_peak, (x[0] - x[1], x[2] - x[3]), (x[0], x[1], x[2], x[3]))
-                        if numpy.sqrt((y[1][0] * y[1][0] + y[1][1] * y[1][1])) < max_radius:
-                            return y
-    return None

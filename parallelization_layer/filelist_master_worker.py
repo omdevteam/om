@@ -20,7 +20,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from mpi4py import MPI
-import datetime
 import numpy
 import os.path
 import sys
@@ -134,7 +133,7 @@ class MasterWorker(object):
 
                 try:
                     evt['filehandle'] = open_file(filepath.strip())
-                    evt['filectime'] = datetime.datetime.fromtimestamp(os.path.getctime(filepath.strip()))
+                    evt['filectime'] = os.path.getctime(filepath.strip())
                     evt['num_events'] = num_events(evt)
                 except (IOError, OSError):
                     print('Cannot read file: {0}'.format(filepath.strip()))

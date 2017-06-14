@@ -19,11 +19,15 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import namedtuple
 import numpy
 
 
-slab_shape = (1480, 1552)
-native_shape = (32, 185, 388)
+SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
+NativeShape = namedtuple('NativeShape', ['panel', 'ss', 'fs'])
+
+slab_shape = SlabShape(1480, 1552)
+native_shape = NativeShape(32, 185, 388)
 
 
 def raw_data_dataext(event):

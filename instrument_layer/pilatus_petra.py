@@ -19,16 +19,17 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-
-import datetime
+from collections import namedtuple
+from time import strptime, mktime
 from scipy.constants import h, c, electron_volt
 
-
-file_extensions = ['.cbf']
-
+SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
+NativeShape = namedtuple('NativeShape', ['ss', 'fs'])
 
 slab_shape = (2527, 2463)
 native_shape = (2527, 2463)
+
+file_extensions = ['.cbf']
 
 
 def raw_data(evt):
@@ -40,8 +41,7 @@ def num_events_in_file(_):
 
 
 def timestamp(evt):
-    header_data_list = evt['filehandle'].header[u'_array_data.header_contents'].split('\r\n')
-    return datetime.datetime.strptime(header_data_list[1], '# %Y-%m-%dT%H:%M:%S.%f')
+    return evt['filectime']
 
 
 def beam_energy(evt):

@@ -19,10 +19,15 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import namedtuple
 import numpy
 
-slab_shape = (128, 4096)
-native_shape = (128, 4096)
+
+SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
+NativeShape = namedtuple('NativeShape', ['ss', 'fs'])
+
+slab_shape = SlabShape(128, 4096)
+native_shape = NativeShape(128, 4096)
 
 file_extensions = ['.nxs']
 

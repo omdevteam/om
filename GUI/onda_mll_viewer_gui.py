@@ -24,6 +24,7 @@ try:
     from PyQt5 import QtCore, QtGui
 except ImportError:
     from PyQt4 import QtCore, QtGui
+from collections import namedtuple
 import copy
 import datetime
 import pyqtgraph as pg
@@ -35,6 +36,9 @@ try:
 except ImportError:
     from GUI.UI.onda_mll_viewer_ui_qt4 import Ui_MainWindow
 import ondautils.onda_zmq_gui_utils as zgut
+
+
+_Scale = namedtuple('Scaled', ['fs', 'ss'])
 
 
 class MainFrame(QtGui.QMainWindow):
@@ -171,7 +175,7 @@ class MainFrame(QtGui.QMainWindow):
             if self._local_data['scan_type'] == 2:
                 self._lef_axis.setLabel(self._local_data['ss_name'])
                 self._pos = (self._local_data['fs_start'], self._local_data['ss_start'])
-                self._scale = (
+                self._scale = _Scale(
                     (self._local_data['fs_end'] - self._local_data['fs_start']) / (self._local_data['fs_steps']),
                     (self._local_data['ss_end'] - self._local_data['ss_start']) / (self._local_data['ss_steps'])
                 )
@@ -183,7 +187,7 @@ class MainFrame(QtGui.QMainWindow):
                     1.0
                 )
 
-            if self._scale[1] > self._scale[0]:
+            if self._scale.ss > self._scale.fs:
                 ratio = max(self._scale) / min(self._scale)
             else:
                 ratio = min(self._scale) / max(self._scale)

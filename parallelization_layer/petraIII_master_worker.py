@@ -22,7 +22,6 @@ from __future__ import unicode_literals
 from builtins import str
 
 from mpi4py import MPI
-import datetime
 import os.path
 import signal
 import socket
@@ -185,7 +184,7 @@ class MasterWorker(object):
                 evt['filename'] = filepath
                 try:
                     evt['filehandle'] = self._open_file(data, filepath)
-                    evt['filectime'] = datetime.datetime.fromtimestamp(metadata['file_create_time'])
+                    evt['filectime'] = metadata['file_create_time']
                     evt['num_events'] = num_events(evt)
                 except (IOError, OSError):
                     print('Cannot read file: {0}'.format(filepath))
