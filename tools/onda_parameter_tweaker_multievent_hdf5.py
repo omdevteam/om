@@ -98,11 +98,8 @@ class MainFrame(QtGui.QMainWindow):
             peak_y = []
             for peak_fs, peak_ss in zip(peak_list[0], peak_list[1]):
                 peak_in_slab = int(round(peak_ss)) * img.shape[1] + int(round(peak_fs))
-                try:
-                    peak_x.append(self._pixel_maps.x[peak_in_slab])
-                    peak_y.append(self._pixel_maps.y[peak_in_slab])
-                except IndexError:
-                    pass
+                peak_x.append(self._pixel_maps.x[peak_in_slab])
+                peak_y.append(self._pixel_maps.y[peak_in_slab])
             self._peak_canvas.setData(peak_x, peak_y, symbol='o', size=15, pen=self._ring_pen, brush=(0, 0, 0, 0),
                                       pxMode=False)
 

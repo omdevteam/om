@@ -22,13 +22,9 @@ from collections import namedtuple
 import numpy
 import scipy.ndimage as ndimage
 
-try:
-    from python_extensions.peakfinder8_extension import peakfinder_8
-except ImportError:
-    raise RuntimeError('Error importing one or more cheetah wrappers, or one of their dependecies')
+
+from python_extensions.peakfinder8_extension import peakfinder_8
 import cfelpyutils.cfel_hdf5 as ch5
-
-
 
 
 PeakList = namedtuple('PeakList', ['fs', 'ss', 'intensity'])

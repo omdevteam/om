@@ -175,6 +175,7 @@ class MasterWorker(object):
                 self._extract_data(event, self)
 
                 if self.raw_data is None:
+                    print('>>>>> OnDA WARNING: Cannot interpret event data. Skipping.... <<<<<')
                     continue
 
                 result = self._map()

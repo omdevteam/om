@@ -25,6 +25,7 @@ import numpy
 import os.path
 import sys
 
+from ondautils.onda_dynamic_import_utils import DynamicImportError
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
@@ -45,7 +46,7 @@ except RuntimeError:
     try:
         file_extensions = di.import_str_from_layer('file_extensions', in_layer)
     except RuntimeError:
-        raise RuntimeError('Could not import file extensions from the instrument layer.')
+        raise DynamicImportError('Could not import file extensions from the instrument layer.') from None
 
 
 class MasterWorker(object):
@@ -137,8 +138,9 @@ class MasterWorker(object):
                     filehandle = open_file(filepath.strip())
                     filectime = os.path.getctime(filepath.strip())
                     num_events_in_file = num_events(filehandle)
-                except (IOError, OSError):
-                    print('Cannot read file: {0}'.format(filepath.strip()))
+                except (IOError, OSError) as e:
+                    print('>>>>> OnDA WARNING: Cannot read file {0}: {1}. Skipping.... <<<<<'.format(
+                        filepath.strip(), e))
                     continue
 
                 if num_events_in_file < self._shots_to_proc:

@@ -20,6 +20,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import fabio
+
+from ondautils.onda_exception_utils import MissingDataExtractionFunction
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
@@ -32,8 +34,8 @@ for func in data_extraction_funcs:
         globals()[func] = getattr(in_layer, func)
     except AttributeError:
         if func not in globals():
-            raise RuntimeError('Data extraction function not defined for the following '
-                               'data type: {0}'.format(func))
+            raise MissingDataExtractionFunction('Data extraction function not defined for the following '
+                                                'data type: {0}'.format(func)) from None
 
 
 def open_file(data):
@@ -54,5 +56,5 @@ def extract(event, monitor):
         try:
             setattr(monitor, entry, globals()[entry](event))
         except:
-            print('Error extracting {}'.format(entry))
+            print('OnDA Warning: Error extracting {}'.format(entry))
             setattr(monitor, entry, None)

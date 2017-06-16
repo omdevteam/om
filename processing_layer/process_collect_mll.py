@@ -26,6 +26,7 @@ import os.path
 import sys
 import time
 
+from ondautils.onda_exception_utils import MLLLogFleParsingError
 import cfelpyutils.cfel_hdf5 as ch5
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
@@ -190,8 +191,8 @@ class Onda(MasterWorker):
             num_run = int(filename_parts[1])
             num_file = int(filename_parts[2].split('.')[0])
             num_event = int(results_dict['event'])
-        except ValueError:
-            return
+        except ValueError as e:
+            raise MLLLogFleParsingError('Error parsing the log file {0}: {1}'.format(results_dict['filename'], e))
 
         if num_run < self._current_run_num:
             return

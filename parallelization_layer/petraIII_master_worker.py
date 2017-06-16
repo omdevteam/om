@@ -30,6 +30,7 @@ import sys
 
 from hidra_api import Transfer
 from hidra_api.transfer import CommunicationFailed
+from ondautils.onda_exception_utils import DynamicImportError, HidraAPIError
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
@@ -50,7 +51,7 @@ except RuntimeError:
     try:
         file_extensions = di.import_str_from_layer('file_extensions', in_layer)
     except RuntimeError:
-        raise RuntimeError('Could not import file extensions from the instrument layer.')
+        raise DynamicImportError('Could not import file extensions from the instrument layer.') from None
 
 
 def _open_file_data(data, _):
@@ -122,7 +123,7 @@ class MasterWorker(object):
                 self._query = Transfer(self._query_text, self._sender_hostname, use_log=False)
                 self._query.initiate(self._targets[1:])
             except CommunicationFailed as e:
-                raise RuntimeError('Failed to contact HiDRA.') from None
+                raise HidraAPIError('Failed to contact HiDRA: {0}'.format(e)) from None
 
             signal.signal(signal.SIGTERM, self.send_exit_announcement)
 
@@ -194,8 +195,9 @@ class MasterWorker(object):
                     filehandle = self._open_file(data, filepath)
                     filectime = metadata['file_create_time']
                     num_events_in_file = num_events(filehandle)
-                except (IOError, OSError):
-                    print('Cannot read file: {0}'.format(filepath))
+                except (IOError, OSError) as e:
+                    print('>>>>> OnDA WARNING: Cannot read file {0}: {1}. Skipping.... <<<<<'.format(
+                        filepath.strip(), e))
                     continue
 
                 shots_to_proc = self._max_shots_to_proc

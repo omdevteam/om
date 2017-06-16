@@ -102,6 +102,9 @@ class Onda(MasterWorker):
 
         if self.role == 'master':
 
+            asdasdasdas
+
+
             self._accumulator = calg.PeakAccumulator(op.param('PeakAccumulator', 'accumulated_shots', int,
                                                               required=True))
 
