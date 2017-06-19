@@ -21,21 +21,21 @@ from __future__ import unicode_literals
 
 try:
     from PyQt5 import QtCore, QtGui
+    from PyQt5.uic import loadUiType
 except ImportError:
     from PyQt4 import QtCore, QtGui
+    from PyQt4.uic import loadUiType
 from collections import namedtuple
 import copy
-import time
 import numpy
+import os
+import os.path
 import pyqtgraph as pg
 import scipy.constants
 import signal
 import sys
+import time
 
-try:
-    from GUI.UI.onda_crystallography_ui_qt5 import Ui_MainWindow
-except ImportError:
-    from GUI.UI.onda_crystallography_ui_qt4 import Ui_MainWindow
 import cfelpyutils.cfel_geom as cgm
 import cfelpyutils.cfel_crystfel as cfl
 import ondautils.onda_zmq_gui_utils as zgut
@@ -85,7 +85,9 @@ class MainFrame(QtGui.QMainWindow):
         self._resolution_rings_validator = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
         pg.setConfigOption('background', 0.2)
-        self._ui = Ui_MainWindow()
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+                                              'OndaCrystallographyGUI.ui'))
+        self._ui = ui_mainwindow()
         self._ui.setupUi(self)
         self._init_ui()
 

@@ -23,17 +23,17 @@ import signal
 import sys
 
 from configparser import ConfigParser
-try:
-    from PyQt5 import QtCore, QtGui
-except ImportError:
-    from PyQt4 import QtCore, QtGui
-from collections import namedtuple
-import pyqtgraph as pg
 
 try:
-    from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt5 import Ui_MainWindow
+    from PyQt5 import QtCore, QtGui
+    from PyQt5.uic import loadUiType
 except ImportError:
-    from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt4 import Ui_MainWindow
+    from PyQt4 import QtCore, QtGui
+    from PyQt4.uic import loadUiType
+import os
+import os.path
+import pyqtgraph as pg
+
 import cfelpyutils.cfel_optarg as coa
 import cfelpyutils.cfel_hdf5 as ch5
 import cfelpyutils.cfel_geom as cgm
@@ -327,7 +327,9 @@ class MainFrame(QtGui.QMainWindow):
         self._param_label = QtGui.QLabel(self)
         self._param_label.setText('<b>Peakfinder Parameters:</b>')
 
-        self._ui = Ui_MainWindow()
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+                                                   'OndaMLLViewerGUI.ui'))
+        self._ui = ui_mainwindow()
         self._ui.setupUi(self)
         self.init_ui()
 

@@ -31,7 +31,7 @@ EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num
                                      'monitor_params'])
 
 
-def raw_data_init(detector):
+def raw_data_init(_):
     return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_name'])
 
 
@@ -122,10 +122,10 @@ for func in data_extraction_funcs:
                         'data type: {0}'.format(func)) from None
 
 
-def initialize(det):
+def initialize():
     detector = {}
     for init_data_source in data_extraction_funcs:
-        detector[init_data_source] = globals().init_data_source + '_init'()
+        detector[init_data_source] = globals()[init_data_source + '_init']()
 
 
 def extract(event, monitor):

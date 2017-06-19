@@ -22,19 +22,19 @@ from __future__ import unicode_literals
 
 try:
     from PyQt5 import QtCore, QtGui
+    from PyQt5.uic import loadUiType
 except ImportError:
     from PyQt4 import QtCore, QtGui
+    from PyQt4.uic import loadUiType
 import collections
 import copy
 import numpy
+import os
+import os.path
 import pyqtgraph as pg
 import signal
 import sys
 
-try:
-    from GUI.UI.onda_crystallography_hit_viewer_ui_qt5 import Ui_MainWindow
-except ImportError:
-    from GUI.UI.onda_crystallography_hit_viewer_ui_qt4 import Ui_MainWindow
 import cfelpyutils.cfel_geom as cgm
 import ondautils.onda_zmq_gui_utils as zgut
 
@@ -58,7 +58,9 @@ class MainFrame(QtGui.QMainWindow):
 
         self._ring_pen = pg.mkPen('r', width=2)
         self._peak_canvas = pg.ScatterPlotItem()
-        self._ui = Ui_MainWindow()
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+                                                   'OndaCrystallographyHitViewerGUI.ui'))
+        self._ui = ui_mainwindow()
         self._ui.setupUi(self)
         self._init_ui()
 

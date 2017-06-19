@@ -22,16 +22,17 @@ import signal
 import sys
 
 from configparser import ConfigParser
-try:
-    from PyQt5 import QtCore, QtGui
-except ImportError:
-    from PyQt4 import QtCore, QtGui
-import pyqtgraph as pg
 
 try:
-    from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt5 import Ui_MainWindow
+    from PyQt5 import QtCore, QtGui
+    from PyQt5.uic import loadUiType
 except ImportError:
-    from GUI.UI.onda_crystallography_parameter_tweaker_ui_qt4 import Ui_MainWindow
+    from PyQt4 import QtCore, QtGui
+    from PyQt4.uic import loadUiType
+import os
+import os.path
+import pyqtgraph as pg
+
 from algorithms.crystallography_algorithms import PeakList
 import ondautils.onda_zmq_gui_utils as zgut
 import cfelpyutils.cfel_optarg as coa
@@ -177,7 +178,9 @@ class MainFrame(QtGui.QMainWindow):
         self._param_label = QtGui.QLabel(self)
         self._param_label.setText('<b>Peakfinder Parameters:</b>')
 
-        self._ui = Ui_MainWindow()
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+                                                   'OndaCrystallographyParameterTweakerGUI.ui'))
+        self._ui = ui_mainwindow()
         self._ui.setupUi(self)
         self._init_ui()
         self.setWindowTitle('OnDA Live Parameter Tweaker')

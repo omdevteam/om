@@ -22,17 +22,18 @@ from __future__ import unicode_literals
 
 try:
     from PyQt5 import QtCore, QtGui
+    from PyQt5.uic import loadUiType
 except ImportError:
     from PyQt4 import QtCore, QtGui
+    from PyQt4.uic import loadUiType
 import collections
 import copy
+import os
+import os.path
+import pyqtgraph as pg
 import signal
 import sys
 
-try:
-    from GUI.UI.onda_mll_frame_viewer_ui_qt5 import Ui_MainWindow
-except ImportError:
-    from GUI.UI.onda_mll_frame_viewer_ui_qt4 import Ui_MainWindow
 import ondautils.onda_zmq_gui_utils as zgut
 
 
@@ -50,7 +51,10 @@ class MainFrame(QtGui.QMainWindow):
 
         self._init_listening_thread(rec_ip, rec_port)
 
-        self._ui = Ui_MainWindow()
+        pg.setConfigOption('background', 0.2)
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+                                                   'OndaMLLFrameViewerGUI.ui'))
+        self._ui = ui_mainwindow()
         self._ui.setupUi(self)
         self._init_ui()
 

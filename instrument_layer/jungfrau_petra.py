@@ -22,7 +22,6 @@ from __future__ import unicode_literals
 from collections import namedtuple
 import numpy
 
-
 SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
 NativeShape = namedtuple('NativeShape', ['ss', 'fs'])
 
@@ -37,10 +36,10 @@ def num_events_in_file(filehandle):
 
 
 def raw_data(event):
-    raw_data = event.filehandle['/entry/instrument/detector/data'][event.shot_offset, :, :].reshape(512,1024)
+    raw_data = event.filehandle['/entry/instrument/detector/data'][event.shot_offset, :, :].reshape(512, 1024)
     adu_data = numpy.bitwise_and(raw_data, 0x3fff)
     gain_data = numpy.bitwise_and(numpy.right_shift(raw_data, 14), 0x3)
-    adu_data[gain_data!=0] = -999.0
+    adu_data[gain_data != 0] = -999.0
     return adu_data
 
 
@@ -57,4 +56,4 @@ def beam_energy(event):
 
 
 def filename_and_event(event):
-    return (event.filename, event.filehandle['/entry/instrument/detector/data'].shape[0]+event.shot_offset)
+    return (event.filename, event.filehandle['/entry/instrument/detector/data'].shape[0] + event.shot_offset)

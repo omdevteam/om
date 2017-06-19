@@ -39,7 +39,6 @@ for func in data_extraction_funcs:
                                                 'data type: {0}'.format(func)) from None
 
 
-
 def open_file(data):
     data_stringio = BytesIO(data)
     f = fb.read_cbf_from_stream(data_stringio)
