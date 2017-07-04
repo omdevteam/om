@@ -50,6 +50,6 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 	              long asic_nx, long asic_ny, long nasics_x, long nasics_y,
 								float ADCthresh, float hitfinderMinSNR,
 								long hitfinderMinPixCount, long hitfinderMaxPixCount,
-								long hitfinderLocalBGRadius);
+								long hitfinderLocalBGRadius, char* outliersMask);
 
 #endif // PEAKFINDER8_H

@@ -24,6 +24,7 @@ import scipy.ndimage as ndimage
 
 
 from python_extensions.peakfinder8_extension import peakfinder_8
+from python_extensions.streakfinder_extension import StreakDetectionClass
 import cfelpyutils.cfel_hdf5 as ch5
 
 
@@ -240,7 +241,81 @@ class Peakfinder8PeakDetection:
 
         self._mask *= res_mask
 
-    def find_peaks(self, raw_data):
+
+    ################################################
+    # PEAKFINDER8 PEAK DETECTION WITH OUTLIER MASK #
+    ################################################
+
+    class Peakfinder8PeakDetectionWithPixelInformation:
+        """Peak finding using cheetah's peakfinder8 algorithm. Also returns a pixel classification mask.
+
+        Implements peak finding using the peakfinder8 algorithm from Cheetah. Additionally, fills an array provided
+        by the user with pixel information. After the peak finding is performed, the pixel information mask shows
+        whether a pixel has been classified as background, it belongs to a peak or it belongs to an outlier (a
+        collection of pixels rejected as a peak because of its size).
+        """
+
+        def __init__(self, max_num_peaks, asic_nx, asic_ny, nasics_x,
+                     nasics_y, adc_threshold, minimum_snr, min_pixel_count,
+                     max_pixel_count, local_bg_radius, min_res,
+                     max_res, mask_filename, mask_hdf5_path, pixelmap_radius):
+            """Initializes the peakfinder.
+
+            Args:
+
+                max_num_peaks (int): maximum number of peaks that will be returned by the algorithm.
+
+                asic_nx (int): fs size of a detector's ASIC.
+
+                asic_ny (int): ss size of a detector's ASIC.
+
+                nasics_x (int): number of ASICs in the slab in the fs direction.
+
+                nasics_y (int): number of ASICs in the slab in the ss direction.
+
+                adc_threshold (float): minimum adc threshold for peak detection.
+
+                minimum_snr (float): minimum signal to noise for peak detection.
+
+                min_pixel_count (int): minimum size of the peak in pixels.
+
+                max_pixel_count (int): maximum size of the peak in pixels.
+
+                local_bg_radius (int): radius for the estimation of the local background.
+
+                min_res (int): minimum resolution for a peak to be considered (in pixels).
+
+                max_res (int): minimum resolution for a peak to be considered (in pixels).
+
+                mask_filename (str): filename of the file containing the mask.
+
+                mask_hdf5_path (str): internal hdf5 path of the data block containing the mask.
+
+                pixelmap_radius (numpy.ndarray): pixelmap in 'slab' format listing for each pixel the distance from the
+                center of the detector, in pixels.
+            """
+
+            self._max_num_peaks = max_num_peaks
+            self._asic_nx = asic_nx
+            self._asic_ny = asic_ny
+            self._nasics_x = nasics_x
+            self._nasics_y = nasics_y
+            self._adc_thresh = adc_threshold
+            self._minimum_snr = minimum_snr
+            self._min_pixel_count = min_pixel_count
+            self._max_pixel_count = max_pixel_count
+            self._local_bg_radius = local_bg_radius
+            self._pixelmap_radius = pixelmap_radius
+            self._mask = ch5.load_nparray_from_hdf5_file(mask_filename, mask_hdf5_path)
+
+            res_mask = numpy.ones(self._mask.shape, dtype=numpy.int8)
+            res_mask[numpy.where(pixelmap_radius < min_res)] = 0
+            res_mask[numpy.where(pixelmap_radius > max_res)] = 0
+
+            self._mask *= res_mask
+
+
+    def find_peaks(self, raw_data, outlier_mask):
         """Finds peaks.
 
         Performs the peak finding.
@@ -248,6 +323,9 @@ class Peakfinder8PeakDetection:
         Args:
 
             raw_data (numpy.ndarray): the data on which peak finding is performed, in 'slab' format.
+
+            outlier_mask (numpy.ndarray): an array of int with the same shape and size as raw_data. After
+            the function call, this array contains
 
         Returns:
 
@@ -264,6 +342,129 @@ class Peakfinder8PeakDetection:
                                  self._nasics_x, self._nasics_y,
                                  self._adc_thresh, self._minimum_snr,
                                  self._min_pixel_count, self._max_pixel_count,
-                                 self._local_bg_radius)
+                                 self._local_bg_radius, outlier_mask)
 
         return PeakList(*peak_list[0:3])
+
+
+####################
+# STREAK DETECTION #
+####################
+
+class StreakDetection:
+    """Streak detection.
+
+    Implements streak finding and masking.
+    """
+
+
+    def __init__(self, filter_length, min_filter_length, filter_step,
+                 sigma_factor, streak_elongation_min_steps_count,
+                 streak_elongation_radius_factor,
+                 streak_pixel_mask_radius,
+                 pixels_to_check_x, pixels_to_check_y,
+                 background_estimation_regions_upper_left_corner_x,
+                 background_estimation_regions_upper_left_corner_y,
+                 background_estimation_regions_lower_right_corner_x,
+                 background_estimation_regions_lower_right_corner_y,
+                 asic_nx, asic_ny, nasics_x, nasics_y,
+                 pixel_map_x, pixel_map_y, mask_filename,
+                 mask_hdf5_path):
+        """Initializes the peakfinder.
+
+        Args:
+
+            role (str): node role ('worker' or 'master')
+
+            filter_length (int): length of the radial filter with which the image is prefiltered.
+
+            min_filter_length (int): Minimum amount of non-masked pixels in the radial filter with which the image is
+            prefiltered.
+
+            float filter_step (float): size of the step through the radial filter.
+
+            sigma_factor(float): minimum number of stddev above the mean for the pixel to be part of a streak.
+
+            streak_elongation_min_steps_count (int): number of steps to keep searching for a streak after it
+            apparently ends.
+
+            streak_elongation_radius_factor (float): maximum distance in pixels from the center to keep searching for
+            a streak after it apparently ends.
+
+            streak_pixel_mask_radius (int): Radius  of the mask around the streak in pixels.
+
+            pixels_to_check_x (numpy.ndarray): array (of ints) with fs coordinates (in the array containing raw_data
+            in slab format) of pixels where streaks could originate
+
+            pixels_to_check_y (numpy.ndarray): array (of ints) with ss coordinates (in the array containing raw_data
+            in slab format) of pixels where streaks could originate
+
+            background_estimation_regions_upper_left_corner_x (numpy.ndarray): array (of ints) with fs coordinates
+            (in the array containing raw_data in slab format) of the top left corners of areas used to estimate
+            the background signal level
+
+            background_estimation_regions_upper_left_corner_y (numpy.ndarray): array (of ints) with ss coordinates
+            (in the array containing raw_data in slab format) of the top left corners of areas used to estimate
+            the background signal level
+
+            background_estimation_regions_lower_right_corner_x (numpy.ndarray): array (of ints) with fs coordinates
+            (in the array containing raw_data in slab format) of the bottom right corners of areas used to estimate
+            the background signal level
+
+            background_estimation_regions_lower_right_corner_y(numpy.ndarray): array (of ints) with ss coordinates
+            (in the array containing raw_data in slab format) of the bottom right corners of areas used to estimate
+            the background signal level
+
+            asic_nx (int): fs size of a detector's ASIC.
+
+            asic_ny (int): ss size of a detector's ASIC.
+
+            nasics_x (int): number of ASICs in the slab in the fs direction.
+
+            nasics_y (int): number of ASICs in the slab in the ss direction.
+
+            pixel_map_x (numpy.ndarray): pixel_map for x coordinate
+
+            pixel_map_y (numpy.ndarray): pixel_map for y coordinate
+
+            mask_filename (str): filename of the file containing the mask.
+
+            mask_hdf5_path (str): internal hdf5 path of the data block containing the mask.
+        """
+
+        self.mask = ch5.load_nparray_from_hdf5_file(mask_filename,
+                                                    mask_hdf5_path)
+
+        self.streak_detection = StreakDetectionClass(
+            min_filter_length,
+            filter_length, filter_step,
+            sigma_factor,
+            streak_elongation_min_steps_count,
+            streak_elongation_radius_factor,
+            streak_pixel_mask_radius,
+            pixels_to_check_x, pixels_to_check_y,
+            background_estimation_regions_upper_left_corner_x,
+            background_estimation_regions_upper_left_corner_y,
+            background_estimation_regions_lower_right_corner_x,
+            background_estimation_regions_lower_right_corner_y,
+            asic_nx, asic_ny, nasics_x, nasics_y,
+            pixel_map_x, pixel_map_y, self.mask)
+
+    def find_streaks(self, data, streak_mask):
+        """Finds streaks.
+
+        Performs the strek finding.
+
+        Designed to be run on worker nodes.
+
+        Args:
+
+            data (numpy.ndarray): the data on which to perform streak-finding.
+
+            streak_mask (numpy.ndarray): an array with the same shape as the data. After the function returns,
+            this array will contain the mask generated by the streak finder.
+        """
+
+        self.streak_mask[self.streak_mask > 0] = -1
+        self.streak_mask += -1
+        self.streak_detection.find_streaks(data, streak_mask, self.mask)

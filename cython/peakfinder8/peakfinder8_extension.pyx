@@ -55,7 +55,7 @@ cdef extern from "peakfinder8.hh":
                     float *data, char *mask, float *pix_r, long asic_nx, long asic_ny,
                     long nasics_x, long nasics_y, float ADCthresh, float hitfinderMinSNR,
                     long hitfinderMinPixCount, long hitfinderMaxPixCount,
-                    long hitfinderLocalBGRadius)
+                    long hitfinderLocalBGRadius, char *outliersMask)
 
 
 def peakfinder_8(int max_num_peaks,
@@ -77,7 +77,7 @@ def peakfinder_8(int max_num_peaks,
     peakfinder8(&peak_list, &data[0, 0], mask_char_pointer, &pix_r[0, 0],
                  asic_nx, asic_ny, nasics_x, nasics_y,
                  adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count,
-                 hitfinder_max_pix_count, hitfinder_local_bg_radius)
+                 hitfinder_max_pix_count, hitfinder_local_bg_radius, NULL)
 
     cdef int i
     cdef float peak_x, peak_y, peak_value
@@ -117,4 +117,70 @@ def peakfinder_8(int max_num_peaks,
 
     freePeakList(peak_list)
 
-    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
+    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi,
+            peak_list_sigma, peak_list_snr)
+
+
+def peakfinder_8_with_outlier_mask(int max_num_peaks,
+                                   numpy.ndarray[numpy.float32_t, ndim=2, mode="c"] data,
+                                   numpy.ndarray[numpy.int8_t, ndim=2, mode="c"] mask,
+                                   numpy.ndarray[numpy.float32_t, ndim=2, mode="c"] pix_r,
+                                   long asic_nx, long asic_ny,
+                                   long nasics_x, long nasics_y, float adc_thresh,
+                                   float hitfinder_min_snr,
+                                   long hitfinder_min_pix_count, long hitfinder_max_pix_count,
+                                   long hitfinder_local_bg_radius,
+                                   numpy.ndarray[numpy.int8_t, ndim=2, mode="c"] outlier_mask):
+
+    cdef numpy.int8_t *mask_pointer = &mask[0, 0]
+    cdef char *mask_char_pointer = <char*> mask_pointer
+
+    cdef tPeakList peak_list
+    allocatePeakList(&peak_list, max_num_peaks)
+
+    peakfinder8(&peak_list, &data[0, 0], mask_char_pointer, &pix_r[0, 0],
+                 asic_nx, asic_ny, nasics_x, nasics_y,
+                 adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count,
+                 hitfinder_max_pix_count, hitfinder_local_bg_radius,
+                 outlier_mask)
+
+    cdef int i
+    cdef float peak_x, peak_y, peak_value
+    cdef vector[double] peak_list_x
+    cdef vector[double] peak_list_y
+    cdef vector[long] peak_list_index
+    cdef vector[double] peak_list_value
+    cdef vector[double] peak_list_npix
+    cdef vector[double] peak_list_maxi
+    cdef vector[double] peak_list_sigma
+    cdef vector[double] peak_list_snr
+
+    num_peaks = peak_list.nPeaks
+
+    if num_peaks > max_num_peaks:
+        num_peaks = max_num_peaks
+
+    for i in range(0, num_peaks):
+
+        peak_x = peak_list.peak_com_x[i]
+        peak_y = peak_list.peak_com_y[i]
+        peak_index = peak_list.peak_com_index[i]
+        peak_value = peak_list.peak_totalintensity[i]
+        peak_npix = peak_list.peak_npix[i]
+        peak_maxi = peak_list.peak_maxintensity[i]
+        peak_sigma = peak_list.peak_sigma[i]
+        peak_snr = peak_list.peak_snr[i]
+
+        peak_list_x.push_back(peak_x)
+        peak_list_y.push_back(peak_y)
+        peak_list_index.push_back(peak_index)
+        peak_list_value.push_back(peak_value)
+        peak_list_npix.push_back(peak_npix)
+        peak_list_maxi.push_back(peak_maxi)
+        peak_list_sigma.push_back(peak_sigma)
+        peak_list_snr.push_back(peak_snr)
+
+    freePeakList(peak_list)
+
+    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi,
+            peak_list_sigma, peak_list_snr)
