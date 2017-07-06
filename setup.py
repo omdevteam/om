@@ -25,6 +25,7 @@ peakfinder8_ext = Extension(name='peakfinder8_extension',
                                      'cython/peakfinder8/peakfinder8.cpp'],
                             language='c++')
 
+"""
 streakfinder_ext = Extension(name='streakfinder_extension',
                             include_dirs=[numpy.get_include(), 
                                           'cython/fast_diffraction_image_processing/include',
@@ -48,3 +49,5 @@ radial_background_subtraction_ext = Extension(name='radial_background_subtractio
                             extra_compile_args=["-std=c++11"])
 
 setup(ext_modules=cythonize([peakfinder8_ext, streakfinder_ext, radial_background_subtraction_ext]))
+"""
+setup(ext_modules=cythonize([peakfinder8_ext]))
