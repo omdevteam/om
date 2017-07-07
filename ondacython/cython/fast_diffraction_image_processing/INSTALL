@@ -1,0 +1,28 @@
+
+[optional]  If you want to use an own (newer) version of Eigen,
+            download latest version of eigen3 from eigen.tuxfamily.org/ 
+            and install it using cmake.
+            If Eigen3 is not found automatically (and the internal one is used), 
+            add -DEigen3_DIR=<path to Eigen3Config.cmake> to cmake invocation
+
+            
+Create directory where to build (e.g. cmakeBuild/).
+cd into it
+Call cmake <directory of this file>
+
+If you want to install in a place other than the standard 
+CMAKE_INSTALL_PREFIX (e.g. if you do not have root rights), 
+use -DCMAKE_INSTALL_PREFIX=<install path>
+
+Typical usecase on Linux with GCC:
+> mkdir cmakeBuild
+> cmake ..
+> make 
+> make install
+
+In the installation folder you'll find the headers. 
+Add the folder "include" and "Eigen/Eigen" to your include path.
+
+
+
+ 
