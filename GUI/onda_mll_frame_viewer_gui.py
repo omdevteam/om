@@ -52,7 +52,7 @@ class MainFrame(QtGui.QMainWindow):
         self._init_listening_thread(rec_ip, rec_port)
 
         pg.setConfigOption('background', 0.2)
-        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'ui_files',
                                                    'OndaMLLFrameViewerGUI.ui'))
         self._ui = ui_mainwindow()
         self._ui.setupUi(self)

@@ -24,6 +24,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import OrderedDict
+from copy import deepcopy
 from math import sqrt
 import re
 
@@ -443,7 +444,7 @@ def load_crystfel_geometry(filename):
             if path[0] in detector['bad']:
                 curr_bad = detector['bad'][path[0]]
             else:
-                curr_bad = default_bad_region.copy()
+                curr_bad = deepcopy(default_bad_region)
                 detector['bad'][path[0]] = curr_bad
 
         else:
@@ -451,7 +452,7 @@ def load_crystfel_geometry(filename):
             if path[0] in detector['panels']:
                 curr_panel = detector['panels'][path[0]]
             else:
-                curr_panel = default_panel.copy()
+                curr_panel = deepcopy(default_panel)
                 detector['panels'][path[0]] = curr_panel
 
         if curr_panel is not None:
@@ -500,7 +501,7 @@ def load_crystfel_geometry(filename):
     for panel in detector['panels'].values():
 
         if panel['dim_structure'] is None:
-            panel['dim_structure'] = default_dim.copy()
+            panel['dim_structure'] = deepcopy(default_dim)
 
         found_ss = False
         found_fs = False

@@ -17,6 +17,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future.utils import raise_from
 
 import importlib
 import inspect
@@ -28,9 +29,9 @@ from ondautils.onda_exception_utils import MissingParameterFileSection, MissingP
 def import_correct_layer_module(layer, monitor_params):
     layer_paths = {
         'processing_layer': 'processing_layer.',
-        'parallelization_layer': 'parallelization_layer.',
+        'facility_layer': 'facility_layer.',
         'data_extraction_layer': 'data_extraction_layer.',
-        'instrument_layer': 'instrument_layer.',
+        'detector_layer': 'detector_layer.',
     }
 
     if 'Onda' not in monitor_params:
@@ -46,7 +47,7 @@ def import_correct_layer_module(layer, monitor_params):
                 (monitor_params['Onda'][layer]))
         )
     except ImportError as e:
-        raise DynamicImportError('Error when importing the {0}: {1}'.format(layer, e)) from None
+        raise_from(DynamicImportError('Error when importing the {0}: {1}'.format(layer, e)), None)
     else:
         return m
 
@@ -55,12 +56,12 @@ def import_function_from_layer(function, layer):
     try:
         ret = getattr(layer, function)
     except AttributeError:
-        raise DynamicImportError('Error importing function {0} from layer {1}, the function does not exist,'.format(
-            function, layer.__name__)) from None
+        raise_from(DynamicImportError('Error importing function {0} from layer {1}, the function does not exist,'.format(
+            function, layer.__name__)), None)
     else:
         if not inspect.isfunction(ret):
-            raise DynamicImportError('Error importing function {0} from layer {1}, {0} is not a function'.format(
-                function, layer.__name__)) from None
+            raise_from(DynamicImportError('Error importing function {0} from layer {1}, {0} is not a function'.format(
+                function, layer.__name__)), None)
         else:
             return ret
 
@@ -69,12 +70,12 @@ def import_class_from_layer(cls, layer):
     try:
         ret = getattr(layer, cls)
     except AttributeError:
-        raise DynamicImportError('Error importing class {0} from layer {1}, {0} does not exist.'.format(
-            cls, layer.__name__)) from None
+        raise_from(DynamicImportError('Error importing class {0} from layer {1}, {0} does not exist.'.format(
+            cls, layer.__name__)), None)
     else:
         if not inspect.isclass(ret):
-            raise DynamicImportError('Error importing class {0} from layer {1}, {0} is not a class.'.format(
-                cls, layer.__name__)) from None
+            raise_from(DynamicImportError('Error importing class {0} from layer {1}, {0} is not a class.'.format(
+                cls, layer.__name__)), None)
         else:
             return ret
 
@@ -83,12 +84,12 @@ def import_list_from_layer(lst, layer):
     try:
         ret = getattr(layer, lst)
     except AttributeError:
-        raise DynamicImportError('Error importing list {0} from layer {1}, {0} does not exist.'.format(
-            lst, layer.__name__)) from None
+        raise_from(DynamicImportError('Error importing list {0} from layer {1}, {0} does not exist.'.format(
+            lst, layer.__name__)), None)
     else:
         if not isinstance(ret, list):
-            raise DynamicImportError('Error importing list {0} from layer {1}, {0} is not a list.'.format(
-                lst, layer.__name__)) from None
+            raise_from(DynamicImportError('Error importing list {0} from layer {1}, {0} is not a list.'.format(
+                lst, layer.__name__)), None)
         else:
             return ret
 
@@ -97,12 +98,12 @@ def import_str_from_layer(string, layer):
     try:
         ret = getattr(layer, string)
     except AttributeError:
-        raise DynamicImportError('Error importing string {0} from layer {1}, {0} does not exist.'.format(
-            string, layer.__name__)) from None
+        raise_from(DynamicImportError('Error importing string {0} from layer {1}, {0} does not exist.'.format(
+            string, layer.__name__)), None)
     else:
         if not isinstance(ret, str):
-            raise DynamicImportError('Error importing string {0} from layer {1}, {0} is not a list.'.format(
-                string, layer.__name__)) from None
+            raise_from(DynamicImportError('Error importing string {0} from layer {1}, {0} is not a list.'.format(
+                string, layer.__name__)), None)
         else:
             return ret
 
@@ -112,11 +113,11 @@ def import_class_from_module(cls, module):
     try:
         ret = getattr(module, cls)
     except AttributeError:
-        raise DynamicImportError('Error importing class {0} from layer {1}, {0} does not exist.'.format(
-            cls, module.__name__)) from None
+        raise_from(DynamicImportError('Error importing class {0} from layer {1}, {0} does not exist.'.format(
+            cls, module.__name__)), None)
     else:
         if not inspect.isclass(ret):
-            raise DynamicImportError('Error importing class {0} from layer {1}, {0} is not a class.'.format(
-                cls, module.__name__)) from None
+            raise_from(DynamicImportError('Error importing class {0} from layer {1}, {0} is not a class.'.format(
+                cls, module.__name__)), None)
         else:
             return ret

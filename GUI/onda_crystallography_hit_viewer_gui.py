@@ -58,7 +58,7 @@ class MainFrame(QtGui.QMainWindow):
 
         self._ring_pen = pg.mkPen('r', width=2)
         self._peak_canvas = pg.ScatterPlotItem()
-        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'ui_files',
                                                    'OndaCrystallographyHitViewerGUI.ui'))
         self._ui = ui_mainwindow()
         self._ui.setupUi(self)

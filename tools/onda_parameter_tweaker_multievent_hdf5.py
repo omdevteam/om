@@ -16,13 +16,13 @@
 
 
 import argparse
-import h5py
-import numpy
 import random
 import signal
 import sys
-
 from configparser import ConfigParser
+
+import h5py
+import numpy
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -38,7 +38,7 @@ import cfelpyutils.cfel_optarg as coa
 import cfelpyutils.cfel_hdf5 as ch5
 import cfelpyutils.cfel_geom as cgm
 import ondautils.onda_param_utils as op
-import python_extensions.peakfinder8_extension as pf8
+from cython import lib as pf8
 
 
 def _load_file(filename, hdf5_path, index):

@@ -19,14 +19,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import namedtuple
+
 import numpy
 import scipy.ndimage as ndimage
 
-
-from python_extensions.peakfinder8_extension import peakfinder_8
-from python_extensions.streakfinder_extension import StreakDetectionClass
+from ondacython.lib.streakfinder_extension import StreakDetectionClass
+from ondacython.lib.peakfinder8_extension import peakfinder_8, peakfinder_8_with_pixel_information
 import cfelpyutils.cfel_hdf5 as ch5
-
 
 PeakList = namedtuple('PeakList', ['fs', 'ss', 'intensity'])
 _InternalListOfPeaks = namedtuple('_InternalListOfPeaks', ['ss', 'fs'])
@@ -242,6 +241,34 @@ class Peakfinder8PeakDetection:
         self._mask *= res_mask
 
 
+    def find_peaks(self, raw_data):
+        """Finds peaks.
+
+        Performs the peak finding.
+
+        Args:
+
+            raw_data (numpy.ndarray): the data on which peak finding is performed, in 'slab' format.
+
+        Returns:
+
+            peak_list (tuple list float, list float, list float): the peak list, as a tuple of three lists:
+            ([peak_x], [peak_y], [peak_value]). The first two contain the coordinates of the peaks in the input data
+            array, the third the intensity of the peaks. All are lists of float numbers.
+        """
+
+        peak_list = peakfinder_8(self._max_num_peaks,
+                                 raw_data.astype(numpy.float32),
+                                 self._mask.astype(numpy.int8),
+                                 self._pixelmap_radius,
+                                 self._asic_nx, self._asic_ny,
+                                 self._nasics_x, self._nasics_y,
+                                 self._adc_thresh, self._minimum_snr,
+                                 self._min_pixel_count, self._max_pixel_count,
+                                 self._local_bg_radius)
+
+        return PeakList(*peak_list[0:3])
+
     ################################################
     # PEAKFINDER8 PEAK DETECTION WITH OUTLIER MASK #
     ################################################
@@ -315,36 +342,36 @@ class Peakfinder8PeakDetection:
             self._mask *= res_mask
 
 
-    def find_peaks(self, raw_data, outlier_mask):
-        """Finds peaks.
+        def find_peaks(self, raw_data, outlier_mask):
+            """Finds peaks.
 
-        Performs the peak finding.
+            Performs the peak finding.
 
-        Args:
+            Args:
 
-            raw_data (numpy.ndarray): the data on which peak finding is performed, in 'slab' format.
+                raw_data (numpy.ndarray): the data on which peak finding is performed, in 'slab' format.
 
-            outlier_mask (numpy.ndarray): an array of int with the same shape and size as raw_data. After
-            the function call, this array contains
+                outlier_mask (numpy.ndarray): an array of int with the same shape and size as raw_data. After
+                the function call, this array contains
 
-        Returns:
+            Returns:
 
-            peak_list (tuple list float, list float, list float): the peak list, as a tuple of three lists:
-            ([peak_x], [peak_y], [peak_value]). The first two contain the coordinates of the peaks in the input data
-            array, the third the intensity of the peaks. All are lists of float numbers.
-        """
+                peak_list (tuple list float, list float, list float): the peak list, as a tuple of three lists:
+                ([peak_x], [peak_y], [peak_value]). The first two contain the coordinates of the peaks in the input data
+                array, the third the intensity of the peaks. All are lists of float numbers.
+            """
 
-        peak_list = peakfinder_8(self._max_num_peaks,
-                                 raw_data.astype(numpy.float32),
-                                 self._mask.astype(numpy.int8),
-                                 self._pixelmap_radius,
-                                 self._asic_nx, self._asic_ny,
-                                 self._nasics_x, self._nasics_y,
-                                 self._adc_thresh, self._minimum_snr,
-                                 self._min_pixel_count, self._max_pixel_count,
-                                 self._local_bg_radius, outlier_mask)
+            peak_list = peakfinder_8_with_pixel_information(self._max_num_peaks,
+                                                            raw_data.astype(numpy.float32),
+                                                            self._mask.astype(numpy.int8),
+                                                            self._pixelmap_radius,
+                                                            self._asic_nx, self._asic_ny,
+                                                            self._nasics_x, self._nasics_y,
+                                                            self._adc_thresh, self._minimum_snr,
+                                                            self._min_pixel_count, self._max_pixel_count,
+                                                            self._local_bg_radius, outlier_mask)
 
-        return PeakList(*peak_list[0:3])
+            return PeakList(*peak_list[0:3])
 
 
 ####################

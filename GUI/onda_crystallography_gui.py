@@ -85,7 +85,7 @@ class MainFrame(QtGui.QMainWindow):
         self._resolution_rings_validator = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
         pg.setConfigOption('background', 0.2)
-        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'ui_files',
                                               'OndaCrystallographyGUI.ui'))
         self._ui = ui_mainwindow()
         self._ui.setupUi(self)
