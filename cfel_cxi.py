@@ -273,8 +273,7 @@ class CXIWriter:
         if self._initialized is True:
             raise RuntimeError('Adding stacks to the writer is not possible after initialization.')
 
-        for entry in self._cxi_stacks:
-          if path == entry.path:
+        if name in self._cxi_stacks:
             if overwrite is True:
                 del (self._cxi_stacks[name])
             else:
