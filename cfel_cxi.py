@@ -273,11 +273,12 @@ class CXIWriter:
         if self._initialized is True:
             raise RuntimeError('Adding stacks to the writer is not possible after initialization.')
 
-        if name in self._cxi_stacks:
-            if overwrite is True:
-                del (self._cxi_stacks[name])
-            else:
-                raise RuntimeError('Cannot write the entry. Data is already present at the specified path.')
+        for entry in self._cxi_stacks:
+            if path == entry.path:
+                if overwrite is True:
+                    del (self._cxi_stacks[name])
+                else:
+                    raise RuntimeError('Cannot write the entry. Data is already present at the specified path.')
 
         new_stack = _Stack(path, initial_data, axes, compression, chunk_size)
         self._cxi_stacks[name] = new_stack
