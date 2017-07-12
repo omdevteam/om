@@ -23,11 +23,10 @@ from future.utils import raise_from
 from builtins import str
 
 from collections import namedtuple
-from datetime import datetime
 from mpi4py import MPI
 from numpy import ceil
 from sys import exit, stdout
-from time import strptime, mktime
+import time
 
 import psana
 from cfelpyutils.cfel_psana import dirname_from_source_runs
@@ -250,11 +249,10 @@ class MasterWorker(object):
                 # Reject events above the rejection threshold
                 event_id = str(evt.get(psana.EventId))
                 timestring = event_id.split('time=')[1].split(',')[0]
-                timestamp = strptime(timestring[:-6], '%Y-%m-%d %H:%M:%S.%f')
-                timestamp = datetime.fromtimestamp(mktime(timestamp))
-                timenow = datetime.now()
+                timestamp = time.mktime(time.strptime(timestring[:-6], '%Y-%m-%d %H:%M:%S.%f'))
+                timenow = time.time()
 
-                if (timenow - timestamp).total_seconds() > self._event_rejection_threshold:
+                if (timenow - timestamp) > self._event_rejection_threshold:
                     continue
 
                 # Check if a shutdown message is coming from the server
