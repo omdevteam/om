@@ -62,6 +62,10 @@ class WrongParameterType(OndaException):
     pass
 
 
+class DataExtractionError(OndaException):
+    pass
+
+
 def onda_exception_handler(type_, value, traceback):
 
     if issubclass(type, OndaException):

@@ -31,24 +31,25 @@ from time import strptime, mktime
 
 import psana
 from cfelpyutils.cfel_psana import dirname_from_source_runs
-from ondautils.onda_exception_utils import MissingDataExtractionFunction
+from ondautils.onda_exception_utils import MissingDataExtractionFunction, DataExtractionError
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
 
-EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp', 'monitor_params'])
+EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp'])
 
 
-def _raw_data_init(_):
-    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_name'])
+def _raw_data_init():
+    return op.param('PsanaFacilityLayer', 'detector_name', str, required=True )
 
 
-def _timestamp_init(_):
+def _timestamp_init():
     return None
 
 
 def _detector_distance_init():
-    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['detector_dist_epics_name'])
+    return psana.Detector(op.param('PsanaFacilityLayer', 'detector_dist_epics_name', str,
+                                   required=True).encode('ascii'))
 
 
 def _beam_energy_init():
@@ -56,23 +57,31 @@ def _beam_energy_init():
 
 
 def _timetool_data_init():
-    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['timetool_epics_name'])
+    return psana.Detector(op.param('PsanaFacilityLayer', 'timetool_epics_name', str, required=True).encode('ascii'))
 
 
 def _digitizer_data_init():
-    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer_name'])
+    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer_name', str, required=True).encode('ascii'))
 
 
 def _digitizer2_data_init():
-    return psana.Detector(op.monitor_params['PsanaParallelizationLayer']['digitizer2_name'])
+    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer2_name', str, required=True).encode('ascii'))
+
+
+def _digitizer3_data_init():
+    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer3_name', str, required=True).encode('ascii'))
+
+
+def _digitizer4_data_init():
+    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer4_name', str, required=True).encode('ascii'))
 
 
 def _event_codes_init():
     return psana.Detector('evr0')
 
 
-def _timestamp_data(event):
-    return event.detector['timestamp']
+def _timestamp(event):
+    return event.timestamp
 
 
 def _detector_distance(event):
@@ -84,41 +93,43 @@ def _beam_energy(event):
 
 
 def _timetool_data(event):
-    return event.det['timetool_data']()
+    return event.detector['timetool_data']()
 
 
 def _digitizer_data(event):
-    return event.det['digitizer_data'].waveform(event.evt)
+    return event.detector['digitizer_data'].waveform(event.psana_event)
 
 
 def _digitizer2_data(event):
-    return event.det['digitizer2_data'].waveform(event.evt)
+    return event.detector['digitizer2_data'].waveform(event.psana_event)
+
+
+def _digitizer3_data(event):
+    return event.detector['digitizer3_data'].waveform(event.psana_event)
+
+
+def _digitizer4_data(event):
+    return event.detector['digitizer4_data'].waveform(event.psana_event)
 
 
 def _event_codes_dataext(event):
-    return event.det['event_codes'].eventCodes(event.evt)
-
-
-def import_init_function_overrides():
-
-
-def import_data_extraction_function_overrides():
-
+    return event.detector['event_codes'].eventCodes(event.psana_event)
 
 
 def _initialize():
     detector = {}
     for init_data_source in data_extraction_funcs:
-        detector[init_data_source] = globals()[init_data_source + '_init']()
+        detector[init_data_source] = (globals()['_' + init_data_source + '_init'])()
+    return detector
 
 
 def _extract(event, monitor):
     for entry in data_extraction_funcs:
         try:
-            setattr(monitor, entry, globals()[entry](event))
-        except:
-            print('OnDA Warning: Error extracting {}'.format(entry))
-            setattr(monitor, entry, None)
+            setattr(monitor, entry, globals()['_'+entry](event))
+        except Exception as e:
+            print(e)
+            raise DataExtractionError('OnDA Warning: Error extracting {}'.format(entry))
 
 
 class MasterWorker(object):
@@ -153,7 +164,7 @@ class MasterWorker(object):
                 self._source += ':idx'
 
         # Set event_rejection threshold
-        rej_thr = param('PsanaParallelizationLayer', 'event_rejection_threshold')
+        rej_thr = op.param('PsanaFacilityLayer', 'event_rejection_threshold')
         if rej_thr is not None:
             self._event_rejection_threshold = rej_thr
 
@@ -164,9 +175,7 @@ class MasterWorker(object):
         self._initialize_data_extraction = _initialize
 
         if self.role == 'worker':
-            self._psana_calib_dir = param('PsanaParallelizationLayer', 'psana_calib_dir', str, required=True)
-            import_init_function_overrides()
-            import_data_extraction_function_overrides()
+            self._psana_calib_dir = op.param('PsanaFacilityLayer', 'psana_calib_dir', str, required=True)
 
         # The following is executed only on the master node
         if self.role == 'master':
@@ -252,12 +261,12 @@ class MasterWorker(object):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
 
-                event = EventData(evt, detector, timestamp, monitor_params)
+                event = EventData(evt, detector, timestamp)
 
-                self._extract_data(event, self)
-
-                if self.raw_data is None:
-                    print('>>>>> OnDA WARNING: Cannot interpret event data. Skipping.... <<<<<')
+                try:
+                    self._extract_data(event, self)
+                except DataExtractionError as e:
+                    print('OnDA Warning: Cannot interpret some event data: {}. Skipping event....'.format(e))
                     continue
 
                 result = self._map()
