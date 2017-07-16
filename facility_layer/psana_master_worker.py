@@ -75,6 +75,10 @@ def _digitizer4_data_init():
     return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer4_name', str, required=True).encode('ascii'))
 
 
+def _opal_data_init():
+    return psana.Detector(op.param('PsanaFacilityLayer', 'opal_name', str, required=True).encode('ascii'))
+
+
 def _event_codes_init():
     return psana.Detector('evr0')
 
@@ -109,6 +113,10 @@ def _digitizer3_data(event):
 
 def _digitizer4_data(event):
     return event.detector['digitizer4_data'].waveform(event.psana_event)
+
+
+def _opal_data(event):
+    return event.detector['opal_data'].calib(event.psana_event)
 
 
 def _event_codes_dataext(event):
