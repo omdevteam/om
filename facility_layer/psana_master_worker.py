@@ -24,7 +24,7 @@ from builtins import str
 
 from collections import namedtuple
 from mpi4py import MPI
-from numpy import ceil
+from numpy import ceil, float64
 from sys import exit, stdout
 import time
 
@@ -247,10 +247,9 @@ class MasterWorker(object):
                     continue
 
                 # Reject events above the rejection threshold
-                event_id = str(evt.get(psana.EventId))
-                timestring = event_id.split('time=')[1].split(',')[0]
-                timestamp = time.mktime(time.strptime(timestring[:-6], '%Y-%m-%d %H:%M:%S.%f'))
-                timenow = time.time()
+                time_epoch = evt.get(psana.EventId).time()
+                timestamp = float64(str(time_epoch[0])+'.'+str(time_epoch[1]))
+                timenow = float64(time.time())
 
                 if (timenow - timestamp) > self._event_rejection_threshold:
                     continue
