@@ -33,7 +33,7 @@ import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 from facility_layer.hidra_api.transfer import CommunicationFailed
 from facility_layer.hidra_api import Transfer
-from ondautils.onda_exception_utils import MissingDataExtractionFunction, HidraAPIError
+from ondautils.onda_exception_utils import MissingDataExtractionFunction, HidraAPIError, DataExtractionError
 
 EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset',
                                      'monitor_params'])
@@ -42,10 +42,9 @@ EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num
 def _extract(event, monitor):
     for entry in data_extraction_funcs:
         try:
-            setattr(monitor, entry, globals()[entry](event))
-        except:
-            print('OnDA Warning: Error extracting {}'.format(entry))
-            setattr(monitor, entry, None)
+            setattr(monitor, entry, globals()['_'+entry](event))
+        except Exception as e:
+            raise DataExtractionError('OnDA Warning: Error extracting {0}: {1}'.format(entry, e))
 
 
 def _open_file_data(data, _):
@@ -201,12 +200,13 @@ class MasterWorker(object):
 
                 for shot_offset in range(-shots_to_proc, 0, 1):
 
-                    evt = EventData(filehandle, filename, filectime, num_events_in_file, shot_offset,
-                                    op.monitor_params)
+                    event = EventData(filehandle, filename, filectime, num_events_in_file, shot_offset,
+                                      op.monitor_params)
 
-                    self._extract_data(evt, self)
-
-                    if self.raw_data is None:
+                    try:
+                        self._extract_data(event, self)
+                    except DataExtractionError as e:
+                        print('OnDA Warning: Cannot interpret some event data: {}. Skipping event....'.format(e))
                         continue
 
                     result = self._map()
@@ -217,7 +217,7 @@ class MasterWorker(object):
 
                 if req:
                     req.Wait()
-                close_file(evt.filehandle)
+                close_file(event.filehandle)
 
             end_dict = {'end': True}
             if req:
