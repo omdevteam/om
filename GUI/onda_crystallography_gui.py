@@ -57,12 +57,13 @@ class MainFrame(QtGui.QMainWindow):
         self._img_shape = cgm.get_image_shape(geom_filename)
 
         detector = cfl.load_crystfel_geometry(geom_filename)
+        first_panel = detector['panels'].keys()[0]
         try:
-            self._coffset = detector['coffset']
+            self._coffset = detector['panels'][first_panel]['coffset']
         except KeyError:
             self._coffset = None
         try:
-            self._res = detector['res']
+            self._res = detector['panels'][first_panel]['res']
         except KeyError:
             self._res = None
 
@@ -209,6 +210,8 @@ class MainFrame(QtGui.QMainWindow):
 
             lambd = scipy.constants.h * scipy.constants.c / (scipy.constants.e * self._local_data['beam_energy'])
             resolution_rings_in_pix = [1.0]
+
+            print(self._local_data['detector_distance'], self._coffset, self._res)
 
             resolution_rings_in_pix.extend([2.0 * self._res *
                                             (self._local_data['detector_distance'] * 10e-4 + self._coffset) *
