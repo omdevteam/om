@@ -31,7 +31,7 @@ native_shape = NativeShape(32, 185, 388)
 
 
 def raw_data(event):
-    cspad_np = event.detector['raw_data'].calib(event['evt'])
+    cspad_np = event.detector['raw_data'].calib(event.psana_event)
     cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
     cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
     for i in range(cspad_np_og.shape[0]):
@@ -42,7 +42,7 @@ def raw_data(event):
 
 
 def raw_data_pedestals_only(event):
-    cspad_np = event.detector['raw_data'].raw(event.evt)-event.detector['raw_data'].pedestals(event.evt)
+    cspad_np = event.detector['raw_data'].raw(event.psana_event)-event.detector['raw_data'].pedestals(event.psana_event)
     cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
     cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
     for i in range(cspad_np_og.shape[0]):

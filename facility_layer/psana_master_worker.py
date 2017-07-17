@@ -39,7 +39,7 @@ EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp'])
 
 
 def _raw_data_init():
-    return op.param('PsanaFacilityLayer', 'detector_name', str, required=True )
+    return psana.Detector(op.param('PsanaFacilityLayer', 'detector_name', str, required=True ))
 
 
 def _timestamp_init():
@@ -88,11 +88,11 @@ def _timestamp(event):
 
 
 def _detector_distance(event):
-    return event.detector['raw_data']['detect_dist']()
+    return event.detector['detector_distance']()
 
 
 def _beam_energy(event):
-    return event.detector['beam_energy'].get(event.evt).ebeamPhotonEnergy()
+    return event.detector['beam_energy'].get(event.psana_event).ebeamPhotonEnergy()
 
 
 def _timetool_data(event):
@@ -132,11 +132,11 @@ def _initialize():
 
 def _extract(event, monitor):
     for entry in data_extraction_funcs:
-        try:
+        # try:
             setattr(monitor, entry, globals()['_'+entry](event))
-        except Exception as e:
-            print(e)
-            raise DataExtractionError('OnDA Warning: Error extracting {}'.format(entry))
+        # except Exception as e:
+        #     print(e)
+        #     raise DataExtractionError('Error extracting {0}: {1}'.format(entry, e))
 
 
 class MasterWorker(object):
@@ -351,18 +351,18 @@ for func in data_extraction_funcs:
 
 for func in data_extraction_funcs:
     try:
-        if func == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
-            globals()[func] = getattr(in_layer, func + '_pedestals_only')
+        if func == 'raw_data' and op.param('PsanaFacilityLayer', 'pedestals_only', bool):
+            globals()['_' + func] = getattr(in_layer, func + '_pedestals_only')
         else:
-            globals()[func] = getattr(in_layer, func)
+            globals()['_' + func] = getattr(in_layer, func)
     except AttributeError:
         try:
-            if func == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
-                globals()[func] = '_' + func + '_pedestals_only'
+            if func == 'raw_data' and op.param('PsanaFacilityLayer', 'pedestals_only', bool):
+                globals()['_' + func] = globals()['_' + func + '_pedestals_only']
             else:
-                globals()[func] = '_' + func
+                globals()['_' + func] = globals()['_' + func]
         except AttributeError:
-            if func == 'raw_data' and op.param('PsanaParallelizationLayer', 'pedestals_only', bool):
+            if func == 'raw_data' and op.param('PsanaFacilityLayer', 'pedestals_only', bool):
                 raise_from(MissingDataExtractionFunction(
                     'Data extraction function not defined for the following '
                     'data type: {0} (pedestals_only)'.format(func)))
