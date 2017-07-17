@@ -39,7 +39,7 @@ import cfelpyutils.cfel_optarg as coa
 import cfelpyutils.cfel_hdf5 as ch5
 import cfelpyutils.cfel_geom as cgm
 import ondautils.onda_param_utils as op
-from cython import lib as pf8
+from ondacython.lib import peakfinder8_extension as pf8
 
 
 def _check_changed_parameter(param, param_conv_vers, lineedit_element):
