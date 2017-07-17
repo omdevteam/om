@@ -24,12 +24,11 @@ import sys
 import zmq
 
 
-class zmq_onda_publisher_socket():
-
+class ZMQOndaPublisherSocket:
     def __init__(self, publish_ip, publish_port):
 
-        self.context = zmq.Context()
-        self.sock = self.context.socket(zmq.PUB)
+        self._context = zmq.Context()
+        self._sock = self._context.socket(zmq.PUB)
 
         if publish_ip is not None:
             pip = publish_ip
@@ -42,12 +41,9 @@ class zmq_onda_publisher_socket():
             pport = 12321
         print('Binding to tcp://{0}:{1}'.format(pip, pport))
         sys.stdout.flush()
-        self.sock.set_hwm(1)
-        self.sock.bind('tcp://%s:%d' % (pip, pport))
-
+        self._sock.set_hwm(1)
+        self._sock.bind('tcp://%s:%d' % (pip, pport))
 
     def send_data(self, tag, message):
-        self.sock.send(tag.encode(), zmq.SNDMORE)
-        self.sock.send_pyobj(message)
-
-
+        self._sock.send(tag.encode(), zmq.SNDMORE)
+        self._sock.send_pyobj(message)

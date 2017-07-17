@@ -20,7 +20,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from configparser import ConfigParser
+import sys
 
+from ondautils.onda_exception_utils import onda_exception_handler
 import cfelpyutils.cfel_optarg as coa
 import ondautils.onda_param_utils as oa
 import ondautils.onda_dynamic_import_utils as di
@@ -28,6 +30,9 @@ import ondautils.onda_optargs_utils as ooa
 
 
 if __name__ == "__main__":
+
+    sys.excepthook = onda_exception_handler
+
     args = ooa.parse_onda_cmdline_args()
 
     config = ConfigParser()
@@ -40,3 +45,4 @@ if __name__ == "__main__":
 
     mon = Onda(args.source)
     mon.start(verbose=False)
+

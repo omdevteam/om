@@ -22,17 +22,18 @@ from __future__ import unicode_literals
 
 try:
     from PyQt5 import QtCore, QtGui
+    from PyQt5.uic import loadUiType
 except ImportError:
     from PyQt4 import QtCore, QtGui
+    from PyQt4.uic import loadUiType
 import collections
 import copy
+import os
+import os.path
+import pyqtgraph as pg
 import signal
 import sys
 
-try:
-    from GUI.UI.onda_mll_frame_viewer_ui_qt5 import Ui_MainWindow
-except ImportError:
-    from GUI.UI.onda_mll_frame_viewer_ui_qt4 import Ui_MainWindow
 import ondautils.onda_zmq_gui_utils as zgut
 
 
@@ -44,52 +45,53 @@ class MainFrame(QtGui.QMainWindow):
     def __init__(self, rec_ip, rec_port):
         super(MainFrame, self).__init__()
 
-        self.img = None
+        self._img = None
+        self._data = collections.deque(maxlen=20)
+        self._data_index = -1
 
-        self.rec_ip, self.rec_port = rec_ip, rec_port
-        self.data = collections.deque(maxlen=20)
-        self.data_index = -1
+        self._init_listening_thread(rec_ip, rec_port)
 
-        self.init_listening_thread()
+        pg.setConfigOption('background', 0.2)
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'ui_files',
+                                                   'OndaMLLFrameViewerGUI.ui'))
+        self._ui = ui_mainwindow()
+        self._ui.setupUi(self)
+        self._init_ui()
 
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-        self.init_ui()
-
-        self.refresh_timer = QtCore.QTimer()
-        self.init_timer()
+        self._refresh_timer = QtCore.QTimer()
+        self._init_timer()
         self.show()
 
-    def init_ui(self):
+    def _init_ui(self):
 
-        self.ui.imageView.ui.menuBtn.hide()
-        self.ui.imageView.ui.roiBtn.hide()
+        self._ui.imageView.ui.menuBtn.hide()
+        self._ui.imageView.ui.roiBtn.hide()
 
-        self.ui.backButton.clicked.connect(self.back_button_clicked)
-        self.ui.forwardButton.clicked.connect(self.forward_button_clicked)
-        self.ui.playPauseButton.clicked.connect(self.play_pause_button_clicked)
+        self._ui.backButton.clicked.connect(self._back_button_clicked)
+        self._ui.forwardButton.clicked.connect(self._forward_button_clicked)
+        self._ui.playPauseButton.clicked.connect(self._play_pause_button_clicked)
 
-    def back_button_clicked(self):
-        if self.data_index > 0:
-            self.data_index -= 1
-            self.update_image_plot()
+    def _back_button_clicked(self):
+        if self._data_index > 0:
+            self._data_index -= 1
+            self._update_image_plot()
     
-    def forward_button_clicked(self):
-        if (self.data_index + 1) < len(self.data):
-            self.data_index += 1
-            self.update_image_plot()
+    def _forward_button_clicked(self):
+        if (self._data_index + 1) < len(self._data):
+            self._data_index += 1
+            self._update_image_plot()
     
-    def play_pause_button_clicked(self):
-        if self.refresh_timer.isActive():
-            self.refresh_timer.stop()
-            self.data_index = len(self.data) - 1
+    def _play_pause_button_clicked(self):
+        if self._refresh_timer.isActive():
+            self._refresh_timer.stop()
+            self._data_index = len(self._data) - 1
         else:
-            self.refresh_timer.start(self.image_update_us)
+            self._refresh_timer.start(self.image_update_us)
 
-    def init_listening_thread(self):
+    def _init_listening_thread(self, rec_ip, rec_port):
         self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = zgut.ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
-        self.zeromq_listener.zmqmessage.connect(self.data_received)
+        self.zeromq_listener = zgut.ZMQListener(rec_ip, rec_port, u'ondarawdata')
+        self.zeromq_listener.zmqmessage.connect(self._data_received)
         self.zeromq_listener.start_listening()
         self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
         self.listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
@@ -97,18 +99,23 @@ class MainFrame(QtGui.QMainWindow):
         self.zeromq_listener_thread.start()
         self.listening_thread_start_processing.emit()
 
-    def init_timer(self):
-        self.refresh_timer.timeout.connect(self.update_image_plot)
-        self.refresh_timer.start(250)
+    def _init_timer(self):
+        self._refresh_timer.timeout.connect(self._update_image_plot)
+        self._refresh_timer.start(250)
 
-    def data_received(self, datdict):
-        self.data.append(copy.deepcopy(datdict))
+    def _data_received(self, datdict):
+        self._data.append(copy.deepcopy(datdict))
 
-    def update_image_plot(self):
-        if len(self.data) > 0:
-            data = self.data[self.data_index]
-            self.img = data['raw_data']
-            self.ui.imageView.setImage(self.img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
+    def _update_image_plot(self):
+
+        QtGui.QApplication.processEvents()
+
+        if len(self._data) > 0:
+            data = self._data[self._data_index]
+            self._img = data['raw_data']
+            self._ui.imageView.setImage(self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
+
+        QtGui.QApplication.processEvents()
 
 
 def main():

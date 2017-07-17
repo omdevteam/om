@@ -22,125 +22,132 @@ from __future__ import unicode_literals
 
 try:
     from PyQt5 import QtCore, QtGui
+    from PyQt5.uic import loadUiType
 except ImportError:
     from PyQt4 import QtCore, QtGui
+    from PyQt4.uic import loadUiType
 import collections
 import copy
 import numpy
+import os
+import os.path
 import pyqtgraph as pg
 import signal
 import sys
 
-try:
-    from GUI.UI.onda_crystallography_hit_viewer_ui_qt5 import Ui_MainWindow
-except ImportError:
-    from GUI.UI.onda_crystallography_hit_viewer_ui_qt4 import Ui_MainWindow
 import cfelpyutils.cfel_geom as cgm
 import ondautils.onda_zmq_gui_utils as zgut
 
 
 class MainFrame(QtGui.QMainWindow):
 
-    listening_thread_start_processing = QtCore.pyqtSignal()
-    listening_thread_stop_processing = QtCore.pyqtSignal()
+    _listening_thread_start_processing = QtCore.pyqtSignal()
+    _listening_thread_stop_processing = QtCore.pyqtSignal()
 
     def __init__(self, geom_filename, rec_ip, rec_port):
         super(MainFrame, self).__init__()
 
-        self.yx, slab_shape, img_shape = cgm.pixel_maps_for_image_view(geom_filename)
+        self._pixel_maps = cgm.pixel_maps_for_image_view(geom_filename)
+        self._img_shape = cgm.get_image_shape(geom_filename)
+        self._img = numpy.zeros(self._img_shape, dtype=numpy.float)
 
-        self.img = numpy.zeros(img_shape, dtype=numpy.float)
+        self._data = collections.deque(maxlen=20)
+        self._data_index = -1
 
-        self.rec_ip, self.rec_port = rec_ip, rec_port
-        self.data = collections.deque(maxlen=20)
-        self.data_index = -1
+        self._init_listening_thread(rec_ip, rec_port)
 
-        self.init_listening_thread()
+        self._ring_pen = pg.mkPen('r', width=2)
+        self._peak_canvas = pg.ScatterPlotItem()
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'ui_files',
+                                                   'OndaCrystallographyHitViewerGUI.ui'))
+        self._ui = ui_mainwindow()
+        self._ui.setupUi(self)
+        self._init_ui()
 
-        self.ring_pen = pg.mkPen('r', width=2)
-        self.peak_canvas = pg.ScatterPlotItem()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-        self.init_ui()
-
-        self.refresh_timer = QtCore.QTimer()
-        self.init_timer()
+        self._refresh_timer = QtCore.QTimer()
+        self._init_timer()
         self.show()
 
-    def init_ui(self):
-        self.ui.imageView.ui.menuBtn.hide()
-        self.ui.imageView.ui.roiBtn.hide()
+    def _init_ui(self):
+        self._ui.imageView.ui.menuBtn.hide()
+        self._ui.imageView.ui.roiBtn.hide()
 
-        self.ui.imageView.getView().addItem(self.peak_canvas)
+        self._ui.imageView.getView().addItem(self._peak_canvas)
 
-        self.ui.backButton.clicked.connect(self.back_button_clicked)
-        self.ui.forwardButton.clicked.connect(self.forward_button_clicked)
-        self.ui.playPauseButton.clicked.connect(self.play_pause_button_clicked)
+        self._ui.backButton.clicked.connect(self._back_button_clicked)
+        self._ui.forwardButton.clicked.connect(self._forward_button_clicked)
+        self._ui.playPauseButton.clicked.connect(self._play_pause_button_clicked)
 
-    def back_button_clicked(self):
-        if self.refresh_timer.isActive():
-            self.stop_stream()
-        if self.data_index > 0:
-            self.data_index -= 1
-            self.update_image_plot()
+    def _back_button_clicked(self):
+        if self._refresh_timer.isActive():
+            self._stop_stream()
+        if self._data_index > 0:
+            self._data_index -= 1
+            self._update_image_plot()
 
-    def forward_button_clicked(self):
-        if self.refresh_timer.isActive():
-            self.stop_stream()
-        if (self.data_index + 1) < len(self.data):
-            self.data_index += 1
-            self.update_image_plot()
+    def _forward_button_clicked(self):
+        if self._refresh_timer.isActive():
+            self._stop_stream()
+        if (self._data_index + 1) < len(self._data):
+            self._data_index += 1
+            self._update_image_plot()
 
-    def stop_stream(self):
-        self.refresh_timer.stop()
-        self.ui.playPauseButton.setText('Play')
-        self.data_index = len(self.data) - 1
+    def _stop_stream(self):
+        self._refresh_timer.stop()
+        self._ui.playPauseButton.setText('Play')
+        self._data_index = len(self._data) - 1
 
-    def start_stream(self):
-        self.refresh_timer.start(250)
-        self.ui.playPauseButton.setText('Pause')
+    def _start_stream(self):
+        self._refresh_timer.start(250)
+        self._ui.playPauseButton.setText('Pause')
 
-    def play_pause_button_clicked(self):
-        if self.refresh_timer.isActive():
-            self.stop_stream()
+    def _play_pause_button_clicked(self):
+        if self._refresh_timer.isActive():
+            self._stop_stream()
         else:
-            self.start_stream()
+            self._start_stream()
 
-    def init_listening_thread(self):
+    def _init_listening_thread(self, rec_ip, rec_port):
         self.zeromq_listener_thread = QtCore.QThread()
-        self.zeromq_listener = zgut.ZMQListener(self.rec_ip, self.rec_port, u'ondarawdata')
-        self.zeromq_listener.zmqmessage.connect(self.data_received)
+        self.zeromq_listener = zgut.ZMQListener(rec_ip, rec_port, u'ondarawdata')
+        self.zeromq_listener.zmqmessage.connect(self._data_received)
         self.zeromq_listener.start_listening()
-        self.listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
-        self.listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
+        self._listening_thread_start_processing.connect(self.zeromq_listener.start_listening)
+        self._listening_thread_stop_processing.connect(self.zeromq_listener.stop_listening)
         self.zeromq_listener.moveToThread(self.zeromq_listener_thread)
         self.zeromq_listener_thread.start()
-        self.listening_thread_start_processing.emit()
+        self._listening_thread_start_processing.emit()
 
-    def init_timer(self):
-        self.refresh_timer.timeout.connect(self.update_image_plot)
-        self.refresh_timer.start(250)
+    def _init_timer(self):
+        self._refresh_timer.timeout.connect(self._update_image_plot)
+        self._refresh_timer.start(250)
 
-    def data_received(self, datdict):
-        self.data.append(copy.deepcopy(datdict))
+    def _data_received(self, datdict):
+        self._data.append(copy.deepcopy(datdict))
 
-    def update_image_plot(self):
-        if len(self.data) > 0:
-            data = self.data[self.data_index]
+    def _update_image_plot(self):
+        if len(self._data) > 0:
+            data = self._data[self._data_index]
 
-            self.img[self.yx[0], self.yx[1]] = data['raw_data'].ravel().astype(self.img.dtype)
+            self._img[self._pixel_maps.y, self._pixel_maps.x] = data['raw_data'].ravel().astype(self._img.dtype)
+
+            QtGui.QApplication.processEvents()
 
             peak_x = []
             peak_y = []
-            for peak_fs, peak_ss in zip(data['peak_list'][0], data['peak_list'][1]):
+            for peak_fs, peak_ss in zip(data['peak_list'].fs, data['peak_list'].ss):
                 peak_in_slab = int(round(peak_ss))*data['raw_data'].shape[1]+int(round(peak_fs))
-                peak_x.append(self.yx[1][peak_in_slab])
-                peak_y.append(self.yx[0][peak_in_slab])
+                peak_x.append(self._pixel_maps.x[peak_in_slab])
+                peak_y.append(self._pixel_maps.y[peak_in_slab])
 
-            self.ui.imageView.setImage(self.img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
-            self.peak_canvas.setData(peak_x, peak_y, symbol='o', size=[5]*len(data['peak_list'][0]),
-                                     brush=(255, 255, 255, 0), pen=self.ring_pen,
-                                     pxMode=False)
+            QtGui.QApplication.processEvents()
+
+            self._ui.imageView.setImage(self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
+            self._peak_canvas.setData(peak_x, peak_y, symbol='o', size=[5] * len(data['peak_list'].intensity),
+                                      brush=(255, 255, 255, 0), pen=self._ring_pen,
+                                      pxMode=False)
+
+            QtGui.QApplication.processEvents()
 
 
 def main():

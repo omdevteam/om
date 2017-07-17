@@ -45,34 +45,34 @@ class ZMQListener(QtCore.QObject):
 
         QtCore.QObject.__init__(self)
 
-        self.sub_ip = sub_ip
-        self.sub_port = sub_port
-        self.zmq_context = zmq.Context()
+        self._sub_ip = sub_ip
+        self._sub_port = sub_port
+        self._zmq_context = zmq.Context()
 
-        print('Connecting to tcp://{0}:{1}'.format(self.sub_ip, self.sub_port))
-        self.zmq_subscribe = self.zmq_context.socket(zmq.SUB)
-        self.zmq_subscribe.set_hwm(1)
-        self.zmq_subscribe.connect('tcp://{0}:{1}'.format(self.sub_ip, self.sub_port))
-        self.zmq_subscribe.setsockopt_string(zmq.SUBSCRIBE, subscribe_string)
+        print('Connecting to tcp://{0}:{1}'.format(self._sub_ip, self._sub_port))
+        self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)
+        self._zmq_subscribe.set_hwm(1)
+        self._zmq_subscribe.connect('tcp://{0}:{1}'.format(self._sub_ip, self._sub_port))
+        self._zmq_subscribe.setsockopt_string(zmq.SUBSCRIBE, subscribe_string)
 
-        self.zmq_poller = zmq.Poller()
-        self.zmq_poller.register(self.zmq_subscribe, zmq.POLLIN)
+        self._zmq_poller = zmq.Poller()
+        self._zmq_poller.register(self._zmq_subscribe, zmq.POLLIN)
 
-        self.listening_timer = QtCore.QTimer()
-        self.listening_timer.timeout.connect(self.listen)
+        self._listening_timer = QtCore.QTimer()
+        self._listening_timer.timeout.connect(self.listen)
 
     def start_listening(self):
-        self.listening_timer.start()
+        self._listening_timer.start()
 
     def stop_listening(self):
-        self.listening_timer.stop()
+        self._listening_timer.stop()
         print('Disconnecting from tcp://{0}:{1}'.format(self.rec_ip, self.rec_port))
-        self.zmq_subscribe.disconnect('tcp://{0}:{1}'.format(self.rec_ip, self.rec_port))
+        self._zmq_subscribe.disconnect('tcp://{0}:{1}'.format(self.rec_ip, self.rec_port))
 
     def listen(self):
-        socks = dict(self.zmq_poller.poll(0))
-        if self.zmq_subscribe in socks and socks[self.zmq_subscribe] == zmq.POLLIN:
-            full_msg = self.zmq_subscribe.recv_multipart()
+        socks = dict(self._zmq_poller.poll(0))
+        if self._zmq_subscribe in socks and socks[self._zmq_subscribe] == zmq.POLLIN:
+            full_msg = self._zmq_subscribe.recv_multipart()
             msg = full_msg[1]
             zmq_dict = loads(msg)
             self.zmqmessage.emit(zmq_dict)

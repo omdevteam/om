@@ -22,6 +22,10 @@ from __future__ import unicode_literals
 import argparse
 import os.path
 
+
+from ondautils.onda_exception_utils import MissingFile
+
+
 def parse_onda_cmdline_args():
     parser = argparse.ArgumentParser(prog='mpirun [MPI OPTIONS] onda.py', description='OnDA - Online Data Analysis')
     parser.add_argument('source', type=str, help="data source (file list, psana source string, etc.")
@@ -31,5 +35,5 @@ def parse_onda_cmdline_args():
 
     # check that args.ini exists
     if not os.path.exists(args.ini):
-        raise NameError('ini file does not exist: {0}'.format(args.ini))
+        raise MissingFile('Parameter file does not exist: {0}'.format(args.ini))
     return args

@@ -1,0 +1,163 @@
+
+peakFinder9:
+    peakFinder9 uses local background estimation based on border pixels in a specified radius around a center pixel.
+    For being fast and precise, a hierarchy of conditions is used. 
+
+    1) First condition is only useful for speed consideration, 
+    it demands that a pixel that is the biggest pixel in a peak must be larger than every border pixel 
+    by a constant value. 
+
+    2) Second condition ensures, that the pixel passing the previous condition is the highest pixel in the peak. 
+    It assumes, that peaks rise monotonically towords the biggest pixel. 
+
+    3) Third condition ensures, that the biggest pixel in the peak is significantly over the noise level 
+    by computing the local statistics from the border pixels in a specified radius. 
+
+    4) Fourth condition sums up all pixels belonging to the peak and demands that the whole peak must be 
+    significantly over the noise level. 
+
+    Only if all conditions are passed, the peak is accepted.   
+
+    Accuracy constants:
+        uint8_t windowRadius: Radius of the peak search window (incl. border). Must be >= 2.
+        float minimumPeakOversizeOverNeighbours: influences first condition. Only important for speed.    
+        float sigmaFactorBiggestPixel: influences third condition.
+        float sigmaFactorPeakPixel: influences fourth condition. A pixel must have a bigger value than 
+                                    mean+standardDeviation*sigmaFactorPeakPixel and be a neighbour 
+                                    of a peak pixel to count as peak pixel.
+        float sigmaFactorWholePeak: influences fourth condition. The summed peak intensity must be bigger than  
+                                    mean+standardDeviation*sigmaFactorWholePeak to count as a real peak.
+        float minimumSigma: Misbehaving but not masked regions sometimes have very low standard deviation.
+                            To not find false peaks in these regions a minimum standard deviation can be defined.
+    
+    Recommended tweaking procedure:
+        1) set windowRadius to the radius of the biggest peak to search for. Choose it as tight as possible.
+           Peaks, that are closer to the border than windowRadius will not be found.
+        2) set minimumPeakOversizeOverNeighbours to 0 or lower
+        3) set sigmaFactorBiggestPixel to the desired value. If in doubt, set to 7
+        4) set sigmaFactorPeakPixel to the desired value. If in doubt, set to sigmaFactorBiggestPixel
+        5) set sigmaFactorWholePeak to the desired value. If in doubt, set to sigmaFactorBiggestPixel
+        6) set minimumSigma to 0
+        
+        7) run peakFinder9 on your test data
+        
+        8) tweak sigmaFactorBiggestPixel, sigmaFactorPeakPixel and sigmaFactorWholePeak such, that 
+           sigmaFactorPeakPixel <= sigmaFactorBiggestPixel <= sigmaFactorWholePeak  (<= means smaller or equal)
+           
+        9) if peaks in misbehaving regions are found, mask those regions or tweak minimumSigma 
+           if necessary, tweak windowRadius
+           
+        10) if you changed something in 8) or 9), go to 7)
+        
+        11) If you want to speed up processing, increase minimumPeakOversizeOverNeighbours incrementally until
+            you recognize that some weak peaks are not found. Then decrease it, to make sure, that even weak peaks 
+            will be fond in your data.
+        
+        
+        
+streakFinder:
+    The main properties of streaks are that they are bright and originate from the beam center.
+    The streakFinder takes advantage of these features by searching for bright parts of the image
+    near the beam center assuming they are streaks.
+    Once found, the streak is followed in radial direction to its end. To catch fraying streaks,
+    a kind of inertia is imposed, when following the streak. After the end is found, the
+    streak is followed back to the beam center, masking everything on the way.
+    For noise suppression, a custom non-linear radial pre-filter is applied.
+    
+    Accuracy constants:
+        uint8_t filterLength: number of samples in the radial filter
+        uint8_t minFilterLength: minimal number of valid samples in the radial filter. Note that masked
+                                 pixels as well as pixels out of the border of the detector are excluded 
+                                 from the computation.
+        float filterStep: the distance between samples considered in the filter. Measured in pixels.
+
+        float sigmaFactor: redial filter result must be bigger than mean+standardDeviation*sigmaFactor 
+                           for the pixel to be count as a certain streak pixel.
+        uint8_t streakElongationMinStepsCount: influences the inertia when following the streak to its end.
+                                               The end of the streak is attested, if for streakElongationMinStepsCount
+                                               no streak pixel is found.
+        float streakElongationRadiusFactor: influences the inertia when following the streak to its end.
+                                            Overrides streakElongationMinStepsCount if bigger.
+                                            The end of the streak is attested, if for 
+                                            streakElongationRadiusFactor*distanceFromBeamCenter no streak pixel 
+                                            is found.
+        uint8_t streakPixelMaskRadius: when following the streak to its end, all pixels in this radius are masked   
+                                       on the way.
+        std::vector< Point2D< uint16_t > > pixelsToCheck: Pixels to check for the start of a streak.
+        std::vector< ImageRectangle< uint16_t > > backgroundEstimationRegions: Since for big streaks the background
+                                           cannot be estimated from the direct environment of the streaks,
+                                           regions to estimate the background must be provided. In every region the 
+                                           background is estimated. The estimation with the secoond-smallest variance
+                                           is taken as the real beackground, the other ones are dismissed.
+        
+        Recommended tweaking procedure:
+            1) set backgroundEstimationRegions. Choose them to be approximately on the same radius, if the background
+               is radially dependent.
+            2) set pixelsToCheck. Choose pixels close to the beam center to find even week streaks.
+               Choose several pixels (two and more) for one streak direction to be more noise resistant. The number of 
+               pixelsToCheck influences the performance.
+            3) set streakPixelMaskRadius. If in doubt, set 0 and increase it later.
+            4) set filterLength and filterStep such, that filterLength*filterStep is more than twice as big as your 
+               Bragg peaks. If in doubt, set filterLength = 9 and filterStep = 1.2
+            5) set minFilterLength, should not be smaller than 5
+            6) set streakElongationMinStepsCount, should not be smaller than 5
+            7) set streakElongationRadiusFactor, if in doubt set to 0.1
+            8) set sigmaFactor, if in doubt, set to 9
+            
+            9) tweak sigmaFactor. 
+            
+            10) if results are not satisfying, tweak filterLength and filterStep
+        
+            11) if results are not satisfying, tweak the rest.
+            
+
+radialBackgroundSubtraction:
+    Radial background is estimated by building a radial histogram and extracting the percentile (the kth-smallest value)
+    from the bins.
+    The bin width is chosen automatically to ensure that bins are big enough, but not too big.
+    When subtracting the background, linear interpolation between the bins is used. Inner and outermost bins are 
+    lineary extrapolated.
+    
+    Accuracy constants:
+        uint32_t minValuesPerBin: minimum number of pixels in a histogram bin
+        uint32_t minBinWidth: minimum (radial) bin width, measured in pixels
+        uint32_t maxConsideredValuesPerBin: maximum number of pixels in a bin, 0 for infinite.
+                                            Considered pixels will be taken evenly distributed in all angles.
+
+        std::vector< Point2D< uint8_t > > detektorsToConsiderSubscripts: coordinates (x,y)  that describe 
+                                            the position of the detectors (ASICs) in the rawImage that radial 
+                                            statistics are extracted from. 
+                                            Top left detector is (0,0), it's right neighbor is (1,0)
+        std::vector< Point2D< uint8_t > > detektorsToCorrectSubscripts: coordinates (x,y)  that describe 
+                                            the position of the detectors (ASICs) in the rawImage that background
+                                            subtraction is applied to.
+                                            Must be a subset of detektorsToConsiderIndices
+
+        float rank: defines the percentile (relative rank in the bin, relative k in "kth-smallest value").
+                    Must be between 0 and 1. rank == 0.5 defines a median filter.
+ 
+    Recommended tweaking procedure:
+        1) set detektorsToConsiderSubscripts. If in doubt, set all detectors 
+        2) set detektorsToCorrectSubscripts. If in doubt, set all detectors 
+        3) set minBinWidth. If in doubt, set 2
+        4) set maxConsideredValuesPerBin. If in doubt, set 500
+        5) set minValuesPerBin. If in doubt, set 20.
+        6) set rank. If in doubt, set 0.5
+        
+        7) tweak rank
+        
+        11) if results are not satisfying, tweak the rest.
+        
+        12) if computation time ist not satisfying, reduce maxConsideredValuesPerBin or increase minBinWidth
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

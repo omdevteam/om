@@ -7,4 +7,4 @@ build_ext:
 
 clean:
 	- rm -rf build
-	- find python_extensions/ -name "*.so" -delete
+	- find ondacython/lib/ -name "*.so" -delete
