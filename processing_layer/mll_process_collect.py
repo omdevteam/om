@@ -199,7 +199,7 @@ class Onda(MasterWorker):
 
         if num_run > self._current_run_num:
             log_file_name = '{0}.dat'.format('_'.join(filename_parts[0:2]))
-            log_class = mlu.read_mll_logfile(join(self._log_dir, log_file_name))
+            log_class = mlu.read_mll_logfile(os.path.join(self._log_dir, log_file_name))
 
             self.grid = tuple(log_class.log['Grid'])
             self.physical_grid_axes = tuple(log_class.log['Physical_grid_axes'])

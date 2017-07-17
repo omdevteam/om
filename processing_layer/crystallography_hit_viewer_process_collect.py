@@ -32,7 +32,6 @@ import algorithms.calibration_algorithms as calibalg
 import algorithms.crystallography_algorithms as calg
 import algorithms.generic_algorithms as galg
 
-
 par_layer = di.import_correct_layer_module('facility_layer', op.monitor_params)
 MasterWorker = di.import_class_from_layer('MasterWorker', par_layer)
 
@@ -47,7 +46,7 @@ class Onda(MasterWorker):
         if self.role == 'worker':
 
             pixelmap_radius = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file',
-                                                                                         str, required=True)).r
+                                                                         str, required=True)).r
 
             if op.param('DetectorCalibration', 'calibration_algorithm') is not None:
 
@@ -101,7 +100,6 @@ class Onda(MasterWorker):
             sys.stdout.flush()
 
         if self.role == 'master':
-
             self._accumulator = calg.PeakAccumulator(op.param('PeakAccumulator', 'accumulated_shots', int,
                                                               required=True))
 
@@ -116,7 +114,7 @@ class Onda(MasterWorker):
             self._hit_rate_running_w = deque([0.0] * op.param('General', 'running_average_size', int,
                                                               required=True))
             self._saturation_rate_running_w = deque([0.0] * op.param('General', 'running_average_size', int,
-                                                                      required=True))
+                                                                     required=True))
 
             print('Starting the monitor...')
             sys.stdout.flush()
@@ -165,7 +163,6 @@ class Onda(MasterWorker):
 
         results_dict, _ = new
         self._num_events += 1
-
 
         self._hit_rate_running_w.append(float(results_dict['hit_flag']))
         self._hit_rate_running_w.popleft()

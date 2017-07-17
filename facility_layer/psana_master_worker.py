@@ -34,12 +34,11 @@ from ondautils.onda_exception_utils import MissingDataExtractionFunction, DataEx
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
-
 EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp'])
 
 
 def _raw_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'detector_name', str, required=True ))
+    return psana.Detector(op.param('PsanaFacilityLayer', 'detector_name', str, required=True))
 
 
 def _timestamp_init():
@@ -133,7 +132,7 @@ def _initialize():
 def _extract(event, monitor):
     for entry in data_extraction_funcs:
         # try:
-            setattr(monitor, entry, globals()['_'+entry](event))
+        setattr(monitor, entry, globals()['_' + entry](event))
         # except Exception as e:
         #     print(e)
         #     raise DataExtractionError('Error extracting {0}: {1}'.format(entry, e))
@@ -256,7 +255,7 @@ class MasterWorker(object):
 
                 # Reject events above the rejection threshold
                 time_epoch = evt.get(psana.EventId).time()
-                timestamp = float64(str(time_epoch[0])+'.'+str(time_epoch[1]))
+                timestamp = float64(str(time_epoch[0]) + '.' + str(time_epoch[1]))
                 timenow = float64(time.time())
 
                 if (timenow - timestamp) > self._event_rejection_threshold:
@@ -338,7 +337,6 @@ in_layer = di.import_correct_layer_module('detector_layer', op.monitor_params)
 
 data_extraction_funcs = [x.strip() for x in op.param('Onda', 'required_data', list, required=True)]
 
-
 for func in data_extraction_funcs:
     try:
         globals()[func + '_init'] = getattr(in_layer, func + '_init')
@@ -365,7 +363,7 @@ for func in data_extraction_funcs:
             if func == 'raw_data' and op.param('PsanaFacilityLayer', 'pedestals_only', bool):
                 raise_from(MissingDataExtractionFunction(
                     'Data extraction function not defined for the following '
-                    'data type: {0} (pedestals_only)'.format(func)))
+                    'data type: {0} (pedestals_only)'.format(func)), None)
             else:
                 raise_from(MissingDataExtractionFunction(
                     'Data extraction function not defined for the following '

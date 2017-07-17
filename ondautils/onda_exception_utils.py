@@ -22,6 +22,7 @@ from mpi4py import MPI
 from traceback import print_exception
 import sys
 
+
 class OndaException(Exception):
     pass
 
@@ -67,10 +68,9 @@ class DataExtractionError(OndaException):
 
 
 def onda_exception_handler(type_, value, traceback):
-
     if issubclass(type, OndaException):
         print('')
-        print('>>>>> OnDA ERROR: {0} <<<<<'.format(exception))
+        print('>>>>> OnDA ERROR: {0} <<<<<'.format(value))
         print('')
         MPI.COMM_WORLD.Abort(0)
     else:

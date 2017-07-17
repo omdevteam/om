@@ -131,6 +131,8 @@ class MainFrame(QtGui.QMainWindow):
 
             self._img[self._pixel_maps.y, self._pixel_maps.x] = data['raw_data'].ravel().astype(self._img.dtype)
 
+            QtGui.QApplication.processEvents()
+
             peak_x = []
             peak_y = []
             for peak_fs, peak_ss in zip(data['peak_list'].fs, data['peak_list'].ss):
@@ -138,10 +140,14 @@ class MainFrame(QtGui.QMainWindow):
                 peak_x.append(self._pixel_maps.x[peak_in_slab])
                 peak_y.append(self._pixel_maps.y[peak_in_slab])
 
+            QtGui.QApplication.processEvents()
+
             self._ui.imageView.setImage(self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
             self._peak_canvas.setData(peak_x, peak_y, symbol='o', size=[5] * len(data['peak_list'].intensity),
                                       brush=(255, 255, 255, 0), pen=self._ring_pen,
                                       pxMode=False)
+
+            QtGui.QApplication.processEvents()
 
 
 def main():

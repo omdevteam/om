@@ -24,7 +24,6 @@ from scipy.constants import h, c, electron_volt
 
 import fabio
 
-
 SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
 NativeShape = namedtuple('NativeShape', ['ss', 'fs'])
 

@@ -30,7 +30,6 @@ from ondautils.onda_exception_utils import MissingDataExtractionFunction, DataEx
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
-
 EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset',
                                      'monitor_params'])
 
@@ -38,7 +37,7 @@ EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num
 def _extract(event, monitor):
     for entry in data_extraction_funcs:
         try:
-            setattr(monitor, entry, globals()['_'+entry](event))
+            setattr(monitor, entry, globals()['_' + entry](event))
         except Exception as e:
             raise DataExtractionError('OnDA Warning: Error extracting {0}: {1}'.format(entry, e))
 
@@ -122,7 +121,7 @@ class MasterWorker(object):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}.'.format(self.mpi_rank))
 
-                extension_match = [filepath.strip().endswith(x) for x in file_extensions]
+                extension_match = [filepath.strip().endswith(extension) for extension in file_extensions]
                 if not any(extension_match) is True:
                     continue
 
@@ -143,11 +142,12 @@ class MasterWorker(object):
                 for shot_offset in range(-self._shots_to_proc, 0, 1):
 
                     event = EventData(filehandle, filename, filectime, num_events_in_file, shot_offset,
-                                    op.monitor_params)
+                                      op.monitor_params)
 
-                    self._extract_data(event, self)
-
-                    if self.raw_data is None:
+                    try:
+                        self._extract_data(event, self)
+                    except DataExtractionError as e:
+                        print('OnDA Warning: Cannot interpret some event data: {}. Skipping event....'.format(e))
                         continue
 
                     result = self._map()
@@ -158,7 +158,7 @@ class MasterWorker(object):
 
                 if req:
                     req.Wait()
-                close_file(event.filehandle)
+                close_file(filehandle)
 
             end_dict = {'end': True}
             if req:
@@ -214,8 +214,6 @@ class MasterWorker(object):
         pass
 
 
-
-
 in_layer = di.import_correct_layer_module('detector_layer', op.monitor_params)
 
 open_file = di.import_function_from_layer('open_file', in_layer)
@@ -226,7 +224,7 @@ file_extensions = di.import_list_from_layer('file_extensions', in_layer)
 data_extraction_funcs = [x.strip() for x in op.param('Onda', 'required_data', list, required=True)]
 for func in data_extraction_funcs:
     try:
-        globals()['_'+func] = getattr(in_layer, func)
+        globals()['_' + func] = getattr(in_layer, func)
     except AttributeError:
         if func not in globals():
             raise_from(MissingDataExtractionFunction('Data extraction function not defined for the following '

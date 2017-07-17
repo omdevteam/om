@@ -34,13 +34,13 @@ ImageShape = namedtuple('ImageShape', ['ss', 'fs'])
 
 
 def _find_minimum_image_shape(x, y):
-
     # find the smallest size of cspad_geom that contains all
     # xy values but is symmetric about the origin
     n = 2 * int(max(abs(y.max()), abs(y.min()))) + 2
     m = 2 * int(max(abs(x.max()), abs(x.min()))) + 2
 
     return n, m
+
 
 def apply_geometry_from_file(data_as_slab, geometry_filename):
     """Parses a geometry file and applies the geometry to data.
@@ -158,8 +158,6 @@ def get_image_shape(geometry_filename):
 
     img_shape = ImageShape(n, m)
     return img_shape
-
-
 
 
 def pixel_maps_from_geometry_file(fnam):

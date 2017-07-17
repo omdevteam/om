@@ -20,11 +20,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import namedtuple
-import num  py
-
+import numpy
 
 SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
-NativeShape = namedtuple('NativeShape', ['panel','ss', 'fs'])
+NativeShape = namedtuple('NativeShape', ['panel', 'ss', 'fs'])
 
 slab_shape = SlabShape(1024, 1024)
 native_shape = NativeShape(4, 512, 512)

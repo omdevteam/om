@@ -45,9 +45,9 @@ def num_events_in_file(filehandle):
 
 
 def raw_data(event):
-    raw_data = event.filehandle['/entry/instrument/detector/data'][event.shot_offset, :, :].reshape(512, 1024)
-    adu_data = numpy.bitwise_and(raw_data, 0x3fff)
-    gain_data = numpy.bitwise_and(numpy.right_shift(raw_data, 14), 0x3)
+    raw = event.filehandle['/entry/instrument/detector/data'][event.shot_offset, :, :].reshape(512, 1024)
+    adu_data = numpy.bitwise_and(raw, 0x3fff)
+    gain_data = numpy.bitwise_and(numpy.right_shift(raw, 14), 0x3)
     adu_data[gain_data != 0] = -999.0
     return adu_data
 

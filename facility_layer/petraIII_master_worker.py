@@ -187,7 +187,7 @@ class MasterWorker(object):
                 try:
                     filehandle = self._open_file(data, filepath)
                     filectime = metadata['file_create_time']
-                    num_events_in_file = num_events(filehandle)
+                    num_events = num_events_in_file(filehandle)
                 except (IOError, OSError) as e:
                     print('>>>>> OnDA WARNING: Cannot read file {0}: {1}. Skipping.... <<<<<'.format(
                         filepath.strip(), e))
@@ -195,12 +195,12 @@ class MasterWorker(object):
 
                 shots_to_proc = self._max_shots_to_proc
 
-                if num_events_in_file < self._max_shots_to_proc:
-                    shots_to_proc = num_events_in_file
+                if num_events < self._max_shots_to_proc:
+                    shots_to_proc = num_events
 
                 for shot_offset in range(-shots_to_proc, 0, 1):
 
-                    event = EventData(filehandle, filename, filectime, num_events_in_file, shot_offset,
+                    event = EventData(filehandle, filename, filectime, num_events, shot_offset,
                                       op.monitor_params)
 
                     try:
@@ -217,7 +217,7 @@ class MasterWorker(object):
 
                 if req:
                     req.Wait()
-                close_file(event.filehandle)
+                close_file(filehandle)
 
             end_dict = {'end': True}
             if req:

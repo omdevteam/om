@@ -42,8 +42,8 @@ import ondautils.onda_zmq_gui_utils as zgut
 
 _ImageCenter = namedtuple('ImageCenter', ['y', 'x'])
 
-class MainFrame(QtGui.QMainWindow):
 
+class MainFrame(QtGui.QMainWindow):
     _listening_thread_start_processing = QtCore.pyqtSignal()
     _listening_thread_stop_processing = QtCore.pyqtSignal()
 
@@ -87,7 +87,7 @@ class MainFrame(QtGui.QMainWindow):
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
         pg.setConfigOption('background', 0.2)
         ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'ui_files',
-                                              'OndaCrystallographyGUI.ui'))
+                                                   'OndaCrystallographyGUI.ui'))
         self._ui = ui_mainwindow()
         self._ui.setupUi(self)
         self._init_ui()
@@ -215,7 +215,7 @@ class MainFrame(QtGui.QMainWindow):
 
             resolution_rings_in_pix.extend([2.0 * self._res *
                                             (self._local_data['detector_distance'] * 10e-4 + self._coffset) *
-                                            numpy.tan(2.0*numpy.arcsin(lambd/(2.0*resolution*10e-11)))
+                                            numpy.tan(2.0 * numpy.arcsin(lambd / (2.0 * resolution * 10e-11)))
                                             for resolution in self._resolution_rings_in_A])
 
         except TypeError:
@@ -319,7 +319,7 @@ class MainFrame(QtGui.QMainWindow):
             for peak_fs, peak_ss, peak_value in zip(self._local_data['peak_list'].fs,
                                                     self._local_data['peak_list'].ss,
                                                     self._local_data['peak_list'].intensity):
-                peak_in_slab = int(round(peak_ss))*self._local_data['native_shape'][1]+int(round(peak_fs))
+                peak_in_slab = int(round(peak_ss)) * self._local_data['native_shape'][1] + int(round(peak_fs))
                 self._img[self._pixel_maps.y[peak_in_slab], self._pixel_maps.x[peak_in_slab]] += peak_value
                 self._sum_img[self._pixel_maps.y[peak_in_slab], self._pixel_maps.x[peak_in_slab]] += peak_value
 
@@ -344,6 +344,7 @@ def main():
 
     _ = MainFrame(geom_filename, rec_ip, rec_port)
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()

@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import numpy
 import scipy
+import scipy.signal
 import scipy.ndimage
 
 import cfelpyutils.cfel_hdf5 as ch5

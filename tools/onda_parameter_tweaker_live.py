@@ -260,6 +260,8 @@ class MainFrame(QtGui.QMainWindow):
         self._mask_image_view.setImage(numpy.transpose(self._mask_to_draw, axes=(1, 0, 2)), autoLevels=False,
                                        autoRange=False, opacity=0.1)
 
+        QtGui.QApplication.processEvents()
+
         peak_list = PeakList(*pf8.peakfinder_8(
             self._max_num_peaks,
             img.astype(numpy.float32),
@@ -275,6 +277,8 @@ class MainFrame(QtGui.QMainWindow):
             self._max_pixel_count,
             self._local_bg_radius)[0:3])
 
+        QtGui.QApplication.processEvents()
+
         if self._ui.showHidePeaksCheckBox.isChecked():
 
             peak_x = []
@@ -286,6 +290,8 @@ class MainFrame(QtGui.QMainWindow):
             self._peak_canvas.setData(peak_x, peak_y, symbol='o', size=15, pen=self._ring_pen, brush=(0, 0, 0, 0),
                                       pxMode=False)
 
+            QtGui.QApplication.processEvents()
+
             hit = self._min_num_peaks_for_hit < len(peak_list.intensity) < self._max_num_peaks_for_hit
 
             if hit:
@@ -295,11 +301,15 @@ class MainFrame(QtGui.QMainWindow):
                 self._ui.hitLabel.setText('Hit [{0}-{1} peaks]: No ({2} peaks)'.format(
                     self._min_num_peaks_for_hit, self._max_num_peaks_for_hit, len(peak_list.intensity)))
 
+            QtGui.QApplication.processEvents()
+
         else:
 
             self._ui.hitLabel.setText('Hit [{0}-{1} peaks]: - (- peaks)'.format(self._min_num_peaks_for_hit,
                                                                                 self._max_num_peaks_for_hit))
             self._peak_canvas.setData([])
+
+            QtGui.QApplication.processEvents()
 
         if self._ui.resolutionRingsCheckBox.isChecked():
             self._circle_canvas.setData([self._img_shape.fs / 2, self._img_shape.fs / 2],
@@ -307,9 +317,13 @@ class MainFrame(QtGui.QMainWindow):
                                         symbol='o', size=[2 * self._min_res, 2 * self._max_res],
                                         pen=self._circle_pen, brush=(0, 0, 0, 0), pxMode=False)
 
+            QtGui.QApplication.processEvents()
+
         else:
 
             self._circle_canvas.setData([])
+
+            QtGui.QApplication.processEvents()
 
     def _update_peaks(self):
 
@@ -324,6 +338,9 @@ class MainFrame(QtGui.QMainWindow):
                                                                   self._min_pixel_count_lineedit)
         if changed:
             something_changed = True
+
+        QtGui.QApplication.processEvents()
+
         self._max_pixel_count, changed = _check_changed_parameter(self._max_pixel_count, int,
                                                                   self._max_pixel_count_lineedit)
         if changed:
@@ -335,6 +352,9 @@ class MainFrame(QtGui.QMainWindow):
         self._min_res, changed = _check_changed_parameter(self._min_res, int, self._min_res_lineedit)
         if changed:
             something_changed = True
+
+        QtGui.QApplication.processEvents()
+
         self._max_res, changed = _check_changed_parameter(self._max_res, int, self._max_res_lineedit)
         if changed:
             something_changed = True
@@ -343,6 +363,8 @@ class MainFrame(QtGui.QMainWindow):
         self._res_mask[numpy.where(self._pixelmap_radius_for_peakfinding < self._min_res)] = 0
         self._res_mask[numpy.where(self._pixelmap_radius_for_peakfinding > self._max_res)] = 0
         self._mask = self._loaded_mask * self._res_mask
+
+        QtGui.QApplication.processEvents()
 
         if something_changed:
             self._draw_things()

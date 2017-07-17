@@ -50,15 +50,15 @@ def _load_file(lines, data_path, index):
 
 
 def _check_changed_parameter(param, param_conv_vers, lineedit_element):
-        try:
-            new_param = param_conv_vers(lineedit_element.text())
-            if new_param != param:
-                return new_param, True
-            else:
-                return param, False
-        except ValueError:
-            lineedit_element.setText(str(param))
+    try:
+        new_param = param_conv_vers(lineedit_element.text())
+        if new_param != param:
+            return new_param, True
+        else:
             return param, False
+    except ValueError:
+        lineedit_element.setText(str(param))
+        return param, False
 
 
 class MainFrame(QtGui.QMainWindow):
@@ -72,12 +72,17 @@ class MainFrame(QtGui.QMainWindow):
         if self._apply_darkcal is True:
             img -= self._darkcal
 
+        QtGui.QApplication.processEvents()
+
         self._img_to_draw[self._pixel_map_y, self._pixel_map_x] = img.ravel()
         self._ui.imageView.setImage(self._img_to_draw.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
         self._mask_image_view.setImage(numpy.transpose(self._mask_to_draw, axes=(1, 0, 2)), autoLevels=False,
                                        autoRange=False, opacity=0.1)
 
-        peak_list = pf8.peakfinder_8(self._max_num_peaks,
+        QtGui.QApplication.processEvents()
+
+        peak_list = pf8.peakfinder_8(
+            self._max_num_peaks,
             img.astype(numpy.float32),
             self._mask.astype(numpy.int8),
             self._pixelmap_radius,
@@ -92,6 +97,8 @@ class MainFrame(QtGui.QMainWindow):
             self._local_bg_radius
         )
 
+        QtGui.QApplication.processEvents()
+
         if self._ui.showHidePeaksCheckBox.isChecked():
 
             peak_x = []
@@ -101,10 +108,16 @@ class MainFrame(QtGui.QMainWindow):
                 peak_x.append(self._pixel_maps_x[peak_in_slab])
                 peak_y.append(self._pixel_maps_y[peak_in_slab])
 
+            QtGui.QApplication.processEvents()
+
             self._peak_canvas.setData(peak_y, peak_x, symbol='o', size=15, pen=self._ring_pen, brush=(0, 0, 0, 0),
                                       pxMode=False)
 
+            QtGui.QApplication.processEvents()
+
             hit = self._min_num_peaks_for_hit < len(peak_list.intensity) < self._max_num_peaks_for_hit
+
+            QtGui.QApplication.processEvents()
 
             if hit:
                 self._ui.hitLabel.setText('Hit [{0}-{1} peaks]: <b>Yes</b> ({2} peaks)'.format(
@@ -113,10 +126,17 @@ class MainFrame(QtGui.QMainWindow):
                 self._ui.hitLabel.setText('Hit [{0}-{1} peaks]: No ({2} peaks)'.format(
                     self._min_num_peaks_for_hit, self._max_num_peaks_for_hit, len(peak_list.intensity)))
 
+            QtGui.QApplication.processEvents()
+
         else:
+
+            QtGui.QApplication.processEvents()
 
             self._ui.hitLabel.setText('Hit [{0}-{1} peaks]: - (- peaks)'.format(self._min_num_peaks_for_hit,
                                                                                 self._max_num_peaks_for_hit))
+
+            QtGui.QApplication.processEvents()
+
             self._peak_canvas.setData([])
 
         if self._ui.resolutionRingsCheckBox.isChecked():
@@ -125,13 +145,19 @@ class MainFrame(QtGui.QMainWindow):
                                         symbol='o', size=[2 * self._min_res, 2 * self._max_res],
                                         pen=self._circle_pen, brush=(0, 0, 0, 0), pxMode=False)
 
+            QtGui.QApplication.processEvents()
+
         else:
 
             self._circle_canvas.setData([])
 
+            QtGui.QApplication.processEvents()
+
         self.setWindowTitle(str(self._file_index) + ' - ' + title)
 
     def _update_peaks(self):
+
+        QtGui.QApplication.processEvents()
 
         something_changed = False
         self._adc_thresh, changed = _check_changed_parameter(self._adc_thresh, float, self._adc_threshold_lineedit)
@@ -144,6 +170,9 @@ class MainFrame(QtGui.QMainWindow):
                                                                   self._min_pixel_count_lineedit)
         if changed:
             something_changed = True
+
+        QtGui.QApplication.processEvents()
+
         self._max_pixel_count, changed = _check_changed_parameter(self._max_pixel_count, int,
                                                                   self._max_pixel_count_lineedit)
         if changed:
@@ -156,6 +185,9 @@ class MainFrame(QtGui.QMainWindow):
         if changed:
             something_changed = True
         self._max_res, changed = _check_changed_parameter(self._max_res, int, self._max_res_lineedit)
+
+        QtGui.QApplication.processEvents()
+
         if changed:
             something_changed = True
 
@@ -163,6 +195,8 @@ class MainFrame(QtGui.QMainWindow):
         self._res_mask[numpy.where(self._pixelmap_radius < self._min_res)] = 0
         self._res_mask[numpy.where(self._pixelmap_radius > self._max_res)] = 0
         self._mask = self._loaded_mask * self._res_mask
+
+        QtGui.QApplication.processEvents()
 
         if something_changed:
             self._draw_things()
@@ -175,7 +209,7 @@ class MainFrame(QtGui.QMainWindow):
         self._draw_things()
 
     def _next_file(self):
-        if self._file_index == len(self._fhlines)-1:
+        if self._file_index == len(self._fhlines) - 1:
             self._file_index = 0
         else:
             self._file_index += 1
@@ -196,7 +230,7 @@ class MainFrame(QtGui.QMainWindow):
                 self._ui.lastClickedPixelValueLabel.setText('Pixel Value: %5.1f' % (self._img_to_draw[y_mouse,
                                                                                                       x_mouse]))
 
-    def __init__(self, input_file, data_path, apply_darkcal, monitor_params):
+    def __init__(self, input_file, data_path, apply_darkcal):
 
         QtCore.QObject.__init__(self)
 
@@ -217,7 +251,7 @@ class MainFrame(QtGui.QMainWindow):
 
         if apply_darkcal is True:
             self._darkcal = ch5.load_nparray_from_hdf5_file(
-                op.param('DarkCalCorrection', 'filename' , str, required=True),
+                op.param('DarkCalCorrection', 'filename', str, required=True),
                 op.param('DarkCalCorrection', 'hdf5_group', str, required=True)
             )
 
@@ -252,7 +286,7 @@ class MainFrame(QtGui.QMainWindow):
         self._mask = self._loaded_mask * self._res_mask
 
         mask = self._loaded_mask.copy().astype(numpy.float)
-        mask = mask * 255./mask.max()
+        mask = mask * 255. / mask.max()
         mask = 255. - mask
 
         self._mask_to_draw[self._pixel_maps.ss, self._pixel_maps.fs, 1] = mask.ravel()
@@ -387,7 +421,7 @@ def main():
     monitor_params = coa.parse_parameters(config)
 
     app = QtGui.QApplication(sys.argv)
-    _ = MainFrame(file_list, data_path, apply_darkcal, monitor_params)
+    _ = MainFrame(file_list, data_path, apply_darkcal)
     sys.exit(app.exec_())
 
 

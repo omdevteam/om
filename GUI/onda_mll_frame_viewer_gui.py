@@ -107,10 +107,15 @@ class MainFrame(QtGui.QMainWindow):
         self._data.append(copy.deepcopy(datdict))
 
     def _update_image_plot(self):
+
+        QtGui.QApplication.processEvents()
+
         if len(self._data) > 0:
             data = self._data[self._data_index]
             self._img = data['raw_data']
             self._ui.imageView.setImage(self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)
+
+        QtGui.QApplication.processEvents()
 
 
 def main():

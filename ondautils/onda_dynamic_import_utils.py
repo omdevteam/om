@@ -22,7 +22,6 @@ from future.utils import raise_from
 import importlib
 import inspect
 
-
 from ondautils.onda_exception_utils import MissingParameterFileSection, MissingParameter, DynamicImportError
 
 
@@ -52,16 +51,16 @@ def import_correct_layer_module(layer, monitor_params):
         return m
 
 
-def import_function_from_layer(function, layer):
+def import_function_from_layer(function_, layer):
     try:
-        ret = getattr(layer, function)
+        ret = getattr(layer, function_)
     except AttributeError:
-        raise_from(DynamicImportError('Error importing function {0} from layer {1}, the function does not exist,'.format(
-            function, layer.__name__)), None)
+        raise_from(DynamicImportError('Error importing function {0} from layer {1}, the function does not '
+                                      'exist.'.format(function_, layer.__name__)), None)
     else:
         if not inspect.isfunction(ret):
             raise_from(DynamicImportError('Error importing function {0} from layer {1}, {0} is not a function'.format(
-                function, layer.__name__)), None)
+                function_, layer.__name__)), None)
         else:
             return ret
 
@@ -108,16 +107,15 @@ def import_str_from_layer(string, layer):
             return ret
 
 
-def import_class_from_module(cls, module):
-
+def import_class_from_module(cls, module_):
     try:
-        ret = getattr(module, cls)
+        ret = getattr(module_, cls)
     except AttributeError:
         raise_from(DynamicImportError('Error importing class {0} from layer {1}, {0} does not exist.'.format(
-            cls, module.__name__)), None)
+            cls, module_.__name__)), None)
     else:
         if not inspect.isclass(ret):
             raise_from(DynamicImportError('Error importing class {0} from layer {1}, {0} is not a class.'.format(
-                cls, module.__name__)), None)
+                cls, module_.__name__)), None)
         else:
             return ret
