@@ -15,6 +15,13 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+from builtins import str
+
 import collections
 import copy
 import signal
@@ -178,7 +185,7 @@ class MainFrame(QtGui.QMainWindow):
         self._param_label = QtGui.QLabel(self)
         self._param_label.setText('<b>Peakfinder Parameters:</b>')
 
-        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'UI',
+        ui_mainwindow, _ = loadUiType(os.path.join(os.environ['ONDA_INSTALLATION_DIR'], 'GUI', 'ui_files',
                                                    'OndaCrystallographyParameterTweakerGUI.ui'))
         self._ui = ui_mainwindow()
         self._ui.setupUi(self)
