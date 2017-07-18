@@ -1,4 +1,4 @@
-nda]
+[Onda]
 processing_layer = 'crystallography_hit_viewer_process_collect'
 facility_layer = 'psana_master_worker'
 detector_layer = 'cspad_slac'
