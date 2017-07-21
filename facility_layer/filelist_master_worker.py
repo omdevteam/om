@@ -39,7 +39,7 @@ def _extract(event, monitor):
         try:
             setattr(monitor, entry, globals()['_' + entry](event))
         except Exception as e:
-            raise DataExtractionError('OnDA Warning: Error extracting {0}: {1}'.format(entry, e))
+            raise DataExtractionError('Error extracting {0}: {1}'.format(entry, e))
 
 
 class MasterWorker(object):
@@ -132,8 +132,7 @@ class MasterWorker(object):
                     filectime = os.path.getctime(filepath.strip())
                     num_events = num_events_in_file(filehandle)
                 except (IOError, OSError) as e:
-                    print('>>>>> OnDA WARNING: Cannot read file {0}: {1}. Skipping.... <<<<<'.format(
-                        filepath.strip(), e))
+                    print('OnDA Warning: Cannot read file {0}: {1}. Skipping file...'.format(filepath.strip(), e))
                     continue
 
                 if num_events < self._shots_to_proc:

@@ -42,9 +42,9 @@ EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num
 def _extract(event, monitor):
     for entry in data_extraction_funcs:
         try:
-            setattr(monitor, entry, globals()['_'+entry](event))
+            setattr(monitor, entry, globals()['_' + entry](event))
         except Exception as e:
-            raise DataExtractionError('OnDA Warning: Error extracting {0}: {1}'.format(entry, e))
+            raise DataExtractionError('Error extracting {0}: {1}'.format(entry, e))
 
 
 def _open_file_data(data, _):
@@ -189,8 +189,7 @@ class MasterWorker(object):
                     filectime = metadata['file_create_time']
                     num_events = num_events_in_file(filehandle)
                 except (IOError, OSError) as e:
-                    print('>>>>> OnDA WARNING: Cannot read file {0}: {1}. Skipping.... <<<<<'.format(
-                        filepath.strip(), e))
+                    print('OnDA Warning: Cannot read file {0}: {1}. Skipping file...'.format(filepath.strip(), e))
                     continue
 
                 shots_to_proc = self._max_shots_to_proc
@@ -279,7 +278,7 @@ file_extensions = di.import_list_from_layer('file_extensions', in_layer)
 data_extraction_funcs = [x.strip() for x in op.param('Onda', 'required_data', list, required=True)]
 for func in data_extraction_funcs:
     try:
-        globals()[func] = getattr(in_layer, func)
+        globals()['_' + func] = getattr(in_layer, func)
     except AttributeError:
         if func not in globals():
             raise_from(MissingDataExtractionFunction('Data extraction function not defined for the following '

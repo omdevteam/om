@@ -131,11 +131,10 @@ def _initialize():
 
 def _extract(event, monitor):
     for entry in data_extraction_funcs:
-        # try:
-        setattr(monitor, entry, globals()['_' + entry](event))
-        # except Exception as e:
-        #     print(e)
-        #     raise DataExtractionError('Error extracting {0}: {1}'.format(entry, e))
+        try:
+            setattr(monitor, entry, globals()['_' + entry](event))
+        except Exception as e:
+            raise DataExtractionError('Error extracting {0}: {1}'.format(entry, e))
 
 
 class MasterWorker(object):
