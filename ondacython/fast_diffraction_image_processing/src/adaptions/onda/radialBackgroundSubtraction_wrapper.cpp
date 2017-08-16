@@ -19,7 +19,7 @@ using namespace Eigen;
 
 radialRankFilter_constantArguments_t precomputeRadialRankFilterConstantArguments(const uint8_t* mask, const float* detectorGeometryRadiusMatrix,
         const detectorRawFormat_t& detectorRawFormat, const radialRankFilter_accuracyConstants_pythonWrapper_t& accuracyConstants_pythonWrapper,
-        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_python)
+        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_pythonWrapper)
 {
     const radialRankFilter_accuracyConstants_pythonWrapper_t& ac = accuracyConstants_pythonWrapper;
 
@@ -41,9 +41,10 @@ radialRankFilter_constantArguments_t precomputeRadialRankFilterConstantArguments
     detectorRawFormat_t* detectorRawFormat_heap = new detectorRawFormat_t;
     *detectorRawFormat_heap = detectorRawFormat;
 
-    vector< EigenSTL::vector_detectorPosition_t  > *detectorPositions_heap = new vector< EigenSTL::vector_detectorPosition_t >;
+    vector< EigenSTL::vector_detectorPosition_t > *detectorPositions_heap = new vector< EigenSTL::vector_detectorPosition_t >;
     Vector2f* detectorGeometryMatrix;
-    cheetahGetDetectorGeometryMatrix(detectorGeometryMatrix_python.detectorGeometryMatrix_x, detectorGeometryMatrix_python.detectorGeometryMatrix_y,
+    cheetahGetDetectorGeometryMatrix(detectorGeometryMatrix_pythonWrapper.detectorGeometryMatrix_x,
+            detectorGeometryMatrix_pythonWrapper.detectorGeometryMatrix_y,
             detectorRawFormat, &detectorGeometryMatrix);
     computeDetectorPositionsFromDetectorGeometryMatrix(*detectorPositions_heap, detectorRawFormat, detectorGeometryMatrix);
 
@@ -55,9 +56,9 @@ radialRankFilter_constantArguments_t precomputeRadialRankFilterConstantArguments
     cheetahDeleteDetectorGeometryMatrix(detectorGeometryMatrix);
 
     radialRankFilter_constantArguments_t radialRankFilter_constantArguments;
-    radialRankFilter_constantArguments.precomputedConstants = (void*) precomputedConstants_heap;
-    radialRankFilter_constantArguments.detectorRawFormat = (void*) detectorRawFormat_heap;
-    radialRankFilter_constantArguments.detectorPositions = (void*) detectorPositions_heap;
+    radialRankFilter_constantArguments.precomputedConstants = precomputedConstants_heap;
+    radialRankFilter_constantArguments.detectorRawFormat = detectorRawFormat_heap;
+    radialRankFilter_constantArguments.detectorPositions = detectorPositions_heap;
 
     return radialRankFilter_constantArguments;
 }
@@ -71,10 +72,9 @@ void freePrecomputeRadialRankFilterConstants(radialRankFilter_constantArguments_
 
 void applyRadialRankFilter(float* data, radialRankFilter_constantArguments_t radialRankFilter_constantArguments)
 {
-    const radialRankFilter_precomputedConstants_t* precomputedConstants =
-            (const radialRankFilter_precomputedConstants_t*) radialRankFilter_constantArguments.precomputedConstants;
-    const detectorRawFormat_t* detectorRawFormat = (const detectorRawFormat_t*) radialRankFilter_constantArguments.detectorRawFormat;
-    const detectorPositions_t* detectorPositions = (const detectorPositions_t*) radialRankFilter_constantArguments.detectorPositions;
+    const radialRankFilter_precomputedConstants_t* precomputedConstants = radialRankFilter_constantArguments.precomputedConstants;
+    const detectorRawFormat_t* detectorRawFormat = radialRankFilter_constantArguments.detectorRawFormat;
+    const detectorPositions_t* detectorPositions = radialRankFilter_constantArguments.detectorPositions;
 
     applyRadialRankFilterBackgroundSubtraction(data, *precomputedConstants, *detectorRawFormat, *detectorPositions);
 }

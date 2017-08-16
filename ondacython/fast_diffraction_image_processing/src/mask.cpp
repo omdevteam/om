@@ -9,7 +9,6 @@
 #include <cmath>
 #include <cfloat>
 
-
 using namespace std;
 
 void mergeMaskIntoData(float * data, const uint8_t * mask, const detectorRawFormat_t& detectorRawFormat)
@@ -92,7 +91,7 @@ void getMaskFromMergedMaskInData(const float * data, uint8_t * mask, const detec
     uint32_t pixelCount = detectorRawFormat.pix_nn;
 
     for (uint32_t i = 0; i < pixelCount; ++i) {
-        if (isfinite(data[i])) {
+        if (data[i] != -FLT_MAX) {
             mask[i] = 0;
         } else {
             mask[i] = 1;

@@ -19,7 +19,7 @@ using namespace Eigen;
 streakFinder_constantArguments_t precomputeStreakFinderConstantArguments(
         streakFinder_accuracyConstants_pythonWrapper_t streakFinder_accuracyConstants,
         detectorRawFormat_t detectorRawFormat,
-        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_python,
+        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_pythonWrapper,
         const uint8_t *mask)
 {
     const streakFinder_accuracyConstants_pythonWrapper_t& ac = streakFinder_accuracyConstants;
@@ -49,7 +49,7 @@ streakFinder_constantArguments_t precomputeStreakFinderConstantArguments(
     vector< EigenSTL::vector_detectorPosition_t > *detectorPositions_heap = new vector< EigenSTL::vector_detectorPosition_t >;
     Vector2f* detectorGeometryMatrix;
     cheetahGetDetectorGeometryMatrix(
-            detectorGeometryMatrix_python.detectorGeometryMatrix_x, detectorGeometryMatrix_python.detectorGeometryMatrix_y,
+            detectorGeometryMatrix_pythonWrapper.detectorGeometryMatrix_x, detectorGeometryMatrix_pythonWrapper.detectorGeometryMatrix_y,
             detectorRawFormat, &detectorGeometryMatrix);
     computeDetectorPositionsFromDetectorGeometryMatrix(*detectorPositions_heap, detectorRawFormat, detectorGeometryMatrix);
     cheetahDeleteDetectorGeometryMatrix(detectorGeometryMatrix);
@@ -60,33 +60,20 @@ streakFinder_constantArguments_t precomputeStreakFinderConstantArguments(
 
     streakFinder_constantArguments_t streakFinderConstantArguments;
 
-    streakFinderConstantArguments.accuracyConstants = (void*) accuracyConstants_heap;
-    streakFinderConstantArguments.detectorRawFormat = (void*) detectorRawFormat_heap;
-    streakFinderConstantArguments.detectorPositions = (void*) detectorPositions_heap;
-    streakFinderConstantArguments.streakFinder_precomputedConstant = (void*) streakFinder_precomputedConstants_heap;
+    streakFinderConstantArguments.accuracyConstants = accuracyConstants_heap;
+    streakFinderConstantArguments.detectorRawFormat = detectorRawFormat_heap;
+    streakFinderConstantArguments.detectorPositions = detectorPositions_heap;
+    streakFinderConstantArguments.streakFinder_precomputedConstant = streakFinder_precomputedConstants_heap;
 
     return streakFinderConstantArguments;
-
 }
 
 void freePrecomputedStreakFinderConstantArguments(streakFinder_constantArguments_t streakfinder_constant_arguments)
 {
-    delete (streakFinder_accuracyConstants_t*) streakfinder_constant_arguments.accuracyConstants;
-    delete (detectorRawFormat_t*) streakfinder_constant_arguments.detectorRawFormat;
-    delete (std::vector< std::vector< detectorPosition_t, Eigen::aligned_allocator< detectorPosition_t > > > *) streakfinder_constant_arguments.detectorPositions;
-    freePrecomputedStreakFinderConstants(*(streakFinder_precomputedConstants_t *) streakfinder_constant_arguments.streakFinder_precomputedConstant);
-}
-
-void setStreakFinderConstantArguments(streakFinder_constantArguments_t* streakFinderConstantArguments,
-        const streakFinder_accuracyConstants_t& accuracyConstants,
-        const detectorRawFormat_t& detectorRawFormat,
-        const detectorPositions_t& detectorPositions,
-        const streakFinder_precomputedConstants_t& streakFinder_precomputedConstants)
-{
-    streakFinderConstantArguments->accuracyConstants = (void*) &accuracyConstants;
-    streakFinderConstantArguments->detectorRawFormat = (void*) &detectorRawFormat;
-    streakFinderConstantArguments->detectorPositions = (void*) &detectorPositions;
-    streakFinderConstantArguments->streakFinder_precomputedConstant = (void*) &streakFinder_precomputedConstants;
+    delete streakfinder_constant_arguments.accuracyConstants;
+    delete streakfinder_constant_arguments.detectorRawFormat;
+    delete streakfinder_constant_arguments.detectorPositions;
+    freePrecomputedStreakFinderConstants(*streakfinder_constant_arguments.streakFinder_precomputedConstant);
 }
 
 void streakFinder(float* data_linear, streakFinder_constantArguments_t streakFinderConstantArguments)

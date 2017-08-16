@@ -231,7 +231,7 @@ static inline void computeNormalDistributionParameters(const float* data_linear,
     }
 #endif
 
-    if (validPixelCount < 2) {
+    if (validPixelCount < 10) {
         *mean = FLT_MAX;
         *sigma = FLT_MAX;
     } else {
@@ -300,7 +300,7 @@ static inline void computeNormalDistributionParameters(const float* data_linear,
 
 #endif
 
-    if (validPixelCount < 4) {
+    if (validPixelCount < 10) {
         *mean = FLT_MAX;
         *sigma = FLT_MAX;
     } else {

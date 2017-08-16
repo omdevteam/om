@@ -16,10 +16,10 @@
 #include "pythonWrapperTypes.h"
 
 typedef struct {
-    void* accuracyConstants;
-    void* detectorRawFormat;
-    void* detectorPositions;
-    void* streakFinder_precomputedConstant;
+    streakFinder_accuracyConstants_t* accuracyConstants;
+    detectorRawFormat_t* detectorRawFormat;
+    detectorPositions_t* detectorPositions;
+    streakFinder_precomputedConstants_t* streakFinder_precomputedConstant;
 } streakFinder_constantArguments_t;
 
 typedef struct {
@@ -43,12 +43,6 @@ typedef struct {
     uint16_t backgroundEstimationRegionsCount;
 } streakFinder_accuracyConstants_pythonWrapper_t;
 
-void setStreakFinderConstantArguments(streakFinder_constantArguments_t* streakFinderConstantArguments,
-        const streakFinder_accuracyConstants_t& accuracyConstants,
-        const detectorRawFormat_t& detectorRawFormat,
-        const detectorPositions_t& detectorPositions,
-        const streakFinder_precomputedConstants_t& streakFinder_precomputedConstants);
-
 void streakFinder(float* data_linear, streakFinder_constantArguments_t streakFinderConstantArguments);
 
 //makes copy of the data, returns streak mask.
@@ -58,7 +52,7 @@ void streakFinder_allInOne(const float* data_linear, uint8_t* streakMask, streak
 streakFinder_constantArguments_t precomputeStreakFinderConstantArguments(
         streakFinder_accuracyConstants_pythonWrapper_t streakFinder_accuracyConstants,
         detectorRawFormat_t detectorRawFormat,
-        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_python,
+        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_pythonWrapper,
         const uint8_t *mask);
 
 void freePrecomputedStreakFinderConstantArguments(streakFinder_constantArguments_t streakfinder_constant_arguments);

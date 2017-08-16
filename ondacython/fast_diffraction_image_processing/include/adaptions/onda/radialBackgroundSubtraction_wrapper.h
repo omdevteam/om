@@ -14,9 +14,9 @@
 #include <ctype.h>
 
 typedef struct {
-    void* precomputedConstants;
-    void* detectorRawFormat;
-    void* detectorPositions;
+    radialRankFilter_precomputedConstants_t* precomputedConstants;
+    detectorRawFormat_t* detectorRawFormat;
+    detectorPositions_t* detectorPositions;
 } radialRankFilter_constantArguments_t;
 
 typedef struct {
@@ -40,7 +40,7 @@ typedef struct {
 
 radialRankFilter_constantArguments_t precomputeRadialRankFilterConstantArguments(const uint8_t* mask, const float* detectorGeometryRadiusMatrix,
         const detectorRawFormat_t& detectorRawFormat, const radialRankFilter_accuracyConstants_pythonWrapper_t& accuracyConstants_pythonWrapper,
-        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_python);
+        detectorGeometryMatrix_pythonWrapper_t detectorGeometryMatrix_pythonWrapper);
 
 void applyRadialRankFilter(float* data, radialRankFilter_constantArguments_t radialRankFilter_constantArguments);
 
