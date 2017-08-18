@@ -505,6 +505,20 @@ class CXIWriter:
 
         return self._curr_slice >= self._max_num_slices
 
+    def num_slices_in_file(selfself):
+        """Returns the number of slices already written in the file
+
+        Returns the number of slices that have already been written in the file.
+
+        Returns:
+
+            status (num_slices): number of writter slices
+        """
+
+        num_slices = self._curr_slice - 1
+
+        return num_slices
+
     def close_file(self):
         """Closes the file.
         
