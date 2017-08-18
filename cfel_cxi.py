@@ -492,6 +492,29 @@ class CXIWriter:
 
         return self._initialized
 
+    def is_entry_in_file(self, path):
+        """Checks if an entry is already present in the file.
+
+        Checks if an entry is already present in the file at the path provided by the user. It will return True if
+        either a dataset or a group are present at the specified path
+
+        Args:
+
+            path (str): the path where to check for a dataset or group
+
+        Results:
+
+            ret (bool): True if a group or dataset can be found in the file, False otherwise
+
+        """
+
+        if path in self._fh:
+            ret = True
+        else:
+            ret = False
+
+        return ret
+
     def file_is_full(self):
         """Checks if the file is full.
         
@@ -505,7 +528,7 @@ class CXIWriter:
 
         return self._curr_slice >= self._max_num_slices
 
-    def num_slices_in_file(selfself):
+    def num_slices_in_file(self):
         """Returns the number of slices already written in the file
 
         Returns the number of slices that have already been written in the file.
