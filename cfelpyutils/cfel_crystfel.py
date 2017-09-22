@@ -534,23 +534,26 @@ def load_crystfel_geometry(filename):
         if dim_length == 1:
             raise RuntimeError('Number of dim coordinates must be at least two.')
 
-    for panel in detector['panels'].values():
+    for panel_name, panel in detector['panels'].items():
 
-        if panel['origin_min_fs'] < 0:
-            raise RuntimeError('Please specify the minimum fs coordinate for panel {}.'.format(panel['name']))
+        if 'origin_min_fs' not in panel:
+            raise RuntimeError('Please specify the minimum fs coordinate for panel {}.'.format(panel_name))
 
-        if panel['origin_max_fs'] < 0:
-            raise RuntimeError('Please specify the maximum fs coordinate for panel {}.'.format(panel['name']))
+        if 'origin_max_fs' not in panel:
+            raise RuntimeError('Please specify the maximum fs coordinate for panel {}.'.format(panel_name))
 
-        if panel['origin_min_ss'] < 0:
-            raise RuntimeError('Please specify the minimum ss coordinate for panel {}.'.format(panel['name']))
+        if 'origin_min_ss' not in panel:
+            raise RuntimeError('Please specify the minimum ss coordinate for panel {}.'.format(panel_name))
 
-        if panel['origin_max_ss'] < 0:
-            raise RuntimeError('Please specify the maximum ss coordinate for panel {}.'.format(panel['name']))
+        if 'origin_max_ss' not in panel:
+            raise RuntimeError('Please specify the maximum ss coordinate for panel {}.'.format(panel_name))
 
         if panel['cnx'] is None:
-            raise RuntimeError('Please specify the corner X coordinate for panel {}.'.format(panel['name']))
+            raise RuntimeError('Please specify the corner X coordinate for panel {}.'.format(panel_name))
 
+        if panel['cny'] is None:
+            raise RuntimeError('Please specify the corner Y coordinate for panel {}.'.format(panel_name))
+        
         if panel['clen'] is None and panel['clen_from'] is None:
             raise RuntimeError('Please specify the camera length for panel {}.'.format(panel['name']))
 
