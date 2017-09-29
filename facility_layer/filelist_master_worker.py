@@ -30,8 +30,7 @@ from ondautils.onda_exception_utils import MissingDataExtractionFunction, DataEx
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
-EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset',
-                                     'monitor_params'])
+EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset'])
 
 
 def _extract(event, monitor):

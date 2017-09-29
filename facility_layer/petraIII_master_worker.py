@@ -35,8 +35,7 @@ from facility_layer.hidra_api.transfer import CommunicationFailed
 from facility_layer.hidra_api import Transfer
 from ondautils.onda_exception_utils import MissingDataExtractionFunction, HidraAPIError, DataExtractionError
 
-EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset',
-                                     'monitor_params'])
+EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset')
 
 
 def _extract(event, monitor):

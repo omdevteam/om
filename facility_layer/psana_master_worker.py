@@ -34,7 +34,7 @@ from ondautils.onda_exception_utils import MissingDataExtractionFunction, DataEx
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 
-EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp'])
+EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp', 'monitor_params'])
 
 
 def _raw_data_init():
@@ -264,7 +264,7 @@ class MasterWorker(object):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
 
-                event = EventData(evt, detector, timestamp)
+                event = EventData(evt, detector, timestamp, op.monitor_params)
 
                 try:
                     self._extract_data(event, self)

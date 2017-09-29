@@ -26,9 +26,9 @@ import cfelpyutils.cfel_hdf5 as ch5
 #######################
 
 
-class LambdaCalibration:
+class LambdaCalibration(object):
     """Calibration of a Lambda detector module, with flatfield correction.
-    
+
     Implements a calibration procedure for a Lambda detector module, with
     flatfield correction.
     """
@@ -59,9 +59,44 @@ class LambdaCalibration:
             corrected_data(numpy.ndarray):  the calibrated data
         """
 
-        return raw_data * self._flatfield
+        return raw_data.adu * self._flatfield
 
 
+##########################
+# CSPAD GAIN CALIBRATION #
+##########################
 
 
+class CspadGainCalibration(object):
+    """Calibration of a CSPAD detector, when used in multi-gain mode.
 
+    Implements a calibration procedure to correct data from a CSPAD detector used in multi-gain mode.
+    """
+
+    def __init__(self, calibration_filename):
+        """Initializes the calibration algorithm.
+
+        Args:
+
+            calibration filename (str): name of the hdf5 file with the
+            calibration data.
+        """
+
+        self._gain_map = ch5.load_nparray_from_hdf5_file(calibration_filename,
+                                                         '/gainmap')
+
+    def apply_calibration(self, raw_data):
+        """Applies the calibration.
+
+        Applies the calibration to the raw_data.
+
+        Args:
+
+            raw_data (numpy.ndarray): the data on which the calibration must be applied, in 'slab' format.
+
+        Returns:
+
+            corrected_data(numpy.ndarray):  the calibrated data
+        """
+
+        return raw_data.adu * self._gain_map

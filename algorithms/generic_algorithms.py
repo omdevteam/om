@@ -58,17 +58,6 @@ class DarkCalCorrection:
             mask_hdf5_group (Optional[str]): if the mask is applied, internal hdf5 path of the data block containing
             the mask, otherwise ignored. This argument must be only be provided if the apply_mask argument is set to
             True.
-
-            gain_map_correction (Optional[bool]): whether a gain_map should be applied. This is optional, and if
-            omitted no gain map is applied.
-
-            gain_map_filename (Optional[str]): if the gain map is applied, name of the hdf5 file with gain_map,
-            otherwise ignored (optional). This argument must be only be provided if the gain_map_correction
-            argument is set to True.
-
-            gain_map_hdf5_group (Optional[str]): if the gain map is applied, internal hdf5 path of the data block
-            containing the mask, otherwise ignored (optional). This argument must be only be provided if the
-            gain_map_correction argument is set to True.
          """
 
         # load the darkcals
@@ -80,11 +69,6 @@ class DarkCalCorrection:
         else:
             self._mask = True
 
-        if gain_map_correction:
-            self._gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
-        else:
-            self._gain_map = True
-
     def apply_darkcal_correction(self, data_as_slab):
         """Applies the correction.
 
@@ -93,7 +77,7 @@ class DarkCalCorrection:
             data_as_slab (numpy.ndarray): the data on which to apply the DarkCal correction, in 'slab' format.
         """
 
-        return (data_as_slab * self._mask - self._darkcal) * self._gain_map
+        return (data_as_slab * self._mask - self._darkcal)
 
 
 ######################

@@ -53,11 +53,10 @@ class Onda(MasterWorker):
                 detector_calibration_alg = di.import_class_from_module(op.param('DetectorCalibration',
                                                                                 'calibration_algorithm', str,
                                                                                 required=True), calibalg)
-                detector_calibration = detector_calibration_alg(op.param('DetectorCalibration', 'calibration_file',
-                                                                         str, required=True))
-                self._apply_calibration = detector_calibration.apply_calibration
+                self._detector_calibration = detector_calibration_alg(op.param('DetectorCalibration',
+                                                                      'calibration_file', str, required=True))
             else:
-                self._apply_calibration = lambda x: x
+                self._detector_calibration = None
 
             self._dark_cal_correction = galg.DarkCalCorrection(
                 op.param('DarkCalCorrection', 'filename', str, required=True),
@@ -129,7 +128,10 @@ class Onda(MasterWorker):
 
         results_dict = {}
 
-        calib_raw_data = self._apply_calibration(self.raw_data)
+        if self._detector_calibration is not None:
+            calib_raw_data = self._detector_calibration.apply_calibration(self.raw_data)
+        else:
+            calib_raw_data = self.raw_data.adu
 
         corr_raw_data = self._dark_cal_correction.apply_darkcal_correction(calib_raw_data)
         peak_list = self._peakfinder8_peak_det.find_peaks(corr_raw_data)
