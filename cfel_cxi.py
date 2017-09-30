@@ -273,11 +273,12 @@ class CXIWriter:
         if self._initialized is True:
             raise RuntimeError('Adding stacks to the writer is not possible after initialization.')
 
-        if name in self._cxi_stacks:
-            if overwrite is True:
-                del (self._cxi_stacks[name])
-            else:
-                raise RuntimeError('Cannot write the entry. Data is already present at the specified path.')
+        for entry in self._cxi_stacks:
+            if path == self._cxi_stacks[entry].path:
+                if overwrite is True:
+                    del (self._cxi_stacks[entry])
+                else:
+                    raise RuntimeError('Cannot write the entry. Data is already present at the specified path.')
 
         new_stack = _Stack(path, initial_data, axes, compression, chunk_size)
         self._cxi_stacks[name] = new_stack
@@ -286,7 +287,7 @@ class CXIWriter:
         """Writes a simple, non-stack entry in the file.
         
         Writes a simple, non-stack entry in the file, at the specified path. A simple entry can be written at all times,
-        before or after the stack initialization. THe user must provide a name that identifies the entry for further
+        before or after the stack initialization. The user must provide a name that identifies the entry for further
         operations (for example, creating a link).
         
         Args:
@@ -382,6 +383,31 @@ class CXIWriter:
             raise RuntimeError('Cannot create the link. The group to which the link points does not exist.')
 
         self._fh[path] = link_target
+
+
+    def create_softlink_to_group(self, group, path, overwrite=False):
+        """Creates a link to an HDF5 group.
+        
+        Creates a soft link to an HDF5 group (as opposed to a simple entry or stack). If a link or entry already exists at
+        the specified path, it is deleted and replaced only if the value of the overwrite parameter is True.
+
+        Args: 
+
+            group (str): internal HDF5 path of the group to which the link points.
+        
+            path (str): path in the hdf5 where the link is created.
+             
+            overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
+            to False, an attempt to overwrite an entry will raise an error.
+        """
+
+        if path in self._fh:
+            if overwrite is True:
+                del (self._fh[path])
+            else:
+                raise RuntimeError('Cannot create the link. An entry already exists at the specified path.')
+
+        self._fh[path] = h5py.SoftLink(group)
 
     def initialize_stacks(self):
         """Initializes the stacks.
@@ -491,6 +517,29 @@ class CXIWriter:
 
         return self._initialized
 
+    def is_entry_in_file(self, path):
+        """Checks if an entry is already present in the file.
+
+        Checks if an entry is already present in the file at the path provided by the user. It will return True if
+        either a dataset or a group are present at the specified path
+
+        Args:
+
+            path (str): the path where to check for a dataset or group
+
+        Results:
+
+            ret (bool): True if a group or dataset can be found in the file, False otherwise
+
+        """
+
+        if path in self._fh:
+            ret = True
+        else:
+            ret = False
+
+        return ret
+
     def file_is_full(self):
         """Checks if the file is full.
         
@@ -503,6 +552,20 @@ class CXIWriter:
         """
 
         return self._curr_slice >= self._max_num_slices
+
+    def num_slices_in_file(self):
+        """Returns the number of slices already written in the file
+
+        Returns the number of slices that have already been written in the file.
+
+        Returns:
+
+            status (num_slices): number of writter slices
+        """
+
+        num_slices = self._curr_slice - 1
+
+        return num_slices
 
     def close_file(self):
         """Closes the file.

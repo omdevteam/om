@@ -42,6 +42,7 @@ def load_nparray_from_hdf5_file(data_filename, data_group):
        nparray (numpy.ndarray): numpy array with the data read from the file.
     """
     try:
+
         with h5py.File(data_filename, 'r') as hdfile:
             nparray = numpy.array(hdfile[data_group])
             hdfile.close()
