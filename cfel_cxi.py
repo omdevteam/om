@@ -287,7 +287,7 @@ class CXIWriter:
         """Writes a simple, non-stack entry in the file.
         
         Writes a simple, non-stack entry in the file, at the specified path. A simple entry can be written at all times,
-        before or after the stack initialization. THe user must provide a name that identifies the entry for further
+        before or after the stack initialization. The user must provide a name that identifies the entry for further
         operations (for example, creating a link).
         
         Args:
@@ -383,6 +383,31 @@ class CXIWriter:
             raise RuntimeError('Cannot create the link. The group to which the link points does not exist.')
 
         self._fh[path] = link_target
+
+
+    def create_softlink_to_group(self, group, path, overwrite=False):
+        """Creates a link to an HDF5 group.
+        
+        Creates a soft link to an HDF5 group (as opposed to a simple entry or stack). If a link or entry already exists at
+        the specified path, it is deleted and replaced only if the value of the overwrite parameter is True.
+
+        Args: 
+
+            group (str): internal HDF5 path of the group to which the link points.
+        
+            path (str): path in the hdf5 where the link is created.
+             
+            overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
+            to False, an attempt to overwrite an entry will raise an error.
+        """
+
+        if path in self._fh:
+            if overwrite is True:
+                del (self._fh[path])
+            else:
+                raise RuntimeError('Cannot create the link. An entry already exists at the specified path.')
+
+        self._fh[path] = h5py.SoftLink(group)
 
     def initialize_stacks(self):
         """Initializes the stacks.
