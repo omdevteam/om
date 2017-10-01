@@ -49,7 +49,7 @@ class _Stack:
         self._data_type = _assign_data_type(data)
 
         if isinstance(data, (bytes, int, float)):
-            self._data_shape = (1,)
+            self._data_shape = ()
         else:
             self._data_shape = data.shape
 
@@ -103,7 +103,7 @@ class _Stack:
             raise RuntimeError('The type of the input data does not match what is already present in the stack.')
 
         if isinstance(data, (bytes, int, float)):
-            curr_data_shape = (1,)
+            curr_data_shape = ()
         else:
             curr_data_shape = data.shape
 
