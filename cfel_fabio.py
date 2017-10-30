@@ -19,13 +19,11 @@ This module contains utilities based on the fabio python module.
 files.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-import numpy
 import fabio.cbfimage
+import numpy
 
 
 def read_cbf_from_stream(stream):
@@ -58,8 +56,8 @@ def read_cbf_from_stream(stream):
             print("%s: %s" % kv)
         raise RuntimeError(err)
     if cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY] == "CIF Binary Section":
-        cbf_obj.cbs += infile.read(len(cbf_obj.STARTER) + int(cbf_obj.header["X-Binary-Size"])
-                                   - len(cbf_obj.cbs) + cbf_obj.start_binary)
+        cbf_obj.cbs += infile.read(len(cbf_obj.STARTER) + int(cbf_obj.header["X-Binary-Size"]) -
+                                   len(cbf_obj.cbs) + cbf_obj.start_binary)
     else:
         if len(cbf_obj.cif[cbf_obj.CIF_BINARY_BLOCK_KEY]) > int(
                 cbf_obj.header["X-Binary-Size"]) + cbf_obj.start_binary + len(cbf_obj.STARTER):
