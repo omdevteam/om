@@ -15,8 +15,12 @@
 """
 Utilities for 3d data visualization using the Visualization Toolkit (VTK).
 """
+
+
 import numpy
+
 import vtk
+
 
 VTK_VERSION = vtk.vtkVersion().GetVTKMajorVersion()
 
@@ -25,14 +29,20 @@ def get_lookup_table(minimum_value, maximum_value, log=False, colorscale="jet", 
     """Create a vtkLookupTable with a specified range, and colorscale.
 
     Args:
+
         minimum_value (float): Lowest value the lookup table can display, lower values will be displayed as this value
+
         maximum_value (float): Highest value the lookup table can display, higher values will be displayed as this value
+
         log (Optional[bool]): True if the scale is logarithmic
+
         colorscale (Optional[string]): Accepts the name of any matplotlib colorscale. The lookuptable will
             replicate this scale.
+
         number_of_colors (Optional[int]): The length of the table. Higher values corresponds to a smoother color scale.
 
     Returns:
+
         lookup_table (vtk.vtkLookupTable): A vtk lookup table
     """
 
@@ -58,13 +68,17 @@ def array_to_float_array(array_in, dtype=None):
     This flattens the array and thus the shape is lost.
 
     Args:
+
         array_in (numpy.ndarray): The array to convert.
+
         dtype (Optional[type]): Optionaly convert the array to the specified data. Otherwise the original
-            type will be preserved.
+        type will be preserved.
 
     Returns:
+
         float_array (vtk.vtkFloatArray): A float array of the specified type.
     """
+
     if dtype is None:
         dtype = array_in.dtype
     if dtype == "float32":
@@ -87,13 +101,17 @@ def array_to_vtk(array_in, dtype=None):
     """Convert a numpy array into a vtk array of the specified type. This flattens the array and thus the shape is lost.
 
     Args:
+
         array_in (numpy.ndarray): The array to convert.
+
         dtype (Optional[type]): Optionaly convert the array to the specified data. Otherwise the original type
-            will be preserved.
+        will be preserved.
 
     Returns:
+
         vtk_array (vtk.vtkFloatArray): A float array of the specified type.
     """
+
     if dtype is None:
         dtype = numpy.dtype(array_in.dtype)
     else:
@@ -119,13 +137,17 @@ def array_to_image_data(array_in, dtype=None):
     """Convert a numpy array to vtkImageData. Image data is a 3D object, thus the input must be 3D.
 
     Args:
+
         array_in (numpy.ndarray): Array to convert to vtkImageData. Must be 3D.
+
         dtype (Optional[type]): Optionaly convert the array to the specified data. Otherwise the original
-            type will be preserved.
+        type will be preserved.
 
     Returns:
+
         image_data (vtk.vtkImageData): Image data containing the data from the array.
     """
+
     if len(array_in.shape) != 3:
         raise ValueError("Array must be 3D for conversion to vtkImageData")
     array_flat = array_in.flatten()
@@ -140,10 +162,14 @@ def window_to_png(render_window, file_name, magnification=1):
     """Take a screen shot of a specific vt render window and save it to file.
 
     Args:
+
         render_window (vtk.vtkRenderWindow): The render window window to capture.
+
         file_name (string): A png file with this name will be created from the provided window.
+
         magnification (Optional[int]): Increase the resolution of the output file by this factor
     """
+
     magnification = int(magnification)
     window_to_image_filter = vtk.vtkWindowToImageFilter()
     window_to_image_filter.SetInput(render_window)
@@ -162,12 +188,16 @@ def poly_data_to_actor(poly_data, lut):
     using a very basic vtkMapper
 
     Args:
+
         poly_data (vtk.vtkPolyData): vtkPolyData object.
+
         lut (vtk.vtkLookupTable): The vtkLookupTable specifies the colorscale to use for the maper.
 
     Returns:
+
         actor (vtk.vtkActor): Actor to display the provided vtkPolyData
     """
+
     mapper = vtk.vtkPolyDataMapper()
     mapper.SetInputData(poly_data)
     mapper.SetLookupTable(lut)
@@ -181,9 +211,12 @@ class IsoSurface(object):
     """Create and plot isosurfaces.
 
     Args:
+
         volume (numpy.ndimage): 3D floating point array.
+
         level (float or list of float): The threshold level for the isosurface, or a list of such levels.
     """
+
     def __init__(self, volume, level=None):
         self._surface_algorithm = None
         self._renderer = None
@@ -216,8 +249,10 @@ class IsoSurface(object):
         """Create the numpy array self._volume_array and vtk array self._float_array and make them share data.
 
         Args:
+
             volume (numpy.ndimage): This data will populate both the created numpy and vtk objects.
         """
+
         self._volume_array = numpy.zeros(volume.shape, dtype="float32", order="C")
         self._volume_array[:] = volume
         self._float_array.SetNumberOfValues(numpy.product(volume.shape))
@@ -229,8 +264,10 @@ class IsoSurface(object):
         """Set the renderer of the isosurface and remove any existing renderer.
 
         Args:
+
             renderer (vtk.vtkRenderer): Give this renderer controll over all the surface actors.
         """
+
         if self._actor is None:
             raise RuntimeError("Actor does not exist.")
         if self._renderer is not None:
@@ -242,8 +279,10 @@ class IsoSurface(object):
         """Remova any current surface levels and add the ones from the provided list.
 
         Args:
+
             levels (list of float): Levels for the isosurface, in absolute values (not e.g. ratios)
         """
+
         self._surface_algorithm.SetNumberOfContours(0)
         for index, this_level in enumerate(levels):
             self._surface_algorithm.SetValue(index, this_level)
@@ -253,8 +292,10 @@ class IsoSurface(object):
         """Return a list of the current surface levels.
 
         Returns:
+
             levels (list of floats): The current surface levels.
         """
+
         return [self._surface_algorithm.GetValue(index)
                 for index in range(self._surface_algorithm.GetNumberOfContours())]
 
@@ -262,8 +303,10 @@ class IsoSurface(object):
         """Add a single surface level.
 
         Args:
+
             level (float): The level of the new surface.
         """
+
         self._surface_algorithm.SetValue(self._surface_algorithm.GetNumberOfContours(), level)
         self._render()
 
@@ -271,11 +314,13 @@ class IsoSurface(object):
         """Remove a singel surface level at the provided index.
 
         Args:
+
             index (int): The index of the level. If levels were added one by one this corresponds
-                to the order in which they were added.
+            to the order in which they were added.
         """
-        for index in range(index, self._surface_algorithm.GetNumberOfContours()-1):
-            self._surface_algorithm.SetValue(index, self._surface_algorithm.GetValue(index+1))
+
+        for idx in range(index, self._surface_algorithm.GetNumberOfContours()-1):
+            self._surface_algorithm.SetValue(idx, self._surface_algorithm.GetValue(idx+1))
         self._surface_algorithm.SetNumberOfContours(self._surface_algorithm.GetNumberOfContours()-1)
         self._render()
 
@@ -287,15 +332,19 @@ class IsoSurface(object):
                 the order in which they were added.
             level (float): The new level of the surface.
         """
+
         self._surface_algorithm.SetValue(index, level)
         self._render()
 
     def set_cmap(self, cmap):
-        """Set the colormap. The color is a function of surface level and mainly of relevance when plotting multiple surfaces.
+        """Set the colormap. The color is a function of surface level and mainly of relevance when plotting multiple
+        surfaces.
 
         Args:
+
             cmap (string): Name of the colormap to use. Supports all colormaps provided by matplotlib.
         """
+
         self._mapper.ScalarVisibilityOn()
         self._mapper.SetLookupTable(get_lookup_table(self._volume_array.min(), self._volume_array.max(),
                                                      colorscale=cmap))
@@ -305,8 +354,10 @@ class IsoSurface(object):
         """Plot all surfaces in this provided color.
 
         Args:
+
             color (length 3 iterable): The RGB value of the color.
         """
+
         self._mapper.ScalarVisibilityOff()
         self._actor.GetProperty().SetColor(color[0], color[1], color[2])
         self._render()
@@ -315,13 +366,16 @@ class IsoSurface(object):
         """Set the opacity of all surfaces. (seting it individually for each surface is not supported)
 
         Args:
+
             opacity (float): Value between 0. and 1. where 0. is completely transparent and 1. is completely opaque.
         """
+
         self._actor.GetProperty().SetOpacity(opacity)
         self._render()
 
     def _render(self):
         """Render if a renderer is set, otherwise do nothing."""
+
         if self._renderer is not None:
             self._renderer.GetRenderWindow().Render()
 
@@ -329,7 +383,9 @@ class IsoSurface(object):
         """Change the data displayed.
 
         Args:
+
             volume (numpy.ndarray): The new array. Must have the same shape as the old array."""
+
         if volume.shape != self._volume_array.shape:
             raise ValueError("New volume must be the same shape as the old one")
         self._volume_array[:] = volume
@@ -341,8 +397,11 @@ def plot_isosurface(volume, level=None, opacity=1.):
     """Plot isosurfaces of the provided module.
 
     Args:
+
         volume (numpy.ndarray): The 3D numpy array that will be plotted.
+
         level (float or list of floats): Levels can be iterable or singel value.
+
         opacity (float): Float between 0. and 1. where 0. is completely transparent and 1. is completely opaque.
     """
 
@@ -371,10 +430,14 @@ def plot_planes(array_in, log=False, cmap=None):
     """Plot the volume at two interactive planes that cut the volume.
 
     Args:
+
         array_in (numpy.ndarray): Input array must be 3D.
+
         log (bool): If true the data will be plotted in logarithmic scale.
+
         cmap (string): Name of the colormap to use. Supports all colormaps provided by matplotlib.
     """
+
     array_in = numpy.float64(array_in)
     renderer = vtk.vtkRenderer()
     render_window = vtk.vtkRenderWindow()
@@ -429,14 +492,20 @@ def setup_window(size=(400, 400), background=(1., 1., 1.)):
     """Create a renderer, render_window and interactor and setup connections between them.
 
     Args:
+
         size (Optional[length 2 iterable of int]): The size of the window in pixels.
+
         background (Optional[length 3 iterable of float]): RGB value of the background color.
 
     Returns:
+
         renderer (vtk.vtkRenderer): A standard renderer connected to the window.
+
         render_window (vtk.vtkRenderWindow): With dimensions given in the arguments, or oterwise 400x400 pixels.
+
         interactor (vtk.vtkRenderWindowInteractor): The interactor will be given the rubber band pick interactor style.
     """
+
     renderer = vtk.vtkRenderer()
     render_window = vtk.vtkRenderWindow()
     render_window.AddRenderer(renderer)
@@ -452,24 +521,24 @@ def setup_window(size=(400, 400), background=(1., 1., 1.)):
     return renderer, render_window, interactor
 
 
-def scatterplot_3d(data, color=None, point_size=None, cmap="jet", point_shape=None):
+def scatterplot_3d(data, color=None, point_size=None, point_shape=None):
     """3D scatter plot.
 
     Args:
+
         data (numpy.ndimage): The array must have shape Nx3 where N is the number of points.
 
         color (Optional[numpy.ndimage]): 1D Array of floating points with same length as the data array.
-            These numbers give the color of each point.
-            
+        These numbers give the color of each point.
+
         point_size (Optional[float]): The size of each points. Behaves differently depending on the point_shape.
-            If shape is spheres the size is relative to the scene and if squares the size is relative to the window.
-            
-        cmap (Optional[str]): Color map
-        
+        If shape is spheres the size is relative to the scene and if squares the size is relative to the window.
+
         point_shape (Optional["spheres" or "squares"]): "spheres" plots each point as a sphere, recommended for
-            small data sets. "squares" plot each point as a square without any 3D structure, recommended for
-            large data sets.
+        small data sets. "squares" plot each point as a square without any 3D structure, recommended for
+        large data sets.
     """
+
     if len(data.shape) != 2 or data.shape[1] != 3:
         raise ValueError("data must have shape (n, 3) where n is the number of points.")
     if point_shape is None:

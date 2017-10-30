@@ -19,12 +19,11 @@ This module contains utilities for the processing of CrystFEL-style geometry
 files.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import namedtuple
+
 import numpy
 
 from cfelpyutils.cfel_crystfel import load_crystfel_geometry
@@ -34,13 +33,13 @@ ImageShape = namedtuple('ImageShape', ['ss', 'fs'])
 
 
 def _find_minimum_image_shape(x, y):
-
     # find the smallest size of cspad_geom that contains all
     # xy values but is symmetric about the origin
     n = 2 * int(max(abs(y.max()), abs(y.min()))) + 2
     m = 2 * int(max(abs(x.max()), abs(x.min()))) + 2
 
     return n, m
+
 
 def apply_geometry_from_file(data_as_slab, geometry_filename):
     """Parses a geometry file and applies the geometry to data.
@@ -61,7 +60,7 @@ def apply_geometry_from_file(data_as_slab, geometry_filename):
         detector, with the origin of the  reference system at the beam interaction point.
     """
 
-    x, y, slab_shape, img_shape = pixel_maps_for_image_view(geometry_filename)
+    x, y, _, img_shape = pixel_maps_for_image_view(geometry_filename)
     im_out = numpy.zeros(img_shape, dtype=data_as_slab.dtype)
 
     im_out[y, x] = data_as_slab.ravel()
@@ -136,7 +135,7 @@ def pixel_maps_for_image_view(geometry_filename):
 
 def get_image_shape(geometry_filename):
     """Parses a geometry file and returns the minimum size of an image that can represent the detector.
-    
+
     Parses the geometry file and return a numpy shape object representing the minimum size of an image that
     can contain the physical representation of the detector. The representation is centered at the point where the beam
     hits the detector according to the geometry in the file.
@@ -158,8 +157,6 @@ def get_image_shape(geometry_filename):
 
     img_shape = ImageShape(n, m)
     return img_shape
-
-
 
 
 def pixel_maps_from_geometry_file(fnam):
@@ -189,17 +186,19 @@ def pixel_maps_from_geometry_file(fnam):
 
     for p in detector['panels']:
         # get the pixel coords for this asic
-        i, j = numpy.meshgrid(numpy.arange(detector['panels'][p]['max_ss'] - detector['panels'][p]['min_ss'] + 1),
-                              numpy.arange(detector['panels'][p]['max_fs'] - detector['panels'][p]['min_fs'] + 1),
-                              indexing='ij')
+        i, j = numpy.meshgrid(
+            numpy.arange(detector['panels'][p]['max_ss'] - detector['panels'][p]['min_ss'] + 1),
+            numpy.arange(detector['panels'][p]['max_fs'] - detector['panels'][p]['min_fs'] + 1),
+            indexing='ij'
+        )
 
         # make the y-x ( ss, fs ) vectors, using complex notation
         dx = detector['panels'][p]['fsy'] + 1J * detector['panels'][p]['fsx']
         dy = detector['panels'][p]['ssy'] + 1J * detector['panels'][p]['ssx']
         r_0 = detector['panels'][p]['cny'] + 1J * detector['panels'][p]['cnx']
-        #
+
         r = i * dy + j * dx + r_0
-        #
+
         y[detector['panels'][p]['min_ss']: detector['panels'][p]['max_ss'] + 1,
           detector['panels'][p]['min_fs']: detector['panels'][p]['max_fs'] + 1] = r.real
 
