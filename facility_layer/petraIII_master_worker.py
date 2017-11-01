@@ -14,11 +14,8 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.utils import raise_from
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import os.path
 import signal
@@ -27,15 +24,19 @@ import sys
 from builtins import str
 from collections import namedtuple
 
+from future.utils import raise_from
 from mpi4py import MPI
+
+from facility_layer.hidra_api import Transfer
+from facility_layer.hidra_api.transfer import CommunicationFailed
 
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
-from facility_layer.hidra_api.transfer import CommunicationFailed
-from facility_layer.hidra_api import Transfer
-from ondautils.onda_exception_utils import MissingDataExtractionFunction, HidraAPIError, DataExtractionError
+from ondautils.onda_exception_utils import (DataExtractionError, HidraAPIError,
+                                            MissingDataExtractionFunction)
 
-EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset')
+EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset',
+                                     'monitor_params'])
 
 
 def _extract(event, monitor):

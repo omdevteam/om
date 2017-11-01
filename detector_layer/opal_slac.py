@@ -14,14 +14,13 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import namedtuple
 
 import psana
+
 
 SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
 NativeShape = namedtuple('NativeShape', ['ss', 'fs'])
@@ -31,6 +30,8 @@ native_shape = (1024, 1024)
 
 
 def opal_data(event):
-    return event.evt.get(psana.Camera.FrameV1, psana.Source(
-        event.monitor_params['PsanaParallelizationLayer']['camera_psana_source']
-    )).data16()
+    return event.evt.get(
+        psana.Camera.FrameV1, psana.Source(
+            event.monitor_params['PsanaParallelizationLayer']['camera_psana_source']
+        )
+    ).data16()

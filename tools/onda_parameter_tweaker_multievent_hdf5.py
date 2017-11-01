@@ -15,21 +15,27 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-from builtins import str
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import argparse
+import os
+import os.path
 import random
 import signal
 import sys
+from builtins import str
 from configparser import ConfigParser
 
 import h5py
 import numpy
+import pyqtgraph as pg
+
+import cfelpyutils.cfel_geom as cgm
+import cfelpyutils.cfel_hdf5 as ch5
+import cfelpyutils.cfel_optarg as coa
+import ondautils.onda_param_utils as op
+from ondacython.lib import peakfinder8_extension as pf8
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -37,15 +43,6 @@ try:
 except ImportError:
     from PyQt4 import QtCore, QtGui
     from PyQt4.uic import loadUiType
-import os
-import os.path
-import pyqtgraph as pg
-
-import cfelpyutils.cfel_optarg as coa
-import cfelpyutils.cfel_hdf5 as ch5
-import cfelpyutils.cfel_geom as cgm
-import ondautils.onda_param_utils as op
-from ondacython.lib import peakfinder8_extension as pf8
 
 
 def _load_file(filename, hdf5_path, index):
@@ -60,8 +57,7 @@ def _check_changed_parameter(param, param_conv_vers, lineedit_element):
         new_param = param_conv_vers(lineedit_element.text())
         if new_param != param:
             return new_param, True
-        else:
-            return param, False
+        return param, False
     except ValueError:
         lineedit_element.setText(str(param))
         return param, False
@@ -249,11 +245,11 @@ class MainFrame(QtGui.QMainWindow):
 
         if apply_darkcal is True:
             self._darkcal = ch5.load_nparray_from_hdf5_file(
-                op.param('DarkCalCorrection', 'filename' , str, required=True),
+                op.param('DarkCalCorrection', 'filename', str, required=True),
                 op.param('DarkCalCorrection', 'hdf5_group', str, required=True)
             )
 
-        self._pixel_maps= cgm.pixel_maps_for_image_view(op.param('General', 'geometry_file', str, required=True))
+        self._pixel_maps = cgm.pixel_maps_for_image_view(op.param('General', 'geometry_file', str, required=True))
         self._img_shape = cgm.get_image_shape(op.param('General', 'geometry_file', str, required=True))
         self._img_to_draw = numpy.zeros(self._img_shape, dtype=numpy.float32)
         self._mask_to_draw = numpy.zeros(self._img_shape + (3,), dtype=numpy.int16)

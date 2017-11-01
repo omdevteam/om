@@ -13,16 +13,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.utils import raise_from
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import importlib
 import inspect
 
-from ondautils.onda_exception_utils import MissingParameterFileSection, MissingParameter, DynamicImportError
+from future.utils import raise_from
+
+from ondautils.onda_exception_utils import (DynamicImportError,
+                                            MissingParameter,
+                                            MissingParameterFileSection)
 
 
 def import_correct_layer_module(layer, monitor_params):

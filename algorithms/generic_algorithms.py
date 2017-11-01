@@ -14,15 +14,13 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy
 import scipy
-import scipy.signal
 import scipy.ndimage
+import scipy.signal
 
 import cfelpyutils.cfel_hdf5 as ch5
 
@@ -58,6 +56,17 @@ class DarkCalCorrection:
             mask_hdf5_group (Optional[str]): if the mask is applied, internal hdf5 path of the data block containing
             the mask, otherwise ignored. This argument must be only be provided if the apply_mask argument is set to
             True.
+
+            gain_map_correction (Optional[bool]): whether a gain_map should be applied. This is optional, and if
+            omitted no gain map is applied.
+
+            gain_map_filename (Optional[str]): if the gain map is applied, name of the hdf5 file with gain_map,
+            otherwise ignored (optional). This argument must be only be provided if the gain_map_correction
+            argument is set to True.
+
+            gain_map_hdf5_group (Optional[str]): if the gain map is applied, internal hdf5 path of the data block
+            containing the mask, otherwise ignored (optional). This argument must be only be provided if the
+            gain_map_correction argument is set to True.
          """
 
         # load the darkcals
@@ -69,6 +78,11 @@ class DarkCalCorrection:
         else:
             self._mask = True
 
+        if gain_map_correction:
+            self._gain_map = ch5.load_nparray_from_hdf5_file(gain_map_filename, gain_map_hdf5_group)
+        else:
+            self._gain_map = True
+
     def apply_darkcal_correction(self, data_as_slab):
         """Applies the correction.
 
@@ -77,7 +91,7 @@ class DarkCalCorrection:
             data_as_slab (numpy.ndarray): the data on which to apply the DarkCal correction, in 'slab' format.
         """
 
-        return (data_as_slab * self._mask - self._darkcal)
+        return (data_as_slab * self._mask - self._darkcal) * self._gain_map
 
 
 ######################
@@ -174,10 +188,10 @@ class OpticalLaserStatus:
 
         return all(x in event_codes for x in self._laser_on_event_codes)
 
+
 #######################
 # MINIMA IN WAVEFORMS #
 #######################
-
 
 def _median_filter_course(f, window_size, steps):
 
@@ -345,11 +359,9 @@ class FindMinimaInWaveformsPolyFit:
         """
         if self._background_subtraction is True:
             filter_size = 501
-            lowpass = scipy.signal.medfilt(waveform,
-                                           filter_size)
-            lowpass[0:(filter_size + 1) / 2] = lowpass[(
-                                                      filter_size - 1) / 2]
-            lowpass[-(filter_size + 1) / 2:] = lowpass[-(filter_size - 1) / 2]
+            lowpass = scipy.signal.medfilt(waveform, filter_size)
+            lowpass[0:int((filter_size + 1) / 2)] = lowpass[int((filter_size - 1) / 2)]
+            lowpass[int(-(filter_size + 1) / 2):] = lowpass[int(-(filter_size - 1) / 2)]
             waveform = waveform - lowpass
 
         # get mean and std-deviation of waveform
@@ -368,7 +380,7 @@ class FindMinimaInWaveformsPolyFit:
         peaks = scipy.ndimage.filters.minimum_filter1d(waveform, size=self._minimum_peak_width)
         peaks = numpy.where((peaks == waveform) * (waveform < threshold))[0]
 
-        if len(peaks) == 0:
+        if not peaks:
             return []
 
         # remove saturated peaks
@@ -417,4 +429,3 @@ class FindMinimaInWaveformsPolyFit:
                     peaks_poly.append(poly_min)
 
         return peaks_poly
-

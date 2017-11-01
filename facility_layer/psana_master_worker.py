@@ -14,27 +14,28 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.utils import raise_from
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
+import time
 from builtins import str
-
 from collections import namedtuple
+from sys import stdout
+
+from future.utils import raise_from
 from mpi4py import MPI
 from numpy import ceil, float64
-from sys import exit, stdout
-import time
 
 import psana
 from cfelpyutils.cfel_psana import dirname_from_source_runs
-from ondautils.onda_exception_utils import MissingDataExtractionFunction, DataExtractionError
+
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
+from ondautils.onda_exception_utils import (DataExtractionError,
+                                            MissingDataExtractionFunction)
 
-EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp', 'monitor_params'])
+
+EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp'])
 
 
 def _raw_data_init():
@@ -264,7 +265,7 @@ class MasterWorker(object):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
                     self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
 
-                event = EventData(evt, detector, timestamp, op.monitor_params)
+                event = EventData(evt, detector, timestamp)
 
                 try:
                     self._extract_data(event, self)
@@ -329,7 +330,6 @@ class MasterWorker(object):
     def end_processing(self):
         print('Processing finished. Processed', self._num_reduced_events, 'events in total.')
         stdout.flush()
-        pass
 
 
 in_layer = di.import_correct_layer_module('detector_layer', op.monitor_params)

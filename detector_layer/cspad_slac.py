@@ -14,26 +14,22 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import namedtuple
+
 import numpy
 
 
 SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
 NativeShape = namedtuple('NativeShape', ['panel', 'ss', 'fs'])
-RawData = namedtuple('RawData', ['adu', 'calib_info'])
-
 
 slab_shape = SlabShape(1480, 1552)
 native_shape = NativeShape(32, 185, 388)
 
 
 def raw_data(event):
-
     cspad_np = event.detector['raw_data'].calib(event.psana_event)
     cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
     cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
@@ -41,7 +37,7 @@ def raw_data(event):
         cspad_ij[:, i * cspad_np_og.shape[3]: (i+1) * cspad_np_og.shape[3]] = cspad_np_og[i].reshape(
             (cspad_np_og.shape[1] * cspad_np_og.shape[2], cspad_np_og.shape[3]))
 
-    return RawData(cspad_ij, None)
+    return cspad_ij
 
 
 def raw_data_pedestals_only(event):
@@ -52,5 +48,4 @@ def raw_data_pedestals_only(event):
         cspad_ij[:, i * cspad_np_og.shape[3]: (i+1) * cspad_np_og.shape[3]] = cspad_np_og[i].reshape(
             (cspad_np_og.shape[1] * cspad_np_og.shape[2], cspad_np_og.shape[3]))
 
-    return RawData(cspad_ij, None)
-
+    return cspad_ij

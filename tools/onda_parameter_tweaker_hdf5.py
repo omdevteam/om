@@ -16,6 +16,8 @@
 
 
 import argparse
+import os
+import os.path
 import random
 import signal
 import sys
@@ -23,6 +25,13 @@ from configparser import ConfigParser
 
 import h5py
 import numpy
+import pyqtgraph as pg
+
+import cfelpyutils.cfel_geom as cgm
+import cfelpyutils.cfel_hdf5 as ch5
+import cfelpyutils.cfel_optarg as coa
+import ondautils.onda_param_utils as op
+from ondacython.lib import peakfinder8_extension as pf8
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -30,15 +39,6 @@ try:
 except ImportError:
     from PyQt4 import QtCore, QtGui
     from PyQt4.uic import loadUiType
-import os
-import os.path
-import pyqtgraph as pg
-
-import cfelpyutils.cfel_optarg as coa
-import cfelpyutils.cfel_hdf5 as ch5
-import cfelpyutils.cfel_geom as cgm
-import ondautils.onda_param_utils as op
-from ondacython.lib import peakfinder8_extension as pf8
 
 
 def _load_file(lines, data_path, index):
@@ -54,8 +54,7 @@ def _check_changed_parameter(param, param_conv_vers, lineedit_element):
         new_param = param_conv_vers(lineedit_element.text())
         if new_param != param:
             return new_param, True
-        else:
-            return param, False
+        return param, False
     except ValueError:
         lineedit_element.setText(str(param))
         return param, False
@@ -418,7 +417,7 @@ def main():
     apply_darkcal = args.darkcal
 
     config.read('monitor.ini')
-    monitor_params = coa.parse_parameters(config)
+    op.monitor_params = coa.parse_parameters(config)
 
     app = QtGui.QApplication(sys.argv)
     _ = MainFrame(file_list, data_path, apply_darkcal)

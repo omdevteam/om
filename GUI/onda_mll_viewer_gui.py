@@ -15,10 +15,20 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import copy
+import datetime
+import os
+import os.path
+import signal
+import sys
+from collections import namedtuple
+
+import pyqtgraph as pg
+
+import ondautils.onda_zmq_gui_utils as zgut
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -26,16 +36,6 @@ try:
 except ImportError:
     from PyQt4 import QtCore, QtGui
     from PyQt4.uic import loadUiType
-from collections import namedtuple
-import copy
-import datetime
-import os
-import os.path
-import pyqtgraph as pg
-import signal
-import sys
-
-import ondautils.onda_zmq_gui_utils as zgut
 
 
 _Scale = namedtuple('Scaled', ['fs', 'ss'])
@@ -66,7 +66,7 @@ class MainFrame(QtGui.QMainWindow):
         self._lef_axis = self._ui.imageView.view.getAxis('left')
 
         self._ui.imageView.scene.sigMouseClicked.connect(self._mouse_clicked)
- 
+
         self._data = {}
         self._local_data = {}
         self._pos = (0, 0)
@@ -109,7 +109,7 @@ class MainFrame(QtGui.QMainWindow):
         self._ui.fsIntegrButton.clicked.connect(self._draw_image)
 
         self._ui.rescaleButton.clicked.connect(self._rescale_image)
-        
+
         self.resize(800, 800)
         self.show()
 
@@ -134,7 +134,7 @@ class MainFrame(QtGui.QMainWindow):
                 self._img = self._local_data['stxm']
             else:
                 self._img = self._local_data['dpc']
-  
+
         if self._curr_type == 1:
             if self._ui.ssIntegrButton.isChecked():
                 self._img = self._local_data['ss_integr_image']
@@ -151,11 +151,11 @@ class MainFrame(QtGui.QMainWindow):
         else:
             self._ui.delayLabel.setText('Estimated delay: -')
 
-        QtGui.QApplication.processEvents()        
- 
+        QtGui.QApplication.processEvents()
+
     def _update_image(self):
 
-        if len(self._data) != 0:
+        if self._data:
             self._local_data = self._data
             self._data = {}
         else:
@@ -169,7 +169,7 @@ class MainFrame(QtGui.QMainWindow):
 
         if self._local_data['num_run'] > self._curr_run_num:
             print('Starting new run.')
-         
+
             self._bot_axis.setLabel(self._local_data['fs_name'])
             self._curr_run_num = self._local_data['num_run']
 
@@ -194,20 +194,20 @@ class MainFrame(QtGui.QMainWindow):
                 ratio = min(self._scale) / max(self._scale)
 
             self._ui.imageView.getView().setAspectLocked(True, ratio=ratio)
-            
+
             self._ui.lastClickedPosLabel.setText('Last clicked position:    ss: - / fs: -')
-            
+
             autorange = True
 
         if scan_type != self._curr_type:
-    
+
             if scan_type == 2:
                 self._ui.stxmButton.setEnabled(True)
                 self._ui.stxmButton.setChecked(True)
                 self._ui.dpcButton.setEnabled(True)
                 self._ui.ssIntegrButton.setEnabled(False)
                 self._ui.fsIntegrButton.setEnabled(False)
- 
+
             QtGui.QApplication.processEvents()
 
             if scan_type == 1:
@@ -216,11 +216,11 @@ class MainFrame(QtGui.QMainWindow):
                 self._ui.ssIntegrButton.setEnabled(True)
                 self._ui.ssIntegrButton.setChecked(True)
                 self._ui.fsIntegrButton.setEnabled(True)
- 
+
             self._curr_type = scan_type
-       
+
         QtGui.QApplication.processEvents()
-        
+
         self._draw_image()
         if autorange:
             self._ui.imageView.autoRange()

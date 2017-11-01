@@ -14,19 +14,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from configparser import ConfigParser
 import sys
+from configparser import ConfigParser
 
-from ondautils.onda_exception_utils import onda_exception_handler
 import cfelpyutils.cfel_optarg as coa
-import ondautils.onda_param_utils as oa
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_optargs_utils as ooa
+import ondautils.onda_param_utils as oa
+from ondautils.onda_exception_utils import onda_exception_handler
 
 
 if __name__ == "__main__":
@@ -45,4 +43,3 @@ if __name__ == "__main__":
 
     mon = Onda(args.source)
     mon.start(verbose=False)
-

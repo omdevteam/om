@@ -14,23 +14,22 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from builtins import str
-from collections import deque, namedtuple
 import sys
 import time
+from builtins import str
+from collections import deque
 
+import algorithms.calibration_algorithms as calibalg
+import algorithms.crystallography_algorithms as calg
+import algorithms.generic_algorithms as galg
 import cfelpyutils.cfel_geom as cgm
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
 import ondautils.onda_zmq_monitor_utils as zut
-import algorithms.calibration_algorithms as calibalg
-import algorithms.crystallography_algorithms as calg
-import algorithms.generic_algorithms as galg
+
 
 par_layer = di.import_correct_layer_module('facility_layer', op.monitor_params)
 MasterWorker = di.import_class_from_layer('MasterWorker', par_layer)
@@ -53,10 +52,11 @@ class Onda(MasterWorker):
                 detector_calibration_alg = di.import_class_from_module(op.param('DetectorCalibration',
                                                                                 'calibration_algorithm', str,
                                                                                 required=True), calibalg)
-                self._detector_calibration = detector_calibration_alg(op.param('DetectorCalibration',
-                                                                      'calibration_file', str, required=True))
+                detector_calibration = detector_calibration_alg(op.param('DetectorCalibration', 'calibration_file',
+                                                                         str, required=True))
+                self._apply_calibration = detector_calibration.apply_calibration
             else:
-                self._detector_calibration = None
+                self._apply_calibration = lambda x: x
 
             self._dark_cal_correction = galg.DarkCalCorrection(
                 op.param('DarkCalCorrection', 'filename', str, required=True),
@@ -128,10 +128,7 @@ class Onda(MasterWorker):
 
         results_dict = {}
 
-        if self._detector_calibration is not None:
-            calib_raw_data = self._detector_calibration.apply_calibration(self.raw_data)
-        else:
-            calib_raw_data = self.raw_data.adu
+        calib_raw_data = self._apply_calibration(self.raw_data)
 
         corr_raw_data = self._dark_cal_correction.apply_darkcal_correction(calib_raw_data)
         peak_list = self._peakfinder8_peak_det.find_peaks(corr_raw_data)

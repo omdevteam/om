@@ -724,7 +724,7 @@ def read_nxs_files(steps, fnams, no_data=False):
                 progress = float(len(steps_read)) / float(total_steps)
                 update_progress(progress, 'loading nxs files', len(steps_read), fnam)
 
-        except Exception, e:
+        except Exception as e:
             print
             'failed to read step:', step, str(e)
 
@@ -1013,7 +1013,7 @@ def parse_motor_log(fnam_motor_log, redo=False, verbose=False):
             import cPickle
             motor_pos = cPickle.load(open(fnam, 'rb'))
             return motor_pos
-        except Exception, e:
+        except Exception as e:
             print
             str(e)
             pass

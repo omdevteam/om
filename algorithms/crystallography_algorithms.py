@@ -13,18 +13,19 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import namedtuple
 
 import numpy
 import scipy.ndimage as ndimage
 
-from ondacython.lib.peakfinder8_extension import peakfinder_8, peakfinder_8_with_pixel_information
 import cfelpyutils.cfel_hdf5 as ch5
+from ondacython.lib.peakfinder8_extension import (peakfinder_8,
+                                                  peakfinder_8_with_pixel_information)
+
 
 PeakList = namedtuple('PeakList', ['fs', 'ss', 'intensity'])
 _InternalListOfPeaks = namedtuple('_InternalListOfPeaks', ['ss', 'fs'])
@@ -85,10 +86,10 @@ class SimplePeakDetection:
         internal_list_of_peaks = _InternalListOfPeaks(numpy.where(data_as_slab_peak == 1))
         peak_values = raw_data[internal_list_of_peaks]
 
-        if len([0]) > 10000:
+        if len(internal_list_of_peaks[0]) > 10000:
             print('Silly number of peaks {0}'.format(len(internal_list_of_peaks.ss)))
             peak_list = ([], [], [])
-        elif len(internal_list_of_peaks[0]) != 0:
+        elif internal_list_of_peaks[0]:
             subpixel_x = []
             subpixel_y = []
             for x_peak, y_peak in zip(internal_list_of_peaks.ss, internal_list_of_peaks.fs):

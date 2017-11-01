@@ -14,23 +14,24 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future.utils import raise_from
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from collections import namedtuple
-from mpi4py import MPI
-import numpy
 import os.path
 import sys
+from collections import namedtuple
 
-from ondautils.onda_exception_utils import MissingDataExtractionFunction, DataExtractionError
+import numpy
+from future.utils import raise_from
+from mpi4py import MPI
+
 import ondautils.onda_dynamic_import_utils as di
 import ondautils.onda_param_utils as op
+from ondautils.onda_exception_utils import (DataExtractionError,
+                                            MissingDataExtractionFunction)
 
-EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset'])
+EventData = namedtuple('EventData', ['filehandle', 'filename', 'filectime', 'num_events', 'shot_offset',
+                                     'monitor_params'])
 
 
 def _extract(event, monitor):
@@ -209,7 +210,6 @@ class MasterWorker(object):
     def end_processing(self):
         print('Processing finished. Processed', self._num_reduced_events, 'events in total.')
         sys.stdout.flush()
-        pass
 
 
 in_layer = di.import_correct_layer_module('detector_layer', op.monitor_params)

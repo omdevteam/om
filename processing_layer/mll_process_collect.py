@@ -14,24 +14,22 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
-from builtins import str
-
-import numpy
 import os.path
 import sys
 import time
+from builtins import str
 
-from ondautils.onda_exception_utils import MLLLogFleParsingError
+import numpy
+
 import cfelpyutils.cfel_hdf5 as ch5
 import ondautils.onda_dynamic_import_utils as di
+import ondautils.onda_mll_log_file_utils as mlu
 import ondautils.onda_param_utils as op
 import ondautils.onda_zmq_monitor_utils as zut
-import ondautils.onda_mll_log_file_utils as mlu
+from ondautils.onda_exception_utils import MLLLogFleParsingError
 
 
 par_layer = di.import_correct_layer_module('facility_layer', op.monitor_params)
@@ -150,8 +148,8 @@ class Onda(MasterWorker):
         dpc = 0
 
         if (
-            numpy.count_nonzero(sum1) != 0 and numpy.count_nonzero(sum2) != 0 and
-            numpy.count_nonzero(sum3) != 0 and numpy.count_nonzero(sum4) != 0
+                numpy.count_nonzero(sum1) != 0 and numpy.count_nonzero(sum2) != 0 and
+                numpy.count_nonzero(sum3) != 0 and numpy.count_nonzero(sum4) != 0
         ):
             dpc = numpy.sqrt(
                 ((sum1 + sum3 - sum2 - sum4) ** 2 + (sum1 + sum2 - sum3 - sum4) ** 2) /
@@ -226,8 +224,8 @@ class Onda(MasterWorker):
                 self._scan_data.append(fast_data)
 
                 if (
-                    'StayStill hack' in log_class.log['Fast axis'] and
-                    log_class.log['Fast axis']['StayStill hack'] is True
+                        'StayStill hack' in log_class.log['Fast axis'] and
+                        log_class.log['Fast axis']['StayStill hack'] is True
                 ):
                     self._scan_data.pop()
 

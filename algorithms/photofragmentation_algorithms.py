@@ -13,10 +13,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import numpy
 
@@ -24,6 +22,7 @@ import numpy
 ###############################
 # DELAYLINE DETECTOR ANALYSIS #
 ###############################
+
 
 def _time_sum_radius_rejection(mcp_peak, x1_corr_peak,
                                x2_corr_peak, y1_corr_peak,
@@ -40,10 +39,9 @@ def _time_sum_radius_rejection(mcp_peak, x1_corr_peak,
 
                     # is the time sum acceptable?
                     if (
-                        (min_sum_x < (x[0] + x[1] - 2 * mcp_peak) < max_sum_x) and
-                        (min_sum_y < (x[2] + x[3] - 2 * mcp_peak) < max_sum_y)
-                       ):
-
+                            (min_sum_x < (x[0] + x[1] - 2 * mcp_peak) < max_sum_x) and
+                            (min_sum_y < (x[2] + x[3] - 2 * mcp_peak) < max_sum_y)
+                    ):
                         # is x,y the position of the peak within the detector?
                         y = (mcp_peak, (x[0] - x[1], x[2] - x[3]), (x[0], x[1], x[2], x[3]))
                         if numpy.sqrt((y[1][0] * y[1][0] + y[1][1] * y[1][1])) < max_radius:
@@ -145,5 +143,3 @@ class DelaylineDetectorAnalysis:
                 hit_list.append(y)
 
         return hit_list
-
-

@@ -14,10 +14,25 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import copy
+import os
+import os.path
+import signal
+import sys
+import time
+from collections import namedtuple
+
+import numpy
+import pyqtgraph as pg
+import scipy.constants
+
+import cfelpyutils.cfel_crystfel as cfl
+import cfelpyutils.cfel_geom as cgm
+import ondautils.onda_zmq_gui_utils as zgut
+from algorithms.crystallography_algorithms import PeakList
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -25,20 +40,7 @@ try:
 except ImportError:
     from PyQt4 import QtCore, QtGui
     from PyQt4.uic import loadUiType
-from collections import namedtuple
-import copy
-import numpy
-import os
-import os.path
-import pyqtgraph as pg
-import scipy.constants
-import signal
-import sys
-import time
 
-import cfelpyutils.cfel_geom as cgm
-import cfelpyutils.cfel_crystfel as cfl
-import ondautils.onda_zmq_gui_utils as zgut
 
 _ImageCenter = namedtuple('ImageCenter', ['y', 'x'])
 
@@ -51,7 +53,7 @@ class MainFrame(QtGui.QMainWindow):
         super(MainFrame, self).__init__()
 
         self._data = {}
-        self._local_data = {'peak_list': ([], [], []), 'hit_rate': 0, 'hit_flag': True, 'sat_rate': 0,
+        self._local_data = {'peak_list': PeakList([], [], []), 'hit_rate': 0, 'hit_flag': True, 'sat_rate': 0,
                             'time_string': None}
         self._pixel_maps = cgm.pixel_maps_for_image_view(geom_filename)
         self._img_shape = cgm.get_image_shape(geom_filename)
@@ -82,7 +84,7 @@ class MainFrame(QtGui.QMainWindow):
         self._resolution_rings_pen = pg.mkPen('w', width=0.5)
         self._resolution_rings_canvas = pg.ScatterPlotItem()
         self._vertical_lines = []
-        self._resolution_rings_regex = QtCore.QRegExp('[0-9\.\,]+')
+        self._resolution_rings_regex = QtCore.QRegExp(r'[0-9.,]+')
         self._resolution_rings_validator = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
         pg.setConfigOption('background', 0.2)
@@ -179,7 +181,7 @@ class MainFrame(QtGui.QMainWindow):
         items = str(self._ui.resolutionRingsLineEdit.text()).split(',')
         for ti in self._resolution_rings_textitems:
             self._ui.imageView.getView().removeItem(ti)
-        if len(items) == 0:
+        if not items:
             self._resolution_rings_in_A = []
         self._resolution_rings_in_A = [float(item) for item in items if item != '' and float(item) != 0.0]
         self._resolution_rings_textitems = [pg.TextItem(str(x) + 'A',
@@ -247,7 +249,7 @@ class MainFrame(QtGui.QMainWindow):
 
     def _update_image_plot(self):
 
-        if len(self._data) != 0:
+        if self._data:
             self._local_data = self._data
             self._data = {}
         else:
@@ -312,7 +314,7 @@ class MainFrame(QtGui.QMainWindow):
 
         QtGui.QApplication.processEvents()
 
-        if len(self._local_data['peak_list'][0]) > 0:
+        if self._local_data['peak_list'][0]:
 
             self._img = numpy.zeros(self._img_shape, dtype=numpy.float32)
 

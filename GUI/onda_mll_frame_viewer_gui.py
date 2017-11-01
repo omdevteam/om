@@ -15,10 +15,19 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import collections
+import copy
+import os
+import os.path
+import signal
+import sys
+
+import pyqtgraph as pg
+
+import ondautils.onda_zmq_gui_utils as zgut
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -26,22 +35,13 @@ try:
 except ImportError:
     from PyQt4 import QtCore, QtGui
     from PyQt4.uic import loadUiType
-import collections
-import copy
-import os
-import os.path
-import pyqtgraph as pg
-import signal
-import sys
-
-import ondautils.onda_zmq_gui_utils as zgut
 
 
 class MainFrame(QtGui.QMainWindow):
 
     listening_thread_start_processing = QtCore.pyqtSignal()
     listening_thread_stop_processing = QtCore.pyqtSignal()
-    
+
     def __init__(self, rec_ip, rec_port):
         super(MainFrame, self).__init__()
 
@@ -75,12 +75,12 @@ class MainFrame(QtGui.QMainWindow):
         if self._data_index > 0:
             self._data_index -= 1
             self._update_image_plot()
-    
+
     def _forward_button_clicked(self):
         if (self._data_index + 1) < len(self._data):
             self._data_index += 1
             self._update_image_plot()
-    
+
     def _play_pause_button_clicked(self):
         if self._refresh_timer.isActive():
             self._refresh_timer.stop()
@@ -110,7 +110,7 @@ class MainFrame(QtGui.QMainWindow):
 
         QtGui.QApplication.processEvents()
 
-        if len(self._data) > 0:
+        if self._data:
             data = self._data[self._data_index]
             self._img = data['raw_data']
             self._ui.imageView.setImage(self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False)

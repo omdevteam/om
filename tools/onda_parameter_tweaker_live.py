@@ -15,20 +15,28 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-from builtins import str
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import collections
 import copy
+import os
+import os.path
 import signal
 import sys
+from builtins import str
 from configparser import ConfigParser
 
 import numpy
+import pyqtgraph as pg
+
+import cfelpyutils.cfel_geom as cgm
+import cfelpyutils.cfel_hdf5 as ch5
+import cfelpyutils.cfel_optarg as coa
+import ondautils.onda_param_utils as op
+import ondautils.onda_zmq_gui_utils as zgut
+from algorithms.crystallography_algorithms import PeakList
+from ondacython.lib import peakfinder8_extension as pf8
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -36,29 +44,17 @@ try:
 except ImportError:
     from PyQt4 import QtCore, QtGui
     from PyQt4.uic import loadUiType
-import os
-import os.path
-import pyqtgraph as pg
-
-from algorithms.crystallography_algorithms import PeakList
-import ondautils.onda_zmq_gui_utils as zgut
-import cfelpyutils.cfel_optarg as coa
-import cfelpyutils.cfel_hdf5 as ch5
-import cfelpyutils.cfel_geom as cgm
-import ondautils.onda_param_utils as op
-from ondacython.lib import peakfinder8_extension as pf8
 
 
 def _check_changed_parameter(param, param_conv_vers, lineedit_element):
-        try:
-            new_param = param_conv_vers(lineedit_element.text())
-            if new_param != param:
-                return new_param, True
-            else:
-                return param, False
-        except ValueError:
-            lineedit_element.setText(str(param))
-            return param, False
+    try:
+        new_param = param_conv_vers(lineedit_element.text())
+        if new_param != param:
+            return new_param, True
+        return param, False
+    except ValueError:
+        lineedit_element.setText(str(param))
+        return param, False
 
 
 class MainFrame(QtGui.QMainWindow):
@@ -80,8 +76,10 @@ class MainFrame(QtGui.QMainWindow):
         self._ring_pen = pg.mkPen('r', width=2)
         self._circle_pen = pg.mkPen('b', width=2)
 
-        self._pixelmap_radius_for_peakfinding = cgm.pixel_maps_from_geometry_file(op.param('General', 'geometry_file',
-                                                                                            str, required=True)).r
+        self._pixelmap_radius_for_peakfinding = cgm.pixel_maps_from_geometry_file(
+            op.param('General', 'geometry_file', str, required=True)
+        ).r
+
         self._pixel_maps = cgm.pixel_maps_for_image_view(op.param('General', 'geometry_file', str, required=True))
         self._img_shape = cgm.get_image_shape(op.param('General', 'geometry_file', str, required=True))
         self._img_to_draw = numpy.zeros(self._img_shape, dtype=numpy.float32)
@@ -250,9 +248,9 @@ class MainFrame(QtGui.QMainWindow):
             self._data.append(copy.deepcopy(datdict))
 
     def _draw_things(self):
-        if len(self._data) == 0:
+        if not self._data:
             return None
-        
+
         img = self._data[self._data_index]['raw_data']
 
         self._img_to_draw[self._pixel_maps.y, self._pixel_maps.x] = img.ravel()
@@ -328,7 +326,9 @@ class MainFrame(QtGui.QMainWindow):
     def _update_peaks(self):
 
         something_changed = False
-        self._adc_threshold, changed = _check_changed_parameter(self._adc_threshold, float, self._adc_threshold_lineedit)
+        self._adc_threshold, changed = _check_changed_parameter(
+            self._adc_threshold, float, self._adc_threshold_lineedit
+        )
         if changed:
             something_changed = True
         self._minimum_snr, changed = _check_changed_parameter(self._minimum_snr, float, self._min_snr_lineedit)

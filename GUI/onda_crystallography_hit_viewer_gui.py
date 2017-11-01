@@ -15,10 +15,21 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import collections
+import copy
+import os
+import os.path
+import signal
+import sys
+
+import numpy
+import pyqtgraph as pg
+
+import cfelpyutils.cfel_geom as cgm
+import ondautils.onda_zmq_gui_utils as zgut
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -26,17 +37,6 @@ try:
 except ImportError:
     from PyQt4 import QtCore, QtGui
     from PyQt4.uic import loadUiType
-import collections
-import copy
-import numpy
-import os
-import os.path
-import pyqtgraph as pg
-import signal
-import sys
-
-import cfelpyutils.cfel_geom as cgm
-import ondautils.onda_zmq_gui_utils as zgut
 
 
 class MainFrame(QtGui.QMainWindow):
@@ -126,7 +126,8 @@ class MainFrame(QtGui.QMainWindow):
         self._data.append(copy.deepcopy(datdict))
 
     def _update_image_plot(self):
-        if len(self._data) > 0:
+        if self._data:
+
             data = self._data[self._data_index]
 
             self._img[self._pixel_maps.y, self._pixel_maps.x] = data['raw_data'].ravel().astype(self._img.dtype)
