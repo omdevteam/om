@@ -15,19 +15,19 @@
 """
 Utilities for writing multi-event files in the CXIDB format.
 
-This module contains utilities to write files that adhere to the CXIDB file format: 
+This module contains utilities to write files that adhere to the CXIDB file format:
 
 http://www.cxidb.org/cxi.html .
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 from collections import namedtuple
+
 import h5py
 import numpy
+
 
 _CXISimpleEntry = namedtuple('SimpleEntry', ['path', 'data', 'overwrite'])
 
@@ -64,11 +64,7 @@ class _Stack:
             self._chunk_size = chunk_size
 
     def is_there_data_to_write(self):
-
-        if self._data_to_write is not None:
-            return True
-        else:
-            return False
+        return self._data_to_write is not None
 
     def write_initial_slice(self, file_handle, max_num_slices):
 
@@ -132,27 +128,27 @@ class CXIWriter:
     """Writing of multi-event CXIDB files.
 
     Implements a simple low-level CXIDB file format writer for multi event files. it allows the user to write data
-    "stacks" in the CXIDB files, making sure that the entries in all stacks are synchronized. 
-    
+    "stacks" in the CXIDB files, making sure that the entries in all stacks are synchronized.
+
     A CXI Writer instance manages one file. A user can add a stack to a CXI Writer instance with the
-    add_stack_to_writer function, which also writes the first entry in the stack. The user can then add to the writer 
+    add_stack_to_writer function, which also writes the first entry in the stack. The user can then add to the writer
     all the stacks that he wants in the file. Once all stacks are added, the user initializes them  with the
     initialize_stacks function. After initialization, no more stacks can be added. Instead, entries can be appended to
-    the existing stacks, using the append_data_to_stack function. 
-    
+    the existing stacks, using the append_data_to_stack function.
+
     A "slice" (a set of synced entries in all the stacks in the file) can be written to the a file only after an entry
     has been appended to all stacks in the file. Conversely, after an entry has been appended to a stack, the user
     cannot append another entry before a slice is written. This ensures synchronization of the data in all the stacks.
-    
+
     A file can be closed at any time. In any case, the writer will not allow a file to contain more than the
     number_of_entries specified during instantiation.
-    
+
     Simple non-stack entries can be written to the file at any time, before or after stack initialization (provided of
     course that the file is open). Entries and stacks will general never be overwritten unless the overwrite parameter
     is set to True.
-    
+
     Example of usage of the stack API:
-    
+
     c1 = 0
     c2 = 0
 
@@ -197,13 +193,13 @@ class CXIWriter:
 
     def __init__(self, filename, max_num_slices=5000):
         """Instantiates a CXI Writer, managing one file.
-        
+
         Instantiates a CXI Writer, responsible for writing data into one file.
-        
+
         Args:
-            
+
             filename (str): name of the file managed by the CXI Writer
-            
+
             max_num_slices (int): maximum number of slices for the stacks in the file (default 5000)
         """
 
@@ -236,31 +232,31 @@ class CXIWriter:
     def add_stack_to_writer(self, name, path, initial_data, axes=None, compression=True, chunk_size=None,
                             overwrite=True):
         """Adds a new stack to the file.
-        
+
         Adds a new stack to the CXI Writer instance. The user must provide a name for the stack, that will identify
         the stack in all subsequents operations. The user must also provide the data that will be written as the
         initial entry in the stack (initial_data). This initial entry is used to set the size and type of data that the
         stack will hold and these parameters are in turn be used to validate all data that is subsequently appended to
         the stack.
-        
+
         Args:
-            
+
             name (str): stack name.
-            
+
             path (str): path in the hdf5 file where the stack will be written.
-            
-            initial_data (Union[numpy.ndarray, bytes, int, float]: initial entry in the stack. It gets written to the 
+
+            initial_data (Union[numpy.ndarray, bytes, int, float]: initial entry in the stack. It gets written to the
             stack as slice 0. Its characteristics are used to validate all data subsequently appended to the stack.
-            
+
             axes (bytes): the 'axes' attribute for the stack, as defined by the CXIDB file format.
-            
+
             compression (Union[None, bool,str]): compression parameter for the stack. This parameters works in the same
             way as the normal compression parameter from h5py. The default value of this parameter is True.
-            
+
             chunk_size (Union[None, tuple]): HDF5 chuck size for the stack. If this parameter is set to None, the
-            CXI writer will compute a chuck size automatically (this is the default behavior). Otherwise, the writer 
+            CXI writer will compute a chuck size automatically (this is the default behavior). Otherwise, the writer
             will use the provided tuple to set the chunk size.
-            
+
             overwrite (bool): if set to True, a stack already existing at the same location will be overwritten. If set
             to False, an attempt to overwrite a stack will raise an error.
         """
@@ -276,7 +272,7 @@ class CXIWriter:
         for entry in self._cxi_stacks:
             if path == self._cxi_stacks[entry].path:
                 if overwrite is True:
-                    del (self._cxi_stacks[entry])
+                    del self._cxi_stacks[entry]
                 else:
                     raise RuntimeError('Cannot write the entry. Data is already present at the specified path.')
 
@@ -285,19 +281,19 @@ class CXIWriter:
 
     def write_simple_entry(self, name, path, data, overwrite=False):
         """Writes a simple, non-stack entry in the file.
-        
+
         Writes a simple, non-stack entry in the file, at the specified path. A simple entry can be written at all times,
         before or after the stack initialization. The user must provide a name that identifies the entry for further
         operations (for example, creating a link).
-        
+
         Args:
-        
+
             name (str): entry name
-        
+
             path (str): path in the hdf5 file where the entry will be written.
-            
+
             data (Union[numpy.ndarray, bytes, int, float]): data to write
-            
+
             overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
             to False, an attempt to overwrite an entry will raise an error.
         """
@@ -309,7 +305,7 @@ class CXIWriter:
 
         if path in self._fh:
             if overwrite is True:
-                del (self._fh[path])
+                del self._fh[path]
             else:
                 raise RuntimeError('Cannot create the the entry. An entry already exists at the specified path.')
 
@@ -324,24 +320,24 @@ class CXIWriter:
 
     def create_link(self, name, path, overwrite=False):
         """Creates a link to a stack or entry.
-         
+
         Creates a link in the file, at the path specified, pointing to the stack or the entry identified by the
         provided name. If a link or entry already exists at the specified path, it is deleted and replaced only if the
         value of the overwrite parameter is True.
-         
+
         Args:
-             
+
             name (str): name of the stack or entry to which the link points.
-        
+
             path (str): path in the hdf5 where the link is created.
-             
+
             overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
             to False, an attempt to overwrite an entry will raise an error.
         """
 
         if path in self._fh:
             if overwrite is True:
-                del (self._fh[path])
+                del self._fh[path]
             else:
                 raise RuntimeError('Cannot create the link. An entry already exists at the specified path.')
 
@@ -357,23 +353,23 @@ class CXIWriter:
 
     def create_link_to_group(self, group, path, overwrite=False):
         """Creates a link to an HDF5 group.
-        
+
         Creates a link to an HDF5 group (as opposed to a simple entry or stack). If a link or entry already exists at
         the specified path, it is deleted and replaced only if the value of the overwrite parameter is True.
 
-        Args: 
+        Args:
 
             group (str): internal HDF5 path of the group to which the link points.
-        
+
             path (str): path in the hdf5 where the link is created.
-             
+
             overwrite (bool): if set to True, an entry already existing at the same location will be overwritten. If set
             to False, an attempt to overwrite an entry will raise an error.
         """
 
         if path in self._fh:
             if overwrite is True:
-                del (self._fh[path])
+                del self._fh[path]
             else:
                 raise RuntimeError('Cannot create the link. An entry already exists at the specified path.')
 
@@ -411,8 +407,8 @@ class CXIWriter:
 
     def initialize_stacks(self):
         """Initializes the stacks.
-        
-        Initializes the stacks in the CXI Writer instance. This fixes the number and type of stacks in the file. No 
+
+        Initializes the stacks in the CXI Writer instance. This fixes the number and type of stacks in the file. No
         stacks can be added to the CXI Writer after initialization.
         """
 
@@ -435,15 +431,15 @@ class CXIWriter:
 
     def append_data_to_stack(self, name, data):
         """Appends data to a stack.
-        
+
         Appends data to a stack, validating the data to make sure that the data type and size match the previous entries
         in the stack. Only one entry can be appended to each stack before writing a slice across all stacks with
         the write_slice_and_increment.
-        
+
         Args:
-            
+
             name (str): stack name, defining the stack to which the data will be appended.
-            
+
             data (Union[numpy.ndarray, bytes, int, float]: data to write. The data will be validated against the type
             and size of previous entries in the stack.
         """
@@ -463,10 +459,10 @@ class CXIWriter:
 
     def write_stack_slice_and_increment(self):
         """Writes a slice across all stacks and resets the writer for the next slice.
-        
+
         Writes a slice across all stacks in the file. It checks that an entry has been appended to each stack, and
         writes all the entries on top of the relevant stacks in one go. If an entry is missing in a stack, the function
-        will raise an error. After writing the slice, the function resets the writer to allow again appending data to 
+        will raise an error. After writing the slice, the function resets the writer to allow again appending data to
         the stacks.
         """
 
@@ -491,12 +487,12 @@ class CXIWriter:
 
     def get_file_handle(self):
         """Access to the naked h5py file handle.
-        
+
         This function allows access to the a naked h5py handle for the file managed by the CXI Writer. This allowa
         operations on the file that are not covered by  CXI Writer API. Use it at your own risk.
-        
+
         Returns:
-            
+
             fh (h5py.File): an h5py file handle to the file managed by the writer.
         """
 
@@ -507,11 +503,11 @@ class CXIWriter:
 
     def stacks_are_initialized(self):
         """Checks if stacks are initialized.
-        
+
         Checks the status of the stacks in the file and returns the status to the user.
-        
+
         Returns:
-            
+
             status (bool): True if the stacks are initialized, False otherwise
         """
 
@@ -533,21 +529,16 @@ class CXIWriter:
 
         """
 
-        if path in self._fh:
-            ret = True
-        else:
-            ret = False
-
-        return ret
+        return path in self._fh
 
     def file_is_full(self):
         """Checks if the file is full.
-        
+
         Checks if the file is full (i.e. the maximum number of slices have already been written), and returns the
         information to the user.
-        
+
         Returns:
-            
+
             status (bool): True if the file is full, False otherwise.
         """
 
@@ -569,7 +560,7 @@ class CXIWriter:
 
     def close_file(self):
         """Closes the file.
-        
+
         Closes the file for writing, ending all writing operations.
         """
 
