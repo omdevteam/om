@@ -18,21 +18,19 @@ Utilities for interoperability with the CrystFEL software package.
 This module contains reimplementation of Crystfel functions and utilities.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
+import re
 from collections import OrderedDict
 from copy import deepcopy
 from math import sqrt
-import re
 
 
 def _assplode_algebraic(value):
     items = [item for item in re.split('([+-])', value.strip()) if item != '']
 
-    if len(items) != 0 and items[0] not in ('+', '-'):
+    if items and items[0] not in ('+', '-'):
         items.insert(0, '+')
 
     return [''.join((items[x], items[x + 1])) for x in range(0, len(items), 2)]
@@ -43,7 +41,7 @@ def _dir_conv(direction_x, direction_y, direction_z, value):
 
     items = _assplode_algebraic(value)
 
-    if len(items) == 0:
+    if items:
         raise RuntimeError('Invalid direction: {}.'.format(value))
 
     for item in items:
@@ -78,7 +76,7 @@ def _set_dim_structure_entry(key, value, panel):
     dim_index = int(key[3])
 
     if dim_index > len(dim) - 1:
-        for index in range(len(dim), dim_index + 1):
+        for _ in range(len(dim), dim_index + 1):
             dim.append(None)
 
     if value == 'ss' or value == 'fs' or value == '%':
@@ -331,21 +329,20 @@ def _find_min_max_d(detector):
 
 def load_crystfel_geometry(filename):
     """Loads a CrystFEL geometry file into a dictionary.
-    
+
     Reimplements the get_detector_geometry_2 function from CrystFEL amost verbatim. Returns a dictionary with the
     geometry information. Entries in the geometry file appears as keys in the returned dictionary. For a full
     documentation on the CrystFEL geometry format, see:
-    
+
     tfel/manual-crystfel_geometry.html
-    
+
     Args:
-        
+
         filename (str): filename of the geometry file
-        
+
     Returns:
-        
+
         detector (dict): dictionary with the geometry loaded from the file
-    
     """
 
     fh = open(filename, 'r')
@@ -460,7 +457,7 @@ def load_crystfel_geometry(filename):
         else:
             _parse_field_bad(path[1], value, curr_bad)
 
-    if len(detector['panels']) == 0:
+    if not detector['panels']:
         raise RuntimeError("No panel descriptions in geometry file.")
 
     num_placeholders_in_panels = None
@@ -534,26 +531,23 @@ def load_crystfel_geometry(filename):
         if dim_length == 1:
             raise RuntimeError('Number of dim coordinates must be at least two.')
 
-    for panel_name, panel in detector['panels'].items():
+    for panel in detector['panels'].values():
 
-        if 'origin_min_fs' not in panel:
-            raise RuntimeError('Please specify the minimum fs coordinate for panel {}.'.format(panel_name))
+        if panel['origin_min_fs'] < 0:
+            raise RuntimeError('Please specify the minimum fs coordinate for panel {}.'.format(panel['name']))
 
-        if 'origin_max_fs' not in panel:
-            raise RuntimeError('Please specify the maximum fs coordinate for panel {}.'.format(panel_name))
+        if panel['origin_max_fs'] < 0:
+            raise RuntimeError('Please specify the maximum fs coordinate for panel {}.'.format(panel['name']))
 
-        if 'origin_min_ss' not in panel:
-            raise RuntimeError('Please specify the minimum ss coordinate for panel {}.'.format(panel_name))
+        if panel['origin_min_ss'] < 0:
+            raise RuntimeError('Please specify the minimum ss coordinate for panel {}.'.format(panel['name']))
 
-        if 'origin_max_ss' not in panel:
-            raise RuntimeError('Please specify the maximum ss coordinate for panel {}.'.format(panel_name))
+        if panel['origin_max_ss'] < 0:
+            raise RuntimeError('Please specify the maximum ss coordinate for panel {}.'.format(panel['name']))
 
         if panel['cnx'] is None:
-            raise RuntimeError('Please specify the corner X coordinate for panel {}.'.format(panel_name))
+            raise RuntimeError('Please specify the corner X coordinate for panel {}.'.format(panel['name']))
 
-        if panel['cny'] is None:
-            raise RuntimeError('Please specify the corner Y coordinate for panel {}.'.format(panel_name))
-        
         if panel['clen'] is None and panel['clen_from'] is None:
             raise RuntimeError('Please specify the camera length for panel {}.'.format(panel['name']))
 
@@ -583,12 +577,12 @@ def load_crystfel_geometry(filename):
         if bad_region['is_fsss'] == 99:
             raise RuntimeError('Please specify the coordinate ranges for bad region {}.'.format(bad_region['name']))
 
-    for group in detector['rigid_groups'].keys():
+    for group in detector['rigid_groups']:
         for name in detector['rigid_groups'][group]:
             if name not in detector['panels']:
                 raise RuntimeError('Cannot add panel to rigid_group. Panel not found: {}'.format(name))
 
-    for group_collection in detector['rigid_group_collections'].keys():
+    for group_collection in detector['rigid_group_collections']:
         for name in detector['rigid_group_collections'][group_collection]:
             if name not in detector['rigid_groups']:
                 raise RuntimeError('Cannot add rigid_group to collection. Rigid group not found: {}'.format(name))

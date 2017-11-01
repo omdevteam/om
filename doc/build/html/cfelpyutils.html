@@ -2,16 +2,12 @@
 
 <!doctype html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>cfelpyutils package &#8212; cfelpyutils 0.5 documentation</title>
-    
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -33,7 +29,7 @@
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -110,7 +106,7 @@ documentation on the CrystFEL geometry format, see:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; filename of the geometry file</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – filename of the geometry file</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the geometry loaded from the file</td>
 </tr>
@@ -132,13 +128,13 @@ documentation on the CrystFEL geometry format, see:</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Writing of multi-event CXIDB files.</p>
 <p>Implements a simple low-level CXIDB file format writer for multi event files. it allows the user to write data
-&#8220;stacks&#8221; in the CXIDB files, making sure that the entries in all stacks are synchronized.</p>
+“stacks” in the CXIDB files, making sure that the entries in all stacks are synchronized.</p>
 <p>A CXI Writer instance manages one file. A user can add a stack to a CXI Writer instance with the
 add_stack_to_writer function, which also writes the first entry in the stack. The user can then add to the writer
 all the stacks that he wants in the file. Once all stacks are added, the user initializes them  with the
 initialize_stacks function. After initialization, no more stacks can be added. Instead, entries can be appended to
 the existing stacks, using the append_data_to_stack function.</p>
-<p>A &#8220;slice&#8221; (a set of synced entries in all the stacks in the file) can be written to the a file only after an entry
+<p>A “slice” (a set of synced entries in all the stacks in the file) can be written to the a file only after an entry
 has been appended to all stacks in the file. Conversely, after an entry has been appended to a stack, the user
 cannot append another entry before a slice is written. This ensures synchronization of the data in all the stacks.</p>
 <p>A file can be closed at any time. In any case, the writer will not allow a file to contain more than the
@@ -149,32 +145,32 @@ is set to True.</p>
 <p>Example of usage of the stack API:</p>
 <p>c1 = 0
 c2 = 0</p>
-<p>f1 = CXIWriter(&#8216;test1.h5&#8217;, )
-f2 = CXIWriter(&#8216;test2.h5&#8217;, )</p>
+<p>f1 = CXIWriter(‘test1.h5’, )
+f2 = CXIWriter(‘test2.h5’, )</p>
 <dl class="docutils">
-<dt>f1.add_stack_to_writer(&#8216;detector1&#8217;, &#8216;/entry_1/detector_1/data&#8217;, numpy.random.rand(2, 2),</dt>
-<dd>&#8216;frame:y:x&#8217;)</dd>
-<dt>f2.add_stack_to_writer(&#8216;detector2&#8217;, &#8216;/entry_1/detector_1/data&#8217;, numpy.random.rand(3, 2),</dt>
-<dd>&#8216;frame:y:x&#8217;, compression=False, chunk_size=(1,3,2))</dd>
+<dt>f1.add_stack_to_writer(‘detector1’, ‘/entry_1/detector_1/data’, numpy.random.rand(2, 2),</dt>
+<dd>‘frame:y:x’)</dd>
+<dt>f2.add_stack_to_writer(‘detector2’, ‘/entry_1/detector_1/data’, numpy.random.rand(3, 2),</dt>
+<dd>‘frame:y:x’, compression=False, chunk_size=(1,3,2))</dd>
 </dl>
-<p>f1.add_stack_to_writer(&#8216;counter1&#8217;, &#8216;/entry_1/detector_1/count&#8217;, c1)
-f2.add_stack_to_writer(&#8216;counter2&#8217;, &#8216;/entry_1/detector_1/count&#8217;, c2)</p>
-<p>f1.write_simple_entry(&#8216;detectorname1&#8217;, &#8216;/entry_1/detector_1/name&#8217;, &#8216;FrontCSPAD&#8217;)
-f2.write_simple_entry(&#8216;detectorname2&#8217;, &#8216;/entry_1/detector_1/name&#8217;, &#8216;BackCSPAD&#8217;)</p>
+<p>f1.add_stack_to_writer(‘counter1’, ‘/entry_1/detector_1/count’, c1)
+f2.add_stack_to_writer(‘counter2’, ‘/entry_1/detector_1/count’, c2)</p>
+<p>f1.write_simple_entry(‘detectorname1’, ‘/entry_1/detector_1/name’, ‘FrontCSPAD’)
+f2.write_simple_entry(‘detectorname2’, ‘/entry_1/detector_1/name’, ‘BackCSPAD’)</p>
 <p>f1.initialize_stacks()
 f2.initialize_stacks()</p>
 <p>a = numpy.random.rand(2, 2)
 b = numpy.random.rand(3, 2)</p>
 <p>c1 += 1
 c2 += 2</p>
-<p>f1.append_data_to_stack(&#8216;detector1&#8217;, a)
-f2.append_data_to_stack(&#8216;detector2&#8217;, b)</p>
-<p>f1.append_data_to_stack(&#8216;counter1&#8217;, c1)
-f2.append_data_to_stack(&#8216;counter2&#8217;, c2)</p>
+<p>f1.append_data_to_stack(‘detector1’, a)
+f2.append_data_to_stack(‘detector2’, b)</p>
+<p>f1.append_data_to_stack(‘counter1’, c1)
+f2.append_data_to_stack(‘counter2’, c2)</p>
 <p>f1.write_stack_slice_and_increment()
 f2.write_stack_slice_and_increment()</p>
-<p>f1.create_link(&#8216;detectorname1&#8217;, &#8216;/name&#8217;)
-f2.create_link(&#8216;detectorname2&#8217;, &#8216;/name&#8217;)</p>
+<p>f1.create_link(‘detectorname1’, ‘/name’)
+f2.create_link(‘detectorname2’, ‘/name’)</p>
 <p>f1.close_file()
 f2.close_file()</p>
 <dl class="method">
@@ -191,18 +187,18 @@ the stack.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>str</em>) &#8211; stack name.</li>
-<li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 file where the stack will be written.</li>
-<li><strong></strong><strong>(</strong><strong>Union</strong><strong>[</strong><strong>numpy.ndarray</strong><strong>, </strong><strong>bytes</strong><strong>, </strong><strong>int</strong><strong>, </strong><strong>float</strong><strong>]</strong><strong></strong> (<em>initial_data</em>) &#8211; initial entry in the stack. It gets written to the</li>
-<li><strong>as slice 0. Its characteristics are used to validate all data subsequently appended to the stack.</strong> (<em>stack</em>) &#8211; </li>
-<li><strong>axes</strong> (<em>bytes</em>) &#8211; the &#8216;axes&#8217; attribute for the stack, as defined by the CXIDB file format.</li>
-<li><strong>compression</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>bool</em><em>,</em><em>str</em><em>]</em><em></em>) &#8211; compression parameter for the stack. This parameters works in the same</li>
-<li><strong>as the normal compression parameter from h5py. The default value of this parameter is True.</strong> (<em>way</em>) &#8211; </li>
-<li><strong>chunk_size</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>tuple</em><em>]</em><em></em>) &#8211; HDF5 chuck size for the stack. If this parameter is set to None, the</li>
-<li><strong>writer will compute a chuck size automatically</strong> (<em>CXI</em>) &#8211; </li>
-<li><strong>use the provided tuple to set the chunk size.</strong> (<em>will</em>) &#8211; </li>
-<li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, a stack already existing at the same location will be overwritten. If set</li>
-<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite a stack will raise an error.</strong> (<em>to</em>) &#8211; </li>
+<li><strong>name</strong> (<em>str</em>) – stack name.</li>
+<li><strong>path</strong> (<em>str</em>) – path in the hdf5 file where the stack will be written.</li>
+<li><strong>(</strong><strong>Union</strong><strong>[</strong><strong>numpy.ndarray</strong><strong>, </strong><strong>bytes</strong><strong>, </strong><strong>int</strong><strong>, </strong><strong>float</strong><strong>]</strong> (<em>initial_data</em>) – initial entry in the stack. It gets written to the</li>
+<li><strong>as slice 0. Its characteristics are used to validate all data subsequently appended to the stack.</strong> (<em>stack</em>) – </li>
+<li><strong>axes</strong> (<em>bytes</em>) – the ‘axes’ attribute for the stack, as defined by the CXIDB file format.</li>
+<li><strong>compression</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>bool</em><em>,</em><em>str</em><em>]</em>) – compression parameter for the stack. This parameters works in the same</li>
+<li><strong>as the normal compression parameter from h5py. The default value of this parameter is True.</strong> (<em>way</em>) – </li>
+<li><strong>chunk_size</strong> (<em>Union</em><em>[</em><em>None</em><em>, </em><em>tuple</em><em>]</em>) – HDF5 chuck size for the stack. If this parameter is set to None, the</li>
+<li><strong>writer will compute a chuck size automatically</strong> (<em>CXI</em>) – </li>
+<li><strong>use the provided tuple to set the chunk size.</strong> (<em>will</em>) – </li>
+<li><strong>overwrite</strong> (<em>bool</em>) – if set to True, a stack already existing at the same location will be overwritten. If set</li>
+<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite a stack will raise an error.</strong> (<em>to</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -222,9 +218,9 @@ the write_slice_and_increment.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>str</em>) &#8211; stack name, defining the stack to which the data will be appended.</li>
-<li><strong></strong><strong>(</strong><strong>Union</strong><strong>[</strong><strong>numpy.ndarray</strong><strong>, </strong><strong>bytes</strong><strong>, </strong><strong>int</strong><strong>, </strong><strong>float</strong><strong>]</strong><strong></strong> (<em>data</em>) &#8211; data to write. The data will be validated against the type</li>
-<li><strong>size of previous entries in the stack.</strong> (<em>and</em>) &#8211; </li>
+<li><strong>name</strong> (<em>str</em>) – stack name, defining the stack to which the data will be appended.</li>
+<li><strong>(</strong><strong>Union</strong><strong>[</strong><strong>numpy.ndarray</strong><strong>, </strong><strong>bytes</strong><strong>, </strong><strong>int</strong><strong>, </strong><strong>float</strong><strong>]</strong> (<em>data</em>) – data to write. The data will be validated against the type</li>
+<li><strong>size of previous entries in the stack.</strong> (<em>and</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -251,10 +247,10 @@ value of the overwrite parameter is True.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>str</em>) &#8211; name of the stack or entry to which the link points.</li>
-<li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 where the link is created.</li>
-<li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, an entry already existing at the same location will be overwritten. If set</li>
-<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) &#8211; </li>
+<li><strong>name</strong> (<em>str</em>) – name of the stack or entry to which the link points.</li>
+<li><strong>path</strong> (<em>str</em>) – path in the hdf5 where the link is created.</li>
+<li><strong>overwrite</strong> (<em>bool</em>) – if set to True, an entry already existing at the same location will be overwritten. If set</li>
+<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -273,10 +269,10 @@ the specified path, it is deleted and replaced only if the value of the overwrit
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>group</strong> (<em>str</em>) &#8211; internal HDF5 path of the group to which the link points.</li>
-<li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 where the link is created.</li>
-<li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, an entry already existing at the same location will be overwritten. If set</li>
-<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) &#8211; </li>
+<li><strong>group</strong> (<em>str</em>) – internal HDF5 path of the group to which the link points.</li>
+<li><strong>path</strong> (<em>str</em>) – path in the hdf5 where the link is created.</li>
+<li><strong>overwrite</strong> (<em>bool</em>) – if set to True, an entry already existing at the same location will be overwritten. If set</li>
+<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -329,6 +325,42 @@ stacks can be added to the CXI Writer after initialization.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="cfelpyutils.cfel_cxi.CXIWriter.is_entry_in_file">
+<code class="descname">is_entry_in_file</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.is_entry_in_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if an entry is already present in the file.</p>
+<p>Checks if an entry is already present in the file at the path provided by the user. It will return True if
+either a dataset or a group are present at the specified path</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – the path where to check for a dataset or group</td>
+</tr>
+</tbody>
+</table>
+<p>Results:</p>
+<blockquote>
+<div>ret (bool): True if a group or dataset can be found in the file, False otherwise</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="cfelpyutils.cfel_cxi.CXIWriter.num_slices_in_file">
+<code class="descname">num_slices_in_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.num_slices_in_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of slices already written in the file</p>
+<p>Returns the number of slices that have already been written in the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">number of writter slices</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">status (num_slices)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="cfelpyutils.cfel_cxi.CXIWriter.stacks_are_initialized">
 <code class="descname">stacks_are_initialized</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_cxi.CXIWriter.stacks_are_initialized" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if stacks are initialized.</p>
@@ -357,11 +389,11 @@ operations (for example, creating a link).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>str</em>) &#8211; entry name</li>
-<li><strong>path</strong> (<em>str</em>) &#8211; path in the hdf5 file where the entry will be written.</li>
-<li><strong>data</strong> (<em>Union</em><em>[</em><em>numpy.ndarray</em><em>, </em><em>bytes</em><em>, </em><em>int</em><em>, </em><em>float</em><em>]</em><em></em>) &#8211; data to write</li>
-<li><strong>overwrite</strong> (<em>bool</em>) &#8211; if set to True, an entry already existing at the same location will be overwritten. If set</li>
-<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) &#8211; </li>
+<li><strong>name</strong> (<em>str</em>) – entry name</li>
+<li><strong>path</strong> (<em>str</em>) – path in the hdf5 file where the entry will be written.</li>
+<li><strong>data</strong> (<em>Union</em><em>[</em><em>numpy.ndarray</em><em>, </em><em>bytes</em><em>, </em><em>int</em><em>, </em><em>float</em><em>]</em>) – data to write</li>
+<li><strong>overwrite</strong> (<em>bool</em>) – if set to True, an entry already existing at the same location will be overwritten. If set</li>
+<li><strong>False</strong><strong>, </strong><strong>an attempt to overwrite an entry will raise an error.</strong> (<em>to</em>) – </li>
 </ul>
 </td>
 </tr>
@@ -397,7 +429,7 @@ it (See the documentation of the fabio python module).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stream</strong> (<em>str</em>) &#8211; a data string buffer received from the PETRAIII P11 sender.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stream</strong> (<em>str</em>) – a data string buffer received from the PETRAIII P11 sender.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
 <dt>a cbfimage object containing the data extracted</dt>
@@ -417,11 +449,53 @@ it (See the documentation of the fabio python module).</p>
 <p>Utilities for CrystFEL-style geometry files.</p>
 <p>This module contains utilities for the processing of CrystFEL-style geometry
 files.</p>
+<dl class="class">
+<dt id="cfelpyutils.cfel_geom.ImageShape">
+<em class="property">class </em><code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">ImageShape</code><span class="sig-paren">(</span><em>ss</em>, <em>fs</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.ImageShape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="cfelpyutils.cfel_geom.ImageShape.fs">
+<code class="descname">fs</code><a class="headerlink" href="#cfelpyutils.cfel_geom.ImageShape.fs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cfelpyutils.cfel_geom.ImageShape.ss">
+<code class="descname">ss</code><a class="headerlink" href="#cfelpyutils.cfel_geom.ImageShape.ss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cfelpyutils.cfel_geom.PixelMaps">
+<em class="property">class </em><code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">PixelMaps</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.PixelMaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="cfelpyutils.cfel_geom.PixelMaps.r">
+<code class="descname">r</code><a class="headerlink" href="#cfelpyutils.cfel_geom.PixelMaps.r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cfelpyutils.cfel_geom.PixelMaps.x">
+<code class="descname">x</code><a class="headerlink" href="#cfelpyutils.cfel_geom.PixelMaps.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="cfelpyutils.cfel_geom.PixelMaps.y">
+<code class="descname">y</code><a class="headerlink" href="#cfelpyutils.cfel_geom.PixelMaps.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="cfelpyutils.cfel_geom.apply_geometry_from_file">
 <code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">apply_geometry_from_file</code><span class="sig-paren">(</span><em>data_as_slab</em>, <em>geometry_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.apply_geometry_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parses a geometry file and applies the geometry to data.</p>
-<p>Parses a geometry file and applies the geometry to detector data in &#8216;slab&#8217; format. Turns a 2d array of pixel
+<p>Parses a geometry file and applies the geometry to detector data in ‘slab’ format. Turns a 2d array of pixel
 values into an array containing a representation of the physical layout of the detector, keeping the origin of
 the reference system at the beam interaction point.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -429,8 +503,8 @@ the reference system at the beam interaction point.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data_as_slab</strong> (<em>numpy.ndarray</em>) &#8211; the pixel values to which geometry is to be applied.</li>
-<li><strong>geometry_filename</strong> (<em>str</em>) &#8211; geometry filename.</li>
+<li><strong>data_as_slab</strong> (<em>numpy.ndarray</em>) – the pixel values to which geometry is to be applied.</li>
+<li><strong>geometry_filename</strong> (<em>str</em>) – geometry filename.</li>
 </ul>
 </td>
 </tr>
@@ -447,9 +521,9 @@ detector, with the origin of the  reference system at the beam interaction point
 
 <dl class="function">
 <dt id="cfelpyutils.cfel_geom.apply_geometry_from_pixel_maps">
-<code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">apply_geometry_from_pixel_maps</code><span class="sig-paren">(</span><em>data_as_slab</em>, <em>yx</em>, <em>im_out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.apply_geometry_from_pixel_maps" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">apply_geometry_from_pixel_maps</code><span class="sig-paren">(</span><em>data_as_slab</em>, <em>y</em>, <em>x</em>, <em>im_out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.apply_geometry_from_pixel_maps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies geometry in pixel map format to data.</p>
-<p>Applies geometry, in the form of pixel maps, to detector data in &#8216;slab&#8217; format. Turns a 2d array of pixel values
+<p>Applies geometry, in the form of pixel maps, to detector data in ‘slab’ format. Turns a 2d array of pixel values
 into an array containing a representation of the physical layout of the detector, keeping the origin of the
 reference system at the beam interaction point.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -457,10 +531,11 @@ reference system at the beam interaction point.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data_as_slab</strong> (<em>numpy.ndarray</em>) &#8211; the pixel values to which geometry is to be applied.</li>
-<li><strong>yx</strong> (<em>tuple</em>) &#8211; the yx pixel maps describing the geometry of the detector; each map is a numpy.ndarray.</li>
-<li><strong>im_out</strong> (<em>Optional</em><em>[</em><em>numpy.ndarray</em><em>]</em><em></em>) &#8211; array to hold the output; if not provided, one will be generated</li>
-<li><strong>automatically.</strong> &#8211; </li>
+<li><strong>data_as_slab</strong> (<em>numpy.ndarray</em>) – the pixel values to which geometry is to be applied.</li>
+<li><strong>y</strong> (<em>numpy.ndarray</em>) – the y pixel map describing the geometry of the detector</li>
+<li><strong>x</strong> (<em>numpy.ndarray</em>) – the x pixel map describing the geometry of the detector</li>
+<li><strong>im_out</strong> (<em>Optional</em><em>[</em><em>numpy.ndarray</em><em>]</em>) – array to hold the output; if not provided, one will be generated</li>
+<li><strong>automatically.</strong> – </li>
 </ul>
 </td>
 </tr>
@@ -476,26 +551,46 @@ detector, with the origin of the  reference system at the beam interaction point
 </dd></dl>
 
 <dl class="function">
-<dt id="cfelpyutils.cfel_geom.pixel_maps_for_image_view">
-<code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">pixel_maps_for_image_view</code><span class="sig-paren">(</span><em>geometry_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.pixel_maps_for_image_view" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parses a geometry file and creates pixel maps for pyqtgraph visualization.</p>
-<p>Parse the geometry file and creates pixel maps for an  array in &#8216;slab&#8217; format containing pixel values. The pixel
-maps can be used to create a representation of the physical layout of the detector in a pyqtgraph ImageView
-widget (i.e. they apply the detector geometry setting the origin of the reference system is in the top left corner
-of the output array).</p>
+<dt id="cfelpyutils.cfel_geom.get_image_shape">
+<code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">get_image_shape</code><span class="sig-paren">(</span><em>geometry_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.get_image_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a geometry file and returns the minimum size of an image that can represent the detector.</p>
+<p>Parses the geometry file and return a numpy shape object representing the minimum size of an image that
+can contain the physical representation of the detector. The representation is centered at the point where the beam
+hits the detector according to the geometry in the file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry_filename</strong> (<em>str</em>) &#8211; geometry filename.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry_filename</strong> (<em>str</em>) – geometry filename.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">pixel maps<p>slab_shape tuple (int, int): shape of the original geometry uncorrected array (the pixel values in &#8220;slab&#8221;
-format).</p>
-<p>img_shape tuple (int, int): shape of the array needed to contain the representation of the physical layout
-of the detector.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">shape of the array needed to contain the representation of the physical layout
+of the detector.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">img_shape tuple (int, int)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.cfel_geom.pixel_maps_for_image_view">
+<code class="descclassname">cfelpyutils.cfel_geom.</code><code class="descname">pixel_maps_for_image_view</code><span class="sig-paren">(</span><em>geometry_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_geom.pixel_maps_for_image_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a geometry file and creates pixel maps for pyqtgraph visualization.</p>
+<p>Parses the geometry file and creates pixel maps for an  array in ‘slab’ format containing pixel values. The pixel
+maps can be used to create a representation of the physical layout of the detector in a pyqtgraph ImageView
+widget (i.e. they apply the detector geometry setting the origin of the reference system is in the top left corner
+of the output array). The representation is centered at the point where the beam hits the detector according to
+the geometry in the file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry_filename</strong> (<em>str</em>) – geometry filename.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">pixel map for x coordinate<p>y (numpy.ndarray int): pixel map for x coordinate</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">(y, x) (numpy.ndarray int, numpy.ndarray int)</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#cfelpyutils.cfel_geom.PixelMaps.x" title="cfelpyutils.cfel_geom.PixelMaps.x">x</a> (numpy.ndarray int)</td>
 </tr>
 </tbody>
 </table>
@@ -512,12 +607,12 @@ point.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fnam</strong> (<em>str</em>) &#8211; geometry filename.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fnam</strong> (<em>str</em>) – geometry filename.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">slab-like pixel maps with
 respectively x, y coordinates of the pixel and distance of the pixel from the center of the reference system.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">x,y,r (numpy.ndarray float, numpy.ndarray float, numpy.ndarray float)</td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#cfelpyutils.cfel_geom.PixelMaps.x" title="cfelpyutils.cfel_geom.PixelMaps.x">x</a>,<a class="reference internal" href="#cfelpyutils.cfel_geom.PixelMaps.y" title="cfelpyutils.cfel_geom.PixelMaps.y">y</a>,<a class="reference internal" href="#cfelpyutils.cfel_geom.PixelMaps.r" title="cfelpyutils.cfel_geom.PixelMaps.r">r</a> (numpy.ndarray float, numpy.ndarray float, numpy.ndarray float)</td>
 </tr>
 </tbody>
 </table>
@@ -538,8 +633,8 @@ on what the h5py module already provides.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data_filename</strong> (<em>str</em>) &#8211; filename of the file to read.</li>
-<li><strong>data_group</strong> (<em>str</em>) &#8211; internal HDF5 path of the data block to read.</li>
+<li><strong>data_filename</strong> (<em>str</em>) – filename of the file to read.</li>
+<li><strong>data_group</strong> (<em>str</em>) – internal HDF5 path of the data block to read.</li>
 </ul>
 </td>
 </tr>
@@ -599,7 +694,7 @@ the parser tries to interpret the entry in order as:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<em>class RawConfigParser</em>) &#8211; ConfigParser instance.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<em>class RawConfigParser</em>) – ConfigParser instance.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the same structure as the input dictionary, but with correct types
 assigned to each entry.</td>
@@ -619,13 +714,13 @@ assigned to each entry.</td>
 <dt id="cfelpyutils.cfel_psana.dirname_from_source_runs">
 <code class="descclassname">cfelpyutils.cfel_psana.</code><code class="descname">dirname_from_source_runs</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_psana.dirname_from_source_runs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a directory name based on a psana source string.</p>
-<p>Takes a psana source string (e.g exp=CXI/cxix....) and returns a string that can be used as a subdirectory name or
+<p>Takes a psana source string (e.g exp=CXI/cxix….) and returns a string that can be used as a subdirectory name or
 a prefix for files and directories.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<em>str</em>) &#8211; a psana source string (e.g. exp=CXI/cxi....).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<em>str</em>) – a psana source string (e.g. exp=CXI/cxi….).</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a string that can be used as a filename or a prefix .</td>
 </tr>
@@ -639,13 +734,13 @@ a prefix for files and directories.</p>
 <dt id="cfelpyutils.cfel_psana.psana_event_inspection">
 <code class="descclassname">cfelpyutils.cfel_psana.</code><code class="descname">psana_event_inspection</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.cfel_psana.psana_event_inspection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints the structure of psana events.</p>
-<p>Takes a psana source string (e.g. exp=CXI/cxix....) and inspects the structure of the first event in the data,
+<p>Takes a psana source string (e.g. exp=CXI/cxix….) and inspects the structure of the first event in the data,
 printing information about the the content of the event.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<em>str</em>) &#8211; a psana source string (e.g. exp=CXI/cxix....).</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<em>str</em>) – a psana source string (e.g. exp=CXI/cxix….).</td>
 </tr>
 </tbody>
 </table>
@@ -660,7 +755,7 @@ printing information about the the content of the event.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) &#8211; a string describing a python type.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>str</em>) – a string describing a python type.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the python type described by the string.</td>
 </tr>
@@ -705,7 +800,7 @@ python to work with several file format used in x-ray imaging).</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, CFEL Team.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
     </div>
   </body>
 </html>

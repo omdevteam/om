@@ -12,19 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
-
-
 """
 Utilities based on the psana python module.
 
 This module provides utilities that build on the functionality provided by the psana python module.
 """
 
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 
 def psana_obj_from_string(name):
@@ -112,7 +107,7 @@ def dirname_from_source_runs(source):
         stop = len(source)
     runs = source[start:stop]
     nums = runs.split(',')
-    if len(nums) == 0:
+    if not nums:
         nums = runs
     dirname = 'run_' + '_'.join(nums)
     return dirname
