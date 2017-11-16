@@ -23,7 +23,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import re
 from collections import OrderedDict
-from copy import deepcopy
+from copy import deepcopy   
 from math import sqrt
 
 
@@ -602,4 +602,9 @@ def load_crystfel_geometry(filename):
     _find_min_max_d(detector)
     fh.close()
 
+    # The code of this function is synced with the code of the function
+    # 'get_detector_geometry_2' in CrystFEL at commit 41a8fa9819010fe8ddeb66676fee717f5226c7b8
+
     return detector
+
+
