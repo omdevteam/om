@@ -83,7 +83,7 @@ class DarkCalCorrection:
         else:
             self._gain_map = True
 
-    def apply_darkcal_correction(self, data_as_slab):
+    def apply_darkcal_correction(self, data):
         """Applies the correction.
 
         Args:

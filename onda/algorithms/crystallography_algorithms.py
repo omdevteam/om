@@ -123,7 +123,7 @@ class PeakAccumulator:
     full list of accumulated peaks.
     """
 
-    def __init__(self, accumulated_shots):
+    def __init__(self, num_events_to_accumulate):
         """Initializes the accumulator
 
         Args:
@@ -184,7 +184,7 @@ class Peakfinder8PeakDetection:
     def __init__(self, max_num_peaks, asic_nx, asic_ny, nasics_x,
                  nasics_y, adc_threshold, minimum_snr, min_pixel_count,
                  max_pixel_count, local_bg_radius, min_res,
-                 max_res, mask_filename, mask_hdf5_path, pixelmap_radius):
+                 max_res, bad_pixel_map_filename, bad_pixel_map_hdf5_group, radius_pixelmap):
         """Initializes the peakfinder.
 
         Args:

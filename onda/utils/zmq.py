@@ -18,6 +18,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import zmq
+import socket
+import sys
 
 try:
     from cPickle import loads
@@ -75,3 +77,28 @@ class ZMQListener(QtCore.QObject):
             msg = full_msg[1]
             zmq_dict = loads(msg)
             self.zmqmessage.emit(zmq_dict)
+
+
+class ZMQOndaPublisherSocket:
+    def __init__(self, publish_ip, publish_port):
+
+        self._context = zmq.Context()
+        self._sock = self._context.socket(zmq.PUB)
+
+        if publish_ip is not None:
+            pip = publish_ip
+        else:
+            pip = [(s.connect(('8.8.8.8', 80)), s.getsockname()[0],
+                    s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+        if publish_port is not None:
+            pport = publish_port
+        else:
+            pport = 12321
+        print('Binding to tcp://{0}:{1}'.format(pip, pport))
+        sys.stdout.flush()
+        self._sock.set_hwm(1)
+        self._sock.bind('tcp://%s:%d' % (pip, pport))
+
+    def send_data(self, tag, message):
+        self._sock.send(tag.encode(), zmq.SNDMORE)
+        self._sock.send_pyobj(message)

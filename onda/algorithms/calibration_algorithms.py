@@ -17,7 +17,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import cfelpyutils.cfel_hdf5 as ch5
+from onda.cfelpyutils import cfel_hdf5
 
 
 #######################
@@ -32,26 +32,29 @@ class LambdaCalibration:
     flatfield correction.
     """
 
-    def __init__(self, calibration_filename):
+    def __init__(self, calibration_file_name):
         """Initializes the calibration algorithm.
 
         Args:
 
             calibration filename (str): name of the hdf5 file with the
-            calibration data.
+                calibration data.
         """
 
-        self._flatfield = ch5.load_nparray_from_hdf5_file(calibration_filename,
-                                                          '/flatfieldcorrect')
+        self._flatfield = cfel_hdf5.load_nparray_from_hdf5_file(
+            data_file_name=calibration_file_name,
+            data_hdf5_group='/flatfieldcorrect'
+        )
 
     def apply_calibration(self, raw_data):
         """Applies the calibration.
 
-        Applies the calibration to the raw_data.
+        Applies the calibration to the data provided by the user.
 
         Args:
 
-            raw_data (numpy.ndarray): the data on which the calibration must be applied, in 'slab' format.
+            raw_data (numpy.ndarray): the data on which the calibration must
+                be applied, in 'slab' format.
 
         Returns:
 

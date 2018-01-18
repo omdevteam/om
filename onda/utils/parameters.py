@@ -27,7 +27,7 @@ from ondautils.onda_exception_utils import (MissingParameter,
 monitor_params = {}
 
 
-def param(section, parameter, type_=None, required=False):
+def get_param(section, parameter, type_=None, required=False):
 
     # Check if the requested section exists in the parameter file
     if section not in monitor_params:
