@@ -27,24 +27,33 @@ import numpy
 
 
 def load_nparray_from_hdf5_file(data_filename, data_group):
-    """Loads a numpy.ndarray from an HDF5 file.
+    """Load a numpy.ndarray from an HDF5 file.
 
     Args:
 
        data_filename (str): filename of the file to read.
 
-       data_group (str): internal HDF5 path of the data block to read.
+       data_group (str): internal HDF5 path of the data block containing
+       the array to load.
 
     Returns:
 
-       nparray (numpy.ndarray): numpy array with the data read from the file.
+       ndarray: numpy array with the data read from the file.
     """
     try:
 
+        # Open the h5py file, and try to read the data.
         with h5py.File(data_filename, 'r') as hdfile:
             nparray = numpy.array(hdfile[data_group])
             hdfile.close()
     except:
-        raise RuntimeError('Error reading file {0} (data block: {1}).'.format(data_filename, data_group))
+
+        # Raise an exception in case of error.
+        raise RuntimeError(
+            'Error reading file {0} (data block: {1}).'.format(
+                data_filename,
+                data_group
+            )
+        )
     else:
         return nparray
