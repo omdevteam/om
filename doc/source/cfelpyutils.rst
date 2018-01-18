@@ -4,58 +4,42 @@ cfelpyutils package
 Submodules
 ----------
 
-cfelpyutils.cfel_crystfel module
+cfelpyutils\.crystfel\_utils module
+-----------------------------------
+
+.. automodule:: cfelpyutils.crystfel_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+cfelpyutils\.geometry\_utils module
+-----------------------------------
+
+.. automodule:: cfelpyutils.geometry_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+cfelpyutils\.hdf5\_utils module
+-------------------------------
+
+.. automodule:: cfelpyutils.hdf5_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+cfelpyutils\.parameter\_utils module
+------------------------------------
+
+.. automodule:: cfelpyutils.parameter_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+cfelpyutils\.psana\_utils module
 --------------------------------
 
-.. automodule:: cfelpyutils.cfel_crystfel
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cfelpyutils.cfel_cxi module
----------------------------
-
-.. automodule:: cfelpyutils.cfel_cxi
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cfelpyutils.cfel_fabio module
------------------------------
-
-.. automodule:: cfelpyutils.cfel_fabio
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cfelpyutils.cfel_geom module
-----------------------------
-
-.. automodule:: cfelpyutils.cfel_geom
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cfelpyutils.cfel_hdf5 module
-----------------------------
-
-.. automodule:: cfelpyutils.cfel_hdf5
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cfelpyutils.cfel_optarg module
-------------------------------
-
-.. automodule:: cfelpyutils.cfel_optarg
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-cfelpyutils.cfel_psana module
------------------------------
-
-.. automodule:: cfelpyutils.cfel_psana
+.. automodule:: cfelpyutils.psana_utils
     :members:
     :undoc-members:
     :show-inheritance:
