@@ -21,23 +21,39 @@ This module contains reimplementation of Crystfel functions and utilities.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import collections
+import copy
+import math
 import re
-from collections import OrderedDict
-from copy import deepcopy   
-from math import sqrt
 
 
 def _assplode_algebraic(value):
-    items = [item for item in re.split('([+-])', value.strip()) if item != '']
+    # Reimplementation of assplode_algegraic from
+    # libcrystfel/src/detector.c.
+
+    items = [
+        item for item in re.split(
+            pattern='([+-])', string=value.strip()
+        ) if item != ''
+    ]
 
     if items and items[0] not in ('+', '-'):
-        items.insert(0, '+')
+        items.insert(index=0, object='+')
 
-    return [''.join((items[x], items[x + 1])) for x in range(0, len(items), 2)]
+    return [
+        ''.join(
+            iterable=(items[x], items[x + 1])
+        ) for x in range(start=0, stop=len(items), step=2)
+    ]
 
 
 def _dir_conv(direction_x, direction_y, direction_z, value):
-    direction = [direction_x, direction_y, direction_z]
+    # Reimplementation of dir_conv from
+    # libcrystfel/src/detector.c.
+
+    direction = [
+        direction_x, direction_y, direction_z
+    ]
 
     items = _assplode_algebraic(value)
 
@@ -48,7 +64,9 @@ def _dir_conv(direction_x, direction_y, direction_z, value):
         axis = item[-1]
 
         if axis != 'x' and axis != 'y' and axis != 'z':
-            raise RuntimeError('Invalid Symbol: {} (must be x, y or z).'.format(axis))
+            raise RuntimeError(
+                'Invalid Symbol: {} (must be x, y or z).'.format(axis)
+            )
 
         if item[:-1] == '+':
             value = '1.0'
@@ -68,6 +86,9 @@ def _dir_conv(direction_x, direction_y, direction_z, value):
 
 
 def _set_dim_structure_entry(key, value, panel):
+    # Reimplementation of set_dim_structure_entry from
+    # libcrystfel/src/events.c.
+
     if panel['dim_structure'] is not None:
         dim = panel['dim_structure']
     else:
@@ -76,7 +97,7 @@ def _set_dim_structure_entry(key, value, panel):
     dim_index = int(key[3])
 
     if dim_index > len(dim) - 1:
-        for _ in range(len(dim), dim_index + 1):
+        for _ in range(start=len(dim), stop=dim_index + 1):
             dim.append(None)
 
     if value == 'ss' or value == 'fs' or value == '%':
@@ -88,6 +109,9 @@ def _set_dim_structure_entry(key, value, panel):
 
 
 def _parse_field_for_panel(key, value, panel):
+    # Reimplementation of parse_field_for_panel from
+    # libcrystfel/src/detector.c.
+
     if key == 'min_fs':
         panel['origin_min_fs'] = int(value)
         panel['min_fs'] = int(value)
@@ -112,12 +136,14 @@ def _parse_field_for_panel(key, value, panel):
 
     elif key == 'rail_direction':
         try:
-            panel['rail_x'], panel['rail_y'], panel['rail_z'] = _dir_conv(panel['rail_x'],
-                                                                          panel['rail_y'],
-                                                                          panel['rail_z'],
-                                                                          value)
-        except RuntimeError as e:
-            raise RuntimeError('Invalid rail direction. ', e)
+            panel['rail_x'], panel['rail_y'], panel['rail_z'] = _dir_conv(
+                direction_x=panel['rail_x'],
+                direction_y=panel['rail_y'],
+                direction_z=panel['rail_z'],
+                value=value
+            )
+        except RuntimeError as exc:
+            raise RuntimeError('Invalid rail direction. ', exc)
 
     elif key == 'clen_for_centering':
         panel['clen_for_centering'] = float(value)
@@ -188,39 +214,54 @@ def _parse_field_for_panel(key, value, panel):
 
     elif key == 'fs':
         try:
-            panel['fsx'], panel['fsy'], panel['fsz'] = _dir_conv(panel['fsx'], panel['fsy'],
-                                                                 panel['fsz'], value)
+            panel['fsx'], panel['fsy'], panel['fsz'] = _dir_conv(
+                direction_x=panel['fsx'],
+                direction_y=panel['fsy'],
+                direction_z=panel['fsz'],
+                value=value
+            )
 
-        except RuntimeError as e:
-            raise RuntimeError('Invalid fast scan direction. ', e)
+        except RuntimeError as exc:
+            raise RuntimeError('Invalid fast scan direction. ', exc)
 
     elif key == 'ss':
         try:
-            panel['ssx'], panel['ssy'], panel['ssz'] = _dir_conv(panel['ssx'], panel['ssy'],
-                                                                 panel['ssz'], value)
+            panel['ssx'], panel['ssy'], panel['ssz'] = _dir_conv(
+                direction_x=panel['ssx'],
+                direction_y=panel['ssy'],
+                direction_z=panel['ssz'],
+                value=value
+            )
 
-        except RuntimeError as e:
-            raise RuntimeError('Invalid slow scan direction. ', e)
+        except RuntimeError as exc:
+            raise RuntimeError('Invalid slow scan direction. ', exc)
 
     elif key.startswith('dim'):
-        _set_dim_structure_entry(key, value, panel)
+        _set_dim_structure_entry(
+            key=key,
+            value=value,
+            panel=panel
+        )
 
     else:
         raise RuntimeError('Unrecognised field: {}'.format(key))
 
 
-def _parse_top_level(key, value, detector, beam, panel):
+def _parse_toplevel(key, value, detector, beam, panel):
+    # Reimplementation of parse_toplevel from
+    # libcrystfel/src/detector.c.
+
     if key == 'mask_bad':
         try:
             detector['mask_bad'] = int(value)
         except ValueError:
-            detector['mask_bad'] = int(value, 16)
+            detector['mask_bad'] = int(x=value, base=16)
 
     elif key == 'mask_good':
         try:
             detector['mask_good'] = int(value)
         except ValueError:
-            detector['mask_good'] = int(value, 16)
+            detector['mask_good'] = int(x=value, base=16)
 
     elif key == 'coffset':
         panel['coffset'] = float(value)
@@ -239,17 +280,26 @@ def _parse_top_level(key, value, detector, beam, panel):
     elif key == 'peak_info_location':
         detector['peak_info_location'] = value
 
-    elif key.startswith('rigid_group') and not key.startswith('rigid_group_collection'):
+    elif (
+            key.startswith('rigid_group') and not
+            key.startswith('rigid_group_collection')
+    ):
         detector['rigid_groups'][key[12:]] = value.split(',')
 
     elif key.startswith('rigid_group_collection'):
         detector['rigid_group_collections'][key[23:]] = value.split(',')
 
     else:
-        _parse_field_for_panel(key, value, panel)
+        _parse_field_for_panel(
+            key=key,
+            value=value,
+            panel=panel
+        )
 
 
 def _check_bad_fsss(bad_region, is_fsss):
+    # Reimplementation of check_bad_fsss from
+    # libcrystfel/src/detector.c.
     if bad_region['is_fsss'] == 99:
         bad_region['is_fsss'] = is_fsss
         return
@@ -261,30 +311,32 @@ def _check_bad_fsss(bad_region, is_fsss):
 
 
 def _parse_field_bad(key, value, bad):
+    # Reimplementation of parse_field_bad from
+    # libcrystfel/src/detector.c.
     if key == 'min_x':
-        bad['min_x'] = float(value)
-        _check_bad_fsss(bad, False)
+        bad['min_x'] = float(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=False)
     elif key == 'max_x':
-        bad['max_x'] = float(value)
-        _check_bad_fsss(bad, False)
+        bad['max_x'] = float(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=False)
     elif key == 'min_y':
-        bad['min_y'] = float(value)
-        _check_bad_fsss(bad, False)
+        bad['min_y'] = float(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=False)
     elif key == 'max_y':
-        bad['max_y'] = float(value)
-        _check_bad_fsss(bad, False)
+        bad['max_y'] = float(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=False)
     elif key == 'min_fs':
-        bad['min_fs'] = int(value)
-        _check_bad_fsss(bad, True)
+        bad['min_fs'] = int(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=True)
     elif key == 'max_fs':
-        bad['max_fs'] = int(value)
-        _check_bad_fsss(bad, True)
+        bad['max_fs'] = int(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=True)
     elif key == 'min_ss':
-        bad['min_ss'] = int(value)
-        _check_bad_fsss(bad, True)
+        bad['min_ss'] = int(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=True)
     elif key == 'max_ss':
-        bad['max_ss'] = int(value)
-        _check_bad_fsss(bad, True)
+        bad['max_ss'] = int(x=value)
+        _check_bad_fsss(bad_region=bad, is_fsss=True)
     elif key == 'panel':
         bad['panel'] = value
     else:
@@ -293,59 +345,106 @@ def _parse_field_bad(key, value, bad):
     return
 
 
-def _check_point(name, panel, fs, ss, min_d, max_d, detector):
-    xs = fs * panel['fsx'] + ss * panel['ssx']
-    ys = fs * panel['fsy'] + ss * panel['ssy']
+def _check_point(name, panel, fs_, ss_, min_d, max_d, detector):
+    # Reimplementation of check_point from
+    # libcrystfel/src/detector.c.
 
-    rx = (xs + panel['cnx']) / panel['res']
-    ry = (ys + panel['cny']) / panel['res']
+    xs_ = fs_ * panel['fsx'] + ss_ * panel['ssx']
+    ys_ = fs_ * panel['fsy'] + ss_ * panel['ssy']
 
-    dist = sqrt(rx * rx + ry * ry)
+    rx_ = (xs_ + panel['cnx']) / panel['res']
+    ry_ = (ys_ + panel['cny']) / panel['res']
+
+    dist = math.sqrt(x=rx_ * rx_ + ry_ * ry_)
 
     if dist > max_d:
         detector['furthest_out_panel'] = name
-        detector['furthest_out_fs'] = fs
-        detector['furthest_out_ss'] = ss
+        detector['furthest_out_fs'] = fs_
+        detector['furthest_out_ss'] = ss_
         max_d = dist
     elif dist < min_d:
         detector['furthest_in_panel'] = name
-        detector['furthest_in_fs'] = fs
-        detector['furthest_in_ss'] = ss
+        detector['furthest_in_fs'] = fs_
+        detector['furthest_in_ss'] = ss_
         min_d = dist
 
     return min_d, max_d
 
 
 def _find_min_max_d(detector):
+    # Reimplementation of find_min_max_d from
+    # libcrystfel/src/detector.c.
+
     min_d = float('inf')
     max_d = 0.0
 
     for name, panel in detector['panels'].items():
-        min_d, max_d = _check_point(name, panel, 0, 0, min_d, max_d, detector)
-        min_d, max_d = _check_point(name, panel, panel['w'], 0, min_d, max_d, detector)
-        min_d, max_d = _check_point(name, panel, 0, panel['h'], min_d, max_d, detector)
-        min_d, max_d = _check_point(name, panel, panel['w'], panel['h'], min_d, max_d, detector)
+
+        min_d, max_d = _check_point(
+            name=name,
+            panel=panel,
+            fs_=0,
+            ss_=0,
+            min_d=min_d,
+            max_d=max_d,
+            detector=detector
+        )
+
+        min_d, max_d = _check_point(
+            name=name,
+            panel=panel,
+            fs_=panel['w'],
+            ss_=0,
+            min_d=min_d,
+            max_d=max_d,
+            detector=detector
+
+        )
+        min_d, max_d = _check_point(
+            name=name,
+            panel=panel,
+            fs_=0,
+            ss_=panel['h'],
+            min_d=min_d,
+            max_d=max_d,
+            detector=detector
+        )
+
+        min_d, max_d = _check_point(
+            name=name,
+            panel=panel,
+            fs_=panel['w'],
+            ss_=panel['h'],
+            min_d=min_d,
+            max_d=max_d,
+            detector=detector
+        )
 
 
 def load_crystfel_geometry(filename):
-    """Loads a CrystFEL geometry file into a dictionary.
+    """Load a CrystFEL geometry file into a dictionary.
 
-    Reimplements the get_detector_geometry_2 function from CrystFEL amost verbatim. Returns a dictionary with the
-    geometry information. Entries in the geometry file appears as keys in the returned dictionary. For a full
-    documentation on the CrystFEL geometry format, see:
+    Reimplementation of the get_detector_geometry_2 function from CrystFEL
+    almost verbatim. Returns a dictionary with the geometry information.
+    Entries in the geometry file appears as keys in the returned dictionary.
+    For a full documentation on the CrystFEL geometry format, see:
 
     tfel/manual-crystfel_geometry.html
 
+    he code of this function is synced with the code of the function
+    'get_detector_geometry_2' in CrystFEL at commit
+    41a8fa9819010fe8ddeb66676fee717f5226c7b8.
+
     Args:
 
-        filename (str): filename of the geometry file
+        filename (str): filename of the geometry file.
 
     Returns:
 
-        detector (dict): dictionary with the geometry loaded from the file
+        detector (dict): dictionary with the geometry loaded from the file.
     """
 
-    fh = open(filename, 'r')
+    fhandle = open(file=filename, mode='r')
 
     beam = {
         'photon_energy': 0.0,
@@ -354,8 +453,8 @@ def load_crystfel_geometry(filename):
     }
 
     detector = {
-        'panels': OrderedDict(),
-        'bad': OrderedDict(),
+        'panels': collections.OrderedDict(),
+        'bad': collections.OrderedDict(),
         'mask_good': 0,
         'mask_bad': 0,
         'rigid_groups': {},
@@ -382,7 +481,7 @@ def load_crystfel_geometry(filename):
         'clen_for_centering': None,
         'adu_per_eV': None,
         'adu_per_photon': None,
-        'max_adu': float('inf'),
+        'max_adu': float(x='inf'),
         'mask': None,
         'mask_file': None,
         'satmap': None,
@@ -407,18 +506,20 @@ def load_crystfel_geometry(filename):
 
     default_dim = ['ss', 'fs']
 
-    fhlines = fh.readlines()
+    fhlines = fhandle.readlines()
 
     for line in fhlines:
 
         if line.startswith(';'):
             continue
 
-        line_without_comments = line.strip().split(';')[0]
-        line_items = re.split('([ \t])', line_without_comments)
-        line_items = [item for item in line_items if item not in ('', ' ', '\t')]
+        line_without_comments = line.strip().split(sep=';')[0]
+        line_items = re.split(pattern='([ \t])', string=line_without_comments)
+        line_items = [
+            item for item in line_items if item not in ('', ' ', '\t')
+        ]
 
-        if len(line_items) < 3:
+        if len(s=line_items) < 3:
             continue
 
         value = ''.join(line_items[2:])
@@ -429,8 +530,14 @@ def load_crystfel_geometry(filename):
         path = re.split('(/)', line_items[0])
         path = [item for item in path if item not in '/']
 
-        if len(path) < 2:
-            _parse_top_level(line_items[0], value, detector, beam, default_panel)
+        if len(s=path) < 2:
+            _parse_toplevel(
+                key=line_items[0],
+                value=value,
+                detector=detector,
+                beam=beam,
+                panel=default_panel
+            )
             continue
 
         curr_bad = None
@@ -441,7 +548,7 @@ def load_crystfel_geometry(filename):
             if path[0] in detector['bad']:
                 curr_bad = detector['bad'][path[0]]
             else:
-                curr_bad = deepcopy(default_bad_region)
+                curr_bad = copy.deepcopy(default_bad_region)
                 detector['bad'][path[0]] = curr_bad
 
         else:
@@ -449,13 +556,21 @@ def load_crystfel_geometry(filename):
             if path[0] in detector['panels']:
                 curr_panel = detector['panels'][path[0]]
             else:
-                curr_panel = deepcopy(default_panel)
+                curr_panel = copy.deepcopy(default_panel)
                 detector['panels'][path[0]] = curr_panel
 
         if curr_panel is not None:
-            _parse_field_for_panel(path[1], value, curr_panel)
+            _parse_field_for_panel(
+                key=path[1],
+                value=value,
+                panel=curr_panel
+            )
         else:
-            _parse_field_bad(path[1], value, curr_bad)
+            _parse_field_bad(
+                key=path[1],
+                value=value,
+                bad=curr_bad
+            )
 
     if not detector['panels']:
         raise RuntimeError("No panel descriptions in geometry file.")
@@ -473,7 +588,10 @@ def load_crystfel_geometry(filename):
             num_placeholders_in_panels = curr_num_placeholders
         else:
             if curr_num_placeholders != num_placeholders_in_panels:
-                raise RuntimeError('All panels\' data and mask entries must have the same number of placeholders.')
+                raise RuntimeError(
+                    'All panels\' data and mask entries must have the same '
+                    'number of placeholders.'
+                )
 
     num_placeholders_in_masks = None
 
@@ -488,17 +606,23 @@ def load_crystfel_geometry(filename):
             num_placeholders_in_masks = curr_num_placeholders
         else:
             if curr_num_placeholders != num_placeholders_in_masks:
-                raise RuntimeError('All panels\' data and mask entries must have the same number of placeholders.')
+                raise RuntimeError(
+                    'All panels\' data and mask entries must have the same '
+                    'number of placeholders.'
+                )
 
     if num_placeholders_in_masks > num_placeholders_in_panels:
-        raise RuntimeError('Number of placeholders in mask cannot be larget than for data.')
+        raise RuntimeError(
+            'Number of placeholders in mask cannot be larger the number '
+            'than for data.'
+        )
 
     dim_length = None
 
     for panel in detector['panels'].values():
 
         if panel['dim_structure'] is None:
-            panel['dim_structure'] = deepcopy(default_dim)
+            panel['dim_structure'] = copy.deepcopy(default_dim)
 
         found_ss = False
         found_fs = False
@@ -506,61 +630,98 @@ def load_crystfel_geometry(filename):
 
         for entry in panel['dim_structure']:
             if entry is None:
-                raise RuntimeError('Not all dim entries are defined for all panels.')
+                raise RuntimeError(
+                    'Not all dim entries are defined for all panels.'
+                )
             elif entry == 'ss':
                 if found_ss is True:
-                    raise RuntimeError('Only one slow scan dim coordinate is allowed.')
+                    raise RuntimeError(
+                        'Only one slow scan dim coordinate is allowed.'
+                    )
                 else:
                     found_ss = True
             elif entry == 'fs':
                 if found_fs is True:
-                    raise RuntimeError('Only one fast scan dim coordinate is allowed.')
+                    raise RuntimeError(
+                        'Only one fast scan dim coordinate is allowed.'
+                    )
                 else:
                     found_fs = True
             elif entry == '%':
                 if found_placeholder is True:
-                    raise RuntimeError('Only one placeholder dim coordinate is allowed.')
+                    raise RuntimeError(
+                        'Only one placeholder dim coordinate is allowed.'
+                    )
                 else:
                     found_placeholder = True
 
         if dim_length is None:
             dim_length = len(panel['dim_structure'])
         elif dim_length != len(panel['dim_structure']):
-            raise RuntimeError('Number of dim coordinates must be the same for all panels.')
+            raise RuntimeError(
+                'Number of dim coordinates must be the same for all panels.'
+            )
 
         if dim_length == 1:
-            raise RuntimeError('Number of dim coordinates must be at least two.')
+            raise RuntimeError(
+                'Number of dim coordinates must be at least two.'
+            )
 
     for panel in detector['panels'].values():
 
         if panel['origin_min_fs'] < 0:
-            raise RuntimeError('Please specify the minimum fs coordinate for panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify the minimum fs coordinate for '
+                'panel {}.'.format(panel['name'])
+            )
 
         if panel['origin_max_fs'] < 0:
-            raise RuntimeError('Please specify the maximum fs coordinate for panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify the maximum fs coordinate for '
+                'panel {}.'.format(panel['name'])
+            )
 
         if panel['origin_min_ss'] < 0:
-            raise RuntimeError('Please specify the minimum ss coordinate for panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify the minimum ss coordinate for '
+                'panel {}.'.format(panel['name'])
+            )
 
         if panel['origin_max_ss'] < 0:
-            raise RuntimeError('Please specify the maximum ss coordinate for panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify the maximum ss coordinate for '
+                'panel {}.'.format(panel['name'])
+            )
 
         if panel['cnx'] is None:
-            raise RuntimeError('Please specify the corner X coordinate for panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify the corner X coordinate for '
+                'panel {}.'.format(panel['name'])
+            )
 
         if panel['clen'] is None and panel['clen_from'] is None:
-            raise RuntimeError('Please specify the camera length for panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify the camera length for '
+                'panel {}.'.format(panel['name'])
+            )
 
         if panel['res'] < 0:
-            raise RuntimeError('Please specify the resolution or panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify the resolution or '
+                'panel {}.'.format(panel['name'])
+            )
 
         if panel['adu_per_eV'] is None and panel['adu_per_photon'] is None:
-            raise RuntimeError('Please specify either adu_per_eV or adu_per_photon for '
-                               'panel {}.'.format(panel['name']))
+            raise RuntimeError(
+                'Please specify either adu_per_eV or adu_per_photon '
+                'for panel {}.'.format(panel['name'])
+            )
 
         if panel['clen_for_centering'] is None and panel['rail_x'] is not None:
-            raise RuntimeError('You must specify clen_for_centering if you specify the rail direction '
-                               '(panel {})'.format(panel['name']))
+            raise RuntimeError(
+                'You must specify clen_for_centering if you specify the'
+                'rail direction (panel {})'.format(panel['name'])
+            )
 
         if panel['rail_x'] is None:
             panel['rail_x'] = 0.0
@@ -575,36 +736,40 @@ def load_crystfel_geometry(filename):
 
     for bad_region in detector['bad'].values():
         if bad_region['is_fsss'] == 99:
-            raise RuntimeError('Please specify the coordinate ranges for bad region {}.'.format(bad_region['name']))
+            raise RuntimeError(
+                'Please specify the coordinate ranges for bad '
+                'region {}.'.format(bad_region['name'])
+            )
 
     for group in detector['rigid_groups']:
         for name in detector['rigid_groups'][group]:
             if name not in detector['panels']:
-                raise RuntimeError('Cannot add panel to rigid_group. Panel not found: {}'.format(name))
+                raise RuntimeError(
+                    'Cannot add panel to rigid_group. Panel not'
+                    'found: {}'.format(name)
+                )
 
     for group_collection in detector['rigid_group_collections']:
         for name in detector['rigid_group_collections'][group_collection]:
             if name not in detector['rigid_groups']:
-                raise RuntimeError('Cannot add rigid_group to collection. Rigid group not found: {}'.format(name))
+                raise RuntimeError(
+                    'Cannot add rigid_group to collection. Rigid group '
+                    'not found: {}'.format(name)
+                )
 
     for panel in detector['panels'].values():
 
-        d = panel['fsx'] * panel['ssy'] - panel['ssx'] * panel['fsy']
+        d__ = panel['fsx'] * panel['ssy'] - panel['ssx'] * panel['fsy']
 
-        if d == 0.0:
+        if d__ == 0.0:
             raise RuntimeError('Panel {} transformation is singluar.')
 
-        panel['xfs'] = panel['ssy'] / d
-        panel['yfs'] = panel['ssx'] / d
-        panel['xss'] = panel['fsy'] / d
-        panel['yss'] = panel['fsx'] / d
+        panel['xfs'] = panel['ssy'] / d__
+        panel['yfs'] = panel['ssx'] / d__
+        panel['xss'] = panel['fsy'] / d__
+        panel['yss'] = panel['fsx'] / d__
 
     _find_min_max_d(detector)
-    fh.close()
-
-    # The code of this function is synced with the code of the function
-    # 'get_detector_geometry_2' in CrystFEL at commit 41a8fa9819010fe8ddeb66676fee717f5226c7b8
+    fhandle.close()
 
     return detector
-
-
