@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities for CrystFEL-style geometry files.
+Geometry utilities.
 
-This module contains utilities for the processing of CrystFEL-style geometry
-files.
+Functions that load, manipulate and apply geometry information to detector
+pixel data.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -28,29 +28,37 @@ import numpy
 
 
 PixelMaps = collections.namedtuple('PixelMaps', ['x', 'y', 'r'])
-ImageShape = collections.namedtuple('ImageShape', ['ss', 'fs'])
+'''A namedtuple used for pixel maps objects.
+
+Pixel maps are arrays of the same shape of the data whose geometry they
+describe. Each cell in the array holds the coordinate, in the reference system
+of the physical detector, of the corresponding pixel in the data array.
+
+The first two fields store the pixel maps for the x coordinate
+and the y coordinate respectively. The third field is instead a pixel map
+storing the distance of each pixel in the data array from the center of the
+reference system.
+'''
 
 
 def compute_pixel_maps(geometry):
-    """Create pixel maps from a CrystFEL geometry object.
+    """Compute pixel maps from a CrystFEL geometry object.
 
-    Compute pixel maps from a CrystFEL-style geometry object (A dictionary
-    returned by the load_crystfel_geometry function from the crystfel_utils
-    module). The pixel maps can be used to create a representation of
-    the physical layout of the geometry, keeping the origin of the reference
-    system at the beam interaction point.
+    Take as input a CrystFEL-style geometry object (A dictionary
+    returned by the function load_crystfel_geometry function in the
+    crystfel_utils module) and return a PixelMap tuple . The origin
+    the reference system used by the pixel maps is set at the beam interaction
+    point.
 
     Args:
 
         geometry (dict): A CrystFEL geometry object (A dictionary returned by
-            the load_crystfel_geometry function from the crystfel_utils
-            module).
+            the :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
+            function).
 
     Returns:
 
-        tuple: a tuple containing three float32 numpy arrays ('slab'-like pixel
-            maps) with respectively x, y coordinates of the data pixels and
-            distance of each pixel from the center of the reference system.
+        PixelMaps: a PixelMaps tuple.
     """
 
     # Determine the max fs and ss in the geometry object.
@@ -62,7 +70,7 @@ def compute_pixel_maps(geometry):
         [geometry['panels'][k]['max_ss'] for k in geometry['panels']]
     ).max()
 
-    # Create the empty arrays that will contain the pixel maps.
+    # Create the empty arrays that will store the pixel maps.
     x_map = numpy.zeros(
         shape=(max_slab_ss + 1, max_slab_fs + 1),
         dtype=numpy.float32
@@ -75,7 +83,7 @@ def compute_pixel_maps(geometry):
     # Iterate over the panels.
     for pan in geometry['panels']:
 
-        # Determine the pixel coordinates for the current panel.
+        # Determine the pixel indexes for the current panel.
         i, j = numpy.meshgrid(
             numpy.arange(
                 geometry['panels'][pan]['max_ss'] -
@@ -90,7 +98,7 @@ def compute_pixel_maps(geometry):
             indexing='ij'
         )
 
-        # Compute the x,y vectors, using complex notation.
+        # Compute the x,y vectors, using the complex notation.
         d_x = (
             geometry['panels'][pan]['fsy'] +
             1J * geometry['panels'][pan]['fsx']
@@ -106,8 +114,7 @@ def compute_pixel_maps(geometry):
 
         cmplx = i * d_y + j * d_x + r_0
 
-        # Fill maps that will be returned with the computed
-        # values (x and y maps).
+        # Compute values for the x and y maps.
         y_map[
             geometry['panels'][pan]['min_ss']:
             geometry['panels'][pan]['max_ss'] + 1,
@@ -122,70 +129,75 @@ def compute_pixel_maps(geometry):
             geometry['panels'][pan]['max_fs'] + 1
         ] = cmplx.imag
 
-    # Compute the values for the radius pixel maps that will be returned.
+    # Compute the values for the radius pixel map.
     r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
 
     # Return the pixel maps as a tuple.
     return PixelMaps(x_map, y_map, r_map)
 
 
-def apply_pixel_maps(data_as_slab, pixel_maps, output_array=None):
+def apply_pixel_maps(data, pixel_maps, output_array=None):
     """Apply geometry in pixel map format to the input data.
 
-    Applies geometry, described by pixel maps, to input data in 'slab' format.
-    Turns a 2d array of pixel values into an array containing a representation
-    of the physical layout of the geometry, keeping the origin of the reference
-    system at the beam interaction point.
+    Turn an array of detector pixel values into an array
+    containing a representation of the physical layout of the detector.
 
     Args:
 
-        data_as_slab (ndarray): the pixel values on which to apply the
-            geometry, in 'slab' format.
+        data (ndarray): array containing the data on which the geometry
+            will be applied.
 
-        pixel_maps (tuple): pixel maps, as returned by the
-            compute_pixel_maps function in this module.
+        pixel_maps (PixelMaps): a pixelmap tuple, as returned by the
+            :obj:`compute_pixel_maps` function in this module.
 
-        output_array (Optional[numpy.ndarray]): array to hold the output.
-            If the array is not provided, one will be generated automatically.
-            Defaults to None (No array provided).
+        output_array (Optional[ndarray]): a preallocated array (of dtype
+            numpy.float32) to store the function output. If provided, this
+            array will be filled by the function and returned to the user.
+            If not provided, the function will create a new array
+            automatically and return it to the user. Defaults to None
+            (No array provided).
 
     Returns:
 
-        ndarray: Array with the same dtype as the input data containing a
-            representation of the physical layout of the geometry (i.e.: the
-            geometry information applied to the input data).
+        ndarray: a numpy.float32 array containing the geometry information
+        applied to the input data (i.e.: a physical representation of the
+        layout of the detector).
     """
 
-    # If no array was provided, generate one.
+    # If no output array was provided, create one.
     if output_array is None:
         output_array = numpy.zeros(
-            shape=data_as_slab.shape,
-            dtype=data_as_slab.dtype
+            shape=data.shape,
+            dtype=numpy.float32
         )
 
-    # Apply the pixel map geometry to the data.
-    output_array[pixel_maps.y, pixel_maps.x] = data_as_slab.ravel()
+    # Apply the pixel map geometry information the data.
+    output_array[pixel_maps.y, pixel_maps.x] = data.ravel()
 
     # Return the output array.
     return output_array
 
 
-def compute_minimum_image_size(pixel_maps):
+def compute_minimum_array_size(pixel_maps):
     """
-    Compute the minimum size of an image that can represent the geometry.
+    Compute the minimum size of an array that can store the applied geometry.
 
-    Compute the minimum size of an image that can contain a
-    representation of the geometry described by the pixel maps, assuming
-    that the image is center at the center of the reference system.
+    Return the minimum size of an array that can store data on which the
+    geometry information described by the pixel maps has been applied.
+
+    The returned array shape is big enough to display all the input pixel
+    values in the reference system of the physical detector. The array is
+    supposed to be centered at the center of the reference system of the
+    detector (i.e: the beam interaction point).
 
     Args:
 
-        pixel_maps (tuple): pixel maps, as returned by the
-        compute_pixel_maps function in this module.
+        pixel_maps (PixelMaps): a PixelMaps tuple, as returned by the
+            :obj:`compute_pixel_maps` function in this module.
 
     Returns:
 
-        tuple: numpy shape object describing the minimum image size.
+        tuple: numpy shape-like tuple storing the minimum array size.
     """
 
     # Recover the x and y pixel maps.
@@ -196,37 +208,41 @@ def compute_minimum_image_size(pixel_maps):
     x_largest = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
 
     # Return a tuple with the computed shape.
-    return ImageShape(y_largest, x_largest)
+    return (y_largest, x_largest)
 
 
 def adjust_pixel_maps_for_pyqtgraph(pixel_maps):
     """
     Adjust pixel maps for visualization of the data in a pyqtgraph widget.
 
-    Adjust the pixel maps for use in a Pyqtgraph's ImageView widget.
+    The adjusted maps can be used for a Pyqtgraph ImageView widget.
     Essentially, the origin of the reference system is moved to the
     top-left of the image.
 
     Args:
 
-        pixel_maps (tuple): pixel maps, as returned by the
-            compute_pixel_maps function in this module.
+        pixel_maps (PixelMaps): pixel maps, as returned by the
+            :obj:`compute_pixel_maps` function in this module.
 
     Returns:
 
-        tuple: a three-element tuple containing two float32 numpy arrays
-            ('slab'-like pixel maps) with respectively x, y coordinates of the
-            data pixels as the first two elements, and None as the third.
+        PixelMaps: a PixelMaps tuple containing the ajusted pixel maps for
+        the x and y coordinates in the first two fields, and the
+        value None in the third.
     """
 
-    # Compute the minimum image shape needed to represent the coordinates
-    min_ss, min_fs = compute_minimum_image_size(pixel_maps)
+    # Compute the minimum image shape needed to represent the coordinates.
+    min_shape = compute_minimum_array_size(pixel_maps)
 
-    # convert y x values to i j values
-    i = numpy.array(pixel_maps.y, dtype=numpy.int) + min_ss // 2 - 1
-    j = numpy.array(pixel_maps.x, dtype=numpy.int) + min_fs // 2 - 1
+    # Convert the old pixemap values to the new pixelmap values.
+    new_x_map = numpy.array(
+        object=pixel_maps.x,
+        dtype=numpy.int
+    ) + min_shape[1] // 2 - 1
 
-    y_map = i.flatten()
-    x_map = j.flatten()
+    new_y_map = numpy.array(
+        object=pixel_maps.y,
+        dtype=numpy.int
+    ) + min_shape[0] // 2 - 1
 
-    return PixelMaps(x_map, y_map, None)
+    return PixelMaps(new_x_map, new_y_map, None)

@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cfelpyutils package &#8212; cfelpyutils 0.5 documentation</title>
+    <title>cfelpyutils.parameter_utils module &#8212; cfelpyutils 0.5 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -39,19 +39,10 @@
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">cfelpyutils package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-cfelpyutils">Module contents</a></li>
-</ul>
-</li>
-</ul>
-
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/cfelpyutils.rst.txt"
+      <li><a href="_sources/cfelpyutils.parameter_utils.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -73,30 +64,66 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="cfelpyutils-package">
-<h1>cfelpyutils package<a class="headerlink" href="#cfelpyutils-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
+  <div class="section" id="module-cfelpyutils.parameter_utils">
+<span id="cfelpyutils-parameter-utils-module"></span><h1>cfelpyutils.parameter_utils module<a class="headerlink" href="#module-cfelpyutils.parameter_utils" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for parsing command line options and configuration files.</p>
+<dl class="function">
+<dt id="cfelpyutils.parameter_utils.convert_parameters">
+<code class="descclassname">cfelpyutils.parameter_utils.</code><code class="descname">convert_parameters</code><span class="sig-paren">(</span><em>config_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.parameter_utils.convert_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert strings in parameter dictionaries to the corrent data type.</p>
+<p>Read a parameter dictionary returned by the ConfigParser python module,
+and convert each entry in an object of the corresponding type,
+without changing the structure of the dictionary.</p>
+<p>Try to convert each entry in the dictionary according to the following
+rules. The first rule that applies to the entry determines the type.</p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="cfelpyutils.crystfel_utils.html">cfelpyutils.crystfel_utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfelpyutils.geometry_utils.html">cfelpyutils.geometry_utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfelpyutils.parameter_utils.html">cfelpyutils.parameter_utils module</a></li>
+<li><p class="first">If the entry starts and ends with a single quote or double quote,
+leave it as a string.</p>
+</li>
+<li><p class="first">If the entry starts and ends with a square bracket, convert it to a list.</p>
+</li>
+<li><p class="first">If the entry starts and ends with a curly braces, convert it to a
+dictionary or a set.</p>
+</li>
+<li><p class="first">If the entry is the word None, without quotes, convert it to NoneType.</p>
+</li>
+<li><p class="first">If the entry is the word False, without quotes, convert it to a boolean
+False.</p>
+</li>
+<li><p class="first">If the entry is the word True, without quotes, convert it to a
+boolean True.</p>
+</li>
+<li><p class="first">If none of the previous options match the content of the entry,
+try to interpret the entry in order as:</p>
+<blockquote>
+<div><ul class="simple">
+<li>An integer number.</li>
+<li>A float number.</li>
+<li>A string.</li>
 </ul>
-</div>
-</div>
-<div class="section" id="module-cfelpyutils">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cfelpyutils" title="Permalink to this headline">¶</a></h2>
-<p>Utilities for CFEL software projects.</p>
-<p>This module provides utilities (functions, classes, etc.) used by many CFEL projects.</p>
-<p>It contains the following submodules (non of which are automatically imported):</p>
-<p>cfelfabio: utilities based on the fabio python module (a module that allows
-python to work with several file format used in x-ray imaging).</p>
-<p>cfelgeom: utilities for processing CrystFEL-style geometry files.</p>
-<p>cfelhdf5: utilities for processing HDF5 files (based on the h5py python module).</p>
-<p>cfeloptarg: utilities to parse command line arguments and parameter files.</p>
-<p>cfelpsana: utilities that expand the functionality of the psana python module.</p>
-</div>
+</div></blockquote>
+</li>
+<li><p class="first">If all else fails, raise an exception.</p>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<em>dict</em>) – a dictionary containing strings (the dictionary
+returned by Config Parser).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the same structure as the input
+dictionary, but with correct types assigned to each entry.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> – if an entry cannot be converted to any supported type.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
