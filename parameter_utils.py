@@ -14,9 +14,6 @@
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
 Utilities for parsing command line options and configuration files.
-
-This module contains utilities for parsing of command line options and
-configuration files.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -43,59 +40,61 @@ def convert_parameters(config_dict):
     """Convert strings in parameter dictionaries to the corrent data type.
 
     Read a parameter dictionary returned by the ConfigParser python module,
-    and assign correct types to the parameters, without changing the structure
-    of the dictionary.
+    and convert each entry in an object of the corresponding type,
+    without changing the structure of the dictionary.
 
-    Try to interpret each entry in the dictionary according to the following
-    rules. The first rule that returns an valid result determines the type in
-    which the entry will be converted.
+    Try to convert each entry in the dictionary according to the following
+    rules. The first rule that applies to the entry determines the type.
 
-    - If the entry starts and ends with a single quote or double quote, it is
-      interpreted as a string.
-    - If the entry starts and ends with a square bracket, it is interpreted as
-      a list.
-    - If the entry starts and ends with a brace, it is interpreted as a
-      dictionary.
-    - If the entry is the word None, without quotes, then the entry is
-      interpreted as NoneType.
-    - If the entry is the word False, without quotes, then the entry is
-      interpreted as a boolean False.
-    - If the entry is the word True, without quotes, then the entry is
-      interpreted as a boolean True.
+    - If the entry starts and ends with a single quote or double quote,
+      leave it as a string.
+    - If the entry starts and ends with a square bracket, convert it to a list.
+    - If the entry starts and ends with a curly braces, convert it to a
+      dictionary or a set.
+    - If the entry is the word None, without quotes, convert it to NoneType.
+    - If the entry is the word False, without quotes, convert it to a boolean
+      False.
+    - If the entry is the word True, without quotes, convert it to a
+      boolean True.
     - If none of the previous options match the content of the entry,
-      the parser tries to interpret the entry in order as:
+      try to interpret the entry in order as:
 
         - An integer number.
         - A float number.
         - A string.
 
+    - If all else fails, raise an exception.
+
     Args:
 
-        config (dict): a dictionary containing the parameters as strings
-            (the dictionary as returned by COnfig Parser).
+        config (dict): a dictionary containing strings (the dictionary
+            returned by Config Parser).
 
     Returns:
 
         dict: dictionary with the same structure as the input
-            dictionary, but with correct types assigned to each entry.
+        dictionary, but with correct types assigned to each entry.
+
+    Raises:
+
+        RuntimeError: if an entry cannot be converted to any supported type.
     """
 
     # Create the dictionary that will be returned.
     monitor_params = {}
 
-    # Iterate over the first level of the configuration dictionary.
+    # Iterate over the sections in the dictionary (first level).
     for section in config_dict.keys():
 
         # Add the section to the dictionary that will be returned.
         monitor_params[section] = {}
 
-        # Iterate over the content of each section (the second level in the
-        # configuration dictonary).
+        # Iterate over the content of the section (second level in the
+        # configuratio).
         for option in config_dict['section'].keys():
 
-            # Get the option from the dictionary (None is returned if the
-            # dictionary does not contain the option).
-            recovered_option = config_dict['section'].get(option)
+            # Get the option from the dictionary.
+            recovered_option = config_dict['section']
 
             # Check if the option is a string delimited by single quotes.
             if (
@@ -164,7 +163,8 @@ def convert_parameters(config_dict):
                 monitor_params[section][option] = int(recovered_option)
                 continue
             except ValueError:
-                # If the conversion to int falied, try to conver it to a float.
+                # If the conversion to int failed, try to convert it to a
+                # float.
                 try:
                     monitor_params[section][option] = float(
                         recovered_option

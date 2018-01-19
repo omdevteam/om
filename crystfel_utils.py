@@ -13,9 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities for interoperability with the CrystFEL software package.
+Utilities for interoperability with data formats used in the CrystFEL
+software package.
 
-This module contains reimplementation of Crystfel functions and utilities.
+This module currently contains a python reimplementation of the
+get_detector_geometry_2 function from CrystFEL.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -425,13 +427,14 @@ def load_crystfel_geometry(filename):
     """Load a CrystFEL geometry file into a dictionary.
 
     Reimplementation of the get_detector_geometry_2 function from CrystFEL
-    almost verbatim. Returns a dictionary with the geometry information.
-    Entries in the geometry file appears as keys in the returned dictionary.
-    For a full documentation on the CrystFEL geometry format, see:
+    in python. Return a dictionary with the geometry information read from
+    the file. Convert entries in the geometry file to keys in the
+    returned dictionary. For a full documentation on the CrystFEL geometry
+    format, see:
 
-    tfel/manual-crystfel_geometry.html
+    http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html
 
-    he code of this function is synced with the code of the function
+    The code of this function is synced with the code of the function
     'get_detector_geometry_2' in CrystFEL at commit
     41a8fa9819010fe8ddeb66676fee717f5226c7b8.
 
@@ -441,7 +444,7 @@ def load_crystfel_geometry(filename):
 
     Returns:
 
-        detector (dict): dictionary with the geometry loaded from the file.
+        dict: dictionary with the geometry information loaded from the file.
     """
 
     fhandle = open(file=filename, mode='r')

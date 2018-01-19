@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cfelpyutils package &#8212; cfelpyutils 0.5 documentation</title>
+    <title>cfelpyutils.crystfel_utils module &#8212; cfelpyutils 0.5 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -39,19 +39,10 @@
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">cfelpyutils package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-cfelpyutils">Module contents</a></li>
-</ul>
-</li>
-</ul>
-
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/cfelpyutils.rst.txt"
+      <li><a href="_sources/cfelpyutils.crystfel_utils.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -73,30 +64,39 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="cfelpyutils-package">
-<h1>cfelpyutils package<a class="headerlink" href="#cfelpyutils-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="cfelpyutils.crystfel_utils.html">cfelpyutils.crystfel_utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfelpyutils.geometry_utils.html">cfelpyutils.geometry_utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cfelpyutils.parameter_utils.html">cfelpyutils.parameter_utils module</a></li>
-</ul>
-</div>
-</div>
-<div class="section" id="module-cfelpyutils">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cfelpyutils" title="Permalink to this headline">¶</a></h2>
-<p>Utilities for CFEL software projects.</p>
-<p>This module provides utilities (functions, classes, etc.) used by many CFEL projects.</p>
-<p>It contains the following submodules (non of which are automatically imported):</p>
-<p>cfelfabio: utilities based on the fabio python module (a module that allows
-python to work with several file format used in x-ray imaging).</p>
-<p>cfelgeom: utilities for processing CrystFEL-style geometry files.</p>
-<p>cfelhdf5: utilities for processing HDF5 files (based on the h5py python module).</p>
-<p>cfeloptarg: utilities to parse command line arguments and parameter files.</p>
-<p>cfelpsana: utilities that expand the functionality of the psana python module.</p>
-</div>
+  <div class="section" id="module-cfelpyutils.crystfel_utils">
+<span id="cfelpyutils-crystfel-utils-module"></span><h1>cfelpyutils.crystfel_utils module<a class="headerlink" href="#module-cfelpyutils.crystfel_utils" title="Permalink to this headline">¶</a></h1>
+<p>Utilities for interoperability with data formats used in the CrystFEL
+software package.</p>
+<p>This module currently contains a python reimplementation of the
+get_detector_geometry_2 function from CrystFEL.</p>
+<dl class="function">
+<dt id="cfelpyutils.crystfel_utils.load_crystfel_geometry">
+<code class="descclassname">cfelpyutils.crystfel_utils.</code><code class="descname">load_crystfel_geometry</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a CrystFEL geometry file into a dictionary.</p>
+<p>Reimplementation of the get_detector_geometry_2 function from CrystFEL
+in python. Return a dictionary with the geometry information read from
+the file. Convert entries in the geometry file to keys in the
+returned dictionary. For a full documentation on the CrystFEL geometry
+format, see:</p>
+<p><a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html</a></p>
+<p>The code of this function is synced with the code of the function
+‘get_detector_geometry_2’ in CrystFEL at commit
+41a8fa9819010fe8ddeb66676fee717f5226c7b8.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – filename of the geometry file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the geometry information loaded from the file.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
