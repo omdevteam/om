@@ -14,11 +14,6 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 '''
 An MPI-based parallelization engine.
-
-This module contains an implementation of an MPI-based parallelization
-engine which uses a Master-Worker architecture. The engine is implemented
-in the ParallelizationEngine class, which can be subclassed to create an
-OnDA monitor.
 '''
 
 from __future__ import (absolute_import, division, print_function,
@@ -68,10 +63,9 @@ class ParallelizationEngine(object):
     '''
     An MPI-based master-worker parallelization engine for OnDA.
 
-    An MPI-based parallelization engine using a master-worker
-    architecture. The parallelization engine gets initialized with a data
-    source (a python generator) and two functions (map_func and reduced_func)
-    to be executed on the worker and the master nodes (respectively)
+    A parallelization engine that uses a master-worker architecture. It is
+    initialized with a data source (a python generator) and two functions that
+    are be executed on the worker and the master nodes (respectively).
 
     Each worker node recovers a data "event" by getting a value from the data
     source. It then executes the map_func function on the recovered data.
@@ -79,7 +73,9 @@ class ParallelizationEngine(object):
     master node, which executes the reduce_func function every time it
     receives data from a worker node.
 
-        Attributes:
+    This class should be subclassed to create an OnDA monitor.
+
+    Attributes:
 
         role (str): 'worker' or 'master', depending the role of the node where
             the attribute is read.
@@ -87,25 +83,26 @@ class ParallelizationEngine(object):
         rank (int): rank (in MPI terms) of the node where the attribute is
             read.
 
-        data (dict): dictionary containing the data extracted from the last
-            processed event. Set to None when no event has been processed yet.
+    Raises:
+
+        MissingDataExtractionFunction: if one of the requested data extraction
+        function is not found in either the facility or the detector layer.
     '''
 
     def __init__(self, map_func, reduce_func, source):
-        '''ParallelizationEngine class initialization.
-
-        Initializes the ParallelizationEngine class.
+        '''
+        Initialize the ParallelizationEngine class.
 
         Args:
 
-            map_func (function): function to be executed on each worker node
-               after recovering a data event
+            map_func (function): function executed by each worker node
+               after recovering a data event.
 
-            reduce_func (function): function to be executed on the master node
-                every time something is received from a worker node
+            reduce_func (function): function executed by the master node
+                every time something is received from a worker node.
 
             source (function): a python generator function from which
-                worker nodes can recover data (by iterating over it)
+                worker nodes can recover data (by iterating over it).
         '''
 
         # Instrospect role of the node, then set the "role", the 'rank'
@@ -125,11 +122,11 @@ class ParallelizationEngine(object):
         # Perform master-node specific initialization
         if self.role == 'master':
 
-            # Initialize counter that keeps track of how many worker nodes
+            # Initialize the counter that keeps track of how many worker nodes
             # have already shut down.
             self._num_nomore = 0
 
-            # Initialize counter that keeps track of how many events have
+            # Initialize the counter that keeps track of how many events have
             # been processed.
             self._num_reduced_events = 0
 
@@ -168,17 +165,9 @@ class ParallelizationEngine(object):
                 name='get_num_frames_in_event'
             )
 
-            # Create the attribute that will hold the data extraction
+            # Create the attribute that will store the data extraction
             # functions.
             self._data_extr_funcs = None
-
-            # Create the attribute that will contain the data extracted from
-            # each frame
-            self.data = None
-
-            # Create the attribute that will hold the data that to be
-            # sent to the worker node.
-            self._buffer = None
 
             # Read from the configuration file the number of frames that
             # must be processed from each event.
@@ -196,14 +185,14 @@ class ParallelizationEngine(object):
         Shut down the parallelization engine.
 
         When called on a worker node, communicate to the master node that
-        the you s shutting down, then shut down. When called on the master
+        the a shut down is going on, then shut down. When called on the master
         node, tell each worker node that it needs to shut down, wait for all
-        the workers to confirm that they have indeed shut down, then shut
-        yourself down.
+        the workers to confirm that they have indeed shut down, then cease
+        operations.
 
         Args:
 
-            msg (:obj:`str`, optional): reason for shutting down the
+            msg (Optional[str]): reason for the shut down of the
                 parallelization engine. Defaults to 'Reason not provided'.
         '''
 
@@ -212,9 +201,9 @@ class ParallelizationEngine(object):
         sys.stdout.flush()
 
         # If the function is called on a worker node, tell the master node
-        # that you are shutting it down, then shut down.
+        # that you are shutting down, then shut down.
         if self.role == 'worker':
-            self._buffer = MPI.COMM_WORLD.send(
+            _ = MPI.COMM_WORLD.send(
                 dest=0,
                 tag=_DEADTAG
             )
@@ -226,7 +215,7 @@ class ParallelizationEngine(object):
             try:
 
                 # If the function is called on the master node, tell all the
-                # worker node to shut down.
+                # worker nodes to shut down.
                 for nod_num in range(1, self._mpi_size()):
                     MPI.COMM_WORLD.isend(
                         0,
@@ -246,7 +235,7 @@ class ParallelizationEngine(object):
                             source=MPI.ANY_SOURCE,
                             tag=0
                     ):
-                        self._buffer = MPI.COMM_WORLD.recv(
+                        _ = MPI.COMM_WORLD.recv(
                             source=MPI.ANY_SOURCE,
                             tag=0
                         )
@@ -279,13 +268,13 @@ class ParallelizationEngine(object):
         '''
         Start the parallelization engine.
 
-        Start the parallelization engine. Worker nodes will start recovering
-        data and processing it, while the master node will start listening
-        for communications from the worker nodes.
+        When called on a worker node, start recovering data and processing it.
+        When called on the master node, start listening for communications from
+        the worker nodes.
 
         Args:
 
-            verbose (:obj:`bool`, optional): if True, additional debugging
+            verbose (Optional[bool]): if True, additional debugging
                 information is printed to the console. Defaults to False.
         '''
 
@@ -317,8 +306,8 @@ class ParallelizationEngine(object):
                         'Shutting down RANK: {0}.'.format(self.rank)
                     )
 
-                # Check if the event should be rejected. If it does, skip
-                # to next event iteration of the loop.
+                # Check if the event should be rejected. If it should, skip
+                # to next iteration of the loop.
                 if self._reject_filter(event):
                     continue
 
@@ -335,29 +324,44 @@ class ParallelizationEngine(object):
                 opened_event = self._open_event(event)
 
                 # Iterate over the frames that should be processed. Assuming
-                # than n is the number of frames to be processed, the last n
-                # frames is the event are processed, in the order in which
+                # than n is the number of frames to be processed, iterate
+                # over the last n frames in the event, in the order in which
                 # they appear in the event.
                 for frame_offset in range(
                         -self._num_frames_in_event_to_process,
                         0
                 ):
 
-                    # Create an event_data structure, that joins the event
+                    # Create an event_data structure joining the event
                     # data with some metadata.
                     event_data = self._create_event_data(
                         event=opened_event,
                         frame_offset=frame_offset
                     )
 
+                    # Create dictionary that will store the extracted data.
+                    data = {}
+
+                    # Try to extract the data by calling the data extraction
+                    # functions one after the other. Store the values
+                    # returned by the functions in the data dictionary, with
+                    # a key corresponding to the name of the function. Raise a
+                    # DataExtractionError if something bad happens.
                     try:
-                        # Pass the event_data structure to the extract
-                        # function.
-                        self.data = self._extract_data(event_data)
+                        for func in self._data_extr_funcs:
+                            try:
+                                data[func.__name__] = func(event_data)
+                            except Exception as exc:
+                                raise exceptions.DataExtractionError(
+                                    'Error extracting {0}: {1}'.format(
+                                        func.__name__,
+                                        exc
+                                    )
+                                )
                     except exceptions.DataExtractionError as exc:
-                        # If the extract_data function fails to extract the
-                        # data, drop the event and skip to the next iteration
-                        # in the loop.
+                        # If one of the extract_data functions fails to extract
+                        # the data, drop the event and skip to the next
+                        # iteration in the loop.
                         print(
                             'OnDA Warning: Cannot interpret some event data: '
                             '{}. Skipping event....'.format(exc)
@@ -365,7 +369,7 @@ class ParallelizationEngine(object):
                         continue
 
                     # Pass the extracted data to the processing function.
-                    result = self._map(self.data)
+                    result = self._map(data)
 
                     # Send the result of the processing to the master node.
                     if req:
@@ -384,7 +388,7 @@ class ParallelizationEngine(object):
                 self._close_event(event)
 
             # After finishing iterating over the events to process, tell
-            # the master node that you finished processing.
+            # the there are no more event to process.
             end_dict = {'end': True}
 
             # Send the message to the master node.
@@ -396,14 +400,14 @@ class ParallelizationEngine(object):
                 tag=0
             )
 
-            # Shut down
+            # Shut down.
             MPI.Finalize()
             exit(0)
 
         # Execute the following on the master node.
         elif self.role == 'master':
 
-            # Print to the console that you are starting.
+            # Print a startup message to the console.
             if verbose:
                 print('Starting master.')
                 sys.stdout.flush()
@@ -417,22 +421,22 @@ class ParallelizationEngine(object):
                 try:
 
                     # Receive a message from a worker node.
-                    buffer_data = MPI.COMM_WORLD.recv(
+                    received_data = MPI.COMM_WORLD.recv(
                         source=MPI.ANY_SOURCE,
                         tag=0
                     )
 
-                    # If the message announces that the worker node is
-                    # shutting down, keep track of how many worker nodes
-                    # have shut down.
-                    if 'end' in buffer_data[0].keys():
+                    # If the message announces that the worker node has
+                    # finished processing data, keep track of how many worker
+                    # nodes already finshed.
+                    if 'end' in received_data[0].keys():
                         print(
-                            'Finalizing {}'.format(buffer_data[1])
+                            'Finalizing {}'.format(received_data[1])
                         )
                         self._num_nomore += 1
 
-                        # If all worker nodes have shut down, shut yourself
-                        # down too.
+                        # If all worker nodes have finished and have shut down,
+                        # shut down.
                         if self._num_nomore == self._mpi_size - 1:
                             print('All workers have run out of events.')
                             print('Shutting down.')
@@ -442,12 +446,12 @@ class ParallelizationEngine(object):
                             exit(0)
 
                     # Execute the collecting function on the received data
-                    self._reduce(buffer_data)
+                    self._reduce(received_data)
 
                     # Keep track of how many events have been processed
                     self._num_reduced_events += 1
 
-                # If the use stops the parallelization engine volunterily,
+                # If the user stops the parallelization via the keyboard,
                 # clean up and shut down.
                 except KeyboardInterrupt as exc:
                     print('Recieved keyboard sigterm...')
@@ -464,9 +468,10 @@ class ParallelizationEngine(object):
         '''
         Execute end-of-processing actions.
 
-        This function is called by the parallelization engine at the end of
-        the processing. By default, it prints a message to the console and
-        stops. The function can be overridden in a derived class to implement
+        By default, print a message to the console and stop. Called by the
+        parallelization engine at the end of the processing.
+
+        The function can be overridden in a derived class to implement
         custom end-of-processing actions.
         '''
         print(
@@ -481,7 +486,8 @@ class ParallelizationEngine(object):
         # Raises a MissingDataExtractionFunction if the extraction function
         # is not found in any layer.
 
-        # Recover list of required data function from the parameter file.
+        # Recover list of required data extraction functions from the
+        # parameter file.
         data_extraction_funcs = [
             x.strip() for x in parameters.get_param(
                 section='Onda',
@@ -491,7 +497,7 @@ class ParallelizationEngine(object):
             )
         ]
 
-        # Create list that will be returned.
+        # Create a list that will store the functions.
         func_list = []
 
         # Iterate over the required functions and look for them in the detector
@@ -501,7 +507,12 @@ class ParallelizationEngine(object):
                 func_list.append(getattr(object=_DETECTOR_LAYER, name=func))
             except AttributeError:
                 try:
-                    func_list.append(getattr(object=_DETECTOR_LAYER, name=func))
+                    func_list.append(
+                        getattr(
+                            object=_DETECTOR_LAYER,
+                            name=func
+                        )
+                    )
                 except AttributeError:
                     raise_from(
                         exc=exceptions.MissingDataExtractionFunction(
@@ -514,21 +525,3 @@ class ParallelizationEngine(object):
         # Set the data_extr_funcs attribute after converting the list of
         # recovered functions to a tuple.
         self._data_extr_funcs = tuple(func_list)
-
-    def _extract_data(self, event):
-        # Extract data and add it to a dictionary, by calling the
-        # data extraction functions one after the other.
-        # If any exception is raised in the data extraction functions,
-        # catch it and raise a DataExtractionError exception.
-        data = {}
-
-        for func_name in self._data_extr_funcs:
-            decorated_func_name = '_{}'.format(func_name)
-            try:
-                data[func_name] = globals()[decorated_func_name](event)
-            except Exception as exc:
-                raise exceptions.DataExtractionError(
-                    'Error extracting {0}: {1}'.format(func_name, exc)
-                )
-
-        return data

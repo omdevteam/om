@@ -14,14 +14,6 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 '''
 An OnDA online monitor for crystallography experiments.
-
-This module contains an implementation of an online monitor for
-crystallography experiments. The monitor provides real time hit and
-saturation rate information, plus a 'virtual powder pattern'-style
-of the processed data.  Detector calibration can be applied to each
-frame, and the monitor can also apply dark calibration correction
-and a gain map. Optionally, the monitor also supports an frame-viewer GUI,
-which shows the raw frame data for a selection of the processed frames.
 '''
 
 from __future__ import (absolute_import, division, print_function,
@@ -35,33 +27,43 @@ from collections import deque
 from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
-from onda.cfelpyutils import cfel_geom
+from onda.cfelpyutils import crystfel_utils, geometry_utils
 from onda.parallelization_layer import mpi
-from onda.utils import parameters
 from onda.utils import zmq as onda_zmq
+from onda.utils import parameters
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
     '''
     An OnDA online monitor for crystallography experiments.
 
-    This module contains an implementation of an online monitor for
-    crystallography experiments. The monitor provides real time hit and
-    saturation rate information. Detector calibration can optionally be applied
-    to each frame, and the monitor can also apply dark calibration correction
-    and a gain map. The peak finding is carried out using the peakfinder8
-    algorithm from the Cheetah software package:
+    Real time hit and saturation rate information, plus a 'virtual powder
+    pattern'-style plot of the processed data. Detector calibration, dark
+    calibration and gain map correction can optionally be applied to each
+    frame. In addition to the normal GUI, an additional viewer, which shows
+    raw data for a selection of the processed frames, is also supported.
+
+    The peak finding is carried out using the peakfinder8 algorithm from the
+    Cheetah software package:
 
     A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
     T. A. White, and H. N. Chapman, “Cheetah: software for high-throughput
     reduction and analysis of serial femtosecond X-ray diffraction data,”
     J Appl Crystallogr, vol. 47, pp. 1118–1131 (2014).
-
-    Optionally, the monitor also supports an frame-viewer GUI, which shows the
-    raw frame data for a selection of the processed frames.
     '''
 
     def __init__(self, source):
+        '''
+        Initialize the OndaMonitor class.
+
+        Args:
+
+            source (str): A string describing the data source. The format
+                of the string depends on the Facility layer that the monitor
+                uses (e.g: the string represents a psana experiment descriptor
+                for the psana backend, the IP address where HiDRA is running
+                for the Petra III backend, etc.)
+        '''
 
         # Call the constructor of the parent class (mpi.ParallelizationEngine).
         super(OndaMonitor, self).__init__(map_func=self.process_data,
@@ -71,15 +73,15 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # Worker node-specific initialization.
         if self.role == 'worker':
 
-            # Check if a calibration algorithm is requested, and if it is,
-            # read which one.
+            # Check if calibration is requested, and if it is, read which
+            # algorithm should be used.
             requested_calib_alg = parameters.get_param(
                 section='DetectorCalibration',
                 parameter='calibration_algorithm',
                 type_=str
             )
 
-            # If a calibration is requested, import the calibration algorithm.
+            # If calibration is requested, import the calibration algorithm.
             if requested_calib_alg is not None:
                 calibration_alg_class = getattr(
                     object=calib_algs,
@@ -112,9 +114,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            dark_cal_hdf5_gr = parameters.get_param(
+            dark_cal_hdf5_pth = parameters.get_param(
                 section='DarkCalCorrection',
-                parameter='hdf5_group',
+                parameter='hdf5_path',
                 type_=str,
                 required=True
             )
@@ -125,9 +127,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=str
             )
 
-            dark_cal_mask_hdf5_gr = parameters.get_param(
+            dark_cal_mask_hdf5_pth = parameters.get_param(
                 section='DarkCalCorrection',
-                parameter='mask_hdf5_group',
+                parameter='mask_hdf5_path',
                 type_=str
             )
 
@@ -137,22 +139,33 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=str
             )
 
-            dark_cal_gain_map_hdf5_gr = parameters.get_param(
+            dark_cal_gain_map_hdf5_pth = parameters.get_param(
                 section='DarkCalCorrection',
-                parameter='gain_map_hdf5_group',
+                parameter='gain_map_hdf5_path',
                 type_=str
             )
 
             # Instantiate the dark calibration correction algorithm
             # and save it in an attribute.
             self._dark_cal_corr_alg = gen_algs.DarkCalCorrection(
-                filename=dark_cal_fname,
-                hdf5_group=dark_cal_hdf5_gr,
+                darkcal_filename=dark_cal_fname,
+                darkcal_hdf5_path=dark_cal_hdf5_pth,
                 mask_filename=dark_cal_mask_fname,
-                mask_hdf5_group=dark_cal_mask_hdf5_gr,
+                mask_hdf5_path=dark_cal_mask_hdf5_pth,
                 gain_map_filename=dark_cal_gain_map_fname,
-                gain_map_hdf5_group=dark_cal_gain_map_hdf5_gr
+                gain_map_hdf5_path=dark_cal_gain_map_hdf5_pth
             )
+
+            # Load the geometry data and compute the pixel maps.
+            geometry_filename = parameters.get_param(
+                section='General',
+                parameter='geometry_file',
+                type_=str,
+                required=True
+            )
+            geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
+            pixelmaps = geometry_utils.compute_pixel_maps(geometry)
+            radius_pixel_map = pixelmaps.r
 
             # Read from the configuration file all the parameters needed
             # to instantiate the peakfinder8 algorithm.
@@ -254,17 +267,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            # Load radius pixelmap from geometry file.
-            pixelmaps = cfel_geom.pixel_maps_from_geometry_file(
-                parameters.get_param(
-                    section='General',
-                    parameter='geometry_file',
-                    type_=str,
-                    required=True
-                )
-            )
-            radius_pixelmap = pixelmaps.r
-
             # Instantiate the peakfind8 algorithm and save it
             # in an attribute.
             self._peakfinder8_peak_det = cryst_algs.Peakfinder8PeakDetection(
@@ -282,7 +284,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 max_res=pf8_max_res,
                 bad_pixel_map_filename=pf8_bad_pixel_map_fname,
                 bad_pixel_map_hdf5_group=pf8_bad_pixel_map_hdf5_gr,
-                radius_pixelmap=radius_pixelmap
+                radius_pixel_map=radius_pixel_map
             )
 
             # Read some additional peak-finding parameters from the
@@ -309,7 +311,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             # Read from the configuration file the adc_threshold value
-            # above which a pixel is considered saturated.
+            # above which a pixel should be considered saturated.
             self._saturation_value = parameters.get_param(
                 section='General',
                 parameter='saturation_value',
@@ -318,8 +320,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             # Read from the configuration file the interval (in events
-            # labelled as 'hits' -see below-) at which the full raw data
-            # of the frame is sent to the master node.
+            # labelled as 'hits') at which the full frame detector data
+            # should be sent to the master node.
             self._hit_sending_interval = parameters.get_param(
                 section='General',
                 parameter='hit_sending_interval',
@@ -371,8 +373,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # Initialize the counter for the number of processed events.
             self._num_events = 0
 
-            # Initialize the counter for keeping track of the frames for
-            # which the full raw data must be best to the master node.
+            # Initialize the counter for keeping track of when the full frame
+            # detector data should be sent to the master node.
             self._hit_sending_counter = 0
 
             # Initialize the attributes used to keep track of how long
@@ -381,8 +383,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._time = None
 
             # Read from the configuration file how large (in number of events)
-            # the running average windows (for hit_rate and saturation_rate)
-            # should be. Store it in an attribute
+            # the running average windows for hit_rate and saturation_rate
+            # should be. Store the information in an attribute.
             self._run_avg_wdw_size = parameters.get_param(
                 section='General',
                 parameter='running_average_size',
@@ -390,7 +392,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            # Create attributes which will store the two running
+            # Create attributes which will store the running
             # averages windows for hit_rate and staturation_rate.
             self._hit_rate_run_wdw = deque(
                 [0.0] * self._run_avg_wdw_size
@@ -399,16 +401,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 [0.0] * self._run_avg_wdw_size
             )
 
-            # Initial values for the hit_rate and the saturation rate
+            # Define starting values for the hit_rate and the saturation rate.
             self._avg_hit_rate = 0
             self._avg_sat_rate = 0
 
-            # Print starting message on the console.
-            print('Starting the monitor...')
-            sys.stdout.flush()
-
-            # Read from the configuration file which ip and port should be
-            # used for the socket that broadcasts data to the GUI.
+            # Read from the configuration file which IP and port should be
+            # used for the socket that broadcasts data to the GUI(s).
             publisher_socket_ip = parameters.get_param(
                 section='General',
                 parameter='publish_ip',
@@ -421,12 +419,37 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=int
             )
 
+            # Create the ZMQ socket.
             self._zmq_pub_socket = onda_zmq.ZMQOndaPublisherSocket(
                 publish_ip=publisher_socket_ip,
                 publish_port=publisher_socket_port
             )
 
-    def process_data(self):
+            # Print starting message on the console.
+            print('Starting the monitor...')
+            sys.stdout.flush()
+
+    def process_data(self, data):
+        '''
+        Process frame information.
+
+        Perform detector and dark calibration corrections, extract the peak
+        information and evalute the extracted data. Discard the raw data and
+        prepare the reduced data to be sent to the master node.
+
+        Args:
+
+            data (dict): a dictionary containing the frame raw data. Keys in
+                the dictionary correspond to entries in the required_data list
+                in the configuration file (e.g.: 'detector_distance',
+                'beam_energy', 'raw_data', etc.).
+
+        Returns:
+
+            tuple: a tuple where the first field is a dictionary containing
+            the data that should be sent to the master node, and the second
+            is the rank of the worker node sending the data.
+        '''
 
         # Create a dictionary to hold the data that must be sent to the
         # master node.
@@ -435,17 +458,17 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # Apply the calibration algorithm if it has been requested.
         if self._calibration_alg is not None:
             calib_raw_data = self._calibration_alg.apply_calibration(
-                calibration_file_name=self.data['raw_data']
+                calibration_file_name=data['raw_data']
             )
         else:
-            calib_raw_data = self.data['raw_data']
+            calib_raw_data = data['raw_data']
 
         # Apply the dark cal correction algorithm.
         corr_raw_data = self._dark_cal_corr_alg.apply_darkcal_correction(
             data=calib_raw_data
         )
 
-        # Apply the peakfinder8 peak finding algorithm.
+        # Apply the peak finding algorithm.
         peak_list = self._peakfinder8_peak_det.find_peaks(corr_raw_data)
 
         # Determine if the the frame should be labelled as 'saturated'.
@@ -457,7 +480,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         # Determine if the the frame should be labelled as a 'hit'.
         # (more than 'min_num_peaks_for_a_hit' and less than
-        # 'max_num_peaks_for_a_hit' peaks have been detected in the frame.
+        # 'max_num_peaks_for_a_hit' peaks have been detected in the frame).
         hit = (
             self._min_num_peaks_for_hit <
             len(peak_list.intensity) <
@@ -466,40 +489,56 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         # Store in the 'result_dict' dictionary the data that must be sent
         # to the master node.
-        results_dict['timestamp'] = self.data['timestamp']
+        results_dict['timestamp'] = data['timestamp']
         if not hit:
             results_dict['peak_list'] = cryst_algs.PeakList([], [], [])
         else:
             results_dict['peak_list'] = peak_list
         results_dict['sat_flag'] = sat
         results_dict['hit_flag'] = hit
-        results_dict['det_distance'] = self.data['detector_distance']
-        results_dict['beam_energy'] = self.data['beam_energy']
+        results_dict['det_distance'] = data['detector_distance']
+        results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = corr_raw_data.shape
 
         # If the frame is a hit, and if the 'hit_sending_interval' attribute
-        # says we should send the full raw data of the frame to the master
+        # says we should send the raw detector data of the frame to the master
         # node, add it to the dictionary. If the 'hit_sending_interval' has
-        # a negative value, add the raw data to the dictionary anyway.
+        # a negative value, add the raw data to the dictionary unconditionally.
         if hit or self._hit_sending_interval < 0:
             self._hit_sending_counter += 1
             if self._hit_sending_counter == abs(self._hit_sending_interval):
                 results_dict['raw_data'] = corr_raw_data
                 self._hit_sending_counter = 0
 
+        # Return the dictionary to be sent to the master node (together with
+        # information about the worker node that is sending the data).
         return results_dict, self.rank
 
-    def collect_data(self, new):
+    def collect_data(self, data):
+        '''
+        Compute aggregated data statistics and send data to the GUI.
 
-        # Create dictionaries to hold the data and raw data that must be sent
-        # to the master node.
+        Accumulate data received from the worker nodes and compute statistics
+        on the aggregated data (e.g.: hit rate, saturation_rate). Finally, send
+        the data to the GUI for visualization (at intervals determined by
+        the user).
+
+        Args:
+
+            data (tuple): a tuple where the first field is a dictionary
+                containing the data received from a worker node, and the
+                second is the rank of the worker node sending the data.
+        '''
+
+        # Create dictionaries to hold the reduced data and raw detector data
+        # that should be sent to the master node.
         collected_data = {}
         collected_rawdata = {}
 
-        # Recover the dictionary sent by the a worker node with the same name.
-        results_dict, _ = new
+        # Recover the dictionary that stores the data sent by the worker node.
+        results_dict, _ = data
 
-        # Increase the number of processed events.
+        # Increase counter for the processed events.
         self._num_events += 1
 
         # Append the new saturation and hit information to the windows
@@ -521,7 +560,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._run_avg_wdw_size
         )
 
-        # Add the peaks to the peak accumulator algorithm,
+        # Add the detected peaks to the peak accumulator algorithm,
         collected_peaks = self._accumulator.accumulate_peaks(
             results_dict['peak_list']
         )
@@ -543,22 +582,22 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         # If raw frame data can be found in the data received from a worker
         # node, add it to the 'collected_rawdata' dictionary and send the
-        # dictionary to the GUI.
+        # dictionary to the second GUI.
         if 'raw_data' in results_dict:
             collected_rawdata['raw_data'] = results_dict['raw_data']
             collected_rawdata['peak_list'] = results_dict['peak_list']
 
             self._zmq_pub_socket.send_data('ondarawdata', collected_rawdata)
 
-        # If the 'speed_report_interval' attribute says that we should
-        # report the estimated speed to the user, print a console message.
+        # If the 'speed_report_interval' attribute says that the estimated
+        # speed should be reported to the user, print a console message.
         if self._num_events % self._speed_report_interval == 0:
 
-            # Read current time and compare it to the previously stored one
+            # Read the current time and compare it to the previously stored one
             # to compute the estimated speed.
             now_time = time.time()
 
-            # Print speed report to the console
+            # Print the estimated processing speed to the console.
             speed_report_msg = (
                 'Processed: {0} in {1:.2f} seconds {2:.2f} Hz)'.format(
                     self._num_events,
@@ -572,5 +611,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
             print(speed_report_msg)
             sys.stdout.flush()
 
-            # Reset time for the next calculation of the etimated speed.
+            # Store the current time for the next calculation of the estimated
+            # speed.
             self._old_time = now_time

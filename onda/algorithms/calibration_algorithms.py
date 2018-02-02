@@ -13,11 +13,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+'''
+Algorithms for detector calibration.
+'''
 
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
-from onda.cfelpyutils import cfel_hdf5
+import h5py
+from future.utils import raise_from
 
 
 #######################
@@ -25,40 +28,53 @@ from onda.cfelpyutils import cfel_hdf5
 #######################
 
 
-class LambdaCalibration:
-    """Calibration of a Lambda detector module, with flatfield correction.
+class SingleModuleLambdaCalibration(object):
+    '''
+    Calibrate a single-module Lambda detector.
 
-    Implements a calibration procedure for a Lambda detector module, with
-    flatfield correction.
-    """
+    Simply apply flatfield correction.
+    '''
 
-    def __init__(self, calibration_file_name):
-        """Initializes the calibration algorithm.
-
-        Args:
-
-            calibration filename (str): name of the hdf5 file with the
-                calibration data.
-        """
-
-        self._flatfield = cfel_hdf5.load_nparray_from_hdf5_file(
-            data_file_name=calibration_file_name,
-            data_hdf5_group='/flatfieldcorrect'
-        )
-
-    def apply_calibration(self, raw_data):
-        """Applies the calibration.
-
-        Applies the calibration to the data provided by the user.
+    def __init__(self, calibration_filename):
+        '''
+        Initializes the SingleModuleLambdaCalibration algorithm.
 
         Args:
 
-            raw_data (numpy.ndarray): the data on which the calibration must
-                be applied, in 'slab' format.
+            calibration_filename (str): name of an HDF5 file with the
+                calibration data. The file must store the flatfield data
+                for the module in the '/flatfield' data entry.
+        '''
+
+        # Load the flatfield information from the file and store it in
+        # an attribute.
+        try:
+            with h5py.File(name=calibration_filename, mode='r') as fhandle:
+                self._flatfield = fhandle['/flatfield']
+        except OSError:
+            raise_from(
+                exc=RuntimeError(
+                    'Error reading the {} HDF5 file.'.format(
+                        calibration_filename
+                    )
+                ),
+                source=None
+            )
+
+    def apply_calibration(self, data):
+        """Appy the calibration.
+
+        Subtract the flatfield from the module data.
+
+        Args:
+
+            data (ndarray): the module data on which the calibration must
+                be applied.
 
         Returns:
 
-            corrected_data(numpy.ndarray):  the calibrated data
+            ndarray:  the corrected data.
         """
 
-        return raw_data * self._flatfield
+        # Multiply the data with the flatfield and return the result.
+        return data * self._flatfield

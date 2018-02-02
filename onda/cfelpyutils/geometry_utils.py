@@ -28,7 +28,8 @@ import numpy
 
 
 PixelMaps = collections.namedtuple('PixelMaps', ['x', 'y', 'r'])
-'''A namedtuple used for pixel maps objects.
+'''
+A namedtuple used for pixel maps objects.
 
 Pixel maps are arrays of the same shape of the data whose geometry they
 describe. Each cell in the array holds the coordinate, in the reference system
