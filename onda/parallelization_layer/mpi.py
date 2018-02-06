@@ -25,7 +25,8 @@ import sys
 from future.utils import raise_from
 from mpi4py import MPI
 
-from onda.utils import exceptions, parameters
+from onda.utils import exceptions
+from collections import namedtuple
 
 
 # Define some labels for internal MPI communication (just some syntactic
@@ -34,29 +35,46 @@ _NOMORE = 998
 _DIETAG = 999
 _DEADTAG = 1000
 
-# Import the facility layer.
-_FACILITY_LAYER = importlib.import_module(
-    'onda.facility_layer.{0}'.format(
-        parameters.get_param(
-            section='Onda',
-            parameter='facility_layer',
-            type_=str,
-            required=True
-        )
-    )
-)
 
-# Import the detector layer.
-_DETECTOR_LAYER = importlib.import_module(
-    'onda.detector_layer.{0}'.format(
-        parameters.get_param(
-            section='Onda',
-            parameter='detector_layer',
-            type_=str,
-            required=True
-        )
-    )
-)
+def _prepare_data_extraction_functions(detector_layer, facility_layer,
+                                       data_extraction_funcs):
+    # Recover the required data extraction functions from various layers.
+    # Raises a MissingDataExtractionFunction if the extraction function
+    # is not found in any layer.
+
+    # Create a list that will store the functions.
+    func_list = []
+
+    # Iterate over the required functions and look for them in the detector
+    # and facility layer.
+    for func in data_extraction_funcs:
+        try:
+            func_list.append(
+                getattr(
+                    object=detector_layer,
+                    name=func
+                )
+            )
+        except AttributeError:
+            try:
+                func_list.append(
+                    getattr(
+                        object=facility_layer,
+                        name=func
+                    )
+                )
+            except AttributeError:
+                raise_from(
+                    exc=exceptions.MissingDataExtractionFunction(
+                        'Data extraction function not defined for the'
+                        'following data type: {0}'.format(func)
+                    ),
+                    cause=None
+                )
+
+    # Return the list of data extraction functions after conversion
+    # to a tuple.
+    return tuple(func_list)
 
 
 class ParallelizationEngine(object):
@@ -83,13 +101,14 @@ class ParallelizationEngine(object):
         rank (int): rank (in MPI terms) of the node where the attribute is
             read.
 
+
     Raises:
 
         MissingDataExtractionFunction: if one of the requested data extraction
         function is not found in either the facility or the detector layer.
     '''
 
-    def __init__(self, map_func, reduce_func, source):
+    def __init__(self, map_func, reduce_func, source, monitor_params):
         '''
         Initialize the ParallelizationEngine class.
 
@@ -103,6 +122,9 @@ class ParallelizationEngine(object):
 
             source (function): a python generator function from which
                 worker nodes can recover data (by iterating over it).
+
+            monitor_params (:obj:`onda.utils.parameters.MonitorParameters`): an
+                object of type MonitorParameters with the monitor parameters.
         '''
 
         # Instrospect role of the node, then set the "role", the 'rank'
@@ -118,6 +140,31 @@ class ParallelizationEngine(object):
         self._map = map_func
         self._reduce = reduce_func
         self._source = source
+        self._monitor_params = monitor_params
+
+        # Import the facility layer.
+        facility_layer = importlib.import_module(
+            'onda.facility_layer.{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='facility_layer',
+                    type_=str,
+                    required=True
+                )
+            )
+        )
+
+        # Import the detector layer.
+        detector_layer = importlib.import_module(
+            'onda.detector_layer.{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='detector_layer',
+                    type_=str,
+                    required=True
+                )
+            )
+        )
 
         # Perform master-node specific initialization
         if self.role == 'master':
@@ -133,49 +180,64 @@ class ParallelizationEngine(object):
         # Perform worker-node specific initialization.
         if self.role == 'worker':
 
+            # Import the EventFilter class from the facility layer.
+            event_filter = getattr(
+                object=facility_layer,
+                name='EventFilter'
+            )
+
+            # Intantiate the event filter.
+            self._event_filter = event_filter(self._monitor_params)
+
             # Import functions from the facility layer.
             self._event_generator = getattr(
-                object=_FACILITY_LAYER,
+                object=facility_layer,
                 name='event_generator'
-            )
-
-            self._reject_filter = getattr(
-                object=_FACILITY_LAYER,
-                name='reject_filter'
-            )
-
-            self._create_event_data = getattr(
-                object=_FACILITY_LAYER,
-                name='reject_filter'
             )
 
             # Import functions from the detector layer.
             self._open_event = getattr(
-                object=_DETECTOR_LAYER,
+                object=detector_layer,
                 name='open_event'
             )
 
             self._close_event = getattr(
-                object=_DETECTOR_LAYER,
+                object=detector_layer,
                 name='close_event'
             )
 
             self._get_num_frames_in_event = getattr(
-                object=_DETECTOR_LAYER,
+                object=detector_layer,
                 name='get_num_frames_in_event'
             )
 
-            # Create the attribute that will store the data extraction
-            # functions.
-            self._data_extr_funcs = None
+            # Recover list of required data extraction functions from the
+            # parameter file.
+            data_extraction_funcs = [
+                x.strip() for x in monitor_params.get_param(
+                    section='Onda',
+                    parameter='required_data',
+                    type_=list,
+                    required=True
+                )
+            ]
+
+            # Initialize the data extraction function tupple.
+            self._data_extr_funcs = _prepare_data_extraction_functions(
+                detector_layer=detector_layer,
+                facility_layer=facility_layer,
+                data_extraction_funcs=data_extraction_funcs
+            )
 
             # Read from the configuration file the number of frames that
             # must be processed from each event.
-            self._num_frames_in_event_to_process = parameters.get_param(
-                section='General',
-                parameter='nun_frames_in_event_to_process',
-                type_=str,
-                required=True
+            self._num_frames_in_event_to_process = (
+                monitor_params.get_param(
+                    section='General',
+                    parameter='nun_frames_in_event_to_process',
+                    type_=int,
+                    required=True
+                )
             )
 
         return
@@ -283,14 +345,12 @@ class ParallelizationEngine(object):
 
             req = None
 
-            # Call the function that prepares the data extraction functions.
-            self._prepare_data_extraction_functions()
-
             # Initialize the event generator.
             events = self._event_generator(
                 source=self._source,
                 node_rank=self.rank,
-                mpi_pool_size=self._mpi_size
+                mpi_pool_size=self._mpi_size,
+                monitor_params=self._monitor_params
             )
 
             # Start processing events.
@@ -308,7 +368,7 @@ class ParallelizationEngine(object):
 
                 # Check if the event should be rejected. If it should, skip
                 # to next iteration of the loop.
-                if self._reject_filter(event):
+                if self._event_filter.should_rejected(event):
                     continue
 
                 # Recover the number of frames in the event.
@@ -320,8 +380,13 @@ class ParallelizationEngine(object):
                 if n_frames < self._num_frames_in_event_to_process:
                     self._num_frames_in_event_to_process = n_frames
 
-                # Open the event (a file, a data structure).
+                # Open the event (a file, a data structure). The function
+                # returns a dictionary containing the opened event
+                # information.
                 opened_event = self._open_event(event)
+
+                # Add monitor parameters to the opened_event dictionary.
+                opened_event['monitor_params'] = self._monitor_params
 
                 # Iterate over the frames that should be processed. Assuming
                 # than n is the number of frames to be processed, iterate
@@ -332,12 +397,8 @@ class ParallelizationEngine(object):
                         0
                 ):
 
-                    # Create an event_data structure joining the event
-                    # data with some metadata.
-                    event_data = self._create_event_data(
-                        event=opened_event,
-                        frame_offset=frame_offset
-                    )
+                    # Add the frame offset to the opened_event dictionary.
+                    opened_event['frame_offset'] = frame_offset
 
                     # Create dictionary that will store the extracted data.
                     data = {}
@@ -350,7 +411,9 @@ class ParallelizationEngine(object):
                     try:
                         for func in self._data_extr_funcs:
                             try:
-                                data[func.__name__] = func(event_data)
+                                data[func.__name__] = func(
+                                    event=opened_event
+                                )
                             except Exception as exc:
                                 raise exceptions.DataExtractionError(
                                     'Error extracting {0}: {1}'.format(
@@ -480,48 +543,3 @@ class ParallelizationEngine(object):
             )
         )
         sys.stdout.flush()
-
-    def _prepare_data_extraction_functions(self):
-        # Recover the required data extraction functions from various layers.
-        # Raises a MissingDataExtractionFunction if the extraction function
-        # is not found in any layer.
-
-        # Recover list of required data extraction functions from the
-        # parameter file.
-        data_extraction_funcs = [
-            x.strip() for x in parameters.get_param(
-                section='Onda',
-                parameter='required_data',
-                type_=list,
-                required=True
-            )
-        ]
-
-        # Create a list that will store the functions.
-        func_list = []
-
-        # Iterate over the required functions and look for them in the detector
-        # and facility layer.
-        for func in data_extraction_funcs:
-            try:
-                func_list.append(getattr(object=_DETECTOR_LAYER, name=func))
-            except AttributeError:
-                try:
-                    func_list.append(
-                        getattr(
-                            object=_DETECTOR_LAYER,
-                            name=func
-                        )
-                    )
-                except AttributeError:
-                    raise_from(
-                        exc=exceptions.MissingDataExtractionFunction(
-                            'Data extraction function not defined for the'
-                            'following data type: {0}'.format(func)
-                        ),
-                        cause=None
-                    )
-
-        # Set the data_extr_funcs attribute after converting the list of
-        # recovered functions to a tuple.
-        self._data_extr_funcs = tuple(func_list)

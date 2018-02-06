@@ -14,36 +14,92 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 
+'''
+Main OnDA module.
+'''
+
+
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import importlib as il
+import argparse
+import configparser
+import importlib
 import sys
-from configparser import ConfigParser
-
-import onda.cfelpyutils.cfel_optarg as coa
-import onda.utils.argument_parsing as ap
-import onda.utils.parameters as op
-from onda.utils.exceptions import onda_exception_handler
 
 
-if __name__ == "__main__":
+from onda.utils import exceptions, parameters
 
-    sys.excepthook = onda_exception_handler
 
-    processing_layer = il.import_module(
+def main():
+    '''
+    Main OnDA monitor function.
+    '''
+
+    # Set a custom exception handler.
+    sys.excepthook = exceptions.onda_exception_handler
+
+    # Instantiate an argument parser.
+    parser = argparse.ArgumentParser(
+        prog='mpirun [MPI OPTIONS] onda.py',
+        description='OnDA - Online Data Analysis'
+    )
+
+    # Add some arguments to the parser.
+    parser.add_argument(
+        name='source',
+        type=str,
+        help='data source (file list, psana source string, etc.'
+    )
+
+    parser.add_argument(
+        flags=['-i', '--ini'],
+        type=str,
+        default='monitor.ini',
+        help='monitor.ini file (default: monitor.ini), see '
+             'monitor.ini.template for an example'
+    )
+
+    # Run the argument parser.
+    args = parser.parse_args()
+
+    # Instantiate the configuration file parser.
+    config = configparser.ConfigParser()
+
+    # Read the configuration file and parse it with the configuration
+    # parser. Raise an exception if the file cannot be read.
+    try:
+        config.read(args.ini)
+    except OSError:
+        raise RuntimeError(
+            'Error reading configuration file: {0}'.format(args.ini)
+        )
+
+    # Create a MonitorParams object from the parsed configuration file.
+    monitor_parameters = parameters.MonitorParams(config)
+
+    # Import the processing layer specified in the configuration file.
+    processing_layer = importlib.import_module(
         'onda.processing_layer.{0}'.format(
-            op.param('Onda', 'processing_layer', str, required=True)
+            monitor_parameters.get_param(
+                section='Onda',
+                parameter='detector_layer',
+                type_=str,
+                required=True
+            )
         )
     )
 
-    args = ap.parse_onda_cmdline_args()
-    config = ConfigParser()
-    config.read(args.ini)
+    # Import the OndaMonitor class from the processing layer.
+    onda_monitor = getattr(
+        object=processing_layer,
+        name='OndaMonitor'
+    )
 
-    op.monitor_params = coa.parse_parameters(config)
+    # Instantiate the OndaMonitor class and start the monitor.
+    monitor = onda_monitor(source=args.source, parameters=monitor_parameters)
+    monitor.start(verbose=False)
 
-    OndaMonitor = getattr(processing_layer, 'OndaMonitor')
 
-    mon = OndaMonitor(args.source)
-    mon.start(verbose=False)
+if __name__ == "__main__":
+    main()

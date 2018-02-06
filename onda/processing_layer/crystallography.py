@@ -19,6 +19,7 @@ An OnDA online monitor for crystallography experiments.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import importlib
 import sys
 import time
 from builtins import str
@@ -30,7 +31,6 @@ from onda.algorithms import generic_algorithms as gen_algs
 from onda.cfelpyutils import crystfel_utils, geometry_utils
 from onda.parallelization_layer import mpi
 from onda.utils import zmq as onda_zmq
-from onda.utils import parameters
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -52,7 +52,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
     J Appl Crystallogr, vol. 47, pp. 1118–1131 (2014).
     '''
 
-    def __init__(self, source):
+    def __init__(self, source, monitor_parameters):
         '''
         Initialize the OndaMonitor class.
 
@@ -63,19 +63,26 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 uses (e.g: the string represents a psana experiment descriptor
                 for the psana backend, the IP address where HiDRA is running
                 for the Petra III backend, etc.)
+
+            monitor_parameters (dict): dictionary storing the content of the
+                configuration file, as returned by the configparse python
+                module.
         '''
 
         # Call the constructor of the parent class (mpi.ParallelizationEngine).
-        super(OndaMonitor, self).__init__(map_func=self.process_data,
-                                          reduce_func=self.collect_data,
-                                          source=source)
+        super(OndaMonitor, self).__init__(
+            map_func=self.process_data,
+            reduce_func=self.collect_data,
+            source=source,
+            monitor_parameters=monitor_parameters
+        )
 
         # Worker node-specific initialization.
         if self.role == 'worker':
 
             # Check if calibration is requested, and if it is, read which
             # algorithm should be used.
-            requested_calib_alg = parameters.get_param(
+            requested_calib_alg = monitor_parameters.get_param(
                 section='DetectorCalibration',
                 parameter='calibration_algorithm',
                 type_=str
@@ -91,7 +98,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # Instantiate the calibration algorithm
                 # and save it in an attribute.
                 self._calibration_alg = calibration_alg_class(
-                    calibration_file=parameters.get_param(
+                    calibration_file=monitor_parameters.get_param(
                         section='DetectorCalibration',
                         parameter='calibration_file',
                         type_=str,
@@ -107,39 +114,39 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read from the configuration file all the parameters needed
             # to instantiate the dark calibration correction algorithm.
-            dark_cal_fname = parameters.get_param(
+            dark_cal_fname = monitor_parameters.get_param(
                 section='DarkCalCorrection',
                 parameter='filename',
                 type_=str,
                 required=True
             )
 
-            dark_cal_hdf5_pth = parameters.get_param(
+            dark_cal_hdf5_pth = monitor_parameters.get_param(
                 section='DarkCalCorrection',
                 parameter='hdf5_path',
                 type_=str,
                 required=True
             )
 
-            dark_cal_mask_fname = parameters.get_param(
+            dark_cal_mask_fname = monitor_parameters.get_param(
                 section='DarkCalCorrection',
                 parameter='mask_filename',
                 type_=str
             )
 
-            dark_cal_mask_hdf5_pth = parameters.get_param(
+            dark_cal_mask_hdf5_pth = monitor_parameters.get_param(
                 section='DarkCalCorrection',
                 parameter='mask_hdf5_path',
                 type_=str
             )
 
-            dark_cal_gain_map_fname = parameters.get_param(
+            dark_cal_gain_map_fname = monitor_parameters.get_param(
                 section='DarkCalCorrection',
                 parameter='gain_map_filename',
                 type_=str
             )
 
-            dark_cal_gain_map_hdf5_pth = parameters.get_param(
+            dark_cal_gain_map_hdf5_pth = monitor_parameters.get_param(
                 section='DarkCalCorrection',
                 parameter='gain_map_hdf5_path',
                 type_=str
@@ -157,7 +164,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             # Load the geometry data and compute the pixel maps.
-            geometry_filename = parameters.get_param(
+            geometry_filename = monitor_parameters.get_param(
                 section='General',
                 parameter='geometry_file',
                 type_=str,
@@ -169,112 +176,103 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read from the configuration file all the parameters needed
             # to instantiate the peakfinder8 algorithm.
-            pf8_max_num_peaks = parameters.get_param(
+            pf8_max_num_peaks = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='max_num_peaks',
                 type_=int,
                 required=True
             )
 
-            pf8_asic_nx = parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='asic_nx',
-                type_=int,
-                required=True
-            )
-
-            pf8_asic_ny = parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='asic_ny',
-                type_=int,
-                required=True
-            )
-
-            pf8_nasics_x = parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='nasics_x',
-                type_=int,
-                required=True
-            )
-
-            pf8_nasics_y = parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='nasics_y',
-                type_=int,
-                required=True
-            )
-
-            pf8_adc_threshold = parameters.get_param(
+            pf8_adc_threshold = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='adc_threshold',
                 type_=float,
                 required=True
             )
 
-            pf8_minimum_snr = parameters.get_param(
+            pf8_minimum_snr = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='minimum_snr',
                 type_=float,
                 required=True
             )
 
-            pf8_min_pixel_count = parameters.get_param(
+            pf8_min_pixel_count = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='min_pixel_count',
                 type_=int,
                 required=True
             )
 
-            pf8_max_pixel_count = parameters.get_param(
+            pf8_max_pixel_count = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='max_pixel_count',
                 type_=int,
                 required=True
             )
 
-            pf8_local_bg_radius = parameters.get_param(
+            pf8_local_bg_radius = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='local_bg_radius',
                 type_=int,
                 required=True
             )
 
-            pf8_min_res = parameters.get_param(
+            pf8_min_res = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='min_res',
                 type_=int,
                 required=True
             )
 
-            pf8_max_res = parameters.get_param(
+            pf8_max_res = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='max_res',
                 type_=int,
                 required=True
             )
 
-            pf8_bad_pixel_map_fname = parameters.get_param(
+            pf8_bad_pixel_map_fname = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='bad_pixel_map_filename',
                 type_=str,
                 required=True
             )
 
-            pf8_bad_pixel_map_hdf5_gr = parameters.get_param(
+            pf8_bad_pixel_map_hdf5_gr = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='bad_pixel_map_hdf5_group',
                 type_=str,
                 required=True
             )
 
+            # Import the detector layer.
+            detector_layer = importlib.import_module(
+                'onda.detector_layer.{0}'.format(
+                    self._monitor_params.get_param(
+                        section='Onda',
+                        parameter='detector_layer',
+                        type_=str,
+                        required=True
+                    )
+                )
+            )
+
+            # Import peakfinder8-related detector information from the
+            # detector layer.
+            pf8_detector_info = getattr(
+                object=detector_layer,
+                name='PEAKFINDER8_DETECTOR_INFORMATION'
+            )
+
             # Instantiate the peakfind8 algorithm and save it
             # in an attribute.
             self._peakfinder8_peak_det = cryst_algs.Peakfinder8PeakDetection(
                 max_num_peaks=pf8_max_num_peaks,
-                asic_nx=pf8_asic_nx,
-                asic_ny=pf8_asic_ny,
-                nasics_x=pf8_nasics_x,
-                nasics_y=pf8_nasics_y,
+                asic_nx=pf8_detector_info.asic_nx,
+                asic_ny=pf8_detector_info.asic_ny,
+                nasics_x=pf8_detector_info.nasics_x,
+                nasics_y=pf8_detector_info.nasics_y,
                 adc_threshold=pf8_adc_threshold,
                 minimum_snr=pf8_minimum_snr,
                 min_pixel_count=pf8_min_pixel_count,
@@ -289,21 +287,21 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read some additional peak-finding parameters from the
             # configuration file and save them to attributes.
-            self._max_saturated_peaks = parameters.get_param(
+            self._max_saturated_peaks = monitor_parameters.get_param(
                 section='General',
                 parameter='max_saturated_peaks',
                 type_=int,
                 required=True
             )
 
-            self._min_num_peaks_for_hit = parameters.get_param(
+            self._min_num_peaks_for_hit = monitor_parameters.get_param(
                 section='General',
                 parameter='min_num_peaks_for_hit',
                 type_=int,
                 required=True
             )
 
-            self._max_num_peaks_for_hit = parameters.get_param(
+            self._max_num_peaks_for_hit = monitor_parameters.get_param(
                 section='General',
                 parameter='max_num_peaks_for_hit',
                 type_=int,
@@ -312,7 +310,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read from the configuration file the adc_threshold value
             # above which a pixel should be considered saturated.
-            self._saturation_value = parameters.get_param(
+            self._saturation_value = monitor_parameters.get_param(
                 section='General',
                 parameter='saturation_value',
                 type_=int,
@@ -322,7 +320,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # Read from the configuration file the interval (in events
             # labelled as 'hits') at which the full frame detector data
             # should be sent to the master node.
-            self._hit_sending_interval = parameters.get_param(
+            self._hit_sending_interval = monitor_parameters.get_param(
                 section='General',
                 parameter='hit_sending_interval',
                 type_=int,
@@ -338,7 +336,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read from the configuration file how often the master node
             # should print to the console the estimated processing speed.
-            self._speed_report_interval = parameters.get_param(
+            self._speed_report_interval = monitor_parameters.get_param(
                 section='General',
                 parameter='speed_report_interval',
                 type_=int,
@@ -347,7 +345,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read from the configuration file if the geometry is optimized
             # or not.
-            self._optimized_geometry = parameters.get_param(
+            self._optimized_geometry = monitor_parameters.get_param(
                 section='General',
                 parameter='geometry_is_optimized',
                 type_=bool,
@@ -357,7 +355,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # Read from the configuration file how many events should be
             # accumulated by the master node before sending the data to the
             # GUI.
-            pa_num_events_to_accumulate = parameters.get_param(
+            pa_num_events_to_accumulate = monitor_parameters.get_param(
                 section='PeakAccumulator',
                 parameter='num_events_to_accumulate',
                 type_=int,
@@ -385,7 +383,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # Read from the configuration file how large (in number of events)
             # the running average windows for hit_rate and saturation_rate
             # should be. Store the information in an attribute.
-            self._run_avg_wdw_size = parameters.get_param(
+            self._run_avg_wdw_size = monitor_parameters.get_param(
                 section='General',
                 parameter='running_average_size',
                 type_=int,
@@ -407,13 +405,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read from the configuration file which IP and port should be
             # used for the socket that broadcasts data to the GUI(s).
-            publisher_socket_ip = parameters.get_param(
+            publisher_socket_ip = monitor_parameters.get_param(
                 section='General',
                 parameter='publish_ip',
                 type_=str
             )
 
-            publisher_socket_port = parameters.get_param(
+            publisher_socket_port = monitor_parameters.get_param(
                 section='General',
                 parameter='publish_port',
                 type_=int

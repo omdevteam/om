@@ -22,12 +22,16 @@ from __future__ import (absolute_import, division, print_function,
 
 import importlib
 import os.path
+import socket
+
+from onda.facility_layer.hidra_api import Transfer
 
 import numpy
 from future.utils import raise_from
 
 
-def event_generator(source, node_rank, mpi_pool_size, _):
+def initialize_event_generator(source, mpi_pool_size,
+                               monitor_params):
     '''
     Generate event list.
 
@@ -38,38 +42,79 @@ def event_generator(source, node_rank, mpi_pool_size, _):
 
             source (function): a python generator function from which
                 worker nodes can recover data (by iterating over it).
-
-            node_rank (int): rank of the worker node for which the event
-                list will be generated.
-
-            mpi_pool_size (int): size of the MPI pool that includes the node
-                for which the event list will be generated.
     '''
 
-    try:
-        with open(source, 'r') as fhandle:
-            filelist = fhandle.readlines()
-    except OSError:
-        raise_from(
-            exc=RuntimeError(
-                'Error reading the {} source file.'.format(
-                    source
-                )
-            ),
-            source=None
-        )
-
-    mylength = int(
-        numpy.ceil(
-            len(filelist) / float(mpi_pool_size - 1)
-        )
+    # Read the requested transfer type from the configuration file.
+    transfer_type = monitor_params.get_param(
+        section='HidraFacilityLayer',
+        parameter='transfer_type',
+        type_='str',
+        required=True
     )
-    myfiles = filelist[
-        ((node_rank - 1) * mylength):(node_rank * mylength)
-    ]
 
-    for entry in myfiles:
-        yield entry
+    # Set some variables depending on the requested transfer type.
+    # If the transfer type is data-based...
+    if transfer_type == 'data':
+
+        # Request the latest event with full data.
+        query_text = 'QUERY_NEXT'
+
+        # No base path, since data is tranferred over the network.
+        data_base_path = ''
+
+    # If the transfer type is metadata-based...
+    elif transfer_type == 'metadata':
+
+        # Request the latest event with metadata only.
+        query_text = 'QUERY_METADATA'
+
+        # Read the data base path from the configuration file.
+        data_base_path = os.path.join(
+            monitor_params.getparam(
+                section='PetraIIIParallelizationLayer',
+                parameter='data_base_path',
+                type_=str,
+                required=True
+            )
+        )
+
+    # If the transfer type is unknown, raise an exception.
+    else:
+        raise RuntimeError(
+            'Unrecognized transfer type for HiDRA Facility layer.'
+        )
+
+    base_port = monitor_params.get_param(
+        section='PetraIIIParallelizationLayer',
+        parameter='base_port',
+        type_=int,
+        required=True
+    )
+
+    targets = [['', '', 1]]
+
+    for node_rank in range(1, mpi_pool_size):
+        target_entry = [
+            socket.gethostname(),
+            str(base_port + node_rank),
+            str(priority),
+        ]
+        targets.append(target_entry)
+
+
+
+
+
+    query = Transfer(
+        connection_type=query_text,
+        signal_host=source,
+        use_log=None
+    )
+
+
+
+
+
 
 
 class EventFilter(object):

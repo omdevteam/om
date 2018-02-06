@@ -26,10 +26,6 @@ class OndaException(Exception):
     pass
 
 
-class DynamicImportError(OndaException):
-    pass
-
-
 class HidraAPIError(OndaException):
     pass
 
