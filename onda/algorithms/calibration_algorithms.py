@@ -12,11 +12,16 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
-
-'''
+"""
 Algorithms for detector calibration.
-'''
 
+Exports:
+
+    Classes:
+
+        SingleModuleLambdaCalibration: calibration of a single module lambda
+            detector (flatfield correction).
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import h5py
@@ -27,16 +32,15 @@ from future.utils import raise_from
 # LAMBDA CALIBRATION  #
 #######################
 
-
 class SingleModuleLambdaCalibration(object):
-    '''
+    """
     Calibrate a single-module Lambda detector.
 
-    Simply apply flatfield correction.
-    '''
+    Calibrate a single-module Lambda detector by applying flatfield correction.
+    """
 
     def __init__(self, calibration_filename):
-        '''
+        """
         Initializes the SingleModuleLambdaCalibration algorithm.
 
         Args:
@@ -44,8 +48,7 @@ class SingleModuleLambdaCalibration(object):
             calibration_filename (str): name of an HDF5 file with the
                 calibration data. The file must store the flatfield data
                 for the module in the '/flatfield' data entry.
-        '''
-
+        """
         # Load the flatfield information from the file and store it in
         # an attribute.
         try:
@@ -64,7 +67,7 @@ class SingleModuleLambdaCalibration(object):
     def apply_calibration(self, data):
         """Appy the calibration.
 
-        Subtract the flatfield from the module data.
+        Apply the flatfield correction to the module data.
 
         Args:
 
@@ -75,6 +78,6 @@ class SingleModuleLambdaCalibration(object):
 
             ndarray:  the corrected data.
         """
-
-        # Multiply the data with the flatfield and return the result.
+        # Lambda flatfields are usually provided in a format that requires the
+        # data to be multipled by the flatfield.
         return data * self._flatfield

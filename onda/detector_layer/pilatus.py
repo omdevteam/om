@@ -27,92 +27,71 @@ import fabio
 from scipy.constants import c, electron_volt, h
 
 
-Peakfinder8DetectorInfo = collections.namedtuple(  # pylint: disable-msg=C0103
-    typename='Peakfinder8DetectorInfo',
-    field_names=['asics_nx', 'asics_ny', 'nasics_x', 'nasics_y']
-)
-'''
-A namedtuple used for peakfinder8-related detector information.
-
-The four fields are the four parameters used by the peakfinder8 algorithm to
-describe the data format of the input data.
-'''
-
-FilenameAndFrameIndex = collections.namedtuple(   # pylint: disable-msg=C0103
-    typename='FilenameAndFrameIndex',
-    field_names=['filename', 'frame_index']
-)
-'''
-A namedtuple to store filename and frame_index information.
-
-The first field is the full path to the file containing the data, the second
-field is the index of a frame in the data block, located in the file, that
-stores the raw detector data. This information is used to locate a specific
-frame in multi-frame data files. .
-'''
-
-FILE_EXTENSIONS = ('.cbf')
-'''
-Allowed file extensions.
-'''
-
-PEAKFINDER8_DETECTOR_INFO = Peakfinder8DetectorInfo(
-    2463, 2527, 1, 1
-)
-'''
-Peakfinder8-related detector information.
-'''
-
-
-def open_event(event):
+def get_file_extensions():
     '''
-    Open event.
-
-    Return a fabio module cbf_obj object and the creation date of the file
-    as timestamp.
-
-    Args:
-
-        event(str): the full path of the Pilatus data file.
+    Return allowed file extensions.
 
     Returns:
 
-        dict: A dictionary containing three entries: 'cbf_obj', the fabio
-        cbf_obj object storing the data from the file, 'file_creation_time',
-        the creation time of the file (in timestamp format), and 'filename',
-        the full path to the file containing the data
+        tuple: a tuple containing the list of allowed file extensions.
     '''
 
-    # Create the dictionary that will be returned.
-    opened_event = {}
-
-    # Open the file and recover the fabio cbf_obj object.
-    opened_event['cbf_obj'] = fabio.open(event, 'r')
-
-    # Recover the creation time of the file.
-    opened_event['file_creation_time'] = os.stat(event).st_ctime
-
-    # Store the file name in the returned dictionary.abs
-    opened_event['filename'] = event
-
-    # Return a tuple with the information.
-    return opened_event
+    # Return a tuple with the list of allowed extensions.
+    return ('.cbf',)
 
 
-def close_event(_):
+def get_peakfinder8_detector_info():
+    '''
+    Return peakfinder8 detector info.
+
+    Returns:
+
+        tuple: A tuple where the four fields (named respectively 'asics_nx',
+        'asics_ny', 'nasics_x', and 'nasics_y)'are the four parameters used by
+        the peakfinder8 algorithm to describe the format of the input data.
+    '''
+
+    # A namedtuple used for peakfinder8-related detector information.
+    Peakfinder8DetInfo = collections.namedtuple(  # pylint: disable-msg=C0103
+        typename='Peakfinder8DetectorInfo',
+        field_names=['asics_nx', 'asics_ny', 'nasics_x', 'nasics_y']
+    )
+
+    return Peakfinder8DetInfo(2463, 2527, 1, 1)
+
+
+def open_event_filelist(event):
+    '''
+    Open event.
+
+    Store the content of the cbf file as a fabio module cbf_obj object
+    in the 'data' entry of the event dictionary.
+
+    Args:
+
+        event (dict): a dictionary with the event data.
+
+    '''
+
+    # Open the file and recover the fabio cbf_obj object,
+    # then store it into the 'data' entry of the event dictionary.
+    event['data'] = fabio.open(event['metadata']['full_path'])
+
+
+def close_event_filelist(_):
     '''
     Close event.
 
-    Actually doing nothing. There is no need to close a fabio cbf_obj object.
+    Do nothing. There is no need to close a fabio cbf_obj object.
 
     '''
 
     pass
 
 
-def get_num_frames_in_event(_):
+def num_frames_in_event_filelist(_):
     '''
-    The number of frames in an event.
+    The number of frames in the file.
 
     Cbf files usually store 1 frame per file.
     '''
@@ -121,7 +100,7 @@ def get_num_frames_in_event(_):
     return 1
 
 
-def raw_data(opened_event):
+def raw_data_filelist(event):
     '''
     Recover raw detector data for one frame.
 
@@ -130,20 +109,18 @@ def raw_data(opened_event):
 
     Args:
 
-        opened_event (dict): dictionary containing the opened event
-            information.
+        event (dict): a dictionary with the event data.
 
     Returns:
 
         ndarray: the raw detector data.
-
     '''
 
     # Extract and return the detector data.
-    return opened_event['cbf_obj'].data
+    return event['data'].data
 
 
-def timestamp(opened_event):
+def timestamp_filelist(event):
     '''
     Recover the timestamp of the event.
 
@@ -151,8 +128,7 @@ def timestamp(opened_event):
 
     Args:
 
-        opened_event (dict): dictionary containing the opened event
-            information.
+        event (dict): a dictionary with the event data.
 
     Returns:
 
@@ -160,10 +136,10 @@ def timestamp(opened_event):
     '''
 
     # Return the creation time of the file.
-    return opened_event['file_creation_time']
+    return os.stat(event['metadata']['full_path']).st_crtime
 
 
-def beam_energy(opened_event):
+def beam_energy_filelist(event):
     '''
     Recover the energy of the beam.
 
@@ -173,8 +149,7 @@ def beam_energy(opened_event):
 
     Args:
 
-        opened_event (dict): dictionary containing the opened event
-            information.
+        event (dict): a dictionary with the event data.
 
     Returns:
 
@@ -183,7 +158,7 @@ def beam_energy(opened_event):
 
     try:
         # Try to read the data from the header of the CBF file.
-        header_data_list = opened_event['cbf_obj'].header[
+        header_data_list = event['data']['cbf_obj'].header[
             u'_array_data.header_contents'
         ].split('\r\n')
         wavelength = float(header_data_list[15].split()[2])
@@ -194,7 +169,7 @@ def beam_energy(opened_event):
         # If the data cannot be found in the heaeder of the CBF file,
         # return the value provided in the configuration file.
         return float(
-            opened_event['monitor_params'].get_param(
+            event['monitor_params'].get_param(
                 section='General',
                 parameter='fallback_beam_energy',
                 type_=float,
@@ -203,7 +178,7 @@ def beam_energy(opened_event):
         )
 
 
-def detector_distance(opened_event):
+def detector_distance_filelist(event):
     '''
     Recover the distance of the detector from the sample location.
 
@@ -213,8 +188,7 @@ def detector_distance(opened_event):
 
     Args:
 
-        opened_event (dict): dictionary containing the opened event
-            information.
+        event (dict): a dictionary with the event data.
 
     Returns:
 
@@ -223,7 +197,7 @@ def detector_distance(opened_event):
 
     try:
         # Try to read the data from the header of the CBF file.
-        header_data_list = opened_event['cbf_obj'].header[
+        header_data_list = event['data']['cbf_obj'].header[
             u'_array_data.header_contents'
         ].split('\r\n')
 
@@ -233,7 +207,7 @@ def detector_distance(opened_event):
         # If the data cannot be found in the heaeder of the CBF file,
         # return the value provided in the configuration file.
         return float(
-            opened_event['monitor_params'].get_param(
+            event['monitor_params'].get_param(
                 section='General',
                 parameter='fallback_detector_distance',
                 type_=float,
@@ -242,7 +216,7 @@ def detector_distance(opened_event):
         )
 
 
-def filename_and_frame_index(opened_event):
+def filename_and_frame_index_filelist(event):
     '''
     Recover the path to the data file and the index of the processed frame.
 
@@ -250,18 +224,31 @@ def filename_and_frame_index(opened_event):
 
     Args:
 
-        opened_event (dict): dictionary containing the opened event
+        event (dict): dictionary containing the opened event
             information.
 
     Returns:
 
-        FilenameAndFrameIndex: a tuple FilenameAndFrameIndex contaning the
-        file and frame data.
+        tuple: a tuple where the first field ('filename') is the full path
+        to the data file, and the second ('frame_index') is index of the
+        processed frame.
     '''
+
+    # A namedtuple used to store filename and index information.
+    FnameAndFrameIndex = collections.namedtuple(  # pylint: disable-msg=C0103
+        typename='FilenameAndFrameIndex',
+        field_names=['filename', 'frame_index']
+    )
 
     # Recover the file path from the opened_event dictionary. Just return
     # 0 and the frame index.
-    return FilenameAndFrameIndex(
-        opened_event['filename'],
-        0
-    )
+    return FnameAndFrameIndex(event['metadata']['full_path'], 0)
+
+
+
+def detector_data_hidra():
+
+    dsadassdsa
+
+
+detector_data_filelist = detector_data_hidra
