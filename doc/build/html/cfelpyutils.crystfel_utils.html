@@ -1,13 +1,16 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
     <title>cfelpyutils.crystfel_utils module &#8212; cfelpyutils 0.5 documentation</title>
+    
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -24,7 +27,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body>
+  <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -74,22 +77,23 @@ get_detector_geometry_2 function from CrystFEL.</p>
 <dt id="cfelpyutils.crystfel_utils.load_crystfel_geometry">
 <code class="descclassname">cfelpyutils.crystfel_utils.</code><code class="descname">load_crystfel_geometry</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a CrystFEL geometry file into a dictionary.</p>
-<p>Reimplementation of the get_detector_geometry_2 function from CrystFEL
-in python. Return a dictionary with the geometry information read from
-the file. Convert entries in the geometry file to keys in the
-returned dictionary. For a full documentation on the CrystFEL geometry
-format, see:</p>
+<p>Reimplementation of the get_detector_geometry_2 function from
+CrystFEL in python. Return a dictionary with the geometry
+information read from the file. Convert entries in the geometry
+file to keys in the returned dictionary. For a full documentation
+on the CrystFEL geometry format, see:</p>
 <p><a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html</a></p>
 <p>The code of this function is synced with the code of the function
-‘get_detector_geometry_2’ in CrystFEL at commit
+&#8216;get_detector_geometry_2&#8217; in CrystFEL at commit
 41a8fa9819010fe8ddeb66676fee717f5226c7b8.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – filename of the geometry file.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; filename of the geometry file.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the geometry information loaded from the file.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the geometry information loaded from the
+file.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -119,7 +123,7 @@ format, see:</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, CFEL Team.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
     </div>
   </body>
 </html>
