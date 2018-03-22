@@ -12,7 +12,37 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+"""
+OnDA-specific exceptions and exception handler.
 
+Exports:
+
+    Functions:
+
+        onda_exception_handler: custom OnDA excpetion handler.
+
+    Classes:
+
+        OndaException: base OnDA exception.
+
+        HidraAPIError: error in the HiDRA API.
+
+        MissingDataExtractionFunction: non-defined data extraction
+            function.
+
+        MissingFile: required file missing.
+
+        MissingParameterFileSection: section missing in the
+            configuration file.
+
+        MissingParameter(OndaException): parameter missing in the
+            configuration file.
+
+        WrongParameterType: type of a parameter does not match the
+            requested type.
+
+        DataExtractionError: error during data extraction.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -23,46 +53,78 @@ from mpi4py import MPI
 
 
 class OndaException(Exception):
+    """
+    Base OnDA exception.
+
+    Base OnDA exception, from which all other OnDA-specific exceptions
+    inherit.
+    """
     pass
 
 
 class HidraAPIError(OndaException):
-    pass
+    """
+    Error in the HiDRA API.
 
-
-class ParameterInputError(OndaException):
-    pass
-
-
-class MLLLogFleParsingError(OndaException):
+    Error within a HiDRA API call.
+    """
     pass
 
 
 class MissingDataExtractionFunction(OndaException):
-    pass
+    """
+    Data extraction function not defined.
 
-
-class MissingFile(OndaException):
+    One of the requested data extraction functions is not defined.
+    """
     pass
 
 
 class MissingParameterFileSection(OndaException):
+    """
+    Missing configuration file section.
+
+    Missing section in the configuration file.
+    """
     pass
 
 
 class MissingParameter(OndaException):
+    """
+    Missing parameter.
+
+    Parameter missing from the configuration file.
+    """
     pass
 
 
 class WrongParameterType(OndaException):
+    """
+    Wrong parameter type.
+
+    Parameter type does not match requested type.
+    """
     pass
 
 
 class DataExtractionError(OndaException):
+    """
+    Data extraction error.
+
+    Error during data extraction.
+    """
     pass
 
 
 def onda_exception_handler(type_, value, traceback):
+    """
+    Custom OnDA exception handler.
+
+    Custom handler for OnDA. Add a label and hide the stracktrace for
+    OnDA exceptions. Report all other exceptions normally.
+
+    Args:
+    """
     if issubclass(type, OndaException):
         print('')
         print('>>>>> OnDA ERROR: {0} <<<<<'.format(value))

@@ -12,7 +12,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
-
 """
 Algorithms for the processing of crystallography data.
 
@@ -20,10 +19,11 @@ Exports:
 
     Classes:
 
-        Peakfinder8PeakDetection: calibration of a single module lambda
-            detector (flatfield correction).
+        Peakfinder8PeakDetection: peak detection using the peakfinder8
+            algorithm from the Cheetah software package.
 
-        PeakAccumulator:
+        PeakAccumulator: Accumulation of peak information for
+            subsequent bulk retrieval
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -37,14 +37,6 @@ from future.utils import raise_from
 from ondacython.lib.peakfinder8_extension import peakfinder_8
 
 
-# Namedtuple used internally to store peak coordinates in the data.
-# array.
-_InternalListOfPeaks = namedtuple('_InternalListOfPeaks', ['ss', 'fs'])
-
-# Namedtuple used internally to store an offset in the data array.
-_Offset = namedtuple('_Offset', ['ss', 'fs'])
-
-
 ##############################
 # PEAKFINDER8 PEAK DETECTION #
 ##############################
@@ -54,27 +46,39 @@ class Peakfinder8PeakDetection(object):
     Detect peaks.
 
     Use Cheetah's peakfinder8 to detect peaks in the data provided by
-    the user (which must be in 'slab' format). See this paper for a descrition
-    of the peakfinder8 algorithm:
+    the user (which must be in 'slab' format). See this paper for a
+    descrition of the peakfinder8 algorithm:
 
     A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
-    T. A. White, and H. N. Chapman, “Cheetah: software for high-throughput
-    reduction and analysis of serial femtosecond X-ray diffraction data”,
-    J Appl Crystallogr, vol. 47, pp. 1118–1131 (2014).
+    T. A. White, and H. N. Chapman, “Cheetah: software for
+    high-throughput reduction and analysis of serial femtosecond X-ray
+    diffraction data”, J Appl Crystallogr, vol. 47,
+    pp. 1118–1131 (2014).
     """
 
-    def __init__(self, max_num_peaks, asic_nx, asic_ny, nasics_x,
-                 nasics_y, adc_threshold, minimum_snr, min_pixel_count,
-                 max_pixel_count, local_bg_radius, min_res,
-                 max_res, bad_pixel_map_filename, bad_pixel_map_hdf5_group,
+    def __init__(self,
+                 max_num_peaks,
+                 asic_nx,
+                 asic_ny,
+                 nasics_x,
+                 nasics_y,
+                 adc_threshold,
+                 minimum_snr,
+                 min_pixel_count,
+                 max_pixel_count,
+                 local_bg_radius,
+                 min_res,
+                 max_res,
+                 bad_pixel_map_filename,
+                 bad_pixel_map_hdf5_group,
                  radius_pixel_map):
         """
         Initialize the Peakfinder8PeakDetection class.
 
         Args:
 
-            max_num_peaks (int): maximum number of peaks that will be returned
-                to the user. Additional peaks are ignored.
+            max_num_peaks (int): maximum number of peaks that will be
+                returned to the user. Additional peaks are ignored.
 
             asic_nx (int): fs size of a detector's ASIC.
 
@@ -86,7 +90,8 @@ class Peakfinder8PeakDetection(object):
             nasics_y (int): number of ASICs along the ss axis of the
                 data array.
 
-            adc_threshold (float): minimum adc threshold for peak detection.
+            adc_threshold (float): minimum adc threshold for peak
+                detection.
 
             minimum_snr (float): minimum signal to noise ratio for peak
                 detection.
@@ -95,27 +100,29 @@ class Peakfinder8PeakDetection(object):
 
             max_pixel_count (int): maximum size of the peak in pixels.
 
-            local_bg_radius (int): radius for the estimation of the local
-                background.
+            local_bg_radius (int): radius for the estimation of the
+                local background.
 
             min_res (int): minimum resolution for the peak (in pixels).
 
             max_res (int): minimum resolution for the peak (in pixels).
 
-            bad_pixel_map_filename (str): name of the file containing the
-                bad pixel map. The map must have the same internal layout
-                ('shape') as the data on which it is applied. The pixels
-                should have a value of 0 or 1, with 0 meaning that the 
-                pixel is bad and 1 meaning that the pixel should be processed.
-                The map only excludes some regions from the peak finding,
-                the input data is not modified in any way.
+            bad_pixel_map_filename (str): name of the file containing
+                the bad pixel map. The map must have the same internal
+                layout ('shape') as the data on which it is applied.
+                The pixels should have a value of 0 or 1, with 0
+                meaning that the pixel is bad and 1 meaning that the
+                pixel should be processed. The map only excludes some
+                regions from the peak finding, the input data is not
+                modified in any way.
 
-            bad_pixel_map_hdf5_path (str): internal HDF5 path of the data
-                block where the bad pixel map (in 'slab' format) is stored.
+            bad_pixel_map_hdf5_path (str): internal HDF5 path of the
+                data block where the bad pixel map (in 'slab' format)
+                is stored.
 
-           radius_pixel_map (ndarray): a pixel map that, for each pixel in
-                the data array, stores its distance (in pixels) from the
-                center of the detector.
+           radius_pixel_map (ndarray): a pixel map that, for each pixel
+                in the data array, stores its distance (in pixels) from
+                the center of the detector.
         """
         # Read arguments and store them in attributes.
         self._max_num_peaks = max_num_peaks
@@ -130,30 +137,32 @@ class Peakfinder8PeakDetection(object):
         self._local_bg_radius = local_bg_radius
         self._radius_pixel_map = radius_pixel_map
 
-        # Load the bad pixel map from file, raise an exception in case of
-        # failure, then create the internal that will be used to exclude
-        # regions of the detector from the peak finding. The internal map
-        # includes the bad pixel map, but also excludes from the peak finding
-        # additional areas according to the resolution limits specified by the
-        # input parameters.
+        # Load the bad pixel map from file, raise an exception in case
+        # of failure, then create the internal that will be used to
+        # exclude regions of the detector from the peak finding. The
+        # internal map includes the bad pixel map, but also excludes
+        # from the peak finding additional areas according to the
+        # resolution limits specified by the input parameters.
         try:
             with h5py.File(name=bad_pixel_map_filename, mode='r') as fhandle:
                 self._mask = fhandle[bad_pixel_map_hdf5_group]
         except OSError:
             raise_from(
                 exc=RuntimeError(
-                    'Error reading the {} HDF5 file.'.format(
+                    "Error reading the {} HDF5 file.".format(
                         bad_pixel_map_filename
                     )
                 ),
                 source=None
             )
+
         res_mask = numpy.ones(self._mask.shape, dtype=numpy.int8)
         res_mask[numpy.where(self._radius_pixel_map < min_res)] = 0
         res_mask[numpy.where(self._radius_pixel_map > max_res)] = 0
         self._mask *= res_mask
 
-    def find_peaks(self, data):
+    def find_peaks(self,
+                   data):
         """
         Detect peaks.
 
@@ -161,31 +170,35 @@ class Peakfinder8PeakDetection(object):
 
         Args:
 
-            data (ndarray): the data (in 'slab' format) on which the peak
-                finding should be performed.
+            data (ndarray): the data (in 'slab' format) on which the
+                peak finding should be performed.
 
         Returns:
 
-            Tuple[List[float], List[float], List[float]]: a tuple with the
-            detected peaks. The tuple has three fields, named respectively
-            'fs', 'ss', and 'intensity', are lists containing the fs and ss
-            coordinates of the found peaks, and their intensities.
+            Tuple[List[float], List[float], List[float]]: a tuple with
+            the detected peaks. The tuple has three fields, named
+            respectively 'fs', 'ss', and 'intensity', are lists
+            containing the fs and ss coordinates of the found peaks,
+            and their intensities.
         """
-        # Call the cython-wrapped peakfinder8 function, then wrap the returned
-        # peaks into a tuple and return it.
-        peak_list = peakfinder_8(self._max_num_peaks,
-                                 data.astype(numpy.float32),
-                                 self._mask.astype(numpy.int8),
-                                 self._radius_pixel_map,
-                                 self._asic_nx, self._asic_ny,
-                                 self._nasics_x, self._nasics_y,
-                                 self._adc_thresh, self._minimum_snr,
-                                 self._min_pixel_count, self._max_pixel_count,
-                                 self._local_bg_radius)
+        # Call the cython-wrapped peakfinder8 function, then wrap the
+        # returned peaks into a tuple and return it.
+        peak_list = peakfinder_8(
+            self._max_num_peaks,
+            data.astype(numpy.float32),
+            self._mask.astype(numpy.int8),
+            self._radius_pixel_map,
+            self._asic_nx, self._asic_ny,
+            self._nasics_x, self._nasics_y,
+            self._adc_thresh, self._minimum_snr,
+            self._min_pixel_count, self._max_pixel_count,
+            self._local_bg_radius
+        )
 
-        # A namedtuple used for peak lists.
-        PeakList = namedtuple('PeakList', ['fs', 'ss', 'intensity'])
-
+        PeakList = namedtuple(
+            typename='PeakList',
+            field_names=['fs', 'ss', 'intensity']
+        )
         return PeakList(*peak_list[0:3])
 
 
@@ -195,12 +208,12 @@ class Peakfinder8PeakDetection(object):
 
 class PeakAccumulator:
     """
-    Accumulate peaks, then return them.
+    Accumulate peak information for susequent bulk retreival.
 
-    Accumulate peak information until the accumulator is full. Allow the user
-    to add peaks to the accumulator for a predefined number of times,
-    determined when the algorithm is instantiated. Then return the full list
-    of accumulated peaks and empty the accumulator.
+    Accumulate peak information until the accumulator is full. Allow
+    the user to add peaks to the accumulator for a predefined number of
+    times, determined when the algorithm is instantiated. Then return
+    the full list of accumulated peaks and empty the accumulator.
     """
 
     def __init__(self, num_events_to_accumulate):
@@ -216,62 +229,61 @@ class PeakAccumulator:
         # Store the input argument as an attribute.
         self._n_events_to_accumulate = num_events_to_accumulate
 
-        # A namedtuple used for peak lists.
-        PeakList = namedtuple('PeakList', ['fs', 'ss', 'intensity'])
-
-        # Initialize the tuple that will store the accumulated peaks, and
-        # the counter of accumulated events.
-        self._accumulator = Peaklist([], [], [])
+        # Initialize the tuple that will store the accumulated peaks,
+        # and the counter of accumulated events.
+        PeakList = namedtuple(
+            typename='PeakList',
+            field_names=['fs', 'ss', 'intensity']
+        )
+        self._accumulator = PeakList([], [], [])
         self._events_in_accumulator = 0
 
     def accumulate_peaks(self, peak_list):
         """
         Accumulate peaks.
 
-        Add the peaks to the internal list of peaks. If peaks have been added
-        to the accumulator for the specified number of times, return the
-        accumulated peak list and empty the accumulator.
+        Add the peaks to the internal list of peaks. If peaks have been
+        added to the accumulator for the specified number of times,
+        return the accumulated peak list and empty the accumulator.
 
         Args:
 
-            peak_list (PeakList): list of peaks to be added to the accumulator.
+            peak_list (Tuple[List[float], List[float], List[float]]):
+                list of peaks to be added to the accumulator. The tuple
+                should have three fields containing respectively the fs
+                and ss coordinates of the accumulated peaks, and their
+                intensities.
 
         Returns:
 
-            Union[Tuple[List[float], List[float], List[float]], None]: the
-            accumulated peak list as a tuple.
-
-
-            , if peaks have
-            been added to the accumulator for the predefined number of times,
-            otherwise None.
+            Union[Tuple[List[float], List[float], List[float]], None]:
+            the accumulated peak list as a tuple if peaks have
+            been added to the accumulator for the predefined number of
+            times, otherwise None. The tuple has three fields, named
+            respectively 'fs', 'ss', and 'intensity', are lists
+            containing the fs and ss coordinates of the accumulated
+            peaks, and their intensities.
         """
-        # Add the peak data to the interal lists andupdate the internal
-        # counter..
+        PeakList = namedtuple(
+            typename='PeakList',
+            field_names=['fs', 'ss', 'intensity']
+        )
+        peak_list = PeakList(peak_list)
+
+        # Add the peak data to the interal lists and update the
+        # internal counter.
         self._accumulator.fs.extend(peak_list.fs)
         self._accumulator.ss.extend(peak_list.ss)
         self._accumulator.intensity.extend(peak_list.intensity)
-
-        # A namedtuple used for peak lists.
-        PeakList = namedtuple('PeakList', ['fs', 'ss', 'intensity'])
-
-        # Initialize the tuple that will store the accumulated peaks, and
-        # the counter of accumulated events.
-        self._accumulator = Peaklist([], [], [])
-
-
-        # Update the internal counter.
         self._events_in_accumulator += 1
 
         # Check if the internal counter reached the number of additions
         # specified by the user. If it did, return the peak list, and
-        # reset the accumulator.
+        # reset the accumulator. Otherwise just return none
         if self._events_in_accumulator == self._n_events_to_accumulate:
             peak_list_to_return = self._accumulator
             self._accumulator = PeakList([], [], [])
             self._events_in_accumulator = 0
             return peak_list_to_return
 
-        # If the internal counter did not reach the number of additions
-        # specified by the user, just return None.
         return None

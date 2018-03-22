@@ -19,8 +19,8 @@ Exports:
 
     Classes:
 
-        SingleModuleLambdaCalibration: calibration of a single module lambda
-            detector (flatfield correction).
+        SingleModuleLambdaCalibration: calibration of a single module
+            lambda detector (flatfield correction).
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -36,18 +36,20 @@ class SingleModuleLambdaCalibration(object):
     """
     Calibrate a single-module Lambda detector.
 
-    Calibrate a single-module Lambda detector by applying flatfield correction.
+    Calibrate a single-module Lambda detector by applying flatfield
+    correction.
     """
 
-    def __init__(self, calibration_filename):
+    def __init__(self,
+                 calibration_filename):
         """
         Initializes the SingleModuleLambdaCalibration algorithm.
 
         Args:
 
             calibration_filename (str): name of an HDF5 file with the
-                calibration data. The file must store the flatfield data
-                for the module in the '/flatfield' data entry.
+                calibration data. The file must store the flatfield
+                data for the module in the '/flatfield' data entry.
         """
         # Load the flatfield information from the file and store it in
         # an attribute.
@@ -57,27 +59,29 @@ class SingleModuleLambdaCalibration(object):
         except OSError:
             raise_from(
                 exc=RuntimeError(
-                    'Error reading the {} HDF5 file.'.format(
+                    "Error reading the {} HDF5 file.".format(
                         calibration_filename
                     )
                 ),
                 source=None
             )
 
-    def apply_calibration(self, data):
-        """Appy the calibration.
+    def apply_calibration(self,
+                          data):
+        """
+        Appy the calibration.
 
         Apply the flatfield correction to the module data.
 
         Args:
 
-            data (ndarray): the module data on which the calibration must
-                be applied.
+            data (ndarray): the module data on which the calibration
+                must be applied.
 
         Returns:
 
             ndarray:  the corrected data.
         """
-        # Lambda flatfields are usually provided in a format that requires the
-        # data to be multipled by the flatfield.
+        # Lambda flatfields are usually provided in a format that
+        # requires the data to be multipled by the flatfield.
         return data * self._flatfield

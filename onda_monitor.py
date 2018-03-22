@@ -14,7 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """Main OnDA module."""
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -29,7 +28,8 @@ from onda.utils import exceptions, parameters
 def main():
     """Main OnDA monitor function."""
 
-    # Set a custom exception handler to deal with OnDA-specific exceptions.
+    # Set a custom exception handler to deal with OnDA-specific
+    # exceptions.
     sys.excepthook = exceptions.onda_exception_handler
 
     # Parse the command line options using the argparse module.
@@ -54,10 +54,11 @@ def main():
 
     args = parser.parse_args()
 
-    # Read the configuration file and parse it with the configparse module.
-    # Raise a RuntimeError exception if the file cannot be read. From the
-    # parsed configuration file, create then a MonitorParams object, which
-    # contains all the entries in the configuration file with the correct type.
+    # Read the configuration file and parse it with the configparse
+    # module. Raise a RuntimeError exception if the file cannot be
+    # read. From the parsed configuration file, create then a
+    # MonitorParams object, which contains all the entries in the
+    # configuration file with the correct type.
     config = configparser.ConfigParser()
 
     try:
@@ -69,9 +70,9 @@ def main():
 
     monitor_parameters = parameters.MonitorParams(config)
 
-    # Instantiate the correct OndaMonitor class from the processing layer
-    # specified in the configuration file. Then call the start method
-    # to start the monitor.
+    # Instantiate the correct OndaMonitor class from the processing
+    # layer specified in the configuration file. Then call the start
+    # method to start the monitor.
     processing_layer = importlib.import_module(
         'onda.processing_layer.{0}'.format(
             monitor_parameters.get_param(
