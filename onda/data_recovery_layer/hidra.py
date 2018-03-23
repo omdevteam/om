@@ -19,15 +19,10 @@ Exports:
 
     Functions:
 
-        event_generator: initalize event recovery from HiDRA.
+        initialize_event_source: connect to the event source and
+            configure it.
 
-        initialize_hidra_event_handling_functions: initialize the data
-        extraction functions, recovering the correct functions from the
-        detector layer.
-
-        initialize_hidra_data_extraction_functions: initialize the data
-        extraction functions, recovering the correct functions from the
-        detector layer.
+        event_generator: event recovery from HiDRA.
 
     Classes:
 
@@ -37,62 +32,30 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
-import functools
 import os.path
 import socket
 import sys
+from builtins import str  # pylint: disable=W0622
 
-import numpy
 from future.utils import raise_from
 
 from onda.data_recovery_layer import hidra_api
 from onda.utils import dynamic_import, exceptions
 
 
-def event_generator(source,
-                    node_role,
-                    node_rank,
+def _get_hidra_info(source,
                     mpi_pool_size,
                     monitor_params):
-    """
-    Initialize HiDRA event recovery.
+    # Compute the HiDRA connection parameters.
 
-    Initialize the connection with HiDRA. When called on the master
-    node, deal with the initialization of the connection and with
-    authentication. When called on a worker node, return an iterator
-    which will recover an event from HiDRA at each step (This function
-    is a python generator). In order for the retrieval to work
-    correctly, this function must be called initially on the master
-    node, and subsequently on each worker node that receovers
-    events from HiDRA.
-
-    Args:
-
-        source (str): the IP or hostname of the machine where hidra is
-            running.
-
-        node_rank (int): rank of the node where the function is called
-
-        mpi_pool_size (int): size of the node pool that includes the
-            node where the function is called.
-
-        monitor_params (Dict): a dictionary containing the monitor
-            parameters from the configuration file, already converted
-            to the corrected types.
-
-     Yields:
-
-        Dict: A dictionary containing the data and the metadata of an
-        event recovered from HiDRA (usually corresponding to a file).
-    """
     # Read the requested transfer type from the configuration file.
     # If it is not specified there, import the suggested transfer type
     # from the detector layer and use that. If the transfer type is
     # unknown, raise an exception.
     transfer_type = monitor_params.get_param(
-        section='HidraFacilityLayer',
+        section='HidraDataRecoveryLayer',
         parameter='transfer_type',
-        type_='str',
+        type_=str,
     )
     if transfer_type is None:
         detector_layer = dynamic_import.import_detector_layer(
@@ -123,7 +86,7 @@ def event_generator(source,
         )
     else:
         raise RuntimeError(
-            "Unrecognized transfer type for HiDRA Facility layer."
+            "Unrecognized transfer type for HiDRA data recoverylayer."
         )
 
     # Read the base port for communication with HiDRA from the
@@ -149,23 +112,19 @@ def event_generator(source,
         )
         hidra_selection_string = detector_layer.get_file_extensions()
 
-    HidraTarget = collections.namedtuple(  # pylint: disable-msg=C0103
-        typename='HidraTarget',
-        field_names=['hostname', 'port', 'priority', 'filter_string']
-    )
-
     # Create the target list for HiDRA. Add an empty target at the
     # beginning to cover the master node. In this way, the index of the
     # a node in the target list will match its rank. With the full
     # list, create the HiDRA query object, as requested by the API.
-    targets = [HidraTarget('', '', 1, '')]
-    for rank in range(start=1, stop=mpi_pool_size):
-        target_entry = HidraTarget(
+    targets = [['', '', 1, '']]
+    for rank in range(1, mpi_pool_size):
+        target_entry = [
             socket.gethostname(),
             str(base_port + rank),
             str(1),
-            hidra_selection_string
-        )
+            b''
+            # hidra_selection_string
+        ]
         targets.append(target_entry)
 
     query = hidra_api.Transfer(
@@ -173,55 +132,140 @@ def event_generator(source,
         signal_host=source,
         use_log=False
     )
-    if node_role == 'master':
-        print("Announcing OnDA to sender.")
-        sys.stdout.flush()
 
-        # Initiate the connection to HiDRA (as dictated by the API) and
-        # raise an exception if the connection fails.
-        try:
-            query.initiate(targets[1:])
-        except hidra_api.transfer.CommunicationFailed as exc:
-            raise_from(
-                exc=exceptions.HidraAPIError(
-                    "Failed to contact HiDRA: {0}".format(exc)
-                ),
-                cause=None
-            )
+    HiDRAInfo = collections.namedtuple(  # pylint: disable=C0103
+        typename='HiDRAInfo',
+        field_names=['query', 'targets', 'data_base_path']
+    )
+    return HiDRAInfo(query, targets, data_base_path)
 
-    if node_role == 'worker':
-        print(
-            "Worker {0} listening at port {1}".format(
-                node_rank,
-                targets[node_rank].port
-            )
+
+def initialize_event_source(source,
+                            node_rank,  # pylint: disable=W0613
+                            mpi_pool_size,
+                            monitor_params):
+    """
+    Initialize event generator.
+
+    Connect to the event generator and configure it. Connect to HiDRA
+    and request the correct connection_type. Provide HiDRA with the
+    information about all the worker nodes that will connect to it.
+
+    Args:
+
+        source (str): the IP or hostname of the machine where hidra is
+            running.
+
+        node_rank (int): rank of the node where the function is called
+
+        mpi_pool_size (int): size of the node pool that includes the
+            node where the function is called.
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    print("Announcing OnDA to sender.")
+    sys.stdout.flush()
+
+    hidra_info = _get_hidra_info(
+        source=source,
+        mpi_pool_size=mpi_pool_size,
+        monitor_params=monitor_params
+    )
+
+    # Initiate the connection to HiDRA (as dictated by the API) and
+    # raise an exception if the connection fails.
+    try:
+        hidra_info.query.initiate(hidra_info.targets[1:])
+    except hidra_api.transfer.CommunicationFailed as exc:
+        raise_from(
+            exc=exceptions.HidraAPIError(
+                "Failed to contact HiDRA: {0}".format(exc)
+            ),
+            cause=None
         )
+
+
+def event_generator(source,
+                    node_rank,
+                    mpi_pool_size,
+                    monitor_params):
+    """
+    Initialize HiDRA event recovery.
+
+    Initialize the connection with HiDRA. When called on the master
+    node, deal with the initialization of the connection and with
+    authentication. When called on a worker node, return an iterator
+    which will recover an event from HiDRA at each step (This function
+    is a python generator). In order for the retrieval to work
+    correctly, this function must be called initially on the master
+    node, and subsequently on each worker node that receovers
+    events from HiDRA.
+
+    Args:
+
+        source (str): the IP or hostname of the machine where hidra is
+            running.
+
+        node_rank (int): rank of the node where the function is called
+
+        mpi_pool_size (int): size of the node pool that includes the
+            node where the function is called.
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+     Yields:
+
+        Dict: A dictionary containing the data and the metadata of an
+        event recovered from HiDRA (usually corresponding to a file).
+    """
+    hidra_info = _get_hidra_info(
+        source=source,
+        mpi_pool_size=mpi_pool_size,
+        monitor_params=monitor_params
+    )
+    print(
+        "Worker {0} listening at port {1}".format(
+            node_rank,
+            hidra_info.targets[node_rank][1]
+        )
+    )
+    sys.stdout.flush()
+    hidra_info.query.start(hidra_info.targets[node_rank][1])
+    while True:
+        # Recover the data from HiDRA. Create the event dictionary
+        # and store the recovered data there. Add two custom
+        # entries that are needed by the data extraction functions:
+        # the full path to the file, and the file creation date (a
+        # first approximation of the timestamp). Then yield the
+        # event.
+
+        print('Asking')
         sys.stdout.flush()
-        query.start(targets[node_rank].port)
-        while True:
-            # Recover the data from HiDRA. Create the event dictionary
-            # and store the recovered data there. Add two custom
-            # entries that are needed by the data extraction functions:
-            # the full path to the file, and the file creation date (a
-            # first approximation of the timestamp). Then yield the
-            # event.
-            recovered_metadata, recovered_data = query.get()
 
-            event = {
-                'data': recovered_data,
-            }
+        recovered_metadata, recovered_data = hidra_info.query.get()
 
-            event['full_path'] = os.path.join(
-                data_base_path,
-                recovered_metadata['relative_path'],
-                recovered_metadata['filename']
-            )
+        print('Got it')
+        sys.stdout.flush()
 
-            event['file_creation_time'] = (
-                recovered_metadata['file_create_time']
-            )
+        event = {
+            'data': recovered_data,
+        }
 
-            yield event
+        event['full_path'] = os.path.join(
+            hidra_info.data_base_path,
+            recovered_metadata['relative_path'],
+            recovered_metadata['filename']
+        )
+
+        event['file_creation_time'] = (
+            recovered_metadata['file_create_time']
+        )
+
+        yield event
 
 
 class EventFilter(object):
@@ -239,14 +283,18 @@ class EventFilter(object):
 
         Args:
 
-        monitor_params (Dict): a dictionary containing the monitor
-            parameters from the configuration file, already converted
-            to the corrected types.
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
         """
-        # Recover the list of allowed file extensions from the detector
-        # layer and store it in an attribute.
-        detector_layer = _import_detector_layer(monitor_params)
-        self._file_extensions = detector_layer.get_file_extensions()
+        # Import the function that recovers the list of allowed file
+        # extensions from the detector layer, call it and store
+        # the list of file extensions in an attribute.
+        get_file_extensions = dynamic_import.import_func_from_detector_layer(
+            'get_file_extensions',
+            monitor_params
+        )
+        self._file_extensions = get_file_extensions()
 
     def should_reject(self, event):
         """
@@ -272,15 +320,3 @@ class EventFilter(object):
             return False
         else:
             return True
-
-
-initialize_filelist_event_handling_functions = functools.partial(
-    func=dynamic_import.initialize_event_handling_functions,
-    suffix='hidra'
-)
-
-
-initialize_filelist_data_extraction_functions = functools.partial(
-    func=dynamic_import.initialize_data_extraction_functions,
-    suffix='hidra'
-)

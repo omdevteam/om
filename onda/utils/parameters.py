@@ -25,7 +25,7 @@ Exports:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from builtins import str
+from builtins import str  # pylint: disable=W0622
 
 from onda.cfelpyutils import parameter_utils
 from onda.utils import exceptions
@@ -107,21 +107,21 @@ class MonitorParams(object):
         '''
         if section not in self._monitor_params:
             raise exceptions.MissingParameterFileSection(
-                "Section {0} is not in the configuration file".format(section)
+                "Section {} is not in the configuration file".format(section)
             )
         else:
             ret = self._monitor_params[section].get(parameter)
             if ret is None and required is True:
                 raise exceptions.MissingParameter(
-                    "Parameter {0} in section [{1}] was not found, but is "
+                    "Parameter {} in section [{}] was not found, but is "
                     "required.".format(parameter, section)
                 )
 
             if ret is not None and type_ is not None:
                 if not isinstance(ret, type_):
                     raise exceptions.WrongParameterType(
-                        "Wrong type for parameter {0}: should be {1}, "
-                        "is {2}.".format(
+                        "Wrong type for parameter {}: should be {}, "
+                        "is {}.".format(
                             parameter,
                             str(type_).split()[1][1:-2],
                             str(type(ret)).split()[1][1:-2]

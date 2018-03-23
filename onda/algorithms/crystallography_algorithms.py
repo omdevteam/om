@@ -34,7 +34,9 @@ import h5py
 import numpy
 from future.utils import raise_from
 
-from ondacython.lib.peakfinder8_extension import peakfinder_8
+from ondacython.lib.peakfinder8_extension import (  # pylint: disable=E0611
+    peakfinder_8
+)
 
 
 ##############################
@@ -50,10 +52,10 @@ class Peakfinder8PeakDetection(object):
     descrition of the peakfinder8 algorithm:
 
     A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
-    T. A. White, and H. N. Chapman, “Cheetah: software for
+    T. A. White, and H. N. Chapman, "Cheetah: software for
     high-throughput reduction and analysis of serial femtosecond X-ray
-    diffraction data”, J Appl Crystallogr, vol. 47,
-    pp. 1118–1131 (2014).
+    diffraction data," J Appl Crystallogr, vol. 47,
+    pp. 1118-1131 (2014).
     """
 
     def __init__(self,
@@ -70,7 +72,7 @@ class Peakfinder8PeakDetection(object):
                  min_res,
                  max_res,
                  bad_pixel_map_filename,
-                 bad_pixel_map_hdf5_group,
+                 bad_pixel_map_hdf5_path,
                  radius_pixel_map):
         """
         Initialize the Peakfinder8PeakDetection class.
@@ -145,7 +147,7 @@ class Peakfinder8PeakDetection(object):
         # resolution limits specified by the input parameters.
         try:
             with h5py.File(name=bad_pixel_map_filename, mode='r') as fhandle:
-                self._mask = fhandle[bad_pixel_map_hdf5_group]
+                self._mask = fhandle[bad_pixel_map_hdf5_path][:]
         except OSError:
             raise_from(
                 exc=RuntimeError(
@@ -185,7 +187,7 @@ class Peakfinder8PeakDetection(object):
         # returned peaks into a tuple and return it.
         peak_list = peakfinder_8(
             self._max_num_peaks,
-            data.astype(numpy.float32),
+            data.astype(numpy.float32),  # pylint: disable=E1101
             self._mask.astype(numpy.int8),
             self._radius_pixel_map,
             self._asic_nx, self._asic_ny,
@@ -195,7 +197,7 @@ class Peakfinder8PeakDetection(object):
             self._local_bg_radius
         )
 
-        PeakList = namedtuple(
+        PeakList = namedtuple(  # pylint: disable=C0103
             typename='PeakList',
             field_names=['fs', 'ss', 'intensity']
         )
@@ -231,7 +233,7 @@ class PeakAccumulator:
 
         # Initialize the tuple that will store the accumulated peaks,
         # and the counter of accumulated events.
-        PeakList = namedtuple(
+        PeakList = namedtuple(  # pylint: disable=C0103
             typename='PeakList',
             field_names=['fs', 'ss', 'intensity']
         )
@@ -264,7 +266,7 @@ class PeakAccumulator:
             containing the fs and ss coordinates of the accumulated
             peaks, and their intensities.
         """
-        PeakList = namedtuple(
+        PeakList = namedtuple(  # pylint: disable=C0103
             typename='PeakList',
             field_names=['fs', 'ss', 'intensity']
         )

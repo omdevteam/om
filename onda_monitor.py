@@ -21,6 +21,7 @@ import argparse
 import configparser
 import importlib
 import sys
+from builtins import str  # pylint: disable=W0622
 
 from onda.utils import exceptions, parameters
 
@@ -39,13 +40,13 @@ def main():
     )
 
     parser.add_argument(
-        name='source',
+        'source',
         type=str,
         help="data source (file list, psana source string, etc.)"
     )
 
     parser.add_argument(
-        flags=['-i', '--ini'],
+        '-i', '--ini',
         type=str,
         default='monitor.ini',
         help="monitor.ini file (default: monitor.ini file in the current "
@@ -86,9 +87,9 @@ def main():
 
     monitor = processing_layer.OndaMonitor(
         source=args.source,
-        parameters=monitor_parameters
+        monitor_parameters=monitor_parameters
     )
-    monitor.start(verbose=False)
+    monitor.start()
 
 
 if __name__ == '__main__':

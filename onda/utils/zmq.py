@@ -56,7 +56,7 @@ class ZMQOndaPublisherSocket:
                 Defaults to None.
         """
         self._context = zmq.Context()
-        self._sock = self._context.socket(zmq.PUB)
+        self._sock = self._context.socket(zmq.PUB)  # pylint: disable=E1101
         if publish_ip is not None:
             pip = publish_ip
         else:
@@ -64,9 +64,7 @@ class ZMQOndaPublisherSocket:
             # where the OnDA monitor is running.
             pip = [
                 (
-                    s.connect(
-                        address=('8.8.8.8', 80)
-                    ),
+                    s.connect(('8.8.8.8', 80)),
                     s.getsockname()[0],
                     s.close()
                 ) for s in [

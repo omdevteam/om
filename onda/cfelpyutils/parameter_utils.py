@@ -92,8 +92,8 @@ def convert_parameters(config_dict):
         # the configuration file). Get each option in turn and perform
         # all the checks. If all checks fail, call the parsing_error
         # function.
-        for option in config_dict['section'].keys():
-            recovered_option = config_dict['section']
+        for option in config_dict[section].keys():
+            recovered_option = config_dict[section][option]
             if (
                     recovered_option.startswith("'") and
                     recovered_option.endswith("'")

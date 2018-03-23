@@ -119,7 +119,6 @@ def compute_pixel_maps(geometry):
 
     # Finally, compute the values for the radius pixel map.
     r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
-
     PixelMaps = collections.namedtuple(
         typename='PixelMaps',
         field_names=['x', 'y', 'r']

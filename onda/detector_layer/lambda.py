@@ -12,6 +12,37 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+"""
+Functions and classes for the processing of data from the Lambda
+detector.
+
+Exports:
+
+    Functions:
+
+        get_file_extensions: get allowed file extensions for this
+            detector.
+
+        get_peakfinder8_info: get peakfinder8-related detector info.
+
+        open_event: open an event.
+
+        close_event: close an event.
+
+        get_num_frames_in_event: get number of frames in an event.
+
+        detector_data: recover the raw detector data for the event.
+
+        timestamp: recover the timestamp information of the event.
+
+        beam_energy: recover the beam energy during the current event.
+
+        detector_distance: recover the distance between the sample
+            and the detector for the current event.
+
+        filename_and_frame_index: return the full file path and the
+            frame index, within the file, of the frame being processed.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -20,11 +51,11 @@ import collections
 import h5py
 
 
-def get_file_extensions_hidra():
+def get_file_extensions():
     """
     Return allowed file extensions.
 
-    Return allowed file extensions for the Lmabda detector.
+    Return allowed file extensions for the Lambda detector.
 
     Returns:
 
@@ -33,7 +64,7 @@ def get_file_extensions_hidra():
     return (".h5", ".nxs")
 
 
-def get_peakfinder8_info_hidra():
+def get_peakfinder8_info():
     """
     Return peakfinder8 detector info.
 
@@ -46,15 +77,14 @@ def get_peakfinder8_info_hidra():
         'nasics_y)' are the four parameters used by the peakfinder8
         algorithm to describe the format of the input data.
     """
-    # A namedtuple used for peakfinder8-related detector information.
-    Peakfinder8DetInfo = collections.namedtuple(
+    Peakfinder8DetInfo = collections.namedtuple(  # pylint: disable=C0103
         typename='Peakfinder8DetectorInfo',
-        field_names=['asics_nx', 'asics_ny', 'nasics_x', 'nasics_y']
+        field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
     )
     return Peakfinder8DetInfo(1556, 516, 1, 1)
 
 
-def open_event_hidra(event):
+def open_event(event):
     """
     Open event.
 
@@ -72,7 +102,7 @@ def open_event_hidra(event):
     )
 
 
-def close_event_hidra(event):
+def close_event(event):
     """
     Close event.
 
@@ -85,7 +115,7 @@ def close_event_hidra(event):
     event['data'].close()
 
 
-def get_num_frames_in_event_hidra(event):
+def get_num_frames_in_event(event):
     """
     The number of frames in the file.
 
@@ -99,7 +129,7 @@ def get_num_frames_in_event_hidra(event):
     return event['data']['/entry/instrument/detector/data'].shape[0]
 
 
-def detector_data_hidra(event):
+def detector_data(event):
     """
     Recover raw detector data for one frame.
 
@@ -118,12 +148,12 @@ def detector_data_hidra(event):
     return data_block[data_block.shape[0] + event['metadata']['frame_offset']]
 
 
-def timestamp_hidra(event):
+def timestamp(event):
     """
     Recover the timestamp of the event.
 
     Return the timestamp of the event (return the event timestamp from
-    the event dictionary.
+    the event dictionary).
 
     Args:
 
@@ -137,7 +167,7 @@ def timestamp_hidra(event):
     return event['metadata']['file_creation_time']
 
 
-def beam_energy_hidra(event):
+def beam_energy(event):
     """
     Recover the energy of the beam.
 
@@ -162,7 +192,7 @@ def beam_energy_hidra(event):
     )
 
 
-def detector_distance_hidra(event):
+def detector_distance(event):
     """
     Recover the distance of the detector from the sample location.
 
@@ -187,7 +217,7 @@ def detector_distance_hidra(event):
     )
 
 
-def filename_and_frame_index_hidra(event):
+def filename_and_frame_index(event):
     """
     The filename and frame index for the frame being processed.
 
@@ -205,8 +235,7 @@ def filename_and_frame_index_hidra(event):
         frame. The second, named 'frame_index', contains the index of
         the current frame within the file.
     """
-    # A namedtuple used to store filename and index information.
-    FnameAndFrameIndex = collections.namedtuple(
+    FnameAndFrameIndex = collections.namedtuple(  # pylint: disable=C0103
         typename='FilenameAndFrameIndex',
         field_names=['filename', 'frame_index']
     )

@@ -68,7 +68,6 @@ def _filter_hit(mcp_peak,
                         # Compute the spatial cordinates of the hit
                         # defined by the x_1, x_2, y_1, y_2 peaks, and
                         # create the VmiHit object.
-
                         QuadVmiPeaks = namedtuple(
                             typename='QuadVMIPeaks',
                             field_names=['x_1', 'x_2', 'y_1', 'y_2']

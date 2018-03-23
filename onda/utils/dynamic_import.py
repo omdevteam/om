@@ -19,20 +19,70 @@ Exports:
 
     Functions:
 
-        initialize_event_handling_functions: initialize the
-        data extraction functions, recovering the correct functions
-        from the detector and data recovery layers.
+        import_detector_layer: import the correct detector layer.
 
-        initialize_data_extraction_functions: initialize the
-        data extraction functions, recovering the correct functions
-        from the detector and data recovery layers.
+        import_data_recovery_layer: import the correct data recovery
+            layer.
+
+        import_func_from_detector_layer: import the correct function
+            from the detector layer.
+
+        init_event_handling_funcs: initialize the
+            data extraction functions, recovering the correct functions
+            from the detector and data recovery layers.
+
+        init_data_extraction_funcs: initialize the
+            data extraction functions, recovering the correct functions
+            from the detector and data recovery layers.
 """
 import collections
 import importlib
+from builtins import str  # pylint: disable=W0622
 
 from future.utils import raise_from
 
 from onda.utils import exceptions
+
+
+def _import_function_from_layer(layer,
+                                name,
+                                decorator):
+    # Import a function from a layer, adding the decorator, if
+    # provided, to the name. If a decorator is provided, try first to
+    # import the function with the decorated name from the specified
+    # layer. If this fails, try to import the function with the
+    # undecorated name instead. When no decorator is provided, try
+    # directly to import the function with the undecorated name.
+    if decorator is not None:
+        try:
+            return getattr(layer, '{0}_{1}'.format(name, decorator))
+        except AttributeError:
+            return getattr(layer, name)
+    else:
+        return getattr(layer, name)
+
+
+def _import_function(func_name,
+                     data_recovery_layer,
+                     detector_layer):
+    # Import a function from the specified layers. Try to import the
+    # function from the detector layer. If this fails, try to import it
+    # from the data recovery layer. For each layer, first try to import
+    # the data-recovery-specific version of the function, if this
+    # fails, try to import the generic version of the function.
+    data_recovery_layer_name = data_recovery_layer.__name__.split('.')[-1]
+    try:
+        return _import_function_from_layer(
+            layer=detector_layer,
+            name=func_name,
+            decorator=data_recovery_layer_name
+        )
+    except AttributeError:
+        return _import_function_from_layer(
+            layer=data_recovery_layer,
+            name=func_name,
+            decorator=data_recovery_layer_name
+        )
 
 
 def import_detector_layer(monitor_params):
@@ -41,9 +91,9 @@ def import_detector_layer(monitor_params):
 
     Args:
 
-        monitor_params (Dict): a dictionary containing the monitor
-            parameters from the configuration file, already converted
-            to the corrected types.
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
 
     Returns:
 
@@ -62,74 +112,157 @@ def import_detector_layer(monitor_params):
     return detector_layer
 
 
-def initialize_event_handling_functions(suffix,
-                                        monitor_params):
+def import_func_from_detector_layer(func_name,
+                                    monitor_params):
     """
-    Recover anc collect event handling functions.
+    Import the specified function from the detector layer.
 
-    Collect and return specific event handling functions,
-    importing them from the detector layer when necessary.
+    Import the requested function from the correct detector layer,
+    correctly choosing between specific and non specific-version of the
+    function.
 
     Args:
 
-        suffix (str): suffix to be added to the function names, in
-            order to import data-recovery-specific versions of the
-            handling functions.
+        func_name (str): name of the function to import
 
-        monitor_params (Dict): a dictionary containing the monitor
-            parameters from the configuration file, already converted
-            to the corrected types.
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
 
     Returns:
 
-        Tuple[Callable, Callable, Callabe, Callable]: a tuple with the
-            four event handling functions: event_generator, open_event,
-            close_event, num_frames_in_event. The tuple is named: the
-            four fields are respectively called 'event_generator',
-            'open_event', 'close_event', 'num_frames_in_event'.
+        Callable: the imported function.
     """
     detector_layer = import_detector_layer(monitor_params)
 
-    # Internal nametuple used to store the event handling functions.
-    EventHandlingFuncs = collections.namedtuple(
-        typename='EventHandlingFuncs',
-        field_names=[
+    # Use as 'decorator' the name of the data recovery layer.
+    data_recovery_layer_name = monitor_params.get_param(
+        section='Onda',
+        parameter='data_recovery_layer',
+        type_=str,
+        required=True
+    )
+    try:
+        function = _import_function_from_layer(
+            layer=detector_layer,
+            name=func_name,
+            decorator=data_recovery_layer_name
+        )
+    except AttributeError:
+        raise_from(
+            exc=RuntimeError(
+                "Function {} not defined in the "
+                "detector_layer.".format(func_name)
+            ),
+            cause=None
+        )
+
+    return function
+
+
+def import_data_recovery_layer(monitor_params):
+    """
+    Import the data recovery layer specified in the configuration
+    file.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+    Returns:
+
+        object: the imported data recovery layer as a module.
+    """
+    detector_layer = importlib.import_module(
+        'onda.data_recovery_layer.{0}'.format(
+            monitor_params.get_param(
+                section='Onda',
+                parameter='data_recovery_layer',
+                type_=str,
+                required=True
+            )
+        )
+    )
+    return detector_layer
+
+
+def init_event_handling_funcs(monitor_params):
+    """
+    Recover and collect event handling functions.
+
+    Collect and return specific event handling functions, importing
+    them from various layers. Look for the all functions first in the
+    detector layer, and if they are not found, in the data recovery
+    layer. Raise a MissingEventHandlingFunction exception if a function
+    is not found anywhere.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+    Returns:
+
+        Tuple[Callable, Callable, Callabe, Callable, Callable]: a tuple
+        with the four event handling functions: event_generator,
+        open_event,close_event, num_frames_in_event. The tuple is
+        named: the five fields are respectively called
+        'initialize_event_source', event_generator', 'open_event',
+        'close_event', 'num_frames_in_event'.
+
+    Raises:
+
+        MissingEventHandlingFunction: if an event handling function is
+            not found anywhere.
+    """
+    data_rec_layer = import_data_recovery_layer(monitor_params)
+    detector_layer = import_detector_layer(monitor_params)
+
+    # Recover the functions and store them into a list.
+    event_handl_func_list = []
+    for func_name in [
+            'initialize_event_source',
             'event_generator',
             'open_event',
             'close_event',
-            'num_frames_in_event'
+            'get_num_frames_in_event'
+    ]:
+        try:
+            event_handl_func_list.append(
+                _import_function(
+                    func_name=func_name,
+                    data_recovery_layer=data_rec_layer,
+                    detector_layer=detector_layer
+                )
+            )
+        except AttributeError:
+            raise_from(
+                exc=exceptions.MissingEventHandlingFunction(
+                    "Event handling function {0} is not "
+                    "defined.".format(func_name)
+                ),
+                cause=None
+            )
+
+    # Initialize a tuple with the content of the list.
+    EventHandlingFuncs = collections.namedtuple(  # pylint: disable=C0103
+        typename='EventHandlingFuncs',
+        field_names=[
+            'initialize_event_source',
+            'event_generator',
+            'open_event',
+            'close_event',
+            'get_num_frames_in_event'
         ]
     )
 
-    open_event = getattr(
-        object=detector_layer,
-        name='open_event_{}'.format(suffix)
-    )
-
-    close_event = getattr(
-        object=detector_layer,
-        name='close_event_{}'.format(suffix)
-    )
-
-    num_frames_event = getattr(
-        object=detector_layer,
-        name='num_frames_event_{}'.format(suffix)
-    )
-
-    # Instantiate the tuple filling the right functions. The
-    # event_generator is defined here in the data recovery layer, while
-    # for the other three functions, data-recovery-specific versions
-    # are imported from the detector layer.
-    return EventHandlingFuncs(
-        globals()['event_generator'],
-        open_event,
-        close_event,
-        num_frames_event
-    )
+    return EventHandlingFuncs(*event_handl_func_list)
 
 
-def initialize_data_extraction_functions(suffix,
-                                         monitor_params):
+def init_data_extraction_funcs(monitor_params):
     """
     Recover and collect data extraction functions.
 
@@ -138,7 +271,8 @@ def initialize_data_extraction_functions(suffix,
     required data extraction functions. Look for data-recovery-specific
     versions of the functions in the detector layer first, and if they
     are not found, in the data recovery layer later. Raise a
-    MissingDataExtractionFunction if a function is not found anywhere.
+    MissingDataExtractionFunction exception if a function is not found
+    anywhere.
 
     Args:
 
@@ -146,9 +280,9 @@ def initialize_data_extraction_functions(suffix,
             order to import data-recovery-specific versions of the
             handling functions.
 
-        monitor_params (Dict): a dictionary containing the monitor
-            parameters from the configuration file, already converted
-            to the corrected types.
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
 
     Returns:
 
@@ -160,10 +294,9 @@ def initialize_data_extraction_functions(suffix,
 
     Raises:
 
-        MissingDataExtractionFunction: if a data-recovery-specific data
-        extraction function is not found anywhere.
+        MissingDataExtractionFunction: if a data extraction function is
+        not found anywhere.
     """
-    func_list = []
     data_extraction_funcs = [
         x.strip() for x in monitor_params.get_param(
             section='Onda',
@@ -173,32 +306,35 @@ def initialize_data_extraction_functions(suffix,
         )
     ]
     detector_layer = import_detector_layer(monitor_params)
+    data_rec_layer = import_data_recovery_layer(monitor_params)
     for func in data_extraction_funcs:
-        decorated_func_name = '{0}_{1}'.format(func, suffix)
         try:
-            func_list.append(
-                getattr(
-                    object=detector_layer,
-                    name=decorated_func_name
-                )
+            globals()[func] = _import_function_from_layer(
+                layer=detector_layer,
+                name=func,
+                decorator=data_rec_layer.__name__
             )
         except AttributeError:
             try:
-                func_list.append(
-                    globals()[decorated_func_name]
+                globals()[func] = _import_function_from_layer(
+                    layer=data_rec_layer,
+                    name=func,
+                    decorator=None
                 )
-            except KeyError:
+            except AttributeError:
                 raise_from(
                     exc=exceptions.MissingDataExtractionFunction(
-                        "Data extraction function not defined for the"
-                        "following data type: {0}".format(func)
+                        "Data extraction function {0} not "
+                        "defined".format(func)
                     ),
                     cause=None
                 )
 
-    # Internal nametuple used to store the data extractionfunctions.
-    DataExtractionFuncs = collections.namedtuple(
+    func_list = []
+    for func in data_extraction_funcs:
+        func_list.append(func)
+    DataExtractionFuncs = collections.namedtuple(  # pylint: disable=C0103
         typename='DataExtractionFuncs',
         field_names=data_extraction_funcs
     )
-    return DataExtractionFuncs(func_list)
+    return DataExtractionFuncs(*func_list)

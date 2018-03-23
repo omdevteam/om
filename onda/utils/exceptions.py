@@ -27,6 +27,9 @@ Exports:
 
         HidraAPIError: error in the HiDRA API.
 
+        MissingEventHandlingFunction: non-defined eventhandling
+            function.
+
         MissingDataExtractionFunction: non-defined data extraction
             function.
 
@@ -67,6 +70,15 @@ class HidraAPIError(OndaException):
     Error in the HiDRA API.
 
     Error within a HiDRA API call.
+    """
+    pass
+
+
+class MissingEventHandlingFunction(OndaException):
+    """
+    Event handling function not defined.
+
+    One of the required event handling functions is not defined.
     """
     pass
 

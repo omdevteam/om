@@ -25,10 +25,9 @@ Exports:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import importlib
 import sys
 import time
-from builtins import str
+from builtins import str  # pylint: disable=W0622
 from collections import deque, namedtuple
 
 from onda.algorithms import calibration_algorithms as calib_algs
@@ -37,6 +36,7 @@ from onda.algorithms import generic_algorithms as gen_algs
 from onda.cfelpyutils import crystfel_utils, geometry_utils
 from onda.parallelization_layer import mpi
 from onda.utils import zmq as onda_zmq
+from onda.utils import dynamic_import
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -55,13 +55,14 @@ class OndaMonitor(mpi.ParallelizationEngine):
     from the Cheetah software package:
 
     A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
-    T. A. White, and H. N. Chapman, “Cheetah: software for
+    T. A. White, and H. N. Chapman, "Cheetah: software for
     high-throughput reduction and analysis of serial femtosecond X-ray
-    diffraction data,” J Appl Crystallogr, vol. 47,
-    pp. 1118–1131 (2014).
+    diffraction data," J Appl Crystallogr, vol. 47,
+    pp. 1118-1131 (2014).
     """
-
-    def __init__(self, source, monitor_parameters):
+    def __init__(self,
+                 source,
+                 monitor_parameters):
         """
         Initialize the OndaMonitor class.
 
@@ -74,9 +75,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 IP address where HiDRA is running for the Petra III
                 backend, etc.)
 
-            monitor_params (Dict): a dictionary containing the monitor
-                parameters from the configuration file, already
-                converted to the corrected types.
+            monitor_params (MonitorParams): a MonitorParams object
+                containing the monitor parameters from the
+                configuration file.
         """
         # Call the constructor of the parent class
         # (mpi.ParallelizationEngine).
@@ -84,7 +85,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             map_func=self.process_data,
             reduce_func=self.collect_data,
             source=source,
-            monitor_parameters=monitor_parameters
+            monitor_params=monitor_parameters
         )
         if self.role == 'worker':
             # Check if calibration is requested, and if it is, read
@@ -99,8 +100,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
             if requested_calib_alg is not None:
                 calibration_alg_class = getattr(
-                    object=calib_algs,
-                    name=requested_calib_alg
+                    calib_algs,
+                    requested_calib_alg
                 )
 
                 self._calibration_alg = calibration_alg_class(
@@ -179,7 +180,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Read from the configuration file all the parameters needed
             # to instantiate the peakfinder8 algorithm, import from the
-            # data extraction layer the peakfinder8 information for the
+            # data recovery layer peakfinder8 information for the
             # detector being used, instantiate the algorithm and store
             # it in an attribute, so that it can be called later.
             pf8_max_num_peaks = monitor_parameters.get_param(
@@ -245,25 +246,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            pf8_bad_pixel_map_hdf5_gr = monitor_parameters.get_param(
+            pf8_bad_pixel_map_hdf5_path = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
-                parameter='bad_pixel_map_hdf5_group',
+                parameter='bad_pixel_map_hdf5_path',
                 type_=str,
                 required=True
             )
 
-            data_rec_layer = importlib.import_module(
-                'onda.data_recovery_layer.{0}'.format(
-                    monitor_parameters.get_param(
-                        section='Onda',
-                        parameter='data_recovery_layer',
-                        type_=str,
-                        required=True
-                    )
-                )
+            get_pf8_info = dynamic_import.import_func_from_detector_layer(
+                func_name='get_peakfinder8_info',
+                monitor_params=self._mon_params
             )
 
-            pf8_detector_info = data_rec_layer.get_peakfinder8_info()
+            pf8_detector_info = get_pf8_info()
             self._peakfinder8_peak_det = cryst_algs.Peakfinder8PeakDetection(
                 max_num_peaks=pf8_max_num_peaks,
                 asic_nx=pf8_detector_info.asic_nx,
@@ -278,7 +273,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 min_res=pf8_min_res,
                 max_res=pf8_max_res,
                 bad_pixel_map_filename=pf8_bad_pixel_map_fname,
-                bad_pixel_map_hdf5_group=pf8_bad_pixel_map_hdf5_gr,
+                bad_pixel_map_hdf5_path=pf8_bad_pixel_map_hdf5_path,
                 radius_pixel_map=radius_pixel_map
             )
 
@@ -484,7 +479,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # sent to the master node.
         results_dict['timestamp'] = data['timestamp']
         if not hit:
-            PeakList = namedtuple(
+            PeakList = namedtuple(  # pylint: disable=C0103
                 typename='PeakList',
                 field_names=['fs', 'ss', 'intensity']
             )

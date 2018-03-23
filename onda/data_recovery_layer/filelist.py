@@ -21,14 +21,6 @@ Exports:
 
         event_generator: initalize event recovery from files.
 
-        initialize_filelist_event_handling_functions: initialize the
-        data extraction functions, recovering the correct functions
-        from the detector and data recovery layers.
-
-        initialize_filelist_data_extraction_functions: initialize the
-        data extraction functions, recovering the correct functions
-        from the detector and data recovery layers.
-
     Classes:
 
         EventFilter (class): filter and reject events.
@@ -36,7 +28,6 @@ Exports:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import functools
 import os.path
 
 import numpy
@@ -70,9 +61,9 @@ def event_generator(source,
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (Dict): a dictionary containing the monitor
-            parameters from the configuration file, already converted
-            to the corrected types.
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
 
      Yields:
 
@@ -139,9 +130,9 @@ class EventFilter(object):
 
         Args:
 
-        monitor_params (Dict): a dictionary containing the monitor
-            parameters from the configuration file, already converted
-            to the corrected types.
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
         """
         # Recover the list of allowed file extensions from the detector
         # layer and store it in an attribute.
@@ -171,15 +162,3 @@ class EventFilter(object):
         if os.path.basename(event).endswith(self._file_extensions):
             return False
         return True
-
-
-initialize_filelist_event_handling_functions = functools.partial(
-    func=dynamic_import.initialize_event_handling_functions,
-    suffix='filelist'
-)
-
-
-initialize_filelist_data_extraction_functions = functools.partial(
-    func=dynamic_import.initialize_data_extraction_functions,
-    suffix='filelist'
-)

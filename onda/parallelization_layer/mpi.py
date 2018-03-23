@@ -25,10 +25,12 @@ Exports:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import importlib
 import sys
 
 from mpi4py import MPI
+
+from onda.utils import dynamic_import
+
 
 # Define some labels for internal MPI communication (just some
 # syntactic sugar).
@@ -63,7 +65,11 @@ class ParallelizationEngine(object):
             is read.
     """
 
-    def __init__(self, map_func, reduce_func, source, monitor_params):
+    def __init__(self,
+                 map_func,
+                 reduce_func,
+                 source,
+                 monitor_params):
         """
         Initialize the ParallelizationEngine class.
 
@@ -79,9 +85,9 @@ class ParallelizationEngine(object):
             source (function): a python generator function from which
                 worker nodes can recover data (by iterating over it).
 
-            monitor_params (Dict): a dictionary containing the monitor
-                parameters from the configuration file, already
-                converted to the corrected types.
+            monitor_params (MonitorParams): a MonitorParams object
+                containing the monitor parameters from the
+                configuration file.
         """
         # Store some initialization parameters into attributes.
         self._map = map_func
@@ -98,6 +104,17 @@ class ParallelizationEngine(object):
         else:
             self.role = 'worker'
 
+        # Call a function that imports the correct event-handling
+        # functions from the various layers, then store the imported
+        # functions as attributes.
+        ehf = dynamic_import.init_event_handling_funcs(
+            self._mon_params
+        )
+        self._initialize_event_source = ehf.initialize_event_source
+        self._event_generator = ehf.event_generator
+        self._open_event = ehf.open_event
+        self._close_event = ehf.close_event
+        self._get_num_frames_in_event = ehf.get_num_frames_in_event
         if self.role == 'master':
             # Initialize several counters:
             #
@@ -111,36 +128,18 @@ class ParallelizationEngine(object):
 
         if self.role == 'worker':
             # Instantiate the EventFilter class from the data
-            # extraction layer and call two other functions from the
-            # same layer to recover the event handling and data
-            # extractions functions.
-            data_extr_layer = importlib.import_module(
-                'onda.data_extraction_layer.{0}'.format(
-                    monitor_params.get_param(
-                        section='Onda',
-                        parameter='data_extraction_layer',
-                        type_=str,
-                        required=True
-                    )
-                )
+            # recovery layer and call a function that recovers the
+            # required data extractions functions from the various
+            # layers.
+            data_rec_layer = dynamic_import.import_data_recovery_layer(
+                self._mon_params
             )
-
-            self._event_filter = data_extr_layer.EventFilter(
+            self._event_filter = data_rec_layer.EventFilter(
                 self._mon_params
             )
 
-            ehf = data_extr_layer.initialize_event_handling_functions(
+            self._data_extr_funcs = dynamic_import.init_data_extraction_funcs(
                 self._mon_params
-            )
-
-            self._event_generator = ehf.event_generator
-            self._open_event = ehf.open_event
-            self._close_event = ehf.close_event
-            self._num_frames_in_event = ehf.num_frames_in_event
-            self._data_extr_funcs = (
-                data_extr_layer.initialize_data_extraction_functions(
-                    self._mon_params
-                )
             )
 
             # Read from the configuration file (and store) the number
@@ -148,7 +147,7 @@ class ParallelizationEngine(object):
             self._num_frames_in_event_to_process = (
                 monitor_params.get_param(
                     section='General',
-                    parameter='nun_frames_in_event_to_process',
+                    parameter='num_frames_in_event_to_process',
                     type_=int,
                     required=True
                 )
@@ -162,20 +161,28 @@ class ParallelizationEngine(object):
         processing it. When called on the master node, start listening
         for communications from the worker nodes.
         """
-        # Initialize the event generator. The event generator returns
-        # a python iterator that can be used to recover events.
-        events = self._event_generator(
-            source=self._source,
-            node_role=self.role,
-            node_rank=self.rank,
-            mpi_pool_size=self._mpi_size,
-            monitor_params=self._mon_params
-        )
+
+        if self.role == 'master':
+
+            # Initialize the event source.
+            self._initialize_event_source(
+                source=self._source,
+                node_rank=self.rank,
+                mpi_pool_size=self._mpi_size,
+                monitor_params=self._mon_params
+            )
 
         if self.role == 'worker':
+
             req = None
 
             # Iterate over the events provided by the event generator.
+            events = self._event_generator(
+                source=self._source,
+                node_rank=self.rank,
+                mpi_pool_size=self._mpi_size,
+                monitor_params=self._mon_params
+            )
             for event in events:
 
                 # Listen for requests to shut down coming from the
@@ -200,7 +207,7 @@ class ParallelizationEngine(object):
                 # higher than the number of frames in the event. If it
                 # is, limit the number of frames that should be
                 # processed.
-                n_frames = self._num_frames_in_event(event)
+                n_frames = self._get_num_frames_in_event(event)
                 if n_frames < self._num_frames_in_event_to_process:
                     self._num_frames_in_event_to_process = n_frames
 
@@ -237,7 +244,7 @@ class ParallelizationEngine(object):
                             data[func.__name__] = func(
                                 event=event
                             )
-                    except Exception as exc:
+                    except Exception as exc:  # pylint: disable=W0703
                         print(
                             "OnDA Warning: Cannot interpret some event"
                             "data:"
