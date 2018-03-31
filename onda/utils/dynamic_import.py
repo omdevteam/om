@@ -307,32 +307,25 @@ def init_data_extraction_funcs(monitor_params):
     ]
     detector_layer = import_detector_layer(monitor_params)
     data_rec_layer = import_data_recovery_layer(monitor_params)
-    for func in data_extraction_funcs:
+    func_list = []
+    for func_name in data_extraction_funcs:
         try:
-            globals()[func] = _import_function_from_layer(
-                layer=detector_layer,
-                name=func,
-                decorator=data_rec_layer.__name__
+            func_list.append(
+              _import_function(
+                    func_name=func_name,
+                    data_recovery_layer=data_rec_layer,
+                    detector_layer=detector_layer
+                )
             )
         except AttributeError:
-            try:
-                globals()[func] = _import_function_from_layer(
-                    layer=data_rec_layer,
-                    name=func,
-                    decorator=None
-                )
-            except AttributeError:
-                raise_from(
-                    exc=exceptions.MissingDataExtractionFunction(
-                        "Data extraction function {0} not "
-                        "defined".format(func)
-                    ),
-                    cause=None
-                )
+            raise_from(
+                exc=exceptions.MissingDataExtractionFunction(
+                    "Data extraction function {0} not "
+                    "defined".format(func_name)
+                ),
+                cause=None
+            )
 
-    func_list = []
-    for func in data_extraction_funcs:
-        func_list.append(func)
     DataExtractionFuncs = collections.namedtuple(  # pylint: disable=C0103
         typename='DataExtractionFuncs',
         field_names=data_extraction_funcs

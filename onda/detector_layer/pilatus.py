@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Functions and classes for the processing of data from the Lambda
+Functions and classes for the processing of data from the Pilatus
 detector.
 
 Exports:

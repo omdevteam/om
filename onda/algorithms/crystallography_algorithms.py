@@ -39,6 +39,12 @@ from ondacython.lib.peakfinder8_extension import (  # pylint: disable=E0611
 )
 
 
+PeakList = namedtuple(  # pylint: disable=C0103
+    typename='PeakList',
+    field_names=['fs', 'ss', 'intensity']
+)
+# TODO: docstring
+
 ##############################
 # PEAKFINDER8 PEAK DETECTION #
 ##############################
@@ -197,10 +203,6 @@ class Peakfinder8PeakDetection(object):
             self._local_bg_radius
         )
 
-        PeakList = namedtuple(  # pylint: disable=C0103
-            typename='PeakList',
-            field_names=['fs', 'ss', 'intensity']
-        )
         return PeakList(*peak_list[0:3])
 
 
@@ -233,10 +235,6 @@ class PeakAccumulator:
 
         # Initialize the tuple that will store the accumulated peaks,
         # and the counter of accumulated events.
-        PeakList = namedtuple(  # pylint: disable=C0103
-            typename='PeakList',
-            field_names=['fs', 'ss', 'intensity']
-        )
         self._accumulator = PeakList([], [], [])
         self._events_in_accumulator = 0
 
@@ -266,11 +264,7 @@ class PeakAccumulator:
             containing the fs and ss coordinates of the accumulated
             peaks, and their intensities.
         """
-        PeakList = namedtuple(  # pylint: disable=C0103
-            typename='PeakList',
-            field_names=['fs', 'ss', 'intensity']
-        )
-        peak_list = PeakList(peak_list)
+        peak_list = PeakList(*peak_list)
 
         # Add the peak data to the interal lists and update the
         # internal counter.

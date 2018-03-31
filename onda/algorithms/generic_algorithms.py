@@ -93,7 +93,7 @@ class DarkCalCorrection(object):
         # an attribute.
         try:
             with h5py.File(name=darkcal_filename, mode='r') as fhandle:
-                self._darkcal = fhandle[darkcal_hdf5_path]
+                self._darkcal = fhandle[darkcal_hdf5_path][:]
         except OSError:
             raise_from(
                 exc=RuntimeError(

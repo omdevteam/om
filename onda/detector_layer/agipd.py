@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Functions and classes for the processing of data from the Eiger
+Functions and classes for the processing of data from the AGIPD
 detector.
 
 Exports:
@@ -52,27 +52,27 @@ from __future__ import (absolute_import, division, print_function,
 
 import collections
 
-import h5py
+import numpy
 
 
 def get_file_extensions():
     """
     Return allowed file extensions.
 
-    Return allowed file extensions for the Eiger detector.
+    Return allowed file extensions for the AGIPD detector.
 
     Returns:
 
         tuple: a tuple containing the list of allowed file extensions.
     """
-    return ('.nxs',)
+    return (".h5",)
 
 
 def get_peakfinder8_info():
     """
     Return peakfinder8 detector info.
 
-    Return the peakfinder8 information for the Eiger detector.
+    Return the peakfinder8 information for the AGIPD detector.
 
     Returns:
 
@@ -85,41 +85,37 @@ def get_peakfinder8_info():
         typename='Peakfinder8DetectorInfo',
         field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
     )
-    return Peakfinder8DetInfo(1556, 516, 1, 1)
+    return Peakfinder8DetInfo(128, 512, 1, 16)
 
 
-def open_event(event):
+def open_event(event):  # pylint: disable=W0613
     """
     Open event.
 
-    Open the event by opening the file using the h5py library. Save
-    the open file filehandle in the 'data' entry of the event
-    dictionary).
+    Open the event. The Karabo API already provides the data as a
+    python dictionary, so do nothing.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    event['data'] = h5py.File(
-        name=event['metadata']['full_path'],
-        mode='r'
-    )
+    pass
 
 
-def close_event(event):
+def close_event(event):   # pylint: disable=W0613
     """
     Close event.
 
-    Close event by closing the h5py file.
+    Close event. No need to close Karabo events, so do nothing.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    event['data'].close()
+    pass
 
 
-def get_num_frames_in_event(event):
+def get_num_frames_in_event(event):  # pylint: disable=W0613
     """
     The number of frames in the file.
 
@@ -130,7 +126,8 @@ def get_num_frames_in_event(event):
 
         event (Dict): a dictionary with the event data.
     """
-    return event['data']['/entry/data/data'].shape[0]
+    data_block = event['data']['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf']['image.data']
+    return data_block.shape[0]
 
 
 def detector_data(event):
@@ -148,15 +145,15 @@ def detector_data(event):
 
         ndarray: the raw detector data for one frame.
     """
-    return event['/data']['/entry/data/data'].shape[0]
+    data_block = event['data']['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf']['image.data']
+    return data_block[data_block.shape[0] + event['frame_offset']].reshape(16*512,128)
 
 
 def timestamp(event):
     """
     Recover the timestamp of the event.
 
-    Return the timestamp of the event (return the event timestamp from
-    the event dictionary.
+    Return the timestamp of the event (from the data providede by Karabo).
 
     Args:
 
@@ -167,7 +164,11 @@ def timestamp(event):
         timestamp: the creation time of the file containing the
         detector data.
     """
-    return event['metadata']['file_creation_time']
+    metadata = event['data']['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf']['metadata']
+    return numpy.float64(  # pylint: disable=E1101
+        str(metadata['timestamp']['sec']) + '.' +
+        str(metadata['timestamp']['frac'])
+    )
 
 
 def beam_energy(event):
@@ -220,12 +221,13 @@ def detector_distance(event):
     )
 
 
-def filename_and_frame_index(event):
+def filename_and_frame_index(event):  # pylint: disable=W0613
     """
     The filename and frame index for the frame being processed.
 
     Return the name of the file where the frame being processed is
-    stored, and the index of the frame within the file.
+    stored, and the index of the frame within the file. Does not apply
+    to data from Karabo, so do nothing.
 
     Args:
 
@@ -238,14 +240,4 @@ def filename_and_frame_index(event):
         frame. The second, named 'frame_index', contains the index of
         the current frame within the file.
     """
-    FilenameAndFrameIndex = collections.namedtuple(  # pylint: disable=C0103
-        typename='FilenameAndFrameIndex',
-        field_names=['filename', 'frame_index']
-    )
-    return FilenameAndFrameIndex(
-        event['metadata']['full_path'],
-        (
-            event['/data']['/entry/data/data'].shape[0] +
-            event['metadata']['frame_offset']
-        )
-    )
+    pass

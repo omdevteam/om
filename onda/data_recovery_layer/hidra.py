@@ -296,7 +296,8 @@ class EventFilter(object):
         )
         self._file_extensions = get_file_extensions()
 
-    def should_reject(self, event):
+    def should_reject(self,
+                      event):
         """
         Decide on event rejection.
 

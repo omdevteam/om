@@ -199,7 +199,7 @@ class ParallelizationEngine(object):
                 # Check with if the event filter if the event should be
                 # rejected. If it should, skip to next iteration of the
                 # loop.
-                if self._event_filter.should_rejected(event):
+                if self._event_filter.should_reject(event):
                     continue
 
                 # Recover the number of frames in the event and check
@@ -265,7 +265,7 @@ class ParallelizationEngine(object):
                     if req:
                         req.Wait()
                     req = MPI.COMM_WORLD.isend(
-                        buf=result,
+                        result,
                         dest=0,
                         tag=0
                     )
