@@ -71,10 +71,10 @@ def event_generator(source,
                     mpi_pool_size,  # pylint: disable=W0613
                     monitor_params):  # pylint: disable=W0613
     """
-    Initialize HiDRA event recovery.
+    Initialize Karabo event recovery.
 
-    Initialize the connection with Karabo HiDRA. Return an iterator
-    which will recover an event from Karabo at each step (This function
+    Initialize the connection with Karabo. Return an iterator which
+    will recover an event from Karabo at each step (This function
     is a python generator).
 
     Args:

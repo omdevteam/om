@@ -286,11 +286,9 @@ def init_data_extraction_funcs(monitor_params):
 
     Returns:
 
-        Tuple[Callable, Callable, Callabe, Callable]: a tuple with the
-        four event handling functions: event_generator, open_event,
-        close_event, num_frames_in_event. The tuple is named: the four
-        fields are respectively called 'event_generator', 'open_event',
-        'close_event', 'num_frames_in_event'.
+        Tuple: a tuple with the requested data extraction functions.
+        Every field in the tuple has the name of the corresponding
+        data extraction function.
 
     Raises:
 
@@ -311,7 +309,7 @@ def init_data_extraction_funcs(monitor_params):
     for func_name in data_extraction_funcs:
         try:
             func_list.append(
-              _import_function(
+                _import_function(
                     func_name=func_name,
                     data_recovery_layer=data_rec_layer,
                     detector_layer=detector_layer
@@ -331,3 +329,68 @@ def init_data_extraction_funcs(monitor_params):
         field_names=data_extraction_funcs
     )
     return DataExtractionFuncs(*func_list)
+
+
+def init_psana_detector_int_funcs(monitor_params):
+    """
+    Recover and collect the psana Detector interface init functions.
+
+    Collect and return the required psana Detector interface init
+    functions from various layers. Recover from the configuration file
+    the list of required data extraction functions. Look for
+    data-recovery-specific versions of the functions in the detector
+    layer first, and if they are not found, in the data recovery layer
+    later. Raise a MissingDataExtractionFunction exception if a
+    function is not found anywhere.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+    Returns:
+
+        Tuple: a tuple with the requested psana Detector interface
+        initialization functions. Every field in the tuple has the name
+        of the corresponding initialization function.
+
+    Raises:
+
+        MissingPsanaInitializationFunction: if a one of the functions
+        is not found anywhere.
+    """
+    data_extraction_funcs = [
+        x.strip() for x in monitor_params.get_param(
+            section='Onda',
+            parameter='required_data',
+            type_=list,
+            required=True
+        )
+    ]
+    detector_layer = import_detector_layer(monitor_params)
+    data_rec_layer = import_data_recovery_layer(monitor_params)
+    func_list = []
+    for func_name in data_extraction_funcs:
+        try:
+            func_list.append(
+                _import_function(
+                    func_name=func_name,
+                    data_recovery_layer=data_rec_layer,
+                    detector_layer=detector_layer
+                )
+            )
+        except AttributeError:
+            raise_from(
+                exc=exceptions.MissingPsanaInitializationFunction(
+                    "Psana Detector interface initialization function "
+                    "{} not defined".format(func_name)
+                ),
+                cause=None
+            )
+
+    PsanaInitializationFuncs = collections.namedtuple(  # pylint: disable=C0103
+        typename='PsanaInitializationFuncs',
+        field_names=data_extraction_funcs
+    )
+    return PsanaInitializationFuncs(*func_list)

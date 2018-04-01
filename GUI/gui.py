@@ -35,17 +35,17 @@ from collections import namedtuple
 
 import numpy
 import pyqtgraph as pg
-import scipy.consta nts
 
 from onda.cfelpyutils import crystfel_utils, geometry_utils
 from onda.utils import zmq
 
 try:
-    from PyQt5 import QtCore
+    from PyQt5 import QtCore, QtGUI
 except ImportError:
-    from PyQt4 import QtCore
+    from PyQt4 import QtCore, QtGUI
 
-class MainWindow(QtGui.QMainWindow):
+
+class OndaGui(QtGui.QMainWindow):
     """
     Main GUI class.
 
@@ -55,7 +55,7 @@ class MainWindow(QtGui.QMainWindow):
     'gui_update_func' function defined by the user to update the GUI.
     Instantiate a listening thread to receive data from the OnDA
     monitor, and make new data available to the user in the 'data'
-    attribute as soon as it is available.
+    attribute as soon as it is received. This class can be 
 
     Attributes:
 
@@ -66,16 +66,22 @@ class MainWindow(QtGui.QMainWindow):
     _listening_thread_stop_processing = QtCore.pyqtSignal()
 
     def __init__(self,
-                 rec_ip,
-                 rec_port,
+                 pub_hostname,
+                 pub_port,
                  gui_init_func,
                  gui_update_func):
         """
-        Initialize the 
+        Initialize the OndaGUI class.
+
+        Args:
+
+
+
+        """
 
         super(MainWindow, self).__init__()
 
-        gui_init_func()
+        gui_init_func(self)
         self._gui_update_func = gui_update_func()
         self._refresh_timer = QtCore.QTimer()
         self._refresh_timer.timeout.connect(self._gui_update_func)

@@ -33,6 +33,9 @@ Exports:
         MissingDataExtractionFunction: non-defined data extraction
             function.
 
+        MissingPsanaInitializationFunction: non-defined psana Detector
+            interface initialization function.
+
         MissingFile: required file missing.
 
         MissingParameterFileSection: section missing in the
@@ -88,6 +91,15 @@ class MissingDataExtractionFunction(OndaException):
     Data extraction function not defined.
 
     One of the requested data extraction functions is not defined.
+    """
+    pass
+
+class  MissingPsanaInitializationFunction(OndaException):
+    """
+    Psana Detector interface initialization function not defined.
+
+    One of the requested psana Detector interface initialization
+    functions is not defined.
     """
     pass
 

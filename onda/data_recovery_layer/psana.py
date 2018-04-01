@@ -12,75 +12,404 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+"""
+Functions and classes to recover and process data from HiDRA.
 
+Exports:
 
+    Functions:
+
+        initialize_event_source: connect to the event source and
+            configure it.
+
+        event_generator: event recovery from HiDRA.
+
+    Classes:
+
+        EventFilter (class): filter and reject events.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import time
-from builtins import str
-from collections import namedtuple
-from sys import stdout
+import collections
+import psana
+import os.path
+import socket
+import sys
+from builtins import str  # pylint: disable=W0622
 
 from future.utils import raise_from
-from mpi4py import MPI
-from numpy import ceil, float64
 
-import psana
-from cfelpyutils.cfel_psana import dirname_from_source_runs
-
-import ondautils.onda_dynamic_import_utils as di
-import ondautils.onda_param_utils as op
-from ondautils.onda_exception_utils import (DataExtractionError,
-                                            MissingDataExtractionFunction)
+from onda.data_recovery_layer import hidra_api
+from onda.utils import dynamic_import, exceptions
 
 
-EventData = namedtuple('EventData', ['psana_event', 'detector', 'timestamp'])
+def detector_data_init(monitor_params):  # pylint: disable=W0613
+    """
+    Initialize detector data recovery.
+
+    Initialize the psana Detector interface for the data from the
+    x-ray detector.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='detector_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
 
 
-def _raw_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'detector_name', str, required=True))
+def timestamp_init(monitor_params):
+    """
+    Initialize timestamp data recovery.
 
+    Initialize the psana Detector interface for the timestamp data.
 
-def _timestamp_init():
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
     return None
 
 
-def _detector_distance_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'detector_dist_epics_name', str,
-                                   required=True).encode('ascii'))
+def detector_distance_init(monitor_params):
+    """
+    Initialize the detector distance data recovery.
+
+    Initialize the psana Detector interface for the detector distance
+    data.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='detector_dist_epics_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
 
 
-def _beam_energy_init():
+def beam_energy_init(monitor_params):  # pylint: disable=W0613
+    """
+    Initialize the beam energy data recovery.
+
+    Initialize the psana Detector interface for the beam energy data.
+    
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
     return psana.Detector('EBeam'.encode('ascii'))
 
 
-def _timetool_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'timetool_epics_name', str, required=True).encode('ascii'))
+def timetool_data_init(monitor_params):
+    """
+    Initialize the timetool data recovery.
+
+    Initialize the psana Detector interface for the timetool data.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='timetool_epics_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
+
+def digitizer_data_init(monitor_params):
+    """
+    Initialize the first digitizer data recovery.
+
+    Initialize the psana Detector interface for the data from the
+    first digitizer.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='digitizer_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
 
 
-def _digitizer_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer_name', str, required=True).encode('ascii'))
+def digitizer2_data_init(monitor_params):
+    """
+    Initialize the second digitizer data recovery.
+
+    Initialize the psana Detector interface for the data from the
+    second digitizer.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='digitizer2_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
 
 
-def _digitizer2_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer2_name', str, required=True).encode('ascii'))
+def digitizer3_data_init(monitor_params):
+    """
+    Initialize the second digitizer data recovery.
+
+    Initialize the psana Detector interface for the data from the
+    third digitizer.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='digitizer3_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
 
 
-def _digitizer3_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer3_name', str, required=True).encode('ascii'))
+def digitizer4_data_init(monitor_params):
+    """
+    Initialize the second digitizer data recovery.
+
+    Initialize the psana Detector interface for the data from the
+    fourth digitizer.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='digitizer4_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
 
 
-def _digitizer4_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'digitizer4_name', str, required=True).encode('ascii'))
+def opal_data_init(monitor_params):
+    """
+    Initialize the opal data recovery.
+
+    Initialize the psana Detector interface for the data from the
+    Opal camera.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='opal_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
 
 
-def _opal_data_init():
-    return psana.Detector(op.param('PsanaFacilityLayer', 'opal_name', str, required=True).encode('ascii'))
+def event_codes_init():
+    """
+    Intialize the EVR event data recovery.
+    
+    Initialize the psana Detector interface for EVR event codes.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector('evr0'.encode('ascii'))
 
 
-def _event_codes_init():
-    return psana.Detector('evr0')
+def initialize_event_source(source,  # pylint: disable=W0613
+                            node_rank,  # pylint: disable=W0613
+                            mpi_pool_size,  # pylint: disable=W0613
+                            monitor_params):  # pylint: disable=W0613
+    """
+    Initialize event generator.
+
+    Connect to the event generator and configure it. Psana does not
+    need to be configured, so do nothing.
+
+    Args:
+
+        source (str): the IP or hostname of the machine where hidra is
+            running.
+
+        node_rank (int): rank of the node where the function is called
+
+        mpi_pool_size (int): size of the node pool that includes the
+            node where the function is called.
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    pass
+
+
+def event_generator(source,
+                    node_rank,
+                    mpi_pool_size,  # pylint: disable=W0613
+                    monitor_params):
+    """
+    Initialize psana event recovery.
+
+    Initialize the connection with Psana. Return an iterator which will
+    recover an event from psana at each step (This function is a
+    python generator).
+
+    Args:
+
+        source (str): the IP or hostname of the machine where hidra is
+            running.
+
+        node_rank (int): rank of the node where the function is called
+
+        mpi_pool_size (int): size of the node pool that includes the
+            node where the function is called.
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+     Yields:
+
+        Dict: A dictionary containing the data and the metadata of an
+        event recovered from Psana (usually corresponding to a frame).
+    """
+    
+    
+
+
+
+    while True:
+        # Recover the data from Karabo. Create the event dictionary
+        # and store the recovered data there. Then yield the
+        # event.
+
+        event = {
+            'data': krb_client.next(),
+        }
+
+        yield event
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def _timestamp(event):
