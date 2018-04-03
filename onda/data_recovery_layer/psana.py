@@ -44,6 +44,205 @@ from onda.data_recovery_layer import hidra_api
 from onda.utils import dynamic_import, exceptions
 
 
+
+
+def initialize_event_source(source,  # pylint: disable=W0613
+                            node_rank,  # pylint: disable=W0613
+                            mpi_pool_size,  # pylint: disable=W0613
+                            monitor_params):  # pylint: disable=W0613
+    """
+    Initialize event generator.
+
+    Connect to the event generator and configure it. Psana does not
+    need to be configured, so do nothing.
+
+    Args:
+
+        source (str): the IP or hostname of the machine where hidra is
+            running.
+
+        node_rank (int): rank of the node where the function is called
+
+        mpi_pool_size (int): size of the node pool that includes the
+            node where the function is called.
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    pass
+
+
+def event_generator(source,
+                    node_rank,
+                    mpi_pool_size,  # pylint: disable=W0613
+                    monitor_params):
+    """
+    Initialize psana event recovery.
+
+    Initialize the connection with Psana. Return an iterator which will
+    recover an event from psana at each step (This function is a
+    python generator).
+
+    Args:
+
+        source (str): the IP or hostname of the machine where hidra is
+            running.
+
+        node_rank (int): rank of the node where the function is called
+
+        mpi_pool_size (int): size of the node pool that includes the
+            node where the function is called.
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+     Yields:
+
+        Dict: A dictionary containing the data and the metadata of an
+        event recovered from Psana (usually corresponding to a frame).
+    """
+    if 'shmem' in source:
+        offline=False
+    else:
+        offline=True
+
+    # If the psana calibration directory is provided in the
+    # configuration file, add it as an option to psana.
+    psana_calib_dir = monitor_params.get_param(
+        section='PsanaDataRecoveryLayer',
+        parameter='psana_calibration_directory',
+        type_=str
+    )
+    if psana_calib_dir:
+        psana.setOption(
+            'psana.calib-dir'.encode('ascii'),
+            psana_calib_dir.encode('ascii')
+        )
+
+    # Automatically add 'idx' to the source string for offline data,
+    # if it is not already there.
+    if offline and not self._source[-4:] == ':idx':
+        source += ':idx'
+    
+    # Set the psana data source.
+    psana_source = psana.DataSource(source.encode('ascii'))
+    
+    # Recover the psana detector interface initialization functions.
+    psana_interface_funcs = dynamic_import.init_psana_interface_funcs(
+        monitor_params
+    )
+    
+    # Call all the required psana interface functions and store the
+    # returned handlers in a dictionary.
+    psana_interface_funcs = {}
+    for func_name in psana_interface_funcs:
+        psana_interface[func_name] = getattr(
+            object=psana_interface_funcs,
+            name=func_name
+        )(monitor_params)
+
+    # SImply recover the event iterator from the psana DataSource
+    # object if running online. Otherwise, split the events
+    # based on the number of workers and have each worker iterate
+    # only on the events assigned to him.
+    if offline:
+        def psana_events_generator():
+        for r in psana_source.runs():
+            times = r.times()
+            mylength = int(ceil(len(times) / float(mpi_pool_size - 1)))
+            mytimes = times[(node_rank - 1) * mylength:node_rank * mylength]
+            for mt in mytimes:
+                yield r.event(mt)
+    else:
+        psana_events = psana_source.events()
+    
+    for psana_event in psana_events
+        # Recover the psana?event from psana. Create the event
+        # dictionary and store the psana_event there, together with
+        # the psana interface functions. Then yield the event.
+        event = {
+            'psana_interface_funcs': psana_interface_funcs,
+            'psana_event': psana_event
+        }
+        yield event
+
+
+class EventFilter(object):
+    """
+    Filter events.
+
+    Reject files whose 'age' (the time between the data collection and
+    the moment OnDA receives the data) is higher than a predefined
+    threshold.
+    """
+    def __init__(self,
+                 monitor_params):
+        """
+        Initialize the EventFilter class.
+
+        Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+        """
+        # Read the maximum 'age' threshold from the configuration file
+        # and store it in an attribute.
+        rejection_threshold = monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='event_rejection_threshold'
+            type_=float
+        )
+        if rejection_threshold:
+            self._event_rejection_threshold = rejection_threshold
+            
+            
+    def should_reject(self,
+                      event):
+        """
+        Decide on event rejection.
+
+        Decide if the event should be rejected based on its 'age' (
+        the time between data collection and the moment OnDA gets
+        the event.
+
+        Args:
+
+            event (Dict): a dictionary with the event data.
+
+        Returns:
+
+            bool: True if the event should be rejected. False if the
+            event should be processed.
+        """
+        # Recover the timestamp from the sana event
+        timestamp_epoch_format = event['psana_event'].get(
+            psana.EventId
+        ).time()
+        
+        timestamp = float64(
+            str(timestamp_epoch_format[0]) + '.' +
+            str(timestamp_epoch_format[1])
+        )
+        
+        time_now = float64(time.time())
+        if (time_now - timestamp) > self._event_rejection_threshold:
+            # Store the timestamp in the event dictionary so it does
+            # have to be extracted again if the user requests it.
+            event['timestamp'] = timestamp
+            return True
+        else:
+            return False
+
+
+############################################
+#                                          #
+# PSANA INTERFACE INITIALIZATION FUNCTIONS #
+#                                          #
+############################################
+
 def detector_data_init(monitor_params):  # pylint: disable=W0613
     """
     Initialize detector data recovery.
@@ -271,428 +470,203 @@ def event_codes_init():
     return psana.Detector('evr0'.encode('ascii'))
 
 
-def initialize_event_source(source,  # pylint: disable=W0613
-                            node_rank,  # pylint: disable=W0613
-                            mpi_pool_size,  # pylint: disable=W0613
-                            monitor_params):  # pylint: disable=W0613
-    """
-    Initialize event generator.
+###################################
+#                                 #
+# PSANA DATA EXTRACTION FUNCTIONS #
+#                                 #
+###################################
 
-    Connect to the event generator and configure it. Psana does not
-    need to be configured, so do nothing.
+
+def timestamp(event):
+    """
+    Recover the timestamp of the event.
+
+    Return the timestamp of the event (return the event timestamp from
+    the event dictionary).
 
     Args:
 
-        source (str): the IP or hostname of the machine where hidra is
-            running.
+        event (Dict): a dictionary with the event data.
 
-        node_rank (int): rank of the node where the function is called
+    Returns:
 
-        mpi_pool_size (int): size of the node pool that includes the
-            node where the function is called.
-
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
+        timestamp: the time at which the event was collected.
     """
-    pass
-
-
-def event_generator(source,
-                    node_rank,
-                    mpi_pool_size,  # pylint: disable=W0613
-                    monitor_params):
-    """
-    Initialize psana event recovery.
-
-    Initialize the connection with Psana. Return an iterator which will
-    recover an event from psana at each step (This function is a
-    python generator).
-
-    Args:
-
-        source (str): the IP or hostname of the machine where hidra is
-            running.
-
-        node_rank (int): rank of the node where the function is called
-
-        mpi_pool_size (int): size of the node pool that includes the
-            node where the function is called.
-
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
-
-     Yields:
-
-        Dict: A dictionary containing the data and the metadata of an
-        event recovered from Psana (usually corresponding to a frame).
-    """
+    return event['timestamp']
     
     
-
-
-
-    while True:
-        # Recover the data from Karabo. Create the event dictionary
-        # and store the recovered data there. Then yield the
-        # event.
-
-        event = {
-            'data': krb_client.next(),
-        }
-
-        yield event
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def _timestamp(event):
-    return event.timestamp
-
-
 def _detector_distance(event):
-    return event.detector['detector_distance']()
+     """
+    Recover the distance of the detector from the sample location.
 
+    Return the detector distance information (as provided by psana).
 
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        float: the distance between the detector and the sample in mm.
+    """
+    return event['psana_interface_funcs']['detector_distance']()
+
+    
 def _beam_energy(event):
-    return event.detector['beam_energy'].get(event.psana_event).ebeamPhotonEnergy()
+    """
+    Recover the energy of the beam.
+
+    Return the beam energy information (as provided by psana).
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        float: the energy of the beam in eV.
+    """
+    return event['psana_interface_funcs']['beam_energy'].get(
+        event['psana_event']
+    ).ebeamPhotonEnergy()
 
 
-def _timetool_data(event):
-    return event.detector['timetool_data']()
+def timetool_data(event):
+    """
+    Recover the time delay between the trigger and the pulse.
+
+    Return the timetool information provided by psana.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        float: the energy of the beam in eV.
+    """
+    return event['psana_interface_funcs']['timetool_data']()
 
 
-def _digitizer_data(event):
-    return event.detector['digitizer_data'].waveform(event.psana_event)
+def digitizer_data(event):
+    """
+    Recover the waveform from the first digitizer.
+
+    Return the waveforms for the first digitizer as provided by
+    psana (All channels).
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        psana object: a psana object storing the waveform data.
+    """
+    return event['psana_interface_funcs']['digitizer_data'].waveform(
+        event['psana_event']
+    )
 
 
-def _digitizer2_data(event):
-    return event.detector['digitizer2_data'].waveform(event.psana_event)
+def digitizer2_data(event):
+    """
+    Recover the waveform from the second digitizer.
+
+    Return the waveforms for the second digitizer as provided by
+    psana (All channels).
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        psana object: a psana object storing the waveform data.
+    """
+    return event['psana_interface_funcs']['digitizer2_data'].waveform(
+        event['psana_event']
+    )
 
 
-def _digitizer3_data(event):
-    return event.detector['digitizer3_data'].waveform(event.psana_event)
+def digitizer3_data(event):
+    """
+    Recover the waveform from the third digitizer.
+
+    Return the waveforms for the third digitizer as provided by
+    psana (All channels).
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        psana object: a psana object storing the waveform data.
+    """
+    return event['psana_interface_funcs']['digitizer3_data'].waveform(
+        event['psana_event']
+    )
 
 
-def _digitizer4_data(event):
-    return event.detector['digitizer4_data'].waveform(event.psana_event)
+def digitizer4_data(event):
+    """
+    Recover the waveform from the fourth digitizer.
 
+    Return the waveforms for the fourth digitizer as provided by
+    psana (All channels).
 
-def _opal_data(event):
-    return event.detector['opal_data'].calib(event.psana_event)
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        psana object: a psana object storing the waveform data.
+    """
+    return event['psana_interface_funcs']['digitize4_data'].waveform(
+        event['psana_event']
+    )
+    
+    
+def opal_data(event):
+    """
+    Recover the Opal camera data.
+
+    Return the image collected by the Opal camera, as provided by
+    psana.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        ndarray: a 2d array containing the image from the Opal camera.
+    """
+    return event['psana_interface_funcs']['opal_data'].calib(
+        event['psana_event']
+    )
 
 
 def _event_codes_dataext(event):
-    return event.detector['event_codes'].eventCodes(event.psana_event)
+    """
+    Recover the EVR event codes.
+
+    Return the EVR event codes as provided by psana.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+            
+    Returns:
+
+        List: a list containing the EVR event codes for a specific
+        psana event.
+    """
+    return return event['psana_interface_funcs']['event_codes'].eventCodes(
+        event['psana_event']
+    )
 
 
-def _initialize():
-    detector = {}
-    for init_data_source in data_extraction_funcs:
-        detector[init_data_source] = (globals()['_' + init_data_source + '_init'])()
-    return detector
-
-
-def _extract(event, monitor):
-    for entry in data_extraction_funcs:
-        try:
-            setattr(monitor, entry, globals()['_' + entry](event))
-        except Exception as e:
-            raise DataExtractionError('Error extracting {0}: {1}'.format(entry, e))
-
-
-class MasterWorker(object):
-    NOMORE = 998
-    DIETAG = 999
-    DEADTAG = 1000
-
-    def __init__(self, map_func, reduce_func, source):
-
-        debug = False
-
-        self._psana_source = None
-        self._buffer = None
-        self._event_timestamp = None
-
-        self.mpi_rank = MPI.COMM_WORLD.Get_rank()
-        self.mpi_size = MPI.COMM_WORLD.Get_size()
-
-        if self.mpi_rank == 0:
-            self.role = 'master'
-        else:
-            self.role = 'worker'
-
-        self._event_rejection_threshold = 10000000000
-        self._offline = False
-        self._source = source
-
-        # Set offline mode depending on source
-        if 'shmem' not in self._source and debug is False:
-            self._offline = True
-            if not self._source[-4:] == ':idx':
-                self._source += ':idx'
-
-        # Set event_rejection threshold
-        rej_thr = op.param('PsanaFacilityLayer', 'event_rejection_threshold')
-        if rej_thr is not None:
-            self._event_rejection_threshold = rej_thr
-
-        # Set map,reduce and extract functions
-        self._map = map_func
-        self._reduce = reduce_func
-        self._extract_data = _extract
-        self._initialize_data_extraction = _initialize
-
-        if self.role == 'worker':
-            self._psana_calib_dir = op.param('PsanaFacilityLayer', 'psana_calib_dir', str, required=True)
-
-        # The following is executed only on the master node
-        if self.role == 'master':
-
-            self._num_reduced_events = 0
-            self._num_nomore = 0
-
-            if self._offline is True:
-                self._source_runs_dirname = dirname_from_source_runs(source)
-
-        return
-
-    def shutdown(self, msg='Reason not provided.'):
-
-        print('Shutting down:', msg)
-
-        if self.role == 'worker':
-            self._buffer = MPI.COMM_WORLD.send(dest=0, tag=self.DEADTAG)
-            MPI.Finalize()
-            exit(0)
-
-        if self.role == 'master':
-
-            try:
-                for nod_num in range(1, self.mpi_size()):
-                    MPI.COMM_WORLD.isend(0, dest=nod_num,
-                                         tag=self.DIETAG)
-                num_shutdown_confirm = 0
-                while True:
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=0):
-                        self._buffer = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=self.DEADTAG):
-                        num_shutdown_confirm += 1
-                    if num_shutdown_confirm == self.mpi_size() - 1:
-                        break
-                MPI.Finalize()
-            except Exception:
-                MPI.COMM_WORLD.Abort(0)
-            exit(0)
-        return
-
-    def start(self, verbose=False):
-
-        if self.role == 'worker':
-
-            req = None
-
-            psana.setOption('psana.calib-dir'.encode('ascii'), self._psana_calib_dir.encode('ascii'))
-            self._psana_source = psana.DataSource(self._source.encode('ascii'))
-
-            if self._offline is False:
-                psana_events = self._psana_source.events()
-            else:
-                def psana_events_generator():
-                    for r in self._psana_source.runs():
-                        times = r.times()
-                        mylength = int(ceil(len(times) / float(self.mpi_size - 1)))
-                        mytimes = times[(self.mpi_rank - 1) * mylength: self.mpi_rank * mylength]
-                        for mt in mytimes:
-                            yield r.event(mt)
-
-                psana_events = psana_events_generator()
-
-            detector = self._initialize_data_extraction()
-
-            # Loop over events and process
-            for evt in psana_events:
-
-                if evt is None:
-                    continue
-
-                # Reject events above the rejection threshold
-                time_epoch = evt.get(psana.EventId).time()
-                timestamp = float64(str(time_epoch[0]) + '.' + str(time_epoch[1]))
-                timenow = float64(time.time())
-
-                if (timenow - timestamp) > self._event_rejection_threshold:
-                    continue
-
-                # Check if a shutdown message is coming from the server
-                if MPI.COMM_WORLD.Iprobe(source=0, tag=self.DIETAG):
-                    self.shutdown('Shutting down RANK: {0}'.format(self.mpi_rank))
-
-                event = EventData(evt, detector, timestamp)
-
-                try:
-                    self._extract_data(event, self)
-                except DataExtractionError as e:
-                    print('OnDA Warning: Cannot interpret some event data: {}. Skipping event....'.format(e))
-                    continue
-
-                result = self._map()
-
-                # send the mapped event data to the master process
-                if req:
-                    req.Wait()  # be sure we're not still sending something
-                req = MPI.COMM_WORLD.isend(result, dest=0, tag=0)
-
-            # When all events have been processed, send the master a
-            # dictionary with an 'end' flag and die
-            end_dict = {'end': True}
-            if req:
-                req.Wait()  # be sure we're not still sending something
-            MPI.COMM_WORLD.isend((end_dict, self.mpi_rank), dest=0, tag=0)
-            MPI.Finalize()
-            exit(0)
-
-        # The following is executed on the master
-        elif self.role == 'master':
-
-            if verbose:
-                print('Starting master.')
-
-            # Loops continuously waiting for processed data from workers
-            while True:
-
-                try:
-
-                    buffer_data = MPI.COMM_WORLD.recv(
-                        source=MPI.ANY_SOURCE,
-                        tag=0)
-                    if 'end' in buffer_data[0].keys():
-                        print('Finalizing', buffer_data[1])
-                        self._num_nomore += 1
-                        if self._num_nomore == self.mpi_size - 1:
-                            print('All workers have run out of events.')
-                            print('Shutting down.')
-                            self.end_processing()
-                            MPI.Finalize()
-                            exit(0)
-                        continue
-
-                    self._reduce(buffer_data)
-                    self._num_reduced_events += 1
-
-                except KeyboardInterrupt as e:
-                    print('Recieved keyboard sigterm...')
-                    print(str(e))
-                    print('shutting down MPI.')
-                    self.shutdown()
-                    print('---> execution finished.')
-                    exit(0)
-
-        return
-
-    def end_processing(self):
-        print('Processing finished. Processed', self._num_reduced_events, 'events in total.')
-        stdout.flush()
-
-
-in_layer = di.import_correct_layer_module('detector_layer', op.monitor_params)
-
-data_extraction_funcs = [x.strip() for x in op.param('Onda', 'required_data', list, required=True)]
-
-for func in data_extraction_funcs:
-    try:
-        globals()[func + '_init'] = getattr(in_layer, func + '_init')
-    except AttributeError:
-        try:
-            globals()[func + '_init'] = '_' + func + '_init'
-        except AttributeError:
-            raise_from(MissingDataExtractionFunction('Data extraction function not defined for the following '
-                                                     'data type: {0}'.format(func)), None)
-
-for func in data_extraction_funcs:
-    try:
-        if func == 'raw_data' and op.param('PsanaFacilityLayer', 'pedestals_only', bool):
-            globals()['_' + func] = getattr(in_layer, func + '_pedestals_only')
-        else:
-            globals()['_' + func] = getattr(in_layer, func)
-    except AttributeError:
-        try:
-            if func == 'raw_data' and op.param('PsanaFacilityLayer', 'pedestals_only', bool):
-                globals()['_' + func] = globals()['_' + func + '_pedestals_only']
-            else:
-                globals()['_' + func] = globals()['_' + func]
-        except AttributeError:
-            if func == 'raw_data' and op.param('PsanaFacilityLayer', 'pedestals_only', bool):
-                raise_from(MissingDataExtractionFunction(
-                    'Data extraction function not defined for the following '
-                    'data type: {0} (pedestals_only)'.format(func)), None)
-            else:
-                raise_from(MissingDataExtractionFunction(
-                    'Data extraction function not defined for the following '
-                    'data type: {0}'.format(func)), None)

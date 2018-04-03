@@ -331,7 +331,7 @@ def init_data_extraction_funcs(monitor_params):
     return DataExtractionFuncs(*func_list)
 
 
-def init_psana_detector_int_funcs(monitor_params):
+def init_psana_interface_funcs(monitor_params):
     """
     Recover and collect the psana Detector interface init functions.
 

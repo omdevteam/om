@@ -156,7 +156,7 @@ def timestamp(event):
     Recover the timestamp of the event.
 
     Return the timestamp of the event (return the event timestamp from
-    the event dictionary.
+    the event dictionary).
 
     Args:
 
