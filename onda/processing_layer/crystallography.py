@@ -115,7 +115,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
             else:
                 self._calibration_alg = None
 
-
             # Initialize the hit_sending_counter to keep track of how
             # often the detector frame data needs to be sent to the
             # master worker.
@@ -482,9 +481,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
             results_dict['peak_list'] = cryst_algs.PeakList([], [], [])
         else:
             results_dict['peak_list'] = peak_list
-        results_dict['sat_flag'] = sat
+        results_dict['saturation_flag'] = sat
         results_dict['hit_flag'] = hit
-        results_dict['det_distance'] = data['detector_distance']
+        results_dict['detector_distance'] = data['detector_distance']
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = corr_det_data.shape
 
@@ -536,7 +535,11 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # compute the new average hit and saturation rates.
         self._hit_rate_run_wdw.append(float(results_dict['hit_flag']))
         self._hit_rate_run_wdw.popleft()
-        self._saturation_rate_run_wdw.append(float(results_dict['sat_flag']))
+        self._saturation_rate_run_wdw.append(
+            float(
+                results_dict['saturation_flag']
+                )
+        )
         self._saturation_rate_run_wdw.popleft()
         self._avg_hit_rate = (
             sum(self._hit_rate_run_wdw) /
@@ -560,11 +563,15 @@ class OndaMonitor(mpi.ParallelizationEngine):
             collected_data['peak_list'] = collected_peaks
             collected_data['timestamp'] = results_dict['timestamp']
             collected_data['hit_rate'] = self._avg_hit_rate
-            collected_data['sat_rate'] = self._avg_sat_rate
-            collected_data['det_distance'] = results_dict['det_distance']
+            collected_data['saturation_rate'] = self._avg_sat_rate
+            collected_data['detector_distance'] = (
+                results_dict['detector_distance']
+            )
             collected_data['beam_energy'] = results_dict['beam_energy']
             collected_data['optimized_geometry'] = self._optimized_geometry
-            collected_data['native_data_shape'] = results_dict['native_data_shape']
+            collected_data['native_data_shape'] = (
+                results_dict['native_data_shape']
+            )
             self._zmq_pub_socket.send_data('ondadata', collected_data)
 
         # If raw frame data can be found in the data received from a

@@ -129,7 +129,7 @@ class ZMQListener(QtCore.QObject):
     def __init__(self,
                  pub_hostname,
                  pub_port,
-                 subscribe_string):
+                 subscription_string):
         """
         Initialize the ZMQListener class.
 
@@ -148,7 +148,7 @@ class ZMQListener(QtCore.QObject):
 
         self._pub_hostname = pub_hostname
         self._pub_port = pub_port
-        self._subscribe_string = subscribe_string
+        self._subscription_string = subscription_string
         self._zmq_context = zmq.Context()
 
         # Attributes that stores the listening socket and the
@@ -189,8 +189,8 @@ class ZMQListener(QtCore.QObject):
             )
         )
         self._zmq_subscribe.setsockopt_string(
-            opt=zmq.SUBSCRIBE,  # pylint: disable=E1101
-            unicode_optval=self.subscribe_string
+            option=zmq.SUBSCRIBE,  # pylint: disable=E1101
+            optval=self._subscription_string
         )
 
         # Instantiate a poller that can be used to check if there is

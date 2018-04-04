@@ -68,12 +68,12 @@ def compute_pixel_maps(geometry):
     # will store the x and y pixel maps.
     x_map = numpy.zeros(
         shape=(max_slab_ss + 1, max_slab_fs + 1),
-        dtype=numpy.float32
+        dtype=numpy.float32  # pylint: disable=E1101
     )
 
     y_map = numpy.zeros(
         shape=(max_slab_ss + 1, max_slab_fs + 1),
-        dtype=numpy.float32
+        dtype=numpy.float32  # pylint: disable=E1101
     )
 
     # Iterate over the panels. For each panel, determine the pixel
@@ -158,7 +158,7 @@ def apply_pixel_maps(data, pixel_maps, output_array=None):
     if output_array is None:
         output_array = numpy.zeros(
             shape=data.shape,
-            dtype=numpy.float32
+            dtype=numpy.float32  # pylint: disable=E1101
         )
 
     # Apply the pixel map geometry information the data, then return
@@ -199,7 +199,7 @@ def compute_minimum_array_size(pixel_maps):
     # the returned array is centered on the origin, the minimum array
     # size along a certain axis must be at least twice the maximum
     # value for that axis. 2 pixels are added for good measure.
-    x_map, y_map = pixel_maps.x, pixel_maps.x.y
+    x_map, y_map = pixel_maps.x, pixel_maps.y
     y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
     x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
 

@@ -338,16 +338,23 @@ def init_psana_interface_funcs(monitor_params):
     Collect and return the required psana Detector interface init
     functions from various layers. Recover from the configuration file
     the list of required data extraction functions. Look for
-    data-recovery-specific versions of the functions in the detector
-    layer first, and if they are not found, in the data recovery layer
-    later. Raise a MissingDataExtractionFunction exception if a
-    function is not found anywhere.
+    the psana initialization functions in the detector layer first, and
+    if they are not found, in the data recovery layer later. Raise a
+    MissingDataExtractionFunction exception if a function is not found
+    anywhere.
 
     Args:
 
         monitor_params (MonitorParams): a MonitorParams object
             containing the monitor parameters from the
             configuration file.
+            func_list.append(
+                _import_function_from_layer(
+                    name=func_name,
+                    layer=detector_layer,
+                    decorator='init'
+                )
+            )
 
     Returns:
 
@@ -374,23 +381,27 @@ def init_psana_interface_funcs(monitor_params):
     for func_name in data_extraction_funcs:
         try:
             func_list.append(
-                _import_function(
-                    func_name=func_name,
-                    data_recovery_layer=data_rec_layer,
-                    detector_layer=detector_layer
-                )
+                getattr(detector_layer, '{0}_init'.format(func_name))
             )
         except AttributeError:
-            raise_from(
-                exc=exceptions.MissingPsanaInitializationFunction(
-                    "Psana Detector interface initialization function "
-                    "{} not defined".format(func_name)
-                ),
-                cause=None
-            )
+            try:
+                func_list.append(
+                    getattr(data_rec_layer, '{0}_init'.format(func_name))
+                )
+            except AttributeError:
+                raise_from(
+                    exc=exceptions.MissingPsanaInitializationFunction(
+                        "Psana Detector interface initialization function "
+                        "{} not defined".format(func_name)
+                    ),
+                    cause=None
+                )
 
     PsanaInitializationFuncs = collections.namedtuple(  # pylint: disable=C0103
         typename='PsanaInitializationFuncs',
-        field_names=data_extraction_funcs
+        field_names=[
+            '{}_init'.format(field)
+            for field in data_extraction_funcs
+        ]
     )
     return PsanaInitializationFuncs(*func_list)

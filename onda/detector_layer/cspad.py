@@ -12,40 +12,65 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
-
-
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-from collections import namedtuple
+"""
+Functions and classes for the processing of data from the CSPAD
+detector.
+"""
+import collections
 
 import numpy
 
 
-SlabShape = namedtuple('SlabShape', ['ss', 'fs'])
-NativeShape = namedtuple('NativeShape', ['panel', 'ss', 'fs'])
+def get_peakfinder8_info():
+    """
+    Return peakfinder8 detector info.
 
-slab_shape = SlabShape(1480, 1552)
-native_shape = NativeShape(32, 185, 388)
+    Return the peakfinder8 information for the Eiger detector.
+
+    Returns:
+
+        Tuple[int, int, int, int]: A tuple where the four fields (named
+        respectively 'asics_nx', 'asics_ny', 'nasics_x', and
+        'nasics_y)' are the four parameters used by the peakfinder8
+        algorithm to describe the format of the input data.
+    """
+    Peakfinder8DetInfo = collections.namedtuple(  # pylint: disable=C0103
+        typename='Peakfinder8DetectorInfo',
+        field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
+    )
+    return Peakfinder8DetInfo(194, 185, 8, 8)
 
 
-def raw_data(event):
-    cspad_np = event.detector['raw_data'].calib(event.psana_event)
-    cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
-    cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
-    for i in range(cspad_np_og.shape[0]):
-        cspad_ij[:, i * cspad_np_og.shape[3]: (i+1) * cspad_np_og.shape[3]] = cspad_np_og[i].reshape(
-            (cspad_np_og.shape[1] * cspad_np_og.shape[2], cspad_np_og.shape[3]))
+def detector_data(event):
+    """
+    Recover raw detector data for one frame.
 
-    return cspad_ij
+    Return the detector data for one single frame as provided by psana.
 
+    Args:
 
-def raw_data_pedestals_only(event):
-    cspad_np = event.detector['raw_data'].raw(event.psana_event)-event.detector['raw_data'].pedestals(event.psana_event)
-    cspad_np_og = cspad_np.reshape((4, 8, 185, 388))
-    cspad_ij = numpy.zeros(slab_shape, dtype=cspad_np_og.dtype)
-    for i in range(cspad_np_og.shape[0]):
-        cspad_ij[:, i * cspad_np_og.shape[3]: (i+1) * cspad_np_og.shape[3]] = cspad_np_og[i].reshape(
-            (cspad_np_og.shape[1] * cspad_np_og.shape[2], cspad_np_og.shape[3]))
+        event (Dict): a dictionary with the event data.
 
-    return cspad_ij
+    Returns:
+
+        ndarray: the raw detector data for one frame.
+    """
+    cspad_psana = event['psana_interface']['detector_data'].calib(
+        event['psana_event']
+    )
+    cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))
+    cspad_slab = numpy.zeros(
+        shape=(1480, 1552),
+        dtype=cspad_reshaped.dtype
+    )
+    for i in range(cspad_reshaped.shape[0]):
+        cspad_slab[
+            :,
+            i * cspad_reshaped.shape[3]: (i+1) * cspad_reshaped.shape[3]
+        ] = cspad_reshaped[i].reshape(
+            (
+                cspad_reshaped.shape[1] * cspad_reshaped.shape[2],
+                cspad_reshaped.shape[3]
+            )
+        )
+    return cspad_slab

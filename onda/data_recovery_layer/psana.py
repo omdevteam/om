@@ -31,20 +31,37 @@ Exports:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import collections
-import psana
-import os.path
-import socket
-import sys
+import time
 from builtins import str  # pylint: disable=W0622
 
-from future.utils import raise_from
+import numpy
+import psana
 
-from onda.data_recovery_layer import hidra_api
-from onda.utils import dynamic_import, exceptions
+from onda.utils import dynamic_import
 
 
+def _psana_offline_event_generator(psana_source,
+                                   node_rank,
+                                   mpi_pool_size):
+    for run in psana_source.runs():
+        times = run.times()
+        size_for_this = int(
+            numpy.ceil(
+                len(times) / float(mpi_pool_size - 1)
+            )
+        )
+        events_for_this = times[
+            (node_rank - 1) * size_for_this:node_rank * size_for_this
+        ]
+        for evt in events_for_this:
+            yield run.event(evt)
 
+
+##################################
+#                                #
+# PSANA EVENT HANDLING FUNCTIONS #
+#                                #
+##################################
 
 def initialize_event_source(source,  # pylint: disable=W0613
                             node_rank,  # pylint: disable=W0613
@@ -104,12 +121,14 @@ def event_generator(source,
         event recovered from Psana (usually corresponding to a frame).
     """
     if 'shmem' in source:
-        offline=False
+        offline = False
     else:
-        offline=True
+        offline = True
 
     # If the psana calibration directory is provided in the
-    # configuration file, add it as an option to psana.
+    # configuration file, add it as an option to psana. Also,
+    # automatically add 'idx' to the source string for offline data,
+    # if it is not already there.
     psana_calib_dir = monitor_params.get_param(
         section='PsanaDataRecoveryLayer',
         parameter='psana_calibration_directory',
@@ -121,49 +140,44 @@ def event_generator(source,
             psana_calib_dir.encode('ascii')
         )
 
-    # Automatically add 'idx' to the source string for offline data,
-    # if it is not already there.
-    if offline and not self._source[-4:] == ':idx':
+    if offline and not source[-4:] == ':idx':
         source += ':idx'
-    
-    # Set the psana data source.
+
+    # Set the psana data source and recover the psana detector
+    # interface initialization functions.
     psana_source = psana.DataSource(source.encode('ascii'))
-    
-    # Recover the psana detector interface initialization functions.
     psana_interface_funcs = dynamic_import.init_psana_interface_funcs(
         monitor_params
     )
-    
+
     # Call all the required psana interface functions and store the
     # returned handlers in a dictionary.
-    psana_interface_funcs = {}
-    for func_name in psana_interface_funcs:
-        psana_interface[func_name] = getattr(
-            object=psana_interface_funcs,
-            name=func_name
-        )(monitor_params)
+    psana_interface = {}
+    for func in psana_interface_funcs:
+        init_func = getattr(psana_interface_funcs, func.__name__)
+        psana_interface[func.__name__.split("_init")[0]] = init_func(
+            monitor_params
+        )
 
-    # SImply recover the event iterator from the psana DataSource
+    # Simply recover the event iterator from the psana DataSource
     # object if running online. Otherwise, split the events
     # based on the number of workers and have each worker iterate
     # only on the events assigned to him.
     if offline:
-        def psana_events_generator():
-        for r in psana_source.runs():
-            times = r.times()
-            mylength = int(ceil(len(times) / float(mpi_pool_size - 1)))
-            mytimes = times[(node_rank - 1) * mylength:node_rank * mylength]
-            for mt in mytimes:
-                yield r.event(mt)
+        psana_events = _psana_offline_event_generator(
+            psana_source=psana_source,
+            node_rank=node_rank,
+            mpi_pool_size=mpi_pool_size
+        )
     else:
         psana_events = psana_source.events()
-    
-    for psana_event in psana_events
+
+    for psana_event in psana_events:
         # Recover the psana?event from psana. Create the event
         # dictionary and store the psana_event there, together with
         # the psana interface functions. Then yield the event.
         event = {
-            'psana_interface_funcs': psana_interface_funcs,
+            'psana_interface': psana_interface,
             'psana_event': psana_event
         }
         yield event
@@ -192,13 +206,14 @@ class EventFilter(object):
         # and store it in an attribute.
         rejection_threshold = monitor_params.get_param(
             section='PsanaDataRecoveryLayer',
-            parameter='event_rejection_threshold'
+            parameter='event_rejection_threshold',
             type_=float
         )
         if rejection_threshold:
             self._event_rejection_threshold = rejection_threshold
-            
-            
+        else:
+            self._event_rejection_threshold = 10000000000
+
     def should_reject(self,
                       event):
         """
@@ -219,22 +234,64 @@ class EventFilter(object):
         """
         # Recover the timestamp from the sana event
         timestamp_epoch_format = event['psana_event'].get(
-            psana.EventId
+            psana.EventId  # pylint: disable=E1101
         ).time()
-        
-        timestamp = float64(
+
+        event_timestamp = numpy.float64(  # pylint: disable=E1101
             str(timestamp_epoch_format[0]) + '.' +
             str(timestamp_epoch_format[1])
         )
-        
-        time_now = float64(time.time())
-        if (time_now - timestamp) > self._event_rejection_threshold:
+
+        time_now = numpy.float64(time.time())  # pylint: disable=E1101
+        if (time_now - event_timestamp) > self._event_rejection_threshold:
             # Store the timestamp in the event dictionary so it does
             # have to be extracted again if the user requests it.
-            event['timestamp'] = timestamp
             return True
         else:
+            event['timestamp'] = event_timestamp
             return False
+
+
+def open_event(event):  # pylint: disable=W0613
+    """
+    Open event.
+
+    Open the event. Events do not need to be opened in psana, so do
+    nothing.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+    """
+    pass
+
+
+def close_event(event):  # pylint: disable=W0613
+    """
+    Close event.
+
+    Close the event. Events do not need to be closed in psana, so do
+    nothing.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+    """
+    pass
+
+
+def get_num_frames_in_event(event):  # pylint: disable=W0613
+    """
+    The number of frames in the file.
+
+    Return the number of frames in a file. In psana an event contains
+    just one frame, so return 1.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+    """
+    return 1
 
 
 ############################################
@@ -266,7 +323,7 @@ def detector_data_init(monitor_params):  # pylint: disable=W0613
     )
 
 
-def timestamp_init(monitor_params):
+def timestamp_init(monitor_params):  # pylint: disable=W0613
     """
     Initialize timestamp data recovery.
 
@@ -309,7 +366,7 @@ def beam_energy_init(monitor_params):  # pylint: disable=W0613
     Initialize the beam energy data recovery.
 
     Initialize the psana Detector interface for the beam energy data.
-    
+
     Args:
 
         monitor_params (MonitorParams): a MonitorParams object
@@ -339,6 +396,7 @@ def timetool_data_init(monitor_params):
             required=True
         ).encode('ascii')
     )
+
 
 def digitizer_data_init(monitor_params):
     """
@@ -458,7 +516,7 @@ def opal_data_init(monitor_params):
 def event_codes_init():
     """
     Intialize the EVR event data recovery.
-    
+
     Initialize the psana Detector interface for EVR event codes.
 
     Args:
@@ -493,10 +551,10 @@ def timestamp(event):
         timestamp: the time at which the event was collected.
     """
     return event['timestamp']
-    
-    
-def _detector_distance(event):
-     """
+
+
+def detector_distance(event):
+    """
     Recover the distance of the detector from the sample location.
 
     Return the detector distance information (as provided by psana).
@@ -509,10 +567,10 @@ def _detector_distance(event):
 
         float: the distance between the detector and the sample in mm.
     """
-    return event['psana_interface_funcs']['detector_distance']()
+    return event['psana_interface']['detector_distance']()
 
-    
-def _beam_energy(event):
+
+def beam_energy(event):
     """
     Recover the energy of the beam.
 
@@ -526,7 +584,7 @@ def _beam_energy(event):
 
         float: the energy of the beam in eV.
     """
-    return event['psana_interface_funcs']['beam_energy'].get(
+    return event['psana_interface']['beam_energy'].get(
         event['psana_event']
     ).ebeamPhotonEnergy()
 
@@ -545,7 +603,7 @@ def timetool_data(event):
 
         float: the energy of the beam in eV.
     """
-    return event['psana_interface_funcs']['timetool_data']()
+    return event['psana_interface']['timetool_data']()
 
 
 def digitizer_data(event):
@@ -563,7 +621,7 @@ def digitizer_data(event):
 
         psana object: a psana object storing the waveform data.
     """
-    return event['psana_interface_funcs']['digitizer_data'].waveform(
+    return event['psana_interface']['digitizer_data'].waveform(
         event['psana_event']
     )
 
@@ -583,7 +641,7 @@ def digitizer2_data(event):
 
         psana object: a psana object storing the waveform data.
     """
-    return event['psana_interface_funcs']['digitizer2_data'].waveform(
+    return event['psana_interface']['digitizer2_data'].waveform(
         event['psana_event']
     )
 
@@ -603,7 +661,7 @@ def digitizer3_data(event):
 
         psana object: a psana object storing the waveform data.
     """
-    return event['psana_interface_funcs']['digitizer3_data'].waveform(
+    return event['psana_interface']['digitizer3_data'].waveform(
         event['psana_event']
     )
 
@@ -623,11 +681,11 @@ def digitizer4_data(event):
 
         psana object: a psana object storing the waveform data.
     """
-    return event['psana_interface_funcs']['digitize4_data'].waveform(
+    return event['psana_interface']['digitize4_data'].waveform(
         event['psana_event']
     )
-    
-    
+
+
 def opal_data(event):
     """
     Recover the Opal camera data.
@@ -643,12 +701,12 @@ def opal_data(event):
 
         ndarray: a 2d array containing the image from the Opal camera.
     """
-    return event['psana_interface_funcs']['opal_data'].calib(
+    return event['psana_interface']['opal_data'].calib(
         event['psana_event']
     )
 
 
-def _event_codes_dataext(event):
+def event_codes(event):
     """
     Recover the EVR event codes.
 
@@ -659,14 +717,12 @@ def _event_codes_dataext(event):
         monitor_params (MonitorParams): a MonitorParams object
             containing the monitor parameters from the
             configuration file.
-            
+
     Returns:
 
         List: a list containing the EVR event codes for a specific
         psana event.
     """
-    return return event['psana_interface_funcs']['event_codes'].eventCodes(
+    return event['psana_interface']['event_codes'].eventCodes(
         event['psana_event']
     )
-
-
