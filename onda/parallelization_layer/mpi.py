@@ -239,24 +239,24 @@ class ParallelizationEngine(object):
                     # the name of the extraction function. Skip to the
                     # next event exception if something bad happens.
                     data = {}
-                    # try:
-                    for func in self._data_extr_funcs:
-                        data[func.__name__] = func(
-                            event=event
+                    try:
+                        for func in self._data_extr_funcs:
+                            data[func.__name__] = func(
+                                event=event
+                            )
+                    except Exception as exc:  # pylint: disable=W0703
+                        print(
+                            "OnDA Warning: Cannot interpret some event"
+                            "data:"
                         )
-                    # except Exception as exc:  # pylint: disable=W0703
-                    #     print(
-                    #         "OnDA Warning: Cannot interpret some event"
-                    #         "data:"
-                    #     )
-                    #     print(
-                    #         "Error extracting {}: {}".format(
-                    #             func.__name__,
-                    #             exc
-                    #         )
-                    #     )
-                    #     print("Skipping event.....")
-                    #     continue
+                        print(
+                            "Error extracting {}: {}".format(
+                                func.__name__,
+                                exc
+                            )
+                        )
+                        print("Skipping event.....")
+                        continue
 
                     # Pass the dictionary with extracted data to the
                     # processing function, then send the results to the

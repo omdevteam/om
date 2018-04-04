@@ -248,7 +248,7 @@ class EventFilter(object):
             # have to be extracted again if the user requests it.
             return True
         else:
-            event['timestamp'] = event_timestamp
+            event['timestamp'] = timestamp
             return False
 
 
@@ -317,6 +317,29 @@ def detector_data_init(monitor_params):  # pylint: disable=W0613
         monitor_params.get_param(
             section='PsanaDataRecoveryLayer',
             parameter='detector_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
+
+
+def detector2_data_init(monitor_params):  # pylint: disable=W0613
+    """
+    Initialize detector data recovery for the second detector.
+
+    Initialize the psana Detector interface for the data from the
+    second x-ray detector.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='detector2_name',
             type_=str,
             required=True
         ).encode('ascii')
