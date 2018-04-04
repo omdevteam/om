@@ -346,6 +346,29 @@ def detector2_data_init(monitor_params):  # pylint: disable=W0613
     )
 
 
+def detector3_data_init(monitor_params):  # pylint: disable=W0613
+    """
+    Initialize detector data recovery for the third detector.
+
+    Initialize the psana Detector interface for the data from the
+    third x-ray detector.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='PsanaDataRecoveryLayer',
+            parameter='detector3_name',
+            type_=str,
+            required=True
+        ).encode('ascii')
+    )
+
+
 def timestamp_init(monitor_params):  # pylint: disable=W0613
     """
     Initialize timestamp data recovery.

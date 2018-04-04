@@ -36,3 +36,24 @@ def detector2_data(event):
     )
     cspad_reshaped = cspad_psana.reshape(1024, 1024)
     return cspad_reshaped
+
+
+def detector3_data(event):
+    """
+    Recover raw detector data for one frame for the second detector.
+
+    Return the detector data for one single frame for the second
+    detector, as provided by psana.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        ndarray: the raw detector data for one frame.
+    """
+    cspad_psana = event['psana_interface']['detector3_data'].calib(
+        event['psana_event']
+    )
+    return cspad_psana
