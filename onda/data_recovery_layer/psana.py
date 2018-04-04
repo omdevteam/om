@@ -232,7 +232,7 @@ class EventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        # Recover the timestamp from the sana event
+        # Recover the timestamp from the psana event
         timestamp_epoch_format = event['psana_event'].get(
             psana.EventId  # pylint: disable=E1101
         ).time()
@@ -248,7 +248,7 @@ class EventFilter(object):
             # have to be extracted again if the user requests it.
             return True
         else:
-            event['timestamp'] = timestamp
+            event['timestamp'] = event_timestamp
             return False
 
 
