@@ -153,7 +153,7 @@ class Peakfinder8PeakDetection(object):
         # resolution limits specified by the input parameters.
         try:
             with h5py.File(name=bad_pixel_map_filename, mode='r') as fhandle:
-                self._mask = fhandle[bad_pixel_map_hdf5_path][:]
+                loaded_mask = fhandle[bad_pixel_map_hdf5_path][:]
         except OSError:
             raise_from(
                 exc=RuntimeError(
@@ -164,10 +164,10 @@ class Peakfinder8PeakDetection(object):
                 source=None
             )
 
-        res_mask = numpy.ones(self._mask.shape, dtype=numpy.int8)
+        res_mask = numpy.ones(shape=loaded_mask.shape, dtype=numpy.int8)
         res_mask[numpy.where(self._radius_pixel_map < min_res)] = 0
         res_mask[numpy.where(self._radius_pixel_map > max_res)] = 0
-        self._mask *= res_mask
+        self._mask = loaded_mask * res_mask
 
     def find_peaks(self,
                    data):

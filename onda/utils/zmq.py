@@ -222,7 +222,7 @@ class ZMQListener(QtCore.QObject):
         self._zmq_subscribe.disconnect(
             "tcp://{}:{}".format(
                 self._pub_hostname,
-                self.rec_port
+                self._pub_port
             )
         )
 

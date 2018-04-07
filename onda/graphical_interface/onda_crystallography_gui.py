@@ -142,6 +142,7 @@ class CrystallographyGui(gui.OndaGui):
         self._satrate_plot = None
         self._resolution_rings_pen = None
         self._resolution_rings_canvas = None
+        self._mouse_clicked_signal_proxy = None
         super(CrystallographyGui, self).__init__(
             pub_hostname=pub_hostname,
             pub_port=pub_port,

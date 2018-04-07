@@ -25,10 +25,10 @@ Exports:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import collections
 import sys
 import time
 from builtins import str  # pylint: disable=W0622
-from collections import deque, namedtuple
 
 from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
@@ -383,11 +383,14 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            self._hit_rate_run_wdw = deque(
-                [0.0] * self._run_avg_wdw_size
+            self._hit_rate_run_wdw = collections.deque(
+                [0.0] * self._run_avg_wdw_size,
+                maxlen=self._run_avg_wdw_size
             )
-            self._saturation_rate_run_wdw = deque(
-                [0.0] * self._run_avg_wdw_size
+
+            self._saturation_rate_run_wdw = collections.deque(
+                [0.0] * self._run_avg_wdw_size,
+                maxlen=self._run_avg_wdw_size
             )
 
             self._avg_hit_rate = 0
@@ -533,8 +536,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         # Update the windows used to compute the running average, then
         # compute the new average hit and saturation rates.
-        self._hit_rate_run_wdw.append(float(results_dict['hit_flag']))
-        self._hit_rate_run_wdw.popleft()
+        self._hit_rate_run_wdw.append(
+            float(
+                results_dict['hit_flag']
+            )
+        )
+ 
         self._saturation_rate_run_wdw.append(
             float(
                 results_dict['saturation_flag']
@@ -581,6 +588,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         if 'detector_data' in results_dict:
             collected_rawdata['detector_data'] = results_dict['detector_data']
             collected_rawdata['peak_list'] = results_dict['peak_list']
+            collected_rawdata['timestamp'] = results_dict['timestamp']
             self._zmq_pub_socket.send_data('ondarawdata', collected_rawdata)
 
         # If the 'speed_report_interval' attribute says that the

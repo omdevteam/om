@@ -13,7 +13,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-An OnDA online monitor for crystallography experiments.
+An OnDA online monitor for crystallography experiments, which also
+processes fluorescence data from two secondary detectors.
 
 Exports:
 
@@ -296,6 +297,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
+            # Read from the configuration file the thresholds used
+            # for each detector when computing the sum of the overall
+            # intensity.
             self._threshold_first_detector = monitor_parameters.get_param(
                 section='General',
                 parameter='threshold_first_detector',
@@ -308,6 +312,28 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 parameter='threshold_second_detector',
                 type_=int,
                 required=True
+            )
+
+            self._threshold_third_detector = monitor_parameters.get_param(
+                section='General',
+                parameter='threshold_third_detector',
+                type_=int,
+                required=True
+            )
+
+            # Read from the configuration file the constants used to
+            # convert the ADUS of the second and third detectors to
+            # photons.
+            self._adu_to_photon_second_detector = monitor_parameters.get_param(
+                section='PeakAccumulator',
+                parameter='adu_to_photon_second_detector',
+                type_=float,
+            )
+
+            self._adu_to_photon_third_detector = monitor_parameters.get_param(
+                section='PeakAccumulator',
+                parameter='adu_to_photon_third_detector',
+                type_=float,
             )
 
             print("Starting worker: {0}.".format(self.rank))
@@ -380,6 +406,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._avg_hit_rate = 0
             self._avg_sat_rate = 0
 
+            # Initialize the lists that will contain the accumulated
+            # intensity data from the three detectors.
             self._list_event_sum_det_one = []
             self._list_event_sum_det_two = []
 
@@ -453,7 +481,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._max_num_peaks_for_hit
         )
 
-        # Compute sum of intensity on the second detector
+        # Compute sum of intensity on the three detectors. Only
+        # pixels whose intensity surpasses a certain threshold, defined
+        # separately for each detector, are included in the sum.
         sum_first_detector = (
             data['detector_data'] > self._threshold_first_detector
         ).sum()
@@ -508,7 +538,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         """
 
         # Create the two dictionary that will hold data to be sent to
-        # the GUI and the 'raw data' GUI respectively.
+        # the GUI and the detector intensity sum GUI respectively.
         collected_data = {}
         collected_two_det_data = {}
 
@@ -557,6 +587,11 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
             self._zmq_pub_socket.send_data('ondadata', collected_data)
 
+        # If intensity sum data can be found in the data received from
+        # the worker, accumulate them. When the data has been
+        # accumulated for a number of times equal to the one used by
+        # the peak accumulator, send the data to the intensity sum
+        # viewer GUI.
         if 'sum_second_detector' in results_dict:
             self._list_event_sum_det_one.append(
                 results_dict['sum_first_detector']
