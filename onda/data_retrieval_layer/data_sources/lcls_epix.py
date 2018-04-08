@@ -12,48 +12,41 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+import collections
 
-from onda.detector_layer.cspad import detector_data, get_peakfinder8_info
 
-
-def detector2_data(event):
+def get_peakfinder8_info():
     """
-    Recover raw detector data for one frame for the second detector.
+    Return peakfinder8 detector info.
 
-    Return the detector data for one single frame for the second
-    detector, as provided by psana.
-
-    Args:
-
-        event (Dict): a dictionary with the event data.
+    Return the peakfinder8 information for the Eiger detector.
 
     Returns:
 
-        ndarray: the raw detector data for one frame.
+        Tuple[int, int, int, int]: A tuple where the four fields (named
+        respectively 'asics_nx', 'asics_ny', 'nasics_x', and
+        'nasics_y)' are the four parameters used by the peakfinder8
+        algorithm to describe the format of the input data.
     """
-    cspad_psana = event['psana_interface']['detector2_data'].calib(
-        event['psana_event']
+    Peakfinder8DetInfo = collections.namedtuple(  # pylint: disable=C0103
+        typename='Peakfinder8DetectorInfo',
+        field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
     )
-    cspad_reshaped = cspad_psana.reshape(1024, 1024)
-    return cspad_reshaped
+    return Peakfinder8DetInfo(1024, 512, 1, 2)
 
 
-def detector3_data(event):
+def detector_data(event,
+                  data_extraction_func_name):
     """
     Recover raw detector data for one frame for the second detector.
-
     Return the detector data for one single frame for the second
     detector, as provided by psana.
-
     Args:
-
         event (Dict): a dictionary with the event data.
-
     Returns:
-
         ndarray: the raw detector data for one frame.
     """
-    cspad_psana = event['psana_interface']['detector3_data'].calib(
+    cspad_psana = event['psana_interface'][data_extraction_func_name].calib(
         event['psana_event']
     )
     return cspad_psana

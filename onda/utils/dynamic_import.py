@@ -44,148 +44,20 @@ from future.utils import raise_from
 from onda.utils import exceptions
 
 
-def _import_function_from_layer(layer,
-                                name,
-                                decorator):
-    # Import a function from a layer, adding the decorator, if
-    # provided, to the name. If a decorator is provided, try first to
-    # import the function with the decorated name from the specified
-    # layer. If this fails, try to import the function with the
-    # undecorated name instead. When no decorator is provided, try
-    # directly to import the function with the undecorated name.
-    if decorator is not None:
-        try:
-            return getattr(layer, '{0}_{1}'.format(name, decorator))
-        except AttributeError:
-            return getattr(layer, name)
-    else:
-        return getattr(layer, name)
-
-
-def _import_function(func_name,
-                     data_recovery_layer,
-                     detector_layer):
-    # Import a function from the specified layers. Try to import the
-    # function from the detector layer. If this fails, try to import it
-    # from the data recovery layer. For each layer, first try to import
-    # the data-recovery-specific version of the function, if this
-    # fails, try to import the generic version of the function.
-    data_recovery_layer_name = data_recovery_layer.__name__.split('.')[-1]
-    try:
-        return _import_function_from_layer(
-            layer=detector_layer,
-            name=func_name,
-            decorator=data_recovery_layer_name
-        )
-    except AttributeError:
-        return _import_function_from_layer(
-            layer=data_recovery_layer,
-            name=func_name,
-            decorator=data_recovery_layer_name
-        )
-
-
-def import_detector_layer(monitor_params):
-    """
-    Import the detector layer specified in the configuration file.
-
-    Args:
-
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
-
-    Returns:
-
-        object: the imported detector layer as a module
-    """
-    detector_layer = importlib.import_module(
-        'onda.detector_layer.{0}'.format(
+def _import_data_retrieval_layer(monitor_params):
+    # Import the data recovery layer specified in the configuration
+    # file.
+    data_retrieval_layer = importlib.import_module(
+        'onda.data_retrieval_layer.profiles.{0}'.format(
             monitor_params.get_param(
                 section='Onda',
-                parameter='detector_layer',
+                parameter='data_retrieval_layer_profile',
                 type_=str,
                 required=True
             )
         )
     )
-    return detector_layer
-
-
-def import_func_from_detector_layer(func_name,
-                                    monitor_params):
-    """
-    Import the specified function from the detector layer.
-
-    Import the requested function from the correct detector layer,
-    correctly choosing between specific and non specific-version of the
-    function.
-
-    Args:
-
-        func_name (str): name of the function to import
-
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
-
-    Returns:
-
-        Callable: the imported function.
-    """
-    detector_layer = import_detector_layer(monitor_params)
-
-    # Use as 'decorator' the name of the data recovery layer.
-    data_recovery_layer_name = monitor_params.get_param(
-        section='Onda',
-        parameter='data_recovery_layer',
-        type_=str,
-        required=True
-    )
-    try:
-        function = _import_function_from_layer(
-            layer=detector_layer,
-            name=func_name,
-            decorator=data_recovery_layer_name
-        )
-    except AttributeError:
-        raise_from(
-            exc=RuntimeError(
-                "Function {} not defined in the "
-                "detector_layer.".format(func_name)
-            ),
-            cause=None
-        )
-
-    return function
-
-
-def import_data_recovery_layer(monitor_params):
-    """
-    Import the data recovery layer specified in the configuration
-    file.
-
-    Args:
-
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
-
-    Returns:
-
-        object: the imported data recovery layer as a module.
-    """
-    detector_layer = importlib.import_module(
-        'onda.data_recovery_layer.{0}'.format(
-            monitor_params.get_param(
-                section='Onda',
-                parameter='data_recovery_layer',
-                type_=str,
-                required=True
-            )
-        )
-    )
-    return detector_layer
+    return data_retrieval_layer
 
 
 def init_event_handling_funcs(monitor_params):
@@ -218,25 +90,21 @@ def init_event_handling_funcs(monitor_params):
         MissingEventHandlingFunction: if an event handling function is
             not found anywhere.
     """
-    data_rec_layer = import_data_recovery_layer(monitor_params)
-    detector_layer = import_detector_layer(monitor_params)
+    data_ret_layer = _import_data_retrieval_layer(monitor_params)
 
     # Recover the functions and store them into a list.
-    event_handl_func_list = []
+    event_handl_func_dict = {}
     for func_name in [
             'initialize_event_source',
             'event_generator',
+            'EventFilter',
             'open_event',
             'close_event',
             'get_num_frames_in_event'
     ]:
         try:
-            event_handl_func_list.append(
-                _import_function(
-                    func_name=func_name,
-                    data_recovery_layer=data_rec_layer,
-                    detector_layer=detector_layer
-                )
+            event_handl_func_dict[func_name] = getattr(
+                data_ret_layer, func_name
             )
         except AttributeError:
             raise_from(
@@ -247,19 +115,7 @@ def init_event_handling_funcs(monitor_params):
                 cause=None
             )
 
-    # Initialize a tuple with the content of the list.
-    EventHandlingFuncs = collections.namedtuple(  # pylint: disable=C0103
-        typename='EventHandlingFuncs',
-        field_names=[
-            'initialize_event_source',
-            'event_generator',
-            'open_event',
-            'close_event',
-            'get_num_frames_in_event'
-        ]
-    )
-
-    return EventHandlingFuncs(*event_handl_func_list)
+    return event_handl_func_dict
 
 
 def init_data_extraction_funcs(monitor_params):
@@ -303,17 +159,12 @@ def init_data_extraction_funcs(monitor_params):
             required=True
         )
     ]
-    detector_layer = import_detector_layer(monitor_params)
-    data_rec_layer = import_data_recovery_layer(monitor_params)
-    func_list = []
+    data_ret_layer = _import_data_retrieval_layer(monitor_params)
+    data_ext_func_dict = {}
     for func_name in data_extraction_funcs:
         try:
-            func_list.append(
-                _import_function(
-                    func_name=func_name,
-                    data_recovery_layer=data_rec_layer,
-                    detector_layer=detector_layer
-                )
+            data_ext_func_dict[func_name] = getattr(
+                data_ret_layer, func_name
             )
         except AttributeError:
             raise_from(
@@ -324,11 +175,7 @@ def init_data_extraction_funcs(monitor_params):
                 cause=None
             )
 
-    DataExtractionFuncs = collections.namedtuple(  # pylint: disable=C0103
-        typename='DataExtractionFuncs',
-        field_names=data_extraction_funcs
-    )
-    return DataExtractionFuncs(*func_list)
+    return data_ext_func_dict
 
 
 def init_psana_interface_funcs(monitor_params):
@@ -348,13 +195,6 @@ def init_psana_interface_funcs(monitor_params):
         monitor_params (MonitorParams): a MonitorParams object
             containing the monitor parameters from the
             configuration file.
-            func_list.append(
-                _import_function_from_layer(
-                    name=func_name,
-                    layer=detector_layer,
-                    decorator='init'
-                )
-            )
 
     Returns:
 
@@ -375,33 +215,34 @@ def init_psana_interface_funcs(monitor_params):
             required=True
         )
     ]
-    detector_layer = import_detector_layer(monitor_params)
-    data_rec_layer = import_data_recovery_layer(monitor_params)
-    func_list = []
+    data_ret_layer = _import_data_retrieval_layer(monitor_params)
+    psana_interface_func_dict = {}
     for func_name in data_extraction_funcs:
         try:
-            func_list.append(
-                getattr(detector_layer, '{0}_init'.format(func_name))
+            psana_interface_func_dict[func_name] = getattr(
+                data_ret_layer, func_name + '_init'
             )
         except AttributeError:
-            try:
-                func_list.append(
-                    getattr(data_rec_layer, '{0}_init'.format(func_name))
-                )
-            except AttributeError:
-                raise_from(
-                    exc=exceptions.MissingPsanaInitializationFunction(
-                        "Psana Detector interface initialization function "
-                        "{} not defined".format(func_name)
-                    ),
-                    cause=None
-                )
+            raise_from(
+                exc=exceptions.MissingPsanaInitializationFunction(
+                    "Psana Detector interface initialization function "
+                    "{} not defined".format(func_name)
+                ),
+                cause=None
+            )
 
-    PsanaInitializationFuncs = collections.namedtuple(  # pylint: disable=C0103
-        typename='PsanaInitializationFuncs',
-        field_names=[
-            '{}_init'.format(field)
-            for field in data_extraction_funcs
-        ]
+    return psana_interface_func_dict
+
+
+def get_peakfinder8_info(monitor_params,
+                         corresponding_to):
+    data_retrieval_layer = _import_data_retrieval_layer(
+        monitor_params
     )
-    return PsanaInitializationFuncs(*func_list)
+
+    get_pf8_info_func = getattr(
+        data_retrieval_layer,
+        'get_peakfinder8_info_{}'.format(corresponding_to)
+    )
+
+    return get_pf8_info_func()

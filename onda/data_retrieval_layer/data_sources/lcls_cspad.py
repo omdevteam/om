@@ -41,7 +41,7 @@ def get_peakfinder8_info():
     return Peakfinder8DetInfo(194, 185, 8, 8)
 
 
-def detector_data(event):
+def detector_data(event, data_extraction_func_name):
     """
     Recover raw detector data for one frame.
 
@@ -55,7 +55,7 @@ def detector_data(event):
 
         ndarray: the raw detector data for one frame.
     """
-    cspad_psana = event['psana_interface']['detector_data'].calib(
+    cspad_psana = event['psana_interface'][data_extraction_func_name].calib(
         event['psana_event']
     )
     cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))

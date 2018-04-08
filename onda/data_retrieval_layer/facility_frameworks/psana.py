@@ -153,11 +153,8 @@ def event_generator(source,
     # Call all the required psana interface functions and store the
     # returned handlers in a dictionary.
     psana_interface = {}
-    for func in psana_interface_funcs:
-        init_func = getattr(psana_interface_funcs, func.__name__)
-        psana_interface[func.__name__.split("_init")[0]] = init_func(
-            monitor_params
-        )
+    for f_name, func in psana_interface_funcs.iteritems():
+        psana_interface[f_name.split("_init")[0]] = func(monitor_params)
 
     # Simply recover the event iterator from the psana DataSource
     # object if running online. Otherwise, split the events
@@ -300,7 +297,8 @@ def get_num_frames_in_event(event):  # pylint: disable=W0613
 #                                          #
 ############################################
 
-def detector_data_init(monitor_params):  # pylint: disable=W0613
+def detector_data_init(monitor_params,
+                       parameter_name):  # pylint: disable=W0613
     """
     Initialize detector data recovery.
 
@@ -316,53 +314,7 @@ def detector_data_init(monitor_params):  # pylint: disable=W0613
     return psana.Detector(
         monitor_params.get_param(
             section='PsanaDataRecoveryLayer',
-            parameter='detector_name',
-            type_=str,
-            required=True
-        ).encode('ascii')
-    )
-
-
-def detector2_data_init(monitor_params):  # pylint: disable=W0613
-    """
-    Initialize detector data recovery for the second detector.
-
-    Initialize the psana Detector interface for the data from the
-    second x-ray detector.
-
-    Args:
-
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
-    """
-    return psana.Detector(
-        monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
-            parameter='detector2_name',
-            type_=str,
-            required=True
-        ).encode('ascii')
-    )
-
-
-def detector3_data_init(monitor_params):  # pylint: disable=W0613
-    """
-    Initialize detector data recovery for the third detector.
-
-    Initialize the psana Detector interface for the data from the
-    third x-ray detector.
-
-    Args:
-
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
-    """
-    return psana.Detector(
-        monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
-            parameter='detector3_name',
+            parameter=parameter_name,
             type_=str,
             required=True
         ).encode('ascii')

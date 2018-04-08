@@ -110,11 +110,11 @@ class ParallelizationEngine(object):
         ehf = dynamic_import.init_event_handling_funcs(
             self._mon_params
         )
-        self._initialize_event_source = ehf.initialize_event_source
-        self._event_generator = ehf.event_generator
-        self._open_event = ehf.open_event
-        self._close_event = ehf.close_event
-        self._get_num_frames_in_event = ehf.get_num_frames_in_event
+        self._initialize_event_source = ehf['initialize_event_source']
+        self._event_generator = ehf['event_generator']
+        self._open_event = ehf['open_event']
+        self._close_event = ehf['close_event']
+        self._get_num_frames_in_event = ehf['get_num_frames_in_event']
         if self.role == 'master':
             # Initialize several counters:
             #
@@ -131,12 +131,7 @@ class ParallelizationEngine(object):
             # recovery layer and call a function that recovers the
             # required data extractions functions from the various
             # layers.
-            data_rec_layer = dynamic_import.import_data_recovery_layer(
-                self._mon_params
-            )
-            self._event_filter = data_rec_layer.EventFilter(
-                self._mon_params
-            )
+            self._event_filter = ehf['EventFilter'](self._mon_params)
 
             self._data_extr_funcs = dynamic_import.init_data_extraction_funcs(
                 self._mon_params
@@ -240,10 +235,8 @@ class ParallelizationEngine(object):
                     # next event exception if something bad happens.
                     data = {}
                     try:
-                        for func in self._data_extr_funcs:
-                            data[func.__name__] = func(
-                                event=event
-                            )
+                        for f_name, func in self._data_extr_funcs.iteritems():
+                            data[f_name] = func(event)
                     except Exception as exc:  # pylint: disable=W0703
                         print(
                             "OnDA Warning: Cannot interpret some event"

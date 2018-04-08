@@ -36,7 +36,7 @@ from onda.algorithms import generic_algorithms as gen_algs
 from onda.cfelpyutils import crystfel_utils, geometry_utils
 from onda.parallelization_layer import mpi
 from onda.utils import zmq as onda_zmq
-from onda.utils import dynamic_import
+from onda.utils.dynamic_import import import_peakfinder8_data
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -258,8 +258,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            get_pf8_info = dynamic_import.import_func_from_detector_layer(
-                func_name='get_peakfinder8_info',
+            get_pf8_info = import_peakfinder8_data(
+                corresponding_to='detector_data',
                 monitor_params=self._mon_params
             )
 
@@ -541,7 +541,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 results_dict['hit_flag']
             )
         )
- 
+
         self._saturation_rate_run_wdw.append(
             float(
                 results_dict['saturation_flag']
