@@ -44,19 +44,84 @@ from future.utils import raise_from
 from onda.utils import exceptions
 
 
-def _import_data_retrieval_layer(monitor_params):
-    # Import the data recovery layer specified in the configuration
-    # file.
-    data_retrieval_layer = importlib.import_module(
-        'onda.data_retrieval_layer.profiles.{0}'.format(
-            monitor_params.get_param(
-                section='Onda',
-                parameter='data_retrieval_layer_profile',
-                type_=str,
-                required=True
+def import_processing_layer(monitor_params):
+    try:
+        processing_layer = importlib.import_module(
+            '{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='processing_layer',
+                    type_=str,
+                    required=True
+                )
             )
         )
-    )
+    except ImportError:
+        processing_layer = importlib.import_module(
+            'onda.processing_layer.{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='processing_layer',
+                    type_=str,
+                    required=True
+                )
+            )
+        )
+
+    return processing_layer
+
+
+def import_parallelization_layer(monitor_params):
+    try:
+        data_retrieval_layer = importlib.import_module(
+            '{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='parallelization_layer',
+                    type_=str,
+                    required=True
+                )
+            )
+        )
+    except ImportError:
+        data_retrieval_layer = importlib.import_module(
+            'onda.parallelization_layer.profiles.{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='data_retrieval_layer_profile',
+                    type_=str,
+                    required=True
+                )
+            )
+        )
+
+    return data_retrieval_layer
+
+
+def import_data_retrieval_layer(monitor_params):
+    try:
+        data_retrieval_layer = importlib.import_module(
+            '{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='data_retrieval_layer_profile',
+                    type_=str,
+                    required=True
+                )
+            )
+        )
+    except ImportError:
+        data_retrieval_layer = importlib.import_module(
+            'onda.data_retrieval_layer.profiles.{0}'.format(
+                monitor_params.get_param(
+                    section='Onda',
+                    parameter='data_retrieval_layer_profile',
+                    type_=str,
+                    required=True
+                )
+            )
+        )
+
     return data_retrieval_layer
 
 
@@ -90,7 +155,7 @@ def init_event_handling_funcs(monitor_params):
         MissingEventHandlingFunction: if an event handling function is
             not found anywhere.
     """
-    data_ret_layer = _import_data_retrieval_layer(monitor_params)
+    data_ret_layer = import_data_retrieval_layer(monitor_params)
 
     # Recover the functions and store them into a list.
     event_handl_func_dict = {}
@@ -159,7 +224,7 @@ def init_data_extraction_funcs(monitor_params):
             required=True
         )
     ]
-    data_ret_layer = _import_data_retrieval_layer(monitor_params)
+    data_ret_layer = import_data_retrieval_layer(monitor_params)
     data_ext_func_dict = {}
     for func_name in data_extraction_funcs:
         try:
@@ -215,7 +280,7 @@ def init_psana_interface_funcs(monitor_params):
             required=True
         )
     ]
-    data_ret_layer = _import_data_retrieval_layer(monitor_params)
+    data_ret_layer = import_data_retrieval_layer(monitor_params)
     psana_interface_func_dict = {}
     for func_name in data_extraction_funcs:
         try:
@@ -236,7 +301,7 @@ def init_psana_interface_funcs(monitor_params):
 
 def get_peakfinder8_info(monitor_params,
                          corresponding_to):
-    data_retrieval_layer = _import_data_retrieval_layer(
+    data_retrieval_layer = import_data_retrieval_layer(
         monitor_params
     )
 

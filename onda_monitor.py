@@ -20,6 +20,7 @@ from __future__ import (absolute_import, division, print_function,
 import argparse
 import configparser
 import importlib
+from onda.utils import dynamic_import
 import sys
 from builtins import str  # pylint: disable=W0622
 
@@ -74,17 +75,9 @@ def main():
     # Instantiate the correct OndaMonitor class from the processing
     # layer specified in the configuration file. Then call the start
     # method to start the monitor.
-    processing_layer = importlib.import_module(
-        'onda.processing_layer.{0}'.format(
-            monitor_parameters.get_param(
-                section='Onda',
-                parameter='processing_layer',
-                type_=str,
-                required=True
-            )
-        )
+    processing_layer = dynamic_import.import_processing_layer(
+        monitor_parameters
     )
-
     monitor = processing_layer.OndaMonitor(
         source=args.source,
         monitor_parameters=monitor_parameters
