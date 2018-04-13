@@ -14,6 +14,14 @@
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
 Utilities for parsing command line options and configuration files.
+
+Exports:
+
+    Functions:
+
+        convert_parameters: convert a dictionary returned by the
+            configparse module to a dictionary containing entries with
+            the correct type.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -33,11 +41,12 @@ def _parsing_error(section, option):
 
 
 def convert_parameters(config_dict):
-    """Convert strings in parameter dictionaries to the corrent data type.
+    """
+    Convert strings in parameter dictionaries to the correct data type.
 
-    Read a parameter dictionary returned by the ConfigParser python
-    module, and convert each entry in an object of the corresponding
-    type, without changing the structure of the dictionary.
+    Convert a dictionary return by the configparse module to a
+    dictionar contaning the same parameters converted from string to
+    their correct type (int, float, string, etc.)
 
     Try to convert each entry in the dictionary according to the
     following rules. The first rule that applies to the entry
@@ -66,12 +75,12 @@ def convert_parameters(config_dict):
 
     Args:
 
-        config (dict): a dictionary containing strings (the dictionary
+        config (Dict): a dictionary containing strings (the dictionary
             returned by Config Parser).
 
     Returns:
 
-        dict: dictionary with the same structure as the input
+        Dict: dictionary with the same structure as the input
         dictionary, but with correct types assigned to each entry.
 
     Raises:
@@ -92,8 +101,8 @@ def convert_parameters(config_dict):
         # the configuration file). Get each option in turn and perform
         # all the checks. If all checks fail, call the parsing_error
         # function.
-        for option in config_dict['section'].keys():
-            recovered_option = config_dict['section']
+        for option in config_dict[section].keys():
+            recovered_option = config_dict[section][option]
             if (
                     recovered_option.startswith("'") and
                     recovered_option.endswith("'")
