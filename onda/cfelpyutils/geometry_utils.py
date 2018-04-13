@@ -13,18 +13,47 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Geometry utilities.
-
-Functions that load, manipulate and apply geometry information to
+Utilities to load, manipulate and apply geometry information to
 detector pixel data.
-"""
 
+Exports:
+
+    Functions:
+
+        compute_pixel_maps: turn a CrystFEL geometry object into pixel
+            maps.
+
+        apply_pixel_maps: apply pixel maps to a data array. Return an
+            array containing data with the geometry applied.
+
+        compute_minimum_array_size: compute the minimum array size that
+            is required to store data to which a geometry has been
+            applied.
+
+        adjust_pixel_maps_for_pyqtgraph: ajust pixel maps to be used in
+            a PyQtGraph's ImageView widget.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
 
 import numpy
+
+
+PixelMaps = collections.namedtuple(  # pylint: disable=C0103
+    typename='PixelMaps',
+    field_names=['x', 'y', 'r']
+)
+"""
+Pixel maps storing data geometry.
+
+A namedtuple that stores the pixel maps describing the geometry of a
+dataset. The first two fields, named "x" and "y" respectively, store
+the pixel maps for the x coordinate and the y coordinate. The third
+field, named "r", is instead a pixel map storing the distance of each
+pixel in the data array from the center of the reference system.
+"""
 
 
 def compute_pixel_maps(geometry):
@@ -46,12 +75,7 @@ def compute_pixel_maps(geometry):
 
     Returns:
 
-        Tuple[ndarray, ndarray, ndarray] A tuple containing the pixel
-        maps. The first two fields, named "x" and "y" respectively,
-        store the pixel maps for the x coordinate and the y coordinate.
-        The third field, named "r", is instead a pixel map storing the
-        distance of each pixel in the data array from the center of the
-        reference system.
+        PixelMaps: A PixelMaps tuple.
     """
     # Determine the max fs and ss in the geometry object.
     max_slab_fs = numpy.array([
@@ -77,7 +101,7 @@ def compute_pixel_maps(geometry):
     )
 
     # Iterate over the panels. For each panel, determine the pixel
-    # indeces, then compute the x,y vectors using a comples notation.
+    # indices, then compute the x,y vectors using a comples notation.
     for pan in geometry['panels']:
         i, j = numpy.meshgrid(
             numpy.arange(
@@ -119,18 +143,16 @@ def compute_pixel_maps(geometry):
 
     # Finally, compute the values for the radius pixel map.
     r_map = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
-    PixelMaps = collections.namedtuple(
-        typename='PixelMaps',
-        field_names=['x', 'y', 'r']
-    )
+
     return PixelMaps(x_map, y_map, r_map)
 
 
 def apply_pixel_maps(data, pixel_maps, output_array=None):
     """
-    Apply geometry in pixel map format to the input data.
+    Apply geometry to the input data.
 
-    Turn an array of detector pixel values into an array
+    Apply the geometry (in pixel maps format) to the data. In other
+    words, turn an array of detector pixel values into an array
     containing a representation of the physical layout of the detector.
 
     Args:
@@ -138,8 +160,7 @@ def apply_pixel_maps(data, pixel_maps, output_array=None):
         data (ndarray): array containing the data on which the geometry
             will be applied.
 
-        pixel_maps (PixelMaps): a pixelmap tuple, as returned by the
-            :obj:`compute_pixel_maps` function in this module.
+        pixel_maps (PixelMaps): a PixelMaps tuple.
 
         output_array (Optional[ndarray]): a preallocated array (of
             dtype numpy.float32) to store the function output. If
@@ -150,9 +171,9 @@ def apply_pixel_maps(data, pixel_maps, output_array=None):
 
     Returns:
 
-        ndarray: a numpy.float32 array containing the geometry
-        information applied to the input data (i.e.: a representation
-        of the physical layout of the detector).
+        ndarray: a numpy.float32 array containing the data with the
+        geometry applied (i.e.: a representation of the physical layout
+        of the detector).
     """
     # If no output array was provided, create one.
     if output_array is None:
@@ -169,8 +190,7 @@ def apply_pixel_maps(data, pixel_maps, output_array=None):
 
 def compute_minimum_array_size(pixel_maps):
     """
-    Compute the minimum size of an array that can store the applied
-    geometry.
+    Compute the minimum array size storing data with applied geometry.
 
     Return the minimum size of an array that can store data on which
     the geometry information described by the pixel maps has been
@@ -178,17 +198,12 @@ def compute_minimum_array_size(pixel_maps):
 
     The returned array shape is big enough to display all the input
     pixel values in the reference system of the physical detector. The
-    array is supposed to be centered at the center of the reference
-    system of the detector (i.e: the beam interaction point).
+    array is also supposed to be centered at the center of the
+    reference system of the detector (i.e: the beam interaction point).
 
     Args:
 
-        Tuple[ndarray, ndarray, ndarray]: a named tuple containing the
-            pixel maps. The first two fields, "x" and "y", should store
-            the pixel maps for the x coordinateand the y coordinate.
-            The third, "r", should instead store the distance of each
-            pixel in the data array from the center of the reference
-            system.
+        pixel_maps [PixelMaps]: a PixelMaps tuple.
 
     Returns:
 
@@ -216,20 +231,14 @@ def adjust_pixel_maps_for_pyqtgraph(pixel_maps):
 
     Args:
 
-        Tuple[ndarray, ndarray, ndarray]: a named tuple containing the
-        pixel maps. The first two fields, "x" and "y", should store the
-        pixel maps for the x coordinateand the y coordinate. The third,
-        "r", should instead store the distance of each pixel in the
-        data array from the center of the reference system.
+        pixel_maps (PixelMaps): a PixelMaps tuple.
 
     Returns:
 
-        Tuple[ndarray, ndarray] A tuple containing the pixel
+        PixelMaps: A Pixelmaps tuple containing the adjusted pixel
             maps. The first two fields, named "x" and "y" respectively,
             store the pixel maps for the x coordinate and the y
-            coordinate. The third field, named "r", is instead a pixel
-            map storing the distance of each pixel in the data array
-            from the center of the reference system.
+            coordinate. The third field ("r") is just set to None.
     """
     # Essentially, the origin of the reference system needs to be
     # moved from the beam position to the top-left of the image that
@@ -248,8 +257,4 @@ def adjust_pixel_maps_for_pyqtgraph(pixel_maps):
         dtype=numpy.int
     ) + min_shape[0] // 2 - 1
 
-    PixelMapsForIV = collections.namedtuple(
-        typename='PixelMapsForIV',
-        field_names=['x', 'y']
-    )
-    return PixelMapsForIV(new_x_map, new_y_map)
+    return PixelMaps(new_x_map, new_y_map, None)

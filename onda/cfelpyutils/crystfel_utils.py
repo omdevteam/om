@@ -16,8 +16,12 @@
 Utilities for interoperability with data formats used in the CrystFEL
 software package.
 
-This module currently contains a python reimplementation of the
-get_detector_geometry_2 function from CrystFEL.
+Exports:
+
+    Functions:
+
+        load_crystfel_geometry: a python reimplementation of the
+            get_detector_geometry_2 function from CrystFEL.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -412,7 +416,7 @@ def load_crystfel_geometry(filename):
 
     Returns:
 
-        dict: dictionary with the geometry information loaded from the
+        Dict: dictionary with the geometry information loaded from the
         file.
     """
     beam = {
@@ -736,3 +740,5 @@ def load_crystfel_geometry(filename):
     # 41a8fa9819010fe8ddeb66676fee717f5226c7b8
 
     return detector
+
+
