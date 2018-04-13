@@ -1,16 +1,13 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>cfelpyutils.parameter_utils module &#8212; cfelpyutils 0.5 documentation</title>
-    
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -27,7 +24,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head>
-  <body role="document">
+  <body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -70,13 +67,24 @@
   <div class="section" id="module-cfelpyutils.parameter_utils">
 <span id="cfelpyutils-parameter-utils-module"></span><h1>cfelpyutils.parameter_utils module<a class="headerlink" href="#module-cfelpyutils.parameter_utils" title="Permalink to this headline">¶</a></h1>
 <p>Utilities for parsing command line options and configuration files.</p>
+<p>Exports:</p>
+<blockquote>
+<div><p>Functions:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>convert_parameters: convert a dictionary returned by the</dt>
+<dd>configparse module to a dictionary containing entries with
+the correct type.</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
 <dl class="function">
 <dt id="cfelpyutils.parameter_utils.convert_parameters">
 <code class="descclassname">cfelpyutils.parameter_utils.</code><code class="descname">convert_parameters</code><span class="sig-paren">(</span><em>config_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.parameter_utils.convert_parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert strings in parameter dictionaries to the corrent data type.</p>
-<p>Read a parameter dictionary returned by the ConfigParser python
-module, and convert each entry in an object of the corresponding
-type, without changing the structure of the dictionary.</p>
+<dd><p>Convert strings in parameter dictionaries to the correct data type.</p>
+<p>Convert a dictionary return by the configparse module to a
+dictionar contaning the same parameters converted from string to
+their correct type (int, float, string, etc.)</p>
 <p>Try to convert each entry in the dictionary according to the
 following rules. The first rule that applies to the entry
 determines the type.</p>
@@ -116,7 +124,7 @@ try to interpret the entry in order as:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>config</strong> (<em>dict</em>) &#8211; a dictionary containing strings (the dictionary
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>config</strong> (<em>Dict</em>) – a dictionary containing strings (the dictionary
 returned by Config Parser).</p>
 </td>
 </tr>
@@ -124,11 +132,11 @@ returned by Config Parser).</p>
 dictionary, but with correct types assigned to each entry.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">dict</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">Dict</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> &#8211; if an entry cannot be converted to any supported</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">RuntimeError</span></code> – if an entry cannot be converted to any supported</li>
 <li><code class="xref py py-exc docutils literal"><span class="pre">type.</span></code></li>
 </ul>
 </td>
@@ -159,7 +167,7 @@ dictionary, but with correct types assigned to each entry.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, CFEL Team.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
     </div>
   </body>
 </html>

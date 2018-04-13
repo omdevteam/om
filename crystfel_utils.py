@@ -16,8 +16,12 @@
 Utilities for interoperability with data formats used in the CrystFEL
 software package.
 
-This module currently contains a python reimplementation of the
-get_detector_geometry_2 function from CrystFEL.
+Exports:
+
+    Functions:
+
+        load_crystfel_geometry: a python reimplementation of the
+            get_detector_geometry_2 function from CrystFEL.
 """
 
 from __future__ import (absolute_import, division, print_function,
@@ -34,12 +38,12 @@ def _assplode_algebraic(value):
     # libcrystfel/src/detector.c.
     items = [
         item
-        for item in re.split(pattern='([+-])', string=value.strip())
+        for item in re.split('([+-])', string=value.strip())
         if item != ''
     ]
 
     if items and items[0] not in ('+', '-'):
-        items.insert(index=0, object='+')
+        items.insert(0, '+')
 
     return [
         ''.join((items[x], items[x + 1]))
@@ -315,23 +319,29 @@ def _parse_field_bad(key, value, bad):
     return
 
 
-def _check_point(name, panel, fs, ss, min_d, max_d, detector):
+def _check_point(name,
+                 panel,
+                 fs_,
+                 ss_,
+                 min_d,
+                 max_d,
+                 detector):
     # Reimplementation of check_point from
     # libcrystfel/src/detector.c.
-    xs = fs * panel['fsx'] + ss * panel['ssx']
-    ys = fs * panel['fsy'] + ss * panel['ssy']
-    rx = (xs + panel['cnx']) / panel['res']
-    ry = (ys + panel['cny']) / panel['res']
-    dist = math.sqrt(rx * rx + ry * ry)
+    xs_ = fs_ * panel['fsx'] + ss_ * panel['ssx']
+    ys_ = fs_ * panel['fsy'] + ss_ * panel['ssy']
+    rx_ = (xs_ + panel['cnx']) / panel['res']
+    ry_ = (ys_ + panel['cny']) / panel['res']
+    dist = math.sqrt(rx_ * rx_ + ry_ * ry_)
     if dist > max_d:
         detector['furthest_out_panel'] = name
-        detector['furthest_out_fs'] = fs
-        detector['furthest_out_ss'] = ss
+        detector['furthest_out_fs'] = fs_
+        detector['furthest_out_ss'] = ss_
         max_d = dist
     elif dist < min_d:
         detector['furthest_in_panel'] = name
-        detector['furthest_in_fs'] = fs
-        detector['furthest_in_ss'] = ss
+        detector['furthest_in_fs'] = fs_
+        detector['furthest_in_ss'] = ss_
         min_d = dist
 
     return min_d, max_d
@@ -346,8 +356,8 @@ def _find_min_max_d(detector):
         min_d, max_d = _check_point(
             name=name,
             panel=panel,
-            fs=0,
-            ss=0,
+            fs_=0,
+            ss_=0,
             min_d=min_d,
             max_d=max_d,
             detector=detector
@@ -356,8 +366,8 @@ def _find_min_max_d(detector):
         min_d, max_d = _check_point(
             name=name,
             panel=panel,
-            fs=panel['w'],
-            ss=0,
+            fs_=panel['w'],
+            ss_=0,
             min_d=min_d,
             max_d=max_d,
             detector=detector
@@ -366,8 +376,8 @@ def _find_min_max_d(detector):
         min_d, max_d = _check_point(
             name=name,
             panel=panel,
-            fs=0,
-            ss=panel['h'],
+            fs_=0,
+            ss_=panel['h'],
             min_d=min_d,
             max_d=max_d,
             detector=detector
@@ -376,8 +386,8 @@ def _find_min_max_d(detector):
         min_d, max_d = _check_point(
             name=name,
             panel=panel,
-            fs=panel['w'],
-            ss=panel['h'],
+            fs_=panel['w'],
+            ss_=panel['h'],
             min_d=min_d,
             max_d=max_d,
             detector=detector
@@ -406,7 +416,7 @@ def load_crystfel_geometry(filename):
 
     Returns:
 
-        dict: dictionary with the geometry information loaded from the
+        Dict: dictionary with the geometry information loaded from the
         file.
     """
     beam = {
@@ -471,13 +481,13 @@ def load_crystfel_geometry(filename):
         'ss', 'fs'
     ]
 
-    fhandle = open(file=filename, mode='r')
+    fhandle = open(filename, mode='r')
     fhlines = fhandle.readlines()
     for line in fhlines:
         if line.startswith(";"):
             continue
 
-        line_without_comments = line.strip().split(sep=';')[0]
+        line_without_comments = line.strip().split(';')[0]
         line_items = re.split(pattern='([ \t])', string=line_without_comments)
         line_items = [
             item
@@ -714,19 +724,20 @@ def load_crystfel_geometry(filename):
                 )
 
     for panel in detector['panels'].values():
-        d = panel['fsx'] * panel['ssy'] - panel['ssx'] * panel['fsy']
-        if d == 0.0:
+        d__ = panel['fsx'] * panel['ssy'] - panel['ssx'] * panel['fsy']
+        if d__ == 0.0:
             raise RuntimeError("Panel {} transformation is singluar.")
-        panel['xfs'] = panel['ssy'] / d
-        panel['yfs'] = panel['ssx'] / d
-        panel['xss'] = panel['fsy'] / d
-        panel['yss'] = panel['fsx'] / d
+        panel['xfs'] = panel['ssy'] / d__
+        panel['yfs'] = panel['ssx'] / d__
+        panel['xss'] = panel['fsy'] / d__
+        panel['yss'] = panel['fsx'] / d__
 
     _find_min_max_d(detector)
     fhandle.close()
 
     # The code of this function is synced with the code of the function
-    # 'get_detector_geometry_2' in CrystFEL at commit 41a8fa9819010fe8ddeb66676fee717f5226c7b8
+    # 'get_detector_geometry_2' in CrystFEL at commit
+    # 41a8fa9819010fe8ddeb66676fee717f5226c7b8
 
     return detector
 
