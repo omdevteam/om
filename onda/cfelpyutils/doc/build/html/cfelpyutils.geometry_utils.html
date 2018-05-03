@@ -73,14 +73,12 @@ detector pixel data.</p>
 <div><p>Functions:</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>compute_pixel_maps: turn a CrystFEL geometry object into pixel</dt>
+<dt>compute_pix_maps: turn a CrystFEL geometry object into pixel</dt>
 <dd>maps.</dd>
-<dt>apply_pixel_maps: apply pixel maps to a data array. Return an</dt>
-<dd>array containing data with the geometry applied.</dd>
-<dt>compute_minimum_array_size: compute the minimum array size that</dt>
+<dt>compute_min_array_size: compute the minimum array size that</dt>
 <dd>is required to store data to which a geometry has been
 applied.</dd>
-<dt>adjust_pixel_maps_for_pyqtgraph: ajust pixel maps to be used in</dt>
+<dt>compute_visualization_pix_maps: ajust pixel maps to be used in</dt>
 <dd>a PyQtGraph’s ImageView widget.</dd>
 </dl>
 </div></blockquote>
@@ -116,70 +114,8 @@ pixel in the data array from the center of the reference system.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="cfelpyutils.geometry_utils.adjust_pixel_maps_for_pyqtgraph">
-<code class="descclassname">cfelpyutils.geometry_utils.</code><code class="descname">adjust_pixel_maps_for_pyqtgraph</code><span class="sig-paren">(</span><em>pixel_maps</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.adjust_pixel_maps_for_pyqtgraph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adjust pixel maps for visualization of the data in a pyqtgraph
-widget.</p>
-<p>The adjusted maps can be used for a Pyqtgraph ImageView widget.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pixel_maps</strong> (<a class="reference internal" href="#cfelpyutils.geometry_utils.PixelMaps" title="cfelpyutils.geometry_utils.PixelMaps"><em>PixelMaps</em></a>) – a PixelMaps tuple.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
-<dt>A Pixelmaps tuple containing the adjusted pixel</dt>
-<dd>maps. The first two fields, named “x” and “y” respectively,
-store the pixel maps for the x coordinate and the y
-coordinate. The third field (“r”) is just set to None.</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#cfelpyutils.geometry_utils.PixelMaps" title="cfelpyutils.geometry_utils.PixelMaps">PixelMaps</a></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="cfelpyutils.geometry_utils.apply_pixel_maps">
-<code class="descclassname">cfelpyutils.geometry_utils.</code><code class="descname">apply_pixel_maps</code><span class="sig-paren">(</span><em>data</em>, <em>pixel_maps</em>, <em>output_array=None</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.apply_pixel_maps" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply geometry to the input data.</p>
-<p>Apply the geometry (in pixel maps format) to the data. In other
-words, turn an array of detector pixel values into an array
-containing a representation of the physical layout of the detector.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<em>ndarray</em>) – array containing the data on which the geometry
-will be applied.</li>
-<li><strong>pixel_maps</strong> (<a class="reference internal" href="#cfelpyutils.geometry_utils.PixelMaps" title="cfelpyutils.geometry_utils.PixelMaps"><em>PixelMaps</em></a>) – a PixelMaps tuple.</li>
-<li><strong>output_array</strong> (<em>Optional</em><em>[</em><em>ndarray</em><em>]</em>) – a preallocated array (of
-dtype numpy.float32) to store the function output. If
-provided, this array will be filled by the function and
-and returned to the user. If not provided, the function
-will create a new array automatically and return it to the
-user. Defaults to None (No array provided).</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a numpy.float32 array containing the data with the
-geometry applied (i.e.: a representation of the physical layout
-of the detector).</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="cfelpyutils.geometry_utils.compute_minimum_array_size">
-<code class="descclassname">cfelpyutils.geometry_utils.</code><code class="descname">compute_minimum_array_size</code><span class="sig-paren">(</span><em>pixel_maps</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_minimum_array_size" title="Permalink to this definition">¶</a></dt>
+<dt id="cfelpyutils.geometry_utils.compute_min_array_size">
+<code class="descclassname">cfelpyutils.geometry_utils.</code><code class="descname">compute_min_array_size</code><span class="sig-paren">(</span><em>pixel_maps</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_min_array_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the minimum array size storing data with applied geometry.</p>
 <p>Return the minimum size of an array that can store data on which
 the geometry information described by the pixel maps has been
@@ -204,8 +140,8 @@ array size.</td>
 </dd></dl>
 
 <dl class="function">
-<dt id="cfelpyutils.geometry_utils.compute_pixel_maps">
-<code class="descclassname">cfelpyutils.geometry_utils.</code><code class="descname">compute_pixel_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_pixel_maps" title="Permalink to this definition">¶</a></dt>
+<dt id="cfelpyutils.geometry_utils.compute_pix_maps">
+<code class="descclassname">cfelpyutils.geometry_utils.</code><code class="descname">compute_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_pix_maps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute pixel maps from a CrystFEL geometry object.</p>
 <p>Take as input a CrystFEL-style geometry object (A dictionary
 returned by the function load_crystfel_geometry function in the
@@ -221,7 +157,38 @@ returned by the
 <a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="cfelpyutils.crystfel_utils.load_crystfel_geometry"><code class="xref py py-obj docutils literal"><span class="pre">cfelpyutils.crystfel_utils.load_crystfel_geometry</span></code></a>
 function).</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A PixelMaps tuple.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A PixelMaps tuple storing the pixel maps (ndarrays
+of type float).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#cfelpyutils.geometry_utils.PixelMaps" title="cfelpyutils.geometry_utils.PixelMaps">PixelMaps</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cfelpyutils.geometry_utils.compute_visualization_pix_maps">
+<code class="descclassname">cfelpyutils.geometry_utils.</code><code class="descname">compute_visualization_pix_maps</code><span class="sig-paren">(</span><em>geometry</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.geometry_utils.compute_visualization_pix_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute pixel maps for visualization of the data.</p>
+<p>The pixel maps can be used for to display the data in a Pyqtgraph
+ImageView widget.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>geometry</strong> (<em>dict</em>) – A CrystFEL geometry object (A dictionary
+returned by the
+<a class="reference internal" href="cfelpyutils.crystfel_utils.html#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="cfelpyutils.crystfel_utils.load_crystfel_geometry"><code class="xref py py-obj docutils literal"><span class="pre">cfelpyutils.crystfel_utils.load_crystfel_geometry</span></code></a>
+function).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>A PixelMaps tuple containing the adjusted pixel</dt>
+<dd>maps. The first two fields, named “x” and “y” respectively,
+store the pixel maps for the x coordinate and the y
+coordinates (as ndarrays of type int). The third field
+(“r”) is just set to None.</dd>
+</dl>
+</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#cfelpyutils.geometry_utils.PixelMaps" title="cfelpyutils.geometry_utils.PixelMaps">PixelMaps</a></td>
 </tr>

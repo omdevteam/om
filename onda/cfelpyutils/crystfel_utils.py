@@ -740,5 +740,3 @@ def load_crystfel_geometry(filename):
     # 41a8fa9819010fe8ddeb66676fee717f5226c7b8
 
     return detector
-
-
