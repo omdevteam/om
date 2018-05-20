@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Generic algorithms for common processing procedures.
+Generic algorithms for common data processing tasks.
 
 Exports:
 
@@ -74,9 +74,9 @@ class DarkCalCorrection(object):
 
             mask_hdf5_path (Optional[str]): if the mask_filename
                 argument is provided, and a mask is applied, this
-                argument is the internal HDF5 path where the mask (in
-                'slab' format) is stored. The argument is otherwise
-                ignored. Defaults to None.
+                argument is the internal HDF5 path of the data block
+                where the mask (in 'slab' format) is stored. The
+                argument is otherwise ignored. Defaults to None.
 
             gain_map_filename (Optional[str]): if the argument is the
                 name of a file containing a gain map, the map will be
@@ -161,8 +161,6 @@ class DarkCalCorrection(object):
             ndarray: the corrected data.
 
         """
-        # Multiply the data with the mask first, then subtract the
-        # darkcal and finally multiply the result with the gain map.
         return (data * self._mask - self._darkcal) * self._gain_map
 
 
@@ -206,12 +204,12 @@ class RawDataAveraging(object):
 
     def add_data(self, data):
         """
-        Add raw detector_data .
+        Add raw detector_data.
 
         Add the provided raw detector data to the accumulator. If the
         predefined number of entries has been added to the accumulator,
         return the average of the accumulated data and empty the
-        accumulator.
+        accumulator, otherwise return None.
 
         Args:
 
@@ -252,8 +250,8 @@ class FindMinimaInWaveforms(object):
     Find minima in waveforms.
 
     Perform peak finding on 1d waveform data where the signal has a
-    negative sign. Peaks are defined as local minima of the waveform. A
-    moving-window smoothing function is applied to the data before the
+    negative sign. Peaks are defined as local minima of the waveform.
+    Apply a moving-window smoothing function to the data before the
     peak finding.
     """
 
@@ -317,17 +315,15 @@ class FindMinimaInWaveforms(object):
 
         Returns:
 
-            List: list of int numbers. Each field in the list is the
-            position (the index along the axis of the data array) of a
-            detected peak.
+            List[int]: list of int numbers, where each entry in the
+            list is the position (the index along the axis of the data
+            array) of a detected peak.
         """
 
         if self._background_subtraction is True:
-
             # If the background subtraction was requested, create an
             # index array for the data, then slice both the data and
             # the index array according to the step size.
-
             index = numpy.arange(data.shape[0])
             sliced_data = data[::self._backgr_filter_step]
             sliced_index = index[::self._backgr_filter_step]
@@ -348,20 +344,19 @@ class FindMinimaInWaveforms(object):
 
             bck_subtr_data = data - interpolated_data
         else:
-
             # If the background subtraction was not requested, just
             # make a copy of the data for further processing.
             bck_subtr_data = data.copy()
 
         # Convolve data with the smoothing array.
         smooth_data = numpy.convolve(
-            a=bck_subtr_data.astype(numpy.float32),
+            a=bck_subtr_data.astype(numpy.float32),  # pylint: disable=E1101
             v=self._smoothing_array,
             mode='same'
         )
 
-        # Compute first and second derivative of the smoothed dat, then
-        # use zeros in the derivatives to detect peaks.
+        # Compute first and second derivative of the smoothed data,
+        # then use the zeros in the derivatives to detect peaks.
         d_smooth_data = numpy.gradient(smooth_data)
         dd_smooth_data = numpy.gradient(d_smooth_data)
         peak_locations = numpy.where(
@@ -384,7 +379,8 @@ class FindMinimaInWaveforms(object):
         # lie too close to each other, take the peak with the strongest
         # negative strength. In order to do this, create a flag that
         # records if any peak that lies to close to another one has
-        # been found. True until proven false.
+        # been found. Set this flag initially to True until the
+        # condition has been proven false.
         any_too_close = True
         while any_too_close is True:
             any_too_close = False
@@ -420,10 +416,10 @@ class FindMinimaInWaveforms(object):
                         )
 
                 # If the value of the current peak is lower than all
-                # the values of the peaks that surround it,add the peak
-                # to the new peak list. If not, another passage of the
-                # while loop is required, so set the any_too_close
-                # variable to True.
+                # the values of the peaks that surround it, add the
+                # peak to the new peak list. If not, another passage of
+                # the while loop is required, so set the any_too_close
+                # flag to True.
                 if numpy.all(
                         [smooth_data[p_position] < v for v in internal_pl]
                 ):

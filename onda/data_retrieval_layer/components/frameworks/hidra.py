@@ -39,7 +39,7 @@ from builtins import str  # pylint: disable=W0622
 
 from future.utils import raise_from
 
-from onda.data_recovery_layer import hidra_api
+from onda.data_retrieval_layer.components.frameworks import hidra_api
 from onda.utils import dynamic_import, exceptions
 
 

@@ -12,29 +12,50 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+
 """
-Filelist-specific functions and classes for the processing of data from
-the Lambda detector.
+Utilities to manipulate HDF5 files.
 
 Exports:
 
     Functions:
 
-        open_event_filelist: open an event. Filelist-specific version.
+        open_event: open an event.
+
+        close_event: close an event.
 """
-import fabio
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import h5py
 
 
 def open_event(event):
     """
     Open event.
 
-    Open the event by opening the file using the fabio library. Store
-    the content of the cbf file as a fabio module cbf_obj object in the
-    'data' entry of the event dictionary.
+    Open the event by opening the file using the h5py library. Save
+    the open file filehandle in the 'data' entry of the event
+    dictionary).
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    event['data'] = fabio.open(event['metadata']['full_path'])
+    event['data'] = h5py.File(
+        name=event['metadata']['full_path'],
+        mode='r'
+    )
+
+
+def close_event(event):
+    """
+    Close event.
+
+    Close event by closing the h5py file.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+    """
+    event['data'].close()

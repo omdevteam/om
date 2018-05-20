@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Functions and classes to recover and process data from Karabo
+Retrieving of data from Karabo at the European XFEL facility.
 
 Exports:
 

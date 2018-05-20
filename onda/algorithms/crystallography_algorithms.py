@@ -17,6 +17,10 @@ Algorithms for the processing of crystallography data.
 
 Exports:
 
+    Namedtuples:
+
+        PeakList: list of detected peaks.
+
     Classes:
 
         Peakfinder8PeakDetection: peak detection using the peakfinder8
@@ -43,7 +47,15 @@ PeakList = namedtuple(  # pylint: disable=C0103
     typename='PeakList',
     field_names=['fs', 'ss', 'intensity']
 )
-# TODO: docstring
+"""
+List of peaks detected in the data.
+
+A namedtuple that stores the a list of peaks detected in the detector
+data. The first two fields, named 'fs' and 'ss' respectively, are lists
+storing the the fs and ss and ss coordinates of all peaks. The third
+field, named 'intensity', stores the integrated intensity of the peaks.
+"""
+
 
 ##############################
 # PEAKFINDER8 PEAK DETECTION #
@@ -58,12 +70,11 @@ class Peakfinder8PeakDetection(object):
     descrition of the peakfinder8 algorithm:
 
     A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
-    T. A. White, and H. N. Chapman, "Cheetah: software for
+    T. A. White, and H. N. Chapman, 'Cheetah: software for
     high-throughput reduction and analysis of serial femtosecond X-ray
-    diffraction data," J Appl Crystallogr, vol. 47,
-    pp. 1118-1131 (2014).
+    diffraction data', J Appl Crystallogr, vol. 47, pp. 1118-1131
+    (2014).
     """
-
     def __init__(self,
                  max_num_peaks,
                  asic_nx,
@@ -145,9 +156,9 @@ class Peakfinder8PeakDetection(object):
         self._local_bg_radius = local_bg_radius
         self._radius_pixel_map = radius_pixel_map
 
-        # Load the bad pixel map from file, raise an exception in case
-        # of failure, then create the internal that will be used to
-        # exclude regions of the detector from the peak finding. The
+        # Load the bad pixel map from file (raise an exception in case
+        # of failure), then create the internal mask that will be used
+        # to exclude regions of the detector from the peak finding. The
         # internal map includes the bad pixel map, but also excludes
         # from the peak finding additional areas according to the
         # resolution limits specified by the input parameters.
@@ -183,11 +194,7 @@ class Peakfinder8PeakDetection(object):
 
         Returns:
 
-            Tuple[List[float], List[float], List[float]]: a tuple with
-            the detected peaks. The tuple has three fields, named
-            respectively 'fs', 'ss', and 'intensity', are lists
-            containing the fs and ss coordinates of the found peaks,
-            and their intensities.
+            PeakList: a PeakList tuple with the detected peaks.
         """
         # Call the cython-wrapped peakfinder8 function, then wrap the
         # returned peaks into a tuple and return it.
@@ -212,7 +219,7 @@ class Peakfinder8PeakDetection(object):
 
 class PeakAccumulator:
     """
-    Accumulate peak information for susequent bulk retreival.
+    Accumulate peak information for susequent bulk retrieval.
 
     Accumulate peak information until the accumulator is full. Allow
     the user to add peaks to the accumulator for a predefined number of
@@ -248,24 +255,16 @@ class PeakAccumulator:
 
         Args:
 
-            peak_list (Tuple[List[float], List[float], List[float]]):
-                list of peaks to be added to the accumulator. The tuple
-                should have three fields containing respectively the fs
-                and ss coordinates of the accumulated peaks, and their
-                intensities.
+            peak_list (PeakList): PeakList tuple with the list of peaks
+                to be added to the accumulator.
 
         Returns:
 
-            Union[Tuple[List[float], List[float], List[float]], None]:
-            the accumulated peak list as a tuple if peaks have
-            been added to the accumulator for the predefined number of
-            times, otherwise None. The tuple has three fields, named
-            respectively 'fs', 'ss', and 'intensity', are lists
-            containing the fs and ss coordinates of the accumulated
-            peaks, and their intensities.
+            Union[PeakList, None]: a PeakList tuple with the
+            accumulated peaks if peaks have been added to the
+            accumulator for the predefined number of times, otherwise
+            None.
         """
-        peak_list = PeakList(*peak_list)
-
         # Add the peak data to the interal lists and update the
         # internal counter.
         self._accumulator.fs.extend(peak_list.fs)
@@ -275,7 +274,7 @@ class PeakAccumulator:
 
         # Check if the internal counter reached the number of additions
         # specified by the user. If it did, return the peak list, and
-        # reset the accumulator. Otherwise just return none
+        # reset the accumulator. Otherwise just return None.
         if self._events_in_accumulator == self._n_events_to_accumulate:
             peak_list_to_return = self._accumulator
             self._accumulator = PeakList([], [], [])

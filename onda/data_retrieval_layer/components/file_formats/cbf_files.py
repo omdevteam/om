@@ -13,17 +13,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Filelist-specific functions and classes for the processing of data from
-the Lambda detector.
+Utilities to manipulate CBF files.
 
 Exports:
 
     Functions:
 
-        open_event_hidra: open an event. HiDRA-specific version.
-"""
-import io
+        open_event: open an event.
 
+        close_event: close an event.
+"""
 import fabio
 
 
@@ -39,9 +38,17 @@ def open_event(event):
 
         event (Dict): a dictionary with the event data.
     """
-    # Wrap the binary data that HiDRA streams to OnDA in a BytesIO
-    # object and open that using the fabio library.
+    event['data'] = fabio.open(event['metadata']['full_path'])
 
-    byio_data = io.BytesIO(event['data'])
-    cbf_image = fabio.cbfimage.CbfImage()
-    event['data'] = cbf_image.read(byio_data)
+
+def close_event(_):
+    """
+    Close event.
+
+    CBF files don't need to be closed, so do nothing.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+    """
+    pass

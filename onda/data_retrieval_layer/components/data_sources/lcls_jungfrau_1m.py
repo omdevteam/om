@@ -13,11 +13,47 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Functions and classes for the processing of data from the CSPAD
-detector.
+Utilities to process Jungfrau 1M detector data at the LCLS facility.
+
+Exports:
+
+    Namedtuples:
+
+        Peakfinder8DetInfo: peakfinder8-related information.
+
+    Functions:
+
+        get_peakfinder8_info: get peakfinder8-related detector info.
+
+        detector_data: recover the raw detector data for a frame.
 """
 import collections
 
+
+###############
+#             #
+# NAMEDTUPLES #
+#             #
+###############
+
+Peakfinder8DetInfo = collections.namedtuple(  # pylint: disable=C0103
+    typename='Peakfinder8DetectorInfo',
+    field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
+)
+"""
+Peakfinder8-related information.
+
+A namedtuple where the four fields (named respectively 'asics_nx',
+'asics_ny', 'nasics_x', and  'nasics_y)' are the four parameters used
+by the peakfinder8 algorithm to describe the format of theinput data.
+"""
+
+
+######################################
+#                                    #
+# LCLS-JUNGFRAU 1M UTILITY FUNCTIONS #
+#                                    #
+######################################
 
 def get_peakfinder8_info():
     """
@@ -27,15 +63,9 @@ def get_peakfinder8_info():
 
     Returns:
 
-        Tuple[int, int, int, int]: A tuple where the four fields (named
-        respectively 'asics_nx', 'asics_ny', 'nasics_x', and
-        'nasics_y)' are the four parameters used by the peakfinder8
-        algorithm to describe the format of the input data.
+        Peakfinder8DetInfo: the peakfinder8-related detector
+        information.
     """
-    Peakfinder8DetInfo = collections.namedtuple(  # pylint: disable=C0103
-        typename='Peakfinder8DetectorInfo',
-        field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
-    )
     return Peakfinder8DetInfo(1024, 512, 1, 2)
 
 
@@ -49,6 +79,11 @@ def detector_data(event,
     Args:
 
         event (Dict): a dictionary with the event data.
+
+        data_extraction_func_name (str): the name of the data
+          extraction function ("detector_data", "detector2_data",
+          "detector3_data", etc.) that is associated with this
+          detector.
 
     Returns:
 

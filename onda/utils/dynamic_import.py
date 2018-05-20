@@ -35,7 +35,6 @@ Exports:
             data extraction functions, recovering the correct functions
             from the detector and data recovery layers.
 """
-import collections
 import importlib
 from builtins import str  # pylint: disable=W0622
 

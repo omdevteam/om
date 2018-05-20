@@ -39,7 +39,6 @@ class SingleModuleLambdaCalibration(object):
     Calibrate a single-module Lambda detector by applying flatfield
     correction.
     """
-
     def __init__(self,
                  calibration_filename):
         """
@@ -69,7 +68,7 @@ class SingleModuleLambdaCalibration(object):
     def apply_calibration(self,
                           data):
         """
-        Appy the calibration.
+        Apply the calibration.
 
         Apply the flatfield correction to the module data.
 
