@@ -19,21 +19,24 @@ Exports:
 
     Functions:
 
-        import_detector_layer: import the correct detector layer.
+        import_processing_layer: import the correct processing layer.
 
-        import_data_recovery_layer: import the correct data recovery
+        import_parallelization_layer: import the correct
+            parallelization layer.
+
+        import_data_retrieval_layer: import the correct data retrieval
             layer.
 
-        import_func_from_detector_layer: import the correct function
-            from the detector layer.
+        init_event_handling_funcs: initialize the data extraction
+            functions, recovering the correct functions from the data
+            retrieval layer.
 
-        init_event_handling_funcs: initialize the
-            data extraction functions, recovering the correct functions
-            from the detector and data recovery layers.
+        init_data_extraction_funcs: initialize the data extraction
+            functions, recovering the correct functions from the
+            data retrieval layers.
 
-        init_data_extraction_funcs: initialize the
-            data extraction functions, recovering the correct functions
-            from the detector and data recovery layers.
+        get_peakfinder8_info: import the peakfinder8 info for a
+            specific detector.
 """
 import importlib
 from builtins import str  # pylint: disable=W0622
@@ -44,6 +47,24 @@ from onda.utils import exceptions
 
 
 def import_processing_layer(monitor_params):
+    """
+    Import the correct processing layer.
+
+    Import the processing layer specified in the configuration
+    parameters. Search for the python file with the processing layer
+    implementation in the working directory first. If the file is not
+    found there, look for it in the OnDA folder structure.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+    Returns:
+
+        module: the imported processing layer.
+    """
     try:
         processing_layer = importlib.import_module(
             '{0}'.format(
@@ -71,6 +92,24 @@ def import_processing_layer(monitor_params):
 
 
 def import_parallelization_layer(monitor_params):
+    """
+    Import the correct parallelization layer.
+
+    Import the parallelization layer specified in the configuration
+    parameters. Search for the python file with the parallelization
+    layer implementation in the working directory first. If the file is
+    not found there, look for it in the OnDA folder structure.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+    Returns:
+
+        module: the imported parallelization layer.
+    """
     try:
         data_retrieval_layer = importlib.import_module(
             '{0}'.format(
@@ -84,10 +123,10 @@ def import_parallelization_layer(monitor_params):
         )
     except ImportError:
         data_retrieval_layer = importlib.import_module(
-            'onda.parallelization_layer.profiles.{0}'.format(
+            'onda.parallelization_layer.{0}'.format(
                 monitor_params.get_param(
                     section='Onda',
-                    parameter='data_retrieval_layer_profile',
+                    parameter='data_retrieval_layer',
                     type_=str,
                     required=True
                 )
@@ -98,6 +137,24 @@ def import_parallelization_layer(monitor_params):
 
 
 def import_data_retrieval_layer(monitor_params):
+    """
+    Import the correct data retrieval layer.
+
+    Import the data retrieval layer specified in the configuration
+    parameters. Search for the python file with the data retrieval
+    layer implementation in the working directory first. If the file is
+    not found there, look for it in the OnDA folder structure.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+    Returns:
+
+        module: the imported data retrieval layer.
+    """
     try:
         data_retrieval_layer = importlib.import_module(
             '{0}'.format(
@@ -111,7 +168,7 @@ def import_data_retrieval_layer(monitor_params):
         )
     except ImportError:
         data_retrieval_layer = importlib.import_module(
-            'onda.data_retrieval_layer.profiles.{0}'.format(
+            'onda.data_retrieval_layer.{0}'.format(
                 monitor_params.get_param(
                     section='Onda',
                     parameter='data_retrieval_layer_profile',
@@ -299,14 +356,37 @@ def init_psana_interface_funcs(monitor_params):
 
 
 def get_peakfinder8_info(monitor_params,
-                         corresponding_to):
+                         detector):
+    """
+    Import the peakfinder8 detector information.
+
+    Import the peakfiner8 detector information for a specific detector
+    from the data retrieval layer.
+
+    Args:
+
+        monitor_params (MonitorParams): a MonitorParams object
+            containing the monitor parameters from the
+            configuration file.
+
+        detector: detector for which the peakfinder8 information must
+            be recovered, identified by the name of the
+            data extraction function used to extract its data (i.e.:
+            "detector_data", "detector2_data", etc.).
+
+    Returns:
+
+        Peakfinder8DetInfo: the peakfinder8-related detector
+        information.
+    """
+
     data_retrieval_layer = import_data_retrieval_layer(
         monitor_params
     )
 
     get_pf8_info_func = getattr(
         data_retrieval_layer,
-        'get_peakfinder8_info_{}'.format(corresponding_to)
+        'get_peakfinder8_info_{}'.format(detector)
     )
 
     return get_pf8_info_func()

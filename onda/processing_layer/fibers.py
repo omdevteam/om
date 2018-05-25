@@ -31,35 +31,12 @@ import time
 from builtins import str  # pylint: disable=W0622
 
 from onda.algorithms import calibration_algorithms as calib_algs
-from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
-from onda.cfelpyutils import crystfel_utils, geometry_utils
 from onda.parallelization_layer import mpi
 from onda.utils import zmq as onda_zmq
-from onda.utils.dynamic_import import get_peakfinder8_info
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
-    """
-    An OnDA online monitor for crystallography experiments.
-
-    A monitor for x-ray crystallography experiments. Provides real time
-    hit and saturation rate information, plus a virtual powder
-    pattern-style plot of the processed data. Detector calibration,
-    dark calibration and gain map correction can optionally be applied
-    to each frame. In addition to the normal GUI, an additional viewer,
-    which shows raw data for a selection of the processed frames, is
-    also supported.
-
-    The peak finding is carried out using the peakfinder8 algorithm
-    from the Cheetah software package:
-
-    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
-    T. A. White, and H. N. Chapman, "Cheetah: software for
-    high-throughput reduction and analysis of serial femtosecond X-ray
-    diffraction data," J Appl Crystallogr, vol. 47,
-    pp. 1118-1131 (2014).
-    """
     def __init__(self,
                  source,
                  monitor_parameters):
@@ -104,7 +81,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     requested_calib_alg
                 )
 
-                self._calibration_alg = calibration_alg_class(
+                self._calibration_alg_class = calibration_alg_class(
                     calibration_file=monitor_parameters.get_param(
                         section='DetectorCalibration',
                         parameter='calibration_file',
@@ -171,155 +148,30 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 gain_map_hdf5_path=dark_cal_gain_map_hdf5_pth
             )
 
-            # Load the geometry data and compute the pixel maps.
-            geometry_filename = monitor_parameters.get_param(
-                section='General',
-                parameter='geometry_file',
-                type_=str,
-                required=True
-            )
-
-            geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
-            pixelmaps = geometry_utils.compute_pix_maps(geometry)
-            radius_pixel_map = pixelmaps.r
-
-            # Read from the configuration file all the parameters needed
-            # to instantiate the peakfinder8 algorithm, import from the
-            # data recovery layer peakfinder8 information for the
-            # detector being used, instantiate the algorithm and store
-            # it in an attribute, so that it can be called later.
-            pf8_max_num_peaks = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='max_num_peaks',
-                type_=int,
-                required=True
-            )
-
-            pf8_adc_threshold = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='adc_threshold',
-                type_=float,
-                required=True
-            )
-
-            pf8_minimum_snr = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='minimum_snr',
-                type_=float,
-                required=True
-            )
-
-            pf8_min_pixel_count = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='min_pixel_count',
-                type_=int,
-                required=True
-            )
-
-            pf8_max_pixel_count = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='max_pixel_count',
-                type_=int,
-                required=True
-            )
-
-            pf8_local_bg_radius = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='local_bg_radius',
-                type_=int,
-                required=True
-            )
-
-            pf8_min_res = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='min_res',
-                type_=int,
-                required=True
-            )
-
-            pf8_max_res = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='max_res',
-                type_=int,
-                required=True
-            )
-
-            pf8_bad_pixel_map_fname = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='bad_pixel_map_filename',
-                type_=str,
-                required=True
-            )
-
-            pf8_bad_pixel_map_hdf5_path = monitor_parameters.get_param(
-                section='Peakfinder8PeakDetection',
-                parameter='bad_pixel_map_hdf5_path',
-                type_=str,
-                required=True
-            )
-
-            get_pf8_info = get_peakfinder8_info(
-                monitor_params=self._mon_params,
-                detector='detector_data',
-            )
-
-            pf8_detector_info = get_pf8_info()
-            self._peakfinder8_peak_det = cryst_algs.Peakfinder8PeakDetection(
-                max_num_peaks=pf8_max_num_peaks,
-                asic_nx=pf8_detector_info.asic_nx,
-                asic_ny=pf8_detector_info.asic_ny,
-                nasics_x=pf8_detector_info.nasics_x,
-                nasics_y=pf8_detector_info.nasics_y,
-                adc_threshold=pf8_adc_threshold,
-                minimum_snr=pf8_minimum_snr,
-                min_pixel_count=pf8_min_pixel_count,
-                max_pixel_count=pf8_max_pixel_count,
-                local_bg_radius=pf8_local_bg_radius,
-                min_res=pf8_min_res,
-                max_res=pf8_max_res,
-                bad_pixel_map_filename=pf8_bad_pixel_map_fname,
-                bad_pixel_map_hdf5_path=pf8_bad_pixel_map_hdf5_path,
-                radius_pixel_map=radius_pixel_map
-            )
-
-            # Read some additional peak-finding parameters from the
-            # configuration file and save them to attributes.
-            self._max_saturated_peaks = monitor_parameters.get_param(
-                section='General',
-                parameter='max_saturated_peaks',
-                type_=int,
-                required=True
-            )
-
-            self._min_num_peaks_for_hit = monitor_parameters.get_param(
-                section='General',
-                parameter='min_num_peaks_for_hit',
-                type_=int,
-                required=True
-            )
-
-            self._max_num_peaks_for_hit = monitor_parameters.get_param(
-                section='General',
-                parameter='max_num_peaks_for_hit',
-                type_=int,
-                required=True
-            )
-
-            # Read from the configuration file the adc_threshold value
-            # above which a pixel should be considered saturated.
-            self._saturation_value = monitor_parameters.get_param(
-                section='General',
-                parameter='saturation_value',
-                type_=int,
-                required=True
-            )
-
             # Read from the configuration file the interval (in events
             # labelled as 'hits') at which the full frame detector data
             # should be sent to the master node.
             self._hit_sending_interval = monitor_parameters.get_param(
                 section='General',
                 parameter='hit_sending_interval',
+                type_=int,
+                required=True
+            )
+
+            # Read from the configuration file the threshold used
+            # when computing the total intensity on the detector.
+            self._sum_threshold_detector_data = monitor_parameters.get_param(
+                section='General',
+                parameter='sum_threshold_detector_data',
+                type_=int,
+                required=True
+            )
+
+            # Read from the configuration file the threshold used to determine
+            # if the intensity on the detector.corresponds to a hit.
+            self._hit_threshold_detector_data = monitor_parameters.get_param(
+                section='General',
+                parameter='hit_threshold_detector_data',
                 type_=int,
                 required=True
             )
@@ -338,29 +190,14 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            # Read from the configuration file if the geometry is
-            # optimized or not.
-            self._optimized_geometry = monitor_parameters.get_param(
-                section='General',
-                parameter='geometry_is_optimized',
-                type_=bool,
-                required=True
-            )
-
             # Read from the configuration file how many events should
             # be accumulated by the master node before sending the data
             # to the GUI.
-            pa_num_events_to_accumulate = monitor_parameters.get_param(
-                section='PeakAccumulator',
+            self._num_events_to_accumulate = monitor_parameters.get_param(
+                section='General',
                 parameter='num_events_to_accumulate',
                 type_=int,
                 required=True
-            )
-
-            # Instantiate the peak accumulator algorithm and assign it
-            # to an attribute, so it can be called later.
-            self._accumulator = cryst_algs.PeakAccumulator(
-                num_events_to_accumulate=pa_num_events_to_accumulate
             )
 
             # Initialize the num_events counter to keep track of the
@@ -388,13 +225,15 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 maxlen=self._run_avg_wdw_size
             )
 
-            self._saturation_rate_run_wdw = collections.deque(
-                [0.0] * self._run_avg_wdw_size,
-                maxlen=self._run_avg_wdw_size
-            )
-
             self._avg_hit_rate = 0
-            self._avg_sat_rate = 0
+
+            # Initialize the lists that will contain the accumulated
+            # total intensity data from the detector.
+            self._accumulated_sum_detector = []
+
+            # Initialize the lists that will contain the accumulated
+            # hit rate from the detector.
+            self._accumulated_hit_rate = []
 
             # Read from the configuration file which IP and port should
             # be used for the socket that broadcasts data to the
@@ -458,36 +297,21 @@ class OndaMonitor(mpi.ParallelizationEngine):
         corr_det_data = self._dark_cal_corr_alg.apply_darkcal_correction(
             data=calib_det_data
         )
-        peak_list = self._peakfinder8_peak_det.find_peaks(corr_det_data)
 
-        # Determine if the the frame should be labelled as 'saturated'.
-        # (more than 'max_saturated_peaks' peaks are above the
-        # 'saturation_value' threshold).
-        sat = len(
-            [x for x in peak_list.intensity if x > self._saturation_value]
-        ) > self._max_saturated_peaks
+        # Compute sum of intensity on the detector. Only pixels whose
+        # intensity surpasses a certain threshold, defined separately
+        # for each detector, are included in the sum.
+        sum_detector = (
+            data['detector_data'] > self._sum_threshold_detector_data
+        ).sum()
 
-        # Determine if the the frame should be labelled as a 'hit'.
-        # (more than 'min_num_peaks_for_a_hit' and less than
-        # 'max_num_peaks_for_a_hit' peaks have been detected in the
-        # frame).
-        hit = (
-            self._min_num_peaks_for_hit <
-            len(peak_list.intensity) <
-            self._max_num_peaks_for_hit
-        )
+        hit = sum_detector > self._hit_threshold_detector_data
 
         # Store in the 'result_dict' dictionary the data that must be
         # sent to the master node.
         results_dict['timestamp'] = data['timestamp']
-        if not hit:
-            results_dict['peak_list'] = cryst_algs.PeakList([], [], [])
-        else:
-            results_dict['peak_list'] = peak_list
-        results_dict['saturation_flag'] = sat
         results_dict['hit_flag'] = hit
-        results_dict['detector_distance'] = data['detector_distance']
-        results_dict['beam_energy'] = data['beam_energy']
+        results_dict['sum_detector'] = sum_detector
         results_dict['native_data_shape'] = corr_det_data.shape
 
         # If the frame is a hit, and if the 'hit_sending_interval'
@@ -542,44 +366,36 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
         )
 
-        self._saturation_rate_run_wdw.append(
-            float(
-                results_dict['saturation_flag']
-                )
-        )
-        self._saturation_rate_run_wdw.popleft()
-        self._avg_hit_rate = (
+        avg_hit_rate = (
             sum(self._hit_rate_run_wdw) /
             self._run_avg_wdw_size
         )
 
-        self._avg_sat_rate = (
-            sum(self._saturation_rate_run_wdw) /
-            self._run_avg_wdw_size
-        )
+        # If intensity sum data can be found in the data received from
+        # the worker, accumulate it. When the data has been
+        # accumulated for the number of times requested in the
+        # configuration file, send the data to the GUI.
+        if 'sum_detector' in results_dict:
+            self._accumulated_sum_detector.append(results_dict['sum_detector'])
+            self._accumulated_hit_rate.append(avg_hit_rate)
+            if (
+                    len(self._accumulated_sum_detector) ==
+                    self._num_events_to_accumulate
+            ):
+                collected_data['accumulated_sum_detector'] = (
+                    self._accumulated_sum_detector
+                )
+                collected_data['accumulated_hit_rate'] = (
+                    self._accumulated_hit_rate
+                )
+                collected_data['timestamp'] = results_dict['timestamp']
 
-        # Add the detected peaks to the peak accumulator algorithm.
-        # If the peak accumulator algorithm returned some data (not
-        # None), the accumulator has been reset: add the returned data
-        # to the 'collected_data' dictionary and send the dictionary
-        # to the GUI.
-        collected_peaks = self._accumulator.accumulate_peaks(
-            results_dict['peak_list']
-        )
-        if collected_peaks is not None:
-            collected_data['peak_list'] = collected_peaks
-            collected_data['timestamp'] = results_dict['timestamp']
-            collected_data['hit_rate'] = self._avg_hit_rate
-            collected_data['saturation_rate'] = self._avg_sat_rate
-            collected_data['detector_distance'] = (
-                results_dict['detector_distance']
-            )
-            collected_data['beam_energy'] = results_dict['beam_energy']
-            collected_data['optimized_geometry'] = self._optimized_geometry
-            collected_data['native_data_shape'] = (
-                results_dict['native_data_shape']
-            )
-            self._zmq_pub_socket.send_data('ondadata', collected_data)
+                self._zmq_pub_socket.send_data(
+                    tag='ondadata',
+                    message=collected_data
+                )
+                self._accumulated_sum_detector = []
+                self._accumulated_hit_rate = []
 
         # If raw frame data can be found in the data received from a
         # worker node, it must be sent to the 'raw data' GUI: add it to
@@ -587,7 +403,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # to the 'raw data' GUI.
         if 'detector_data' in results_dict:
             collected_rawdata['detector_data'] = results_dict['detector_data']
-            collected_rawdata['peak_list'] = results_dict['peak_list']
             collected_rawdata['timestamp'] = results_dict['timestamp']
             self._zmq_pub_socket.send_data('ondarawdata', collected_rawdata)
 

@@ -44,7 +44,7 @@ except ImportError:
     from PyQt4 import QtCore
 
 
-class ZMQOndaPublisherSocket:
+class ZMQOndaPublisherSocket(object):
     """
     ZMQ socket to send data out to clients.
 

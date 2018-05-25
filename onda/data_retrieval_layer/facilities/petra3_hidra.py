@@ -40,7 +40,7 @@ Exports:
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from onda.data_retrieval_layer.components.frameworks import hidra
+from onda.data_retrieval_layer.facilities.frameworks import hidra
 
 
 ###########################################

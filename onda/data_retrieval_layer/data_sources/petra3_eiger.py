@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities to process Lambda detector data at the Petra III facility.
+Utilities to process Eiger detector data at the Petra III facility.
 
 Exports:
 
@@ -49,7 +49,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import collections
 
-from onda.data_retrieval_layer.components.file_formats import hdf5_files
+from onda.data_retrieval_layer.data_sources.file_formats import hdf5_files
 
 
 ###############
@@ -86,30 +86,30 @@ by the peakfinder8 algorithm to describe the format of theinput data.
 """
 
 
-#####################################
-#                                   #
-# PETRAIII-LAMBDA UTILITY FUNCTIONS #
-#                                   #
-#####################################
+####################################
+#                                  #
+# PETRAIII-EIGER UTILITY FUNCTIONS #
+#                                  #
+####################################
 
 def get_file_extensions():
     """
     Return allowed file extensions.
 
-    Return allowed file extensions for the Lambda detector.
+    Return allowed file extensions for the Eiger detector.
 
     Returns:
 
         tuple: a tuple containing the list of allowed file extensions.
     """
-    return (".h5", ".nxs")
+    return ('.nxs',)
 
 
 def get_peakfinder8_info():
     """
     Return peakfinder8 detector info.
 
-    Return the peakfinder8 information for the Lambda detector.
+    Return the peakfinder8 information for the Eiger detector.
 
     Returns:
 
@@ -119,11 +119,11 @@ def get_peakfinder8_info():
     return Peakfinder8DetInfo(1556, 516, 1, 1)
 
 
-############################################
-#                                          #
-# PETRAIII-LAMBDA EVENT HANDLING FUNCTIONS #
-#                                          #
-############################################
+##########################################
+#                                         #
+# PETRAIII-EIGER EVENT HANDLING FUNCTIONS #
+#                                         #
+###########################################
 
 open_event = hdf5_files.open_event  # pylint: disable=C0103
 
@@ -142,19 +142,22 @@ def get_num_frames_in_event(event):
 
         event (Dict): a dictionary with the event data.
 
+        data_hdf5_path: internal HDF5 path of the data block containing
+            the detector data.
+
     Retuns:
 
         int: the number of frames in an event (usually corresponding to
         a file).
     """
-    return event['data']['/entry/instrument/detector/data'].shape[0]
+    return event['data']['/entry/data/data'].shape[0]
 
 
-#############################################
-#                                           #
-# PETRAIII-LAMBDA DATA EXTRACTION FUNCTIONS #
-#                                           #
-#############################################
+############################################
+#                                          #
+# PETRAIII-EIGER DATA EXTRACTION FUNCTIONS #
+#                                          #
+############################################
 
 def detector_data(event):
     """
@@ -171,8 +174,7 @@ def detector_data(event):
 
         ndarray: the raw detector data for one frame.
     """
-    data_block = event['/data']['/entry/instrument/detector/data']
-    return data_block[data_block.shape[0] + event['metadata']['frame_offset']]
+    return event['/data']['/entry/data/data'].shape[0]
 
 
 def filename_and_frame_index(event):
@@ -195,7 +197,7 @@ def filename_and_frame_index(event):
     return FilenameAndFrameIndex(
         event['metadata']['full_path'],
         (
-            event['/data']['/entry/instrument/detector/data'].shape[0] +
+            event['/data']['/entry/data/data'].shape[0] +
             event['metadata']['frame_offset']
         )
     )

@@ -217,7 +217,7 @@ class Peakfinder8PeakDetection(object):
 # PEAK ACCUMULATOR #
 ####################
 
-class PeakAccumulator:
+class PeakAccumulator(object):
     """
     Accumulate peak information for susequent bulk retrieval.
 

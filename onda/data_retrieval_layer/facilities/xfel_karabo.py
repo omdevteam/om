@@ -38,7 +38,7 @@ Exports:
         EventFilter (class): filter and reject events.
 """
 
-from onda.data_retrieval_layer.components.frameworks import karabo
+from onda.data_retrieval_layer.facilities.frameworks import karabo
 
 
 ########################################

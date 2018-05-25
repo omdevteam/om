@@ -61,7 +61,6 @@ class OndaGui(QtGui.QMainWindow):
     def __init__(self,
                  pub_hostname,
                  pub_port,
-                 gui_init_func,
                  gui_update_func,
                  subscription_string):
         """
@@ -85,12 +84,11 @@ class OndaGui(QtGui.QMainWindow):
         """
         super(OndaGui, self).__init__()
 
-        # Call the function to initialize the GUI.
-        gui_init_func()
-
         # Create the attribute that will store the data received from
         # the ZMQ listener.
         self.data = None
+
+        self.listening = False
 
         # Create and initialize the ZMQ listening thread.
         self._zeromq_listener_thread = QtCore.QThread()
@@ -110,7 +108,7 @@ class OndaGui(QtGui.QMainWindow):
             self._zeromq_listener_thread
         )
         self._zeromq_listener_thread.start()
-        self._listening_thread_start_processing.emit()
+        self.start_listening()
 
         # Store the function to initialize the GUI in an attribute.
         # Then set and start the timer that will call the update
@@ -119,6 +117,16 @@ class OndaGui(QtGui.QMainWindow):
         self._refresh_timer = QtCore.QTimer()
         self._refresh_timer.timeout.connect(self._gui_update_func)
         self._refresh_timer.start(500)
+
+    def start_listening(self):
+        if not self.listening:
+            self.listening = True
+            self._listening_thread_start_processing.emit()
+
+    def stop_listening(self):
+        if self.listening:
+            self.listening = False
+            self._listening_thread_stop_processing.emit()
 
     def _data_received(self,
                        datdict):

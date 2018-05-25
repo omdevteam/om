@@ -57,9 +57,9 @@ class CrystallographyGui(gui.OndaGui):
         # layout described by the geometry, to be used when creating
         # the image widget. Compute then the indexes of the center of
         # the image in this array.
-        pixel_maps = geometry_utils.compute_pixel_maps(geometry)
+        pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
-        self._img_shape = geometry_utils.compute_minimum_array_size(
+        self._img_shape = geometry_utils.compute_min_array_size(
             pixel_maps
         )
 
@@ -72,7 +72,7 @@ class CrystallographyGui(gui.OndaGui):
             self._img_shape[1] / 2
         )
 
-        pg_pixel_maps = geometry_utils.adjust_pixel_maps_for_pyqtgraph(
+        pg_pixel_maps = geometry_utils.compute_visualization_pix_maps(
             pixel_maps
         )
         self._pg_pixel_map_x = pg_pixel_maps.x.flatten()

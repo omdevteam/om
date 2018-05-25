@@ -81,7 +81,7 @@ from builtins import str  # pylint: disable=W0622
 import numpy
 
 import psana  # pylint: disable=E0401
-from onda.data_retrieval_layer.components.frameworks import psana as onda_psana
+from onda.data_retrieval_layer.facilities.frameworks import psana as onda_psana
 
 
 def _psana_offline_event_generator(psana_source,

@@ -94,7 +94,8 @@ class MissingDataExtractionFunction(OndaException):
     """
     pass
 
-class  MissingPsanaInitializationFunction(OndaException):
+
+class MissingPsanaInitializationFunction(OndaException):
     """
     Psana Detector interface initialization function not defined.
 

@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities to process Eiger detector data at the Petra III facility.
+Utilities to process Pilatus detector data from files.
 
 Exports:
 
@@ -49,7 +49,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import collections
 
-from onda.data_retrieval_layer.components.file_formats import hdf5_files
+from onda.data_retrieval_layer.data_sources.file_formats import cbf_files
 
 
 ###############
@@ -86,85 +86,82 @@ by the peakfinder8 algorithm to describe the format of theinput data.
 """
 
 
-####################################
-#                                  #
-# PETRAIII-EIGER UTILITY FUNCTIONS #
-#                                  #
-####################################
+###################################
+#                                 #
+# FILES-PILATUS UTILITY FUNCTIONS #
+#                                 #
+###################################
 
 def get_file_extensions():
     """
     Return allowed file extensions.
 
-    Return allowed file extensions for the Eiger detector.
+    Return allowed file extensions for the Lmabda detector.
 
     Returns:
 
         tuple: a tuple containing the list of allowed file extensions.
     """
-    return ('.nxs',)
+    return (".cbf",)
 
 
 def get_peakfinder8_info():
     """
     Return peakfinder8 detector info.
 
-    Return the peakfinder8 information for the Eiger detector.
+    Return the peakfinder8 information for the Lambda detector.
 
     Returns:
 
-       Peakfinder8DetInfo: the peakfinder8-related detector
-       information.
+        Peakfinder8DetInfo: the peakfinder8-related detector
+        information.
     """
-    return Peakfinder8DetInfo(1556, 516, 1, 1)
+    return Peakfinder8DetInfo(2463, 2527, 1, 1)
 
 
 ##########################################
-#                                         #
-# PETRAIII-EIGER EVENT HANDLING FUNCTIONS #
-#                                         #
-###########################################
+#                                        #
+# FILES-PILATUS EVENT HANDLING FUNCTIONS #
+#                                        #
+##########################################
 
-open_event = hdf5_files.open_event  # pylint: disable=C0103
-
-
-close_event = hdf5_files.close_event  # pylint: disable=C0103
+open_event = cbf_files.open_event  # pylint: disable=C0103
 
 
-def get_num_frames_in_event(event):
+close_event = cbf_files.close_event  # pylint: disable=C0103
+
+
+def get_num_frames_in_event(_):
     """
     The number of frames in the file.
 
-    Return the number of frames in a file (the length of the first axis
-    of the 3d data block where the detector data is stored).
+    Return the number of frames in a file (cbf files usually contain
+    one frame per file).
 
     Args:
 
         event (Dict): a dictionary with the event data.
 
-        data_hdf5_path: internal HDF5 path of the data block containing
-            the detector data.
-
-    Retuns:
+    Returns:
 
         int: the number of frames in an event (usually corresponding to
         a file).
     """
-    return event['data']['/entry/data/data'].shape[0]
+    return 1
 
 
-############################################
-#                                          #
-# PETRAIII-EIGER DATA EXTRACTION FUNCTIONS #
-#                                          #
-############################################
+###########################################
+#                                         #
+# FILES-PILATUS DATA EXTRACTION FUNCTIONS #
+#                                         #
+###########################################
 
 def detector_data(event):
     """
     Recover raw detector data for one frame.
 
-    Return the detector data for one single frame (a 'slice' of the 3d
-    data block where the detector data is stored).
+    Return the detector data for one single frame (the data from the
+    fabio cbf_obj object contained in the input dictionary).
 
     Args:
 
@@ -174,7 +171,7 @@ def detector_data(event):
 
         ndarray: the raw detector data for one frame.
     """
-    return event['/data']['/entry/data/data'].shape[0]
+    return event['data'].data
 
 
 def filename_and_frame_index(event):
@@ -182,7 +179,8 @@ def filename_and_frame_index(event):
     The filename and frame index for the frame being processed.
 
     Return the name of the file where the frame being processed is
-    stored, and the index of the frame within the file.
+    stored, and the index of the frame within the file (which is
+    always 0, as Pilatus files usually contain just one file).
 
     Args:
 
@@ -194,10 +192,4 @@ def filename_and_frame_index(event):
         current frame, and the index of the frame in the data block
         containing the detector data.
     """
-    return FilenameAndFrameIndex(
-        event['metadata']['full_path'],
-        (
-            event['/data']['/entry/data/data'].shape[0] +
-            event['metadata']['frame_offset']
-        )
-    )
+    return FilenameAndFrameIndex(event['metadata']['full_path'], 0)
