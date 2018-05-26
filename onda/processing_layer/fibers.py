@@ -310,6 +310,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # Store in the 'result_dict' dictionary the data that must be
         # sent to the master node.
         results_dict['timestamp'] = data['timestamp']
+        results_dict['detector_distance'] = data['detector_distance']
+        results_dict['beam_energy'] = data['beam_energy']
         results_dict['hit_flag'] = hit
         results_dict['sum_detector'] = sum_detector
         results_dict['native_data_shape'] = corr_det_data.shape
@@ -404,6 +406,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
         if 'detector_data' in results_dict:
             collected_rawdata['detector_data'] = results_dict['detector_data']
             collected_rawdata['timestamp'] = results_dict['timestamp']
+            collected_data['detector_distance'] = results_dict['detector_distance']
+            collected_data['beam_energy'] = results_dict['collected_data']
             self._zmq_pub_socket.send_data('ondarawdata', collected_rawdata)
 
         # If the 'speed_report_interval' attribute says that the
