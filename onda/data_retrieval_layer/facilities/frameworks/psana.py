@@ -36,8 +36,8 @@ from builtins import str  # pylint: disable=W0622
 
 import numpy
 from future.utils import iteritems
-
 import psana  # pylint: disable=E0401
+
 from onda.utils import dynamic_import
 
 

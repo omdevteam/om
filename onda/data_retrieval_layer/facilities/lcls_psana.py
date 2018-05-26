@@ -79,8 +79,9 @@ from __future__ import (absolute_import, division, print_function,
 from builtins import str  # pylint: disable=W0622
 
 import numpy
-
 import psana  # pylint: disable=E0401
+import scipy.constants
+
 from onda.data_retrieval_layer.facilities.frameworks import psana as onda_psana
 
 
@@ -352,9 +353,11 @@ def detector_distance(event):
 
     Returns:
 
-        float: the distance between the detector and the sample in mm.
+        float: the distance between the detector and the sample.
     """
-    return event['psana_interface']['detector_distance']()
+    # Recover the detector distance. It is in mm, so divide it by
+    # a thousand to convert it to SI (m).
+    return event['psana_interface']['detector_distance']()/1000.0
 
 
 def beam_energy(event):
@@ -371,9 +374,11 @@ def beam_energy(event):
 
         float: the energy of the beam in eV.
     """
+    # Recover the detector distance. It is in mm, so multiply it by
+    # e convert it to SI (m).
     return event['psana_interface']['beam_energy'].get(
         event['psana_event']
-    ).ebeamPhotonEnergy()
+    ).ebeamPhotonEnergy() * scipy.constants.e
 
 
 def timetool_data(event):
