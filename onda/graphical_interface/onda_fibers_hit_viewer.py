@@ -119,7 +119,11 @@ class FibersHitViewer(gui.OndaGui):
             self.data = None
             self._current_frame_index = len(self._frame_list)-1
 
-        data = self._frame_list[self._current_frame_index]
+        try:
+            data = self._frame_list[self._current_frame_index]
+        except IndexError:
+            # The frame list is empty! Return without drawing anything.
+            return
 
         self._img[
             self._pixel_map_y,
