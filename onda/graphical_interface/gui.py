@@ -53,6 +53,9 @@ class OndaGui(QtGui.QMainWindow):
 
         data (Dict): dictionary containing the last data received
             from the OnDA monitor.
+
+        listening (bool): bool attribute indicating if the GUI is
+            listening for data from the OnDA monitor.
     """
     _listening_thread_start_processing = QtCore.pyqtSignal()
     _listening_thread_stop_processing = QtCore.pyqtSignal()
@@ -119,11 +122,22 @@ class OndaGui(QtGui.QMainWindow):
         self._refresh_timer.start(500)
 
     def start_listening(self):
+        """
+        Start listening for data from the OnDA monitor.
+
+        Connect to a PUB socket with the subscription string specified
+        when the class was instantiated.
+        """
         if not self.listening:
             self.listening = True
             self._listening_thread_start_processing.emit()
 
     def stop_listening(self):
+        """
+        Stop listening for data from the OnDA monitor.
+
+        Disconnect from the PUB socket.
+        """
         if self.listening:
             self.listening = False
             self._listening_thread_stop_processing.emit()

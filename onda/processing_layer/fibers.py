@@ -37,6 +37,17 @@ from onda.utils import zmq as onda_zmq
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
+    """
+    An OnDA online monitor for fiber diffraction experiments.
+
+    A monitor for x-ray fiber diffraction experiments. Ususe a simple
+    hit detection mechanism based on the intensity of the signal on
+    a x-ray detector. Provides real time hit rate information, plus
+    real time information on the total intensity observed on the
+    detector. In addition to the normal GUI, an additional viewer,
+    which shows raw detecor data for a selection of the processed
+    frames, is also supported.
+    """
     def __init__(self,
                  source,
                  monitor_parameters):
@@ -406,8 +417,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
         if 'detector_data' in results_dict:
             collected_rawdata['detector_data'] = results_dict['detector_data']
             collected_rawdata['timestamp'] = results_dict['timestamp']
-            collected_data['detector_distance'] = results_dict['detector_distance']
-            collected_data['beam_energy'] = results_dict['collected_data']
             self._zmq_pub_socket.send_data('ondarawdata', collected_rawdata)
 
         # If the 'speed_report_interval' attribute says that the

@@ -13,6 +13,15 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+"""
+GUI for OnDA Crystallography.
+
+Exports:
+
+    Classes:
+
+        FibersGui: a class implementing the OnDA Fibers GUI.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -31,11 +40,28 @@ except ImportError:
 
 
 class FibersGui(gui.OndaGui):
+    """
+    GUI for OnDA Fibers.
+
+    A GUI for OnDA Fibers. Displays real-time hit rate information plus
+    information on the total intensity recorded on the x-ray detector.
+    Receives data sent by the OnDA monitor when they are tagged with
+    the 'ondadata' tag.
+    """
 
     def __init__(self,
                  pub_hostname,
                  pub_port):
+        """
+        Initialize the OnDAFIbers class.
 
+        Args:
+
+            pub_hostname (str): hostname or IP address of the host
+                where OnDA is running.
+
+            pub_hostname (int): port of the OnDA monitor's PUB socket.
+        """
         # Call the parent's constructor.
         super(FibersGui, self).__init__(
             pub_hostname=pub_hostname,
@@ -99,7 +125,7 @@ class FibersGui(gui.OndaGui):
         # Initialize the detector intensity plot widget
         self._sum_detector_plot_widget = pyqtgraph.PlotWidget()
         self._sum_detector_plot_widget.setTitle(
-            'Fraction of hits with too many saturated peaks'
+            'Intensity On Detector vs. Events'
         )
 
         self._sum_detector_plot_widget.setLabel(
@@ -109,7 +135,7 @@ class FibersGui(gui.OndaGui):
 
         self._sum_detector_plot_widget.setLabel(
             axis='left',
-            text='Saturation rate'
+            text='Num pixels above threshold'
         )
 
         self._sum_detector_plot_widget.showGrid(
@@ -129,12 +155,6 @@ class FibersGui(gui.OndaGui):
         self._reset_plots_button = QtGui.QPushButton()
         self._reset_plots_button.setText("Reset Plots")
 
-        # Initialize and fill the vertical layout.
-        self._vertical_layout = QtGui.QVBoxLayout()
-        self._vertical_layout.addWidget(self._hit_rate_plot_widget)
-        self._vertical_layout.addWidget(self._sum_detector_plot_widget)
-        self._vertical_layout.addWidget(self._reset_plots_button)
-
         # Connect signals for the 'peaks' and 'plots' buttons.
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
@@ -146,6 +166,12 @@ class FibersGui(gui.OndaGui):
             slot=self._mouse_clicked
         )
 
+        # Initialize and fill the layouts.
+        self._vertical_layout = QtGui.QVBoxLayout()
+        self._vertical_layout.addWidget(self._hit_rate_plot_widget)
+        self._vertical_layout.addWidget(self._sum_detector_plot_widget)
+        self._vertical_layout.addWidget(self._reset_plots_button)
+
         # Initialize the central widget for the main window.
         self._central_widget = QtGui.QWidget()
         self._central_widget.setLayout(self._vertical_layout)
@@ -155,10 +181,11 @@ class FibersGui(gui.OndaGui):
 
     def _mouse_clicked(self,
                        mouse_evt):
-        mouse_pos_in_scene = mouse_evt[0].scenePos()
+        # Manage mouse events.
 
         # Check if the click of the mouse happens in the hit rate plot
         # widget
+        mouse_pos_in_scene = mouse_evt[0].scenePos()
         if (
                 self
                 ._hit_rate_plot_widget
@@ -166,11 +193,12 @@ class FibersGui(gui.OndaGui):
                 .contains(mouse_pos_in_scene)
         ):
             if mouse_evt[0].button() == QtCore.Qt.MiddleButton:
-                # If the mouse click takes place in a plot widgets and
-                # the middle button was clicked, check if a vertical
-                # line exists already in the vicinity of the click. If
-                # it does, remove it. If it does not, add the vertical
-                # line to the plot in the place where the user clicked.
+                # If the mouse click takes place in the hit rate plot
+                # widget and the middle button was clicked, check if a
+                # vertical line exists already in the vicinity of the
+                # click. If it does, remove it. If it does not, add the
+                # vertical line to the plot in the place where the user
+                # clicked.
                 mouse_x_pos_in_data = (
                     self
                     ._hit_rate_plot_widget
@@ -202,6 +230,8 @@ class FibersGui(gui.OndaGui):
                 )
 
     def _reset_plots(self):
+        # Reset the plots.
+
         # Reset the hit and saturation data history and plot widgets.
         self._hit_rate_history = collections.deque(
             10000 * [0.0],
@@ -215,6 +245,8 @@ class FibersGui(gui.OndaGui):
         self._sum_detector_plot.setData(self._satrate_history)
 
     def _update_plots(self):
+        # Update the elements of the GUI.
+
         # If data has been received, move them to a new attribute and
         # reset the 'data' attribute. Do this so that you know when new
         # data has been received simply by checking if the 'data'
@@ -254,8 +286,16 @@ class FibersGui(gui.OndaGui):
 
 
 def main():
+    """
+    Start the GUI for OnDA Fibers,
+
+    Initialize and start the GUI for OnDA Fibers. Manage command line
+    arguments and instantiate the graphical interface.
+    """
+    # Catch signals.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    app = QtGui.QApplication(sys.argv)
+
+    # Manage command line arguments.
     if len(sys.argv) == 1:
         rec_ip = '127.0.0.1'
         rec_port = 12321
@@ -268,6 +308,8 @@ def main():
         )
         sys.exit()
 
+    # Instantiate the Qt application.
+    app = QtGui.QApplication(sys.argv)
     _ = FibersGui(rec_ip, rec_port)
     sys.exit(app.exec_())
 
