@@ -1,0 +1,56 @@
+#    This file is part of OnDA.
+#
+#    OnDA is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    OnDA is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+"""
+Utilities to manipulate HDF5 files.
+
+This module implements several functions used to manipulate HDF5 files.
+"""
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
+import h5py
+
+
+def open_event(event):
+    """
+    Open event.
+
+    Open the event and make the content of the event available in the
+    'data' entry of the event dictionary.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+    """
+    # Open the file using the h5py library. Store the file handle in
+    # the 'data' entry of the event dictionary.
+    event['data'] = h5py.File(
+        name=event['metadata']['full_path'],
+        mode='r'
+    )
+
+
+def close_event(event):
+    """
+    Close event.
+
+    Close event.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+    """
+    # Close the file handle stored in the event dictionary.
+    event['data'].close()

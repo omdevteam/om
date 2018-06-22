@@ -15,15 +15,13 @@
 """
 Algorithms for detector calibration.
 
-Exports:
-
-    Classes:
-
-        SingleModuleLambdaCalibration: calibration of a single module
-            lambda detector (flatfield correction).
+This module contains the implementation of algorithms for detector
+calibration (i.e.: all the corrections and ajustments that need to
+be applied to the detector *before* looking at the data)
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+
 import h5py
 from future.utils import raise_from
 
@@ -47,13 +45,16 @@ class SingleModuleLambdaCalibration(object):
         Args:
 
             calibration_filename (str): name of an HDF5 file with the
-                calibration data. The file must store the flatfield
-                data for the module in the '/flatfield' data entry.
+                calibration data. The file must contain the flatfield
+                data for the module in an entry called '/flatfield'.
         """
         # Load the flatfield information from the file and store it in
         # an attribute.
         try:
-            with h5py.File(name=calibration_filename, mode='r') as fhandle:
+            with h5py.File(
+                name=calibration_filename,
+                mode='r'
+            ) as fhandle:
                 self._flatfield = fhandle['/flatfield']
         except OSError:
             raise_from(

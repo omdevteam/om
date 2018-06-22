@@ -13,18 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Generic algorithms for common data processing tasks.
+Generic algorithms.
 
-Exports:
-
-    Classes:
-
-        DarkCalCorrection: dark calibration correction.
-
-        RawDataAveraging: accumulation and averaging of detector
-            frame data.
-
-        FindMinimaInWaveform: peakfinding on 1d waveform data.
+This module contains the implementation of several generic algorithms
+for the processing of detector data (dark calibration correction,
+data averaging, etc.).
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -43,9 +36,8 @@ class DarkCalCorrection(object):
     """
     Apply dark calibration correction.
 
-    Apply dark calibration correction on detector frame data. Subtract
-    the dark calibration data from the data. Optionally, apply a mask
-    and a gain map.
+    Apply dark calibration correction on detector frame data.
+    Optionally, apply a mask and a gain map.
     """
 
     def __init__(self,
@@ -92,7 +84,10 @@ class DarkCalCorrection(object):
         # Load the dark calibration data from the file and store it in
         # an attribute.
         try:
-            with h5py.File(name=darkcal_filename, mode='r') as fhandle:
+            with h5py.File(
+                name=darkcal_filename,
+                mode='r'
+            ) as fhandle:
                 self._darkcal = fhandle[darkcal_hdf5_path][:]
         except OSError:
             raise_from(
@@ -109,7 +104,10 @@ class DarkCalCorrection(object):
         # the attribute to True (equivalent to an all-ones mask).
         if mask_filename:
             try:
-                with h5py.File(name=mask_filename, mode='r') as fhandle:
+                with h5py.File(
+                    name=mask_filename,
+                    mode='r'
+                ) as fhandle:
                     self._darkcal = fhandle[mask_hdf5_path]
             except OSError:
                 raise_from(
@@ -126,10 +124,13 @@ class DarkCalCorrection(object):
         # If the gain_map_filename argument is not None, load the gain
         # map data from the file and store it in an attribute.
         # Otherwise, set the attribute to True (equivalent to an
-        # all-ones map).
+        # all-ones gain map).
         if gain_map_filename:
             try:
-                with h5py.File(name=gain_map_filename, mode='r') as fhandle:
+                with h5py.File(
+                    name=gain_map_filename,
+                    mode='r'
+                ) as fhandle:
                     self._gain_map = fhandle[gain_map_hdf5_path]
             except OSError:
                 raise_from(
@@ -148,8 +149,8 @@ class DarkCalCorrection(object):
         """
         Apply the correction.
 
-        Apply the dark calibration correction. Optionally apply the
-        user-provided mask and gain map.
+        Apply the dark calibration correction. Optionally, also apply
+        the user-provided mask and gain map.
 
         Args:
 
@@ -161,6 +162,10 @@ class DarkCalCorrection(object):
             ndarray: the corrected data.
 
         """
+        # Apply the corrections in the following order:
+        #  - multiply the data by the mask
+        #  - subtract the darkcal
+        #  - multiply the result with the gain map
         return (data * self._mask - self._darkcal) * self._gain_map
 
 
@@ -172,10 +177,10 @@ class RawDataAveraging(object):
     """
     Accumulate and average detector frame data.
 
-    Accumulate detector frame data (in 'slab' format) until a
-    predefined number of data entries has been added to the
-    accumulator, then return the average of the accumulated data and
-    empty the accumulator.
+    Accumulate detector frame data (in 'slab' format) until the
+    accumulator is full (i.e.: a predefined number of data entries has
+    been added to the accumulator, then return the average of the
+    accumulated data and empty the accumulator.
     """
 
     def __init__(self,
@@ -186,12 +191,12 @@ class RawDataAveraging(object):
 
         Args:
 
-            num_events_to_accumulate (int): the number raw detector
+            num_events_to_accumulate (int): the number of raw detector
                 data items to accumulate before returning the average
-                data.
+                of the accumulated data.
 
             slab_shape (tuple): numpy shape-like tuple describing the
-                size of the data that will accumulated.
+                size of the data that will go in the accumulator.
         """
         # Store some arguments as attributes.
         self._n_events_to_accumulate = num_events_to_accumulate
@@ -207,9 +212,8 @@ class RawDataAveraging(object):
         Add raw detector_data.
 
         Add the provided raw detector data to the accumulator. If the
-        predefined number of entries has been added to the accumulator,
-        return the average of the accumulated data and empty the
-        accumulator, otherwise return None.
+        accumulator is full, return the average of the
+        accumulated data and empty the accumulator.
 
         Args:
 
@@ -219,25 +223,27 @@ class RawDataAveraging(object):
         Returns:
 
             Union[ndarray, None]: the average of the accumulated data
-            if the predefined number of data entries has been reached,
-            None otherwise.
+            if the accumulator is full, None otherwise.
         """
         # Add the data provided by the user to the interal array,
-        # already normalizing it in the process. Then update the
-        # internal counter.
+        # already normalizing it in the process.
         self._avg_raw_data += (data / self._n_events_to_accumulate)
+
+        # Update the internal counter.
         self._num_raw_data += 1
 
         # Check if the internal counter reached the number of additions
-        # specified by the user. If it did, copy the averaged data to a
-        # new array to return them, and reset the internal array,
-        # otherwise return none.
+        # specified by the user.
         if self._num_raw_data == self._n_events_to_accumulate:
+
+            # If it did, copy the averaged data to a new array to
+            # return them, and reset the internal array,
             data_to_be_returned = self._avg_raw_data.copy()
             self._num_raw_data = 0
             self._avg_raw_data.fill(0)
             return data_to_be_returned
 
+        # Otherwise return none.
         return None
 
 
@@ -249,10 +255,9 @@ class FindMinimaInWaveforms(object):
     """
     Find minima in waveforms.
 
-    Perform peak finding on 1d waveform data where the signal has a
-    negative sign. Peaks are defined as local minima of the waveform.
-    Apply a moving-window smoothing function to the data before the
-    peak finding.
+    Perform peak finding on 1d waveform data, after applying a
+    moving-window smoothing function. The waveform signal is expected
+    to have a negative sign, and peaks are minima in the waveform.
     """
 
     def __init__(self,
@@ -270,8 +275,8 @@ class FindMinimaInWaveforms(object):
                 detected minimum to be considered a peak.
 
             estimated_noise_width (int): the width (in pixel) of the
-                moving-window smoothing function that will be applied
-                to the data before the peak detection.
+                moving-window smoothing function that will applied
+                to the data before peak detection.
 
             minimum_peak_width (int): minimum width of a peak (in
                 number of data points). All minima found within the
@@ -321,16 +326,18 @@ class FindMinimaInWaveforms(object):
         """
 
         if self._background_subtraction is True:
+
             # If the background subtraction was requested, create an
-            # index array for the data, then slice both the data and
-            # the index array according to the step size.
+            # index array for the data.
             index = numpy.arange(data.shape[0])
+
+            # Slice both the data and the index array according to the
+            # step size.
             sliced_data = data[::self._backgr_filter_step]
             sliced_index = index[::self._backgr_filter_step]
 
-            # Call the median filter function, then interpolate the
-            # filtered data. Finally subtract the filtered data from
-            # the data.
+            # Apply the median filter, then interpolate the filtered
+            # data.
             sliced_data = median_filter(
                 input=sliced_data,
                 size=self._backgr_filter_win_size
@@ -342,8 +349,10 @@ class FindMinimaInWaveforms(object):
                 fp=sliced_data
             )
 
+            # Finally subtract the filtered data from the data.
             bck_subtr_data = data - interpolated_data
         else:
+
             # If the background subtraction was not requested, just
             # make a copy of the data for further processing.
             bck_subtr_data = data.copy()
@@ -355,10 +364,11 @@ class FindMinimaInWaveforms(object):
             mode='same'
         )
 
-        # Compute first and second derivative of the smoothed data,
-        # then use the zeros in the derivatives to detect peaks.
+        # Compute first and second derivative of the smoothed data.
         d_smooth_data = numpy.gradient(smooth_data)
         dd_smooth_data = numpy.gradient(d_smooth_data)
+
+        # Use the zeros in the derivatives to detect peaks.
         peak_locations = numpy.where(
             (
                 numpy.diff(numpy.sign(d_smooth_data)) > 0
@@ -377,14 +387,18 @@ class FindMinimaInWaveforms(object):
 
         # Remove peaks that are too close. For each group of peaks that
         # lie too close to each other, take the peak with the strongest
-        # negative strength. In order to do this, create a flag that
-        # records if any peak that lies to close to another one has
-        # been found. Set this flag initially to True until the
-        # condition has been proven false.
+        # negative strength.
+
+        # In order to do this, create a flag that records if any peak
+        # that lies to close to another one has been found. Set this
+        # flag initially to True until the condition has been proven
+        # false.
         any_too_close = True
         while any_too_close is True:
-            any_too_close = False
+
+            # Create a temporary list to hold the detected peaks.
             temp_peak_list = []
+
             for p_index, p_position in enumerate(peak_list):
 
                 # Create an internal list of peak values.
@@ -394,10 +408,11 @@ class FindMinimaInWaveforms(object):
 
                     # If the current peak is not the first one, compute
                     # the distance between the current peak and the
-                    # previous one. If the peaks are too close, append
-                    # to the internal list the value of the previous
-                    # peak.
+                    # previous one.
                     p_dist_prev = p_position - peak_list[p_index - 1]
+
+                    # If the peaks are too close, append to the
+                    # internal list the value of the previous peak.
                     if p_dist_prev < self._minimum_peak_width:
                         internal_pl.append(
                             smooth_data[peak_list[p_index - 1]]
@@ -407,28 +422,39 @@ class FindMinimaInWaveforms(object):
 
                     # If the current peak is not the last one, compute
                     # the distance between the current peak and the
-                    # next one. If the peaks are too close, append to
-                    # the internal list the value of the next peak.
+                    # next one.
                     p_dist_next = peak_list[p_index + 1] - p_position
+
+                    # If the peaks are too close, append to the
+                    # internal list the value of the next peak.
                     if p_dist_next < self._minimum_peak_width:
                         internal_pl.append(
                             smooth_data[peak_list[p_index + 1]]
                         )
 
-                # If the value of the current peak is lower than all
-                # the values of the peaks that surround it, add the
-                # peak to the new peak list. If not, another passage of
-                # the while loop is required, so set the any_too_close
-                # flag to True.
                 if numpy.all(
                         [smooth_data[p_position] < v for v in internal_pl]
                 ):
+
+                    # If the value of the current peak is lower than
+                    # all the values of the peaks that surround it, add
+                    # the peak to the temporary list of detected peaks.
                     temp_peak_list.append(p_position)
+
+                    # Set the any_to_close flag to False to exit the
+                    # loop.
+                    any_too_close = False
                 else:
+
+                    # If not, another passage of the while loop is
+                    # required ro remove the dedundant peaks,
+                    # so set the any_too_close flag to True.
                     any_too_close = True
 
-            # Set the new peak list as the peak list to be used in the
-            # next iteration of the 'while' loop.
+            # Set the list of the detected peaks (used in the next
+            # iteration of the 'while' loop) to the current temporary
+            # list of the detected peaks.
             peak_list = list(temp_peak_list)
 
+        # Return the list of detected peaks.
         return peak_list

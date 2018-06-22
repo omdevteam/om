@@ -15,39 +15,8 @@
 """
 OnDA-specific exceptions and exception handler.
 
-Exports:
-
-    Functions:
-
-        onda_exception_handler: custom OnDA excpetion handler.
-
-    Classes:
-
-        OndaException: base OnDA exception.
-
-        HidraAPIError: error in the HiDRA API.
-
-        MissingEventHandlingFunction: non-defined eventhandling
-            function.
-
-        MissingDataExtractionFunction: non-defined data extraction
-            function.
-
-        MissingPsanaInitializationFunction: non-defined psana Detector
-            interface initialization function.
-
-        MissingFile: required file missing.
-
-        MissingParameterFileSection: section missing in the
-            configuration file.
-
-        MissingParameter(OndaException): parameter missing in the
-            configuration file.
-
-        WrongParameterType: type of a parameter does not match the
-            requested type.
-
-        DataExtractionError: error during data extraction.
+This module contains the implementation of several OnDA specific
+exceptions, plus a custom exception handler.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -97,9 +66,9 @@ class MissingDataExtractionFunction(OndaException):
 
 class MissingPsanaInitializationFunction(OndaException):
     """
-    Psana Detector interface initialization function not defined.
+    Psana detector interface initialization function not defined.
 
-    One of the requested psana Detector interface initialization
+    One of the requested psana detector interface initialization
     functions is not defined.
     """
     pass
@@ -127,7 +96,8 @@ class WrongParameterType(OndaException):
     """
     Wrong parameter type.
 
-    Parameter type does not match requested type.
+    Parameter type in the configuration file does not match the
+    requested type.
     """
     pass
 
@@ -141,16 +111,42 @@ class DataExtractionError(OndaException):
     pass
 
 
+class DataNotAvailable(OndaException):
+    """
+    Data not available.
+
+    Data not available at the current facility or with the currently
+    used detectors and instruments.
+    """
+
+
+class InvalidSource(OndaException):
+    """
+    Invalid source.
+
+    The format of the source string is not valid.
+    """
+
+
 def onda_exception_handler(type_, value, traceback):
     """
     Custom OnDA exception handler.
 
-    Custom handler for OnDA. Add a label and hide the stracktrace for
-    OnDA exceptions. Report all other exceptions normally.
+    Custom handler for OnDA, not to be called directly, but to be
+    used as a replacement for the standard exception handler. Add a
+    label and hide the stracktrace for all OnDA exceptions. Report all
+    other exceptions normally.
 
     Args:
+
+        type_ (type): exception type.
+
+        value (str): exception value (the message that comes with
+            the exception).
+
+        traceback (traceback): traceback to be printed.
     """
-    if issubclass(type, OndaException):
+    if issubclass(type_, OndaException):
         print('')
         print('>>>>> OnDA ERROR: {0} <<<<<'.format(value))
         print('')
@@ -160,3 +156,4 @@ def onda_exception_handler(type_, value, traceback):
         sys.stdout.flush()
         sys.stderr.flush()
         MPI.COMM_WORLD.Abort(0)
+        exit(0)

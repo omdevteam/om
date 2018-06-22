@@ -15,67 +15,17 @@
 """
 Algorithms for the processing of photofragmentation data.
 
-Exports:
-
-    Nametuples:
-
-        QuadVmiPeaks: a set of quad-VMI detector peaks.
-
-        VmiCoords: spatial coordinates of a VMI detector hit.
-
-        VmiHit: VMI detector hit information.
-
-    Classes:
-
-        DelaylineDetectorAnalysis: processing of delay-line VMI
-            detector data
+This module contains the implementation of several algorithms used
+in the processing of photofragmentation data. These algorithms have
+been developed for the monitoring of Controlled Molecule Imaging (CMI)
+experiments.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from collections import namedtuple
-
 import numpy
 
-
-QuadVmiPeaks = namedtuple(
-    typename='QuadVMIPeaks',
-    field_names=['x_1', 'x_2', 'y_1', 'y_2']
-)
-"""
-VMI peaks from a quad-type detector.
-
-A namedtuple that stores a set of peaks detected on a quad-type VMI
-detector. Each of the four fields, named respectively 'x_1', 'x_2',
-'y_1' and 'y_2', stores the location of a peak detected on the detector
-wire that has the same name as the field.
-"""
-
-VmiCoords = namedtuple(
-    typename='Coords',
-    field_names=['x', 'y']
-)
-"""
-Spatial coordinates of a VMI detector hit.
-
-A namedtuple that stores in its two fields ('x' and 'y' respectively)
-the spatial coordinates of a VMI detector hit.
-"""
-
-VmiHit = namedtuple(
-    typename='VmiHit',
-    field_names=['timestamp', 'coords', 'peaks']
-)
-"""
-VMI detector hit information.
-
-A namedtuple that stores all information related to a VMI detector hit.
-The first field, 'timestamp', is used to store the timestamp of the
-hit. The second field, 'coords' (a VmiCoords tuple) contains the
-spatial coordinates of the hit. The third field, 'peaks' (a
-VmiPeak-style tuple - for example a QuadVmiPeaks object) stores a set
-of peaks detected on the wires of the VMI detector.
-"""
+from onda.utils import named_tuples
 
 
 ###############################
@@ -116,10 +66,18 @@ def _filter_hit(mcp_peak,
                         # Compute the spatial cordinates of the hit
                         # defined by the x_1, x_2, y_1, y_2 peaks, and
                         # create the VmiHit object.
-                        peak = VmiHit(
-                            mcp_peak,
-                            VmiCoords(x_1 - x_2, y_1 - y_2),
-                            QuadVmiPeaks(x_1, x_2, y_1, y_2)
+                        peak = named_tuples.VmiHit(
+                            timestamp=mcp_peak,
+                            coords=named_tuples.VmiCoords(
+                                x=x_1 - x_2,
+                                y=y_1 - y_2
+                            ),
+                            peaks=named_tuples.QuadVmiPeaks(
+                                x_1=x_1,
+                                x_2=x_2,
+                                y_1=y_1,
+                                y_2=y_2
+                            )
                         )
 
                         # Check if the spatial coodrinates fall within
@@ -137,6 +95,7 @@ def _filter_hit(mcp_peak,
                             # information.
                             return peak
 
+    # If no peak combination has been found, return None.
     return None
 
 
@@ -144,13 +103,9 @@ class DelaylineDetectorAnalysis(object):
     """
     Process particle hits on a delayline VMI detector.
 
-    Only quad-type detectors are supported. For each peak in the MCP
-    waveform, search for corresponding peaks in the x1, x2, y1 and y2
-    delayline waveforms, then compute the spatial coordinates. If more
-    than one corresponding peak is found in one of the delaylines,
-    explore all possible peak combinations, and take as true
-    peak locations the first combination that results in plausible
-    spatial coordinates and time delays.
+    Extract infromation from delayline VMI detector data.
+    For each particle hit (a peak in the detector 's MCP waveform)
+    compute the spatial coordinates of the particle.
     """
 
     def __init__(self,
@@ -202,48 +157,52 @@ class DelaylineDetectorAnalysis(object):
                            y1_peaks,
                            y2_peaks):
         """
-        Extract particle hits from peaks detected in waveforms.
+        Extract particle hit data from peaks detected in waveforms.
 
         Starting from the list of detected peaks in the MCP and
         delayline waveforms, return a list of plausible VMI detector
-        hits. When more than one peak can be found in one of the
+        hits. For each peak in the detector's MCP waveform, search for
+        corresponding peaks in the x1, x2, y1 and y2 delayline
+        waveforms, then compute the spatial coordinates of the particle
+        hit. When more than one peak can be found in one of the
         delayline waveforms for a single MCP peak, use the first set of
         peaks that return plausible spatial coordinates.
 
         Args:
 
-            mcp_peaks (list): list storing the positions (indexes, as
-                int numbers) of the peaks detected in the MCP waveform.
+            mcp_peaks (list): positions (indexes, as int numbers) of
+                the peaks detected in the MCP waveform.
 
-            x1_peaks (list): list storing the positions (indexes, as
-                int numbers) of the peaks detected in the x1 waveform.
+            x1_peaks (list): positions (indexes, as int numbers) of
+                the peaks detected in the x1 waveform.
 
-            x2_peaks (list): list storing the positions (indexes, as
-                int numbers) of the peaks detected in the x2 waveform.
+            x2_peaks (list): positions (indexes, as int numbers) of
+                the peaks detected in the x2 waveform.
 
-            y1_peaks (list): list storing the positions (indexes, as
-                int numbers) of the peaks detected in the y2 waveform.
+            y1_peaks (list): positions (indexes, as int numbers) of
+                the peaks detected in the y1 waveform.
 
-            y2_peaks (list): list storing the positions (indexes, as
-                int numbers) of the peaks detected in the y2 waveform.
+            y2_peaks (list): positions (indexes, as int numbers) of
+                the peaks detected in the y2 waveform.
 
         Returns:
 
-            List[VmiHit]: a list of VmiHit tuples storing information
-            about all detected hits.
+            List[:obj:`onda.utils.named_tuples.VmiHit]: a list of
+            VmiHit tuples storing information about all detected hits.
         """
         hit_list = []
 
+        # Iterateover all detected MCP peaks.
         for mcp_peak in mcp_peaks:
-            # Iterate over the list of peaks detected in the mcp_peak
-            # waveform. Scale the index of the mcp peak to the
-            # resolution of the delayline data, then look for peaks in
-            # each waveform with indexes that are close to the scaled
-            # index of the mcp peak.
+
+            # Scale the index of the mcp peak to the resolution of the
+            # delayline data.
             scaled_mcp_peak = (
                 float(mcp_peak) / float(self._peak_search_scaling_factor)
             )
 
+            # Look for peaks in each waveform with indexes that are
+            # close to the scaled index of the mcp peak.
             x1_related_peaks = [
                 x for x in x1_peaks if (
                     (
@@ -290,7 +249,7 @@ class DelaylineDetectorAnalysis(object):
 
             # Call the function that filter the hits for plausibility.
             # If the function returns a valid VMI hit, add it to the
-            # list.
+            # hit list.
             filtered_hit = _filter_hit(
                 mcp_peak=scaled_mcp_peak,
                 x1_corr_peaks=x1_related_peaks,

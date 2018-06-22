@@ -14,13 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Module with basic GUI class.
+Base GUI class.
 
-Exports:
-
-    Classes:
-
-        MainWindow: basic GUI class.
+This module contains the implementation of the basic OnDA GUI class,
+from which all OnDA GUI inherit.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -36,87 +33,118 @@ except ImportError:
     from PyQt4 import QtCore, QtGui
 
 
+def _data_received(self,
+                   data_dictionary):
+    # This function is called when the listening thread receives data.
+
+    # Copy the data received via the signal into an attribute.
+    self.data = copy.deepcopy(data_dictionary)
+
+    # Extract the timestamp information from the data.
+    timestamp = self.data['timestamp']
+
+    # Compute the esimated delay and print it into the status bar.
+    # (A GUI is supposed to be a MainWindow widget, so it is suppposed
+    # to have a status bar.)
+    timenow = time.time()
+    self.statusBar().showMessage(
+        "Estimated delay: {} seconds".format(
+            round(timenow - timestamp, 6)
+        )
+    )
+
+
 class OndaGui(QtGui.QMainWindow):
     """
     Main GUI class.
 
-    A class implementing the main GUI code. Upon startup,
-    call the 'gui_init_func' function defined by the user
-    to setup the GUI. Then call at regular intervals the
-    'gui_update_func' function defined by the user to update the GUI.
-    Instantiate a listening thread to receive data from the OnDA
-    monitor, and make new data available to the user in the 'data'
-    attribute as soon as it is received. This class can be subclassed
-    to create OnDA GUIs.
+    A class implementing the main GUI code, from which every OnDA GUI
+    should inherit. Let the user set up the GUI in the constructor
+    method of the derived class. Then make then sure that the
+    'gui_update_func' function,  passed to the constructor, is called
+    at regular intervals to update the GUI. Furthermore, instantiate a
+    listening thread to receive data from the OnDA monitor. Make
+    the new data available in the 'data' attribute as soon as it is
+    received.
 
     Attributes:
 
         data (Dict): dictionary containing the last data received
             from the OnDA monitor.
 
-        listening (bool): bool attribute indicating if the GUI is
-            listening for data from the OnDA monitor.
+        listening (bool): bool attribute storing the state of the
+            listening thread. Stores the value True if the thread is
+            listening for data from the OnDA monitor, False if it is
+            not.
     """
     _listening_thread_start_processing = QtCore.pyqtSignal()
     _listening_thread_stop_processing = QtCore.pyqtSignal()
-    # Two custom signals to start and stop the ZMQ listener.
+    # Two custom signals used to start and stop the ZMQ listener in the
+    # listening thread.
 
     def __init__(self,
                  pub_hostname,
                  pub_port,
-                 gui_update_func,
-                 subscription_string):
+                 subscription_string,
+                 gui_update_func,):
         """
         Initialize the OndaGUI class.
 
         Args:
 
-            pub_hostname (str): hostname or IP address of the host
-                where OnDA is running.
+            pub_hostname (str): hostname or IP address of the machine
+                where the OnDA monitor is running.
 
-            pub_hostname (int): port of the OnDA monitor's PUB socket.
+            pub_port (int): port on which the the OnDA monitor is
+                broadcasting information.
 
-            gui_init_function (Callable): function that implements the
-                GUI initialization.
+            subscription_string (str): the subscription string used to
+                filter data received from the OnDA monitor.
 
-            gui_update_func (Callable): function that implements the
-                updating of the GUI with new data.
-
-            subscription_string (str): the subscription string for the
-                SUB socket.
+            gui_update_func (Callable): function that updates the GUI,
+                to be called at regular intervals.
         """
+        # Call the parent class's constructor.
         super(OndaGui, self).__init__()
+
+        # Store the GUI updating function in an attribute.
+        self._gui_update_func = gui_update_func
 
         # Create the attribute that will store the data received from
         # the ZMQ listener.
         self.data = None
 
+        # Create an attribute that will keep track of the state of the
+        # listening thread (running or not running).
         self.listening = False
 
         # Create and initialize the ZMQ listening thread.
-        self._zeromq_listener_thread = QtCore.QThread()
-        self._zeromq_listener = zmq.ZMQListener(
+        self._data_listener_thread = QtCore.QThread()
+        self._data_listener = zmq.DataListener(
             pub_hostname=pub_hostname,
             pub_port=pub_port,
             subscription_string=subscription_string
         )
-        self._zeromq_listener.zmqmessage.connect(self._data_received)
+
+        # Connect the signals that will be used to communicate with the
+        # listening thread (a 'start' signal and a 'stop' signal).
+        self._data_listener.zmqmessage.connect(self._data_received)
         self._listening_thread_start_processing.connect(
-            self._zeromq_listener.start_listening
+            self._data_listener.start_listening
         )
         self._listening_thread_stop_processing.connect(
-            self._zeromq_listener.stop_listening
+            self._data_listener.stop_listening
         )
-        self._zeromq_listener.moveToThread(
-            self._zeromq_listener_thread
+
+        # Finish initializing the listening thread and start it.
+        self._data_listener.moveToThread(
+            self._data_listener_thread
         )
-        self._zeromq_listener_thread.start()
+        self._data_listener_thread.start()
         self.start_listening()
 
-        # Store the function to initialize the GUI in an attribute.
-        # Then set and start the timer that will call the update
-        # function at regular intervals.
-        self._gui_update_func = gui_update_func
+        # Set and start the timer that will call the GUI update
+        # function at regular intervals (hardcoded to 500ms).
         self._refresh_timer = QtCore.QTimer()
         self._refresh_timer.timeout.connect(self._gui_update_func)
         self._refresh_timer.start(500)
@@ -125,9 +153,11 @@ class OndaGui(QtGui.QMainWindow):
         """
         Start listening for data from the OnDA monitor.
 
-        Connect to a PUB socket with the subscription string specified
-        when the class was instantiated.
+        Connect to the OnDA monitor's broadcasting socket and start
+        receiving data.
         """
+        # Update the 'listening' attribute and emit the thread's
+        # starting signal.
         if not self.listening:
             self.listening = True
             self._listening_thread_start_processing.emit()
@@ -136,27 +166,10 @@ class OndaGui(QtGui.QMainWindow):
         """
         Stop listening for data from the OnDA monitor.
 
-        Disconnect from the PUB socket.
+        Disconnect from the OnDA monitor's broadcasting socket.
         """
+        # Update the 'listening' attribute and emit the thread's
+        # stopping signal.
         if self.listening:
             self.listening = False
             self._listening_thread_stop_processing.emit()
-
-    def _data_received(self,
-                       datdict):
-        # Copy the data received via the signal into an attribute.
-        self.data = copy.deepcopy(datdict)
-
-        # Compute the esimated delay and print it int the status bar.
-        timestamp = self.data['timestamp']
-        if timestamp is not None:
-            timenow = time.time()
-            self.statusBar().showMessage(
-                "Estimated delay: {} seconds".format(
-                    round(timenow - timestamp, 6)
-                )
-            )
-        else:
-            self.statusBar.showMessage(
-                "Estimated delay: -"
-            )

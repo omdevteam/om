@@ -13,17 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Helper functions and classes to use zmq sockets in OnDA monitors.
+ZMQ-based communication in OnDA.
 
-Exports:
-
-    Classes:
-
-         ZMQOndaPublisherSocket: one-way ZMQ PUB socket for
-            sending data to clients.
-
-        ZMQListener(QtCore.QObject): receiving SUB socket for
-            receiving data from an OnDA monitor.
+This module contains the implementation of several ZMQ-based data
+broadcasting and receiving classes.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -46,11 +39,11 @@ except ImportError:
 
 class ZMQOndaPublisherSocket(object):
     """
-    ZMQ socket to send data out to clients.
+    Data-broadcasting socket for OnDA monitors.
 
-    A ZMQ PUB socket to send data to GUIs and other receivers. The
-    socket supports multiple clients and has a ZMQ high water mark of 1
-    (i.e. no queuing of outgoing messages takes place).
+    A ZMQ socket used to broacast data. The socket supports multiple
+    clients (it is based on the ZMQ PUB socket type). It also has no
+    queuing system: messages that are not received are dropped.
     """
 
     def __init__(self, publish_ip=None, publish_port=None):
@@ -61,20 +54,25 @@ class ZMQOndaPublisherSocket(object):
 
             publish_ip (Optional[str]): hostname or IP address of the
                 machine where the socket will be opened. If None, the
-                hostname will be autodetected based on where the OnDA
-                monitor is running. Defaults to None.
+                hostname will be autodetected. Defaults to None.
 
             publish_port(Optional[int]): port where the socket will be
                 opened. If None, the port number will be set to 12321.
                 Defaults to None.
         """
+        # Create the ZMQ context.
         self._context = zmq.Context()
+
+        # Create the socket.
         self._sock = self._context.socket(zmq.PUB)  # pylint: disable=E1101
+
         if publish_ip is not None:
             pip = publish_ip
         else:
-            # Use the socket module to autodetect the hostname / IP
-            # where the OnDA monitor is running.
+
+            # If required, use the socket module to autodetect the
+            # hostname of the machine where the OnDA monitor is
+            # running.
             pip = [
                 (
                     s.connect(('8.8.8.8', 80)),
@@ -87,71 +85,88 @@ class ZMQOndaPublisherSocket(object):
                 ]
             ][0][1]
 
+        # Use port 12321 is the user did not specify a port, otherwise
+        # honor the user's request.
         if publish_port is not None:
             pport = publish_port
         else:
             pport = 12321
 
+        # Communicate to the user the hostname and the port used
+        # for the binding of the socket.
         print('Binding to tcp://{0}:{1}'.format(pip, pport))
         sys.stdout.flush()
+
+        # Set a high water mark of 1 (A messaging queue 1 message
+        # long, so no queuing).
         self._sock.set_hwm(1)
+
+        # Bind the socket.
         self._sock.bind('tcp://%s:%d' % (pip, pport))
 
     def send_data(self, tag, message):
         """
-        Send data through the PUB socket.
+        Broadcast data.
 
-        Send data (a python object) through the socket.
+        Send data (a python object) through the broadcasting socket.
 
         Args:
 
             tag (str): tag for the data to be sent.
 
-            message (Any): data to be sent.
+            message (Any): a python object to be sent.
         """
+        # Send the tag and the data in one single ZMQ message.
         self._sock.send(tag.encode(), zmq.SNDMORE)
         self._sock.send_pyobj(message)
 
 
-class ZMQListener(QtCore.QObject):
+class DataListener(QtCore.QObject):
     """
-    Listener socket for OnDA GUIs.
+    Listening socket for OnDA clients.
 
-    ZMQ Listener class, to be used for GUIs and data receivers in
-    general. Instantiate a SUB socket that connects to a ZMQ PUB
-    socket. Check continuously if data is coming to the socket. Emit
-    a custom zmqmessage signal every time data is received through the
-    socket. Send the data together with the signal.
+    A listening class to be used for OnDA clients, based on a ZMQ
+    SUB socket. Suitable to be used in a separate listening thread.
+    Check continuously if data is coming to the socket. Emit a custom
+    Qt signal every time data is received through the socket. Send the
+    data together with the signal.
     """
 
     zmqmessage = QtCore.pyqtSignal(dict)
+    # Custom Qt signal to be emitted when data is received.
 
     def __init__(self,
                  pub_hostname,
                  pub_port,
                  subscription_string):
         """
-        Initialize the ZMQListener class.
+        Initialize the DataListener class.
 
         Args:
 
-            sub_hostname (str): hostname or IP address of the host
-               where the PUB socket is running.
+            pub_hostname (str): hostname or IP address of the machine
+                where the OnDA monitor is running.
 
-            sub_port (int): port on the host where the PUB socket is
-               running.
+            pub_port (int): port on which the the OnDA monitor is
+                broadcasting information.
 
-            subscribe string (str): tag in the PUB stream to which the
-               SUB socket should subscribe.
+            subscribe string (str): data tag to which the listener
+                should subscribe.
         """
+        # Call the parent class's constructor.
         QtCore.QObject.__init__(self)
 
+        # Store the function arguments in some attributes. These are
+        # needed to disconnect/reconnect the socket without
+        # destroying and reinstantiating the listener.
         self._pub_hostname = pub_hostname
         self._pub_port = pub_port
         self._subscription_string = subscription_string
+
+        # Create the ZMQ context.
         self._zmq_context = zmq.Context()
 
-        # Attributes that stores the listening socket and the
+        # Attributes used to store the listening socket and the
         # poller.
         self._zmq_subscribe = None
         self._zmq_poller = None
@@ -165,11 +180,10 @@ class ZMQListener(QtCore.QObject):
         """
         Start listening.
 
-        Connect to the socket and start listening.
+        Connect to the boradcasting socket and start listening.
         """
-        # Connect to the PUB socket with the subscription requested by
-        # the user. Set a ZMQ high water mark level of 1 so that
-        # messages do not pile up at the socket.
+
+        # Tell the user that the connection is being established.
         print(
             "Connecting to tcp://{}:{}".format(
                 self._pub_hostname,
@@ -177,24 +191,31 @@ class ZMQListener(QtCore.QObject):
             )
         )
 
+        # Create the SUB socket.
         self._zmq_subscribe = (
             self._zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         )
 
-        self._zmq_subscribe.set_hwm(1)
+        # Connect to the PUB socket.
         self._zmq_subscribe.connect(
             'tcp://{0}:{1}'.format(
                 self._pub_hostname,
                 self._pub_port
             )
         )
+
+        # Set the subscription requested by the user.
         self._zmq_subscribe.setsockopt_string(
             option=zmq.SUBSCRIBE,  # pylint: disable=E1101
             optval=self._subscription_string
         )
 
+        # Set a high water mark of 1 (A messaging queue 1 message
+        # long, so no queuing).
+        self._zmq_subscribe.set_hwm(1)
+
         # Instantiate a poller that can be used to check if there is
-        # data in the socket queue.
+        # data in the socket waiting to be read.
         self._zmq_poller = zmq.Poller()
         self._zmq_poller.register(
             socket=self._zmq_subscribe,
@@ -208,9 +229,9 @@ class ZMQListener(QtCore.QObject):
         """
         Stop listening.
 
-        Stop the listening and disconnect from the socket.
+        Stop the listening and disconnect from the broadcasting socket.
         """
-        # Stop the listening timer and disconnect from the socket.
+        # Stop the listening timer.
         self._listening_timer.stop()
         print(
             "Disconnecting from tcp://{}:{}".format(
@@ -219,6 +240,7 @@ class ZMQListener(QtCore.QObject):
             )
         )
 
+        # Disconnect from the socket.
         self._zmq_subscribe.disconnect(
             "tcp://{}:{}".format(
                 self._pub_hostname,
@@ -226,6 +248,8 @@ class ZMQListener(QtCore.QObject):
             )
         )
 
+        # Reset the attributes that store the poller and the
+        # connection socket.
         self._zmq_poller = None
         self._zmq_subscribe = None
 
@@ -233,16 +257,22 @@ class ZMQListener(QtCore.QObject):
         """
         Listen.
 
-        Listen for data. Check the poller to see if there is some data
-        in the socket queue, and if there is, read it. Then emit the
-        custom zmq message signal adding the data as payload.
+        Listen for data. When data comes, emit a signal adding the data
+        as payload.
         """
+        # Check, using the poller, if there is data waiting to be read.
         socks = dict(self._zmq_poller.poll(0))
         if (
                 self._zmq_subscribe in socks and
                 socks[self._zmq_subscribe] == zmq.POLLIN
         ):
+
+            # If there is data, read the message.
             full_msg = self._zmq_subscribe.recv_multipart()
+
+            # Extract the message.
             msg = full_msg[1]
+
+            # Unpickle the message (a dictionary) and emit the signal.
             zmq_dict = loads(msg)
             self.zmqmessage.emit(zmq_dict)

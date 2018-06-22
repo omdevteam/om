@@ -12,35 +12,26 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+"""
+Setup file for OnDA.
+"""
 
+from distutils.core import Extension, setup
 
-from distutils.core import setup, Extension
-from Cython.Build import cythonize
 import numpy
+from Cython.Build import cythonize
 
-peakfinder8_ext = Extension(name='peakfinder8_extension',
-                            include_dirs=[numpy.get_include()],
-                            libraries=['stdc++'],
-                            sources=['ondacython/peakfinder8/peakfinder8_extension.pyx',
-                                     'ondacython/peakfinder8/peakfinder8.cpp'],
-                            language='c++')
+peakfinder8_ext = Extension(  # pylint: disable=C0103
+    name='peakfinder8_extension',
+    include_dirs=[numpy.get_include()],
+    libraries=['stdc++'],
+    sources=[
+        'ondacython/peakfinder8/peakfinder8_extension.pyx',
+        'ondacython/peakfinder8/peakfinder8.cpp'
+    ],
+    language='c++'
+)
 
-fast_diff_img_proc_ext = Extension(name='fast_diffraction_image_processing_extension',
-                                   include_dirs=[numpy.get_include(),
-                                                 'ondacython/fast_diffraction_image_processing/include',
-                                                 'ondacython/fast_diffraction_image_processing/include/Eigen'],
-                                   sources=['ondacython/fast_diffraction_image_processing/include/adaptions/onda/fast_diffraction_image_processing_extension.pyx',
-                                            'ondacython/fast_diffraction_image_processing/src/adaptions/onda/radialBackgroundSubtraction_wrapper.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/adaptions/cheetah/cheetahConversion.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/adaptions/onda/streakFinder_wrapper.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/radialBackgroundSubtraction.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/peakList.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/peakFinder9.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/streakFinder.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/matlabLikeFunctions.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/mask.cpp',
-                                            'ondacython/fast_diffraction_image_processing/src/detectorGeometry.cpp'],
-                                   language='c++',
-                                   extra_compile_args=["-std=c++11"])
-
-setup(ext_modules=cythonize([peakfinder8_ext, fast_diff_img_proc_ext]))
+setup(
+    ext_modules=cythonize([peakfinder8_ext])
+)

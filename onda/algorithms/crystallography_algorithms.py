@@ -15,46 +15,21 @@
 """
 Algorithms for the processing of crystallography data.
 
-Exports:
-
-    Namedtuples:
-
-        PeakList: list of detected peaks.
-
-    Classes:
-
-        Peakfinder8PeakDetection: peak detection using the peakfinder8
-            algorithm from the Cheetah software package.
-
-        PeakAccumulator: Accumulation of peak information for
-            subsequent bulk retrieval
+This module contains the implementation of several algorithms used
+in the processing of crystallography data (peak finders, peak
+accumulators, etc.).
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-
-from collections import namedtuple
 
 import h5py
 import numpy
 from future.utils import raise_from
 
+from onda.utils import named_tuples
 from ondacython.lib.peakfinder8_extension import (  # pylint: disable=E0611
     peakfinder_8
 )
-
-
-PeakList = namedtuple(  # pylint: disable=C0103
-    typename='PeakList',
-    field_names=['fs', 'ss', 'intensity']
-)
-"""
-List of peaks detected in the data.
-
-A namedtuple that stores the a list of peaks detected in the detector
-data. The first two fields, named 'fs' and 'ss' respectively, are lists
-storing the the fs and ss and ss coordinates of all peaks. The third
-field, named 'intensity', stores the integrated intensity of the peaks.
-"""
 
 
 ##############################
@@ -63,7 +38,7 @@ field, named 'intensity', stores the integrated intensity of the peaks.
 
 class Peakfinder8PeakDetection(object):
     """
-    Detect peaks.
+    Detect peaks with Cheetah's peakfinder8 algorithm.
 
     Use Cheetah's peakfinder8 to detect peaks in the data provided by
     the user (which must be in 'slab' format). See this paper for a
@@ -156,14 +131,12 @@ class Peakfinder8PeakDetection(object):
         self._local_bg_radius = local_bg_radius
         self._radius_pixel_map = radius_pixel_map
 
-        # Load the bad pixel map from file (raise an exception in case
-        # of failure), then create the internal mask that will be used
-        # to exclude regions of the detector from the peak finding. The
-        # internal map includes the bad pixel map, but also excludes
-        # from the peak finding additional areas according to the
-        # resolution limits specified by the input parameters.
+        # Load the bad pixel map from file.
         try:
-            with h5py.File(name=bad_pixel_map_filename, mode='r') as fhandle:
+            with h5py.File(
+                name=bad_pixel_map_filename,
+                mode='r'
+            ) as fhandle:
                 loaded_mask = fhandle[bad_pixel_map_hdf5_path][:]
         except OSError:
             raise_from(
@@ -175,7 +148,15 @@ class Peakfinder8PeakDetection(object):
                 source=None
             )
 
-        res_mask = numpy.ones(shape=loaded_mask.shape, dtype=numpy.int8)
+        # Create the internal mask that will be used to exclude regions
+        # of the detector from the peak finding. The internal map
+        # includes the bad pixel map, but also excludes additional
+        # areas according to the resolution limits specified by the
+        # input parameters.
+        res_mask = numpy.ones(
+            shape=loaded_mask.shape,
+            dtype=numpy.int8
+        )
         res_mask[numpy.where(self._radius_pixel_map < min_res)] = 0
         res_mask[numpy.where(self._radius_pixel_map > max_res)] = 0
         self._mask = loaded_mask * res_mask
@@ -196,8 +177,7 @@ class Peakfinder8PeakDetection(object):
 
             PeakList: a PeakList tuple with the detected peaks.
         """
-        # Call the cython-wrapped peakfinder8 function, then wrap the
-        # returned peaks into a tuple and return it.
+        # Call the cython-wrapped peakfinder8 function.
         peak_list = peakfinder_8(
             self._max_num_peaks,
             data.astype(numpy.float32),  # pylint: disable=E1101
@@ -210,7 +190,8 @@ class Peakfinder8PeakDetection(object):
             self._local_bg_radius
         )
 
-        return PeakList(*peak_list[0:3])
+        # Wrap the returned peaks into a tuple and return the tuple.
+        return named_tuples.PeakList(*peak_list[0:3])
 
 
 ####################
@@ -221,10 +202,10 @@ class PeakAccumulator(object):
     """
     Accumulate peak information for susequent bulk retrieval.
 
-    Accumulate peak information until the accumulator is full. Allow
-    the user to add peaks to the accumulator for a predefined number of
-    times, determined when the algorithm is instantiated. Then return
-    the full list of accumulated peaks and empty the accumulator.
+    Accumulate peak information until the accumulator is full (i.e.
+    the user to has added peaks to the accumulator for a predefined
+    number of times). Then return the full list of accumulated peaks
+    and empty the accumulator.
     """
 
     def __init__(self, num_events_to_accumulate):
@@ -234,51 +215,60 @@ class PeakAccumulator(object):
         Args:
 
             num_events_to_accumulate (int): the number of times that
-                peaks can be added to the accumulator before the full
-                list of accumulated peaks is returned.
+                peaks can be added to the accumulator before the
+                accumulator is full and the list of accumulated peaks
+                is returned.
         """
         # Store the input argument as an attribute.
         self._n_events_to_accumulate = num_events_to_accumulate
 
         # Initialize the tuple that will store the accumulated peaks,
         # and the counter of accumulated events.
-        self._accumulator = PeakList([], [], [])
+        self._accumulator = named_tuples.PeakList([], [], [])
         self._events_in_accumulator = 0
 
     def accumulate_peaks(self, peak_list):
         """
         Accumulate peaks.
 
-        Add the peaks to the internal list of peaks. If peaks have been
-        added to the accumulator for the specified number of times,
-        return the accumulated peak list and empty the accumulator.
+        Add the peaks to the internal list of peaks. If the accumulator
+        is full, return the accumulated peak list and empty the
+        accumulator.
 
         Args:
 
-            peak_list (PeakList): PeakList tuple with the list of peaks
-                to be added to the accumulator.
+            peak_list (:obj:`onda.utils.named_tuples.PeakList`):
+                PeakList tuple with the list of peaks to be added to
+                the accumulator.
 
         Returns:
 
-            Union[PeakList, None]: a PeakList tuple with the
-            accumulated peaks if peaks have been added to the
-            accumulator for the predefined number of times, otherwise
-            None.
+            Union[:obj:`onda.utils.named_tuples.PeakList`PeakList,
+            None]: a PeakList tuple with the accumulated peaks if the
+            accumulator is full, otherwise None.
         """
-        # Add the peak data to the interal lists and update the
-        # internal counter.
+        # Add the peak data to the interal lists.
         self._accumulator.fs.extend(peak_list.fs)
         self._accumulator.ss.extend(peak_list.ss)
         self._accumulator.intensity.extend(peak_list.intensity)
+
+        # Update the internal counter
         self._events_in_accumulator += 1
 
         # Check if the internal counter reached the number of additions
-        # specified by the user. If it did, return the peak list, and
-        # reset the accumulator. Otherwise just return None.
+        # specified by the user.
         if self._events_in_accumulator == self._n_events_to_accumulate:
+
+            # If it did, return the peak list, and reset the
+            # accumulator.
             peak_list_to_return = self._accumulator
-            self._accumulator = PeakList([], [], [])
+            self._accumulator = named_tuples.PeakList(
+                fs=[],
+                ss=[],
+                intensity=[]
+            )
             self._events_in_accumulator = 0
             return peak_list_to_return
 
+        # Otherwise just return None.
         return None

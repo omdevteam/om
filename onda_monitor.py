@@ -13,28 +13,35 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
-"""Main OnDA module."""
+"""
+Main OnDA module.
+
+This module contains the implementation of the main function used to
+start an OnDA monitor.
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import argparse
 import configparser
-import importlib
-from onda.utils import dynamic_import
 import sys
 from builtins import str  # pylint: disable=W0622
 
-from onda.utils import exceptions, parameters
+from onda.utils import dynamic_import, exceptions, parameters
 
 
 def main():
-    """Main OnDA monitor function."""
+    """
+    Main OnDA monitor function.
 
+    The function called to start an OnDA monitor.
+    """
     # Set a custom exception handler to deal with OnDA-specific
     # exceptions.
     sys.excepthook = exceptions.onda_exception_handler
 
-    # Parse the command line options using the argparse module.
+    # Parse the command line options with which the monitor has been
+    # started (using the argparse module).
     parser = argparse.ArgumentParser(
         prog="mpirun [MPI OPTIONS] onda.py",
         description="OnDA - Online Data Analysis"
@@ -57,24 +64,24 @@ def main():
     args = parser.parse_args()
 
     # Read the configuration file and parse it with the configparse
-    # module. Raise a RuntimeError exception if the file cannot be
-    # read. From the parsed configuration file, create then a
-    # MonitorParams object, which contains all the entries in the
-    # configuration file with the correct type.
+    # module.
     config = configparser.ConfigParser()
-
     try:
         config.read(args.ini)
     except OSError:
+        # Raise a RuntimeError exception if the file cannot be
+        # read.
         raise RuntimeError(
             "Error reading configuration file: {0}".format(args.ini)
         )
 
+    # From the parsed configuration file, create then a MonitorParams
+    # object, which contains all the entries in the configuration file
+    # with the correct type.
     monitor_parameters = parameters.MonitorParams(config)
 
-    # Instantiate the correct OndaMonitor class from the processing
-    # layer specified in the configuration file. Then call the start
-    # method to start the monitor.
+    # Import the correct OndaMonitor class from the processing layer
+    # specified in the configuration file.
     processing_layer = dynamic_import.import_processing_layer(
         monitor_parameters
     )
@@ -82,6 +89,8 @@ def main():
         source=args.source,
         monitor_parameters=monitor_parameters
     )
+
+    # Call the start method to start the monitor.
     monitor.start()
 
 
