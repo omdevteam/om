@@ -59,8 +59,8 @@ Exports:
 """
 import functools
 
-from onda.data_retrieval_layer.data_sources import lcls_cspad
-from onda.data_retrieval_layer.facilities import lcls_psana
+from onda.data_retrieval_layer.components.data_sources import lcls_cspad
+from onda.data_retrieval_layer.components.facility_profiles import lcls_psana
 
 
 ############################

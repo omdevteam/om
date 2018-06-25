@@ -37,15 +37,13 @@ def _data_received(self,
                    data_dictionary):
     # This function is called when the listening thread receives data.
 
-    # Copy the data received via the signal into an attribute.
+    # Store the received dictionary as an attribute.
     self.data = copy.deepcopy(data_dictionary)
-
-    # Extract the timestamp information from the data.
-    timestamp = self.data['timestamp']
 
     # Compute the esimated delay and print it into the status bar.
     # (A GUI is supposed to be a MainWindow widget, so it is suppposed
     # to have a status bar.)
+    timestamp = self.data['timestamp']
     timenow = time.time()
     self.statusBar().showMessage(
         "Estimated delay: {} seconds".format(
@@ -79,8 +77,6 @@ class OndaGui(QtGui.QMainWindow):
     """
     _listening_thread_start_processing = QtCore.pyqtSignal()
     _listening_thread_stop_processing = QtCore.pyqtSignal()
-    # Two custom signals used to start and stop the ZMQ listener in the
-    # listening thread.
 
     def __init__(self,
                  pub_hostname,
@@ -104,18 +100,10 @@ class OndaGui(QtGui.QMainWindow):
             gui_update_func (Callable): function that updates the GUI,
                 to be called at regular intervals.
         """
-        # Call the parent class's constructor.
         super(OndaGui, self).__init__()
 
-        # Store the GUI updating function in an attribute.
         self._gui_update_func = gui_update_func
-
-        # Create the attribute that will store the data received from
-        # the ZMQ listener.
         self.data = None
-
-        # Create an attribute that will keep track of the state of the
-        # listening thread (running or not running).
         self.listening = False
 
         # Create and initialize the ZMQ listening thread.
@@ -126,20 +114,20 @@ class OndaGui(QtGui.QMainWindow):
             subscription_string=subscription_string
         )
 
-        # Connect the signals that will be used to communicate with the
-        # listening thread (a 'start' signal and a 'stop' signal).
         self._data_listener.zmqmessage.connect(self._data_received)
+
         self._listening_thread_start_processing.connect(
             self._data_listener.start_listening
         )
+
         self._listening_thread_stop_processing.connect(
             self._data_listener.stop_listening
         )
 
-        # Finish initializing the listening thread and start it.
         self._data_listener.moveToThread(
             self._data_listener_thread
         )
+
         self._data_listener_thread.start()
         self.start_listening()
 
@@ -156,8 +144,6 @@ class OndaGui(QtGui.QMainWindow):
         Connect to the OnDA monitor's broadcasting socket and start
         receiving data.
         """
-        # Update the 'listening' attribute and emit the thread's
-        # starting signal.
         if not self.listening:
             self.listening = True
             self._listening_thread_start_processing.emit()
@@ -168,8 +154,6 @@ class OndaGui(QtGui.QMainWindow):
 
         Disconnect from the OnDA monitor's broadcasting socket.
         """
-        # Update the 'listening' attribute and emit the thread's
-        # stopping signal.
         if self.listening:
             self.listening = False
             self._listening_thread_stop_processing.emit()

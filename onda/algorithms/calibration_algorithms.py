@@ -48,8 +48,6 @@ class SingleModuleLambdaCalibration(object):
                 calibration data. The file must contain the flatfield
                 data for the module in an entry called '/flatfield'.
         """
-        # Load the flatfield information from the file and store it in
-        # an attribute.
         try:
             with h5py.File(
                 name=calibration_filename,
@@ -82,6 +80,4 @@ class SingleModuleLambdaCalibration(object):
 
             ndarray:  the corrected data.
         """
-        # Lambda flatfields are usually provided in a format that
-        # requires the data to be multipled by the flatfield.
         return data * self._flatfield

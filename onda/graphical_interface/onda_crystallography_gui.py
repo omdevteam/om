@@ -70,7 +70,6 @@ class CrystallographyGui(gui.OndaGui):
             pub_port (int): port on which the the OnDA monitor is
                 broadcasting information.
         """
-        # Call the parent class's constructor.
         super(CrystallographyGui, self).__init__(
             pub_hostname=pub_hostname,
             pub_port=pub_port,
@@ -78,8 +77,7 @@ class CrystallographyGui(gui.OndaGui):
             subscription_string=u'ondadata',
         )
 
-        # Initialize the local data dictionary (used for displaying
-        # the data) with 'null' values.
+        # Initialize the local data dictionary with 'null' values.
         self._local_data = {
             'peak_list': named_tuples.PeakList([], [], []),
             'hit_rate': 0.0,
@@ -87,24 +85,19 @@ class CrystallographyGui(gui.OndaGui):
             'saturation_rate': 0.0
         }
 
-        # Compute the pixel maps from the provided geometry.
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
-        # Compute and store the minimum size of an array that can
-        # contain the layout described by the geometry (This
-        # information will be used later to create the arrays that will
-        # store the assembled detector images).
+        # The following information will be used later to create the
+        # arrays that will store the assembled detector images.
         self._img_shape = geometry_utils.compute_min_array_size(
             pixel_maps
         )
 
-        # Compute the adjusted pixel maps used for visualization. Then
-        # store them, flattened, in two attributes.
-        pg_pixel_maps = geometry_utils.compute_visualization_pix_maps(
+        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
             pixel_maps
         )
-        self._pg_pixel_map_x = pg_pixel_maps.x.flatten()
-        self._pg_pixel_map_y = pg_pixel_maps.y.flatten()
+        self._visual_pixel_map_x = visual_pixel_map.x.flatten()
+        self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
         # Try to extract the coffset and res information from the
         # geometry. The geometry allows these two values to be defined
@@ -122,20 +115,16 @@ class CrystallographyGui(gui.OndaGui):
         except KeyError:
             self._res = None
 
-        # Create the array that stores the virtual powder pattern.
         self._img_last_peaks = numpy.zeros(
             shape=self._img_shape,
             dtype=numpy.float32  # pylint: disable=E1101
         )
 
-        # Crate the array that stores the last received peaks.
         self._img_virt_powder_plot = numpy.zeros(
             shape=self._img_shape,
             dtype=numpy.float32  # pylint: disable=E1101
         )
 
-        # Create the attributes that will store the hit and
-        # saturation rate history.
         self._hitrate_history = collections.deque(
             iterable=10000 * [0.0],
             maxlen=10000
@@ -146,8 +135,6 @@ class CrystallographyGui(gui.OndaGui):
             maxlen=10000
         )
 
-        # Create the attributes that will hold the resolution ring
-        # data.
         self._resolution_rings_regex = QtCore.QRegExp(r'[0-9.,]+')
         self._resolution_rings_validator = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(
@@ -165,13 +152,11 @@ class CrystallographyGui(gui.OndaGui):
         ]
         self._resolution_rings_textitems = []
 
+        self._vertical_lines = []
+
         # Initialize pen and canvas used to draw the resolution rings.
         self._resolution_rings_pen = pyqtgraph.mkPen('w', width=0.5)
         self._resolution_rings_canvas = pyqtgraph.ScatterPlotItem()
-
-        # Create an attribute that stores the vertical lines that the
-        # users can put on the plot widgets.
-        self._vertical_lines = []
 
         # Set the PyQtGraph background color.
         pyqtgraph.setConfigOption('background', 0.2)
@@ -318,9 +303,6 @@ class CrystallographyGui(gui.OndaGui):
                        mouse_evt):
         # Manage mouse events.
 
-        # TODO: Fix this. There must be a more efficient way to do
-        # this.
-
         # Check if the click of the mouse happens in the hit rate plot
         # widget.
         mouse_pos_in_scene = mouse_evt[0].scenePos()
@@ -333,8 +315,6 @@ class CrystallographyGui(gui.OndaGui):
         ):
             if mouse_evt[0].button() == QtCore.Qt.MiddleButton:
 
-                # If the middle button was clicked, recover the
-                # location of the click within the widget.
                 mouse_x_pos_in_data = (
                     self
                     ._ui
@@ -349,15 +329,13 @@ class CrystallographyGui(gui.OndaGui):
                 # vertical lines.
                 new_vertical_lines = []
 
-                # Iterate over the existing vertical lines.
                 for vert_line in self._vertical_lines:
-
-                    # Check if the current vertical line lies in the
-                    # vicinity of the click location.
                     if abs(vert_line.getPos()[0] - mouse_x_pos_in_data) < 5:
 
-                        # If it does, remove it from the widget (and
-                        # do not add it to the updated list).
+                        # Check if the current vertical line lies in
+                        # the vicinity of the click location. If it
+                        # does, remove it from the widget (and do not
+                        # add it to the updated line list).
                         self._hit_rate_plot_widget.removeItem(vert_line)
                     else:
 
@@ -380,10 +358,7 @@ class CrystallographyGui(gui.OndaGui):
                     movable=False
                 )
 
-                # Add it to the line list.
                 self._vertical_lines.append(vertical_line)
-
-                # And draw it in the widget.
                 self._hit_rate_plot_widget.addItem(  # pylint: disable=E1123
                     item=vertical_line,
                     ignoreBounds=True
@@ -391,9 +366,6 @@ class CrystallographyGui(gui.OndaGui):
 
     def _reset_plots(self):
         # Reset the plots.
-
-        # Reset the hit and saturation data history attributes, then
-        # update the widgets.
         self._hitrate_history = collections.deque(
             10000 * [0.0],
             maxlen=10000
@@ -418,6 +390,7 @@ class CrystallographyGui(gui.OndaGui):
             shape=self._img_shape,
             dtype=numpy.float32  # pylint: disable=E1101
         )
+
         self._image_view.setImage(
             self._img_virt_powder_plot.T,
             autoHistogramRange=False,
@@ -450,8 +423,6 @@ class CrystallographyGui(gui.OndaGui):
     def _update_resolution_rings(self):
         # Update the resolution rings.
 
-        # Get the list of the new required ring resolutions from the
-        # relevant widget.
         items = str(
             self
             ._ui
@@ -468,8 +439,6 @@ class CrystallographyGui(gui.OndaGui):
         else:
             self._resolution_rings_in_a = []
 
-        # Remove the old text items from the resolution rings label
-        # list, then add the new ones.
         for text_item in self._resolution_rings_textitems:
             self._image_view.getView().removeItem(text_item)
 
@@ -480,8 +449,6 @@ class CrystallographyGui(gui.OndaGui):
         for text_item in self._resolution_rings_textitems:
             self._image_view.getView().addItem(text_item)
 
-        # Create list containing the radii of the resolution rings in
-        # pixels.
         try:
             lambda_ = (
                 constants.h * constants.c /
@@ -502,8 +469,6 @@ class CrystallographyGui(gui.OndaGui):
                 ]
             )
         except TypeError:
-
-            # If the calculation fails, draw no rings.
             print(
                 "Beam energy or detector distance are not available. "
                 "Resolution rings cannot be computed."
@@ -512,9 +477,6 @@ class CrystallographyGui(gui.OndaGui):
             for index, item in enumerate(self._resolution_rings_textitems):
                 item.setText('')
         else:
-
-            # Otherwise, if the relevant checkbox is ticked, draw the
-            # resolution rings.
             if (
                     self._resolution_rings_check_box.isEnabled() and
                     self._resolution_rings_check_box.isChecked()
@@ -529,7 +491,6 @@ class CrystallographyGui(gui.OndaGui):
                     pxMode=False
                 )
 
-                # Draw the text labels.
                 for index, item in enumerate(self._resolution_rings_textitems):
                     item.setText(
                         '{}A'.format(self._resolution_rings_in_a[index])
@@ -553,24 +514,20 @@ class CrystallographyGui(gui.OndaGui):
     def _update_image_and_plots(self):
         # Update all elements in the GUI.
 
-        # Check if data has been received (see the next comment).
         if self.data:
 
-            # If new data has been received, move them to a new
-            # attribute and reset the 'data' attribute. In this way,
-            # one can check if data has been received simply by
-            # checking if the 'data' attribute is not None.
+            # Check if data has been received. If new data has been
+            # received, move them to a new attribute and reset the
+            # 'data' attribute. In this way, one can check if data has
+            # been received simply by checking if the 'data' attribute
+            # is not None.
             self._local_data = self.data
             self.data = None
         else:
-
-            # If no new data has been received, just return without
-            # redrawing the plots.
             return
 
         QtGui.QApplication.processEvents()
 
-        # Update the hit and saturation rate histories and the plots.
         self._hitrate_history.append(self._local_data['hit_rate'])
         self._satrate_history.append(self._local_data['saturation_rate'])
         self._hitrate_plot.setData(self._hitrate_history)
@@ -579,17 +536,12 @@ class CrystallographyGui(gui.OndaGui):
         QtGui.QApplication.processEvents()
 
         if self._local_data['optimized_geometry']:
-
-            # If the geometry is optimized, activate the resolution
-            # ring widgets.
             if not self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(True)
                 self._resolution_rings_check_box.setEnabled(True)
             self._update_resolution_rings()
 
         else:
-
-            # Otherwise disable the resolution ring widgets.
             if self._ui.resolutionRingsCheckBox.isEnabled():
                 self._resolution_rings_line_edit.setEnabled(False)
                 self._resolution_rings_line_edit.setEnabled(False)
@@ -610,7 +562,6 @@ class CrystallographyGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        # Clear the last received peak image.
         self._img_last_peaks = numpy.zeros(
             shape=self._img_shape,
             dtype=numpy.float32  # pylint: disable=E1101
@@ -620,36 +571,27 @@ class CrystallographyGui(gui.OndaGui):
         # list is not empty.
         if self._local_data['peak_list'].intensity:
 
-            # Iterate over the peaks.
             for peak_fs, peak_ss, peak_value in zip(
                     self._local_data['peak_list'].fs,
                     self._local_data['peak_list'].ss,
                     self._local_data['peak_list'].intensity
             ):
-
-                # Compute the array index corresponding to the peak
-                # location.
                 peak_index_in_slab = (
                     int(round(peak_ss)) *
                     self._local_data['native_data_shape'][1] +
                     int(round(peak_fs))
                 )
 
-                # Add the peak to the last received peak image. Map the
-                # peak to the image according to the pixel maps.
                 self._img_last_peaks[
-                    self._pg_pixel_map_y[peak_index_in_slab],
-                    self._pg_pixel_map_x[peak_index_in_slab]
+                    self._visual_pixel_map_y[peak_index_in_slab],
+                    self._visual_pixel_map_x[peak_index_in_slab]
                 ] += peak_value
 
-                # Add the peak to the virtual powder plot image. Map
-                # the peaks to the image according to the pixel maps.
                 self._img_virt_powder_plot[
-                    self._pg_pixel_map_y[peak_index_in_slab],
-                    self._pg_pixel_map_x[peak_index_in_slab]
+                    self._visual_pixel_map_y[peak_index_in_slab],
+                    self._visual_pixel_map_x[peak_index_in_slab]
                 ] += peak_value
 
-            # Update the widget.
             self._update_virt_powder_plot()
 
             # Reset the peak list so that the same peaks are not drawn
@@ -664,11 +606,8 @@ def main():
     Initialize and start the GUI for OnDA Crystallography. Manage
     command line arguments and instantiate the graphical interface.
     """
-
-    # Catch signals.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    # Manage command line arguments.
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]
         rec_ip = '127.0.0.1'
@@ -684,10 +623,8 @@ def main():
         )
         sys.exit()
 
-    # Load the geometry from the geometry file.
     geometry = crystfel_utils.load_crystfel_geometry(geom_filename)
 
-    # Instantiate the Qt application.
     app = QtGui.QApplication(sys.argv)
     _ = CrystallographyGui(geometry, rec_ip, rec_port)
     sys.exit(app.exec_())

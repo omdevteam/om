@@ -81,15 +81,11 @@ class ParallelizationEngine(object):
                 a MonitorParams object containing the monitor
                 parameters from the configuration file.
         """
-
-        # Store some initialization parameters into attributes.
         self._map = process_func
         self._reduce = collect_func
         self._source = source
         self._mon_params = monitor_params
 
-        # Instrospect role of the node, then set the 'role', the 'rank'
-        # and the 'mpi_size' attributes accordingly.
         self._mpi_size = MPI.COMM_WORLD.Get_size()
         self.rank = MPI.COMM_WORLD.Get_rank()
         if self.rank == 0:
@@ -97,32 +93,22 @@ class ParallelizationEngine(object):
         else:
             self.role = 'worker'
 
-        # Call a function that imports the correct event-handling
-        # functions from the data_retrieval layer, storing the imported
-        # functions as attributes.
-        ehf = dynamic_import.init_event_handling_funcs(
+        evt_han_fns = dynamic_import.init_event_handling_funcs(
             self._mon_params
         )
-        self._initialize_event_source = ehf['initialize_event_source']
-        self._event_generator = ehf['event_generator']
-        self._open_event = ehf['open_event']
-        self._close_event = ehf['close_event']
-        self._get_num_frames_in_event = ehf['get_num_frames_in_event']
+        self._initialize_event_source = evt_han_fns['initialize_event_source']
+        self._event_generator = evt_han_fns['event_generator']
+        self._open_event = evt_han_fns['open_event']
+        self._close_event = evt_han_fns['close_event']
+        self._get_num_frames_in_event = evt_han_fns['get_num_frames_in_event']
 
-        # Role specific initialization.
         if self.role == 'worker':
+            self._event_filter = evt_han_fns['EventFilter'](self._mon_params)
 
-            # Instantiate the EventFilter class.
-            self._event_filter = ehf['EventFilter'](self._mon_params)
-
-            # Call a function that recovers the required data
-            # extraction functions from the data retrieval layer.
             self._data_extr_funcs = dynamic_import.init_data_extraction_funcs(
                 self._mon_params
             )
 
-            # Read from the configuration file (and store) the number
-            # of frames that must be processed from each event.
             self._num_frames_in_event_to_process = (
                 monitor_params.get_param(
                     section='General',
@@ -133,14 +119,7 @@ class ParallelizationEngine(object):
             )
 
         if self.role == 'master':
-
-            # Initialize a counter that, when the monitor is shutting
-            # down, keeps track of how many worker nodes have already
-            # shut down.
             self._num_nomore = 0
-
-            # Initialize a counter that keeps track of the number of
-            # events collected by the master node.
             self._num_collected_events = 0
 
     def start(self):
@@ -157,7 +136,6 @@ class ParallelizationEngine(object):
             # sent.
             req = None
 
-            # Intantiate the event generator.
             events = self._event_generator(
                 source=self._source,
                 node_rank=self.rank,
@@ -165,8 +143,6 @@ class ParallelizationEngine(object):
                 monitor_params=self._mon_params
             )
 
-            # Iterate over the events retrieved from the event
-            # generator.
             for event in events:
 
                 # Listen for requests to shut down coming from the
@@ -175,29 +151,19 @@ class ParallelizationEngine(object):
                         source=0,
                         tag=_DIETAG
                 ):
-
-                    # If such a request comes, call the shutdown
-                    # method.
                     self.shutdown(
                         "Shutting down RANK: {0}.".format(self.rank)
                     )
 
-                # Check with if the event filter if the event should be
-                # rejected. If it should, skip to next iteration of the
-                # loop.
+                # If the event must be rejected, skip to next iteration
+                # of the loop.
                 if self._event_filter.should_reject(event):
                     continue
 
-                # Recover the number of frames in the event and check
-                # if the number of frames that should be processed is
-                # higher than the number of frames in the event. If it
-                # is, limit the number of frames that should be
-                # processed.
-                n_frames = self._get_num_frames_in_event(event)
-                if n_frames < self._num_frames_in_event_to_process:
-                    self._num_frames_in_event_to_process = n_frames
+                n_frames_in_evt = self._get_num_frames_in_event(event)
+                if n_frames_in_evt < self._num_frames_in_event_to_process:
+                    self._num_frames_in_event_to_process = n_frames_in_evt
 
-                # Open the event.
                 self._open_event(event)
 
                 # Add the monitor parameters to the event dictionary,
@@ -205,22 +171,14 @@ class ParallelizationEngine(object):
                 # read the parameters.
                 event['monitor_params'] = self._mon_params
 
-                # Iterate over the frames that should be processed.
-                # Assuming than n is the number of frames to be
-                # processed, iterate over the last n frames in the
-                # event, in the order in which they appear in the
-                # event.
+                # Iterate over the last n frames in the event, wher n
+                # is 'num_frames_in_event_to_process'.
                 for frame_offset in range(
                         -self._num_frames_in_event_to_process,
                         0
                 ):
-                    # Add the frame offset to the event dictionary, in
-                    # order for the extraction function to know which
-                    # frame in the event is currently being processed.
                     event['frame_offset'] = frame_offset
 
-                    # Create a dictionary that will store the extracted
-                    # data,
                     data = {}
 
                     # Try to extract the data by calling the data
@@ -232,9 +190,6 @@ class ParallelizationEngine(object):
                         for f_name, func in iteritems(self._data_extr_funcs):
                             data[f_name] = func(event)
                     except Exception as exc:  # pylint: disable=W0703
-
-                        # Skip to the next event if something bad
-                        # happens.
                         print(
                             "OnDA Warning: Cannot interpret some event"
                             "data:"
@@ -248,9 +203,6 @@ class ParallelizationEngine(object):
                         print("Skipping event.....")
                         continue
 
-                    # Pass the dictionary with extracted data to the
-                    # 'process_func' function, then send the results to
-                    # the master node.
                     result = self._map(data)
                     if req:
                         req.Wait()
@@ -264,7 +216,6 @@ class ParallelizationEngine(object):
                 if req:
                     req.Wait()
 
-                # Close the event.
                 self._close_event(event)
 
             # After finishing iterating over the events to process,
@@ -279,13 +230,10 @@ class ParallelizationEngine(object):
             if req:
                 req.Wait()
 
-            # Then shut down.
             MPI.Finalize()
             exit(0)
 
         if self.role == 'master':
-
-            # Initialize the event source.
             self._initialize_event_source(
                 source=self._source,
                 node_rank=self.rank,
@@ -293,7 +241,6 @@ class ParallelizationEngine(object):
                 monitor_params=self._mon_params
             )
 
-            # Loop continuously, receiving processed data from workers.
             while True:
                 try:
                     received_data = MPI.COMM_WORLD.recv(
@@ -303,19 +250,17 @@ class ParallelizationEngine(object):
 
                     if 'end' in received_data[0].keys():
 
-                        # If the message announces that the worker node
-                        # has finished processing data, keep track of
-                        # how many worker nodes have already finshed.
+                        # If the message announces a worker node has
+                        # finished processing data, keep track of how
+                        # many worker nodes have already finished. When
+                        # all workers have finished, call the
+                        # 'end_processing' function, then shut down.
                         print(
                             "Finalizing {}".format(received_data[1])
                         )
 
                         self._num_nomore += 1
                         if self._num_nomore == self._mpi_size - 1:
-
-                            # If all worker nodes have salready
-                            # finished, call the 'end_processing'
-                            # function, then shut down.
                             print("All workers have run out of events.")
                             print("Shutting down.")
                             sys.stdout.flush()
@@ -324,18 +269,10 @@ class ParallelizationEngine(object):
                             MPI.Finalize()
                             exit(0)
 
-                    # Pass the received data to the 'collect_func'
-                    # function.
                     self._reduce(received_data)
-
-                    # Increase the counter that keeps track of the
-                    # collected events.
                     self._num_collected_events += 1
 
                 except KeyboardInterrupt as exc:
-
-                    # If the user stops the monitor via the keyboard,
-                    # clean up and shut down.
                     print("Recieved keyboard sigterm...")
                     print(str(exc))
                     print("shutting down MPI.")
@@ -364,9 +301,6 @@ class ParallelizationEngine(object):
         sys.stdout.flush()
 
         if self.role == 'worker':
-
-            # tell the master node that you are shutting down,
-            # then shut down.
             _ = MPI.COMM_WORLD.send(
                 dest=0,
                 tag=_DEADTAG
@@ -376,7 +310,10 @@ class ParallelizationEngine(object):
 
         if self.role == 'master':
 
-            # Tell all the worker nodes to shut down.
+            # Tell all the worker nodes to shut down and wait for
+            # confirmation. During the whole process, keep receiving
+            # normal MPI messages from the nodes: MPI cannot shut down
+            # if there are unreceived messages.
             try:
                 for nod_num in range(1, self._mpi_size()):
                     MPI.COMM_WORLD.isend(
@@ -385,14 +322,9 @@ class ParallelizationEngine(object):
                         tag=_DIETAG
                     )
 
-                # Wait for all the worker nodes to confirm that they
-                # have shut down.
                 num_shutdown_confirm = 0
                 while True:
 
-                    # During the whole process, keep receiving normal
-                    # MPI messages from the nodes: MPI cannot shut down
-                    # if there are unreceived messages.
                     if MPI.COMM_WORLD.Iprobe(
                             source=MPI.ANY_SOURCE,
                             tag=0
@@ -406,10 +338,6 @@ class ParallelizationEngine(object):
                             source=MPI.ANY_SOURCE,
                             tag=_DEADTAG
                     ):
-
-                        # Each time a worker nodes confirms that it has
-                        # shut down, keep track of how many have
-                        # already confirmed.
                         num_shutdown_confirm += 1
 
                     if num_shutdown_confirm == self._mpi_size() - 1:
@@ -424,8 +352,7 @@ class ParallelizationEngine(object):
                 # In case of error in the clean shut down procedure,
                 # crash hard!
                 MPI.COMM_WORLD.Abort(0)
-
-            exit(0)
+                exit(0)
 
     def end_processing(self):
         """

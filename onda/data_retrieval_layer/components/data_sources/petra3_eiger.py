@@ -89,8 +89,8 @@ def get_num_frames_in_event(event):
 
         int: the number of frames in an event.
     """
-    # The number of frames in an event is the length of the first axis
-    # in the data block where the data is stored.
+    # The data is stored in a 3-d block. The first axis is the nunmber
+    # of frames.
     return event['data']['/entry/data/data'].shape[0]
 
 

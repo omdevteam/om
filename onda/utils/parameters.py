@@ -57,9 +57,6 @@ class MonitorParams(object):
                 match the type of the parameter in the configuration
                 dictionary.
         """
-        # Convert the entries of the configuration dictionary to the
-        # corresponding data types and store the dictionary in an
-        # attribute.
         self._monitor_params = parameter_utils.convert_parameters(
             config_dict=param_dictionary
         )
@@ -100,26 +97,17 @@ class MonitorParams(object):
             'required' input argument is True, in which case an
             exception will be raised.
         """
-        # Look for the relevant section in the configuration
-        # dictionary, and raise an Exception if it is not found.
         if section not in self._monitor_params:
             raise exceptions.MissingParameterFileSection(
                 "Section {} is not in the configuration file".format(section)
             )
         else:
-
-            # If the section exists, look for the parameter. If the
-            # parameter is not found, raise an exception or return None
-            # depending on the value of the 'required' parameter.
             ret = self._monitor_params[section].get(parameter)
             if ret is None and required is True:
                 raise exceptions.MissingParameter(
                     "Parameter {} in section [{}] was not found, but is "
                     "required.".format(parameter, section)
                 )
-
-            # If required, check the type of the retrieved parameter,
-            # and raise an exception if a mismatch is detected.
             if ret is not None and type_ is not None:
                 if not isinstance(ret, type_):
                     raise exceptions.WrongParameterType(

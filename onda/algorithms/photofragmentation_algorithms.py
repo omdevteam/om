@@ -55,20 +55,20 @@ def _filter_hit(mcp_peak,
             for y_1 in y1_corr_peaks:
                 for y_2 in y2_corr_peaks:
 
-                    # Compute sums along the x and y wires and check
-                    # if the sums are in the acceptable range.
+                    # These calculations come from the standard
+                    # formulas used to compute these values.
                     wires_x_sum = x_1 + x_2 - 2 * mcp_peak
                     wires_y_sum = y_1 + y_2 - 2 * mcp_peak
                     if (
                             min_sum_x < wires_x_sum < max_sum_x and
                             min_sum_y < wires_y_sum < max_sum_y
                     ):
-                        # Compute the spatial cordinates of the hit
-                        # defined by the x_1, x_2, y_1, y_2 peaks, and
-                        # create the VmiHit object.
                         peak = named_tuples.VmiHit(
                             timestamp=mcp_peak,
                             coords=named_tuples.VmiCoords(
+                                # These calculations come from the
+                                # standard formulas used to compute
+                                # these values.
                                 x=x_1 - x_2,
                                 y=y_1 - y_2
                             ),
@@ -81,21 +81,17 @@ def _filter_hit(mcp_peak,
                         )
 
                         # Check if the spatial coodrinates fall within
-                        # the boundaries of the detector (i.e. check if
-                        # the distance of the hit from the center of
-                        # the detector is shorter than the value
-                        # provided by the user).
+                        # the boundaries of the detector.
                         if numpy.sqrt(
                                 (
                                     peak.coords.x * peak.coords.x +
                                     peak.coords.y * peak.coords.y
                                 ) < max_radius
                         ):
-                            # If all tests pass, return the VmiHit
-                            # information.
+                            # The fist peak that passes all the tests
+                            # is returned.
                             return peak
 
-    # If no peak combination has been found, return None.
     return None
 
 
@@ -191,8 +187,6 @@ class DelaylineDetectorAnalysis(object):
             VmiHit tuples storing information about all detected hits.
         """
         hit_list = []
-
-        # Iterateover all detected MCP peaks.
         for mcp_peak in mcp_peaks:
 
             # Scale the index of the mcp peak to the resolution of the
@@ -248,8 +242,6 @@ class DelaylineDetectorAnalysis(object):
             ]
 
             # Call the function that filter the hits for plausibility.
-            # If the function returns a valid VMI hit, add it to the
-            # hit list.
             filtered_hit = _filter_hit(
                 mcp_peak=scaled_mcp_peak,
                 x1_corr_peaks=x1_related_peaks,
@@ -262,7 +254,7 @@ class DelaylineDetectorAnalysis(object):
                 max_sum_y=self._max_sum_y,
                 max_radius=self._max_radius
             )
-            if filtered_hit is not None:
+            if filtered_hit:
                 hit_list.append(filtered_hit)
 
         return hit_list

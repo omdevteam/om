@@ -35,16 +35,14 @@ from onda.utils import dynamic_import, exceptions, named_tuples
 def _get_hidra_info(source,
                     mpi_pool_size,
                     monitor_params):
-    # Compute the HiDRA connection parameters.
-
     # Read the requested transfer type from the configuration file.
+    # If it is not specified there, import the suggested transfer type
+    # from the deta extraction layer and use that.
     transfer_type = monitor_params.get_param(
         section='HidraDataRecoveryLayer',
         parameter='transfer_type',
         type_=str,
     )
-    # If it is not specified there, import the suggested transfer type
-    # from the deta extraction layer and use that.
     if transfer_type is None:
         transfer_type = dynamic_import.get_hidra_transfer_type(
             monitor_params
@@ -74,14 +72,10 @@ def _get_hidra_info(source,
             )
         )
     else:
-
-        # If the transfer type is unknown, raise an exception.
         raise RuntimeError(
             "Unrecognized HiDRA transfer type."
         )
 
-    # Read the base port for communication with HiDRA from the
-    # configuration file.
     base_port = monitor_params.get_param(
         section='HidraDataRecoveryLayer',
         parameter='base_port',
@@ -102,8 +96,6 @@ def _get_hidra_info(source,
             monitor_params
         )
 
-    # Create the target list for HiDRA.
-
     # Add an empty target at the beginning to cover the master node. In
     # this way, the index of a node in the target list will match its
     # rank.
@@ -115,19 +107,17 @@ def _get_hidra_info(source,
             socket.gethostname(),
             str(base_port + rank),
             str(1),
-            b''
             # hidra_selection_string
+            b''
         ]
         targets.append(target_entry)
 
-    # Prepare the transfer request to be sent to HiDRA
     query = hidra_api.Transfer(
         connection_type=query_text,
         signal_host=source,
         use_log=False
     )
 
-    # Return a HiDRAInfo tuple with all the information.
     return named_tuples.HidraInfo(
         query=query,
         targets=targets,
@@ -168,15 +158,12 @@ def initialize_event_source(source,
     print("Announcing OnDA to HiDRA.")
     sys.stdout.flush()
 
-    # Create the HidraInfo object needed to initialize Hidra.
     hidra_info = _get_hidra_info(
         source=source,
         mpi_pool_size=mpi_pool_size,
         monitor_params=monitor_params
     )
 
-    # Initiate the connection to HiDRA (as dictated by the API) and
-    # raise an exception if the connection fails.
     try:
         hidra_info.query.initiate(hidra_info.targets[1:])
     except hidra_api.transfer.CommunicationFailed as exc:
@@ -220,14 +207,12 @@ def event_generator(source,
         Dict: A dictionary containing the data and the metadata of an
         event recovered from HiDRA (usually corresponding to a file).
     """
-    # Create the HidraInfo object needed to event recovery form Hidra.
     hidra_info = _get_hidra_info(
         source=source,
         mpi_pool_size=mpi_pool_size,
         monitor_params=monitor_params
     )
 
-    # Notify the user that the worker node is starting.
     print(
         "Worker {0} listening at port {1}".format(
             node_rank,
@@ -236,28 +221,22 @@ def event_generator(source,
     )
     sys.stdout.flush()
 
-    # Connect to HiDRA.
     hidra_info.query.start(hidra_info.targets[node_rank][1])
     while True:
-        # Recover the data from HiDRA. Add two custom entries that are
-        # needed by the data extraction functions.
         recovered_metadata, recovered_data = hidra_info.query.get()
 
-        # Create the event dictionary and store the recovered data
-        # there.
         event = {
             'data': recovered_data,
         }
 
-        # Also store the full path to the file,
         event['full_path'] = os.path.join(
             hidra_info.data_base_path,
             recovered_metadata['relative_path'],
             recovered_metadata['filename']
         )
 
-        # Store additionally the file creation date (a first
-        # approximation of the timestamp).
+        # File creation date is used as a first approximation of the
+        # timestamp when the timestamp is not available.
         event['file_creation_time'] = (
             recovered_metadata['file_create_time']
         )
@@ -284,8 +263,6 @@ class EventFilter(object):
                 a MonitorParams object containing the monitor
                 parameters from the configuration file.
         """
-        # Recover the list of allowed file extensions and store it in
-        # an attribute.
         self._file_extensions = dynamic_import.get_file_extensions(
             monitor_params
         )
@@ -306,8 +283,6 @@ class EventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        # Check if the filename ends with one of the allowed file
-        # extensions. If it doesn't, reject the file.
         if os.path.basename(event).endswith(self._file_extensions):
             return False
         return True

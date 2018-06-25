@@ -112,9 +112,8 @@ def detector_data_init(monitor_params,
         Detector: a handler (a psana Detector object) that can be used
         later to recover the data.
     """
-    # Recover from the configuration file the name of the detector
-    # corresponding to the data extraction function name, and use it
-    # to call the psana interface initialization function.
+    # Call the psana interface initialization function corresponding to
+    # the data extraction func name.
     return psana.Detector(
         monitor_params.get_param(
             section='PsanaDataRecoveryLayer',
@@ -369,7 +368,7 @@ def beam_energy(event):
         float: the energy of the beam in J.
     """
     # Recover the detector distance. It is in eV, so multiply it by
-    # e convert it to J (m).
+    # e convert it to SI (J).
     return event['psana_interface']['beam_energy'].get(
         event['psana_event']
     ).ebeamPhotonEnergy() * scipy.constants.e
@@ -432,7 +431,6 @@ def opal_data(event):
 
         ndarray: a 2d array containing the image from the Opal camera.
     """
-    # Recover the 'calibrated' data from the Opal camera.
     return event['psana_interface']['opal_data'].calib(
         event['psana_event']
     )

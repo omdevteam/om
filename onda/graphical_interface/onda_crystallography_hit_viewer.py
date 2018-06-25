@@ -66,7 +66,6 @@ class CrystallographyHitViewer(gui.OndaGui):
 
             pub_hostname (int): port of the OnDA monitor's PUB socket.
         """
-        # Call the parent class's constructor.
         super(CrystallographyHitViewer, self).__init__(
             pub_hostname=pub_hostname,
             pub_port=pub_port,
@@ -74,24 +73,19 @@ class CrystallographyHitViewer(gui.OndaGui):
             subscription_string=u'ondarawdata',
         )
 
-        # Compute the pixel maps from the provided geometry.
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
-        # Compute and store the minimum size of an array that can
-        # contain the layout described by the geometry (This
-        # information will be used later to create the arrays that will
-        # store the assembled detector images).
+        # The following information will be used later to create the
+        # arrays that will store the assembled detector images.
         self._img_shape = geometry_utils.compute_min_array_size(
             pixel_maps
         )
 
-        # Compute the adjusted pixel maps used for visualization. Then
-        # store them, flattened, in two attributes.
-        pg_pixel_maps = geometry_utils.compute_visualization_pix_maps(
+        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
             pixel_maps
         )
-        self._pg_pixel_map_x = pg_pixel_maps.x.flatten()
-        self._pg_pixel_map_y = pg_pixel_maps.y.flatten()
+        self._visual_pixel_map_x = visual_pixel_map.x.flatten()
+        self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
         # Create the array that will store the frame to be displayed.
         # Fill it with zeros to have something to display before the
@@ -102,10 +96,9 @@ class CrystallographyHitViewer(gui.OndaGui):
         )
 
         # Initialize the buffer that will store the lastest received
-        # frames.
+        # frames, and set the current frame index to the last frame in
+        # the buffer.
         self._frame_list = collections.deque(maxlen=20)
-
-        # Set the current frame index to the last frame in the buffer.
         self._current_frame_index = -1
 
         # Initialize the pen and the canvas used to draw the peaks.
@@ -158,18 +151,17 @@ class CrystallographyHitViewer(gui.OndaGui):
     def _update_image(self):
         # Update the frame image shown by the hit viewer.
 
-        # Check if data has been received (see the next comment).
         if self.data:
 
-            # If new data has been received, append it to the frame
-            # buffer and reset the 'data' attribute. In this way,
-            # one can check if data has been received simply by
-            # checking if the 'data' attribute is not None.
+            # Check if data has been received. If new data has been
+            # received, append it to the frame buffer and reset the
+            # 'data' attribute. In this way, one can check if data has
+            # been received simply by checking if the 'data' attribute
+            # is not None.
             self._frame_list.append(copy.deepcopy(self.data))
             self.data = None
             self._current_frame_index = len(self._frame_list)-1
 
-        # Recover the data to display from the frame buffer.
         try:
             data = self._frame_list[self._current_frame_index]
         except IndexError:
@@ -177,8 +169,6 @@ class CrystallographyHitViewer(gui.OndaGui):
             # anything.
             return
 
-        # Map the received data to the array storing the frame to be
-        # displayed (according to the pixel maps).
         self._img[
             self._pixel_map_y,
             self._pixel_map_x
@@ -186,7 +176,6 @@ class CrystallographyHitViewer(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        # Update the widget.
         self._image_view.setImage(
             self._img,
             autoLevels=False,
@@ -197,13 +186,8 @@ class CrystallographyHitViewer(gui.OndaGui):
         QtGui.QApplication.processEvents()
 
         # Draw the detected peaks over the displayed frame.
-
-        # Create two lists to hold the coordinates of the peaks to be
-        # displayed in the reference system of the displayed image.
         peak_x_list = []
         peak_y_list = []
-
-        # Iterate over the peaks.
         for peak_fs, peak_ss in zip(
                 data['peak_list'].fs,
                 data['peak_list'].ss,
@@ -225,7 +209,6 @@ class CrystallographyHitViewer(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        # Draw the peaks.
         self._peak_canvas.setData(
             x=peak_x_list,
             y=peak_y_list,
@@ -249,47 +232,31 @@ class CrystallographyHitViewer(gui.OndaGui):
         # Manage clicks on the 'forward' button.
 
         self._stop_stream()
-
-        # If you are not at the end of the frame buffer, move to the
-        # next buffer position. Otherwide, do nothing.
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
         print("Frame {} in buffer".format(self._current_frame_index))
         self._update_image()
 
     def _stop_stream(self):
-        # Stop the viewer from reading the data stream.
+        # Stop reading the data stream.
 
         if self.listening:
-
-            # Change the label of the play/pause button.
             self._play_pause_button.setText('Play')
-
-            # Stop listening to the data stream from the OnDA monitor.
             self.stop_listening()
 
     def _start_stream(self):
         # Start reading the data stream.
 
         if not self.listening:
-
-            # Change the label of the 'play/pause' button.
             self._play_pause_button.setText('Pause')
-
-            # Start listening to the data stream from the OnDA monitor.
             self.start_listening()
 
     def _play_pause_button_clicked(self):
         # Manage clicks in the 'play/pause' button.
 
         if self.listening:
-
-            # If the Hit Viewer is listening to the stream, stop
-            # listening.
             self._stop_stream()
         else:
-
-            # Otherwise start listening to the stream.
             self._start_stream()
 
 
@@ -301,10 +268,8 @@ def main():
     line arguments, load the geometry and instantiate the graphical
     interface.
     """
-    # Catch signals.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    # Manage command line arguments.
     app = QtGui.QApplication(sys.argv)
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]
@@ -321,10 +286,8 @@ def main():
         )
         sys.exit()
 
-    # Load the geometry from the geometry file.
     geometry = crystfel_utils.load_crystfel_geometry(geom_filename)
 
-    # Instantiate the Qt application.
     app = QtGui.QApplication(sys.argv)
     _ = CrystallographyHitViewer(geometry, rec_ip, rec_port)
     sys.exit(app.exec_())

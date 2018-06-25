@@ -37,7 +37,7 @@ except ImportError:
     from PyQt4 import QtCore
 
 
-class ZMQOndaPublisherSocket(object):
+class DataBroadcaster(object):
     """
     Data-broadcasting socket for OnDA monitors.
 
@@ -60,10 +60,7 @@ class ZMQOndaPublisherSocket(object):
                 opened. If None, the port number will be set to 12321.
                 Defaults to None.
         """
-        # Create the ZMQ context.
         self._context = zmq.Context()
-
-        # Create the socket.
         self._sock = self._context.socket(zmq.PUB)  # pylint: disable=E1101
 
         if publish_ip is not None:
@@ -85,23 +82,17 @@ class ZMQOndaPublisherSocket(object):
                 ]
             ][0][1]
 
-        # Use port 12321 is the user did not specify a port, otherwise
-        # honor the user's request.
         if publish_port is not None:
             pport = publish_port
         else:
             pport = 12321
 
-        # Communicate to the user the hostname and the port used
-        # for the binding of the socket.
         print('Binding to tcp://{0}:{1}'.format(pip, pport))
         sys.stdout.flush()
 
         # Set a high water mark of 1 (A messaging queue 1 message
         # long, so no queuing).
         self._sock.set_hwm(1)
-
-        # Bind the socket.
         self._sock.bind('tcp://%s:%d' % (pip, pport))
 
     def send_data(self, tag, message):
@@ -153,21 +144,15 @@ class DataListener(QtCore.QObject):
             subscribe string (str): data tag to which the listener
                 should subscribe.
         """
-        # Call the parent class's constructor.
         QtCore.QObject.__init__(self)
 
-        # Store the function arguments in some attributes. These are
-        # needed to disconnect/reconnect the socket without
-        # destroying and reinstantiating the listener.
+        # These following information is needed to disconnect/reconnect
+        # the socket without destroying and reinstantiating the
+        # listener.
         self._pub_hostname = pub_hostname
         self._pub_port = pub_port
         self._subscription_string = subscription_string
-
-        # Create the ZMQ context.
         self._zmq_context = zmq.Context()
-
-        # Attributes used to store the listening socket and the
-        # poller.
         self._zmq_subscribe = None
         self._zmq_poller = None
 
@@ -182,29 +167,21 @@ class DataListener(QtCore.QObject):
 
         Connect to the boradcasting socket and start listening.
         """
-
-        # Tell the user that the connection is being established.
         print(
             "Connecting to tcp://{}:{}".format(
                 self._pub_hostname,
                 self._pub_port
             )
         )
-
-        # Create the SUB socket.
         self._zmq_subscribe = (
             self._zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         )
-
-        # Connect to the PUB socket.
         self._zmq_subscribe.connect(
             'tcp://{0}:{1}'.format(
                 self._pub_hostname,
                 self._pub_port
             )
         )
-
-        # Set the subscription requested by the user.
         self._zmq_subscribe.setsockopt_string(
             option=zmq.SUBSCRIBE,  # pylint: disable=E1101
             optval=self._subscription_string
@@ -213,16 +190,12 @@ class DataListener(QtCore.QObject):
         # Set a high water mark of 1 (A messaging queue 1 message
         # long, so no queuing).
         self._zmq_subscribe.set_hwm(1)
-
-        # Instantiate a poller that can be used to check if there is
-        # data in the socket waiting to be read.
         self._zmq_poller = zmq.Poller()
         self._zmq_poller.register(
             socket=self._zmq_subscribe,
             flags=zmq.POLLIN
         )
 
-        # Start the listening timer.
         self._listening_timer.start()
 
     def stop_listening(self):
@@ -231,7 +204,6 @@ class DataListener(QtCore.QObject):
 
         Stop the listening and disconnect from the broadcasting socket.
         """
-        # Stop the listening timer.
         self._listening_timer.stop()
         print(
             "Disconnecting from tcp://{}:{}".format(
@@ -240,7 +212,6 @@ class DataListener(QtCore.QObject):
             )
         )
 
-        # Disconnect from the socket.
         self._zmq_subscribe.disconnect(
             "tcp://{}:{}".format(
                 self._pub_hostname,
@@ -248,8 +219,6 @@ class DataListener(QtCore.QObject):
             )
         )
 
-        # Reset the attributes that store the poller and the
-        # connection socket.
         self._zmq_poller = None
         self._zmq_subscribe = None
 
@@ -260,17 +229,12 @@ class DataListener(QtCore.QObject):
         Listen for data. When data comes, emit a signal adding the data
         as payload.
         """
-        # Check, using the poller, if there is data waiting to be read.
         socks = dict(self._zmq_poller.poll(0))
         if (
                 self._zmq_subscribe in socks and
                 socks[self._zmq_subscribe] == zmq.POLLIN
         ):
-
-            # If there is data, read the message.
             full_msg = self._zmq_subscribe.recv_multipart()
-
-            # Extract the message.
             msg = full_msg[1]
 
             # Unpickle the message (a dictionary) and emit the signal.

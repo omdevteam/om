@@ -96,10 +96,7 @@ def event_generator(source,
         Dict: A dictionary containing the data and metadata of an
         event.
     """
-    # Extract from the source string the IP address and the port to
-    # which OnDA should connect.
     source_parts = source.split(':')
-
     try:
         hostname = source_parts[0]
         port = source_parts[1]
@@ -111,7 +108,6 @@ def event_generator(source,
             source=None
         )
 
-    # Notify the user that the worker node is starting.
     print(
         "Worker {} listening to {} at port {}".format(
             node_rank,
@@ -125,9 +121,6 @@ def event_generator(source,
     krb_client = karabo_api.Client('tcp://{}'.format(source))
 
     while True:
-
-        # Create the event dictionary, recover an event from the Karabo
-        # Bridge and store the recovered data in the dictionary.
         event = {}
         event['data'], event['metadata'] = krb_client.next()
 
@@ -152,7 +145,6 @@ class EventFilter(object):
                 a MonitorParams object containing the monitor
                 parameters from the configuration file.
         """
-        # Do nothing.
         pass
 
     def should_reject(self,
@@ -171,7 +163,6 @@ class EventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        # Do nothing.
         pass
 
 

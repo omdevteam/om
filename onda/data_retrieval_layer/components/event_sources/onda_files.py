@@ -99,8 +99,6 @@ def event_generator(source,
         Dict: A dictionary containing the metadata (full path, etc. )
         of a file from thelist.
     """
-    # Open the file with the list of files to process. Raise an
-    # exception in case of failure.
     try:
         with open(source, 'r') as fhandle:
             filelist = fhandle.readlines()
@@ -119,25 +117,22 @@ def event_generator(source,
     # workers with the last worker getting a smaller number of
     # files if the number of files to be processed cannot be
     # exactly divided by the number of workers.
-    mylength = int(
+    num_files_curr_node = int(
         numpy.ceil(
             len(filelist) / float(mpi_pool_size - 1)
         )
     )
 
-    # Extract the portion of the list that should be processed by
-    # the current worker.
-    myfiles = filelist[
-        ((node_rank - 1) * mylength):(node_rank * mylength)
+    files_curr_node = filelist[
+        ((node_rank - 1) * num_files_curr_node):
+        (node_rank * num_files_curr_node)
     ]
 
-    for entry in myfiles:
-        
-        # Create the event dictionary object. Add two custom
-        # entries that are needed by the data extraction functions:
-        # the full path to the file, and the file creation date (a
-        # first approximation of the timestamp).
+    for entry in files_curr_node:
         event = {'full_path': entry}
+
+        # File creation date is used as a first approximation of the
+        # timestamp when the timestamp is not available.
         event['file_creation_time'] = os.stat(entry).st_crtime
 
         yield event
@@ -162,8 +157,6 @@ class EventFilter(object):
                 a MonitorParams object containing the monitor
                 parameters from the configuration file.
         """
-        # Recover the list of allowed file extensions and store it in
-        # an attribute.
         self._file_extensions = dynamic_import.get_file_extensions(
             monitor_params
         )
@@ -184,8 +177,6 @@ class EventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        # Check if the filename ends with one of the allowed file
-        # extensions. If it doesn't, reject the file.
         if os.path.basename(event).endswith(self._file_extensions):
             return False
         return True

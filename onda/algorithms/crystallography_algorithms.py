@@ -118,7 +118,6 @@ class Peakfinder8PeakDetection(object):
                 in the data array, stores its distance (in pixels) from
                 the center of the detector.
         """
-        # Read arguments and store them in attributes.
         self._max_num_peaks = max_num_peaks
         self._asic_nx = asic_nx
         self._asic_ny = asic_ny
@@ -131,7 +130,6 @@ class Peakfinder8PeakDetection(object):
         self._local_bg_radius = local_bg_radius
         self._radius_pixel_map = radius_pixel_map
 
-        # Load the bad pixel map from file.
         try:
             with h5py.File(
                 name=bad_pixel_map_filename,
@@ -148,11 +146,6 @@ class Peakfinder8PeakDetection(object):
                 source=None
             )
 
-        # Create the internal mask that will be used to exclude regions
-        # of the detector from the peak finding. The internal map
-        # includes the bad pixel map, but also excludes additional
-        # areas according to the resolution limits specified by the
-        # input parameters.
         res_mask = numpy.ones(
             shape=loaded_mask.shape,
             dtype=numpy.int8
@@ -177,7 +170,6 @@ class Peakfinder8PeakDetection(object):
 
             PeakList: a PeakList tuple with the detected peaks.
         """
-        # Call the cython-wrapped peakfinder8 function.
         peak_list = peakfinder_8(
             self._max_num_peaks,
             data.astype(numpy.float32),  # pylint: disable=E1101
@@ -190,7 +182,6 @@ class Peakfinder8PeakDetection(object):
             self._local_bg_radius
         )
 
-        # Wrap the returned peaks into a tuple and return the tuple.
         return named_tuples.PeakList(*peak_list[0:3])
 
 
@@ -219,11 +210,7 @@ class PeakAccumulator(object):
                 accumulator is full and the list of accumulated peaks
                 is returned.
         """
-        # Store the input argument as an attribute.
         self._n_events_to_accumulate = num_events_to_accumulate
-
-        # Initialize the tuple that will store the accumulated peaks,
-        # and the counter of accumulated events.
         self._accumulator = named_tuples.PeakList([], [], [])
         self._events_in_accumulator = 0
 
@@ -247,20 +234,12 @@ class PeakAccumulator(object):
             None]: a PeakList tuple with the accumulated peaks if the
             accumulator is full, otherwise None.
         """
-        # Add the peak data to the interal lists.
         self._accumulator.fs.extend(peak_list.fs)
         self._accumulator.ss.extend(peak_list.ss)
         self._accumulator.intensity.extend(peak_list.intensity)
-
-        # Update the internal counter
         self._events_in_accumulator += 1
 
-        # Check if the internal counter reached the number of additions
-        # specified by the user.
         if self._events_in_accumulator == self._n_events_to_accumulate:
-
-            # If it did, return the peak list, and reset the
-            # accumulator.
             peak_list_to_return = self._accumulator
             self._accumulator = named_tuples.PeakList(
                 fs=[],
@@ -270,5 +249,4 @@ class PeakAccumulator(object):
             self._events_in_accumulator = 0
             return peak_list_to_return
 
-        # Otherwise just return None.
         return None

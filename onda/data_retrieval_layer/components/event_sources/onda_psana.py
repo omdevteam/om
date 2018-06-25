@@ -35,20 +35,26 @@ def _psana_offline_event_generator(psana_source,
                                    node_rank,
                                    mpi_pool_size):
 
-    # Split events recovered by psana over the number of available
-    # workers, and recover an iterator over the events that must
-    # be processed on the current nodes.
+    # Compute how many events the current worker node should process
+    # Split the events as equally as possible amongst the workers with
+    # the last worker getting a smaller number of events if the number
+    # of files to be processed cannot be exactly divided by the number
+    # of workers.
     for run in psana_source.runs():
         times = run.times()
-        size_for_this = int(
+
+        num_events_curr_node = int(
             numpy.ceil(
                 len(times) / float(mpi_pool_size - 1)
             )
         )
-        events_for_this = times[
-            (node_rank - 1) * size_for_this:node_rank * size_for_this
+
+        events_curr_node = times[
+            (node_rank - 1) * num_events_curr_node:
+            node_rank * num_events_curr_node
         ]
-        for evt in events_for_this:
+
+        for evt in events_curr_node:
             yield run.event(evt)
 
 
@@ -122,8 +128,6 @@ def event_generator(source,
     else:
         offline = True
 
-    # Automatically add 'idx' to the source string for offline data,
-    # if it is not already there.
     if offline and not source[-4:] == ':idx':
         source += ':idx'
 
@@ -139,44 +143,34 @@ def event_generator(source,
             'psana.calib-dir'.encode('ascii'),
             psana_calib_dir.encode('ascii')
         )
+    else:
+        print('Calibration directory not provided or not found.')
 
-    # Set the psana data source.
     psana_source = psana.DataSource(source.encode('ascii'))
-
-    # Recover the psana detector interface initialization functions.
-    psana_interface_funcs = dynamic_import.init_psana_interface_funcs(
-        monitor_params
+    psana_interface_funcs = (
+        dynamic_import.init_psana_det_interface_funcs(monitor_params)
     )
 
     # Call all the required psana detector interface initialization
     # functions and store the returned handlers in a dictionary.
-    psana_interface = {}
+    psana_det_interface = {}
     for f_name, func in iteritems(psana_interface_funcs):
-        psana_interface[f_name.split("_init")[0]] = func(monitor_params)
+        psana_det_interface[
+            f_name.split("_init")[0]
+        ] = func(monitor_params)
 
     if offline:
-
-        # If recvering data from an offline source, split the events
-        # between the worker nodes based on the number of workers.
         psana_events = _psana_offline_event_generator(
             psana_source=psana_source,
             node_rank=node_rank,
             mpi_pool_size=mpi_pool_size
         )
     else:
-
-        # Otherwise, recover the event iterator from the psana
-        # DataSource object.
         psana_events = psana_source.events()
 
-    # Recover the psana event from psana.
     for psana_event in psana_events:
-
-        # Create the event dictionary and store in custom entries the
-        # recovered and the handlers returned by the psana interface
-        # functions.
         event = {
-            'psana_interface': psana_interface,
+            'psana_det_interface': psana_det_interface,
             'psana_event': psana_event
         }
 
@@ -294,4 +288,5 @@ def get_num_frames_in_event(event):  # pylint: disable=W0613
 
         event (Dict): a dictionary with the event data.
     """
+    # Psana events usually contain just one frame.
     return 1

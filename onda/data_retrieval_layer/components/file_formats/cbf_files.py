@@ -31,8 +31,9 @@ def open_event(event):
 
         event (Dict): a dictionary with the event data.
     """
-    # Open the file using the fabio library and store the content as a
-    # cbf_obj object in the 'data' entry of the event dictionary.
+    # Open the CBF file using the fabio library and saved the content
+    # (stored as a cbf_obj object) in the 'data' entry of the event
+    # dictionary.
     event['data'] = fabio.open(event['metadata']['full_path'])
 
 

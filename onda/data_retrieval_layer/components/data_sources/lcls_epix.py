@@ -72,7 +72,6 @@ def detector_data(event,
 
         ndarray: the raw detector data for one frame.
     """
-    # Recover and return the data from psana.
     cspad_psana = (
         event['psana_detector_interface'][data_extraction_func_name].calib(
             event['psana_event']

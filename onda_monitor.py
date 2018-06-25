@@ -40,8 +40,6 @@ def main():
     # exceptions.
     sys.excepthook = exceptions.onda_exception_handler
 
-    # Parse the command line options with which the monitor has been
-    # started (using the argparse module).
     parser = argparse.ArgumentParser(
         prog="mpirun [MPI OPTIONS] onda.py",
         description="OnDA - Online Data Analysis"
@@ -57,14 +55,11 @@ def main():
         '-i', '--ini',
         type=str,
         default='monitor.ini',
-        help="monitor.ini file (default: monitor.ini file in the current "
-             "working directory"
+        help="monitor.ini file (default: monitor.ini file in the "
+             "current working directory"
     )
 
     args = parser.parse_args()
-
-    # Read the configuration file and parse it with the configparse
-    # module.
     config = configparser.ConfigParser()
     try:
         config.read(args.ini)
@@ -75,22 +70,17 @@ def main():
             "Error reading configuration file: {0}".format(args.ini)
         )
 
-    # From the parsed configuration file, create then a MonitorParams
-    # object, which contains all the entries in the configuration file
-    # with the correct type.
     monitor_parameters = parameters.MonitorParams(config)
 
-    # Import the correct OndaMonitor class from the processing layer
-    # specified in the configuration file.
     processing_layer = dynamic_import.import_processing_layer(
         monitor_parameters
     )
+
     monitor = processing_layer.OndaMonitor(
         source=args.source,
         monitor_parameters=monitor_parameters
     )
 
-    # Call the start method to start the monitor.
     monitor.start()
 
 
