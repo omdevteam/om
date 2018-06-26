@@ -13,17 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities for interoperability with data formats used in the CrystFEL
-software package.
+CryystFEL utilities.
 
-Exports:
-
-    Functions:
-
-        load_crystfel_geometry: a python reimplementation of the
-            get_detector_geometry_2 function from CrystFEL.
+This module contains the implementation of several functions used to
+interact with CrystFEL files and data (geometry files, stream files).
 """
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
