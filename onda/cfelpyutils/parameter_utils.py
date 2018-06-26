@@ -13,17 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities for parsing command line options and configuration files.
+Parameter parsing utilities.
 
-Exports:
-
-    Functions:
-
-        convert_parameters: convert a dictionary returned by the
-            configparse module to a dictionary containing entries with
-            the correct type.
+This module contains the implementation of several utilities used
+to parse and manipulate dictionaries that store options and parameters.
 """
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -91,16 +85,8 @@ def convert_parameters(config_dict):
 
     monitor_params = {}
 
-    # Iterate over the sections in the dictionary (first level in the
-    # configuration file). Add the section to the dictionary that will
-    # be returned.
     for section in config_dict.keys():
         monitor_params[section] = {}
-
-        # Iterate then over the content of the section (second level in
-        # the configuration file). Get each option in turn and perform
-        # all the checks. If all checks fail, call the parsing_error
-        # function.
         for option in config_dict[section].keys():
             recovered_option = config_dict[section][option]
             if (

@@ -13,23 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities to load, manipulate and apply geometry information to
-detector pixel data.
+Geometry utilities.
 
-Exports:
-
-    Functions:
-
-        compute_pix_maps: turn a CrystFEL geometry object into pixel
-            maps.
-
-        compute_min_array_size: compute the minimum array size that
-            is required to store data to which a geometry has been
-            applied.
-
-        compute_visualization_pix_maps: ajust pixel maps to be used in
-            a PyQtGraph's ImageView widget.
-"""
+This module contains the implementation of several functions used to
+manipulate geometry information."""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
@@ -75,33 +62,29 @@ def compute_pix_maps(geometry):
         PixelMaps: A PixelMaps tuple storing the pixel maps (ndarrays
         of type float).
     """
-    # Determine the max fs and ss in the geometry object.
-    max_slab_fs = numpy.array([
+    max_fs_in_slab = numpy.array([
         geometry['panels'][k]['max_fs']
         for k in geometry['panels']
     ]).max()
 
-    max_slab_ss = numpy.array([
+    max_ss_in_slab = numpy.array([
         geometry['panels'][k]['max_ss']
         for k in geometry['panels']
     ]).max()
 
-    # Create empty arrays, of the same size of the input data, that
-    # will store the x and y pixel maps.
     x_map = numpy.zeros(
-        shape=(max_slab_ss + 1, max_slab_fs + 1),
+        shape=(max_ss_in_slab + 1, max_fs_in_slab + 1),
         dtype=numpy.float32  # pylint: disable=E1101
     )
 
     y_map = numpy.zeros(
-        shape=(max_slab_ss + 1, max_slab_fs + 1),
+        shape=(max_ss_in_slab + 1, max_fs_in_slab + 1),
         dtype=numpy.float32  # pylint: disable=E1101
     )
 
     # Iterate over the panels. For each panel, determine the pixel
     # indices, then compute the x,y vectors. Finally, copy the
     # panel pixel maps into the detector-wide pixel maps.
-    # At the end, compute the values for the radius pixel map.
     for pan in geometry['panels']:
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
@@ -178,7 +161,6 @@ def compute_min_array_size(pixel_maps):
     y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
     x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
 
-    # Return a numpy-style tuple with the computed shape.
     return (y_minimum, x_minimum)
 
 
@@ -204,12 +186,10 @@ def compute_visualization_pix_maps(geometry):
             coordinates (as ndarrays of type int). The third field
             ("r") is just set to None.
     """
-    # Essentially, the origin of the reference system needs to be
-    # moved from the beam position to the top-left of the image that
-    # will be displayed. First, compute the normal pixel maps, then
-    # compute the size of the array used to display the data, finally
-    # use this information to estimate the magnitude of the shift that
-    # needs to be applied to the origin of the system.
+    # Shift the origin of the reference system from the beam position
+    # to the top-left of the image that will be displayed. Compute the
+    # size of the array needed to display the data, then use this
+    # information to estimate the magnitude of the shift.
     pixel_maps = compute_pix_maps(geometry)
     min_shape = compute_min_array_size(pixel_maps)
     new_x_map = numpy.array(

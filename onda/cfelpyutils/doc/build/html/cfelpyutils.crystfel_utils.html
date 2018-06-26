@@ -4,27 +4,18 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>cfelpyutils.crystfel_utils module &#8212; cfelpyutils 0.5 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.5',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
-  </head>
-  <body>
+  </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -48,12 +39,14 @@
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -66,18 +59,9 @@
             
   <div class="section" id="module-cfelpyutils.crystfel_utils">
 <span id="cfelpyutils-crystfel-utils-module"></span><h1>cfelpyutils.crystfel_utils module<a class="headerlink" href="#module-cfelpyutils.crystfel_utils" title="Permalink to this headline">¶</a></h1>
-<p>Utilities for interoperability with data formats used in the CrystFEL
-software package.</p>
-<p>Exports:</p>
-<blockquote>
-<div><p>Functions:</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>load_crystfel_geometry: a python reimplementation of the</dt>
-<dd>get_detector_geometry_2 function from CrystFEL.</dd>
-</dl>
-</div></blockquote>
-</div></blockquote>
+<p>CryystFEL utilities.</p>
+<p>This module contains the implementation of several functions used to
+interact with CrystFEL files and data (geometry files, stream files).</p>
 <dl class="function">
 <dt id="cfelpyutils.crystfel_utils.load_crystfel_geometry">
 <code class="descclassname">cfelpyutils.crystfel_utils.</code><code class="descname">load_crystfel_geometry</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#cfelpyutils.crystfel_utils.load_crystfel_geometry" title="Permalink to this definition">¶</a></dt>
@@ -128,7 +112,7 @@ file.</td>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2016, CFEL Team.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>
