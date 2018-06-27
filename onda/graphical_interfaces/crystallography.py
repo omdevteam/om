@@ -31,8 +31,7 @@ import pyqtgraph
 from scipy import constants
 
 from onda.cfelpyutils import crystfel_utils, geometry_utils
-from onda.graphical_interface import gui
-from onda.utils import named_tuples
+from onda.utils import gui, named_tuples
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -628,7 +627,3 @@ def main():
     app = QtGui.QApplication(sys.argv)
     _ = CrystallographyGui(geometry, rec_ip, rec_port)
     sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()

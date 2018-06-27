@@ -31,7 +31,7 @@ import numpy
 import pyqtgraph
 
 from onda.cfelpyutils import crystfel_utils, geometry_utils
-from onda.graphical_interface import gui
+from onda.utils import gui
 
 try:
     from PyQt5 import QtGui
@@ -291,7 +291,3 @@ def main():
     app = QtGui.QApplication(sys.argv)
     _ = CrystallographyHitViewer(geometry, rec_ip, rec_port)
     sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()

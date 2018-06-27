@@ -17,7 +17,8 @@
 Base GUI class.
 
 This module contains the implementation of the basic OnDA GUI class,
-from which all OnDA GUI inherit.
+from which all OnDA GUI inherit. This class implements several common
+utilities for grpahical interfaces.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
