@@ -410,7 +410,7 @@ def load_crystfel_geometry(filename):
 
     Returns:
 
-        Dict: dictionary with the geometry information loaded from the
+        dict: dictionary with the geometry information loaded from the
         file.
     """
     beam = {

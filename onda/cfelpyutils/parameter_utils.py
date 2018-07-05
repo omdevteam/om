@@ -69,12 +69,12 @@ def convert_parameters(config_dict):
 
     Args:
 
-        config (Dict): a dictionary containing strings (the dictionary
+        config (dict): a dictionary containing strings (the dictionary
             returned by Config Parser).
 
     Returns:
 
-        Dict: dictionary with the same structure as the input
+        dict: dictionary with the same structure as the input
         dictionary, but with correct types assigned to each entry.
 
     Raises:

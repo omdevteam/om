@@ -13,10 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities to process data from the Eiger detector at PetraIII.
+Processing of data from the Pilatus detector at Petra III.
 
-This module implements several functions used to process data from the
-Lambda detector at the Petra III facility.
+This module contains the implementation of several functions used
+to process data from the Pilatus detector as used at the Petra III
+facility.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -36,27 +37,23 @@ from onda.utils import named_tuples
 
 def get_file_extensions():
     """
-    Files extensions for the Pilatus detector.
-
-    Return allowed file extensions for the Pilatus detector.
+    Retrieve allowed files extensions.
 
     Returns:
 
-        tuple: a tuple containing the list of allowed file extensions.
+        Tuple[str]: the list of allowed file extensions.
     """
     return (".nxs", ".h5")
 
 
 def get_peakfinder8_info():
     """
-    Peakfinder8 detector info for the Pilatus detector.
-
-    Return peakfinder8 information for the Pilatus detector.
+    Retrieve the peakfinder8 detector information.
 
     Returns:
 
-        :obj:`onda.utils.name_tuples.Peakfinder8DetInfo`: the
-        peakfinder8-related detector information.
+        Peakfinder8DetInfo: the peakfinder8-related detector
+        information.
     """
     return named_tuples.Peakfinder8DetInfo(
         asic_nx=2463,
@@ -74,10 +71,10 @@ def get_peakfinder8_info():
 
 def open_event(event):
     """
-    Open event.
+    Open the event.
 
-    Open the event and make the content of the event available in the
-    'data' entry of the event dictionary.
+    Make the content of the event available in the 'data' entry of the
+    event dictionary.
 
     Args:
 
@@ -95,9 +92,7 @@ def open_event(event):
 
 def close_event(_):
     """
-    Close event.
-
-    Close event.
+    Close the event.
 
     Args:
 
@@ -109,9 +104,7 @@ def close_event(_):
 
 def get_num_frames_in_event(_):
     """
-    The number of frames in the event.
-
-    Return the number of frames in the event.
+    Retrieve the number of frames in the event.
 
     Args:
 
@@ -134,9 +127,7 @@ def get_num_frames_in_event(_):
 
 def detector_data(event):
     """
-    Recover raw detector data for one frame.
-
-    Return the detector data for one single frame .
+    Retrieve one frame of detector data.
 
     Args:
 
@@ -144,7 +135,7 @@ def detector_data(event):
 
     Returns:
 
-        ndarray: the raw detector data for one frame.
+        numpy.ndarray: one frame of detector data.
     """
     # Extract frame information from the data stored in the event
     # dictionary.
@@ -153,10 +144,7 @@ def detector_data(event):
 
 def filename_and_frame_index(event):
     """
-    The filename and frame index for the frame being processed.
-
-    Return the name of the file where the frame being processed is
-    stored, and the index of the frame within the file.
+    Retrieve the filename and frame index of the frame being processed.
 
     Args:
 
@@ -164,9 +152,11 @@ def filename_and_frame_index(event):
 
     Returns:
 
-        :obj:`onda.utils.named_tuples.FilenameAndFrameIndex`: the path
-        to the file which stores the current frame, and the index of
-        the frame in the data block containing the detector data.
+        FilenameAndFrameIndex: a
+        :obj:`~onda.utils.named_tuples.FilenameAndFrameIndex` object
+        with the path to the file which stores the current frame, and
+        the index of the frame in the data block containing the
+        detector data.
     """
     # The frame index is always 0, as Pilatus files usually contain
     # just one frame.

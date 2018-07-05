@@ -15,8 +15,8 @@
 """
 OnDA named tuples.
 
-This module contains the implementation of several OnDA specific
-named tuples.
+This module contains the implementation of several named tuples used
+in the OnDA source code.
 """
 import collections
 
@@ -26,10 +26,9 @@ PeakList = collections.namedtuple(
     field_names=['fs', 'ss', 'intensity']
 )
 """
-Peaks detected in a detector frame.
+A list of peaks detected in a detector frame.
 
-A named tuple that stores the a list of peaks detected on a detector
-frame. The first two fields, named 'fs' and 'ss' respectively, are
+The first two fields, named 'fs' and 'ss' respectively, are
 lists which store fractional indexes locating the detected peaks in
 the slab-format detector frame data. The third field, named
 'intensity', is a list storing the integrated intensity of each peak.
@@ -41,13 +40,11 @@ QuadVmiPeaks = collections.namedtuple(
     field_names=['x_1', 'x_2', 'y_1', 'y_2']
 )
 """
-VMI peaks from a quad-type detector.
+Set of peaks from a VMI quad-type detector.
 
-A named tuple that stores a set of peaks detected on quad-type VMI
-detector's wires. Each of the four fields, named respectively 'x_1',
-'x_2', 'y_1' and 'y_2', stores a fractional index locating the peak on
-the waveform data of one of the detector wires (the wire that has the
-same name as the field).
+Each of the four fields, named respectively 'x_1', 'x_2', 'y_1' and
+'y_2', stores a fractional index locating the peak on the waveform data
+of the detector wire with the same name.
 """
 
 
@@ -58,8 +55,8 @@ VmiCoords = collections.namedtuple(
 """
 Spatial coordinates of a VMI detector hit.
 
-A named tuple that stores in its two fields ('x' and 'y' respectively)
-the spatial coordinates of a VMI detector hit.
+Its two fields ('x' and 'y' respectively) store the spatial coordinates
+of a VMI detector hit.
 """
 
 
@@ -70,13 +67,12 @@ VmiHit = collections.namedtuple(
 """
 VMI detector hit information.
 
-A named tuple that stores all information related to a VMI detector
-hit. The first field, 'timestamp', is used to store the timestamp of
-the hit (in epoch format). The second field, 'coords' is a
-`:obj:VmiCoords` tuple and contains the spatial coordinates of the hit.
-The third field, 'peaks' is a VmiPeak-style tuple - for example a
-`:obj:QuadVmiPeaks` object) stores a set of peaks detected on the wires
-of the VMI detector.
+The first field, 'timestamp', is used to store the timestamp of the
+hit (in epoch format). The second field, 'coords' is a
+:obj:`VmiCoords` tuple and contains the spatial coordinates of the hit.
+The third field, 'peaks' is a VmiPeak-style tuple (for example a
+:obj:`QuadVmiPeaks` object) and stores a set of peaks detected on the
+wires of the detector.
 """
 
 
@@ -87,11 +83,9 @@ FilenameAndFrameIndex = collections.namedtuple(
 """
 Information necessary to locate a data frame in a file.
 
-A named tuple the storing information necessary to recover a data frame
-from a file. The two fields, called 'filename' and 'frame_index'
-respectively, store the path to the file where the frame can be found,
-and the index of the frame in the data block containing the detector
-data.
+The two fields, called 'filename' and 'frame_index' respectively, store
+the path to the file where the frame is stored, and the index of the
+frame within the file.
 """
 
 
@@ -102,9 +96,9 @@ Peakfinder8DetInfo = collections.namedtuple(
 """
 Peakfinder8-related information.
 
-A named tuple where the four fields (named respectively 'asics_nx',
-'asics_ny', 'nasics_x', and  'nasics_y)' are the four parameters used
-by the peakfinder8 algorithm to describe the format of the input data.
+The four fields (named respectively 'asics_nx', 'asics_ny', 'nasics_x',
+and  'nasics_y)' are the four parameters used by the peakfinder8
+algorithm to describe the format of the input data.
 """
 
 
@@ -119,7 +113,7 @@ A named tuple storing the information needed by HiDRA to initiate the
 connection and the event retrieval. The 'query' field contains
 information about the transfer type and the required data. The
 'targets' field stores information about the worker nodes that will
-receive data from HiDRA. The third field, 'data_base_path', contains
+receive data from HiDRA. The other field, 'data_base_path', contains
 the base path to be used for locating files in the file system when
 HiDRA sends relative paths to OnDA.
 """

@@ -38,9 +38,10 @@ def import_processing_layer(monitor_params):
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
@@ -77,15 +78,16 @@ def import_parallelization_layer(monitor_params):
     Import the correct parallelization layer.
 
     Import the parallelization layer specified in the configuration
-    parameters. Search for the python file with the parallelization
-    layer implementation in the working directory first. If the file is
-    not found there, look for it in the OnDA folder structure.
+    file. Search for the python file with the parallelization layer
+    implementation in the working directory first. If the file is not
+    found there, look for it in the OnDA folder structure.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
@@ -122,15 +124,16 @@ def import_data_retrieval_layer(monitor_params):
     Import the correct data retrieval layer.
 
     Import the data retrieval layer specified in the configuration
-    parameters. Search for the python file with the data retrieval
-    layer implementation in the working directory first. If the file is
-    not found there, look for it in the OnDA folder structure.
+    file. Search for the python file with the data retrieval layer
+    implementation in the working directory first. If the file is not
+    found there, look for it in the OnDA folder structure.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
@@ -162,26 +165,26 @@ def import_data_retrieval_layer(monitor_params):
     return data_retrieval_layer
 
 
-def init_event_handling_funcs(monitor_params):
+def get_event_handling_funcs(monitor_params):
     """
     Retrieve event handling functions.
 
-    Collect and return specific event handling functions, importing
-    them from the data retrieval layer. Raise a
-    MissingEventHandlingFunction exception if any function is not
-    found.
+    Retrieve the event handling functions from the data retrieval
+    layer. Raise a MissingEventHandlingFunction exception if any
+    function is not found.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Dict: a dictionary with the event handling functions. The
-        functions are stored in the dictionary with keys identical
-        to their function names.
+        Dict[Callable]: a dictionary with the event handling functions.
+        The functions are stored in the dictionary using keys that
+        match the function names.
 
     Raises:
 
@@ -214,31 +217,31 @@ def init_event_handling_funcs(monitor_params):
     return event_handl_func_dict
 
 
-def init_data_extraction_funcs(monitor_params):
+def get_data_extraction_funcs(monitor_params):
     """
     Retrieve data extraction functions.
 
-    Collect and return the required data extraction functions from
-    the data retrieval layers. Raise a
-    MissingDataExtractionFunction exception if any function is not
-    found.
+    Retrieve the required data extraction functions from the data
+    retrieval layer. Raise a MissingDataExtractionFunction exception if
+    any function is not found.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Dict: a dictionary with the data extraction functions. The
-        functions are stored in the dictionary with keys identical
-        to their function names.
+        Dict[Callable]: a dictionary with the data extraction
+        functions. The functions are stored in the dictionary using
+        keys that match the function names.
 
     Raises:
 
         MissingDataExtractionFunction: if a data extraction function is
-        not found.
+            not found.
     """
     data_extraction_funcs = [
         x.strip() for x in monitor_params.get_param(
@@ -267,31 +270,32 @@ def init_data_extraction_funcs(monitor_params):
     return data_ext_func_dict
 
 
-def init_psana_det_interface_funcs(monitor_params):
+def get_psana_det_interface_funcs(monitor_params):
     """
     Retrieve the psana detector interface initialization functions.
 
-    Collect and return the required psana Detector interface
-    initialization functions from the data retrieval layer. Raise a
+    Retrieve the required psana Detector interface initialization
+    functions from the data retrieval layer. Raise a
     MissingDataExtractionFunction exception if any function is not
-    found
+    found.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Dict: a dictionary with the psana interface initialization
-        functions. The functions are stored in the dictionary with keys
-        identical to their function names.
+        Dict[Callable]: a dictionary with the psana detector interface
+        initialization functions. The functions are stored in the
+        dictionary using keys that match the function names.
 
     Raises:
 
         MissingPsanaInitializationFunction: if a psana detector
-        interface initialization function is not found.
+            interface initialization function is not found.
     """
     # Read from the configuration file the list of required data
     # extraction functions: we must look for matching initialization
@@ -332,16 +336,14 @@ def init_psana_det_interface_funcs(monitor_params):
 def get_peakfinder8_info(monitor_params,
                          detector):
     """
-    Import the peakfinder8 detector information.
-
-    Import the peakfiner8 detector information for a specific detector
-    from the data retrieval layer.
+    Get the peakfinder8 information for a specific detector.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
         detector: detector for which the peakfinder8 information must
             be recovered, identified by the name of the
@@ -350,8 +352,8 @@ def get_peakfinder8_info(monitor_params,
 
     Returns:
 
-        `:obj:onda.utils.named_tuples.Peakfinder8DetInfo`: the
-        peakfinder8-related detector information.
+        Peakfinder8DetInfo: the peakfinder8-related detector
+        information.
     """
     data_ret_layer = import_data_retrieval_layer(monitor_params)
 
@@ -369,16 +371,14 @@ def get_peakfinder8_info(monitor_params,
 
 def get_file_extensions(monitor_params):
     """
-    Import the file extension information.
-
-    Import the file extension information from the data retrieval
-    layer.
+    Get the allowed file extensions for the current detector(s).
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
@@ -401,19 +401,16 @@ def get_hidra_transfer_type(monitor_params):
     """
     Get the HiDRA transport type currently used by OnDA.
 
-    Get the HiDRA transport information used by the current OnDA data
-    retrieval layer.
-
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor
-            parameters from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        str: astring enconding the HiDRA trasport type (the possible
-        values are 'data' or 'metadata'.
+        str: the HiDRA trasport type ('data' or 'metadata').
     """
     data_retrieval_layer = import_data_retrieval_layer(
         monitor_params

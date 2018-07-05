@@ -15,8 +15,8 @@
 """
 HiDRA event handling.
 
-This module implements event handling functions used to process data
-received from HiDRA.
+This module contains the implementation of event handling functions
+used to process data received from HiDRA.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -130,25 +130,25 @@ def initialize_event_source(source,
                             mpi_pool_size,
                             monitor_params):
     """
-    Initialize the event recovery from HiDRA.
+    Initialize the event source.
 
-    Initialize the HiDRA event source. This function must be called on
-    the master node before the 'event_generator' function is
-    called on the worker nodes.
+    This function must be called on the master node before the
+    :obj:`event_generator` function is called on the worker nodes.
 
     Args:
 
-        source (str): the IP or hostname of the machine where HiDRA is
-            running.
+        source (str): full path to a file containing the list of
+            files to process (one per line, with their full path).
 
         node_rank (int): rank of the node where the function is called.
 
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
      Yields:
 
@@ -180,32 +180,35 @@ def event_generator(source,
                     mpi_pool_size,
                     monitor_params):
     """
-    Initialize HiDRA event recovery.
+    Initialize the event recovery from HiDRA.
 
-    Initialize the recovery of events from files. Return an iterator
-    over the events that should be processed by the worker that calls
-    the function. This function must be called on each worker node
-    after the 'initialize_event_source' function is called on the
-    master node.
+    Return an iterator over the events that should be processed by the
+    worker that calls the function. This function must be called on
+    each worker node after the :obj:`initialize_event_source` function
+    has been called on the master node.
 
     Args:
 
-        source (str): the IP or hostname of the machine where hidra is
-            running.
+        source (str): the full path to a file containing the list of
+            files to be processed (their full path).
 
-        node_rank (int): rank of the node where the function is called
+        node_role (str): a string describing the role of the node
+            where the function is called ('worker' or 'master').
+
+        node_rank (int): rank of the node where the function is called.
 
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (MonitorParams): a MonitorParams object
-            containing the monitor parameters from the
-            configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
-     Yields:
+    Yields:
 
-        Dict: A dictionary containing the data and the metadata of an
-        event recovered from HiDRA (usually corresponding to a file).
+        Dict: A dictionary containing the metadata (full path, etc. )
+        of a file from thelist.
     """
     hidra_info = _get_hidra_info(
         source=source,
@@ -246,22 +249,23 @@ def event_generator(source,
 
 class EventFilter(object):
     """
-    Filter events based on file extension.
-
-    Reject files whose extensions are not amongst the extensions
-    allowed for the detector(s) being used.
+    See __init__ for documentation.
     """
 
     def __init__(self,
                  monitor_params):
         """
-        Initialize the EventFilter class.
+        Filter events based on file extensions.
+
+        Reject files whose extensions are not allowed for the
+        detector(s) being used.
 
         Args:
 
-            monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-                a MonitorParams object containing the monitor
-                parameters from the configuration file.
+            monitor_params (MonitorParams): a
+                :obj:`~onda.utils.parameters.MonitorParams` object
+                containing the monitor parameters from the
+                configuration file.
         """
         self._file_extensions = dynamic_import.get_file_extensions(
             monitor_params
@@ -270,8 +274,6 @@ class EventFilter(object):
     def should_reject(self,
                       event):
         """
-        Decide on event rejection.
-
         Decide if the event should be rejected.
 
         Args:

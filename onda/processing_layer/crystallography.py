@@ -15,8 +15,8 @@
 """
 OnDA Crystallography.
 
-This module implements an OnDA real-time monitor for serial x-ray
-crystallography experiments.
+This module contains the implementation of an OnDA real-time monitor for
+serial x-ray crystallography experiments.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -40,12 +40,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
     """
     An OnDA real-time monitor for serial crystallography experiments.
 
-    An OnDA monitor for x-ray crystallography experiments. Provide real
-    time hit and saturation rate information, plus a virtual powder
-    pattern-style plot of the processed data. Optionally, apply
-    detector calibration, dark calibration and gain map correction to
-    each frame. Support also broadcasting of corrected frame data for
-    visualization.
+    Provide real time hit and saturation rate information, plus a
+    virtual powder pattern-style plot of the processed data.
+    Optionally, apply detector calibration, dark calibration and gain
+    map correction to each frame. 
 
     Carry out the peak finding using the peakfinder8 algorithm from the
     Cheetah software package:
@@ -55,6 +53,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
     high-throughput reduction and analysis of serial femtosecond X-ray
     diffraction data," J Appl Crystallogr, vol. 47,
     pp. 1118-1131 (2014).
+
+    Broadcast reduced data for visualization. Optionally also broadcast
+    corrected frame data for visualization.
     """
     def __init__(self,
                  source,
@@ -66,14 +67,15 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             source (str): A string describing the data source. The
                 exact format of the string depends on the data recovery
-                layer used by the monitor (e.g: a psana experiment
-                descriptor at the LCLS facility, a description of the
-                machine where HiDRA is running at the Petra III
-                facility, etc.)
+                layer used by the monitor (e.g:the string could be a
+                psana experiment descriptor at the LCLS facility, the
+                IP of the machine where HiDRA is running at the
+                PetraIII facility, etc.)
 
-            monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-                a MonitorParams object containing the monitor
-                parameters from the configuration file.
+            monitor_params (MonitorParams): a
+                :obj:`~onda.utils.parameters.MonitorParams` object
+                containing the monitor parameters from the
+                configuration file.
         """
         super(OndaMonitor, self).__init__(
             process_func=self.process_data,
@@ -388,12 +390,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
         Process frame information.
 
         Perform detector and dark calibration corrections, extract the
-        peak information and evaluate the extracted data. Return a
-        dictionary with the data to be sent to the master node.
+        peak information and evaluate the extracted data. Return the
+        data that need to be sent to the master node.
 
         Args:
 
-            data (dict): a dictionary containing the frame raw data.
+            data (Dict): a dictionary containing the frame raw data.
                 Keys in the dictionary correspond to entries in the
                 required_data list in the configuration file (e.g.:
                 'detector_distance', 'beam_energy', 'detector_data',
@@ -401,10 +403,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Returns:
 
-            tuple: a tuple where the first field is a dictionary
+            Tuple: a tuple where the first field is a dictionary
             containing the data that should be sent to the master node,
-            and the second is the rank of the worker node sending the
-            data.
+            and the second is the rank of the current worker.
         """
         results_dict = {}
         if self._calibration_alg is not None:
@@ -466,13 +467,14 @@ class OndaMonitor(mpi.ParallelizationEngine):
         """
         Compute aggregated data statistics and broadcast the data.
 
-        Accumulate data received from the worker nodes and compute
+        Accumulate the data received from the worker nodes and compute
         statistics on the aggregated data (e.g.: hit rate,
-        saturation_rate). Finally, broadcast the data.
+        saturation_rate). Finally, broadcast the reduced data for
+        visualization.
 
         Args:
 
-            data (tuple): a tuple where the first field is a dictionary
+            data (Tuple): a tuple where the first field is a dictionary
                 containing the data received from a worker node, and
                 the second is the rank of the worker node sending the
                 data.

@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities to process data from the Pilatus detector stored in files.
+Processing of data from files written by the Pilatus detector.
 
-This module implements several functions used to process data from the
-Pilatus detector stored in files.
+This module contains the implementation of several functions used
+to process data from files written by the Pilatus detector.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -33,27 +33,23 @@ from onda.utils import named_tuples
 
 def get_file_extensions():
     """
-    Files extensions for the Pilatus detector.
-
-    Return allowed file extensions for the Pilatus detector.
+    Retrieve allowed files extensions.
 
     Returns:
 
-        tuple: a tuple containing the list of allowed file extensions.
+        Tuple[str]: the list of allowed file extensions.
     """
     return (".cbf",)
 
 
 def get_peakfinder8_info():
     """
-    Peakfinder8 detector info for the Pilatus detector.
-
-    Return peakfinder8 information for the Pilatus detector.
+    Retrieve the peakfinder8 detector information.
 
     Returns:
 
-        :obj:`onda.utils.name_tuples.Peakfinder8DetInfo`: the
-        peakfinder8-related detector information.
+        Peakfinder8DetInfo: the peakfinder8-related detector
+        information.
     """
     return named_tuples.Peakfinder8DetInfo(
         asic_nx=2463,
@@ -75,11 +71,9 @@ open_event = cbf_files.open_event  # pylint: disable=C0103
 close_event = cbf_files.close_event  # pylint: disable=C0103
 
 
-def get_num_frames_in_event(_):
+def get_num_frames_in_event(event):  # pylint: disable=W0613
     """
     The number of frames in the file.
-
-    Return the number of frames in a file.
 
     Args:
 
@@ -102,9 +96,7 @@ def get_num_frames_in_event(_):
 
 def detector_data(event):
     """
-    Recover detector data for one frame.
-
-    Return the detector data for one single frame.
+    Retrieve one frame of detector data.
 
     Args:
 
@@ -112,7 +104,7 @@ def detector_data(event):
 
     Returns:
 
-        ndarray: the raw detector data for one frame.
+        numpy.ndarray: one frame of detector data.
     """
     # Return the data from the fabio cbf_obj object, previously stored
     # in the input dictionary.
@@ -121,10 +113,7 @@ def detector_data(event):
 
 def filename_and_frame_index(event):
     """
-    The filename and frame index for the frame being processed.
-
-    Return the name of the file where the frame being processed is
-    stored, and the index of the frame within the file.
+    Retrieve the filename and frame index of the frame being processed.
 
     Args:
 
@@ -132,9 +121,11 @@ def filename_and_frame_index(event):
 
     Returns:
 
-        :obj:`onda.utils.named_tuples.FilenameAndFrameIndex`: the path
-        to the file which stores the current frame, and the index of
-        the frame in the data block containing the detector data.
+        FilenameAndFrameIndex: a
+        :obj:`~onda.utils.named_tuples.FilenameAndFrameIndex` object
+        with the path to the file which stores the current frame, and
+        the index of the frame in the data block containing the
+        detector data.
     """
     # The frame index is always 0, as Pilatus files usually contain
     # just one frame.

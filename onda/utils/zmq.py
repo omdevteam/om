@@ -39,22 +39,22 @@ except ImportError:
 
 class DataBroadcaster(object):
     """
-    Data-broadcasting socket for OnDA monitors.
-
-    A ZMQ socket used to broacast data. The socket supports multiple
-    clients (it is based on the ZMQ PUB socket type). It also has no
-    queuing system: messages that are not received are dropped.
+    See __init__ for documentation.
     """
 
     def __init__(self, publish_ip=None, publish_port=None):
         """
-        Initialize the ZMQOndaPublisherSocket class.
+        ZMQ-based data-broadcasting socket for OnDA monitors.
+
+        The socket supports multiple clients (it is based on the ZMQ
+        PUB socket). It also has no queuing system: it drops messages
+        that are not received by clients.
 
         Args:
 
             publish_ip (Optional[str]): hostname or IP address of the
                 machine where the socket will be opened. If None, the
-                hostname will be autodetected. Defaults to None.
+                IP address will be autodetected. Defaults to None.
 
             publish_port(Optional[int]): port where the socket will be
                 opened. If None, the port number will be set to 12321.
@@ -114,13 +114,7 @@ class DataBroadcaster(object):
 
 class DataListener(QtCore.QObject):
     """
-    Listening socket for OnDA clients.
-
-    A listening class to be used for OnDA clients, based on a ZMQ
-    SUB socket. Suitable to be used in a separate listening thread.
-    Check continuously if data is coming to the socket. Emit a custom
-    Qt signal every time data is received through the socket. Send the
-    data together with the signal.
+    See __init__ for documentation.
     """
 
     zmqmessage = QtCore.pyqtSignal(dict)
@@ -131,7 +125,12 @@ class DataListener(QtCore.QObject):
                  pub_port,
                  subscription_string):
         """
-        Initialize the DataListener class.
+        ZMQ-based listening socket for OnDA clients.
+
+        Suitable to be used in a separate listening thread. Check
+        continuously if data is coming to the socket. Emit a custom
+        Qt signal every time data is received through the socket. Send
+        the data together with the signal.
 
         Args:
 
@@ -163,9 +162,7 @@ class DataListener(QtCore.QObject):
 
     def start_listening(self):
         """
-        Start listening.
-
-        Connect to the boradcasting socket and start listening.
+        Connect to a broadcasting socket and start listening.
         """
         print(
             "Connecting to tcp://{}:{}".format(
@@ -200,9 +197,7 @@ class DataListener(QtCore.QObject):
 
     def stop_listening(self):
         """
-        Stop listening.
-
-        Stop the listening and disconnect from the broadcasting socket.
+        Stop listening to a broadcasting socket and disconnect.
         """
         self._listening_timer.stop()
         print(
@@ -224,10 +219,9 @@ class DataListener(QtCore.QObject):
 
     def listen(self):
         """
-        Listen.
+        Listen for data.
 
-        Listen for data. When data comes, emit a signal adding the data
-        as payload.
+        When data comes, emit a signal adding the data as payload.
         """
         socks = dict(self._zmq_poller.poll(0))
         if (

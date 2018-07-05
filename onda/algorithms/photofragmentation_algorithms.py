@@ -97,11 +97,7 @@ def _filter_hit(mcp_peak,
 
 class DelaylineDetectorAnalysis(object):
     """
-    Process particle hits on a delayline VMI detector.
 
-    Extract infromation from delayline VMI detector data.
-    For each particle hit (a peak in the detector 's MCP waveform)
-    compute the spatial coordinates of the particle.
     """
 
     def __init__(self,
@@ -114,7 +110,10 @@ class DelaylineDetectorAnalysis(object):
                  max_sum_y,
                  max_radius):
         """
-        Initialize the DelaylineDetectorAnalysis class.
+        Process particle hits on a delayline VMI detector.
+
+        For each particle hit (a peak in the detector 's MCP waveform)
+        compute the most likely spatial coordinates of the particle.
 
         Args:
 
@@ -160,31 +159,32 @@ class DelaylineDetectorAnalysis(object):
         hits. For each peak in the detector's MCP waveform, search for
         corresponding peaks in the x1, x2, y1 and y2 delayline
         waveforms, then compute the spatial coordinates of the particle
-        hit. When more than one peak can be found in one of the
-        delayline waveforms for a single MCP peak, use the first set of
-        peaks that return plausible spatial coordinates.
+        hit, rejecting physically impossible results. When more than
+        one set of results are compatible with an MCP peak, use the
+        first found set of plausible spatial coordinates.
 
         Args:
 
-            mcp_peaks (list): positions (indexes, as int numbers) of
-                the peaks detected in the MCP waveform.
+            mcp_peaks (List[int]): positions (indexes, as int numbers)
+                of the peaks detected in the MCP waveform.
 
-            x1_peaks (list): positions (indexes, as int numbers) of
-                the peaks detected in the x1 waveform.
+            x1_peaks (List[int]): positions (indexes, as int numbers)
+               of the peaks detected in the x1 waveform.
 
-            x2_peaks (list): positions (indexes, as int numbers) of
-                the peaks detected in the x2 waveform.
+            x2_peaks (List[int]): positions (indexes, as int numbers)
+               of the peaks detected in the x2 waveform.
 
-            y1_peaks (list): positions (indexes, as int numbers) of
-                the peaks detected in the y1 waveform.
+            y1_peaks (List[int]): positions (indexes, as int numbers)
+               of the peaks detected in the y1 waveform.
 
-            y2_peaks (list): positions (indexes, as int numbers) of
-                the peaks detected in the y2 waveform.
+            y2_peaks (List[int]): positions (indexes, as int numbers)
+               of the peaks detected in the y2 waveform.
 
         Returns:
 
-            List[:obj:`onda.utils.named_tuples.VmiHit]: a list of
-            VmiHit tuples storing information about all detected hits.
+            List[VmiHit]: a list of
+            :obj:`~onda.utils.named_tuples.VmiHit` objects storing
+            information about all detected hits.
         """
         hit_list = []
         for mcp_peak in mcp_peaks:

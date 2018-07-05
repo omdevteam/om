@@ -41,25 +41,25 @@ except ImportError:
 
 class CrystallographyHitViewer(gui.OndaGui):
     """
-    Hit Viewer for OnDA Crystallography.
-
-    A Hit Viewer for OnDA Crystallography. Receive data sent by the
-    OnDA monitor when they are tagged with the 'ondarawdata' tag and
-    display the received detector frames along with the detected peaks.
+    See __init__ for documentation.
     """
     def __init__(self,
                  geometry,
                  pub_hostname,
                  pub_port):
         """
-        Initialize the CrystallographyHitViewer class.
+        Hit Viewer for OnDA Crystallography.
+
+        Receive data sent by the OnDA monitor when they are tagged with
+        the 'ondarawdata' tag and display the received detector frames
+        along with the detected peaks.
 
         Args:
 
             geometry (Dict): a dictionary containing CrystFEL geometry
                 information (as returned by the
-                `:obj:onda.cfelpyutils.crystfel_utils.load_crystfel_geometry`
-                function.
+                :obj:`~onda.cfelpyutils.crystfel_utils.load_crystfel_geometry`
+                function).
 
             pub_hostname (str): hostname or IP address of the host
                 where OnDA is running.
@@ -262,11 +262,11 @@ class CrystallographyHitViewer(gui.OndaGui):
 
 def main():
     """
-    Start the hit viewer for OnDA Fibers,
+    Start the hit viewer for OnDA Crystallography.
 
-    Initialize and start the hit viewer for OnDA Fibers. Manage command
-    line arguments, load the geometry and instantiate the graphical
-    interface.
+    Initialize and start the Hit Viewer for OnDA Crystallography.
+    Manage command line arguments, load the geometry and instantiate
+    the graphical interface.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 

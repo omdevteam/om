@@ -15,8 +15,8 @@
 """
 File event handling.
 
-This module implements event handling functions used to process data
-stored in files.
+This module contains the implementation of event handling functions
+used to process data stored in files.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -34,11 +34,10 @@ def initialize_event_source(source,  # pylint: disable=W0613
                             mpi_pool_size,  # pylint: disable=W0613
                             monitor_params):  # pylint: disable=W0613
     """
-    Initialize the event recovery from files.
+    Initialize the event source.
 
-    Initialize the event recovery from files. This function must be
-    called on the master node before the 'event_generator' function is
-    called on the worker nodes.
+    This function must be called on the master node before the
+    :obj:`event_generator` function is called on the worker nodes.
 
     Args:
 
@@ -50,9 +49,10 @@ def initialize_event_source(source,  # pylint: disable=W0613
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
      Yields:
 
@@ -71,11 +71,10 @@ def event_generator(source,
     """
     Initialize the event recovery from files.
 
-    Initialize the recovery of events from files. Return an iterator
-    over the events that should be processed by the worker that calls
-    the function. This function must be called on each worker node
-    after the 'initialize_event_source' function is called on the
-    master node.
+    Return an iterator over the events that should be processed by the
+    worker that calls the function. This function must be called on
+    each worker node after the :obj:`initialize_event_source` function
+    has been called on the master node.
 
     Args:
 
@@ -90,11 +89,12 @@ def event_generator(source,
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
-     Yields:
+    Yields:
 
         Dict: A dictionary containing the metadata (full path, etc. )
         of a file from thelist.
@@ -140,22 +140,23 @@ def event_generator(source,
 
 class EventFilter(object):
     """
-    Filter events based on file extension.
-
-    Reject files whose extensions are not amongst the extensions
-    allowed for the detector(s) being used.
+    See __init__ for documentation.
     """
 
     def __init__(self,
                  monitor_params):
         """
-        Initialize the EventFilter class.
+        Filter events based on file extensions.
+
+        Reject files whose extensions are not allowed for the
+        detector(s) being used.
 
         Args:
 
-            monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-                a MonitorParams object containing the monitor
-                parameters from the configuration file.
+            monitor_params (MonitorParams): a
+                :obj:`~onda.utils.parameters.MonitorParams` object
+                containing the monitor parameters from the
+                configuration file.
         """
         self._file_extensions = dynamic_import.get_file_extensions(
             monitor_params
@@ -164,8 +165,6 @@ class EventFilter(object):
     def should_reject(self,
                       event):
         """
-        Decide on event rejection.
-
         Decide if the event should be rejected.
 
         Args:

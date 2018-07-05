@@ -38,18 +38,9 @@ from ondacython.lib.peakfinder8_extension import (  # pylint: disable=E0611
 
 class Peakfinder8PeakDetection(object):
     """
-    Detect peaks with Cheetah's peakfinder8 algorithm.
-
-    Use Cheetah's peakfinder8 to detect peaks in the data provided by
-    the user (which must be in 'slab' format). See this paper for a
-    descrition of the peakfinder8 algorithm:
-
-    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
-    T. A. White, and H. N. Chapman, 'Cheetah: software for
-    high-throughput reduction and analysis of serial femtosecond X-ray
-    diffraction data', J Appl Crystallogr, vol. 47, pp. 1118-1131
-    (2014).
+    See __init__ for documentation.
     """
+
     def __init__(self,
                  max_num_peaks,
                  asic_nx,
@@ -67,7 +58,15 @@ class Peakfinder8PeakDetection(object):
                  bad_pixel_map_hdf5_path,
                  radius_pixel_map):
         """
-        Initialize the Peakfinder8PeakDetection class.
+        Detect peaks with Cheetah's peakfinder8 algorithm.
+
+        See this paper for a description of the peakfinder8 algorithm:
+
+        A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H.
+        Yoon, T. A. White, and H. N. Chapman, 'Cheetah: software for
+        high-throughput reduction and analysis of serial femtosecond
+        X-ray diffraction data', J Appl Crystallogr, vol. 47,
+        pp. 1118-1131 (2014).
 
         Args:
 
@@ -114,9 +113,9 @@ class Peakfinder8PeakDetection(object):
                 data block where the bad pixel map (in 'slab' format)
                 is stored.
 
-           radius_pixel_map (ndarray): a pixel map that, for each pixel
-                in the data array, stores its distance (in pixels) from
-                the center of the detector.
+            radius_pixel_map (numpy.ndarray): a pixel map that, for each
+                pixel in the data array, stores its distance (in
+                pixels) from the center of the detector.
         """
         self._max_num_peaks = max_num_peaks
         self._asic_nx = asic_nx
@@ -157,18 +156,18 @@ class Peakfinder8PeakDetection(object):
     def find_peaks(self,
                    data):
         """
-        Detect peaks.
+        Detect peaks in the data.
 
-        Perform the peak finding on the data provided by the user.
+        The data provided by the user must be in 'slab' format.
 
         Args:
 
-            data (ndarray): the data (in 'slab' format) on which the
-                peak finding should be performed.
+            data (numpy.ndarray): the data (in 'slab' format) on which
+                the peak finding should be performed.
 
         Returns:
 
-            PeakList: a PeakList tuple with the detected peaks.
+            PeakList: the detected peaks.
         """
         peak_list = peakfinder_8(
             self._max_num_peaks,
@@ -191,24 +190,23 @@ class Peakfinder8PeakDetection(object):
 
 class PeakAccumulator(object):
     """
-    Accumulate peak information for susequent bulk retrieval.
-
-    Accumulate peak information until the accumulator is full (i.e.
-    the user to has added peaks to the accumulator for a predefined
-    number of times). Then return the full list of accumulated peaks
-    and empty the accumulator.
+    See __init__ for documentation.
     """
 
     def __init__(self, num_events_to_accumulate):
         """
-        Initialize the PeakAccumulator class.
+        Accumulate peak information for susequent bulk retrieval.
+
+        Accumulate peaks until the accumulator is full (i.e. the user
+        to has added peaks to the accumulator for a predefined number
+        of times). Then return the full list of accumulated peaks and
+        empty the accumulator.
 
         Args:
 
             num_events_to_accumulate (int): the number of times that
                 peaks can be added to the accumulator before the
-                accumulator is full and the list of accumulated peaks
-                is returned.
+                accumulator is full.
         """
         self._n_events_to_accumulate = num_events_to_accumulate
         self._accumulator = named_tuples.PeakList([], [], [])
@@ -218,21 +216,18 @@ class PeakAccumulator(object):
         """
         Accumulate peaks.
 
-        Add the peaks to the internal list of peaks. If the accumulator
-        is full, return the accumulated peak list and empty the
-        accumulator.
+        If the accumulator is full, return the accumulated peak list
+        and empty the accumulator.
 
         Args:
 
-            peak_list (:obj:`onda.utils.named_tuples.PeakList`):
-                PeakList tuple with the list of peaks to be added to
-                the accumulator.
+            peak_list (PeakList): list of peaks to be added to the
+            accumulator.
 
         Returns:
 
-            Union[:obj:`onda.utils.named_tuples.PeakList`PeakList,
-            None]: a PeakList tuple with the accumulated peaks if the
-            accumulator is full, otherwise None.
+            Union[PeakList, None]: accumulated peaks if the accumulator
+            is full, otherwise None.
         """
         self._accumulator.fs.extend(peak_list.fs)
         self._accumulator.ss.extend(peak_list.ss)

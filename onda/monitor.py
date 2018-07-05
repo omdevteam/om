@@ -33,8 +33,6 @@ from onda.utils import dynamic_import, exceptions, parameters
 def main():
     """
     Main OnDA monitor function.
-
-    The function called to start an OnDA monitor.
     """
     # Set a custom exception handler to deal with OnDA-specific
     # exceptions.

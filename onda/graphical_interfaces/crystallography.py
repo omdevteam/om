@@ -41,12 +41,6 @@ except ImportError:
 
 class CrystallographyGui(gui.OndaGui):
     """
-    GUI for OnDA crystallography.
-
-    A GUI for OnDa Crystallography. Receive data sent by the OnDA
-    monitor when they are tagged with the 'ondadata' tag. Display the
-    real time hit and saturation rate information, plus a virtual
-    powder pattern-style plot of the processed data.
     """
 
     def __init__(self,
@@ -54,14 +48,19 @@ class CrystallographyGui(gui.OndaGui):
                  pub_hostname,
                  pub_port):
         """
-        Initialize the CrystallographyGui class.
+        GUI for OnDA crystallography.
+
+        Receive data sent by the OnDA monitor when they are tagged with
+        the 'ondadata' tag. Display the real time hit and saturation
+        rate information, plus a virtual powder pattern-style plot of
+        the processed data.
 
         Args:
 
             geometry (Dict): a dictionary containing CrystFEL geometry
                 information (as returned by the
-                `:obj:onda.cfelpyutils.crystfel_utils.load_crystfel_geometry`
-                function.
+                :obj:`onda.cfelpyutils.crystfel_utils.load_crystfel_geometry`
+                function).
 
             pub_hostname (str): hostname or IP address of the machine
                 where the OnDA monitor is running.
@@ -603,7 +602,8 @@ def main():
     Start the GUI for OnDA Crystallography,
 
     Initialize and start the GUI for OnDA Crystallography. Manage
-    command line arguments and instantiate the graphical interface.
+    command line arguments, load the geometry and instantiate the
+    graphical interface.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 

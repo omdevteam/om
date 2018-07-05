@@ -15,7 +15,8 @@
 """
 Utilities to manipulate HDF5 files.
 
-This module implements several functions used to manipulate HDF5 files.
+This module contains the implementation of several functions used to
+manipulate HDF5 files.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -25,10 +26,10 @@ import h5py
 
 def open_event(event):
     """
-    Open event.
+    Open the event.
 
-    Open the event and make the content of the event available in the
-    'data' entry of the event dictionary.
+    Make the content of the event (file) available in the 'data' entry
+    of the event dictionary.
 
     Args:
 
@@ -44,10 +45,8 @@ def close_event(event):
     """
     Close event.
 
-    Close event.
-
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (dict): a dictionary with the event data.
     """
     event['data'].close()

@@ -9,7 +9,14 @@ Welcome to cfelpyutils's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
+
+.. automodule:: onda
+.. automodule:: onda.algorithms
+.. automodule:: onda.algorithms.calibration_algorithms
+.. automodule:: onda.algorithms.generic_algorithms
+.. automodule:: onda.algorithms.crystallography_algorithms
+.. automodule:: onda.algorithms.photofragmentation_algorithms
 
 
 

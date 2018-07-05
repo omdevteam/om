@@ -34,10 +34,7 @@ from scipy.ndimage import median_filter
 
 class DarkCalCorrection(object):
     """
-    Apply dark calibration correction.
-
-    Apply dark calibration correction on detector frame data.
-    Optionally, apply a mask and a gain map.
+    See __init__ for documentation.
     """
 
     def __init__(self,
@@ -48,7 +45,9 @@ class DarkCalCorrection(object):
                  gain_map_filename=None,
                  gain_map_hdf5_path=None):
         """
-        Initialize the DarkCalCorrection class.
+        Apply dark calibration correction on frame data.
+
+        Optionally, apply a mask and a gain map
 
         Args:
 
@@ -59,10 +58,10 @@ class DarkCalCorrection(object):
                 block where the dark calibration information (in 'slab'
                 format) is stored.
 
-            mask_filename (Optional[str]): if the argument is the name
-                of a file containing a binary mask, the mask will be
-                loaded and applied. If the argument is None, no mask
-                will be applied. Defaults to None.
+            mask_filename (Optional[str]): if the argument is
+                the name of a file containing a binary mask, the mask
+                will be loaded and applied. If the argument is None, no
+                mask will be applied. Defaults to None.
 
             mask_hdf5_path (Optional[str]): if the mask_filename
                 argument is provided, and a mask is applied, this
@@ -143,17 +142,16 @@ class DarkCalCorrection(object):
         """
         Apply the correction.
 
-        Apply the dark calibration correction. Optionally, also apply
-        the user-provided mask and gain map.
+        Optionally, also apply the user-provided mask and gain map.
 
         Args:
 
-            data (ndarray): the data (in 'slab' format) on which the
-                corrections should be applied.
+            data (numpy.ndarray): the data (in 'slab' format) on which
+                the corrections should be applied.
 
         Returns:
 
-            ndarray: the corrected data.
+            numpy.ndarray: the corrected data.
 
         """
         return (data * self._mask - self._darkcal) * self._gain_map
@@ -165,28 +163,29 @@ class DarkCalCorrection(object):
 
 class FrameDataAveraging(object):
     """
-    Accumulate and average detector frame data.
-
-    Accumulate detector frame data (in 'slab' format) until the
-    accumulator is full (i.e.: a predefined number of data entries has
-    been added to the accumulator, then return the average of the
-    accumulated data and empty the accumulator.
+    See __init__ for documentation.
     """
 
     def __init__(self,
                  num_events_to_average,
                  slab_shape):
         """
-        Initialize the RawDataAveraging class.
+        Accumulate and average detector frame data.
+
+        Accumulate detector frame data (in 'slab' format) until the
+        accumulator is full (i.e.: a predefined number of data entries
+        has been added to the accumulator), then return the average of
+        the accumulated data and empty the accumulator.
 
         Args:
 
             num_events_to_accumulate (int): the number of raw detector
-                data items to accumulate before returning the average
-                of the accumulated data.
+                data items to accumulate before the accumulator is
+                full.
 
-            slab_shape (tuple): numpy shape-like tuple describing the
-                size of the data that will go in the accumulator.
+            slab_shape (Tuple[int, int]): numpy shape-like tuple
+                describing the size of the data that will go in the
+                accumulator.
         """
         self._num_events_to_average = num_events_to_average
         self._slab_shape = slab_shape
@@ -200,19 +199,18 @@ class FrameDataAveraging(object):
         """
         Add raw detector_data.
 
-        Add the provided raw detector data to the accumulator. If the
-        accumulator is full, return the average of the
+        If the accumulator is full, return the average of the
         accumulated data and empty the accumulator.
 
         Args:
 
-            data (ndarray): raw detector data (in 'slab' format) to be
-                added to the accumulator.
+            data (numpy.ndarray): raw detector data (in 'slab' format)
+                to be added to the accumulator.
 
         Returns:
 
-            Union[ndarray, None]: the average of the accumulated data
-            if the accumulator is full, None otherwise.
+            Union[numpy.ndarray, None]: the average of the accumulated
+            data if the accumulator is full, None otherwise.
         """
         # Add the frame data and normalize in a single step.
         self._avg_frame_data += (data / self._num_events_to_average)
@@ -234,11 +232,7 @@ class FrameDataAveraging(object):
 
 class FindMinimaInWaveforms(object):
     """
-    Find minima in waveforms.
-
-    Perform peak finding on 1d waveform data, after applying a
-    moving-window smoothing function. The waveform signal is expected
-    to have a negative sign, and peaks are minima in the waveform.
+    See __init__ for documentation.
     """
 
     def __init__(self,
@@ -247,7 +241,12 @@ class FindMinimaInWaveforms(object):
                  minimum_peak_width,
                  background_subtraction=False):
         """
-        Initialize the FindMinimaInWaveform class.
+        Find minima in waveforms.
+
+        Perform peak finding on 1d waveform data, after applying a
+        moving-window smoothing function. The waveform signal is
+        expected to have a negative sign, and peaks are minima in the
+        waveform.
 
         Args:
 
@@ -290,12 +289,12 @@ class FindMinimaInWaveforms(object):
 
     def find_minima(self, data):
         """
-        Finds minima in the waveform.
+        Find minima in the waveform.
 
         Args:
 
-            waveform  (ndarray): 1d numpy array containing the waveform
-                data.
+            waveform (numpy.ndarray): 1-dimensional numpy array
+                containing the waveform data.
 
         Returns:
 

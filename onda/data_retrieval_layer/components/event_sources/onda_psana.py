@@ -15,8 +15,8 @@
 """
 Psana event handling.
 
-This module implements event handling functions used to process data
-received from Psana.
+This module contains the implementation of event handling functions
+used to process data received from Psana.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -63,11 +63,10 @@ def initialize_event_source(source,  # pylint: disable=W0613
                             mpi_pool_size,  # pylint: disable=W0613
                             monitor_params):  # pylint: disable=W0613
     """
-    Initialize the event recovery from psana.
+    Initialize the event source.
 
-    Initialize the psana event source. This function must be called on
-    the master node before the 'event_generator' function is
-    called on the worker nodes.
+    This function must be called on the master node before the
+    :obj:`event_generator` function is called on the worker nodes..
 
     Args:
 
@@ -78,13 +77,13 @@ def initialize_event_source(source,  # pylint: disable=W0613
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
+        monitor_params (:obj:`~onda.utils.parameters.MonitorParams`):
             a MonitorParams object containing the monitor parameters
             from the configuration file.
 
      Yields:
 
-        Dict: A dictionary containing the data and metadata of a
+        dict: A dictionary containing the data and metadata of a
         psana event.
     """
     # Psana needs no initialization, so do nothing.
@@ -96,31 +95,30 @@ def event_generator(source,
                     mpi_pool_size,  # pylint: disable=W0613
                     monitor_params):
     """
-    Initialize psana event recovery.
-
-    Initialize the recovery of events from psana. Return an iterator
-    over the events that should be processed by the worker that calls
-    the function. This function must be called on each worker node
-    after the 'initialize_event_source' function is called on the
-    master node.
+    Return an iterator over the events that should be processed by the
+    worker that calls the function. This function must be called on
+    each worker node after the :obj:`initialize_event_source` function
+    has been called on the master node.
 
     Args:
 
-        source (str): a psana source string.
+        source (str): the IP or hostname of the machine where HiDRA is
+            running.
 
         node_rank (int): rank of the node where the function is called.
 
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
-     Yields:
+    Yields:
 
-       Dict: a dictionary containing the psana detector interface and
-       the psana event data.
+        Dict: A dictionary containing the data and metadata of an
+        event.
     """
     # Detect if data is being read from an online or offline source.
     if 'shmem' in source:
@@ -179,22 +177,24 @@ def event_generator(source,
 
 class EventFilter(object):
     """
-    Filter events.
-
-    Reject files whose 'age' (the time between the data collection and
-    the moment OnDA receives the data) is higher than a predefined
-    threshold.
+    See __init__ for documentation.
     """
+
     def __init__(self,
                  monitor_params):
         """
-        Initialize the EventFilter class.
+        Filter events based on their 'age'.
+
+        Reject files whose 'age' (the time between the data collection
+        and the moment OnDA receives the data) is higher than a
+        predefined threshold.
 
         Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+            monitor_params (MonitorParams): a
+                :obj:`~onda.utils.parameters.MonitorParams` object
+                containing the monitor parameters from the
+                configuration file.
         """
         # Read the rejection threshold from the configuration file
         # and store it in an attribute.
@@ -211,11 +211,7 @@ class EventFilter(object):
     def should_reject(self,
                       event):
         """
-        Decide on event rejection.
-
-        Decide if the event should be rejected based on its 'age' (
-        the time between data collection and the moment OnDA gets
-        the event).
+        Decide if the event should be rejected.
 
         Args:
 
@@ -250,10 +246,10 @@ class EventFilter(object):
 
 def open_event(event):  # pylint: disable=W0613
     """
-    Open event.
+    Open the event.
 
-    Open the event and make the content of the event available in the
-    'data' entry of the event dictionary.
+    Make the content of the event available in the 'data' entry of the
+    event dictionary.
 
     Args:
 
@@ -265,8 +261,6 @@ def open_event(event):  # pylint: disable=W0613
 
 def close_event(event):  # pylint: disable=W0613
     """
-    Close event.
-
     Close the event.
 
     Args:
@@ -279,14 +273,15 @@ def close_event(event):  # pylint: disable=W0613
 
 def get_num_frames_in_event(event):  # pylint: disable=W0613
     """
-    The number of frames in the file.
-
-    Return the number of frames in a file. In psana an event contains
-    just one frame, so return 1.
+    Retrieve the number of frames in the event.
 
     Args:
 
         event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        int: the number of frames in an event.
     """
     # Psana events usually contain just one frame.
     return 1

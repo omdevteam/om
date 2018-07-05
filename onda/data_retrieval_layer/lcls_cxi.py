@@ -14,49 +14,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Data retrieval at the CXI instrument at the LCLS facility.
+Data retrieval at the CXI instrument of the LCLS facility.
 
-Exports:
-
-    Functions:
-
-        initialize_event_source: connect to the event source and
-            configure it.
-
-        event_generator: event recovery from HiDRA.
-
-        open_event: open an event.
-
-        close_event: close an event.
-
-        get_num_frames_in_event: get number of frames in an event.
-
-        detector_data_init: initialize psana interface for the
-            retrieval of the CSPAD detector data
-
-        timestamp_init: initialize psana interface for the retrieval of
-            timestamp information.
-
-        detector_distance_init: initialize psana interface for the
-            retrieval of the CSPAD detector distance information.
-
-        beam_energy_init: initialize psana interface for the retrieval
-            of beam energy information.
-
-        detector_data: recover the raw CSPAD detector data for a frame.
-
-        timestamp: recover the timestamp information of the event.
-
-        detector_distance: recover the distance between the sample
-            and the detector for the current event.
-
-        beam_energy: recover the beam energy during the current event.
-
-
-    Classes:
-
-        EventFilter (class): filter and reject events.
+This module imports from different components of the data retrieval
+layer several functions used to manage events and retrieve data at the
+CXI instrument of the LCLS facility.
 """
+
 import functools
 
 from onda.data_retrieval_layer.components.data_sources import lcls_cspad
@@ -108,6 +72,7 @@ get_num_frames_in_event = (  # pylint: disable=C0103
 detector_data_init = functools.partial(  # pylint: disable=C0103
     lcls_psana.detector_data_init, data_extraction_func_name='detector_data'
 )
+functools.update_wrapper(detector_data_init, lcls_psana.detector_data_init)
 
 
 timestamp_init = (  # pylint: disable=C0103
@@ -133,6 +98,7 @@ beam_energy_init = (  # pylint: disable=C0103
 detector_data = functools.partial(  # pylint: disable=C0103
     lcls_cspad.detector_data, data_extraction_func_name='detector_data'
 )
+functools.update_wrapper(detector_data, lcls_cspad.detector_data)
 
 
 timestamp = (  # pylint: disable=C0103

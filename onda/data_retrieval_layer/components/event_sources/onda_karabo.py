@@ -15,8 +15,8 @@
 """
 Karabo event handling.
 
-This module implements event handling functions used to process data
-received from Karabo.
+This module contains the implementation of event handling functions
+used to process data received from Karabo.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -34,31 +34,30 @@ def initialize_event_source(source,  # pylint: disable=W0613
                             mpi_pool_size,  # pylint: disable=W0613
                             monitor_params):  # pylint: disable=W0613
     """
-    Initialize the event recovery from Karabo.
+    Initialize the event source.
 
-    Initialize the psana event source. This function must be called on
-    the master node before the 'event_generator' function is
-    called on the worker nodes.
+    This function must be called on the master node before the
+    :obj:`event_generator` function is called on the worker nodes.
 
     Args:
 
-        source (str): the hostname (or IP) of the machine where the
-            Karabo Bridge software is running, and the port on which it
-            is running (separated by a semicolon).
+        source (str): full path to a file containing the list of
+            files to process (one per line, with their full path).
 
         node_rank (int): rank of the node where the function is called.
 
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
      Yields:
 
-        Dict: A dictionary containing the data and metadata of a
-        Karabo event.
+        Dict: A dictionary containing the data and metadata of an
+        event.
     """
     # Karabo needs no initialization, so do nothing.
     pass
@@ -69,29 +68,29 @@ def event_generator(source,
                     mpi_pool_size,  # pylint: disable=W0613
                     monitor_params):  # pylint: disable=W0613
     """
-    Initialize HiDRA event recovery.
+    Initialize the event recovery from Karabo.
 
-    Initialize the recovery of events from Karabo. Return an iterator
-    over the events that should be processed by the worker that calls
-    the function. This function must be called on each worker node
-    after the 'initialize_event_source' function is called on the
-    master node.
+    Return an iterator over the events that should be processed by the
+    worker that calls the function. This function must be called on
+    each worker node after the :obj:`initialize_event_source` function
+    has been called on the master node.
 
     Args:
 
-        source (str): the IP or hostname of the machine where hidra is
+        source (str): the IP or hostname of the machine where HiDRA is
             running.
 
-        node_rank (int): rank of the node where the function is called
+        node_rank (int): rank of the node where the function is called.
 
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
-     Yields:
+    Yields:
 
         Dict: A dictionary containing the data and metadata of an
         event.
@@ -129,29 +128,28 @@ def event_generator(source,
 
 class EventFilter(object):
     """
-    Null filter.
-
-    Do not filter events.
+    See __init__ for documentation.
     """
 
     def __init__(self,
                  monitor_params):   # pylint: disable=W0613
         """
-        Initialize the EventFilter class.
+        Null filter.
+
+        Do not filter events.
 
         Args:
 
-            monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-                a MonitorParams object containing the monitor
-                parameters from the configuration file.
+            monitor_params (MonitorParams): a
+                :obj:`~onda.utils.parameters.MonitorParams` object
+                containing the monitor parameters from the
+                configuration file.
         """
         pass
 
     def should_reject(self,
                       event):     # pylint: disable=W0613
         """
-        Decide on event rejection.
-
         Decide if the event should be rejected.
 
         Args:
@@ -168,10 +166,10 @@ class EventFilter(object):
 
 def open_event(event):  # pylint: disable=W0613
     """
-    Open event.
+    Open the event.
 
-    Open the event and make the content of the event available in the
-    'data' entry of the event dictionary.
+    Make the content of the event available in the 'data' entry of the
+    event dictionary.
 
     Args:
 
@@ -183,8 +181,6 @@ def open_event(event):  # pylint: disable=W0613
 
 def close_event(event):  # pylint: disable=W0613
     """
-    Close event.
-
     Close the event.
 
     Args:

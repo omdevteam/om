@@ -13,9 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-This module implements event handling functions and data extraction
-functions used when interacting with the HiDRA framework at the
-PetraIII facility.
+HiDRA at the Petra III facility.
+
+This module contains the implementation of event handling functions and
+data extraction functions used when interacting with the HiDRA
+framework at the PetraIII facility.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -59,10 +61,9 @@ EventFilter = (  # pylint: disable=C0103
 
 def timestamp(event):
     """
-    Recover the timestamp of the event.
+    Retrieve the timestamp of the event.
 
-    Return the timestamp of the event (the file creation time as seen
-    by HiDRA).
+    As approximated by the file creation time provided by HiDRA.
 
     Args:
 
@@ -70,18 +71,16 @@ def timestamp(event):
 
     Returns:
 
-        timestamp: the creation time of the file containing the
-        detector data (in epoch format).
+        timestamp: the time at which the event was collected.
     """
     return event['metadata']['file_creation_time']
 
 
 def beam_energy(event):
     """
-    Recover the energy of the beam.
+    Retrieve the beam energy.
 
-    Return the beam energy information (as found in the configuration
-    file).
+    As provided in the configuration file.
 
     Args:
 
@@ -103,10 +102,9 @@ def beam_energy(event):
 
 def detector_distance(event):
     """
-    Recover the distance of the detector from the sample location.
+    Retrieve the distance of the detector from the sample location.
 
-    Return the detector distance information (as found in the
-    configuration file).
+    As provided in the configuration file.
 
     Args:
 

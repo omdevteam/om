@@ -15,17 +15,21 @@
 """
 Utilities to manipulate CBF files.
 
-This module implements several functions used to manipulate CBF files.
+This module contains the implementation of several functions used to
+manipulate CBF files.
 """
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
+
 import fabio
 
 
 def open_event(event):
     """
-    Open event.
+    Open the event.
 
-    Open the event and make the content of the event available in the
-    'data' entry of the event dictionary.
+    Make the content of the event (file) available in the 'data' entry
+    of the event dictionary.
 
     Args:
 
@@ -39,8 +43,6 @@ def open_event(event):
 
 def close_event(_):
     """
-    Close event.
-
     Close event.
 
     Args:

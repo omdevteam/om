@@ -37,23 +37,7 @@ _DEADTAG = 1000
 
 class ParallelizationEngine(object):
     """
-    An MPI-based master-worker parallelization engine for OnDA.
-
-    A class, from which an OnDA monitor can inherit, implementing an
-    MPI-based parallelization engine. On each worker node, retrieve
-    a data event from a source specified by the user, then execute the
-    'process_func' function provided by the user on the data. Transfer
-    the returned value to the master node. On the master node, execute
-    the user-provided 'collect_func' function every time data is
-    received.
-
-    Attributes:
-
-        role (str): role of the node calling the function ('worker' or
-            'master').
-
-        rank (int): rank (in MPI terms) of the node where the attribute
-            is read.
+    See __init__ for documentation.
     """
 
     def __init__(self,
@@ -62,7 +46,22 @@ class ParallelizationEngine(object):
                  source,
                  monitor_params):
         """
-        Initialize the ParallelizationEngine class.
+        An MPI-based master-worker parallelization engine for OnDA.
+
+        On each worker node, retrieve a data event from the source
+        specified by the user, then execute the 'process_func' function
+        on the data. Transfer the returned value to the master node.
+        On the master node, execute the 'collect_func' function
+        every time data is received. This class should be subclassed
+        to implement an MPI-based OnDA monitor.
+
+        Attributes:
+
+            role (str): role of the node calling the function
+                ('worker' or 'master').
+
+            rank (int): rank (in MPI terms) of the node where the
+                attribute is read.
 
         Args:
 
@@ -77,9 +76,10 @@ class ParallelizationEngine(object):
                 passed to a 'event_generator' function imported from
                 the data retrieval layer.
 
-            monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-                a MonitorParams object containing the monitor
-                parameters from the configuration file.
+            monitor_params (MonitorParams): a
+                :obj:`~onda.utils.parameters.MonitorParams` object
+                containing the monitor parameters from the
+                configuration file.
         """
         self._map = process_func
         self._reduce = collect_func
@@ -93,7 +93,7 @@ class ParallelizationEngine(object):
         else:
             self.role = 'worker'
 
-        evt_han_fns = dynamic_import.init_event_handling_funcs(
+        evt_han_fns = dynamic_import.get_event_handling_funcs(
             self._mon_params
         )
         self._initialize_event_source = evt_han_fns['initialize_event_source']
@@ -105,7 +105,7 @@ class ParallelizationEngine(object):
         if self.role == 'worker':
             self._event_filter = evt_han_fns['EventFilter'](self._mon_params)
 
-            self._data_extr_funcs = dynamic_import.init_data_extraction_funcs(
+            self._data_extr_funcs = dynamic_import.get_data_extraction_funcs(
                 self._mon_params
             )
 
@@ -126,7 +126,7 @@ class ParallelizationEngine(object):
         """
         Start the parallelization engine.
 
-        On a worker node, start recovering data and processing it.
+        On a worker node, start recovering and processing the data.
         On the master node, start listening for communications coming
         from the worker nodes.
         """
@@ -285,11 +285,10 @@ class ParallelizationEngine(object):
         """
         Shut down the parallelization engine.
 
-        Shut down the parallelization engine. On a worker node,
-        communicate to the master node that the worker is shutting
-        down, then shut down. On the master node, tell each worker node
-        to shut down, wait for all the workers to confirm that they
-        have indeed shut down, then cease operations.
+        On a worker node, communicate to the master node that the
+        worker is shutting down, then shut down. On the master node,
+        tell each worker node to shut down, wait for all the workers to
+        confirm that they have indeed shut down, then cease operations.
 
         Args:
 

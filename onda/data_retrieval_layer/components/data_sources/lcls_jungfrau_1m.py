@@ -13,10 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Utilities to process data from the JUngfrau 1M detector at LCLS.
+Processing of data from the Jungfrau 1M detector at SLAC.
 
-This module implements several functions used to process data from the
-Jungfrau 1M detector at the LCLS facility.
+This module contains the implementation of several functions used to
+process data from the Jungfrau 1M detector as used at the SLAC
+facility.
 """
 from onda.utils import named_tuples
 
@@ -29,9 +30,7 @@ from onda.utils import named_tuples
 
 def get_peakfinder8_info():
     """
-    Return peakfinder8 detector info.
-
-    Return peakfinder8 information for the CSPAD detector.
+    Retrieve the peakfinder8 detector information.
 
     Returns:
 
@@ -49,9 +48,7 @@ def get_peakfinder8_info():
 def detector_data(event,
                   data_extraction_func_name):
     """
-    Recover raw detector data for one frame.
-
-    Return the detector data for one single frame.
+    Retrieve one frame of detector data.
 
     Args:
 
@@ -59,12 +56,12 @@ def detector_data(event,
 
         data_extraction_func_name (str): the name of the data
           extraction function ("detector_data", "detector2_data",
-          "detector3_data", etc.) that is associated with this
+          "detector3_data", etc.) that is associated with the current
           detector.
 
     Returns:
 
-        ndarray: the raw detector data for one frame.
+        numpy.ndarray: one frame of detector data.
     """
     # Recover the data from psana.
     cspad_psana = (

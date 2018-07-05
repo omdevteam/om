@@ -31,16 +31,13 @@ class OndaException(Exception):
     """
     Base OnDA exception.
 
-    Base OnDA exception, from which all other OnDA-specific exceptions
-    inherit.
+    All other OnDA-specific exceptions inherit from this exception.
     """
     pass
 
 
 class HidraAPIError(OndaException):
     """
-    Error in the HiDRA API.
-
     Error within a HiDRA API call.
     """
     pass
@@ -48,64 +45,48 @@ class HidraAPIError(OndaException):
 
 class MissingEventHandlingFunction(OndaException):
     """
-    Event handling function not defined.
-
-    One of the required event handling functions is not defined.
+    A handling function is not defined.
     """
     pass
 
 
 class MissingDataExtractionFunction(OndaException):
     """
-    Data extraction function not defined.
-
-    One of the requested data extraction functions is not defined.
+    A data extraction function is not defined.
     """
     pass
 
 
 class MissingPsanaInitializationFunction(OndaException):
     """
-    Psana detector interface initialization function not defined.
-
-    One of the requested psana detector interface initialization
-    functions is not defined.
+    A psana detector interface initialization function is not defined.
     """
     pass
 
 
 class MissingParameterFileSection(OndaException):
     """
-    Missing configuration file section.
-
-    Missing section in the configuration file.
+    A section is missing in the configuration file.
     """
     pass
 
 
 class MissingParameter(OndaException):
     """
-    Missing parameter.
-
-    Parameter missing from the configuration file.
+    A parameter is missing in the configuration file.
     """
     pass
 
 
 class WrongParameterType(OndaException):
     """
-    Wrong parameter type.
-
-    Parameter type in the configuration file does not match the
-    requested type.
+    Type in the configuration file does not match the requested type.
     """
     pass
 
 
 class DataExtractionError(OndaException):
     """
-    Data extraction error.
-
     Error during data extraction.
     """
     pass
@@ -113,17 +94,12 @@ class DataExtractionError(OndaException):
 
 class DataNotAvailable(OndaException):
     """
-    Data not available.
-
-    Data not available at the current facility or with the currently
-    used detectors and instruments.
+    Data not available in the current data retrieval layer.
     """
 
 
 class InvalidSource(OndaException):
     """
-    Invalid source.
-
     The format of the source string is not valid.
     """
 
@@ -132,10 +108,9 @@ def onda_exception_handler(type_, value, traceback):
     """
     Custom OnDA exception handler.
 
-    Custom handler for OnDA, not to be called directly, but to be
-    used as a replacement for the standard exception handler. Add a
-    label and hide the stracktrace for all OnDA exceptions. Report all
-    other exceptions normally.
+    Not to be called directly, but to be used as a replacement for the
+    standard exception handler. Add a label and hide the stracktrace
+    for all OnDA exceptions. Report all other exceptions normally.
 
     Args:
 

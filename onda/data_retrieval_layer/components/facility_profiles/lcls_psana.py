@@ -15,9 +15,9 @@
 """
 Psana at the LCLS facility.
 
-This module implements event handling functions, psana interface
-initialization functions and data extraction functions used when
-interacting with the psana framework at the LCLS facility.
+This module contains the implementation of event handling functions,
+psana interface initialization functions, and data extraction functions
+used when interacting with the psana framework at the LCLS facility.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -34,6 +34,8 @@ from onda.data_retrieval_layer.components.event_sources import onda_psana
 def _psana_offline_event_generator(psana_source,
                                    node_rank,
                                    mpi_pool_size):
+    # Compute the portion of requested events that must be processed
+    # by the worker calling the event_generator function.
     for run in psana_source.runs():
         times = run.times()
         size_for_this = int(
@@ -91,16 +93,14 @@ get_num_frames_in_event = (  # pylint: disable=C0103
 def detector_data_init(monitor_params,
                        data_extraction_func_name):  # pylint: disable=W0613
     """
-    Initialize detector data recovery.
-
-    Initialize the psana detector interface for the retrieval of
-    x-ray detector data.
+    Initialize the psana detector interface for x-ray detector data.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the
+            configuration file.
 
         data_extraction_func_name (str): the name of the data
           extraction function ("detector_data", "detector2_data",
@@ -109,8 +109,8 @@ def detector_data_init(monitor_params,
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        Detector: a handle (a psana Detector object) that can be used
+        later to retrieve the data.
     """
     # Call the psana interface initialization function corresponding to
     # the data extraction func name.
@@ -126,21 +126,19 @@ def detector_data_init(monitor_params,
 
 def timestamp_init(monitor_params):  # pylint: disable=W0613
     """
-    Initialize timestamp data recovery.
-
-    Initialize the psana detector interface for the retrieval of
-    timestamp data.
+    Initialize the psana detector interface for timestamp data.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        psana.Detector: a handle (a psana Detector object) that can be
+        used later to retrieve the data.
     """
     # The event timestamp gets recovered in other ways by the event
     # recovery code. No need to initialize the psana interface: the
@@ -151,21 +149,19 @@ def timestamp_init(monitor_params):  # pylint: disable=W0613
 
 def detector_distance_init(monitor_params):
     """
-    Initialize the detector distance data recovery.
-
-    Initialize the psana Detector interface for the retrieval of
-    detector distance data.
+    Initialize the psana detector interface for detector distance data.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        psana.Detector: a handle (a psana Detector object) that can be
+        used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -179,42 +175,38 @@ def detector_distance_init(monitor_params):
 
 def beam_energy_init(monitor_params):  # pylint: disable=W0613
     """
-    Initialize the beam energy data recovery.
-
-    Initialize the psana detector interface for the retrieval of beam
-    energy data.
+    Initialize the psana detector interface for beam energy data.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        psana.Detector: a handle (a psana Detector object) that can be
+        used later to retrieve the data.
     """
     return psana.Detector('EBeam'.encode('ascii'))
 
 
 def timetool_data_init(monitor_params):
     """
-    Initialize the timetool data recovery.
-
-    Initialize the psana detector interface for the retrieval of
-    timetool data.
+    Initialize the psana detector interface for data from a timetool.
 
     Args:
 
-         monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        psana.Detector: a handle (a psana Detector object) that can be
+        used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -229,16 +221,14 @@ def timetool_data_init(monitor_params):
 def digitizer_data_init(monitor_params,
                         data_extraction_func_name):
     """
-    Initialize the first digitizer data recovery.
-
-    Initialize the psana detector interface for the retrieval of data
-    from a digitizer.
+    Initialize the psana detector interface for data from a digitizer.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
         data_extraction_func_name (str): the name of the data
             extraction function ("digitizer_data", "digitizer2_data",
@@ -247,8 +237,8 @@ def digitizer_data_init(monitor_params,
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        psana.Detector: a handle (a psana Detector object) that can be
+        used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -262,21 +252,19 @@ def digitizer_data_init(monitor_params,
 
 def opal_data_init(monitor_params):
     """
-    Initialize the opal data recovery.
-
-    Initialize the psana detector interface for the retrieval of data
-    from an Opal camera.
+    Initialize the psana detector interface for Opal camera data.
 
     Args:
 
-        monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        psana.Detector: a handle (a psana Detector object) that can be
+        used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -290,21 +278,19 @@ def opal_data_init(monitor_params):
 
 def event_codes_init():
     """
-    Intialize the EVR event data recovery.
-
-    Initialize the psana detector interface for the retrieval of EVR
-    event codes.
+    Initialize the psana detector interface for EVR event codes.
 
     Args:
 
-         monitor_params (:obj:`onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
 
     Returns:
 
-        Detector: a handler (a psana Detector object) that can be used
-        later to recover the data.
+        psana.Detector: a handle (a psana Detector object) that can be
+        used later to retrieve the data.
     """
     return psana.Detector('evr0'.encode('ascii'))
 
@@ -317,9 +303,7 @@ def event_codes_init():
 
 def timestamp(event):
     """
-    Recover the timestamp of the event.
-
-    Return the timestamp of the event as provided by psana.
+    Retrieve the timestamp of the event.
 
     Args:
 
@@ -336,9 +320,7 @@ def timestamp(event):
 
 def detector_distance(event):
     """
-    Recover the distance of the detector from the sample location.
-
-    Return the detector distance information as provided by psana.
+    Retrieve the distance of the detector from the sample location.
 
     Args:
 
@@ -355,9 +337,7 @@ def detector_distance(event):
 
 def beam_energy(event):
     """
-    Recover the energy of the beam.
-
-    Return the beam energy information as provided by psana.
+    Retrieve the beam energy.
 
     Args:
 
@@ -376,9 +356,7 @@ def beam_energy(event):
 
 def timetool_data(event):
     """
-    Recover the timetool timetool.
-
-    Return the timetool information as provided by psana.
+    Retrieve the data from a timetool.
 
     Args:
 
@@ -394,10 +372,7 @@ def timetool_data(event):
 def digitizer_data(event,
                    data_extraction_func_name):
     """
-    Recover the waveforms from a digitizer.
-
-    Return the waveforms for a digitizer as provided by psana (All
-    channels).
+    Retrieve the waveforms from a digitizer (All channels).
 
     Args:
 
@@ -419,9 +394,7 @@ def digitizer_data(event,
 
 def opal_data(event):
     """
-    Recover an Opal camera data.
-
-    Return an image collected by an Opal camera as provided by psana.
+    Retrieve data from an Opal camera.
 
     Args:
 
@@ -429,7 +402,8 @@ def opal_data(event):
 
     Returns:
 
-        ndarray: a 2d array containing the image from the Opal camera.
+        numpy.ndarray: a 2d array containing the image from the Opal
+        camera.
     """
     return event['psana_interface']['opal_data'].calib(
         event['psana_event']
@@ -438,9 +412,7 @@ def opal_data(event):
 
 def event_codes(event):
     """
-    Recover the EVR event codes.
-
-    Return the EVR event codes as provided by psana.
+    Retrieve the EVR event codes.
 
     Args:
 
@@ -448,7 +420,7 @@ def event_codes(event):
 
     Returns:
 
-        List: a list containing the EVR event codes for a specific
+        list: a list containing the EVR event codes for a specific
         psana event.
     """
     return event['psana_interface']['event_codes'].eventCodes(

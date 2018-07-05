@@ -15,7 +15,7 @@
 """
 Configuration parameter retrieval and validation.
 
-This module contains the implementation of a class used to store,
+This module contains the implementation of utilities used to store,
 retrieve and validate configuration options for OnDA monitors.
 """
 from __future__ import (absolute_import, division, print_function,
@@ -29,33 +29,31 @@ from onda.utils import exceptions
 
 class MonitorParams(object):
     """
-    Storage and retrieval of OnDA monitor parameters.
-
-    A class that allows the storage, retrieval and validatio of OnDA
-    monitor parameters.
+    See __init__ for documentation.
     """
 
     def __init__(self, param_dictionary):
         """
-        Initialize the MonitorParams class.
+        Storage, retrieval and validation of OnDA monitor parameters.
 
         Args:
 
             param_dictionary (Dict): a dictionary containing the
-                parameters, as return by the configparse python module.
+                parameters from a configuration file, as return by the
+                :obj:`configparse` python module.
 
         Raises:
 
             MissingParameterFileSection: if the requested section is
-                not present in the parameter dictionary.
+                not present in the configuration file.
 
             MissingParameter: if the requested parameter is required
                 (i.e.: it must be present in the configuration
-                dictionary) but cannot be found.
+                file) but cannot be found.
 
-            WrongParameterType: if the required parameter type does not
-                match the type of the parameter in the configuration
-                dictionary.
+            WrongParameterType: if the requested parameter type does
+                not match the type of the parameter in the
+                configuration file.
         """
         self._monitor_params = parameter_utils.convert_parameters(
             config_dict=param_dictionary
@@ -65,37 +63,37 @@ class MonitorParams(object):
         """
         Retrieve the requested OnDA monitor parameter.
 
-        Retrieve the configuration parameter as found in the
-        configuration file. Optionally, check that the type of the
-        retrieved parameter matches the type required by the user.
+        Optionally, check that the type of the retrieved parameter
+        matches a type required by the user.
 
         Args:
 
             section (str): name of configuration file section where the
-                requested is located.
+                parameter is located.
 
-            parameter (str): name of the requested parameter.
+            parameter (str): name of the parameter.
 
-            type_ (type): type of the requested parameter. If this
+            type_ (type): required type of the parameter. If this
                 argument is not None, the function will make sure that
                 the type of the recovered parameter matches the type
-                provided here. Otherwise, an exception will be raised.
+                requested here. Otherwise, an exception will be raised.
                 If the type of the recovered parameter is None, or if
                 the parameter is not present in the configuration
-                dictionary, the check will not be performed. Defaults
+                file, the check will not be performed. Defaults
                 to None.
 
             required (bool): if this argument is True, the function
                 will raise an exception if the parameter is not present
-                in the configuration dictionary (Normally the function
-                returns None for parameters that were not found).
+                in the configuration file (Normally the function
+                returns None for parameters that were not found in the
+                configuration file).
 
         Returns:
 
-            Any: the value of the requested parameter. If the parameter
-            is not found, the value None is returned, unless the
-            'required' input argument is True, in which case an
-            exception will be raised.
+            Union[Any, None]: the value of the requested parameter. If
+            the parameter is not found, the value None is returned,
+            unless the 'required' input argument is True, in which case
+            an exception will be raised.
         """
         if section not in self._monitor_params:
             raise exceptions.MissingParameterFileSection(

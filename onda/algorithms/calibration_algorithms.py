@@ -17,7 +17,7 @@ Algorithms for detector calibration.
 
 This module contains the implementation of algorithms for detector
 calibration (i.e.: all the corrections and ajustments that need to
-be applied to the detector *before* looking at the data)
+be applied to the detector *before* looking at the data).
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -32,15 +32,15 @@ from future.utils import raise_from
 
 class SingleModuleLambdaCalibration(object):
     """
-    Calibrate a single-module Lambda detector.
-
-    Calibrate a single-module Lambda detector by applying flatfield
-    correction.
+    See __init__ for documentation.
     """
+
     def __init__(self,
                  calibration_filename):
         """
-        Initializes the SingleModuleLambdaCalibration algorithm.
+        Calibrate a single-module Lambda detector.
+
+        Apply a flatfield correction to module data.
 
         Args:
 
@@ -48,6 +48,7 @@ class SingleModuleLambdaCalibration(object):
                 calibration data. The file must contain the flatfield
                 data for the module in an entry called '/flatfield'.
         """
+
         try:
             with h5py.File(
                 name=calibration_filename,
@@ -69,12 +70,12 @@ class SingleModuleLambdaCalibration(object):
         """
         Apply the calibration.
 
-        Apply the flatfield correction to the module data.
+        Multiply the module data by a flatfield.
 
         Args:
 
-            data (ndarray): the module data on which the calibration
-                must be applied.
+            data (numpy.ndarray): the module data on which the
+                calibration must be applied.
 
         Returns:
 
