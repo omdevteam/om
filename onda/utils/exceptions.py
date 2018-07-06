@@ -45,7 +45,7 @@ class HidraAPIError(OndaException):
 
 class MissingEventHandlingFunction(OndaException):
     """
-    A handling function is not defined.
+    An event handling function is not defined.
     """
     pass
 

@@ -15,9 +15,9 @@
 """
 Dynamic importing of objects from different layers.
 
-This module contains the implementation of several functions that can
-be used to import information from the different layers of the OnDA
-framework, without worrying about their precise location.
+This module contains the implementation of several functions used to
+import information from the different layers of OnDA, without worrying
+about their precise location.
 """
 import importlib
 from builtins import str  # pylint: disable=W0622

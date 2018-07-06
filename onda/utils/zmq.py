@@ -127,10 +127,10 @@ class DataListener(QtCore.QObject):
         """
         ZMQ-based listening socket for OnDA clients.
 
-        Suitable to be used in a separate listening thread. Check
-        continuously if data is coming to the socket. Emit a custom
-        Qt signal every time data is received through the socket. Send
-        the data together with the signal.
+        Designed to be used in a separate Qt listening thread. Check
+        continuously if data is coming through the socket. Emit a
+        custom Qt signal every time data is received through the
+        socket. Send the data together with the signal.
 
         Args:
 

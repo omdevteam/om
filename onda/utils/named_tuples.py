@@ -36,11 +36,11 @@ the slab-format detector frame data. The third field, named
 
 
 QuadVmiPeaks = collections.namedtuple(
-    typename='QuadVMIPeaks',
+    typename='QuadVmiPeaks',
     field_names=['x_1', 'x_2', 'y_1', 'y_2']
 )
 """
-Set of peaks from a VMI quad-type detector.
+A set of peaks from a VMI quad-type detector.
 
 Each of the four fields, named respectively 'x_1', 'x_2', 'y_1' and
 'y_2', stores a fractional index locating the peak on the waveform data
@@ -49,7 +49,7 @@ of the detector wire with the same name.
 
 
 VmiCoords = collections.namedtuple(
-    typename='Coords',
+    typename='VmiCoords',
     field_names=['x', 'y']
 )
 """
@@ -90,7 +90,7 @@ frame within the file.
 
 
 Peakfinder8DetInfo = collections.namedtuple(
-    typename='Peakfinder8DetectorInfo',
+    typename='Peakfinder8DetInfo',
     field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
 )
 """
@@ -103,17 +103,16 @@ algorithm to describe the format of the input data.
 
 
 HidraInfo = collections.namedtuple(
-    typename='HiDRAInfo',
+    typename='HidraInfo',
     field_names=['query', 'targets', 'data_base_path']
 )
 """
 HiDRA initialization information.
 
-A named tuple storing the information needed by HiDRA to initiate the
-connection and the event retrieval. The 'query' field contains
-information about the transfer type and the required data. The
-'targets' field stores information about the worker nodes that will
-receive data from HiDRA. The other field, 'data_base_path', contains
-the base path to be used for locating files in the file system when
-HiDRA sends relative paths to OnDA.
+Information needed by HiDRA to initiate the connection and the event
+retrieval. The 'query' field contains information about the transfer
+type and the required data. The 'targets' field stores information
+about the worker nodes that will receive data from HiDRA. The
+'data_base_path' field contains the base path to be used for locating
+files in the file system when HiDRA sends relative paths to OnDA.
 """

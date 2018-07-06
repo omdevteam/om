@@ -39,17 +39,17 @@ class MonitorParams(object):
         Args:
 
             param_dictionary (Dict): a dictionary containing the
-                parameters from a configuration file, as return by the
-                :obj:`configparse` python module.
+                parameters from a configuration file, as returned by
+                the :obj:`configparse` python module.
 
         Raises:
 
             MissingParameterFileSection: if the requested section is
                 not present in the configuration file.
 
-            MissingParameter: if the requested parameter is required
-                (i.e.: it must be present in the configuration
-                file) but cannot be found.
+            MissingParameter: if the parameter is strictly required
+                (i.e. the 'required' argument is set to True) but
+                cannot be found in the configuration file.
 
             WrongParameterType: if the requested parameter type does
                 not match the type of the parameter in the
@@ -61,10 +61,10 @@ class MonitorParams(object):
 
     def get_param(self, section, parameter, type_=None, required=False):
         """
-        Retrieve the requested OnDA monitor parameter.
+        Retrieve an OnDA monitor parameter.
 
         Optionally, check that the type of the retrieved parameter
-        matches a type required by the user.
+        matches the type needed by the user.
 
         Args:
 
@@ -93,7 +93,7 @@ class MonitorParams(object):
             Union[Any, None]: the value of the requested parameter. If
             the parameter is not found, the value None is returned,
             unless the 'required' input argument is True, in which case
-            an exception will be raised.
+            an exception is raised.
         """
         if section not in self._monitor_params:
             raise exceptions.MissingParameterFileSection(

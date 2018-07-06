@@ -68,13 +68,13 @@ class OndaGui(QtWidgets.QMainWindow):
         """
         Main GUI class.
 
-        A class implementing the common GUI code, from which every OnDA
-        GUI should inherit. Let the user set up the GUI in the
-        constructor method of the derived class. Then make then sure
-        that the 'gui_update_func' function is called at regular
+        A class implementing the common GUI elements. It should be
+        subclassed to create an OnDA GUI. Let the user set up the GUI
+        in the constructor method of the derived class. Then make then
+        sure that the 'gui_update_func' function is called at regular
         intervals to update the GUI. Furthermore, instantiate a
-        listening thread to receive data from an OnDA monitor. Make
-        the new data available to the derived class as soon as it is
+        listening thread to receive data from an OnDA monitor and make
+        the data available to the derived class as soon as it is
         received.
 
         Attributes:
@@ -82,10 +82,10 @@ class OndaGui(QtWidgets.QMainWindow):
             data (Dict): dictionary containing the last data received
                 from the OnDA monitor.
 
-            listening (bool): bool attribute storing the state of the
-                listening thread. True if the thread is listening for data
-                from the OnDA monitor, False if it is not.
-        
+            listening (bool): the state of the listening thread. True
+                if the thread is listening for data from the OnDA
+                monitor, False if it is not.
+
         Args:
 
             pub_hostname (str): hostname or IP address of the machine
