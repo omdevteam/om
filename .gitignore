@@ -3,5 +3,6 @@ __pycache__
 *.so
 *.pyc
 build/
+_build
 pre-setup-bash.sh
 .vscode
