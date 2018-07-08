@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
 """
-ZMQ-based communication in OnDA.
+ZMQ-based data braodcasting and receiving.
 
-This module contains the implementation of several ZMQ-based data
-broadcasting and receiving classes.
+This module contains the implementation of several ZMQ-based classes
+that can used by OnDA montiors and GUIs to broadcast and receive data.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

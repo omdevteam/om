@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-OnDA Crystallography.
+OnDA Monitor for serial x-ray crystallography.
 
 This module contains the implementation of an OnDA real-time monitor for
 serial x-ray crystallography experiments.
@@ -43,7 +43,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
     Provide real time hit and saturation rate information, plus a
     virtual powder pattern-style plot of the processed data.
     Optionally, apply detector calibration, dark calibration and gain
-    map correction to each frame. 
+    map correction to each frame.
 
     Carry out the peak finding using the peakfinder8 algorithm from the
     Cheetah software package:

@@ -1,6 +1,11 @@
 onda.algorithms package
 =======================
 
+.. automodule:: onda.algorithms
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -11,10 +16,3 @@ Submodules
    onda.algorithms.generic_algorithms
    onda.algorithms.photofragmentation_algorithms
 
-Module contents
----------------
-
-.. automodule:: onda.algorithms
-    :members:
-    :undoc-members:
-    :show-inheritance:

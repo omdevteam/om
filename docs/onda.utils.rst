@@ -1,6 +1,11 @@
 onda.utils package
 ==================
 
+.. automodule:: onda.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -13,10 +18,3 @@ Submodules
    onda.utils.parameters
    onda.utils.zmq
 
-Module contents
----------------
-
-.. automodule:: onda.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:

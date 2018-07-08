@@ -15,9 +15,8 @@
 """
 Algorithms for the processing of crystallography data.
 
-This module contains the implementation of several algorithms used
-in the processing of crystallography data (peak finders, peak
-accumulators, etc.).
+This module contains the implementation of several algorithms used to
+process crystallography data (peak finders, peak accumulators, etc.).
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

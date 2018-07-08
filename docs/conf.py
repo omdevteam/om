@@ -190,4 +190,5 @@ todo_include_todos = True
 
 add_module_names = False
 autodoc_mock_imports = ['psana', 'ondacython.lib.peakfinder8_extension', 'hidra_api', 'karabo_api']
+autodoc_member_order = 'bysource'
 autoclass_content = 'init'

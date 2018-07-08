@@ -13,10 +13,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-OnDA named tuples.
-
 This module contains the implementation of several named tuples used
-in the OnDA source code.
+in OnDA.
 """
 import collections
 

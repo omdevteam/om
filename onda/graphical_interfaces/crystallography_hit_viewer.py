@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-HitViewer for OnDA Crystallography.
+Hit Viewer for OnDA Crystallography.
 
 This module contains the implementation of a Hit Viewer for OnDA
 Crystallography.

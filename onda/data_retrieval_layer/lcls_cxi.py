@@ -14,17 +14,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Data retrieval at the CXI instrument of the LCLS facility.
+Data retrieval at the CXI instrument of LCLS.
 
-This module imports from different components of the data retrieval
-layer several functions used to manage events and retrieve data at the
-CXI instrument of the LCLS facility.
+This module collects several functions and classes used to manage
+events and retrieve data at the CXI instrument of the LCLS facility.
 """
-
 import functools
 
-from onda.data_retrieval_layer.components.data_sources import lcls_cspad
-from onda.data_retrieval_layer.components.facility_profiles import lcls_psana
+from onda.data_retrieval_layer.data_sources import lcls_cspad
+from onda.data_retrieval_layer.facility_profiles import lcls_psana
 
 
 ############################

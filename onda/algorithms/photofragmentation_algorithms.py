@@ -16,8 +16,8 @@
 Algorithms for the processing of photofragmentation data.
 
 This module contains the implementation of several algorithms used
-in the processing of photofragmentation data. These algorithms have
-been developed for the monitoring of Controlled Molecule Imaging (CMI)
+to process photofragmentation data. These algorithms have been
+developed in order to monitor Controlled Molecule Imaging (CMI)
 experiments.
 """
 from __future__ import (absolute_import, division, print_function,

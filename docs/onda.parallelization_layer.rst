@@ -1,6 +1,11 @@
 onda.parallelization\_layer package
 ===================================
 
+.. automodule:: onda.parallelization_layer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Submodules
 ----------
 
@@ -8,10 +13,3 @@ Submodules
 
    onda.parallelization_layer.mpi
 
-Module contents
----------------
-
-.. automodule:: onda.parallelization_layer
-    :members:
-    :undoc-members:
-    :show-inheritance:

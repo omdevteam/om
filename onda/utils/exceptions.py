@@ -13,10 +13,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-OnDA-specific exceptions and exception handler.
+OnDA-specific exceptions and exception handling.
 
 This module contains the implementation of several OnDA specific
-exceptions, plus a custom exception handler.
+exceptions. It also contains the implementation of a custom exception
+handler.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

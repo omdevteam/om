@@ -1,13 +1,17 @@
 onda package
 ============
 
+.. automodule:: onda
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Subpackages
 -----------
 
 .. toctree::
 
     onda.algorithms
-    onda.cfelpyutils
     onda.data_retrieval_layer
     onda.graphical_interfaces
     onda.parallelization_layer
@@ -21,10 +25,3 @@ Submodules
 
    onda.monitor
 
-Module contents
----------------
-
-.. automodule:: onda
-    :members:
-    :undoc-members:
-    :show-inheritance:

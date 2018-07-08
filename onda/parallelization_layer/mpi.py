@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-MPI-based parallelization engine for OnDA.
+MPI-based parallelization engine.
 
 This module contains the implementation of an MPI-based parallelization
 engine for OnDA.
