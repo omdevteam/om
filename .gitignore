@@ -4,5 +4,4 @@ __pycache__
 *.pyc
 build/
 _build
-pre-setup-bash.sh
 .vscode
