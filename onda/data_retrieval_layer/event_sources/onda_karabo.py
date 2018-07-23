@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Karabo event handling.
+Retrieval of events from Karabo.
 
 This module contains the implementation of event handling functions
-used to process data received from Karabo.
+used to retrieve data from Karabo.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

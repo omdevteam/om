@@ -16,8 +16,8 @@
 HiDRA at the Petra III facility.
 
 This module contains the implementation of event handling functions and
-data extraction functions used when interacting with HiDRA at the
-PetraIII facility.
+data extraction functions used to interacti with HiDRA at the PetraIII
+facility.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

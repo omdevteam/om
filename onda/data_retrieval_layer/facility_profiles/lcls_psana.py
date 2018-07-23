@@ -17,7 +17,7 @@ Psana at the LCLS facility.
 
 This module contains the implementation of event handling functions,
 psana interface initialization functions, and data extraction functions
-used when interacting with psana at the LCLS facility.
+used to interact with psana at the LCLS facility.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

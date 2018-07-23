@@ -13,9 +13,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Facility profiles.
+Data retrieval profiles for various facilities.
 
 This package contains the implementation of functions and classes used
-to interact with different data retrieval frameworks at specific
+to retrieve data from different software frameworks at various
 facilities.
 """

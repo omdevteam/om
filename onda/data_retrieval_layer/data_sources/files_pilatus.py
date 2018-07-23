@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Processing of data from files written by the Pilatus detector.
+Retrieval of data from files written by the Pilatus detector.
 
 This module contains the implementation of several functions used to
-process data from files written by the Pilatus detector.
+retrieve data from files written by the Pilatus detector.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

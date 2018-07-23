@@ -15,8 +15,8 @@
 """
 OnDA Monitor for serial x-ray crystallography.
 
-This module contains the implementation of an OnDA real-time monitor for
-serial x-ray crystallography experiments.
+This module contains the implementation of an OnDA real-time monitor
+for serial x-ray crystallography experiments.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

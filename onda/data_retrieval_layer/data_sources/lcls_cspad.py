@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Processing of data from the CSPAD detector at LCLS.
+Retrieval of data from the CSPAD detector at LCLS.
 
 This module contains the implementation of several functions used
-to process data from the CSPAD detector as used at the LCLS facility.
+to retrieve data from the CSPAD detector as used at the LCLS facility.
 """
 import numpy
 

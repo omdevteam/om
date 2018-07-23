@@ -16,5 +16,5 @@
 Event retrieval and handling.
 
 This package contains the implementation of functions and classes used
-to interact with event sources and handle data events.
+to interact with event sources and retrieve or handle data events.
 """

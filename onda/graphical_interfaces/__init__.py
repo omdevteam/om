@@ -13,8 +13,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-OnDA GUIs.
+OnDA GUIs and Viewers.
 
-This package contains the implementation of several GUIs used to
-visualize data processed by OnDA monitors.
+This package contains the implementation of several GUIs and Viewers
+used to visualize data processed by OnDA monitors.
 """

@@ -16,8 +16,8 @@
 """
 Base GUI class.
 
-This module contains the implementation of the base OnDA GUI class,
-which should be subclassed to create OnDA GUIs.
+This module contains the implementation of the base OnDA GUI class.
+This class should be subclassed to create OnDA GUIs.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

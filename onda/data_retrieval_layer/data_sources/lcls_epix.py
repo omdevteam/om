@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Processing of data from the EPIX detector at LCLS.
+Retrieval of data from the EPIX detector at LCLS.
 
 This module contains the implementation of several functions used to
-process data from the EPIX detector as used at the LCLS facility.
+retrieve data from the EPIX detector as used at the LCLS facility.
 """
 from onda.utils import named_tuples
 

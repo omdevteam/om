@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Karabo at the Petra III facility.
+Karabo at the European XFEL facility.
 
-This module contains the implementation of  event handling functions
-and data extraction functions used when interacting with Karabo at the
+This module contains the implementation of event handling functions
+and data extraction functions used to interact with Karabo at the
 European XFEL facility.
 """
 import numpy

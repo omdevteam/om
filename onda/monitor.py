@@ -14,10 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Main OnDA module.
+Main OnDA monitor.
 
 This module contains the implementation of the main function used to
-start an OnDA monitor.
+start OnDA monitors.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

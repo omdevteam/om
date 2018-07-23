@@ -15,8 +15,28 @@
 """
 Main OnDA package.
 
-This package contains several subpackages where the different parts of
-the OnDA framework are implemented.
+This package contains several subpackages which contain the
+implementation of different parts of the OnDA framework.
 
-TODO: Add desciption of subpackages.
+The 'algorithms' subpackage contains the implementation of functions
+and classes used to perform operations and calculations on the data.
+
+The 'cfelpyutils' subpackage contains  the implementation of several
+utility functions developed at CFEL, Hamburg.
+
+The 'data_retrieval layer' subpackage contains the implementation of
+classes and functions used to retrieve data from different sources at
+various facilities.
+
+The 'graphical_interfaces' subpackage contains the implementation of
+several GUIs and Viewers for OnDA monitors.
+
+The 'parallelization_layer' subpackage contains the implementation of
+parallelization engines used by OnDA monitors.
+
+The 'processing_layer' subpackage contains the implementation of
+several OnDA monitors.
+
+Finally, the 'utils' subpackage contains the implemetaion of several
+OnDA-specific utility functions and classes.
 """

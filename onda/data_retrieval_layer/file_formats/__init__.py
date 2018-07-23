@@ -13,8 +13,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Manipulation of files in different formats. 
+Manipulation of files in various formats.
 
 This package contains the implementation of several functions used
-to manipulate files in different formats.
+to manipulate files in several different formats.
 """

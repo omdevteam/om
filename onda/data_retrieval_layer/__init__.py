@@ -24,5 +24,6 @@ retrieval layer for specific instruments or specific experiments
 at specific facilties.
 
 The subpackages contain instead collections of functions and classes
-that can be used to create new data retrieval layer implementations.
+that can be used to create new data retrieval layer implementations for
+new facilities and experiments.
 """

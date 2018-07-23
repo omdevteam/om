@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-HiDRA event handling.
+Retrieval of events from HiDRA.
 
 This module contains the implementation of event handling functions
-used to process data received from HiDRA.
+used to retrieve data from HiDRA.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

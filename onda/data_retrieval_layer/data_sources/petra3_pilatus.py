@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Processing of data from the Pilatus detector at Petra III.
+Retrieval of data from the Pilatus detector at Petra III.
 
 This module contains the implementation of several functions used to
-process data from the Pilatus detector as used at the Petra III
+retrieve data from the Pilatus detector as used at the Petra III
 facility.
 """
 from __future__ import (absolute_import, division, print_function,

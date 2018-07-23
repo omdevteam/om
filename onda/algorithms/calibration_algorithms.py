@@ -15,9 +15,9 @@
 """
 Algorithms for detector calibration.
 
-This module contains the implementation of algorithms for detector
-calibration (i.e.: all the corrections and ajustments that need to
-be applied to the detector *before* looking at the data).
+This module contains the implementation of algorithms used to preform
+detector calibration (i.e.: all the corrections and ajustments that
+need to be applied to the detector *before* looking at the data).
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)

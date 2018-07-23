@@ -13,8 +13,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-Detectors and other sensors.
+Retrieval of data from detectors and other sensors.
 
 This package contains the implementations of functions used to extract
-data from detectors and other sensors.
+and retrieve data from detectors and other sensors.
 """
