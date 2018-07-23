@@ -16,7 +16,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from distutils.core import Extension, setup
+from setuptools import Extension, setup
 
 import numpy
 
@@ -42,8 +42,6 @@ peakfinder8_ext = Extension(  # pylint: disable=C0103
 
 extensions = [peakfinder8_ext]  # pylint: disable=C0103
 
-print(type(extensions))
-
 if USE_CYTHON:
     from Cython.Build import cythonize
     extensions = cythonize(peakfinder8_ext)  # pylint: disable=C0103
@@ -66,7 +64,7 @@ setup(
         OnDA provides users with a set of stable and efficient
         real-time monitors for the most common types of x-ray
         imaging experiments. These can be used immediately without
-        modifications or can be easily adapted to meet the users’
+        modifications or can be easily adapted to meet the users'
         requirements. In addition, the project provides a set of
         modules that can be used to easily develop other monitoring
         programs tailored to the characteristics of specific
@@ -111,6 +109,7 @@ setup(
         'monitor-cbf': ['fabio>=0.6.0'],
         'monitor-psana': ['psana>=1.3.54']
     },
+    scripts=['bin/onda_crystallography_gui.py', 'bin/onda_crystallography_hit_viewer.py', 'bin/onda_monitor.py'],
     ext_modules=extensions,
     packages=[
         'onda',
@@ -121,12 +120,12 @@ setup(
         'onda.data_retrieval_layer.event_sources',
         'onda.data_retrieval_layer.event_sources.hidra_api',
         'onda.data_retrieval_layer.event_sources.karabo_api',
-        'onda.data_retrieval_layer.event_sources.facility_profiles',
-        'onda.data_retrieval_layer.event_sources.file_formats',
+        'onda.data_retrieval_layer.facility_profiles',
+        'onda.data_retrieval_layer.file_formats',
         'onda.graphical_interfaces',
         'onda.parallelization_layer',
         'onda.processing_layer',
-        'onda.processing_layer.utils'
+        'onda.utils'
     ],
     include_package_data=True,
     platforms='any',
