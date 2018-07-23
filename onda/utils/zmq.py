@@ -1,19 +1,19 @@
-#    This file is part of cfelpyutils.
+#    This file is part of OnDA.
 #
-#    cfelpyutils is free software: you can redistribute it and/or modify
+#    OnDA is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    cfelpyutils is distributed in the hope that it will be useful,
+#    OnDA is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with cfelpyutils.  If not, see <http://www.gnu.org/licenses/>.
+#    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-ZMQ-based data braodcasting and receiving.
+ZMQ-based data broadcasting and receiving.
 
 This module contains the implementation of several ZMQ-based classes
 that can used by OnDA montiors and GUIs to broadcast and receive data.

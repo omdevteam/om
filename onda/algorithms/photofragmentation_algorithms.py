@@ -97,7 +97,7 @@ def _filter_hit(mcp_peak,
 
 class DelaylineDetectorAnalysis(object):
     """
-
+    See __init__ for documentation.
     """
 
     def __init__(self,

@@ -24,9 +24,20 @@ from __future__ import (absolute_import, division, print_function,
 
 import io
 
-import fabio
+from future.utils import raise_from
 
-from onda.utils import named_tuples
+from onda.utils import exceptions, named_tuples
+
+try:
+    import fabio
+except ImportError:
+    raise_from(
+        exc=exceptions.MissingDependency(
+            "The petra3_pilatus module could not be loaded. The following "
+            "dependency does not appear to be available on the system: fabio."
+        ),
+        source=None
+    )
 
 
 #####################

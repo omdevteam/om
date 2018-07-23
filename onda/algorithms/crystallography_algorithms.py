@@ -26,9 +26,7 @@ import numpy
 from future.utils import raise_from
 
 from onda.utils import named_tuples
-from ondacython.lib.peakfinder8_extension import (  # pylint: disable=E0611
-    peakfinder_8
-)
+from onda.algorithms.peakfinder8_extension import peakfinder_8
 
 
 ##############################

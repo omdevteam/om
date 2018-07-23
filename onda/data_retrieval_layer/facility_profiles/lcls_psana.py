@@ -26,9 +26,21 @@ from builtins import str  # pylint: disable=W0622
 
 import numpy
 import scipy.constants
+from future.utils import raise_from
 
-import psana  # pylint: disable=E0401
 from onda.data_retrieval_layer.event_sources import onda_psana
+from onda.utils import exceptions
+
+try:
+    import psana  # pylint: disable=E0401
+except ImportError:
+    raise_from(
+        exc=exceptions.MissingDependency(
+            "The lcls_psana module could not be loaded. The following "
+            "dependency does not appear to be available on the system: psana."
+        ),
+        source=None
+    )
 
 
 def _psana_offline_event_generator(psana_source,

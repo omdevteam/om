@@ -30,7 +30,7 @@ import numpy
 import pyqtgraph
 from scipy import constants
 
-from onda.cfelpyutils import crystfel_utils, geometry_utils
+from cfelpyutils import crystfel_utils, geometry_utils
 from onda.utils import gui, named_tuples
 
 try:
@@ -41,6 +41,7 @@ except ImportError:
 
 class CrystallographyGui(gui.OndaGui):
     """
+    See __init__ for documentation.
     """
 
     def __init__(self,
@@ -59,8 +60,8 @@ class CrystallographyGui(gui.OndaGui):
 
             geometry (Dict): a dictionary containing CrystFEL geometry
                 information (as returned by the
-                :obj:`onda.cfelpyutils.crystfel_utils.load_crystfel_geometry`
-                function).
+                :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
+                function) from the :obj:`cfelpyutils` module.
 
             pub_hostname (str): hostname or IP address of the machine
                 where the OnDA monitor is running.

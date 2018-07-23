@@ -25,10 +25,20 @@ import time
 from builtins import str  # pylint: disable=W0622
 
 import numpy
-from future.utils import iteritems
-import psana as psana  # pylint: disable=E0401
+from future.utils import iteritems, raise_from
 
-from onda.utils import dynamic_import
+from onda.utils import dynamic_import, exceptions
+
+try:
+    import psana  # pylint: disable=E0401
+except ImportError:
+    raise_from(
+        exc=exceptions.MissingDependency(
+            "The onda_psana module could not be loaded. The following "
+            "dependency does not appear to be available on the system: psana."
+        ),
+        source=None
+    )
 
 
 def _psana_offline_event_generator(psana_source,
@@ -146,7 +156,7 @@ def event_generator(source,
 
     psana_source = psana.DataSource(source.encode('ascii'))
     psana_interface_funcs = (
-        dynamic_import.init_psana_det_interface_funcs(monitor_params)
+        dynamic_import.get_psana_det_interface_funcs(monitor_params)
     )
 
     # Call all the required psana detector interface initialization

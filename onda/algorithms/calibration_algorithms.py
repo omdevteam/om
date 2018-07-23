@@ -35,7 +35,7 @@ class SingleModuleLambdaCalibration(object):
     See __init__ for documentation.
     """
 
-    def __init__(self,
+    def __init__(self,  
                  calibration_filename):
         """
         Calibrate a single-module Lambda detector.

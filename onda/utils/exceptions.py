@@ -103,6 +103,14 @@ class InvalidSource(OndaException):
     """
     The format of the source string is not valid.
     """
+    pass
+
+
+class MissingDependency(OndaException):
+    """
+    One of the dependecy of the module is not installed.
+    """
+    pass
 
 
 def onda_exception_handler(type_, value, traceback):

@@ -30,7 +30,7 @@ import sys
 import numpy
 import pyqtgraph
 
-from onda.cfelpyutils import crystfel_utils, geometry_utils
+from cfelpyutils import crystfel_utils, geometry_utils
 from onda.utils import gui
 
 try:

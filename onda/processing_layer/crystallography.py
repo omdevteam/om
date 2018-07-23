@@ -26,13 +26,14 @@ import sys
 import time
 from builtins import str  # pylint: disable=W0622
 
+from cfelpyutils import crystfel_utils, geometry_utils
+
 from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
-from onda.cfelpyutils import crystfel_utils, geometry_utils
 from onda.parallelization_layer import mpi
-from onda.utils import zmq as onda_zmq
 from onda.utils import named_tuples
+from onda.utils import zmq as onda_zmq
 from onda.utils.dynamic_import import get_peakfinder8_info
 
 

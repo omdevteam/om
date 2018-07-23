@@ -6,6 +6,13 @@ onda.algorithms package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    onda.algorithms.peakfinder8_extension
+
 Submodules
 ----------
 

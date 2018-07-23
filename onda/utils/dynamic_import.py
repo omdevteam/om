@@ -16,7 +16,7 @@
 Dynamic importing of objects from different layers.
 
 This module contains the implementation of several functions used to
-import information from the different layers of OnDA, without worrying
+import information from different layers of OnDA, without worrying
 about their precise location.
 """
 import importlib
