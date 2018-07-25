@@ -73,16 +73,16 @@ class CrystallographyHitViewer(gui.OndaGui):
             subscription_string=u'ondarawdata',
         )
 
-        pixel_maps = geometry_utils.compute_pix_maps(geometry)
-
+     
         # The following information will be used later to create the
         # arrays that will store the assembled detector images.
+        pixel_maps = geometry_utils.compute_pix_maps(geometry)
         self._img_shape = geometry_utils.compute_min_array_size(
             pixel_maps
         )
 
         visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
-            pixel_maps
+            geometry
         )
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()

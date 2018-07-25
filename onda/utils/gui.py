@@ -28,31 +28,12 @@ import time
 from onda.utils import zmq
 
 try:
-    from PyQt5 import QtCore, QtWidgets
+    from PyQt5 import QtCore, QtGui
 except ImportError:
-    from PyQt4 import QtCore, QtGui as QtWidgets
+    from PyQt4 import QtCore, QtGui
 
 
-def _data_received(self,
-                   data_dictionary):
-    # This function is called when the listening thread receives data.
-
-    # Store the received dictionary as an attribute.
-    self.data = copy.deepcopy(data_dictionary)
-
-    # Compute the esimated delay and print it into the status bar.
-    # (A GUI is supposed to be a MainWindow widget, so it is suppposed
-    # to have a status bar.)
-    timestamp = self.data['timestamp']
-    timenow = time.time()
-    self.statusBar().showMessage(
-        "Estimated delay: {} seconds".format(
-            round(timenow - timestamp, 6)
-        )
-    )
-
-
-class OndaGui(QtWidgets.QMainWindow):
+class OndaGui(QtGui.QMainWindow):
     """
     See __init_ for documentation.
     """
@@ -152,3 +133,21 @@ class OndaGui(QtWidgets.QMainWindow):
         if self.listening:
             self.listening = False
             self._listening_thread_stop_processing.emit()
+
+    def _data_received(self,
+                    data_dictionary):
+        # This function is called when the listening thread receives data.
+
+        # Store the received dictionary as an attribute.
+        self.data = copy.deepcopy(data_dictionary)
+
+        # Compute the esimated delay and print it into the status bar.
+        # (A GUI is supposed to be a MainWindow widget, so it is suppposed
+        # to have a status bar.)
+        timestamp = self.data['timestamp']
+        timenow = time.time()
+        self.statusBar().showMessage(
+            "Estimated delay: {} seconds".format(
+                round(timenow - timestamp, 6)
+            )
+        )

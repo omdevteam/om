@@ -93,7 +93,7 @@ class CrystallographyGui(gui.OndaGui):
         )
 
         visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
-            pixel_maps
+            geometry
         )
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
@@ -191,7 +191,7 @@ class CrystallographyGui(gui.OndaGui):
         # Initialize the image viewer.
         self._image_view = pyqtgraph.ImageView()
         self._image_view.ui.menuBtn.hide()
-        self._image_wiew.ui.roiBtn.hide()
+        self._image_view.ui.roiBtn.hide()
 
         # Initialize the hit rate plot widget.
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
@@ -268,7 +268,7 @@ class CrystallographyGui(gui.OndaGui):
         # Initialize the 'mouse clicked' signal proxy to limit the
         # accumulation of mouse events.
         self._mouse_clicked_signal_proxy = pyqtgraph.SignalProxy(
-            self._ui.hitRatePlotWidget.scene().sigMouseClicked,
+            self._hit_rate_plot_widget.scene().sigMouseClicked,
             rateLimit=60,
             slot=self._mouse_clicked
         )
@@ -276,7 +276,7 @@ class CrystallographyGui(gui.OndaGui):
         # Initialize and fill the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
         horizontal_layout.addWidget(self._accumulated_peaks_check_box)
-        horizontal_layout.addSpacerItem()
+        horizontal_layout.addStretch()
         horizontal_layout.addWidget(self._reset_peaks_button)
         horizontal_layout.addWidget(self._reset_plots_button)
         horizontal_layout.addWidget(self._resolution_rings_check_box)
@@ -284,16 +284,17 @@ class CrystallographyGui(gui.OndaGui):
         splitter_0 = QtGui.QSplitter()
         splitter_0.addWidget(self._image_view)
         splitter_1 = QtGui.QSplitter()
+        splitter_1.setOrientation(QtCore.Qt.Vertical)
         splitter_1.addWidget(self._hit_rate_plot_widget)
         splitter_1.addWidget(self._saturation_plot_widget)
         splitter_0.addWidget(splitter_1)
         vertical_layout = QtGui.QVBoxLayout()
         vertical_layout.addWidget(splitter_0)
-        vertical_layout.addWidget(horizontal_layout)
+        vertical_layout.addLayout(horizontal_layout)
 
         # Initialize the central widget for the main window.
         self._central_widget = QtGui.QWidget()
-        self._central_widget.setLayout(self._vertical_layout)
+        self._central_widget.setLayout(vertical_layout)
         self.setCentralWidget(self._central_widget)
 
         self.show()
