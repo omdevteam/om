@@ -63,18 +63,19 @@ def main():
     except IOError:
         # Raise an exception if the file cannot be opened or read.
         raise exceptions.ConfigFileReadingError(
-            "Cannot open or read the configuration file: {0}".format(
+            "Cannot open or read the configuration file {0}".format(
                 args.ini
             )
         )
 
-    except ValueError:
+    except toml.TomlDecodeError:
         # Raise an exception if the file cannot be interpreted.
         raise exceptions.ConfigFileSyntaxError(
-            "Syntax error in the configuration file: {0}.\n"
+            "Syntax error in the configuration file {0}. "
             "Make sure that the configuration file follows "
-            "the TOML syntax:\n"
-            "https://github.com/toml-lang/toml".format(args.ini)
+            "the TOML syntax: https://github.com/toml-lang/toml".format(
+                args.ini
+            )
         )
 
     monitor_parameters = parameters.MonitorParams(config)
