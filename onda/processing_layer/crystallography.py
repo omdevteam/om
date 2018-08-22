@@ -550,7 +550,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         if self._num_events % self._speed_report_interval == 0:
             now_time = time.time()
             speed_report_msg = (
-                "Processed: {0} in {1:.2f} seconds {2:.2f} Hz)".format(
+                "Processed: {0} in {1:.2f} seconds ({2:.2f} Hz)".format(
                     self._num_events,
                     now_time - self._old_time,
                     (

@@ -23,10 +23,10 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import argparse
-import configparser
 import sys
 from builtins import str  # pylint: disable=W0622
 
+import toml
 from onda.utils import dynamic_import, exceptions, parameters
 
 
@@ -58,14 +58,23 @@ def main():
     )
 
     args = parser.parse_args()
-    config = configparser.ConfigParser()
     try:
-        config.read(args.ini)
-    except OSError:
-        # Raise a RuntimeError exception if the file cannot be
-        # read.
-        raise RuntimeError(
-            "Error reading configuration file: {0}".format(args.ini)
+        config = toml.load(args.ini)
+    except IOError:
+        # Raise an exception if the file cannot be opened or read.
+        raise exceptions.ConfigFileReadingError(
+            "Cannot open or read the configuration file: {0}".format(
+                args.ini
+            )
+        )
+
+    except ValueError:
+        # Raise an exception if the file cannot be interpreted.
+        raise exceptions.ConfigFileSyntaxError(
+            "Syntax error in the configuration file: {0}.\n"
+            "Make sure that the configuration file follows "
+            "the TOML syntax:\n"
+            "https://github.com/toml-lang/toml".format(args.ini)
         )
 
     monitor_parameters = parameters.MonitorParams(config)

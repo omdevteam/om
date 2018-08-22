@@ -40,7 +40,7 @@ class MonitorParams(object):
 
             param_dictionary (Dict): a dictionary containing the
                 parameters from a configuration file, as returned by
-                the :obj:`configparse` python module.
+                the :obj:`toml` python module.
 
         Raises:
 
@@ -55,9 +55,7 @@ class MonitorParams(object):
                 not match the type of the parameter in the
                 configuration file.
         """
-        self._monitor_params = parameter_utils.convert_parameters(
-            config_dict=param_dictionary
-        )
+        self._monitor_params = param_dictionary
 
     def get_param(self, section, parameter, type_=None, required=False):
         """

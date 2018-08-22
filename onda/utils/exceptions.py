@@ -113,6 +113,20 @@ class MissingDependency(OndaException):
     pass
 
 
+class ConfigFileSyntaxError(OndaException):
+    """
+    There is a syntax error in the configuration file.
+    """
+    pass
+
+
+class ConfigFileReadingError(OndaException):
+    """
+    There is a syntax error in the configuration file.
+    """
+    pass
+
+
 def onda_exception_handler(type_, value, traceback):
     """
     Custom OnDA exception handler.
