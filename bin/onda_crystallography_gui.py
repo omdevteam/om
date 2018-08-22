@@ -16,6 +16,6 @@
 """
 Executable that launches the OnDA Crystallography GUI.
 """
-from onda.graphical_interfaces import crystallography
+from onda.graphical_interfaces import crystallography_gui
 
-crystallography.main()
+crystallography_gui.main()

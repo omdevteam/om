@@ -107,8 +107,8 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    data_block = event['/data']['/entry/instrument/detector/data']
-    return data_block[data_block.shape[0] + event['metadata']['frame_offset']]
+    data_block = event['data']['/entry/instrument/detector/data']
+    return data_block[data_block.shape[0] + ['frame_offset']]
 
 
 def filename_and_frame_index(event):
@@ -128,9 +128,9 @@ def filename_and_frame_index(event):
         detector data.
     """
     return named_tuples.FilenameAndFrameIndex(
-        filename=event['metadata']['full_path'],
+        filename=event['full_path'],
         frame_index=(
-            event['/data']['/entry/instrument/detector/data'].shape[0] +
-            event['metadata']['frame_offset']
+            event['data']['/entry/instrument/detector/data'].shape[0] +
+            event['frame_offset']
         )
     )

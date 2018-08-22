@@ -230,6 +230,7 @@ def event_generator(source,
 
         event = {
             'data': recovered_data,
+            'metadata': recovered_metadata
         }
 
         event['full_path'] = os.path.join(

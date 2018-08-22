@@ -160,11 +160,10 @@ class ParallelizationEngine(object):
                 if self._event_filter.should_reject(event):
                     continue
 
+                self._open_event(event)
                 n_frames_in_evt = self._get_num_frames_in_event(event)
                 if n_frames_in_evt < self._num_frames_in_event_to_process:
                     self._num_frames_in_event_to_process = n_frames_in_evt
-
-                self._open_event(event)
 
                 # Add the monitor parameters to the event dictionary,
                 # in order for the extraction functions to be able to

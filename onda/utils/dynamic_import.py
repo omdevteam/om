@@ -144,7 +144,7 @@ def import_data_retrieval_layer(monitor_params):
             '{0}'.format(
                 monitor_params.get_param(
                     section='Onda',
-                    parameter='data_retrieval_layer_profile',
+                    parameter='data_retrieval_layer',
                     type_=str,
                     required=True
                 )
@@ -155,7 +155,7 @@ def import_data_retrieval_layer(monitor_params):
             'onda.data_retrieval_layer.{0}'.format(
                 monitor_params.get_param(
                     section='Onda',
-                    parameter='data_retrieval_layer_profile',
+                    parameter='data_retrieval_layer',
                     type_=str,
                     required=True
                 )

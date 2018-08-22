@@ -91,6 +91,8 @@ class CrystallographyGui(gui.OndaGui):
         self._img_shape = geometry_utils.compute_min_array_size(
             pixel_maps
         )
+        self._img_center_x = int(self._img_shape[1] / 2)
+        self._img_center_y = int(self._img_shape[0] / 2)
 
         visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
             geometry
@@ -162,7 +164,7 @@ class CrystallographyGui(gui.OndaGui):
 
         # Initalize the resolution rings checkbox.
         self._resolution_rings_check_box = QtGui.QCheckBox()
-        self._resolution_rings_check_box.setText("Resolution Rings")
+        self._resolution_rings_check_box.setText("Show Resolution Rings")
         self._resolution_rings_check_box.setChecked(True)
         self._resolution_rings_check_box.stateChanged.connect(
             self._update_resolution_rings
@@ -258,11 +260,12 @@ class CrystallographyGui(gui.OndaGui):
 
         # Initialize 'reset peaks' button.
         self._reset_peaks_button = QtGui.QPushButton()
-        self._reset_peaks_button.setText("Reset Plots")
+        self._reset_peaks_button.setText("Reset Peaks")
         self._reset_peaks_button.clicked.connect(self._reset_virt_powder_plot)
 
         # Initialize 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton()
+        self._reset_plots_button.setText("Reset Plots")
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
         # Initialize the 'mouse clicked' signal proxy to limit the
@@ -275,10 +278,10 @@ class CrystallographyGui(gui.OndaGui):
 
         # Initialize and fill the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
-        horizontal_layout.addWidget(self._accumulated_peaks_check_box)
-        horizontal_layout.addStretch()
         horizontal_layout.addWidget(self._reset_peaks_button)
         horizontal_layout.addWidget(self._reset_plots_button)
+        horizontal_layout.addWidget(self._accumulated_peaks_check_box)
+        horizontal_layout.addStretch()
         horizontal_layout.addWidget(self._resolution_rings_check_box)
         horizontal_layout.addWidget(self._resolution_rings_lineedit)
         splitter_0 = QtGui.QSplitter()
@@ -308,8 +311,7 @@ class CrystallographyGui(gui.OndaGui):
         mouse_pos_in_scene = mouse_evt[0].scenePos()
         if (
                 self
-                ._ui
-                .hitRatePlotWidget
+                .hit_rate_plot_widget
                 .plotItem.sceneBoundingRect()
                 .contains(mouse_pos_in_scene)
         ):
@@ -317,8 +319,7 @@ class CrystallographyGui(gui.OndaGui):
 
                 mouse_x_pos_in_data = (
                     self
-                    ._ui
-                    .hitRatePlotWidget
+                    .hit_rate_plot_widget
                     .plotItem
                     .vb
                     .mapSceneToView(mouse_pos_in_scene)
@@ -425,8 +426,7 @@ class CrystallographyGui(gui.OndaGui):
 
         items = str(
             self
-            ._ui
-            .resolutionRingsLineEdit
+            ._resolution_rings_lineedit
             .text()
         ).split(',')
 
@@ -462,7 +462,7 @@ class CrystallographyGui(gui.OndaGui):
                         self._coffset
                     ) * numpy.tan(
                         2.0 * numpy.arcsin(
-                            lambda_ / (2.0 * resolution * 10e-11)
+                            lambda_ / (2.0 * resolution)
                         )
                     )
                     for resolution in self._resolution_rings_in_a
@@ -482,8 +482,8 @@ class CrystallographyGui(gui.OndaGui):
                     self._resolution_rings_check_box.isChecked()
             ):
                 self._resolution_rings_canvas.setData(
-                    [self._image_center.y] * len(resolution_rings_in_pix),
-                    [self._image_center.x] * len(resolution_rings_in_pix),
+                    [self._img_center_y] * len(resolution_rings_in_pix),
+                    [self._img_center_x] * len(resolution_rings_in_pix),
                     symbol='o',
                     size=resolution_rings_in_pix,
                     pen=self._resolution_rings_pen,
@@ -496,9 +496,9 @@ class CrystallographyGui(gui.OndaGui):
                         '{}A'.format(self._resolution_rings_in_a[index])
                     )
                     item.setPos(
-                        self._image_center.y,
+                        self._img_center_y,
                         (
-                            self._image_center.x +
+                            self._img_center_x +
                             resolution_rings_in_pix[index + 1] / 2.0
                         )
                     )
@@ -542,9 +542,9 @@ class CrystallographyGui(gui.OndaGui):
             self._update_resolution_rings()
 
         else:
-            if self._ui.resolutionRingsCheckBox.isEnabled():
-                self._resolution_rings_line_edit.setEnabled(False)
-                self._resolution_rings_line_edit.setEnabled(False)
+            if self._resolution_rings_check_box.isEnabled():
+                self._resolution_rings_lineedit.setEnabled(False)
+                self._resolution_rings_lineedit.setEnabled(False)
             self._update_resolution_rings()
 
         # Draw the vertical lines on the plot widgets.

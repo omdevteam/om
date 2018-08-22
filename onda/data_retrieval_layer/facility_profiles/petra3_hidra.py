@@ -23,6 +23,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 from onda.data_retrieval_layer.event_sources import onda_hidra
+from onda.data_retrieval_layer.file_formats import ini_files
 
 
 ###########################################
@@ -73,55 +74,17 @@ def timestamp(event):
 
         timestamp: the time at which the event was collected.
     """
-    return event['metadata']['file_creation_time']
+    return event['file_creation_time']
 
 
-def beam_energy(event):
-    """
-    Retrieve the beam energy.
-
-    As provided in the configuration file.
-
-    Args:
-
-        event (Dict): a dictionary with the event data.
-
-    Returns:
-
-        float: the energy of the beam in J.
-    """
-    return float(
-        event['monitor_params'].get_param(
-            section='General',
-            parameter='fallback_beam_energy',
-            type_=float,
-            required=True
-        )
-    )
+beam_energy = (  # pylint: disable=C0103
+    ini_files.beam_energy_from_config
+)
 
 
-def detector_distance(event):
-    """
-    Retrieve the distance of the detector from the sample location.
-
-    As provided in the configuration file.
-
-    Args:
-
-        event (Dict): a dictionary with the event data.
-
-    Returns:
-
-        float: the distance between the detector and the sample in m.
-    """
-    return float(
-        event['monitor_params'].get_param(
-            section='General',
-            parameter='fallback_detector_distance',
-            type_=float,
-            required=True
-        )
-    )
+detector_distance = (  # pylint: disable=C0103
+    ini_files.detector_distance_from_config
+)
 
 # Import other data extraction functions from the 'data_sources'
 # submodules.

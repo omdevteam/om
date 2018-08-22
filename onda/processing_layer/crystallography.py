@@ -445,22 +445,22 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
 
-        if hit:
-            self._hit_sending_counter += 1
-            if (
-                    (
-                        self._hit_sending_interval < 0
-                    ) or (
-                        self._hit_sending_counter ==
-                        abs(self._hit_sending_interval)
-                    )
-            ):
-                # If the frame is a hit, and if the
-                # 'hit_sending_interval' attribute says we should send
-                # the detector frame data to the master node, add it to
-                # the dictionary (and reset the counter).
-                results_dict['detector_data'] = corr_det_data
-                self._hit_sending_counter = 0
+        self._hit_sending_counter += 1
+
+        if (
+                (
+                    self._hit_sending_interval < 0
+                ) or (
+                    self._hit_sending_counter ==
+                    abs(self._hit_sending_interval)
+                )
+        ):
+            # If the frame is a hit, and if the
+            # 'hit_sending_interval' attribute says we should send
+            # the detector frame data to the master node, add it to
+            # the dictionary (and reset the counter).
+            results_dict['detector_data'] = corr_det_data
+            self._hit_sending_counter = 0
 
         return results_dict, self.rank
 

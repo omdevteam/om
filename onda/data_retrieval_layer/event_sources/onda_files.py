@@ -129,11 +129,12 @@ def event_generator(source,
     ]
 
     for entry in files_curr_node:
-        event = {'full_path': entry}
+        stripped_entry = entry.strip()
+        event = {'full_path': stripped_entry}
 
         # File creation date is used as a first approximation of the
         # timestamp when the timestamp is not available.
-        event['file_creation_time'] = os.stat(entry).st_crtime
+        event['file_creation_time'] = os.stat(stripped_entry).st_mtime
 
         yield event
 
@@ -176,6 +177,9 @@ class EventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        if os.path.basename(event).endswith(self._file_extensions):
+        if os.path.basename(
+                event['full_path']
+        ).endswith(self._file_extensions):
             return False
-        return True
+        else:
+            return True

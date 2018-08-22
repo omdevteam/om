@@ -87,6 +87,9 @@ class OndaGui(QtGui.QMainWindow):
         self.data = None
         self.listening = False
 
+        # Initialize an empty status bar
+        self.statusBar().showMessage('')
+
         # Create and initialize the ZMQ listening thread.
         self._data_listener_thread = QtCore.QThread()
         self._data_listener = zmq.DataListener(
@@ -135,7 +138,7 @@ class OndaGui(QtGui.QMainWindow):
             self._listening_thread_stop_processing.emit()
 
     def _data_received(self,
-                    data_dictionary):
+                       data_dictionary):
         # This function is called when the listening thread receives data.
 
         # Store the received dictionary as an attribute.

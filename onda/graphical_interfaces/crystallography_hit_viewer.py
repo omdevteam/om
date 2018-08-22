@@ -73,13 +73,14 @@ class CrystallographyHitViewer(gui.OndaGui):
             subscription_string=u'ondarawdata',
         )
 
-     
         # The following information will be used later to create the
         # arrays that will store the assembled detector images.
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
         self._img_shape = geometry_utils.compute_min_array_size(
             pixel_maps
         )
+        self._img_center_x = int(self._img_shape[1] / 2)
+        self._img_center_y = int(self._img_shape[0] / 2)
 
         visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
             geometry
@@ -110,7 +111,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._image_view = pyqtgraph.ImageView()
         self._image_view.ui.menuBtn.hide()
         self._image_view.ui.roiBtn.hide()
-        self._image_wiew.getView().addItem(self._peak_canvas)
+        self._image_view.getView().addItem(self._peak_canvas)
 
         # Initialize the 'forward', 'back' and 'play/pause' buttons.
         self._back_button = QtGui.QPushButton()
@@ -170,8 +171,8 @@ class CrystallographyHitViewer(gui.OndaGui):
             return
 
         self._img[
-            self._pixel_map_y,
-            self._pixel_map_x
+            self._visual_pixel_map_y,
+            self._visual_pixel_map_x
         ] = data['detector_data'].ravel().astype(self._img.dtype)
 
         QtGui.QApplication.processEvents()
@@ -270,7 +271,6 @@ def main():
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    app = QtGui.QApplication(sys.argv)
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]
         rec_ip = '127.0.0.1'

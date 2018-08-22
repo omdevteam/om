@@ -134,6 +134,8 @@ def onda_exception_handler(type_, value, traceback):
         print('')
         print('>>>>> OnDA ERROR: {0} <<<<<'.format(value))
         print('')
+        sys.stdout.flush()
+        sys.stderr.flush()
         MPI.COMM_WORLD.Abort(0)
     else:
         print_exception(type_, value, traceback)

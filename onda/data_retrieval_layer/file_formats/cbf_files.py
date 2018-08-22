@@ -51,7 +51,7 @@ def open_event(event):
     # Open the CBF file using the fabio library and saved the content
     # (stored as a cbf_obj object) in the 'data' entry of the event
     # dictionary.
-    event['data'] = fabio.open(event['metadata']['full_path'])
+    event['data'] = fabio.open(event['full_path'])
 
 
 def close_event(_):

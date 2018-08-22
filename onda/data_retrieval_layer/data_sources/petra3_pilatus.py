@@ -172,6 +172,6 @@ def filename_and_frame_index(event):
     # The frame index is always 0, as Pilatus files usually contain
     # just one frame.
     return named_tuples.FilenameAndFrameIndex(
-        filename=event['metadata']['full_path'],
+        filename=event['full_path'],
         frame_index=0
     )
