@@ -93,7 +93,7 @@ class DarkCalCorrection(object):
                         darkcal_filename
                     )
                 ),
-                source=None
+                cause=None
             )
 
         if mask_filename:
@@ -110,7 +110,7 @@ class DarkCalCorrection(object):
                             mask_filename
                         )
                     ),
-                    source=None
+                    cause=None
                 )
         else:
 
@@ -131,7 +131,7 @@ class DarkCalCorrection(object):
                             mask_filename
                         )
                     ),
-                    source=None
+                    cause=None
                 )
         else:
             # True here is equivalent to an all-ones map.

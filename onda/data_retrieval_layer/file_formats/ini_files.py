@@ -16,6 +16,7 @@
 This module contains the implementation of several functions used to
 manipulate ini files.
 """
+import scipy.constants
 
 
 def beam_energy_from_config(event):
@@ -40,7 +41,7 @@ def beam_energy_from_config(event):
             type_=float,
             required=True
         )
-    )
+    ) * scipy.constants.electron_volt
 
 
 def detector_distance_from_config(event):

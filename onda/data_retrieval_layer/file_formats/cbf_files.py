@@ -33,7 +33,7 @@ except ImportError:
             "The petra3_pilatus module could not be loaded. The following "
             "dependency does not appear to be available on the system: fabio."
         ),
-        source=None
+        cause=None
     )
 
 

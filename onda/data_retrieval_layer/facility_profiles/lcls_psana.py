@@ -39,7 +39,7 @@ except ImportError:
             "The lcls_psana module could not be loaded. The following "
             "dependency does not appear to be available on the system: psana."
         ),
-        source=None
+        cause=None
     )
 
 

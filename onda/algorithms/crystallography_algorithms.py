@@ -139,7 +139,7 @@ class Peakfinder8PeakDetection(object):
                         bad_pixel_map_filename
                     )
                 ),
-                source=None
+                cause=None
             )
 
         res_mask = numpy.ones(

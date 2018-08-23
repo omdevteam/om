@@ -35,7 +35,7 @@ class SingleModuleLambdaCalibration(object):
     See __init__ for documentation.
     """
 
-    def __init__(self,  
+    def __init__(self,
                  calibration_filename):
         """
         Calibrate a single-module Lambda detector.
@@ -57,12 +57,12 @@ class SingleModuleLambdaCalibration(object):
                 self._flatfield = fhandle['/flatfield']
         except OSError:
             raise_from(
-                exc=RuntimeError(
+                RuntimeError(
                     "Error reading the {} HDF5 file.".format(
                         calibration_filename
                     )
                 ),
-                source=None
+                cause=None
             )
 
     def apply_calibration(self,

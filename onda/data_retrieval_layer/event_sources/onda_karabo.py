@@ -25,7 +25,7 @@ import sys
 
 from future.utils import raise_from
 
-from onda.data_retrieval_layer.event_sources import karabo_api
+from onda.data_retrieval_layer.event_sources.karabo_api import client
 from onda.utils import exceptions
 
 
@@ -104,7 +104,7 @@ def event_generator(source,
             exc=exceptions.InvalidSource(
                 "Invalid source format: {}.".format(source)
             ),
-            source=None
+            cause=None
         )
 
     print(
@@ -117,7 +117,7 @@ def event_generator(source,
     sys.stdout.flush()
 
     # Connect to the Karabo Bridge using the Karabo API.
-    krb_client = karabo_api.Client('tcp://{}'.format(source))
+    krb_client = client.Client('tcp://{}'.format(source))
 
     while True:
         event = {}

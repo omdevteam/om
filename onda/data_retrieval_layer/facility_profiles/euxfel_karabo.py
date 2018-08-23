@@ -22,7 +22,7 @@ European XFEL facility.
 import numpy
 
 from onda.data_retrieval_layer.event_sources import onda_karabo
-
+from onda.data_retrieval_layer.file_formats import ini_files
 
 ########################################
 #                                      #
@@ -80,59 +80,36 @@ def timestamp(event):
 
         numpy.float64: the time at which the event was collected.
     """
-    identifier = event['karabo_bridge_identifier']
     return numpy.float64(
-        str(event['metadata'][identifier]['timestamp.sec']) + '.' +
-        str(event['metadata'][identifier]['timestamp.frac'])
-    )
-
-
-def beam_energy(event):
-    """
-    Retrieve the beam energy.
-
-    As provided in the configuration file.
-
-    Args:
-
-        event (Dict): a dictionary with the event data.
-
-    Returns:
-
-        float: the energy of the beam in J.
-    """
-    return float(
-        event['monitor_params'].get_param(
-            section='General',
-            parameter='fallback_beam_energy',
-            type_=float,
-            required=True
+        str(
+            event[
+                'metadata'
+            ][
+                'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+            ][
+                'timestamp.sec'
+            ]
+        ) + '.' + str(
+            event[
+                'metadata'
+            ][
+                'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+            ][
+                'timestamp.frac'
+            ]
         )
     )
 
 
-def detector_distance(event):
-    """
-    Retrieve the distance of the detector from the sample location.
+beam_energy = (  # pylint: disable=C0103
+    ini_files.beam_energy_from_config
+)
 
-    As provided in the configuration file.
 
-    Args:
+detector_distance = (  # pylint: disable=C0103
+    ini_files.detector_distance_from_config
+)
 
-        event (Dict): a dictionary with the event data.
-
-    Returns:
-
-        float: the distance between the detector and the sample in m.
-    """
-    return float(
-        event['monitor_params'].get_param(
-            section='General',
-            parameter='fallback_detector_distance',
-            type_=float,
-            required=True
-        )
-    )
 
 # Import other data extraction functions from the 'data_sources'
 # submodules.

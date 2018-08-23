@@ -109,7 +109,7 @@ def event_generator(source,
                     source
                 )
             ),
-            source=None
+            cause=None
         )
 
     # Compute how many files the current worker node should

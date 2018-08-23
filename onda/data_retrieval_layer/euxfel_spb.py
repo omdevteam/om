@@ -19,9 +19,8 @@ Data retrieval from files using the Jungfrau 1M detector.
 This module collects several functions and classes used to manage
 events and retrieve data when reading Jungfrau 1M data from files.
 """
-from onda.data_retrieval_layer.data_sources import files_jungfrau1module
-from onda.data_retrieval_layer.event_sources import onda_files
-from onda.data_retrieval_layer.file_formats import ini_files
+from onda.data_retrieval_layer.data_sources import euxfel_agipd
+from onda.data_retrieval_layer.facility_profiles import euxfel_karabo
 
 
 ############################
@@ -31,32 +30,32 @@ from onda.data_retrieval_layer.file_formats import ini_files
 ############################
 
 initialize_event_source = (  # pylint: disable=C0103
-    onda_files.initialize_event_source
+    euxfel_karabo.initialize_event_source
 )
 
 
 event_generator = (  # pylint: disable=C0103
-    onda_files.event_generator
+    euxfel_karabo.event_generator
 )
 
 
 EventFilter = (  # pylint: disable=C0103
-    onda_files.EventFilter
+    euxfel_karabo.EventFilter
 )
 
 
 open_event = (  # pylint: disable=C0103
-    files_jungfrau1module.open_event
+    euxfel_karabo.open_event
 )
 
 
 close_event = (  # pylint: disable=C0103
-    files_jungfrau1module.close_event
+    euxfel_karabo.close_event
 )
 
 
 get_num_frames_in_event = (  # pylint: disable=C0103
-    files_jungfrau1module.get_num_frames_in_event
+    euxfel_agipd.get_num_frames_in_event
 )
 
 
@@ -67,23 +66,23 @@ get_num_frames_in_event = (  # pylint: disable=C0103
 #############################
 
 detector_data = (  # pylint: disable=C0103
-    files_jungfrau1module.detector_data
+    euxfel_agipd.detector_data
+)
+
+
+timestamp = (  # pylint: disable=C0103
+    euxfel_karabo.timestamp
 )
 
 
 detector_distance = (  # pylint: disable=C0103
-    ini_files.detector_distance_from_config
-)
+    euxfel_karabo.detector_distance)
 
 
 beam_energy = (  # pylint: disable=C0103
-    ini_files.beam_energy_from_config
+    euxfel_karabo.beam_energy
 )
 
-
-filename_and_frame_index = (  # pylint: disable=C0103
-    files_jungfrau1module.filename_and_frame_index
-)
 
 ############################
 #                          #
@@ -91,11 +90,7 @@ filename_and_frame_index = (  # pylint: disable=C0103
 #                          #
 ############################
 
-get_file_extensions = (  # pylint: disable=C0103
-    files_jungfrau1module.get_file_extensions
-)
-
 
 get_peakfinder8_info_detector_data = (  # pylint: disable=C0103
-    files_jungfrau1module.get_peakfinder8_info
+    euxfel_agipd.get_peakfinder8_info
 )
