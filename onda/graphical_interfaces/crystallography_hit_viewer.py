@@ -178,7 +178,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         QtGui.QApplication.processEvents()
 
         self._image_view.setImage(
-            self._img,
+            self._img.T,
             autoLevels=False,
             autoRange=False,
             autoHistogramRange=False
