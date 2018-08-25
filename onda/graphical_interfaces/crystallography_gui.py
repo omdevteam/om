@@ -535,15 +535,14 @@ class CrystallographyGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        if self._local_data['optimized_geometry']:
+        if self._local_data['geometry_is_optimized']:
             if not self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(True)
-                self._resolution_rings_check_box.setEnabled(True)
+                self._resolution_rings_lineedit.setEnabled(True)
             self._update_resolution_rings()
-
         else:
             if self._resolution_rings_check_box.isEnabled():
-                self._resolution_rings_lineedit.setEnabled(False)
+                self._resolution_rings_check_box.setEnabled(False)
                 self._resolution_rings_lineedit.setEnabled(False)
             self._update_resolution_rings()
 

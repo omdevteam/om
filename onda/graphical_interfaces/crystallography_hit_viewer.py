@@ -164,7 +164,7 @@ class CrystallographyHitViewer(gui.OndaGui):
             self._current_frame_index = len(self._frame_list)-1
 
         try:
-            data = self._frame_list[self._current_frame_index]
+            current_data = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the framebuffer is empty, return without drawing
             # anything.
@@ -173,7 +173,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._img[
             self._visual_pixel_map_y,
             self._visual_pixel_map_x
-        ] = data['detector_data'].ravel().astype(self._img.dtype)
+        ] = current_data['detector_data'].ravel().astype(self._img.dtype)
 
         QtGui.QApplication.processEvents()
 
@@ -190,23 +190,23 @@ class CrystallographyHitViewer(gui.OndaGui):
         peak_x_list = []
         peak_y_list = []
         for peak_fs, peak_ss in zip(
-                data['peak_list'].fs,
-                data['peak_list'].ss,
+                current_data['peak_list'].fs,
+                current_data['peak_list'].ss,
         ):
 
             # Compute the array index corresponding to the peak
             # location.
             peak_index_in_slab = (
                 int(round(peak_ss)) *
-                self._local_data['detector_data'][1] +
+                current_data['native_data_shape'][1] +
                 int(round(peak_fs))
             )
 
             # Add the coordinates of the peak to the lists of peaks to
             # display, mapping the coordinates of the peak to the
             # displayed image according to the pixel maps.
-            peak_x_list.append(self._pixel_maps.x[peak_index_in_slab])
-            peak_y_list.append(self._pixel_maps.y[peak_index_in_slab])
+            peak_x_list.append(self._visual_pixel_map_x[peak_index_in_slab])
+            peak_y_list.append(self._visual_pixel_map_y[peak_index_in_slab])
 
         QtGui.QApplication.processEvents()
 
@@ -214,7 +214,7 @@ class CrystallographyHitViewer(gui.OndaGui):
             x=peak_x_list,
             y=peak_y_list,
             symbol='o',
-            size=[5] * len(data['peak_list'].intensity),
+            size=[5] * len(current_data['peak_list'].intensity),
             brush=(255, 255, 255, 0),
             pen=self._ring_pen,
             pxMode=False

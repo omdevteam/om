@@ -323,7 +323,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            self._optimized_geometry = monitor_parameters.get_param(
+            self._geometry_is_optimized = monitor_parameters.get_param(
                 section='General',
                 parameter='geometry_is_optimized',
                 type_=bool,
@@ -520,7 +520,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 results_dict['detector_distance']
             )
             collected_data['beam_energy'] = results_dict['beam_energy']
-            collected_data['optimized_geometry'] = self._optimized_geometry
+            collected_data['geometry_is_optimized'] = (
+                self._geometry_is_optimized
+            )
             collected_data['native_data_shape'] = (
                 results_dict['native_data_shape']
             )
@@ -541,6 +543,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
             collected_framedata['peak_list'] = results_dict['peak_list']
             collected_framedata['timestamp'] = results_dict['timestamp']
+            collected_framedata['native_data_shape'] = (
+                results_dict['native_data_shape']
+            )
 
             self._data_broadcast_socket.send_data(
                 tag='ondarawdata',
