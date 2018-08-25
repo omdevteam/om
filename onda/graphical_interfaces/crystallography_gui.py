@@ -311,7 +311,7 @@ class CrystallographyGui(gui.OndaGui):
         mouse_pos_in_scene = mouse_evt[0].scenePos()
         if (
                 self
-                .hit_rate_plot_widget
+                ._hit_rate_plot_widget
                 .plotItem.sceneBoundingRect()
                 .contains(mouse_pos_in_scene)
         ):
@@ -319,7 +319,7 @@ class CrystallographyGui(gui.OndaGui):
 
                 mouse_x_pos_in_data = (
                     self
-                    .hit_rate_plot_widget
+                    ._hit_rate_plot_widget
                     .plotItem
                     .vb
                     .mapSceneToView(mouse_pos_in_scene)

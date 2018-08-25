@@ -226,7 +226,11 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        print("Frame {} in buffer".format(self._current_frame_index))
+        print(
+            "Showing frame {} in the buffer".format(
+                self._current_frame_index
+            )
+        )
         self._update_image()
 
     def _forward_button_clicked(self):
@@ -235,7 +239,11 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        print("Frame {} in buffer".format(self._current_frame_index))
+        print(
+            "Showing frame {} in the buffer".format(
+                self._current_frame_index
+            )
+        )
         self._update_image()
 
     def _stop_stream(self):
