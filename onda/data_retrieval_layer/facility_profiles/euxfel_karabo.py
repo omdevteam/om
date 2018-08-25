@@ -21,7 +21,7 @@ European XFEL facility.
 """
 import numpy
 
-from onda.data_retrieval_layer.event_sources import onda_karabo
+from onda.data_retrieval_layer.event_sources import karabo_source
 from onda.data_retrieval_layer.file_formats import ini_files
 
 ########################################
@@ -31,24 +31,24 @@ from onda.data_retrieval_layer.file_formats import ini_files
 ########################################
 
 initialize_event_source = (  # pylint: disable=C0103
-    onda_karabo.initialize_event_source
+    karabo_source.initialize_event_source
 )
 
 event_generator = (  # pylint: disable=C0103
-    onda_karabo.event_generator
+    karabo_source.event_generator
 )
 
 EventFilter = (  # pylint: disable=C0103
-    onda_karabo.EventFilter
+    karabo_source.EventFilter
 )
 
 open_event = (  # pylint: disable=C0103
-    onda_karabo.open_event
+    karabo_source.open_event
 )
 
 
 close_event = (  # pylint: disable=C0103
-    onda_karabo.close_event
+    karabo_source.close_event
 )
 
 # The function:

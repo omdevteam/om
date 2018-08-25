@@ -34,7 +34,7 @@ try:
 except ImportError:
     raise_from(
         exc=exceptions.MissingDependency(
-            "The onda_psana module could not be loaded. The following "
+            "The psana module could not be loaded. The following "
             "dependency does not appear to be available on the system: psana."
         ),
         cause=None

@@ -22,7 +22,7 @@ facility.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from onda.data_retrieval_layer.event_sources import onda_hidra
+from onda.data_retrieval_layer.event_sources import hidra_source
 from onda.data_retrieval_layer.file_formats import ini_files
 
 
@@ -33,15 +33,15 @@ from onda.data_retrieval_layer.file_formats import ini_files
 ###########################################
 
 initialize_event_source = (  # pylint: disable=C0103
-    onda_hidra.initialize_event_source
+    hidra_source.initialize_event_source
 )
 
 event_generator = (  # pylint: disable=C0103
-    onda_hidra.event_generator
+    hidra_source.event_generator
 )
 
 EventFilter = (  # pylint: disable=C0103
-    onda_hidra.EventFilter
+    hidra_source.EventFilter
 )
 
 # The functions:

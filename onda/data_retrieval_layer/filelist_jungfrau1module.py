@@ -20,7 +20,7 @@ This module collects several functions and classes used to manage
 events and retrieve data when reading Jungfrau 1M data from files.
 """
 from onda.data_retrieval_layer.data_sources import files_jungfrau1module
-from onda.data_retrieval_layer.event_sources import onda_files
+from onda.data_retrieval_layer.event_sources import file_source
 from onda.data_retrieval_layer.file_formats import ini_files
 
 
@@ -31,17 +31,17 @@ from onda.data_retrieval_layer.file_formats import ini_files
 ############################
 
 initialize_event_source = (  # pylint: disable=C0103
-    onda_files.initialize_event_source
+    file_source.initialize_event_source
 )
 
 
 event_generator = (  # pylint: disable=C0103
-    onda_files.event_generator
+    file_source.event_generator
 )
 
 
 EventFilter = (  # pylint: disable=C0103
-    onda_files.EventFilter
+    file_source.EventFilter
 )
 
 

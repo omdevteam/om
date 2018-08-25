@@ -28,7 +28,7 @@ import numpy
 import scipy.constants
 from future.utils import raise_from
 
-from onda.data_retrieval_layer.event_sources import onda_psana
+from onda.data_retrieval_layer.event_sources import psana_source
 from onda.utils import exceptions
 
 try:
@@ -67,32 +67,32 @@ def _psana_offline_event_generator(psana_source,
 #######################################
 
 initialize_event_source = (  # pylint: disable=C0103
-    onda_psana.initialize_event_source
+    psana_source.initialize_event_source
 )
 
 
 event_generator = (  # pylint: disable=C0103
-    onda_psana.event_generator
+    psana_source.event_generator
 )
 
 
 EventFilter = (  # pylint: disable=C0103
-    onda_psana.EventFilter
+    psana_source.EventFilter
 )
 
 
 open_event = (  # pylint: disable=C0103
-    onda_psana.open_event
+    psana_source.open_event
 )
 
 
 close_event = (  # pylint: disable=C0103
-    onda_psana.close_event
+    psana_source.close_event
 )
 
 
 get_num_frames_in_event = (  # pylint: disable=C0103
-    onda_psana.get_num_frames_in_event
+    psana_source.get_num_frames_in_event
 )
 
 
