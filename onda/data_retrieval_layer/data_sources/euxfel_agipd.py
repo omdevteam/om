@@ -53,8 +53,8 @@ def get_peakfinder8_info():
         information.
     """
     return named_tuples.Peakfinder8DetInfo(
-        asic_nx=128,
-        asic_ny=512,
+        asic_nx=512,
+        asic_ny=128,
         nasics_x=1,
         nasics_y=16
     )
