@@ -445,15 +445,16 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
 
-
         if (
                 (
                     self._hit_sending_interval < 0
                 ) or (
                     hit
                 )
-        ):     
-            self._hit_sending_counter+=1
+        ):
+            # If the hit_sending_interval is positive (n), send every
+            # n-th hit. If it is negative (-n), sends every n-th frame.
+            self._hit_sending_counter += 1
             if (
                     self._hit_sending_counter ==
                     abs(self._hit_sending_interval)
