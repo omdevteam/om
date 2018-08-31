@@ -27,8 +27,8 @@ from builtins import str  # pylint: disable=W0622
 import numpy
 import scipy.constants
 from future.utils import raise_from
-
 from onda.data_retrieval_layer.event_sources import psana_source
+from onda.data_retrieval_layer.filters import event_filters, frame_filters
 from onda.utils import exceptions
 
 try:
@@ -43,12 +43,12 @@ except ImportError:
     )
 
 
-def _psana_offline_event_generator(psana_source,
+def _psana_offline_event_generator(source,
                                    node_rank,
                                    mpi_pool_size):
     # Compute the portion of requested events that must be processed
     # by the worker calling the event_generator function.
-    for run in psana_source.runs():
+    for run in source.runs():
         times = run.times()
         size_for_this = int(
             numpy.ceil(len(times) / float(mpi_pool_size - 1))
@@ -76,11 +76,6 @@ event_generator = (  # pylint: disable=C0103
 )
 
 
-EventFilter = (  # pylint: disable=C0103
-    psana_source.EventFilter
-)
-
-
 open_event = (  # pylint: disable=C0103
     psana_source.open_event
 )
@@ -93,6 +88,16 @@ close_event = (  # pylint: disable=C0103
 
 get_num_frames_in_event = (  # pylint: disable=C0103
     psana_source.get_num_frames_in_event
+)
+
+
+EventFilter = (  # pylint: disable=C0103
+    event_filters.PsanaAgeEventFilter
+)
+
+
+FrameFilter = (  # pylint: disable=C0103
+    frame_filters.NullFrameFilter
 )
 
 
@@ -115,9 +120,9 @@ def detector_data_init(monitor_params,
             configuration file.
 
         data_extraction_func_name (str): the name of the data
-          extraction function ("detector_data", "detector2_data",
-          "detector3_data", etc.) that is associated with the current
-          initialization.
+            extraction function ("detector_data", "detector2_data",
+            "detector3_data", etc.) that is associated with the current
+            initialization.
 
     Returns:
 

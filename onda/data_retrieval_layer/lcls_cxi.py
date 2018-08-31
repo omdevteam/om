@@ -1,4 +1,3 @@
-
 #    This file is part of OnDA.
 #
 #    OnDA is free software: you can redistribute it and/or modify
@@ -43,6 +42,11 @@ event_generator = (  # pylint: disable=C0103
 
 EventFilter = (  # pylint: disable=C0103
     lcls_psana.EventFilter
+)
+
+
+FrameFilter = (  # pylint: disable=C0103
+    lcls_psana.FrameFilter
 )
 
 

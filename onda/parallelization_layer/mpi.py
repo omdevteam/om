@@ -104,7 +104,7 @@ class ParallelizationEngine(object):
 
         if self.role == 'worker':
             self._event_filter = evt_han_fns['EventFilter'](self._mon_params)
-
+            self._frame_filter = evt_han_fns['FrameFilter'](self._mon_params)
             self._data_extr_funcs = dynamic_import.get_data_extraction_funcs(
                 self._mon_params
             )
@@ -176,8 +176,15 @@ class ParallelizationEngine(object):
                         -self._num_frames_in_event_to_process,
                         0
                 ):
-                    event['frame_offset'] = frame_offset
+                    # If the frame must be rejected, skip to next
+                    # iteration of the loop.
+                    if self._frame_filter.should_reject(
+                            num_frames_in_event=n_frames_in_evt,
+                            frame_offset=frame_offset
+                    ):
+                        continue
 
+                    event['frame_offset'] = frame_offset
                     data = {}
 
                     # Try to extract the data by calling the data

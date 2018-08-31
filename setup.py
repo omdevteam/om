@@ -109,7 +109,11 @@ setup(
         'monitor-cbf': ['fabio>=0.6.0'],
         'monitor-psana': ['psana>=1.3.54']
     },
-    scripts=['bin/onda_crystallography_gui.py', 'bin/onda_crystallography_hit_viewer.py', 'bin/onda_monitor.py'],
+    scripts=[
+        'bin/onda_crystallography_gui.py',
+        'bin/onda_crystallography_hit_viewer.py',
+        'bin/onda_monitor.py'
+    ],
     ext_modules=extensions,
     packages=[
         'onda',
@@ -122,6 +126,7 @@ setup(
         'onda.data_retrieval_layer.event_sources.karabo_api',
         'onda.data_retrieval_layer.facility_profiles',
         'onda.data_retrieval_layer.file_formats',
+        'onda.data_retrieval_layer.filters',
         'onda.graphical_interfaces',
         'onda.parallelization_layer',
         'onda.processing_layer',

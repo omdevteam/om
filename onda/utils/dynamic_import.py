@@ -196,10 +196,11 @@ def get_event_handling_funcs(monitor_params):
     for func_name in [
             'initialize_event_source',
             'event_generator',
-            'EventFilter',
             'open_event',
             'close_event',
-            'get_num_frames_in_event'
+            'get_num_frames_in_event',
+            'EventFilter',
+            'FrameFilter',
     ]:
         try:
             event_handl_func_dict[func_name] = getattr(

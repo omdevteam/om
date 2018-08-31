@@ -21,7 +21,6 @@ used retrieve data from psana.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import time
 from builtins import str  # pylint: disable=W0622
 
 import numpy
@@ -177,81 +176,24 @@ def event_generator(source,
         psana_events = psana_source.events()
 
     for psana_event in psana_events:
+
         event = {
             'psana_det_interface': psana_det_interface,
             'psana_event': psana_event
         }
 
-        yield event
-
-
-class EventFilter(object):
-    """
-    See __init__ for documentation.
-    """
-
-    def __init__(self,
-                 monitor_params):
-        """
-        Filter events based on their 'age'.
-
-        Reject files whose 'age' (the time between the data collection
-        and the moment OnDA receives the data) is higher than a
-        predefined threshold.
-
-        Args:
-
-            monitor_params (MonitorParams): a
-                :obj:`~onda.utils.parameters.MonitorParams` object
-                containing the monitor parameters from the
-                configuration file.
-        """
-        # Read the rejection threshold from the configuration file
-        # and store it in an attribute.
-        rejection_threshold = monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
-            parameter='event_rejection_threshold',
-            type_=float
-        )
-        if rejection_threshold:
-            self._event_rejection_threshold = rejection_threshold
-        else:
-            self._event_rejection_threshold = 10000000000
-
-    def should_reject(self,
-                      event):
-        """
-        Decide if the event should be rejected.
-
-        Args:
-
-            event (Dict): a dictionary with the event data.
-
-        Returns:
-
-            bool: True if the event should be rejected. False if the
-            event should be processed.
-        """
         # Recover the timestamp from the psana event
-        timestamp_epoch_format = event['psana_event'].get(
+        # (in epoch format) and store it in the event dictionary.
+        timestamp_epoch_format = psana_event.get(
             psana.EventId  # pylint: disable=E1101
         ).time()
 
-        event_timestamp = numpy.float64(  # pylint: disable=E1101
+        event['timestamp'] = numpy.float64(
             str(timestamp_epoch_format[0]) + '.' +
             str(timestamp_epoch_format[1])
         )
 
-        time_now = numpy.float64(time.time())  # pylint: disable=E1101
-        if (time_now - event_timestamp) > self._event_rejection_threshold:
-
-            # Store the timestamp in the event dictionary so it does
-            # not have to be extracted again if the timestamp is one
-            # of the requested data sources.
-            return True
-        else:
-            event['timestamp'] = event_timestamp
-            return False
+        yield event
 
 
 def open_event(event):  # pylint: disable=W0613

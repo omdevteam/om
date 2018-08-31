@@ -24,7 +24,7 @@ from __future__ import (absolute_import, division, print_function,
 
 from onda.data_retrieval_layer.event_sources import hidra_source
 from onda.data_retrieval_layer.file_formats import ini_files
-
+from onda.data_retrieval_layer.filters import event_filters, frame_filters
 
 ###########################################
 #                                         #
@@ -36,13 +36,21 @@ initialize_event_source = (  # pylint: disable=C0103
     hidra_source.initialize_event_source
 )
 
+
 event_generator = (  # pylint: disable=C0103
     hidra_source.event_generator
 )
 
+
 EventFilter = (  # pylint: disable=C0103
-    hidra_source.EventFilter
+    event_filters.NullEventFilter
 )
+
+
+FrameFilter = (  # pylint: disable=C0103
+    frame_filters.NullFrameFilter
+)
+
 
 # The functions:
 #
@@ -85,6 +93,7 @@ beam_energy = (  # pylint: disable=C0103
 detector_distance = (  # pylint: disable=C0103
     ini_files.detector_distance_from_config
 )
+
 
 # Import other data extraction functions from the 'data_sources'
 # submodules.

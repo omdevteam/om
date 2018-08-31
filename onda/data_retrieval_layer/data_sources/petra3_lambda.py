@@ -108,7 +108,7 @@ def detector_data(event):
         numpy.ndarray: one frame of detector data.
     """
     data_block = event['data']['/entry/instrument/detector/data']
-    return data_block[data_block.shape[0] + ['frame_offset']]
+    return data_block[event['frame_offset']]
 
 
 def filename_and_frame_index(event):

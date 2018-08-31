@@ -23,6 +23,7 @@ import numpy
 
 from onda.data_retrieval_layer.event_sources import karabo_source
 from onda.data_retrieval_layer.file_formats import ini_files
+from onda.data_retrieval_layer.filters import event_filters, frame_filters
 
 ########################################
 #                                      #
@@ -38,9 +39,6 @@ event_generator = (  # pylint: disable=C0103
     karabo_source.event_generator
 )
 
-EventFilter = (  # pylint: disable=C0103
-    karabo_source.EventFilter
-)
 
 open_event = (  # pylint: disable=C0103
     karabo_source.open_event
@@ -50,6 +48,17 @@ open_event = (  # pylint: disable=C0103
 close_event = (  # pylint: disable=C0103
     karabo_source.close_event
 )
+
+
+EventFilter = (  # pylint: disable=C0103
+    event_filters.NullEventFilter
+)
+
+
+FrameFilter = (  # pylint: disable=C0103
+    frame_filters.IndexBasedFrameFilter
+)
+
 
 # The function:
 #

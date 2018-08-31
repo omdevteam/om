@@ -1,4 +1,3 @@
-
 #    This file is part of OnDA.
 #
 #    OnDA is free software: you can redistribute it and/or modify
@@ -22,6 +21,7 @@ events and retrieve data when reading Jungfrau 1M data from files.
 from onda.data_retrieval_layer.data_sources import files_jungfrau1module
 from onda.data_retrieval_layer.event_sources import file_source
 from onda.data_retrieval_layer.file_formats import ini_files
+from onda.data_retrieval_layer.filters import event_filters, frame_filters
 
 
 ############################
@@ -41,7 +41,12 @@ event_generator = (  # pylint: disable=C0103
 
 
 EventFilter = (  # pylint: disable=C0103
-    file_source.EventFilter
+    event_filters.NullEventFilter
+)
+
+
+FrameFilter = (  # pylint: disable=C0103
+    frame_filters.NullFrameFilter
 )
 
 

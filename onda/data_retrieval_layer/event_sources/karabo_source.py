@@ -24,7 +24,6 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 
 from future.utils import raise_from
-
 from onda.data_retrieval_layer.event_sources.karabo_api import client
 from onda.utils import exceptions
 
@@ -124,44 +123,6 @@ def event_generator(source,
         event['data'], event['metadata'] = krb_client.next()
 
         yield event
-
-
-class EventFilter(object):
-    """
-    See __init__ for documentation.
-    """
-
-    def __init__(self,
-                 monitor_params):   # pylint: disable=W0613
-        """
-        Null filter.
-
-        Do not filter events.
-
-        Args:
-
-            monitor_params (MonitorParams): a
-                :obj:`~onda.utils.parameters.MonitorParams` object
-                containing the monitor parameters from the
-                configuration file.
-        """
-        pass
-
-    def should_reject(self,
-                      event):     # pylint: disable=W0613
-        """
-        Decide if the event should be rejected.
-
-        Args:
-
-            event (Dict): a dictionary with the event data.
-
-        Returns:
-
-            bool: True if the event should be rejected. False if the
-            event should be processed.
-        """
-        pass
 
 
 def open_event(event):  # pylint: disable=W0613
