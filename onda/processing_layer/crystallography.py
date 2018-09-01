@@ -111,10 +111,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # 'calibration_alg' attribute.
                 self._calibration_alg = None
 
-            # Initialize the hit_sending_counter to keep track of how
-            # often the detector frame data needs to be sent to the
-            # master worker.
-            self._hit_sending_counter = 0
+            # Initialize the non_hit_frame_sending_counter and the
+            # hit_frame_sending_counter to keep track of how often the
+            # detector frame data needs to be sent to the master
+            # worker.
+            self._hit_frame_sending_counter = 0
+            self._non_hit_frame_sending_counter = 0
 
             # Read from the configuration file all the parameters
             # needed to instantiate the dark calibration correction
@@ -304,11 +306,18 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            self._hit_sending_interval = monitor_parameters.get_param(
+            self._hit_frame_sending_interval = monitor_parameters.get_param(
                 section='General',
-                parameter='hit_sending_interval',
+                parameter='hit_frame_sending_interval',
                 type_=int,
-                required=True
+            )
+
+            self._non_hit_frame_sending_interval = (
+                monitor_parameters.get_param(
+                    section='General',
+                    parameter='non_hit_frame_sending_interval',
+                    type_=int,
+                )
             )
 
             print("Starting worker: {0}.".format(self.rank))
@@ -435,36 +444,50 @@ class OndaMonitor(mpi.ParallelizationEngine):
         )
 
         results_dict['timestamp'] = data['timestamp']
-        if not hit:
-            results_dict['peak_list'] = named_tuples.PeakList([], [], [])
-        else:
-            results_dict['peak_list'] = peak_list
         results_dict['saturation_flag'] = sat
         results_dict['hit_flag'] = hit
         results_dict['detector_distance'] = data['detector_distance']
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
 
-        if (
-                (
-                    self._hit_sending_interval < 0
-                ) or (
-                    hit
-                )
-        ):
-            # If the hit_sending_interval is positive (n), send every
-            # n-th hit. If it is negative (-n), sends every n-th frame.
-            self._hit_sending_counter += 1
-            if (
-                    self._hit_sending_counter ==
-                    abs(self._hit_sending_interval)
-            ):
-                # If the frame is a hit, and if the
-                # 'hit_sending_interval' attribute says we should send
-                # the detector frame data to the master node, add it to
-                # the dictionary (and reset the counter).
-                results_dict['detector_data'] = corr_det_data
-                self._hit_sending_counter = 0
+        if hit:
+            results_dict['peak_list'] = peak_list
+
+            if self._hit_frame_sending_interval:
+                self._hit_frame_sending_counter += 1
+
+                if (
+                        self._hit_frame_sending_counter ==
+                        self._hit_frame_sending_interval
+                ):
+                    # If the frame is a hit, and if the
+                    # 'hit_sending_interval' attribute says we should
+                    # send the detector frame data to the master node,
+                    # add it to the dictionary (and reset the counter).
+                    results_dict['detector_data'] = corr_det_data
+                    self._hit_frame_sending_counter = 0
+
+                    print('Sent hit'); import sys; sys.stdout.flush()
+
+        else:
+            # If the frame is not a hit, send an empty peak list
+            results_dict['peak_list'] = named_tuples.PeakList([], [], [])
+
+            if self._non_hit_frame_sending_interval:
+                self._non_hit_frame_sending_counter += 1
+
+                if (
+                        self._non_hit_frame_sending_counter ==
+                        self._non_hit_frame_sending_interval
+                ):
+                    # If the frame is not a  hit, and if the
+                    # 'frame_sending_interval' attribute says we should
+                    # send the detector frame data to the master node,
+                    # add it to the dictionary (and reset the counter).
+                    results_dict['detector_data'] = corr_det_data
+                    self._non_hit_frame_sending_counter = 0
+
+                    print('Sent non hit'); import sys; sys.stdout.flush()
 
         return results_dict, self.rank
 
