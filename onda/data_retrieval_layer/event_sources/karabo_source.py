@@ -23,6 +23,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import sys
 
+import numpy
 from future.utils import raise_from
 from onda.data_retrieval_layer.event_sources.karabo_api import client
 from onda.utils import exceptions
@@ -121,6 +122,26 @@ def event_generator(source,
     while True:
         event = {}
         event['data'], event['metadata'] = krb_client.next()
+
+        event['timestamp'] = numpy.float64(
+            str(
+                event[
+                    'metadata'
+                ][
+                    'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+                ][
+                    'timestamp.sec'
+                ]
+            ) + '.' + str(
+                event[
+                    'metadata'
+                ][
+                    'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+                ][
+                    'timestamp.frac'
+                ]
+            )
+        )
 
         yield event
 

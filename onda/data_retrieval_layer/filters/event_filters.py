@@ -17,7 +17,7 @@ import time
 import numpy
 
 
-class PsanaAgeEventFilter(object):
+class AgeEventFilter(object):
     """
     See __init__ for documentation.
     """
@@ -41,10 +41,11 @@ class PsanaAgeEventFilter(object):
         # Read the rejection threshold from the configuration file
         # and store it in an attribute.
         rejection_threshold = monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
+            section='DataRetrievalLayer',
             parameter='event_rejection_threshold',
             type_=float
         )
+
         if rejection_threshold:
             self._event_rejection_threshold = rejection_threshold
         else:

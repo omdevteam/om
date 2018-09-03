@@ -19,8 +19,6 @@ This module contains the implementation of event handling functions
 and data extraction functions used to interact with Karabo at the
 European XFEL facility.
 """
-import numpy
-
 from onda.data_retrieval_layer.event_sources import karabo_source
 from onda.data_retrieval_layer.file_formats import ini_files
 from onda.data_retrieval_layer.filters import event_filters, frame_filters
@@ -51,7 +49,7 @@ close_event = (  # pylint: disable=C0103
 
 
 EventFilter = (  # pylint: disable=C0103
-    event_filters.NullEventFilter
+    event_filters.AgeEventFilter
 )
 
 
@@ -89,26 +87,7 @@ def timestamp(event):
 
         numpy.float64: the time at which the event was collected.
     """
-    return numpy.float64(
-        str(
-            event[
-                'metadata'
-            ][
-                'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-            ][
-                'timestamp.sec'
-            ]
-        ) + '.' + str(
-            event[
-                'metadata'
-            ][
-                'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-            ][
-                'timestamp.frac'
-            ]
-        )
-    )
-
+    return event['timestamp']
 
 beam_energy = (  # pylint: disable=C0103
     ini_files.beam_energy_from_config
