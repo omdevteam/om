@@ -467,8 +467,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     results_dict['detector_data'] = corr_det_data
                     self._hit_frame_sending_counter = 0
 
-                    print('Sent hit'); import sys; sys.stdout.flush()
-
         else:
             # If the frame is not a hit, send an empty peak list
             results_dict['peak_list'] = named_tuples.PeakList([], [], [])
@@ -486,8 +484,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     # add it to the dictionary (and reset the counter).
                     results_dict['detector_data'] = corr_det_data
                     self._non_hit_frame_sending_counter = 0
-
-                    print('Sent non hit'); import sys; sys.stdout.flush()
 
         return results_dict, self.rank
 
