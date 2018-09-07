@@ -70,7 +70,7 @@ class CrystallographyHitViewer(gui.OndaGui):
             pub_hostname=pub_hostname,
             pub_port=pub_port,
             gui_update_func=self._update_image,
-            subscription_string=u'ondarawdata',
+            subscription_string=u'ondaframedata',
         )
 
         # The following information will be used later to create the
@@ -159,7 +159,7 @@ class CrystallographyHitViewer(gui.OndaGui):
             # 'data' attribute. In this way, one can check if data has
             # been received simply by checking if the 'data' attribute
             # is not None.
-            self._frame_list.append(copy.deepcopy(self.data))
+            self._frame_list.append(copy.deepcopy(self.data[0]))
             self.data = None
             self._current_frame_index = len(self._frame_list)-1
 

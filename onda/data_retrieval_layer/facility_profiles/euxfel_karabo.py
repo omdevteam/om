@@ -77,7 +77,7 @@ def timestamp(event):
     """
     Retrieve the timestamp of the event.
 
-    As approximated by the file creation time provided by HiDRA.
+    As extracted previously and stored in the event structure.
 
     Args:
 

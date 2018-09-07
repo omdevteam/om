@@ -26,6 +26,8 @@ import sys
 import time
 from builtins import str  # pylint: disable=W0622
 
+from cfelpyutils import crystfel_utils, geometry_utils
+
 from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
@@ -33,8 +35,6 @@ from onda.parallelization_layer import mpi
 from onda.utils import named_tuples
 from onda.utils import zmq as onda_zmq
 from onda.utils.dynamic_import import get_peakfinder8_info
-
-from cfelpyutils import crystfel_utils, geometry_utils
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -349,7 +349,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            self._peak_accumulator = cryst_algs.PeakAccumulator(
+            self._data_accumulator = cryst_algs.DataAccumulator(
                 num_events_to_accumulate=pa_num_events_to_accumulate
             )
 
@@ -449,7 +449,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['detector_distance'] = data['detector_distance']
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
-
         if hit:
             results_dict['peak_list'] = peak_list
 
@@ -503,9 +502,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 the second is the rank of the worker node sending the
                 data.
         """
-        collected_data = {}
-        collected_framedata = {}
-
         results_dict, _ = data
         self._num_events += 1
 
@@ -521,58 +517,42 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 )
         )
 
-        self._avg_hit_rate = (
+        avg_hit_rate = (
             sum(self._hit_rate_run_wdw) /
             self._run_avg_wdw_size
         )
 
-        self._avg_sat_rate = (
+        avg_sat_rate = (
             sum(self._saturation_rate_run_wdw) /
             self._run_avg_wdw_size
         )
 
-        collected_peaks = self._peak_accumulator.accumulate_peaks(
-            results_dict['peak_list']
-        )
-        if collected_peaks is not None:
-            collected_data['peak_list'] = collected_peaks
-            collected_data['timestamp'] = results_dict['timestamp']
-            collected_data['hit_rate'] = self._avg_hit_rate
-            collected_data['saturation_rate'] = self._avg_sat_rate
-            collected_data['detector_distance'] = (
-                results_dict['detector_distance']
-            )
-            collected_data['beam_energy'] = results_dict['beam_energy']
-            collected_data['geometry_is_optimized'] = (
-                self._geometry_is_optimized
-            )
-            collected_data['native_data_shape'] = (
-                results_dict['native_data_shape']
-            )
-
-            self._data_broadcast_socket.send_data(
-                tag='ondadata',
-                message=collected_data
-            )
-
         if 'detector_data' in results_dict:
 
             # If detector frame data is found in the data received from
-            # a worker node, it must be broadcast: add it to the
-            # 'collected_framedata' dictionary, together with the peak
-            # and timestamp information.
-            collected_framedata['detector_data'] = (
-                results_dict['detector_data']
-            )
-            collected_framedata['peak_list'] = results_dict['peak_list']
-            collected_framedata['timestamp'] = results_dict['timestamp']
-            collected_framedata['native_data_shape'] = (
-                results_dict['native_data_shape']
+            # a worker node, the frame must be broadcasted to the
+            # frame viewer. The frame is wrapped into a list because
+            # GUIs expect list aggregated events as opposed to single
+            # events.
+            self._data_broadcast_socket.send_data(
+                    tag='ondaframedata',
+                    message=[results_dict]
             )
 
+        # Inject additional information into the dictionary
+        # that will be stored in the accumulator. Remove the frame
+        # data, which is not needed anymore.
+        results_dict['hit_rate'] = avg_hit_rate
+        results_dict['saturation_rate'] = avg_sat_rate
+        results_dict['geometry_is_optimized'] = self._geometry_is_optimized
+        if 'detector_data' in results_dict:
+            del results_dict['detector_data']
+
+        collected_data = self._data_accumulator.add_data(results_dict)
+        if collected_data:
             self._data_broadcast_socket.send_data(
-                tag='ondarawdata',
-                message=collected_framedata
+                tag='ondadata',
+                message=collected_data
             )
 
         if self._num_events % self._speed_report_interval == 0:

@@ -23,7 +23,11 @@ import collections
 
 PeakList = collections.namedtuple(
     typename='PeakList',
-    field_names=['fs', 'ss', 'intensity']
+    field_names=[
+        'fs',
+        'ss',
+        'intensity'
+    ]
 )
 """
 A list of peaks detected in a detector frame.
@@ -37,7 +41,12 @@ the slab-format detector frame data. The third field, named
 
 QuadVmiPeaks = collections.namedtuple(
     typename='QuadVmiPeaks',
-    field_names=['x_1', 'x_2', 'y_1', 'y_2']
+    field_names=[
+        'x_1',
+        'x_2',
+        'y_1',
+        'y_2'
+    ]
 )
 """
 A set of peaks from a VMI quad-type detector.
@@ -50,7 +59,10 @@ of the detector wire with the same name.
 
 VmiCoords = collections.namedtuple(
     typename='VmiCoords',
-    field_names=['x', 'y']
+    field_names=[
+        'x',
+        'y'
+    ]
 )
 """
 Spatial coordinates of a VMI detector hit.
@@ -62,7 +74,11 @@ of a VMI detector hit.
 
 VmiHit = collections.namedtuple(
     typename='VmiHit',
-    field_names=['timestamp', 'coords', 'peaks']
+    field_names=[
+        'timestamp',
+        'coords',
+        'peaks'
+    ]
 )
 """
 VMI detector hit information.
@@ -78,7 +94,10 @@ wires of the detector.
 
 FilenameAndFrameIndex = collections.namedtuple(
     typename='FilenameAndFrameIndex',
-    field_names=['filename', 'frame_index']
+    field_names=[
+        'filename',
+        'frame_index'
+    ]
 )
 """
 Information necessary to locate a data frame in a file.
@@ -91,7 +110,12 @@ frame within the file.
 
 Peakfinder8DetInfo = collections.namedtuple(
     typename='Peakfinder8DetInfo',
-    field_names=['asic_nx', 'asic_ny', 'nasics_x', 'nasics_y']
+    field_names=[
+        'asic_nx',
+        'asic_ny',
+        'nasics_x',
+        'nasics_y'
+    ]
 )
 """
 Peakfinder8-related information.
@@ -104,7 +128,11 @@ algorithm to describe the format of the input data.
 
 HidraInfo = collections.namedtuple(
     typename='HidraInfo',
-    field_names=['query', 'targets', 'data_base_path']
+    field_names=[
+        'query',
+        'targets',
+        'data_base_path'
+    ]
 )
 """
 HiDRA initialization information.

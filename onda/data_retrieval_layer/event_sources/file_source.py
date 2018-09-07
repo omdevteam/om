@@ -132,9 +132,9 @@ def event_generator(source,
         stripped_entry = entry.strip()
         event = {'full_path': stripped_entry}
 
-        # File creation date is used as a first approximation of the
-        # timestamp when the timestamp is not available.
-        event['file_creation_time'] = os.stat(stripped_entry).st_mtime
+        # File modification time is used as a first approximation of
+        # the timestamp when the timestamp is not available.
+        event['timestamp'] = os.stat(stripped_entry).st_mtime
 
         yield event
 

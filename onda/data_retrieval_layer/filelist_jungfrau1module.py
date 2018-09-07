@@ -71,6 +71,23 @@ get_num_frames_in_event = (  # pylint: disable=C0103
 #                           #
 #############################
 
+def timestamp(event):
+    """
+    Retrieve the timestamp of the event.
+
+    As extracted previously and stored in the event structure.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        numpy.float64: the time at which the event was collected.
+    """
+    return event['timestamp']
+
+
 detector_data = (  # pylint: disable=C0103
     files_jungfrau1module.detector_data
 )

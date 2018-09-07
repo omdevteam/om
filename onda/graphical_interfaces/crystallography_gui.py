@@ -28,9 +28,9 @@ import sys
 
 import numpy
 import pyqtgraph
+from cfelpyutils import crystfel_utils, geometry_utils
 from scipy import constants
 
-from cfelpyutils import crystfel_utils, geometry_utils
 from onda.utils import gui, named_tuples
 
 try:
@@ -116,11 +116,6 @@ class CrystallographyGui(gui.OndaGui):
         except KeyError:
             self._res = None
 
-        self._img_last_peaks = numpy.zeros(
-            shape=self._img_shape,
-            dtype=numpy.float32  # pylint: disable=E1101
-        )
-
         self._img_virt_powder_plot = numpy.zeros(
             shape=self._img_shape,
             dtype=numpy.float32  # pylint: disable=E1101
@@ -152,8 +147,6 @@ class CrystallographyGui(gui.OndaGui):
             3.0
         ]
         self._resolution_rings_textitems = []
-
-        self._vertical_lines = []
 
         # Initialize pen and canvas used to draw the resolution rings.
         self._resolution_rings_pen = pyqtgraph.mkPen('w', width=0.5)
@@ -250,14 +243,6 @@ class CrystallographyGui(gui.OndaGui):
             self._satrate_history
         )
 
-        # Initialize the 'accumulated peaks' checkbox.
-        self._accumulated_peaks_check_box = QtGui.QCheckBox()
-        self._accumulated_peaks_check_box.setText("Show Accumulated Peaks")
-        self._accumulated_peaks_check_box.setChecked(True)
-        self._accumulated_peaks_check_box.stateChanged.connect(
-            self._update_virt_powder_plot
-        )
-
         # Initialize 'reset peaks' button.
         self._reset_peaks_button = QtGui.QPushButton()
         self._reset_peaks_button.setText("Reset Peaks")
@@ -268,19 +253,10 @@ class CrystallographyGui(gui.OndaGui):
         self._reset_plots_button.setText("Reset Plots")
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
-        # Initialize the 'mouse clicked' signal proxy to limit the
-        # accumulation of mouse events.
-        self._mouse_clicked_signal_proxy = pyqtgraph.SignalProxy(
-            self._hit_rate_plot_widget.scene().sigMouseClicked,
-            rateLimit=60,
-            slot=self._mouse_clicked
-        )
-
         # Initialize and fill the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
         horizontal_layout.addWidget(self._reset_peaks_button)
         horizontal_layout.addWidget(self._reset_plots_button)
-        horizontal_layout.addWidget(self._accumulated_peaks_check_box)
         horizontal_layout.addStretch()
         horizontal_layout.addWidget(self._resolution_rings_check_box)
         horizontal_layout.addWidget(self._resolution_rings_lineedit)
@@ -301,69 +277,6 @@ class CrystallographyGui(gui.OndaGui):
         self.setCentralWidget(self._central_widget)
 
         self.show()
-
-    def _mouse_clicked(self,
-                       mouse_evt):
-        # Manage mouse events.
-
-        # Check if the click of the mouse happens in the hit rate plot
-        # widget.
-        mouse_pos_in_scene = mouse_evt[0].scenePos()
-        if (
-                self
-                ._hit_rate_plot_widget
-                .plotItem.sceneBoundingRect()
-                .contains(mouse_pos_in_scene)
-        ):
-            if mouse_evt[0].button() == QtCore.Qt.MiddleButton:
-
-                mouse_x_pos_in_data = (
-                    self
-                    ._hit_rate_plot_widget
-                    .plotItem
-                    .vb
-                    .mapSceneToView(mouse_pos_in_scene)
-                    .x()
-                )
-
-                # Create the a list that will store the updated
-                # vertical lines.
-                new_vertical_lines = []
-
-                for vert_line in self._vertical_lines:
-                    if abs(vert_line.getPos()[0] - mouse_x_pos_in_data) < 5:
-
-                        # Check if the current vertical line lies in
-                        # the vicinity of the click location. If it
-                        # does, remove it from the widget (and do not
-                        # add it to the updated line list).
-                        self._hit_rate_plot_widget.removeItem(vert_line)
-                    else:
-
-                        # Othewise just add the line to the updated
-                        # line list.
-                        new_vertical_lines.append(vert_line)
-
-                # If the number of vertical lines changed, the user
-                # removed a line. We already followed on the request,
-                # so return.
-                if len(new_vertical_lines) != len(self._vertical_lines):
-                    self._vertical_lines = new_vertical_lines
-                    return
-
-                # If no line was removed, however, the user must be
-                # trying to add one. Instantiate the new line.
-                vertical_line = pyqtgraph.InfiniteLine(
-                    pos=mouse_x_pos_in_data,
-                    angle=90,
-                    movable=False
-                )
-
-                self._vertical_lines.append(vertical_line)
-                self._hit_rate_plot_widget.addItem(  # pylint: disable=E1123
-                    item=vertical_line,
-                    ignoreBounds=True
-                )
 
     def _reset_plots(self):
         # Reset the plots.
@@ -398,28 +311,6 @@ class CrystallographyGui(gui.OndaGui):
             autoLevels=False,
             autoRange=False
         )
-
-    def _update_virt_powder_plot(self):
-        # Update the virtual powder plot.
-
-        # Change the image displayed between the last received peaks
-        # and the virtual powder pattern depending on the user's
-        # choice.
-        if self._accumulated_peaks_check_box.isChecked():
-
-            self._image_view.setImage(
-                self._img_virt_powder_plot.T,
-                autoHistogramRange=False,
-                autoLevels=False,
-                autoRange=False
-            )
-        else:
-            self._image_view.setImage(
-                self._img_last_peaks.T,
-                autoHistogramRange=False,
-                autoLevels=False,
-                autoRange=False
-            )
 
     def _update_resolution_rings(self):
         # Update the resolution rings.
@@ -526,16 +417,11 @@ class CrystallographyGui(gui.OndaGui):
         else:
             return
 
-        QtGui.QApplication.processEvents()
-
-        self._hitrate_history.append(self._local_data['hit_rate'])
-        self._satrate_history.append(self._local_data['saturation_rate'])
-        self._hitrate_plot.setData(self._hitrate_history)
-        self._satrate_plot.setData(self._satrate_history)
+        last_frame = self._local_data[-1]
 
         QtGui.QApplication.processEvents()
 
-        if self._local_data['geometry_is_optimized']:
+        if last_frame['geometry_is_optimized']:
             if not self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(True)
                 self._resolution_rings_lineedit.setEnabled(True)
@@ -546,56 +432,46 @@ class CrystallographyGui(gui.OndaGui):
                 self._resolution_rings_lineedit.setEnabled(False)
             self._update_resolution_rings()
 
-        # Draw the vertical lines on the plot widgets.
-        new_vertical_lines = []
-        for vline in self._vertical_lines:
-            line_pos = vline.getPos()[0]
-            line_pos -= 1
-            if line_pos > 0.0:
-                vline.setPos(line_pos)
-                new_vertical_lines.append(vline)
-            else:
-                self._hit_rate_plot_widget.removeItem(vline)
-
-        self._vertical_lines = new_vertical_lines
-
         QtGui.QApplication.processEvents()
 
-        self._img_last_peaks = numpy.zeros(
-            shape=self._img_shape,
-            dtype=numpy.float32  # pylint: disable=E1101
-        )
-
-        # Check if some peak was received by checking if the intensity
-        # list is not empty.
-        if self._local_data['peak_list'].intensity:
+        # Add data from all frames accumulated in local_data to the
+        # plots,but updated the displayed images and plots onley once
+        # at the end.
+        for frame in self._local_data:
 
             for peak_fs, peak_ss, peak_value in zip(
-                    self._local_data['peak_list'].fs,
-                    self._local_data['peak_list'].ss,
-                    self._local_data['peak_list'].intensity
+                    frame['peak_list'].fs,
+                    frame['peak_list'].ss,
+                    frame['peak_list'].intensity
             ):
                 peak_index_in_slab = (
                     int(round(peak_ss)) *
-                    self._local_data['native_data_shape'][1] +
+                    frame['native_data_shape'][1] +
                     int(round(peak_fs))
                 )
-
-                self._img_last_peaks[
-                    self._visual_pixel_map_y[peak_index_in_slab],
-                    self._visual_pixel_map_x[peak_index_in_slab]
-                ] += peak_value
 
                 self._img_virt_powder_plot[
                     self._visual_pixel_map_y[peak_index_in_slab],
                     self._visual_pixel_map_x[peak_index_in_slab]
                 ] += peak_value
 
-            self._update_virt_powder_plot()
+            self._hitrate_history.append(frame['hit_rate'])
+            self._satrate_history.append(frame['saturation_rate'])
 
-            # Reset the peak list so that the same peaks are not drawn
-            # again and again.
-            self._local_data['peak_list'] = named_tuples.PeakList([], [], [])
+        QtGui.QApplication.processEvents()
+
+        self._hitrate_plot.setData(self._hitrate_history)
+        self._satrate_plot.setData(self._satrate_history)
+        self._image_view.setImage(
+            self._img_virt_powder_plot.T,
+            autoHistogramRange=False,
+            autoLevels=False,
+            autoRange=False
+        )
+
+        # Reset local_data so that the same data is not processed
+        # multiple times.
+        self._local_data = []
 
 
 def main():

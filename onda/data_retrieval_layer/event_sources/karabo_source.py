@@ -118,7 +118,6 @@ def event_generator(source,
 
     # Connect to the Karabo Bridge using the Karabo API.
     krb_client = client.Client('tcp://{}'.format(source))
-
     while True:
         event = {}
         event['data'], event['metadata'] = krb_client.next()

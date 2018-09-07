@@ -182,21 +182,21 @@ class Peakfinder8PeakDetection(object):
 
 
 ####################
-# PEAK ACCUMULATOR #
+# DATA ACCUMULATOR #
 ####################
 
-class PeakAccumulator(object):
+class DataAccumulator(object):
     """
     See __init__ for documentation.
     """
 
     def __init__(self, num_events_to_accumulate):
         """
-        Accumulate peak information for susequent bulk retrieval.
+        Accumulate data for susequent bulk retrieval.
 
-        Accumulate peaks until the accumulator is full (i.e. the user
-        to has added peaks to the accumulator for a predefined number
-        of times). Then return the full list of accumulated peaks and
+        Accumulate data until the accumulator is full (i.e. the user
+        to has added data to the accumulator for a predefined number
+        of times). Then return all the accumulated data and
         empty the accumulator.
 
         Args:
@@ -206,39 +206,33 @@ class PeakAccumulator(object):
                 accumulator is full.
         """
         self._n_events_to_accumulate = num_events_to_accumulate
-        self._accumulator = named_tuples.PeakList([], [], [])
+        self._accumulator = []
         self._events_in_accumulator = 0
 
-    def accumulate_peaks(self, peak_list):
+    def add_data(self, data):
         """
-        Accumulate peaks.
+        Add data to the accumulator.
 
-        If the accumulator is full, return the accumulated peak list
+        If the accumulator is full, return the accumulated data
         and empty the accumulator.
 
         Args:
 
-            peak_list (PeakList): list of peaks to be added to the
-            accumulator.
+            data: (Dict): dictionary containing the data to be
+                added to the accumulator.
 
         Returns:
 
-            Union[PeakList, None]: accumulated peaks if the accumulator
-            is full, otherwise None.
+            Union[List[Dict], None]: a list containing the accumulated
+            data if the accumulator is full, otherwise None.
         """
-        self._accumulator.fs.extend(peak_list.fs)
-        self._accumulator.ss.extend(peak_list.ss)
-        self._accumulator.intensity.extend(peak_list.intensity)
+        self._accumulator.append(data)
         self._events_in_accumulator += 1
 
         if self._events_in_accumulator == self._n_events_to_accumulate:
-            peak_list_to_return = self._accumulator
-            self._accumulator = named_tuples.PeakList(
-                fs=[],
-                ss=[],
-                intensity=[]
-            )
+            data_to_return = self._accumulator
+            self._accumulator = []
             self._events_in_accumulator = 0
-            return peak_list_to_return
+            return data_to_return
 
         return None

@@ -117,7 +117,7 @@ class DataListener(QtCore.QObject):
     See __init__ for documentation.
     """
 
-    zmqmessage = QtCore.pyqtSignal(dict)
+    zmqmessage = QtCore.pyqtSignal(list)
     # Custom Qt signal to be emitted when data is received.
 
     def __init__(self,
@@ -232,5 +232,5 @@ class DataListener(QtCore.QObject):
             msg = full_msg[1]
 
             # Unpickle the message (a dictionary) and emit the signal.
-            zmq_dict = loads(msg)
-            self.zmqmessage.emit(zmq_dict)
+            zmq_list = loads(msg)
+            self.zmqmessage.emit(zmq_list)
