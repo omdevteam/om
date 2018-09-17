@@ -113,7 +113,7 @@ detector_distance = (  # pylint: disable=C0103
 )
 
 
-beam_energy_init = (  # pylint: disable=C0103
+beam_energy = (  # pylint: disable=C0103
     lcls_psana.beam_energy
 )
 
