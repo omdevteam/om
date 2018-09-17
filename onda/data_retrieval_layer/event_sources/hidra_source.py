@@ -39,7 +39,7 @@ def _get_hidra_info(source,
     # If it is not specified there, import the suggested transfer type
     # from the deta extraction layer and use that.
     transfer_type = monitor_params.get_param(
-        section='HidraDataRecoveryLayer',
+        section='DataRetrievalLayer',
         parameter='transfer_type',
         type_=str,
     )
@@ -65,7 +65,7 @@ def _get_hidra_info(source,
         query_text = 'QUERY_METADATA'
         data_base_path = os.path.join(
             monitor_params.getparam(
-                section='HidraDataRecoveryLayer',
+                section='DataRetrievalLayer',
                 parameter='data_base_path',
                 type_=str,
                 required=True
@@ -77,7 +77,7 @@ def _get_hidra_info(source,
         )
 
     base_port = monitor_params.get_param(
-        section='HidraDataRecoveryLayer',
+        section='DataRetrievalLayer',
         parameter='base_port',
         type_=int,
         required=True
@@ -87,7 +87,7 @@ def _get_hidra_info(source,
     # If the selection string is not found, use the file extensions
     # from the detector layer as selection string.
     hidra_selection_string = monitor_params.get_param(
-        section='HidraDataRecoveryLayer',
+        section='DataRetrievalLayer',
         parameter='hidra_selection_string',
         type_=str
     )

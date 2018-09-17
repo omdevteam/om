@@ -141,7 +141,7 @@ def event_generator(source,
     # If the psana calibration directory is provided in the
     # configuration file, add it as an option to psana.
     psana_calib_dir = monitor_params.get_param(
-        section='DataRecoveryLayer',
+        section='DataRetrievalLayer',
         parameter='psana_calibration_directory',
         type_=str
     )

@@ -133,7 +133,7 @@ def detector_data_init(monitor_params,
     # the data extraction func name.
     return psana.Detector(
         monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
+            section='DataRetrievalLayer',
             parameter='{0}_detector_name'.format(data_extraction_func_name),
             type_=str,
             required=True
@@ -182,7 +182,7 @@ def detector_distance_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
+            section='DataRetrievalLayer',
             parameter='detector_dist_epics_name',
             type_=str,
             required=True
@@ -227,7 +227,7 @@ def timetool_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
+            section='DataRetrievalLayer',
             parameter='timetool_epics_name',
             type_=str,
             required=True
@@ -259,7 +259,7 @@ def digitizer_data_init(monitor_params,
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
+            section='DataRetrievalLayer',
             parameter='{0}_digitizer_name'.format(data_extraction_func_name),
             type_=str,
             required=True
@@ -285,7 +285,7 @@ def opal_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='PsanaDataRecoveryLayer',
+            section='DataRetrievalLayer',
             parameter='opal_name',
             type_=str,
             required=True
