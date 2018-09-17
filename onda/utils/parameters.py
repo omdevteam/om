@@ -23,7 +23,6 @@ from __future__ import (absolute_import, division, print_function,
 
 from builtins import str  # pylint: disable=W0622
 
-from cfelpyutils import parameter_utils
 from onda.utils import exceptions
 
 
