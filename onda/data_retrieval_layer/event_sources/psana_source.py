@@ -178,7 +178,7 @@ def event_generator(source,
     for psana_event in psana_events:
 
         event = {
-            'psana_det_interface': psana_det_interface,
+            'psana_detector_interface': psana_det_interface,
             'psana_event': psana_event
         }
 

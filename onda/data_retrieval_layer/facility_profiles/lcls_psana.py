@@ -349,7 +349,7 @@ def detector_distance(event):
     """
     # Recover the detector distance. It is in mm, so divide it by
     # a thousand to convert it to SI (m).
-    return event['psana_interface']['detector_distance']()/1000.0
+    return event['psana_detector_interface']['detector_distance']()/1000.0
 
 
 def beam_energy(event):
@@ -366,7 +366,7 @@ def beam_energy(event):
     """
     # Recover the detector distance. It is in eV, so multiply it by
     # e convert it to SI (J).
-    return event['psana_interface']['beam_energy'].get(
+    return event['psana_detector_interface']['beam_energy'].get(
         event['psana_event']
     ).ebeamPhotonEnergy() * scipy.constants.e
 
@@ -383,7 +383,7 @@ def timetool_data(event):
 
         float: the readout of the timetool instrument.
     """
-    return event['psana_interface']['timetool_data']()
+    return event['psana_detector_interface']['timetool_data']()
 
 
 def digitizer_data(event,
@@ -404,7 +404,7 @@ def digitizer_data(event,
 
         psana object: a psana object storing the waveform data.
     """
-    return event['psana_interface'][data_extraction_func_name].waveform(
+    return event['psana_detector_interface'][data_extraction_func_name].waveform(
         event['psana_event']
     )
 
@@ -422,7 +422,7 @@ def opal_data(event):
         numpy.ndarray: a 2d array containing the image from the Opal
         camera.
     """
-    return event['psana_interface']['opal_data'].calib(
+    return event['psana_detector_interface']['opal_data'].calib(
         event['psana_event']
     )
 
@@ -440,6 +440,6 @@ def event_codes(event):
         list: a list containing the EVR event codes for a specific
         psana event.
     """
-    return event['psana_interface']['event_codes'].eventCodes(
+    return event['psana_detector_interface']['event_codes'].eventCodes(
         event['psana_event']
     )
