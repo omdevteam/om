@@ -92,7 +92,7 @@ get_num_frames_in_event = (  # pylint: disable=C0103
 
 
 EventFilter = (  # pylint: disable=C0103
-    event_filters.PsanaAgeEventFilter
+    event_filters.AgeEventFilter
 )
 
 
