@@ -113,10 +113,13 @@ class ParallelizationEngine(object):
                 monitor_params.get_param(
                     section='General',
                     parameter='num_frames_in_event_to_process',
-                    type_=int,
-                    required=True
+                    type_=int
                 )
             )
+
+            if not self._num_frames_in_event_to_process:
+                self._num_frames_in_event_to_process = 1
+
 
         if self.role == 'master':
             self._num_nomore = 0
