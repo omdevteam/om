@@ -183,7 +183,7 @@ def detector_distance_init(monitor_params):
     return psana.Detector(
         monitor_params.get_param(
             section='DataRetrievalLayer',
-            parameter='detector_dist_epics_name',
+            parameter='detector_distance_epics_name',
             type_=str,
             required=True
         ).encode('ascii')
