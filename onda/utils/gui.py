@@ -149,7 +149,7 @@ class OndaGui(QtGui.QMainWindow):
         # to have a status bar.)
         # Use the timestamp of the last event accumulated event to
         # compute the estimated delay.
-        timestamp = self.data[-1]['timestamp']
+        timestamp = self.data[-1][b'timestamp']
         timenow = time.time()
         self.statusBar().showMessage(
             "Estimated delay: {} seconds".format(

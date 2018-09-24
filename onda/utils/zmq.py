@@ -23,13 +23,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import socket
 import sys
-
+import msgpack
+import numpy
+import msgpack_numpy
 import zmq
-
-try:
-    from cPickle import loads
-except ImportError:
-    from pickle import loads
 
 try:
     from PyQt5 import QtCore
@@ -109,7 +106,8 @@ class DataBroadcaster(object):
         """
         # Send the tag and the data in one single ZMQ message.
         self._sock.send(tag.encode(), zmq.SNDMORE)
-        self._sock.send_pyobj(message)
+        msgpack_message = msgpack.packb(message)
+        self._sock.send(msgpack_message)
 
 
 class DataListener(QtCore.QObject):
@@ -229,8 +227,43 @@ class DataListener(QtCore.QObject):
                 socks[self._zmq_subscribe] == zmq.POLLIN
         ):
             full_msg = self._zmq_subscribe.recv_multipart()
-            msg = full_msg[1]
+            msgpack_msg = full_msg[1]
 
-            # Unpickle the message (a dictionary) and emit the signal.
-            zmq_list = loads(msg)
-            self.zmqmessage.emit(zmq_list)
+            # Deserialize the message and emit the signal.
+            msg = msgpack.unpackb(msgpack_msg)
+            self.zmqmessage.emit(msg)
+
+
+# Monkey-patching msgpack-python to have non-copy serialization.
+
+def _patched_encode(obj, chain=None):
+    # 'encode' function from msgpack-python, patched to use the
+    # 'data' method as opposed to to to tobytes one
+    if isinstance(obj, numpy.ndarray):
+        # If the dtype is structured, store the interface description;
+        # otherwise, store the corresponding array protocol type string:
+        if obj.dtype.kind == 'V':
+            kind = b'V'
+            descr = obj.dtype.descr
+        else:
+            kind = b''
+            descr = obj.dtype.str
+        return {b'nd': True,
+                b'type': descr,
+                b'kind': kind,
+                b'shape': obj.shape,
+                b'data': obj.data}
+    elif isinstance(obj, (numpy.bool_, numpy.number)):
+        return {b'nd': False,
+                b'type': obj.dtype.str,
+                b'data': obj.data}
+    elif isinstance(obj, complex):
+        return {b'complex': True,
+                b'data': obj.__repr__()}
+    else:
+        return obj if chain is None else chain(obj)
+
+msgpack_numpy.encode = _patched_encode
+
+# Initialization of msgpack-python
+msgpack_numpy.patch()

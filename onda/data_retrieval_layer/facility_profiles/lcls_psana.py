@@ -404,9 +404,11 @@ def digitizer_data(event,
 
         psana object: a psana object storing the waveform data.
     """
-    return event['psana_detector_interface'][data_extraction_func_name].waveform(
-        event['psana_event']
-    )
+    return event[
+        'psana_detector_interface'
+    ][
+        data_extraction_func_name
+    ].waveform(event['psana_event'])
 
 
 def opal_data(event):

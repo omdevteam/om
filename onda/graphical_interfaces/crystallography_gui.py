@@ -343,13 +343,13 @@ class CrystallographyGui(gui.OndaGui):
         try:
             lambda_ = (
                 constants.h * constants.c /
-                self._local_data['beam_energy']
+                self._local_data[b'beam_energy']
             )
             resolution_rings_in_pix = [1.0]
             resolution_rings_in_pix.extend(
                 [
                     2.0 * self._res * (
-                        self._local_data['detector_distance'] +
+                        self._local_data[b'detector_distance'] +
                         self._coffset
                     ) * numpy.tan(
                         2.0 * numpy.arcsin(
@@ -421,7 +421,7 @@ class CrystallographyGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        if last_frame['geometry_is_optimized']:
+        if last_frame[b'geometry_is_optimized']:
             if not self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(True)
                 self._resolution_rings_lineedit.setEnabled(True)
@@ -440,13 +440,13 @@ class CrystallographyGui(gui.OndaGui):
         for frame in self._local_data:
 
             for peak_fs, peak_ss, peak_value in zip(
-                    frame['peak_list'].fs,
-                    frame['peak_list'].ss,
-                    frame['peak_list'].intensity
+                    frame[b'peak_list'][b'fs'],
+                    frame[b'peak_list'][b'ss'],
+                    frame[b'peak_list'][b'intensity']
             ):
                 peak_index_in_slab = (
                     int(round(peak_ss)) *
-                    frame['native_data_shape'][1] +
+                    frame[b'native_data_shape'][1] +
                     int(round(peak_fs))
                 )
 
@@ -455,8 +455,8 @@ class CrystallographyGui(gui.OndaGui):
                     self._visual_pixel_map_x[peak_index_in_slab]
                 ] += peak_value
 
-            self._hitrate_history.append(frame['hit_rate'])
-            self._satrate_history.append(frame['saturation_rate'])
+            self._hitrate_history.append(frame[b'hit_rate'])
+            self._satrate_history.append(frame[b'saturation_rate'])
 
         QtGui.QApplication.processEvents()
 

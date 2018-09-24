@@ -32,8 +32,8 @@ from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
 from onda.parallelization_layer import mpi
-from onda.utils import named_tuples
 from onda.utils import zmq as onda_zmq
+from onda.utils import named_tuples
 from onda.utils.dynamic_import import get_peakfinder8_info
 
 
@@ -468,8 +468,11 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         else:
             # If the frame is not a hit, send an empty peak list
-            results_dict['peak_list'] = named_tuples.PeakList([], [], [])
-
+            results_dict['peak_list'] = named_tuples.PeakList(
+                fs=[],
+                ss=[],
+                intensity=[]
+            )
             if self._non_hit_frame_sending_interval:
                 self._non_hit_frame_sending_counter += 1
 
@@ -527,6 +530,24 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._run_avg_wdw_size
         )
 
+        # Inject additional information into the dictionary that will
+        # be stored in the data accumulator end eventually sent out
+        # from the master.
+        results_dict['hit_rate'] = avg_hit_rate
+        results_dict['saturation_rate'] = avg_sat_rate
+        results_dict['geometry_is_optimized'] = self._geometry_is_optimized
+
+        # Since the data will be sent out of the master node using
+        # msgpack, NamedTuple structures will not be preserved.
+        # The peak list is here converted to a dictionary, which
+        # suvives the msgpack conversion and allows introspection ont
+        # the receiver side.
+        results_dict['peak_list'] = {
+            'fs': results_dict['peak_list'].fs,
+            'ss': results_dict['peak_list'].ss,
+            'intensity': results_dict['peak_list'].intensity
+        }
+
         if 'detector_data' in results_dict:
 
             # If detector frame data is found in the data received from
@@ -535,20 +556,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # GUIs expect list aggregated events as opposed to single
             # events.
             self._data_broadcast_socket.send_data(
-                    tag='ondaframedata',
-                    message=[results_dict]
+                tag='ondaframedata',
+                message=[results_dict]
             )
 
-        # Inject additional information into the dictionary
-        # that will be stored in the accumulator. Remove the frame
-        # data, which is not needed anymore.
-        results_dict['hit_rate'] = avg_hit_rate
-        results_dict['saturation_rate'] = avg_sat_rate
-        results_dict['geometry_is_optimized'] = self._geometry_is_optimized
+        # Remove the detector frame data from the dictionary that will
+        # be stored in the data accumulator (it doesn't need to sent to
+        # any other receiver.
         if 'detector_data' in results_dict:
             del results_dict['detector_data']
 
-        collected_data = self._data_accumulator.add_data(results_dict)
+        collected_data = self._data_accumulator.add_data(
+            data=results_dict
+        )
         if collected_data:
             self._data_broadcast_socket.send_data(
                 tag='ondadata',

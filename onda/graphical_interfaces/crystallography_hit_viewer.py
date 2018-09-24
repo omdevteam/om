@@ -159,6 +159,7 @@ class CrystallographyHitViewer(gui.OndaGui):
             # 'data' attribute. In this way, one can check if data has
             # been received simply by checking if the 'data' attribute
             # is not None.
+
             self._frame_list.append(copy.deepcopy(self.data[0]))
             self.data = None
             self._current_frame_index = len(self._frame_list)-1
@@ -173,7 +174,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._img[
             self._visual_pixel_map_y,
             self._visual_pixel_map_x
-        ] = current_data['detector_data'].ravel().astype(self._img.dtype)
+        ] = current_data[b'detector_data'].ravel().astype(self._img.dtype)
 
         QtGui.QApplication.processEvents()
 
@@ -190,15 +191,15 @@ class CrystallographyHitViewer(gui.OndaGui):
         peak_x_list = []
         peak_y_list = []
         for peak_fs, peak_ss in zip(
-                current_data['peak_list'].fs,
-                current_data['peak_list'].ss,
+                current_data[b'peak_list'][b'fs'],
+                current_data[b'peak_list'][b'ss'],
         ):
 
             # Compute the array index corresponding to the peak
             # location.
             peak_index_in_slab = (
                 int(round(peak_ss)) *
-                current_data['native_data_shape'][1] +
+                current_data[b'native_data_shape'][1] +
                 int(round(peak_fs))
             )
 
@@ -214,7 +215,7 @@ class CrystallographyHitViewer(gui.OndaGui):
             x=peak_x_list,
             y=peak_y_list,
             symbol='o',
-            size=[5] * len(current_data['peak_list'].intensity),
+            size=[5] * len(current_data[b'peak_list'][b'intensity']),
             brush=(255, 255, 255, 0),
             pen=self._ring_pen,
             pxMode=False
