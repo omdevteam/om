@@ -111,7 +111,8 @@ setup(
     scripts=[
         'bin/onda_crystallography_gui.py',
         'bin/onda_crystallography_hit_viewer.py',
-        'bin/onda_monitor.py'
+        'bin/onda_monitor.py',
+        'bin/onda_swaxs_gui.py'
     ],
     ext_modules=extensions,
     packages=[

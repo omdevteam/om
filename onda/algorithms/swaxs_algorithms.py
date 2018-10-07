@@ -785,8 +785,9 @@ def scale_profile(radial_int, min_rpixbin, max_rpixbin, scale):
     region_int = radial_int[min_rpixbin:max_rpixbin]
     if scale is True:
         average = np.average(region_int)
+        if average == 0: average = 1.0
     else:
-        average = 1
+        average = 1.0
     radial_int_new = radial_int / average
     return radial_int_new, average
 
