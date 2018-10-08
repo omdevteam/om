@@ -19,8 +19,7 @@ Main OnDA monitor.
 This module contains the implementation of the main function used to
 start OnDA monitors.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import argparse
 import sys

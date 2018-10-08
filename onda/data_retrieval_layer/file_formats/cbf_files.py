@@ -18,8 +18,7 @@ Manipulation of CBF files.
 This module contains the implementation of several functions used to
 manipulate CBF files.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function,
 
 from future.utils import raise_from
 

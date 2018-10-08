@@ -18,6 +18,7 @@ Named tuples for OnDA.
 This module contains the implementation of several named tuples used
 in OnDA.
 """
+from __future__ import absolute_import, division, print_function
 import collections
 
 

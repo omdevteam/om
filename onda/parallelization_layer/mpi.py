@@ -18,8 +18,7 @@ MPI-based parallelization engine.
 This module contains the implementation of an MPI-based parallelization
 engine for OnDA.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import sys
 

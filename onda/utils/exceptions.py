@@ -19,8 +19,7 @@ This module contains the implementation of several OnDA specific
 exceptions. It also contains the implementation of a custom exception
 handler.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import sys
 from traceback import print_exception

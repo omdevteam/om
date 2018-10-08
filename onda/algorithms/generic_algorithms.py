@@ -19,8 +19,7 @@ This module contains the implementation of several generic algorithms
 for the processing of detector data (dark calibration correction,
 data averaging, etc.).
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import h5py
 import numpy

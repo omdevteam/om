@@ -18,8 +18,7 @@ Configuration parameter retrieval and validation.
 This module contains the implementation of utilities used to store,
 retrieve and validate configuration options for OnDA monitors.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 from builtins import str  # pylint: disable=W0622
 

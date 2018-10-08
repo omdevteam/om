@@ -19,8 +19,7 @@ GUI for OnDA Crystallography.
 This module contains the implementation of a GUI for OnDA
 Crystallography.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import collections
 import signal

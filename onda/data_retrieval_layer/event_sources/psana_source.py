@@ -18,8 +18,7 @@ Retrieval of events from psana.
 This module contains the implementation of event handling functions
 used retrieve data from psana.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 from builtins import str  # pylint: disable=W0622
 
