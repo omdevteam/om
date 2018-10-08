@@ -12,12 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Generic algorithms.
 
-This module contains the implementation of several generic algorithms
-for the processing of detector data (dark calibration correction,
-data averaging, etc.).
+Generic algorithms for the processing of detector frame data: dark
+calibration correction, data averaging, etc...
 """
 from __future__ import absolute_import, division, print_function
 
@@ -31,9 +33,13 @@ from scipy.ndimage import median_filter
 # DARKCAL CORRECTION #
 ######################
 
+
 class DarkCalCorrection(object):
     """
-    See __init__ for documentation.
+    Algorithm to apply dark calibration correction on detector data.
+
+    Optionally, applies a binary pixel mask and/or a gain map to the
+    data.
     """
 
     def __init__(self,
@@ -44,9 +50,7 @@ class DarkCalCorrection(object):
                  gain_map_filename=None,
                  gain_map_hdf5_path=None):
         """
-        Apply dark calibration correction on frame data.
-
-        Optionally, apply a mask and a gain map
+        Initializes the DarkCalCorrection.
 
         Args:
 
@@ -54,7 +58,7 @@ class DarkCalCorrection(object):
                 dark calibration data.
 
             darkcal_hdf5_path (str): internal HDF5 path of the data
-                block where the dark calibration information (in 'slab'
+                block where the dark calibration information (in "slab"
                 format) is stored.
 
             mask_filename (Optional[str]): if the argument is
@@ -65,7 +69,7 @@ class DarkCalCorrection(object):
             mask_hdf5_path (Optional[str]): if the mask_filename
                 argument is provided, and a mask is applied, this
                 argument is the internal HDF5 path of the data block
-                where the mask (in 'slab' format) is stored. The
+                where the mask (in "slab" format) is stored. The
                 argument is otherwise ignored. Defaults to None.
 
             gain_map_filename (Optional[str]): if the argument is the
@@ -76,41 +80,28 @@ class DarkCalCorrection(object):
             mask_hdf5_path (Optional[str]): if the gain_map_filename
                 argument is provided, and a gain map is applied, this
                 argument is the internal HDF5 path of the data block
-                where the gain map (in 'slab' format) is stored. The
+                where the gain map (in "slab" format) is stored. The
                 argument is otherwise ignored. Defaults to None.
         """
         try:
-            with h5py.File(
-                name=darkcal_filename,
-                mode='r'
-            ) as fhandle:
+            with h5py.File(name=darkcal_filename, mode="r") as fhandle:
                 self._darkcal = fhandle[darkcal_hdf5_path][:]
         except OSError:
             raise_from(
                 exc=RuntimeError(
                     "Error reading the {} HDF5 file.".format(
-                        darkcal_filename
-                    )
-                ),
-                cause=None
-            )
+                        darkcal_filename)),
+                cause=None)
 
         if mask_filename:
             try:
-                with h5py.File(
-                    name=mask_filename,
-                    mode='r'
-                ) as fhandle:
+                with h5py.File(name=mask_filename, mode="r") as fhandle:
                     self._darkcal = fhandle[mask_hdf5_path]
             except OSError:
                 raise_from(
-                    exc=RuntimeError(
-                        "Error reading the {} HDF5 file.".format(
-                            mask_filename
-                        )
-                    ),
-                    cause=None
-                )
+                    exc=RuntimeError("Error reading the {} HDF5 file.".format(
+                        mask_filename)),
+                    cause=None)
         else:
 
             # True here is equivalent to an all-ones mask.
@@ -118,26 +109,18 @@ class DarkCalCorrection(object):
 
         if gain_map_filename:
             try:
-                with h5py.File(
-                    name=gain_map_filename,
-                    mode='r'
-                ) as fhandle:
+                with h5py.File(name=gain_map_filename, mode="r") as fhandle:
                     self._gain_map = fhandle[gain_map_hdf5_path]
             except OSError:
                 raise_from(
-                    exc=RuntimeError(
-                        "Error reading the {} HDF5 file.".format(
-                            mask_filename
-                        )
-                    ),
-                    cause=None
-                )
+                    exc=RuntimeError("Error reading the {} HDF5 file.".format(
+                        mask_filename)),
+                    cause=None)
         else:
             # True here is equivalent to an all-ones map.
             self._gain_map = True
 
-    def apply_darkcal_correction(self,
-                                 data):
+    def apply_darkcal_correction(self, data):
         """
         Apply the correction.
 
@@ -145,7 +128,7 @@ class DarkCalCorrection(object):
 
         Args:
 
-            data (numpy.ndarray): the data (in 'slab' format) on which
+            data (numpy.ndarray): the data (in "slab" format) on which
                 the corrections should be applied.
 
         Returns:
@@ -160,18 +143,17 @@ class DarkCalCorrection(object):
 # FRAME DATA AVERAGING #
 ########################
 
+
 class FrameDataAveraging(object):
     """
     See __init__ for documentation.
     """
 
-    def __init__(self,
-                 num_events_to_average,
-                 slab_shape):
+    def __init__(self, num_events_to_average, slab_shape):
         """
         Accumulate and average detector frame data.
 
-        Accumulate detector frame data (in 'slab' format) until the
+        Accumulate detector frame data (in "slab" format) until the
         accumulator is full (i.e.: a predefined number of data entries
         has been added to the accumulator), then return the average of
         the accumulated data and empty the accumulator.
@@ -203,7 +185,7 @@ class FrameDataAveraging(object):
 
         Args:
 
-            data (numpy.ndarray): raw detector data (in 'slab' format)
+            data (numpy.ndarray): raw detector data (in "slab" format)
                 to be added to the accumulator.
 
         Returns:
@@ -228,6 +210,7 @@ class FrameDataAveraging(object):
 #######################
 # MINIMA IN WAVEFORMS #
 #######################
+
 
 class FindMinimaInWaveforms(object):
     """
@@ -283,8 +266,7 @@ class FindMinimaInWaveforms(object):
 
         self._smoothing_array = numpy.ones(
             shape=estimated_noise_width,
-            dtype=numpy.float
-        ) / float(estimated_noise_width)
+            dtype=numpy.float) / float(estimated_noise_width)
 
     def find_minima(self, data):
         """
@@ -312,15 +294,10 @@ class FindMinimaInWaveforms(object):
             # Apply the median filter, then interpolate the filtered
             # data.
             sliced_data = median_filter(
-                input=sliced_data,
-                size=self._backgr_filter_win_size
-            )
+                input=sliced_data, size=self._backgr_filter_win_size)
 
             interpolated_data = numpy.interp(
-                x=index,
-                xp=sliced_index,
-                fp=sliced_data
-            )
+                x=index, xp=sliced_index, fp=sliced_data)
 
             # Finally subtract the filtered data from the data.
             background_subtracted_data = data - interpolated_data
@@ -330,11 +307,9 @@ class FindMinimaInWaveforms(object):
         # Convolve data with the smoothing array.
         smoothed_data = numpy.convolve(
             a=background_subtracted_data.astype(  # pylint: disable=E1101
-                numpy.float32
-            ),
+                numpy.float32),
             v=self._smoothing_array,
-            mode='same'
-        )
+            mode="same")
 
         # Compute first and second derivative of the smoothed data.
         d_smoothed_data = numpy.gradient(smoothed_data)
@@ -342,20 +317,14 @@ class FindMinimaInWaveforms(object):
 
         # Use the derivatives to locate the peaks.
         peak_locations = numpy.where(
-            (
-                numpy.diff(numpy.sign(d_smoothed_data)) > 0
-            ) * (
-                dd_smoothed_data[:-1] > 0
-            )
-        )[0]
+            (numpy.diff(numpy.sign(d_smoothed_data)) > 0) *
+            (dd_smoothed_data[:-1] > 0))[0]
 
         # Filter peaks according to the negative threshold provided by
         # the user.
         intensity_offset = numpy.mean(smoothed_data)
-        filtered_peaks = numpy.where(
-            smoothed_data[peak_locations] - intensity_offset <
-            (-abs(self._threshold))
-        )
+        filtered_peaks = numpy.where(smoothed_data[peak_locations] -
+                                     intensity_offset < (-abs(self._threshold)))
         peak_list = list(peak_locations[filtered_peaks])
 
         # Remove peaks that are too close. For each group of peaks that
@@ -383,13 +352,10 @@ class FindMinimaInWaveforms(object):
                     # to the internal list the value of the previous
                     # peak.
                     dist_from_prev_peak = (
-                        peak_postion -
-                        peak_list[peak_index - 1]
-                    )
+                        peak_postion - peak_list[peak_index - 1])
                     if dist_from_prev_peak < self._minimum_peak_width:
                         internal_peak_list.append(
-                            smoothed_data[peak_list[peak_index - 1]]
-                        )
+                            smoothed_data[peak_list[peak_index - 1]])
 
                 if peak_index < len(peak_list) - 1:
 
@@ -398,20 +364,15 @@ class FindMinimaInWaveforms(object):
                     # next one. If the peaks are too close, append to
                     # the internal list the value of the next peak.
                     dist_to_next_peak = (
-                        peak_list[peak_index + 1] -
-                        peak_postion
-                    )
+                        peak_list[peak_index + 1] - peak_postion)
                     if dist_to_next_peak < self._minimum_peak_width:
                         internal_peak_list.append(
-                            smoothed_data[peak_list[peak_index + 1]]
-                        )
+                            smoothed_data[peak_list[peak_index + 1]])
 
-                if numpy.all(
-                        [
-                            smoothed_data[peak_postion] < v
-                            for v in internal_peak_list
-                        ]
-                ):
+                if numpy.all([
+                        smoothed_data[peak_postion] < v
+                        for v in internal_peak_list
+                ]):
 
                     # If the value of the current peak is lower than
                     # all the values of the peaks that surround it, add
@@ -427,7 +388,7 @@ class FindMinimaInWaveforms(object):
                     any_too_close = True
 
             # Set the list of the detected peaks (used in the next
-            # iteration of the 'while' loop) to the current temporary
+            # iteration of the "while" loop) to the current temporary
             # list of the detected peaks.
             peak_list = temp_peak_list
 

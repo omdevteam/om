@@ -13,10 +13,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-OnDA Monitor for serial x-ray crystallography.
+OnDA Monitor for serial solution scatterin.
 
 This module contains the implementation of an OnDA real-time monitor
-for serial x-ray crystallography experiments.
+for x-ray solution scattering experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -27,42 +27,28 @@ from builtins import str  # pylint: disable=W0622
 
 import numpy
 
-from cfelpyutils import crystfel_utils, geometry_utils
 
+from cfelpyutils import crystfel_utils, geometry_utils
+import onda.algorithms.swaxs_algorithms as swaxs_algs
 from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
 from onda.parallelization_layer import mpi
 from onda.utils import zmq as onda_zmq
-from onda.utils import named_tuples
-from onda.utils.dynamic_import import get_peakfinder8_info
-import onda.algorithms.swaxs_algorithms as swaxs_algs
+from onda.utils import swaxs
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
     """
     An OnDA real-time monitor for serial crystallography experiments.
 
-    Provide real time hit and saturation rate information, plus a
-    virtual powder pattern-style plot of the processed data.
-    Optionally, apply detector calibration, dark calibration and gain
-    map correction to each frame.
-
-    Carry out the peak finding using the peakfinder8 algorithm from the
-    Cheetah software package:
-
-    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
-    T. A. White, and H. N. Chapman, "Cheetah: software for
-    high-throughput reduction and analysis of serial femtosecond X-ray
-    diffraction data," J Appl Crystallogr, vol. 47,
-    pp. 1118-1131 (2014).
+    TODO: Describe what the monitor does.
 
     Broadcast reduced data for visualization. Optionally also broadcast
     corrected frame data for visualization.
     """
-    def __init__(self,
-                 source,
-                 monitor_parameters):
+
+    def __init__(self, source, monitor_parameters):
         """
         Initialize the OndaMonitor class.
 
@@ -80,62 +66,28 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 containing the monitor parameters from the
                 configuration file.
         """
-        super(OndaMonitor, self).__init__(
-            process_func=self.process_data,
-            collect_func=self.collect_data,
-            source=source,
-            monitor_params=monitor_parameters
-        )
+        super(OndaMonitor,
+              self).__init__(
+                  process_func=self.process_data,
+                  collect_func=self.collect_data,
+                  source=source,
+                  monitor_params=monitor_parameters
+              )
 
-        # Read in Radial Section of monitor.ini file
-        self.scale_region_begin = monitor_parameters.get_param(
-            section='Radial',
-            parameter='min_bin_to_scale',
-            type_=int,
-            required=True
-        )
-
-        self.scale_region_end = monitor_parameters.get_param(
-            section='Radial',
-            parameter='max_bin_to_scale',
-            type_=int,
-            required=True
-        )
-
-        self.n_sigma = monitor_parameters.get_param(
-            section='Radial',
-            parameter='n_sigma',
-            type_=float,
-            required=True
-        )
-
-        self.num_bins = monitor_parameters.get_param(
-            section='Radial',
-            parameter='num_bins',
-            type_=int,
-            required=True
-        )
-
-        self.num_profiles = monitor_parameters.get_param(
+        # Read information for profile averaging.
+        num_profiles = monitor_parameters.get_param(
             section='Radial',
             parameter='num_profiles_to_average',
             type_=int,
             required=True
         )
 
-        self._intensity_threshold = monitor_parameters.get_param(
+        num_radial_bins = monitor_parameters.get_param(
             section='Radial',
-            parameter='intensity_threshold',
-            type_=float,
+            parameter='num_radial_bins',
+            type_=int,
             required=True
         )
-
-        self.scale = monitor_parameters.get_param(
-            section='Radial',
-            parameter='scale',
-            type_=bool,
-            required=True
-            )
 
         # Load the geometry data and compute the pixel maps.
         geometry_filename = monitor_parameters.get_param(
@@ -145,31 +97,60 @@ class OndaMonitor(mpi.ParallelizationEngine):
             required=True
         )
 
-        geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
-        self.geometry = geometry
-        pixelmaps = geometry_utils.compute_pix_maps(geometry)
-        radius_pixel_map = pixelmaps.r
+        geometry = crystfel_utils.load_crystfel_geometry(
+            geometry_filename
+        )
 
-        #Creates array labeling each pixel with bin value for radial averaging
-        self.rbins, dr = swaxs_algs.calculate_rbins(radius_pixel_map, self.num_bins)
+        pixel_maps = geometry_utils.compute_pix_maps(geometry)
+        radius_pixel_map = pixel_maps.r
 
-        #Redefine number of bins from bins included in labels self.rbins
-        self.num_bins = len(numpy.unique(self.rbins))
+        # TODO: Fix this comment.
+        # Creates array labeling each pixel with bin value for
+        # radial averaging.
+        self._radial_bin_pixel_map, deltar = (
+            swaxs.calculate_radial_bin_pixel_map(
+                radius_pixel_map=radius_pixel_map,
+                num_bins=num_radial_bins
+            )
+        )
 
-        self.coffset = list(self.geometry['panels'].items())[0][1]['coffset']
+        # TODO: Fix this comment.
+        # Redefine number of bins from bins included in labels
+        # self.rpixbins
+
+        num_radial_bins = len(numpy.unique(self._radial_bin_pixel_map))
+
+        # Read in scaling information.
+        self._scale = monitor_parameters.get_param(
+            section='Radial',
+            parameter='scale',
+            type_=bool,
+            required=True
+        )
+
+        self._scale_region_begin = monitor_parameters.get_param(
+            section='Radial',
+            parameter='scale_region_begin',
+            type_=int,
+            required=True
+        )
+
+        self._scale_region_end = monitor_parameters.get_param(
+            section='Radial',
+            parameter='scale_region_end',
+            type_=int,
+            required=True
+        )
 
         if self.role == 'worker':
+
             requested_calib_alg = monitor_parameters.get_param(
                 section='DetectorCalibration',
                 parameter='calibration_algorithm',
                 type_=str
             )
             if requested_calib_alg is not None:
-                calibration_alg_class = getattr(
-                    calib_algs,
-                    requested_calib_alg
-                )
-
+                calibration_alg_class = getattr(calib_algs, requested_calib_alg)
                 self._calibration_alg = calibration_alg_class(
                     calibration_file=monitor_parameters.get_param(
                         section='DetectorCalibration',
@@ -184,12 +165,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # 'calibration_alg' attribute.
                 self._calibration_alg = None
 
-            # Initialize the non_hit_frame_sending_counter and the
-            # hit_frame_sending_counter to keep track of how often the
+            # Initialize the hit_frame to keep track of how often the
             # detector frame data needs to be sent to the master
             # worker.
-            self._hit_frame_sending_counter = 0
-            self._non_hit_frame_sending_counter = 0
+            self._frame_sending_counter = 0
 
             # Read from the configuration file all the parameters
             # needed to instantiate the dark calibration correction
@@ -241,41 +220,55 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 gain_map_hdf5_path=dark_cal_gain_map_hdf5_pth
             )
 
-            self._hit_frame_sending_interval = monitor_parameters.get_param(
-                section='General',
-                parameter='hit_frame_sending_interval',
-                type_=int,
+
+            # Read in radial averaging information.
+            sigma_threshold = monitor_parameters.get_param(
+                section='Radial',
+                parameter='sigma_threshold',
+                type_=float,
+                required=True
             )
 
-            self._non_hit_frame_sending_interval = (
-                monitor_parameters.get_param(
-                    section='General',
-                    parameter='non_hit_frame_sending_interval',
-                    type_=int,
-                )
-            )
-
-            # Initialize SWAXS stuff
-            self.q_space_convert = swaxs_algs.PixelSpaceQSpaceConversion(numpy.unique(self.rbins), self.coffset, dr)
-
-            # Load profile to be subtracted from Radial Intensity profile
-            self.sub_file = monitor_parameters.get_param(
+            # Read information for profile subtraction.
+            profile_for_subtr_fname = monitor_parameters.get_param(
                 section='Radial',
                 parameter='subtract_profile_filename',
                 type_=str
-                )
-            if self.sub_file is not None:
-                self.sub_profile = numpy.loadtxt(
-                    self.sub_file,
+            )
+            if profile_for_subtr_fname:
+                self._profile_for_subtraction = numpy.loadtxt(
+                    profile_for_subtr_fname,
                     usecols=(0, 1)
-                    )
+                )
             else:
-                self.sub_profile = None
+                self._profile_for_subtraction = None
+
+            self._frame_sending_interval = monitor_parameters.get_param(
+                section='General',
+                parameter='frame_sending_interval',
+                type_=int,
+            )
 
             print("Starting worker: {0}.".format(self.rank))
             sys.stdout.flush()
 
         if self.role == 'master':
+
+            # TODO: Fix this comment.
+            # Read threshold information
+            self._intensity_threshold = monitor_parameters.get_param(
+                section='Radial',
+                parameter='intensity_threshold',
+                type_=float,
+                required=True
+            )
+
+            # TODO: Maybe move this to a new algorithm.
+            self._profiles_to_average = numpy.zeros(
+                (num_profiles, num_radial_bins)
+            )
+
+            self.cumulative_average = numpy.zeros(num_radial_bins)
 
             self._speed_report_interval = monitor_parameters.get_param(
                 section='General',
@@ -289,6 +282,20 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 parameter='geometry_is_optimized',
                 type_=bool,
                 required=True
+            )
+
+            # Read from the configuration file how many events should
+            # be accumulated by the master node before broadcasting the
+            # acccumulated data. Then instantiate the peak accumulator.
+            da_num_events_to_accumulate = monitor_parameters.get_param(
+                section='PeakAccumulator',
+                parameter='num_events_to_accumulate',
+                type_=int,
+                required=True
+            )
+
+            self._data_accumulator = cryst_algs.DataAccumulator(
+                num_events_to_accumulate=da_num_events_to_accumulate
             )
 
             # Read from the configuration file how many events should
@@ -318,18 +325,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            self._hit_rate_run_wdw = collections.deque(
-                [0.0] * self._run_avg_wdw_size,
-                maxlen=self._run_avg_wdw_size
-            )
-
-            self._avg_hit_rate = 0
-
-            #SWAXS stuff
-            #self.profiles_to_average = numpy.zeros((self.num_profiles,self.num_bins))
-            self.cumulative_radial = numpy.zeros(self.num_bins)
-            self.cumulative_pumped = numpy.zeros(self.num_bins)
-            self.cumulative_dark = numpy.zeros(self.num_bins)
+            self.cumulative_radial = numpy.zeros(num_radial_bins)
+            self.cumulative_pumped = numpy.zeros(num_radial_bins)
+            self.cumulative_dark = numpy.zeros(num_radial_bins)
 
             broadcast_socket_ip = monitor_parameters.get_param(
                 section='General',
@@ -384,63 +382,45 @@ class OndaMonitor(mpi.ParallelizationEngine):
             data=calib_det_data
         )
 
-        #SWAXS processing
-        #calculate radial profile
-        unscaled_radial = swaxs_algs.calculate_average_radial_intensity(corr_det_data, self.rbins)
+        unscaled_radial = swaxs.calculate_avg_radial_intensity(
+            corr_det_data,
+            self._radial_bin_pixel_map
+        )
         results_dict['unscaled_radial'] = unscaled_radial
 
-        #scale radial profile if self.scale is True
-        radial, _ = swaxs_algs.scale_profile(unscaled_radial, self.scale_region_begin, self.scale_region_end, self.scale)
+        if self._scale:
+            radial, scaling_factor_ = swaxs.scale_profile(
+                radial_profile=unscaled_radial,
+                min_radial_bin=self._scale_region_begin,
+                max_radial_bin=self._scale_region_end
+            )
 
-        #subtract a given radial profile
-        if self.sub_profile is not None:
-            prof_subtract = self.sub_profile[:,1]
+        if self._profile_for_subtraction:
+            subtracted_profile = radial - self._profile_for_subtraction
         else:
-            prof_subtract = numpy.zeros(len(radial))
-        results_dict['radial'] = radial - prof_subtract
+            subtracted_profile = radial
 
         intensity_sum = numpy.nansum(radial)
+
+        results_dict['radial'] = subtracted_profile
         results_dict['intensity_sum'] = intensity_sum
-
-        # Determine if the the frame should be labelled as a 'hit'.
-        hit = (
-            intensity_sum >
-            0 #self.intensity_threshold
-        )
-
         results_dict['timestamp'] = data['timestamp']
-        results_dict['hit_flag'] = hit
         results_dict['detector_distance'] = data['detector_distance']
         results_dict['beam_energy'] = data['beam_energy']
+        results_dict['native_data_shape'] = data['detector_data'].shape
 
-        if hit:
-            if self._hit_frame_sending_interval:
-                self._hit_frame_sending_counter += 1
+        if self._frame_sending_interval:
+            self._frame_sending_counter += 1
 
-                if (
-                        self._hit_frame_sending_counter ==
-                        self._hit_frame_sending_interval
-                ):
-                    # If the frame is a hit, and if the
-                    # 'hit_sending_interval' attribute says we should
-                    # send the detector frame data to the master node,
-                    # add it to the dictionary (and reset the counter).
-                    self._hit_frame_sending_counter = 0
-
-        else:
-            # If the frame is not a hit
-            if self._non_hit_frame_sending_interval:
-                self._non_hit_frame_sending_counter += 1
-
-                if (
-                        self._non_hit_frame_sending_counter ==
-                        self._non_hit_frame_sending_interval
-                ):
-                    # If the frame is not a  hit, and if the
-                    # 'frame_sending_interval' attribute says we should
-                    # send the detector frame data to the master node,
-                    # add it to the dictionary (and reset the counter).
-                    self._non_hit_frame_sending_counter = 0
+            if (
+                    self._frame_sending_counter ==
+                    self._frame_sending_interval
+            ):
+                # If the 'frame_sending_interval' attribute says we
+                # should send the detector frame data to the master
+                # node, # add it to the dictionary (and reset the counter).
+                results_dict['detector_data'] = corr_det_data
+                self._frame_sending_counter = 0
 
         return results_dict, self.rank
 
@@ -473,10 +453,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
         self.cumulative_radial += unscaled_radial
         self.cumulative_radial /= self._num_events
 
+        # Debug come to remove later.
         self.pump_probe = True
         self.optical_laser_on = numpy.random.choice([True,False])
 
         if self.pump_probe:
+
             if self.optical_laser_on:
                 self._num_pumped += 1
                 self.cumulative_pumped += unscaled_radial
@@ -485,49 +467,37 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 self._num_dark += 1
                 self.cumulative_dark += unscaled_radial
                 self.cumulative_dark /= self._num_dark
-            self.cumulative_pumped, _ = swaxs_algs.scale_profile(
-                self.cumulative_pumped, 
-                self.scale_region_begin, 
-                self.scale_region_end, 
-                self.scale
-            )
-            self.cumulative_dark, _ = swaxs_algs.scale_profile(
-                self.cumulative_dark, 
-                self.scale_region_begin, 
-                self.scale_region_end, 
-                self.scale
-            )
+
+
+            if self._scale:
+                self.cumulative_pumped, _ = swaxs.scale_profile(
+                    self.cumulative_pumped,
+                    self._scale_region_begin,
+                    self._scale_region_end,
+                )
+
+                self.cumulative_dark, _ = swaxs.scale_profile(
+                    self.cumulative_dark,
+                    self._scale_region_begin,
+                    self._scale_region_end,
+                )
             self.cumulative_radial = self.cumulative_pumped - self.cumulative_dark
 
         results_dict['cumulative_radial'] = self.cumulative_radial
 
-        self._hit_rate_run_wdw.append(
-            float(
-                results_dict['hit_flag']
-            )
-        )
-
-        avg_hit_rate = (
-            sum(self._hit_rate_run_wdw) /
-            self._run_avg_wdw_size
-        )
-
         # Inject additional information into the dictionary that will
         # be stored in the data accumulator end eventually sent out
         # from the master.
-        results_dict['hit_rate'] = avg_hit_rate
-        results_dict['intensity_sums'] = self.intensity_sums
         results_dict['geometry_is_optimized'] = self._geometry_is_optimized
 
-        if False: #results_dict['hit_flag']:
-
+        if 'detector_data' in results_dict:
             # If detector frame data is found in the data received from
             # a worker node, the frame must be broadcasted to the
             # frame viewer. The frame is wrapped into a list because
             # GUIs expect list aggregated events as opposed to single
             # events.
             self._data_broadcast_socket.send_data(
-                tag='ondaframedata',
+                tag=u'ondaframedata',
                 message=[results_dict]
             )
 
@@ -537,15 +507,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
         if 'detector_data' in results_dict:
             del results_dict['detector_data']
 
-        collected_data = self._data_accumulator.add_data(
-            data=results_dict
-        )
-
+        collected_data = self._data_accumulator.add_data(data=results_dict)
         if collected_data:
             self._data_broadcast_socket.send_data(
-                tag='ondadata',
+                tag=u'ondadata',
                 message=collected_data
             )
+            print('Sent!')
 
         if self._num_events % self._speed_report_interval == 0:
             now_time = time.time()
