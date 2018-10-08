@@ -19,8 +19,7 @@ This module contains the implementation of several functions used to
 retrieve data from the Jungfrau 1M detector as used at the LCLS
 facility.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 from onda.utils import named_tuples
 

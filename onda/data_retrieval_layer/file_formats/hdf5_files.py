@@ -16,8 +16,7 @@
 This module contains the implementation of several functions used to
 manipulate HDF5 files.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import h5py
 

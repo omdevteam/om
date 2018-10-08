@@ -19,8 +19,7 @@ This module contains the implementation of algorithms used to preform
 detector calibration (i.e.: all the corrections and ajustments that
 need to be applied to the detector *before* looking at the data).
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import h5py
 from future.utils import raise_from

@@ -19,8 +19,7 @@ This module contains the implementation of event handling functions,
 psana interface initialization functions, and data extraction functions
 used to interact with psana at the LCLS facility.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 from builtins import str  # pylint: disable=W0622
 

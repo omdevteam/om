@@ -18,8 +18,7 @@ ZMQ-based data broadcasting and receiving.
 This module contains the implementation of several ZMQ-based classes
 that can used by OnDA montiors and GUIs to broadcast and receive data.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import socket
 import sys

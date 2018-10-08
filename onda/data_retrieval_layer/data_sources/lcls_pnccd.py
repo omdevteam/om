@@ -18,6 +18,8 @@ Retrieval of data from the CSPAD detector at LCLS.
 This module contains the implementation of several functions used
 to retrieve data from the CSPAD detector as used at the LCLS facility.
 """
+from __future__ import absolute_import, division, print_function
+
 import numpy
 
 from onda.utils import named_tuples

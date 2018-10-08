@@ -19,8 +19,7 @@ This module contains the implementation of several functions used to
 retrieve data from the Eiger detector as used at the Petra III
 facility.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 from onda.data_retrieval_layer.file_formats import hdf5_files
 from onda.utils import named_tuples

@@ -20,8 +20,7 @@ to process photofragmentation data. These algorithms have been
 developed in order to monitor Controlled Molecule Imaging (CMI)
 experiments.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import numpy
 

@@ -18,8 +18,7 @@ Retrieval of events from files.
 This module contains the implementation of event handling functions
 used to retrieve data stored in files.
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
 import os.path
 
