@@ -142,6 +142,15 @@ class OndaMonitor(mpi.ParallelizationEngine):
             required=True
         )
 
+        # TODO: Fix this comment.
+        # Read threshold information
+        self._intensity_threshold = monitor_parameters.get_param(
+            section='Radial',
+            parameter='intensity_threshold',
+            type_=float,
+            required=True
+        )
+
         if self.role == 'worker':
 
             requested_calib_alg = monitor_parameters.get_param(
@@ -165,10 +174,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # 'calibration_alg' attribute.
                 self._calibration_alg = None
 
-            # Initialize the hit_frame to keep track of how often the
+            # Initialize the non_hit_frame_sending_counter and the
+            # hit_frame_sending_counter to keep track of how often the
             # detector frame data needs to be sent to the master
             # worker.
-            self._frame_sending_counter = 0
+            self._hit_frame_sending_counter = 0
+            self._non_hit_frame_sending_counter = 0
 
             # Read from the configuration file all the parameters
             # needed to instantiate the dark calibration correction
@@ -220,7 +231,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 gain_map_hdf5_path=dark_cal_gain_map_hdf5_pth
             )
 
-
             # Read in radial averaging information.
             sigma_threshold = monitor_parameters.get_param(
                 section='Radial',
@@ -243,10 +253,18 @@ class OndaMonitor(mpi.ParallelizationEngine):
             else:
                 self._profile_for_subtraction = None
 
-            self._frame_sending_interval = monitor_parameters.get_param(
+            self._hit_frame_sending_interval = monitor_parameters.get_param(
                 section='General',
-                parameter='frame_sending_interval',
+                parameter='hit_frame_sending_interval',
                 type_=int,
+            )
+
+            self._non_hit_frame_sending_interval = (
+                monitor_parameters.get_param(
+                    section='General',
+                    parameter='non_hit_frame_sending_interval',
+                    type_=int,
+                )
             )
 
             print("Starting worker: {0}.".format(self.rank))
@@ -254,21 +272,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         if self.role == 'master':
 
-            # TODO: Fix this comment.
-            # Read threshold information
-            self._intensity_threshold = monitor_parameters.get_param(
-                section='Radial',
-                parameter='intensity_threshold',
-                type_=float,
-                required=True
-            )
-
             # TODO: Maybe move this to a new algorithm.
             self._profiles_to_average = numpy.zeros(
                 (num_profiles, num_radial_bins)
             )
-
-            self.cumulative_average = numpy.zeros(num_radial_bins)
 
             self._speed_report_interval = monitor_parameters.get_param(
                 section='General',
@@ -324,6 +331,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=int,
                 required=True
             )
+
+            self._hit_rate_run_wdw = collections.deque(
+                [0.0] * self._run_avg_wdw_size,
+                maxlen=self._run_avg_wdw_size
+            )
+
+            self._avg_hit_rate = 0
 
             self.cumulative_radial = numpy.zeros(num_radial_bins)
             self.cumulative_pumped = numpy.zeros(num_radial_bins)
@@ -388,6 +402,14 @@ class OndaMonitor(mpi.ParallelizationEngine):
         )
         results_dict['unscaled_radial'] = unscaled_radial
 
+        self.intensity_sum = numpy.nansum(unscaled_radial)
+
+        # Determine if the the frame should be labelled as a 'hit'.
+        hit = (
+            self.intensity_sum >
+            self._intensity_threshold
+        )
+
         if self._scale:
             radial, scaling_factor_ = swaxs.scale_profile(
                 radial_profile=unscaled_radial,
@@ -400,27 +422,41 @@ class OndaMonitor(mpi.ParallelizationEngine):
         else:
             subtracted_profile = radial
 
-        intensity_sum = numpy.nansum(radial)
-
         results_dict['radial'] = subtracted_profile
-        results_dict['intensity_sum'] = intensity_sum
+        results_dict['intensity_sum'] = self.intensity_sum
+        results_dict['hit_flag'] = hit
         results_dict['timestamp'] = data['timestamp']
         results_dict['detector_distance'] = data['detector_distance']
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
 
-        if self._frame_sending_interval:
-            self._frame_sending_counter += 1
+        if hit:
+            if self._hit_frame_sending_interval:
+                self._hit_frame_sending_counter += 1
 
-            if (
-                    self._frame_sending_counter ==
-                    self._frame_sending_interval
-            ):
-                # If the 'frame_sending_interval' attribute says we
-                # should send the detector frame data to the master
-                # node, # add it to the dictionary (and reset the counter).
-                results_dict['detector_data'] = corr_det_data
-                self._frame_sending_counter = 0
+                if (
+                        self._hit_frame_sending_counter ==
+                        self._hit_frame_sending_interval
+                ):
+                    # If the frame is a hit, and if the
+                    # 'hit_sending_interval' attribute says we should
+                    # send the detector frame data to the master node,
+                    # add it to the dictionary (and reset the counter).
+                    self._hit_frame_sending_counter = 0
+
+        else:
+            if self._non_hit_frame_sending_interval:
+                self._non_hit_frame_sending_counter += 1
+
+                if (
+                        self._non_hit_frame_sending_counter ==
+                        self._non_hit_frame_sending_interval
+                ):
+                    # If the frame is not a  hit, and if the
+                    # 'frame_sending_interval' attribute says we should
+                    # send the detector frame data to the master node,
+                    # add it to the dictionary (and reset the counter).
+                    self._non_hit_frame_sending_counter = 0
 
         return results_dict, self.rank
 
@@ -443,9 +479,21 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict, _ = data
         self._num_events += 1
 
+        self._hit_rate_run_wdw.append(
+            float(
+                results_dict['hit_flag']
+            )
+        )
+
+        avg_hit_rate = (
+            sum(self._hit_rate_run_wdw) /
+            self._run_avg_wdw_size
+        )
+
         radial = results_dict['radial']
         self.intensity_sums.append(results_dict['intensity_sum'])
         unscaled_radial = results_dict['unscaled_radial']
+        results_dict['hit_rate'] = avg_hit_rate
 
         #sum up the unscaled_radials to make the cumulative average
         #rather than scaling first and then averaging

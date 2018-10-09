@@ -115,11 +115,6 @@ class SWAXSGui(gui.OndaGui):
         except KeyError:
             self._res = None
 
-        self._img_virt_powder_plot = numpy.zeros(
-            shape=self._img_shape,
-            dtype=numpy.float32  # pylint: disable=E1101
-        )
-
         self._radial = collections.deque(
             iterable=1000 * [0.0],
             maxlen=1000
@@ -135,62 +130,8 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
-        self._resolution_rings_regex = QtCore.QRegExp(r'[0-9.,]+')
-        self._resolution_rings_validator = QtGui.QRegExpValidator()
-        self._resolution_rings_validator.setRegExp(
-            self._resolution_rings_regex
-        )
-        self._resolution_rings_in_a = [
-            10.0,
-            9.0,
-            8.0,
-            7.0,
-            6.0,
-            5.0,
-            4.0,
-            3.0
-        ]
-        self._resolution_rings_textitems = []
-
-        # Initialize pen and canvas used to draw the resolution rings.
-        self._resolution_rings_pen = pyqtgraph.mkPen('w', width=0.5)
-        self._resolution_rings_canvas = pyqtgraph.ScatterPlotItem()
-
         # Set the PyQtGraph background color.
         pyqtgraph.setConfigOption('background', 0.2)
-
-        # Initalize the resolution rings checkbox.
-        self._resolution_rings_check_box = QtGui.QCheckBox()
-        self._resolution_rings_check_box.setText("Show Resolution Rings")
-        self._resolution_rings_check_box.setChecked(True)
-        self._resolution_rings_check_box.stateChanged.connect(
-            self._update_resolution_rings
-        )
-        self._resolution_rings_check_box.setEnabled(True)
-
-        # Intialize the resolution rings lineedit widget.
-        self._resolution_rings_lineedit = QtGui.QLineEdit()
-        self._resolution_rings_lineedit.setValidator(
-            self._resolution_rings_validator
-        )
-
-        self._resolution_rings_lineedit.setText(
-            ','.join(
-                str(x)
-                for x in self._resolution_rings_in_a
-            )
-        )
-
-        self._resolution_rings_lineedit.editingFinished.connect(
-            self._update_resolution_rings
-        )
-
-        self._resolution_rings_lineedit.setEnabled(True)
-
-        # Initialize the image viewer.
-        self._image_view = pyqtgraph.ImageView()
-        self._image_view.ui.menuBtn.hide()
-        self._image_view.ui.roiBtn.hide()
 
         # Initialize the radial profile plot widget.
         self._radial_plot_widget = pyqtgraph.PlotWidget()
@@ -273,11 +214,6 @@ class SWAXSGui(gui.OndaGui):
             self._satrate_history
         )
 
-        # Initialize 'reset peaks' button.
-        self._reset_peaks_button = QtGui.QPushButton()
-        self._reset_peaks_button.setText("Reset Peaks")
-        self._reset_peaks_button.clicked.connect(self._reset_virt_powder_plot)
-
         # Initialize 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton()
         self._reset_plots_button.setText("Reset Plots")
@@ -285,11 +221,8 @@ class SWAXSGui(gui.OndaGui):
 
         # Initialize and fill the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
-        horizontal_layout.addWidget(self._reset_peaks_button)
         horizontal_layout.addWidget(self._reset_plots_button)
         horizontal_layout.addStretch()
-        horizontal_layout.addWidget(self._resolution_rings_check_box)
-        horizontal_layout.addWidget(self._resolution_rings_lineedit)
         splitter_0 = QtGui.QSplitter()
         #splitter_0.addWidget(self._image_view)
         splitter_0.addWidget(self._radial_plot_widget)
@@ -326,113 +259,8 @@ class SWAXSGui(gui.OndaGui):
         self._satrate_plot.setData(self._satrate_history)
 
     def _reset_virt_powder_plot(self):
-        # Reset the virtual powder plot.
+        return
 
-        # Reset virtual powder pattern.
-
-        # Reset the attribute storing the virtual powder pattern, then
-        # update the widget.
-        self._img_virt_powder_plot = numpy.zeros(
-            shape=self._img_shape,
-            dtype=numpy.float32  # pylint: disable=E1101
-        )
-
-        self._image_view.setImage(
-            self._img_virt_powder_plot.T,
-            autoHistogramRange=False,
-            autoLevels=False,
-            autoRange=False
-        )
-
-    def _update_resolution_rings(self):
-        # Update the resolution rings.
-
-        items = str(
-            self
-            ._resolution_rings_lineedit
-            .text()
-        ).split(',')
-
-        if items:
-            self._resolution_rings_in_a = [
-                float(item)
-                for item in items
-                if item != '' and float(item) != 0.0
-            ]
-        else:
-            self._resolution_rings_in_a = []
-
-        for text_item in self._resolution_rings_textitems:
-            self._image_view.getView().removeItem(text_item)
-
-        self._resolution_rings_textitems = [
-            pyqtgraph.TextItem(text='{}A'.format(x), anchor=(0.5, 0.8))
-            for x in self._resolution_rings_in_a
-        ]
-        for text_item in self._resolution_rings_textitems:
-            self._image_view.getView().addItem(text_item)
-
-        try:
-            lambda_ = (
-                constants.h * constants.c /
-                self._local_data[b'beam_energy']
-            )
-            resolution_rings_in_pix = [1.0]
-            resolution_rings_in_pix.extend(
-                [
-                    2.0 * self._res * (
-                        self._local_data[b'detector_distance'] +
-                        self._coffset
-                    ) * numpy.tan(
-                        2.0 * numpy.arcsin(
-                            lambda_ / (2.0 * resolution)
-                        )
-                    )
-                    for resolution in self._resolution_rings_in_a
-                ]
-            )
-        except TypeError:
-            print(
-                "Beam energy or detector distance are not available. "
-                "Resolution rings cannot be computed."
-            )
-            self._resolution_rings_canvas.setData([], [])
-            for index, item in enumerate(self._resolution_rings_textitems):
-                item.setText('')
-        else:
-            if (
-                    self._resolution_rings_check_box.isEnabled() and
-                    self._resolution_rings_check_box.isChecked()
-            ):
-                self._resolution_rings_canvas.setData(
-                    [self._img_center_y] * len(resolution_rings_in_pix),
-                    [self._img_center_x] * len(resolution_rings_in_pix),
-                    symbol='o',
-                    size=resolution_rings_in_pix,
-                    pen=self._resolution_rings_pen,
-                    brush=(0, 0, 0, 0),
-                    pxMode=False
-                )
-
-                for index, item in enumerate(self._resolution_rings_textitems):
-                    item.setText(
-                        '{}A'.format(self._resolution_rings_in_a[index])
-                    )
-                    item.setPos(
-                        self._img_center_y,
-                        (
-                            self._img_center_x +
-                            resolution_rings_in_pix[index + 1] / 2.0
-                        )
-                    )
-            else:
-
-                # If the relevant checkbox is not ticked, set the
-                # resolution rings and the text labels to 'null'
-                # content.
-                self._resolution_rings_canvas.setData([], [])
-                for index, item in enumerate(self._resolution_rings_textitems):
-                    item.setText('')
 
     def _update_image_and_plots(self):
         # Update all elements in the GUI.
@@ -453,55 +281,17 @@ class SWAXSGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        if last_frame[b'geometry_is_optimized']:
-            if not self._resolution_rings_check_box.isEnabled():
-                self._resolution_rings_check_box.setEnabled(True)
-                self._resolution_rings_lineedit.setEnabled(True)
-            self._update_resolution_rings()
-        else:
-            if self._resolution_rings_check_box.isEnabled():
-                self._resolution_rings_check_box.setEnabled(False)
-                self._resolution_rings_lineedit.setEnabled(False)
-            self._update_resolution_rings()
-
-        QtGui.QApplication.processEvents()
-
         # Add data from all frames accumulated in local_data to the
         # plots,but updated the displayed images and plots onley once
         # at the end.
         for frame in self._local_data:
-
-            for peak_fs, peak_ss, peak_value in zip(
-                    frame[b'peak_list'][b'fs'],
-                    frame[b'peak_list'][b'ss'],
-                    frame[b'peak_list'][b'intensity']
-            ):
-                peak_index_in_slab = (
-                    int(round(peak_ss)) *
-                    frame[b'native_data_shape'][1] +
-                    int(round(peak_fs))
-                )
-
-                self._img_virt_powder_plot[
-                    self._visual_pixel_map_y[peak_index_in_slab],
-                    self._visual_pixel_map_x[peak_index_in_slab]
-                ] += peak_value
-
-            self._radial.append(frame[b'radial'])
             self._hitrate_history.append(frame[b'hit_rate'])
-            self._satrate_history.append(frame[b'saturation_rate'])
 
         QtGui.QApplication.processEvents()
 
+        self._radial = last_frame[b'radial']
         self._radial_plot.setData(self._radial)
         self._hitrate_plot.setData(self._hitrate_history)
-        self._satrate_plot.setData(self._satrate_history)
-        self._image_view.setImage(
-            self._img_virt_powder_plot.T,
-            autoHistogramRange=False,
-            autoLevels=False,
-            autoRange=False
-        )
 
         # Reset local_data so that the same data is not processed
         # multiple times.
