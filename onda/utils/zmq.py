@@ -22,10 +22,12 @@ from __future__ import absolute_import, division, print_function
 
 import socket
 import sys
+
 import msgpack
 import numpy
-import msgpack_numpy
 import zmq
+
+import msgpack_numpy
 
 try:
     from PyQt5 import QtCore

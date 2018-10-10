@@ -14,10 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
-GUI for OnDA Crystallography.
+GUI for OnDA SWAXS.
 
-This module contains the implementation of a GUI for OnDA
-Crystallography.
+GUI for the visualization of Small And Wide Angle X-Ray Scattering
+Data.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -25,12 +25,10 @@ import collections
 import signal
 import sys
 
-import numpy
 import pyqtgraph
 from cfelpyutils import crystfel_utils, geometry_utils
-from scipy import constants
 
-from onda.utils import gui, named_tuples
+from onda.utils import gui
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -48,12 +46,9 @@ class SWAXSGui(gui.OndaGui):
                  pub_hostname,
                  pub_port):
         """
-        GUI for OnDA crystallography.
+        GUI for OnDA SWAXS.
 
-        Receive data sent by the OnDA monitor when they are tagged with
-        the 'ondadata' tag. Display the real time hit and saturation
-        rate information, plus a virtual powder pattern-style plot of
-        the processed data.
+        TODO: GUI description.
 
         Args:
 
@@ -75,14 +70,11 @@ class SWAXSGui(gui.OndaGui):
             subscription_string=u'ondadata',
         )
 
-        # Initialize the local data dictionary with 'null' values.
-        self._local_data = {
-            'peak_list': named_tuples.PeakList([], [], []),
-            'hit_rate': 0.0,
-            'hit_flag': True,
-            'saturation_rate': 0.0
-        }
+        # Initialize the attribute that will store the local data.
+        self._local_data = None
 
+
+        # Compte the pixel maps for visualization.
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
         # The following information will be used later to create the
@@ -135,7 +127,7 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
-        self._int_sum_hist = collections.deque(
+        self._intensity_sum_hist = collections.deque(
             iterable=10000 * [0.0],
             maxlen=10000
         )
@@ -156,7 +148,7 @@ class SWAXSGui(gui.OndaGui):
 
         self._radial_plot_widget.setLabel(
             axis='left',
-            text='Intensity'
+            text='Intensity (ADUs)'
         )
 
         self._radial_plot_widget.showGrid(
@@ -164,7 +156,6 @@ class SWAXSGui(gui.OndaGui):
             y=True
         )
 
-        #self._radial_plot_widget.setYRange(0, 1.0)
         self._radial_plot = self._radial_plot_widget.plot(
             self._radial
         )
@@ -196,12 +187,12 @@ class SWAXSGui(gui.OndaGui):
         )
 
         self._hit_rate_plot_widget.setYRange(0, 1.0)
+
         self._hitrate_plot = self._hit_rate_plot_widget.plot(
             self._hitrate_history
         )
 
-        
-        # Initialize the saturation rate plot widget.
+        # Initialize the intensity sum histogram widget.
         self._intensity_sums_plot_widget = pyqtgraph.PlotWidget()
         self._intensity_sums_plot_widget.setTitle(
             'Total unscaled radial intensity sum histogram'
@@ -209,7 +200,7 @@ class SWAXSGui(gui.OndaGui):
 
         self._intensity_sums_plot_widget.setLabel(
             axis='bottom',
-            text='Intensity Sum'
+            text='Intensity Sum (ADUs)'
         )
 
         self._intensity_sums_plot_widget.setLabel(
@@ -225,17 +216,13 @@ class SWAXSGui(gui.OndaGui):
         self._intensity_sums_plot_widget.setYRange(0, 1.0)
 
         self._intensity_sums_plot = self._intensity_sums_plot_widget.plot(
-            self._int_sum_hist,
-            pen='w', 
-            symbol='o', 
+            self._intensity_sum_hist,
+            pen='w',
+            symbol='o',
             symbolPen='k',
             symbolBrush='w',
             symbolSize=5
         )
-        
-
-        #Initialize intensity sum histogram
-        #self._int_sum_hist_bar_widget = pyqtgraph.BarGraphItem
 
         # Initialize 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton()
@@ -247,7 +234,6 @@ class SWAXSGui(gui.OndaGui):
         horizontal_layout.addWidget(self._reset_plots_button)
         horizontal_layout.addStretch()
         splitter_0 = QtGui.QSplitter()
-        #splitter_0.addWidget(self._image_view)
         splitter_0.addWidget(self._radial_plot_widget)
         splitter_1 = QtGui.QSplitter()
         splitter_1.setOrientation(QtCore.Qt.Vertical)
@@ -272,7 +258,7 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
-        self._int_sum_hist = collections.deque(
+        self._intensity_sum_hist = collections.deque(
             10000 * [0.0],
             maxlen=10000
         )
@@ -318,8 +304,8 @@ class SWAXSGui(gui.OndaGui):
         self._cumulative_radial_plot.setData(self._cumulative_radial)
         self._hitrate_plot.setData(self._hitrate_history)
         self._intensity_sums = last_frame[b'intensity_sums']
-        self._int_sum_hist = last_frame[b'int_sum_hist']
-        self._intensity_sums_plot.setData(self._int_sum_hist)
+        self._intensity_sum_hist = last_frame[b'intensity_sum_hist']
+        self._intensity_sums_plot.setData(self._intensity_sum_hist)
 
         # Reset local_data so that the same data is not processed
         # multiple times.
@@ -328,11 +314,11 @@ class SWAXSGui(gui.OndaGui):
 
 def main():
     """
-    Start the GUI for OnDA Crystallography,
+    Start the GUI for OnDA SWAXS.
 
-    Initialize and start the GUI for OnDA Crystallography. Manage
-    command line arguments, load the geometry and instantiate the
-    graphical interface.
+    Initialize and start the GUI for OnDA SWAXS. Manage command line
+    arguments, load the geometry and instantiate the graphical
+    interface.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -356,4 +342,3 @@ def main():
     app = QtGui.QApplication(sys.argv)
     _ = SWAXSGui(geometry, rec_ip, rec_port)
     sys.exit(app.exec_())
-

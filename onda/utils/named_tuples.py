@@ -145,3 +145,23 @@ about the worker nodes that will receive data from HiDRA. The
 'data_base_path' field contains the base path to be used for locating
 files in the file system when HiDRA sends relative paths to OnDA.
 """
+
+
+OpticalLaserStateDataRetrievalInfo = collections.namedtuple(
+    typename='OpticalLaserStateDataRetrievalInfo',
+    field_names=[
+        'psana_detector_handle',
+        'active_laser_evr_code'
+    ]
+)
+"""
+Optical laser state data retrieval information.
+
+Information needed to receover from psana the inforamtion about the
+state of the optical laser. The first field,
+'psana_detector_handle', contains the handle of the psana Detector
+interface for the retrieval of EVR code information, while the second
+field, 'active_optical_laser_evr_code', stores the EVR code that
+corresponds, at the LCLS facility, to the optical laser being
+active.
+"""

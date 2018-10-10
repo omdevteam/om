@@ -93,6 +93,10 @@ beam_energy_init = (  # pylint: disable=C0103
     lcls_psana.beam_energy_init
 )
 
+optical_laser_on_init = (
+    lcls_psana.optical_laser_on_init
+)
+
 #############################
 #                           #
 # DATA EXTRACTION FUNCTIONS #
@@ -119,6 +123,10 @@ beam_energy = (  # pylint: disable=C0103
     lcls_psana.beam_energy
 )
 
+
+optical_laser_on = (
+    lcls_psana.optical_laser_on
+)
 
 get_peakfinder8_info_detector_data = (  # pylint: disable=C0103
     lcls_cspad.get_peakfinder8_info

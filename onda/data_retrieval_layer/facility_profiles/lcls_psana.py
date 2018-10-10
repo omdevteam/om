@@ -29,6 +29,7 @@ from future.utils import raise_from
 from onda.data_retrieval_layer.event_sources import psana_source
 from onda.data_retrieval_layer.filters import event_filters, frame_filters
 from onda.utils import exceptions
+from onda.utils import named_tuples
 
 try:
     import psana  # pylint: disable=E0401
@@ -292,9 +293,10 @@ def opal_data_init(monitor_params):
     )
 
 
-def event_codes_init():
+def optical_laser_on_init(monitor_params):
     """
-    Initialize the psana detector interface for EVR event codes.
+    Initialize the psana detector interface for the status of the
+    optical laser.
 
     Args:
 
@@ -305,10 +307,29 @@ def event_codes_init():
 
     Returns:
 
-        psana.Detector: a handle (a psana Detector object) that can be
-        used later to retrieve the data.
+        Tuple[psana.Detector, evr_codes]: a tuple where the first
+        entry is a psana Detector interface object, while the second
+        is a list of EVR codes corresponding to the optical laser
+        being active. Both can be used later to retrieve the data.
     """
-    return psana.Detector('evr0'.encode('ascii'))
+    active_laser_evr_code = monitor_params.get_param(
+        section='DataRetrievalLayer',
+        parameter='evr_code_for_active_optical_laser',
+        type_=int,
+        required=True
+    )
+    
+    evr_source_name = monitor_params.get_param(
+        section='DataRetrievalLayer',
+        parameter='evr_source_name',
+        type_=str,
+        required=True
+    )
+
+    return named_tuples.OpticalLaserStateDataRetrievalInfo(
+        psana_detector_handle=psana.Detector(evr_source_name),
+        active_laser_evr_code=active_laser_evr_code
+    )
 
 
 ########################################
@@ -428,9 +449,9 @@ def opal_data(event):
     )
 
 
-def event_codes(event):
+def optical_laser_on(event):
     """
-    Retrieve the EVR event codes.
+    Retrieve information on the status of the optical laser..
 
     Args:
 
@@ -441,6 +462,18 @@ def event_codes(event):
         list: a list containing the EVR event codes for a specific
         psana event.
     """
-    return event['psana_detector_interface']['event_codes'].eventCodes(
-        event['psana_event']
+    current_evr_codes = (
+        event[
+            'psana_detector_interface'
+        ][
+            'optical_laser_on'
+        ].psana_detector_handle.eventCodes(event['psana_event'])
+    )
+
+    return (
+        event[
+            'psana_detector_interface'
+        ][
+            'optical_laser_on'
+        ].active_laser_evr_code in current_evr_codes
     )
