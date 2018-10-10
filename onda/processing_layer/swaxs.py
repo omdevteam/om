@@ -313,7 +313,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._pump_probe = monitor_parameters.get_param(
                 section='Radial',
                 parameter='pump_probe_experiment',
-                type_=bool
+                type_=bool,
+                required=True
             )
 
             # TODO: Maybe move this to a new algorithm.
@@ -339,7 +340,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # be accumulated by the master node before broadcasting the
             # acccumulated data. Then instantiate the peak accumulator.
             da_num_events_to_accumulate = monitor_parameters.get_param(
-                section='PeakAccumulator',
+                section='DataAccumulator',
                 parameter='num_events_to_accumulate',
                 type_=int,
                 required=True
@@ -347,16 +348,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             self._data_accumulator = cryst_algs.DataAccumulator(
                 num_events_to_accumulate=da_num_events_to_accumulate
-            )
-
-            # Read from the configuration file how many events should
-            # be accumulated by the master node before broadcasting the
-            # acccumulated data. Then instantiate the peak accumulator.
-            da_num_events_to_accumulate = monitor_parameters.get_param(
-                section='PeakAccumulator',
-                parameter='num_events_to_accumulate',
-                type_=int,
-                required=True
             )
 
             self._data_accumulator = cryst_algs.DataAccumulator(
@@ -475,6 +466,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['detector_distance'] = data['detector_distance']
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
+        results_dict['optical_laser_on'] = data['optical_laser_on']
 
         if hit:
             if self._hit_frame_sending_interval:
@@ -567,7 +559,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         #       not pump probed?
         if self._pump_probe:
 
-            if data['optical_laser_on']:
+            if results_dict['optical_laser_on']:
                 self._num_pumped += 1
                 self._cumulative_pumped += unscaled_radial
                 cumulative_pumped_avg = (
