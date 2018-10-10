@@ -120,12 +120,22 @@ class SWAXSGui(gui.OndaGui):
             maxlen=1000
         )
 
+        self._cumulative_radial = collections.deque(
+            iterable=1000 * [0.0],
+            maxlen=1000
+        )
+
         self._hitrate_history = collections.deque(
             iterable=10000 * [0.0],
             maxlen=10000
         )
 
-        self._satrate_history = collections.deque(
+        self._intensity_sums = collections.deque(
+            iterable=10000 * [0.0],
+            maxlen=10000
+        )
+
+        self._int_sum_hist = collections.deque(
             iterable=10000 * [0.0],
             maxlen=10000
         )
@@ -159,6 +169,11 @@ class SWAXSGui(gui.OndaGui):
             self._radial
         )
 
+        self._cumulative_radial_plot = self._radial_plot_widget.plot(
+            self._cumulative_radial,
+            pen='b'
+        )
+
         # Initialize the hit rate plot widget.
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
         self._hit_rate_plot_widget.setTitle(
@@ -185,34 +200,42 @@ class SWAXSGui(gui.OndaGui):
             self._hitrate_history
         )
 
+        
         # Initialize the saturation rate plot widget.
-        self._saturation_plot_widget = pyqtgraph.PlotWidget()
-        self._saturation_plot_widget.setTitle(
-            'Fraction of hits with too many saturated peaks'
+        self._intensity_sums_plot_widget = pyqtgraph.PlotWidget()
+        self._intensity_sums_plot_widget.setTitle(
+            'Total unscaled radial intensity sum histogram'
         )
 
-        self._saturation_plot_widget.setLabel(
+        self._intensity_sums_plot_widget.setLabel(
             axis='bottom',
-            text='Events'
+            text='Intensity Sum'
         )
 
-        self._saturation_plot_widget.setLabel(
+        self._intensity_sums_plot_widget.setLabel(
             axis='left',
-            text='Saturation rate'
+            text='Counts'
         )
 
-        self._saturation_plot_widget.showGrid(
+        self._intensity_sums_plot_widget.showGrid(
             x=True,
             y=True
+        )
 
+        self._intensity_sums_plot_widget.setYRange(0, 1.0)
+
+        self._intensity_sums_plot = self._intensity_sums_plot_widget.plot(
+            self._int_sum_hist,
+            pen='w', 
+            symbol='o', 
+            symbolPen='k',
+            symbolBrush='w',
+            symbolSize=5
         )
-        self._saturation_plot_widget.setYRange(0, 1.0)
-        self._saturation_plot_widget.setXLink(
-            self._hit_rate_plot_widget
-        )
-        self._satrate_plot = self._saturation_plot_widget.plot(
-            self._satrate_history
-        )
+        
+
+        #Initialize intensity sum histogram
+        #self._int_sum_hist_bar_widget = pyqtgraph.BarGraphItem
 
         # Initialize 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton()
@@ -229,7 +252,7 @@ class SWAXSGui(gui.OndaGui):
         splitter_1 = QtGui.QSplitter()
         splitter_1.setOrientation(QtCore.Qt.Vertical)
         splitter_1.addWidget(self._hit_rate_plot_widget)
-        splitter_1.addWidget(self._saturation_plot_widget)
+        splitter_1.addWidget(self._intensity_sums_plot_widget)
         splitter_0.addWidget(splitter_1)
         vertical_layout = QtGui.QVBoxLayout()
         vertical_layout.addWidget(splitter_0)
@@ -249,18 +272,18 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
-        self._satrate_history = collections.deque(
+        self._int_sum_hist = collections.deque(
             10000 * [0.0],
             maxlen=10000
         )
 
         self._radial_plot.setData(self._radial)
+        self._cumulative_radial_plot.setData(self._cumulative_radial)
         self._hitrate_plot.setData(self._hitrate_history)
-        self._satrate_plot.setData(self._satrate_history)
+        self._intensity_sums_plot.setData(self._int_sum_hist)
 
     def _reset_virt_powder_plot(self):
         return
-
 
     def _update_image_and_plots(self):
         # Update all elements in the GUI.
@@ -290,8 +313,13 @@ class SWAXSGui(gui.OndaGui):
         QtGui.QApplication.processEvents()
 
         self._radial = last_frame[b'radial']
+        self._cumulative_radial = last_frame[b'cumulative_radial']
         self._radial_plot.setData(self._radial)
+        self._cumulative_radial_plot.setData(self._cumulative_radial)
         self._hitrate_plot.setData(self._hitrate_history)
+        self._intensity_sums = last_frame[b'intensity_sums']
+        self._int_sum_hist = last_frame[b'int_sum_hist']
+        self._intensity_sums_plot.setData(self._int_sum_hist)
 
         # Reset local_data so that the same data is not processed
         # multiple times.
