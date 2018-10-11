@@ -550,47 +550,45 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # Sum up the unscaled_radials to make the cumulative average
         # rather than scaling first and then averaging. This should
         # help to mitigate noise from weak profiles.
-        self._cumulative_radial += unscaled_radial
 
-        # TODO: Is this unused?
-        cumulative_radial_avg = self._cumulative_radial / self._num_events
-
-        # TODO: What needs to be calculated if the experiment is
-        #       not pump probed?
         if self._pump_probe:
 
             if results_dict['optical_laser_active']:
                 self._num_pumped += 1
                 self._cumulative_pumped += unscaled_radial
-                cumulative_pumped_avg = (
+                self._cumulative_pumped_avg = (
                     self._cumulative_pumped / self._num_pumped
                 )
                 if self._scale:
-                    cumulative_pumped_avg = swaxs.scale_profile(
-                        cumulative_pumped_avg,
+                    self._cumulative_pumped_avg = swaxs.scale_profile(
+                        self._cumulative_pumped_avg,
                         self._scale_region_begin,
                         self._scale_region_end,
                     )
             else:
                 self._num_dark += 1
                 self._cumulative_dark += unscaled_radial
-                cumulative_dark_avg = (
-                    self._cumulative_dark /self._num_dark
+                self._cumulative_dark_avg = (
+                    self._cumulative_dark / self._num_dark
                 )
                 if self._scale:
-                    cumulative_dark_avg = swaxs.scale_profile(
-                        cumulative_dark_avg,
+                    self._cumulative_dark_avg = swaxs.scale_profile(
+                        self._cumulative_dark_avg,
                         self._scale_region_begin,
                         self._scale_region_end,
                     )
 
-            self._cumulative_radial = (
-                cumulative_pumped_avg - cumulative_dark_avg
+            self._cumulative_radial_avg = (
+                self._cumulative_pumped_avg - self._cumulative_dark_avg
             )
 
-            results_dict['radial'] = radial - cumulative_dark_avg
+            results_dict['radial'] = radial - self._cumulative_dark_avg
 
-        results_dict['cumulative_radial'] = self._cumulative_radial
+        else:
+            self._cumulative_radial += unscaled_radial
+            self._cumulative_radial_avg = self._cumulative_radial / self._num_events
+
+        results_dict['cumulative_radial'] = self._cumulative_radial_avg
 
         # Inject additional information into the dictionary that will
         # be stored in the data accumulator end eventually sent out
