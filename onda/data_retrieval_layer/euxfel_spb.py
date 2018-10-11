@@ -90,6 +90,11 @@ beam_energy = (  # pylint: disable=C0103
 )
 
 
+optical_laser_active = (  # pylint: disable=C0103
+    euxfel_karabo.optical_laser_active
+)
+
+
 ############################
 #                          #
 # EVENT HANDLING FUNCTIONS #

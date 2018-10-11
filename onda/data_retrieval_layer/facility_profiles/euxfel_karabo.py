@@ -101,5 +101,37 @@ detector_distance = (  # pylint: disable=C0103
 )
 
 
+def optical_laser_active(event):
+    """
+    Retrieve the timestamp of the event.
+
+    As extracted previously and stored in the event structure.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        numpy.float64: the time at which the event was collected.
+    """
+    cell_id = (
+        event[
+            'data'
+        ][
+            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+        ][
+            'image.cellid'
+        ]
+    )
+
+    return cell_id in event['monitor_params'].get_param(
+        section='DataProcessingLayer',
+        parameter='cell_ids_with_active_optical_laser',
+        type_=list,
+        required=True
+    )
+
+
 # Import other data extraction functions from the 'data_sources'
 # submodules.
