@@ -466,7 +466,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['detector_distance'] = data['detector_distance']
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
-        results_dict['optical_laser_on'] = data['optical_laser_on']
+        results_dict['optical_laser_active'] = data['optical_laser_active']
 
         if hit:
             if self._hit_frame_sending_interval:
@@ -559,7 +559,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         #       not pump probed?
         if self._pump_probe:
 
-            if results_dict['optical_laser_on']:
+            if results_dict['optical_laser_active']:
                 self._num_pumped += 1
                 self._cumulative_pumped += unscaled_radial
                 cumulative_pumped_avg = (
