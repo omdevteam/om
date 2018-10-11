@@ -93,9 +93,10 @@ beam_energy_init = (  # pylint: disable=C0103
     lcls_psana.beam_energy_init
 )
 
-optical_laser_on_init = (
-    lcls_psana.optical_laser_on_init
+optical_laser_active_init = (  # pylint: disable=C0103
+    lcls_psana.optical_laser_active_init
 )
+
 
 #############################
 #                           #
@@ -124,8 +125,8 @@ beam_energy = (  # pylint: disable=C0103
 )
 
 
-optical_laser_on = (
-    lcls_psana.optical_laser_on
+optical_laser_active = (  # pylint: disable=C0103
+    lcls_psana.optical_laser_active
 )
 
 get_peakfinder8_info_detector_data = (  # pylint: disable=C0103

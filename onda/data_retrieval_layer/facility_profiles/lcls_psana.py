@@ -293,7 +293,7 @@ def opal_data_init(monitor_params):
     )
 
 
-def optical_laser_on_init(monitor_params):
+def optical_laser_active_init(monitor_params):
     """
     Initialize the psana detector interface for the status of the
     optical laser.
@@ -318,7 +318,7 @@ def optical_laser_on_init(monitor_params):
         type_=int,
         required=True
     )
-    
+
     evr_source_name = monitor_params.get_param(
         section='DataRetrievalLayer',
         parameter='evr_source_name',
@@ -449,7 +449,7 @@ def opal_data(event):
     )
 
 
-def optical_laser_on(event):
+def optical_laser_active(event):
     """
     Retrieve information on the status of the optical laser..
 
@@ -466,7 +466,7 @@ def optical_laser_on(event):
         event[
             'psana_detector_interface'
         ][
-            'optical_laser_on'
+            'optical_laser_active'
         ].psana_detector_handle.eventCodes(event['psana_event'])
     )
 
@@ -474,6 +474,6 @@ def optical_laser_on(event):
         event[
             'psana_detector_interface'
         ][
-            'optical_laser_on'
+            'optical_laser_active'
         ].active_laser_evr_code in current_evr_codes
     )
