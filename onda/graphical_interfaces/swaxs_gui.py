@@ -107,7 +107,37 @@ class SWAXSGui(gui.OndaGui):
         except KeyError:
             self._res = None
 
+        self._q = collections.deque(
+            iterable=1000 * [0.0],
+            maxlen=1000
+        )
+
+        self._unscaled_radial = collections.deque(
+            iterable=1000 * [0.0],
+            maxlen=1000
+        )
+
         self._radial = collections.deque(
+            iterable=1000 * [0.0],
+            maxlen=1000
+        )
+
+        self._cumulative_pumped = collections.deque(
+            iterable=1000 * [0.0],
+            maxlen=1000
+        )
+
+        self._cumulative_dark = collections.deque(
+            iterable=1000 * [0.0],
+            maxlen=1000
+        )
+
+        self._diff = collections.deque(
+            iterable=1000 * [0.0],
+            maxlen=1000
+        )
+
+        self._recent_radial = collections.deque(
             iterable=1000 * [0.0],
             maxlen=1000
         )
@@ -122,6 +152,16 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
+        self._pumped_hitrate_history = collections.deque(
+            iterable=10000 * [0.0],
+            maxlen=10000
+        )
+
+        self._dark_hitrate_history = collections.deque(
+            iterable=10000 * [0.0],
+            maxlen=10000
+        )
+
         self._intensity_sums = collections.deque(
             iterable=10000 * [0.0],
             maxlen=10000
@@ -132,8 +172,18 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
+        self._intensity_sum_hist_bins = collections.deque(
+            iterable=10000 * [0.0],
+            maxlen=10000
+        )
+
+        self._digitizer_data = collections.deque(
+            iterable=10000 * [0.0],
+            maxlen=10000
+        )
+
         # Set the PyQtGraph background color.
-        pyqtgraph.setConfigOption('background', 0.2)
+        pyqtgraph.setConfigOption('background', 1.0)
 
         # Initialize the radial profile plot widget.
         self._radial_plot_widget = pyqtgraph.PlotWidget()
@@ -156,12 +206,58 @@ class SWAXSGui(gui.OndaGui):
             y=True
         )
 
+        self._radial_plot_widget.addLegend()
+
+        self._unscaled_radial_plot = self._radial_plot_widget.plot(
+            self._q, self._unscaled_radial,
+            name='Single Unscaled Radial'
+        )
+
         self._radial_plot = self._radial_plot_widget.plot(
-            self._radial
+            self._q, self._radial,
+            name='Single Scaled Radial',
+            pen=(0,0,0,25),
+            symbol='o',
+            symbolPen='k',
+            symbolBrush='k',
+            symbolSize=2
+        )
+
+        self._cumulative_pumped_plot = self._radial_plot_widget.plot(
+            self._q, self._cumulative_pumped,
+            name='Cumulative Pumped Radial',
+            pen='r',
+            symbol='o',
+            symbolPen='r',
+            symbolBrush='r',
+            symbolSize=2
+        )
+
+        self._cumulative_dark_plot = self._radial_plot_widget.plot(
+            self._q, self._cumulative_dark,
+            name='Cumulative Dark Radial',
+            pen='b',
+            symbol='o',
+            symbolPen='b',
+            symbolBrush='b',
+            symbolSize=2
+        )
+
+        self._diff_plot = self._radial_plot_widget.plot(
+            self._q, self._diff,
+            name='Single Difference',
+            pen=(0,0,0,20)
+        )
+
+        self._recent_radial_plot = self._radial_plot_widget.plot(
+            self._recent_radial,
+            name='Recent Average Difference',
+            pen='r'
         )
 
         self._cumulative_radial_plot = self._radial_plot_widget.plot(
             self._cumulative_radial,
+            name='Cumulative Average Difference',
             pen='b'
         )
 
@@ -189,7 +285,26 @@ class SWAXSGui(gui.OndaGui):
         self._hit_rate_plot_widget.setYRange(0, 1.0)
 
         self._hitrate_plot = self._hit_rate_plot_widget.plot(
-            self._hitrate_history
+            self._hitrate_history,
+            pen='k'
+        )
+
+        self._pumped_hitrate_plot = self._hit_rate_plot_widget.plot(
+            self._pumped_hitrate_history,
+            pen=[0,0,0,0],
+            symbol='o',
+            symbolPen='r',
+            symbolBrush='r',
+            symbolSize=2
+        )
+
+        self._dark_hitrate_plot = self._hit_rate_plot_widget.plot(
+            self._dark_hitrate_history,
+            pen=[0,0,0,0],
+            symbol='o',
+            symbolPen='b',
+            symbolBrush='b',
+            symbolSize=2
         )
 
         # Initialize the intensity sum histogram widget.
@@ -213,17 +328,25 @@ class SWAXSGui(gui.OndaGui):
             y=True
         )
 
-        self._intensity_sums_plot_widget.setYRange(0, 1.0)
-
         self._intensity_sums_plot = self._intensity_sums_plot_widget.plot(
+            self._intensity_sum_hist_bins,
             self._intensity_sum_hist,
-            pen='w',
+            pen='k',
             symbol='o',
             symbolPen='k',
-            symbolBrush='w',
+            symbolBrush='k',
             symbolSize=5
         )
-
+        """
+        self._digitizer_data_plot = self._intensity_sums_plot_widget.plot(
+            self._digitizer_data,
+            pen='b',
+            symbol='o',
+            symbolPen='b',
+            symbolBrush='b',
+            symbolSize=5
+        )
+        """
         # Initialize 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton()
         self._reset_plots_button.setText("Reset Plots")
@@ -258,15 +381,29 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
+        self._pumped_hitrate_history = collections.deque(
+            10000 * [0.0],
+            maxlen=10000
+        )
+
+        self._dark_hitrate_history = collections.deque(
+            10000 * [0.0],
+            maxlen=10000
+        )
+
         self._intensity_sum_hist = collections.deque(
             10000 * [0.0],
             maxlen=10000
         )
 
         self._radial_plot.setData(self._radial)
+        self._diff_plot.setData(self._diff)
         self._cumulative_radial_plot.setData(self._cumulative_radial)
+        self._recent_radial_plot.setData(self._recent_radial)
         self._hitrate_plot.setData(self._hitrate_history)
-        self._intensity_sums_plot.setData(self._int_sum_hist)
+        self._pumped_hitrate_plot.setData(self._pumped_hitrate_history)
+        self._dark_hitrate_plot.setData(self._dark_hitrate_history)
+        self._intensity_sums_plot.setData(self._intensity_sum_hist)
 
     def _reset_virt_powder_plot(self):
         return
@@ -295,17 +432,36 @@ class SWAXSGui(gui.OndaGui):
         # at the end.
         for frame in self._local_data:
             self._hitrate_history.append(frame[b'hit_rate'])
+            phr = frame[b'pumped_hit_rate']
+            dhr = frame[b'dark_hit_rate']
+            self._pumped_hitrate_history.append(phr)
+            self._dark_hitrate_history.append(dhr)
 
         QtGui.QApplication.processEvents()
 
+        self._q = last_frame[b'q']
+        self._unscaled_radial = last_frame[b'unscaled_radial']
         self._radial = last_frame[b'radial']
+        self._cumulative_pumped = last_frame[b'cumulative_pumped_avg']
+        self._cumulative_dark = last_frame[b'cumulative_dark_avg']
+        self._diff = last_frame[b'diff']
         self._cumulative_radial = last_frame[b'cumulative_radial']
-        self._radial_plot.setData(self._radial)
-        self._cumulative_radial_plot.setData(self._cumulative_radial)
+        self._recent_radial = last_frame[b'recent_radial']
+        self._unscaled_radial_plot.setData(self._q,self._unscaled_radial)
+        self._radial_plot.setData(self._q,self._radial)
+        self._cumulative_pumped_plot.setData(self._q,self._cumulative_pumped)
+        self._cumulative_dark_plot.setData(self._q,self._cumulative_dark)
+        self._diff_plot.setData(self._q,self._diff)
+        self._recent_radial_plot.setData(self._q,self._recent_radial)
+        self._cumulative_radial_plot.setData(self._q,self._cumulative_radial)
         self._hitrate_plot.setData(self._hitrate_history)
-        self._intensity_sums = last_frame[b'intensity_sums']
+        self._pumped_hitrate_plot.setData(self._pumped_hitrate_history)
+        self._dark_hitrate_plot.setData(self._dark_hitrate_history)
         self._intensity_sum_hist = last_frame[b'intensity_sum_hist']
-        self._intensity_sums_plot.setData(self._intensity_sum_hist)
+        self._intensity_sum_hist_bins = last_frame[b'intensity_sum_hist_bins']
+        self._intensity_sums_plot.setData(self._intensity_sum_hist_bins,self._intensity_sum_hist)
+        #self._digitizer_data = last_frame[b'digitizer_data']
+        #self._digitizer_data_plot.setData(self._digitizer_data)
 
         # Reset local_data so that the same data is not processed
         # multiple times.

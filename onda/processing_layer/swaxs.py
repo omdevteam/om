@@ -34,7 +34,7 @@ from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
 from onda.parallelization_layer import mpi
 from onda.utils import zmq as onda_zmq
-from onda.utils import swaxs
+from onda.algorithms import swaxs_algorithms as swaxs_algs
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -100,14 +100,16 @@ class OndaMonitor(mpi.ParallelizationEngine):
             geometry_filename
         )
 
+        self.geometry = geometry
+
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
         radius_pixel_map = pixel_maps.r
 
         # TODO: Fix this comment.
         # Creates array labeling each pixel with bin value for
         # radial averaging.
-        self._radial_bin_pixel_map = (
-            swaxs.calculate_radial_bin_pixel_map(
+        self._radial_bin_pixel_map, self.dr = (
+            swaxs_algs.calculate_radial_bin_pixel_map(
                 radius_pixel_map=radius_pixel_map,
                 num_bins=num_radial_bins
             )
@@ -116,7 +118,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # TODO: Fix this comment.
         # Redefine number of bins from bins included in labels
         # self.rpixbins
-        num_radial_bins = len(numpy.unique(self._radial_bin_pixel_map))
+        self._radial_bins = numpy.unique(self._radial_bin_pixel_map)
+        num_radial_bins = len(self._radial_bins)
+        self.num_radial_bins = num_radial_bins
 
         # Read in scaling information.
         self._scale = monitor_parameters.get_param(
@@ -210,13 +214,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # 'calibration_alg' attribute.
                 self._calibration_alg = None
 
-            # Initialize the non_hit_frame_sending_counter and the
-            # hit_frame_sending_counter to keep track of how often the
-            # detector frame data needs to be sent to the master
-            # worker.
-            self._hit_frame_sending_counter = 0
-            self._non_hit_frame_sending_counter = 0
-
             # Read from the configuration file all the parameters
             # needed to instantiate the dark calibration correction
             # algorithm, then instatiate the algorithm.
@@ -289,20 +286,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
             else:
                 self._profile_for_subtraction = None
 
-            self._hit_frame_sending_interval = monitor_parameters.get_param(
-                section='General',
-                parameter='hit_frame_sending_interval',
-                type_=int,
-            )
-
-            self._non_hit_frame_sending_interval = (
-                monitor_parameters.get_param(
-                    section='General',
-                    parameter='non_hit_frame_sending_interval',
-                    type_=int,
-                )
-            )
-
             print("Starting worker: {0}.".format(self.rank))
             sys.stdout.flush()
 
@@ -318,7 +301,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             # TODO: Maybe move this to a new algorithm.
-            self._profiles_to_average = numpy.zeros(
+            self._recent_profiles = numpy.zeros(
+                (num_profiles, num_radial_bins)
+            )
+            self._recent_pumped_profiles = numpy.zeros(
+                (num_profiles, num_radial_bins)
+            )
+            self._recent_dark_profiles = numpy.zeros(
                 (num_profiles, num_radial_bins)
             )
 
@@ -357,7 +346,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._num_events = 0
             self._num_pumped = 0
             self._num_dark = 0
-            self.intensity_sums = []
             self._old_time = time.time()
             self._time = None
             self._run_avg_wdw_size = monitor_parameters.get_param(
@@ -374,11 +362,27 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             self._avg_hit_rate = 0
 
+            self._pumped_hit_rate_run_wdw = collections.deque(
+                [0.0] * self._run_avg_wdw_size,
+                maxlen=self._run_avg_wdw_size
+            )
+
+            self._pumped_avg_hit_rate = 0
+
+            self._dark_hit_rate_run_wdw = collections.deque(
+                [0.0] * self._run_avg_wdw_size,
+                maxlen=self._run_avg_wdw_size
+            )
+
+            self._dark_avg_hit_rate = 0
+
             self._cumulative_radial = numpy.zeros(num_radial_bins)
             self._cumulative_pumped = numpy.zeros(num_radial_bins)
             self._cumulative_pumped_avg = numpy.zeros(num_radial_bins)
+            self._recent_pumped_avg = numpy.zeros(num_radial_bins)
             self._cumulative_dark = numpy.zeros(num_radial_bins)
             self._cumulative_dark_avg = numpy.zeros(num_radial_bins)
+            self._recent_dark_avg = numpy.zeros(num_radial_bins)
 
             broadcast_socket_ip = monitor_parameters.get_param(
                 section='General',
@@ -433,7 +437,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             data=calib_det_data
         )
 
-        unscaled_radial = swaxs.calculate_avg_radial_intensity(
+        unscaled_radial = swaxs_algs.calculate_avg_radial_intensity(
             corr_det_data,
             self._radial_bin_pixel_map
         )
@@ -448,7 +452,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         )
 
         if self._scale:
-            radial = swaxs.scale_profile(
+            radial = swaxs_algs.scale_profile(
                 radial_profile=unscaled_radial,
                 min_radial_bin=self._scale_region_begin,
                 max_radial_bin=self._scale_region_end
@@ -459,6 +463,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
         else:
             subtracted_profile = radial
 
+        pixel_size = 1./list(self.geometry['panels'].items())[0][1]['res']
+        coffset = list(self.geometry['panels'].items())[0][1]['coffset']
+
+        q = swaxs_algs.pix2q(
+            detector_distance = data['detector_distance'], 
+            beam_energy = data['beam_energy'], 
+            pixel_size = pixel_size, 
+            bins = self._radial_bins, 
+            coffset = coffset, 
+            dr = self.dr
+            )
+
+        results_dict['q'] = q
         results_dict['radial'] = subtracted_profile
         results_dict['intensity_sum'] = intensity_sum
         results_dict['hit_flag'] = hit
@@ -467,34 +484,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
         results_dict['optical_laser_active'] = data['optical_laser_active']
-
-        if hit:
-            if self._hit_frame_sending_interval:
-                self._hit_frame_sending_counter += 1
-
-                if (
-                        self._hit_frame_sending_counter ==
-                        self._hit_frame_sending_interval
-                ):
-                    # If the frame is a hit, and if the
-                    # 'hit_sending_interval' attribute says we should
-                    # send the detector frame data to the master node,
-                    # add it to the dictionary (and reset the counter).
-                    self._hit_frame_sending_counter = 0
-
-        else:
-            if self._non_hit_frame_sending_interval:
-                self._non_hit_frame_sending_counter += 1
-
-                if (
-                        self._non_hit_frame_sending_counter ==
-                        self._non_hit_frame_sending_interval
-                ):
-                    # If the frame is not a  hit, and if the
-                    # 'frame_sending_interval' attribute says we should
-                    # send the detector frame data to the master node,
-                    # add it to the dictionary (and reset the counter).
-                    self._non_hit_frame_sending_counter = 0
 
         return results_dict, self.rank
 
@@ -533,17 +522,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         radial = results_dict['radial']
 
-        # TODO: Danger! Does this list grow indefinitely?
-        self.intensity_sums.append(results_dict['intensity_sum'])
-
         self._intensity_sum_hist += numpy.histogram(
             results_dict['intensity_sum'],
             self._intensity_sum_hist_bins
         )[0]
 
         results_dict['intensity_sum_hist'] = self._intensity_sum_hist
-        results_dict['intendity_sum_hist_bins'] = self._intensity_sum_hist_bins
-        results_dict['intensity_sums'] = self.intensity_sums
+        results_dict['intensity_sum_hist_bins'] = self._intensity_sum_hist_bins[1:]
         unscaled_radial = results_dict['unscaled_radial']
         results_dict['hit_rate'] = avg_hit_rate
 
@@ -552,43 +537,120 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # help to mitigate noise from weak profiles.
 
         if self._pump_probe:
-
             if results_dict['optical_laser_active']:
                 self._num_pumped += 1
-                self._cumulative_pumped += unscaled_radial
-                self._cumulative_pumped_avg = (
-                    self._cumulative_pumped / self._num_pumped
-                )
-                if self._scale:
-                    self._cumulative_pumped_avg = swaxs.scale_profile(
-                        self._cumulative_pumped_avg,
-                        self._scale_region_begin,
-                        self._scale_region_end,
+                #calculate average of all (cumulative) and recent events
+                if results_dict['hit_flag']:
+                    self._cumulative_pumped += unscaled_radial
+                    self._cumulative_pumped_avg = (
+                        self._cumulative_pumped / self._num_pumped
                     )
+                    #here, calculate running average over recent images only
+                    self._recent_pumped_profiles = numpy.roll(self._recent_pumped_profiles,-1,axis=0)
+                    self._recent_pumped_profiles[-1] = unscaled_radial
+                    self._recent_pumped_avg = numpy.mean(self._recent_pumped_profiles,axis=0)
+                    if self._scale:
+                        self._cumulative_pumped_avg = swaxs_algs.scale_profile(
+                            self._cumulative_pumped_avg,
+                            self._scale_region_begin,
+                            self._scale_region_end
+                        )
+                        self._recent_pumped_avg = swaxs_algs.scale_profile(
+                            self._recent_pumped_avg,
+                            self._scale_region_begin,
+                            self._scale_region_end
+                        )
+
+                #calculate hit rate for pumped events
+                self._pumped_hit_rate_run_wdw.append(
+                    float(
+                        results_dict['hit_flag']
+                    )
+                )
+                # Divide by the window size, but only if the window has already
+                # been filled with events. Otherwise take the number of events
+                # that the window actually contains.
+                pumped_avg_hit_rate = (
+                    sum(self._pumped_hit_rate_run_wdw) /
+                    min(self._run_avg_wdw_size, self._num_pumped)
+                )
+                results_dict['pumped_hit_rate'] = pumped_avg_hit_rate
+                #still need to send something to the GUI for dark_hit_rate
+                #since GUI doesnt read monitor.ini, so doesnt know pump-probe expt
+                #so send a negative number, then check for negative in the GUI
+                results_dict['dark_hit_rate'] = -1
+
             else:
                 self._num_dark += 1
-                self._cumulative_dark += unscaled_radial
-                self._cumulative_dark_avg = (
-                    self._cumulative_dark / self._num_dark
-                )
-                if self._scale:
-                    self._cumulative_dark_avg = swaxs.scale_profile(
-                        self._cumulative_dark_avg,
-                        self._scale_region_begin,
-                        self._scale_region_end,
+                if results_dict['hit_flag']:
+                    self._cumulative_dark += unscaled_radial
+                    self._cumulative_dark_avg = (
+                        self._cumulative_dark / self._num_dark
                     )
+                    #here, calculate running average over recent images only
+                    self._recent_dark_profiles = numpy.roll(self._recent_dark_profiles,-1,axis=0)
+                    self._recent_dark_profiles[-1] = unscaled_radial
+                    self._recent_dark_avg = numpy.mean(self._recent_dark_profiles,axis=0)
+                    if self._scale:
+                        self._cumulative_dark_avg = swaxs_algs.scale_profile(
+                            self._cumulative_dark_avg,
+                            self._scale_region_begin,
+                            self._scale_region_end
+                        )
+                        self._recent_dark_avg = swaxs_algs.scale_profile(
+                            self._recent_dark_avg,
+                            self._scale_region_begin,
+                            self._scale_region_end
+                        )
+
+                self._dark_hit_rate_run_wdw.append(
+                    float(
+                        results_dict['hit_flag']
+                    )
+                )
+                # Divide by the window size, but only if the window has already
+                # been filled with events. Otherwise take the number of events
+                # that the window actually contains.
+                dark_avg_hit_rate = (
+                    sum(self._dark_hit_rate_run_wdw) /
+                    min(self._run_avg_wdw_size, self._num_dark)
+                )
+                results_dict['dark_hit_rate'] = dark_avg_hit_rate
+                #still need to send something to the GUI for pumped_hit_rate
+                #since GUI doesnt read monitor.ini, so doesnt know pump-probe expt
+                #so send a negative number, then check for negative in the GUI
+                results_dict['pumped_hit_rate'] = -1
 
             self._cumulative_radial_avg = (
                 self._cumulative_pumped_avg - self._cumulative_dark_avg
             )
+            self._recent_radial_avg = (
+                self._recent_pumped_avg - self._recent_dark_avg
+            )
 
-            results_dict['radial'] = radial - self._cumulative_dark_avg
+            results_dict['cumulative_pumped_avg'] = self._cumulative_pumped_avg
+            results_dict['cumulative_dark_avg'] = self._cumulative_dark_avg
+            results_dict['diff'] = (radial - self._cumulative_dark_avg) #* results_dict['intensity_sum']
 
         else:
-            self._cumulative_radial += unscaled_radial
-            self._cumulative_radial_avg = self._cumulative_radial / self._num_events
+            if results_dict['hit_flag']:
+                self._cumulative_radial += unscaled_radial
+                self._cumulative_radial_avg = self._cumulative_radial / self._num_events
+                self._recent_profiles = numpy.roll(self._recent_profiles,-1,axis=0)
+                self._recent_profiles[-1] = unscaled_radial
+                self._recent_radial_avg = numpy.mean(self._recent_profiles,axis=0)
+            results_dict['pumped_hit_rate'] = -1
+            results_dict['dark_hit_rate'] = -1
+            results_dict['diff'] = radial*0
+            results_dict['cumulative_pumped_avg'] = radial*0
+            results_dict['cumulative_dark_avg'] = radial*0
 
-        results_dict['cumulative_radial'] = self._cumulative_radial_avg
+        #scale cumulative and recent radials by the average total intensity, which can be estimated from the histogram
+        scale_factor = 1 #numpy.sum(results_dict['intensity_sum_hist'] * results_dict['intensity_sum_hist_bins'])/self._num_events
+        results_dict['cumulative_radial'] = self._cumulative_radial_avg * scale_factor
+        results_dict['recent_radial'] = self._recent_radial_avg * scale_factor
+
+        #print(results_dict['radial'][:3],results_dict['diff'][:3])
 
         # Inject additional information into the dictionary that will
         # be stored in the data accumulator end eventually sent out
