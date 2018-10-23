@@ -22,6 +22,8 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import str  # pylint: disable=W0622
 
+from scipy import constants
+
 from onda.utils import exceptions
 
 
@@ -116,3 +118,53 @@ class MonitorParams(object):
                     return ret
             else:
                 return ret
+
+
+def beam_energy_from_monitor_params(event):
+    """
+    Retrieve the beam energy from the configuration file.
+
+    The beam energy should be stored in the 'General' section under the
+    'fallback_beam_energy' entry.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        float: the energy of the beam in J.
+    """
+    return float(
+        event['monitor_params'].get_param(
+            section='General',
+            parameter='fallback_beam_energy',
+            type_=float,
+            required=True
+        )
+    ) * constants.electron_volt
+
+
+def detector_distance_from_monitor_params(event):
+    """
+    Retrieve the beam energy from the configuration file.
+
+    The beam energy should be stored in the 'General' section under the
+    'fallback_detector_distance' entry.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        float: the distance between the detector and the sample in m.
+    """
+    return float(
+        event['monitor_params'].get_param(
+            section='General',
+            parameter='fallback_detector_distance',
+            type_=float,
+            required=True
+        )
+    )

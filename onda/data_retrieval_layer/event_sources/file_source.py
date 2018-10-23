@@ -12,11 +12,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Retrieval of events from files.
 
-This module contains the implementation of event handling functions
-used to retrieve data stored in files.
+Functions and classes used to retrieve data events from files.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -25,15 +27,21 @@ import os.path
 import numpy
 from future.utils import raise_from
 
-from onda.utils import dynamic_import
+
+############################
+#                          #
+# EVENT HANDLING FUNCTIONS #
+#                          #
+############################
 
 
-def initialize_event_source(source,  # pylint: disable=W0613
-                            node_rank,  # pylint: disable=W0613
-                            mpi_pool_size,  # pylint: disable=W0613
-                            monitor_params):  # pylint: disable=W0613
+def initialize_event_source(
+        source,
+        mpi_pool_size,
+        monitor_params
+):
     """
-    Initialize the event source.
+    Initializes the file event source.
 
     This function must be called on the master node before the
     :obj:`event_generator` function is called on the worker nodes.
@@ -43,8 +51,6 @@ def initialize_event_source(source,  # pylint: disable=W0613
         source (str): full path to a file containing the list of
             files to process (one per line, with their full path).
 
-        node_rank (int): rank of the node where the function is called.
-
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
@@ -52,25 +58,24 @@ def initialize_event_source(source,  # pylint: disable=W0613
             :obj:`~onda.utils.parameters.MonitorParams` object
             containing the monitor parameters from the configuration
             file.
-
-     Yields:
-
-        Dict: A dictionary containing the data and metadata of an
-        event.
     """
+    del source
+    del mpi_pool_size
+    del monitor_params
     # There is no event source to initialize when recovering events
-    # from files, so do nothing.
-    pass
+    # from files, so does nothing.
 
 
-def event_generator(source,
-                    node_rank,
-                    mpi_pool_size,
-                    monitor_params):  # pylint: disable=W0613
+def event_generator(
+        source,
+        node_rank,
+        mpi_pool_size,
+        monitor_params
+):
     """
-    Initialize the event recovery from files.
+    Initializes the recovery of events from files.
 
-    Return an iterator over the events that should be processed by the
+    Returns an iterator over the events that should be processed by the
     worker that calls the function. This function must be called on
     each worker node after the :obj:`initialize_event_source` function
     has been called on the master node.
@@ -79,9 +84,6 @@ def event_generator(source,
 
         source (str): the full path to a file containing the list of
             files to be processed (their full path).
-
-        node_role (str): a string describing the role of the node
-            where the function is called ('worker' or 'master').
 
         node_rank (int): rank of the node where the function is called.
 
@@ -95,31 +97,28 @@ def event_generator(source,
 
     Yields:
 
-        Dict: A dictionary containing the metadata (full path, etc. )
-        of a file from thelist.
+        Dict: A dictionary containing the metadata and data of an event
+        (1 event = 1file).
     """
+    del monitor_params
     try:
         with open(source, 'r') as fhandle:
             filelist = fhandle.readlines()
     except (IOError, OSError):
         raise_from(
             exc=RuntimeError(
-                "Error reading the {} source file.".format(
-                    source
-                )
+                "Error reading the {} source file.".format(source)
             ),
             cause=None
         )
 
-    # Compute how many files the current worker node should
-    # process. Split the files as equally as possible amongst the
+    # Computes how many files the current worker node should
+    # process. Splits the files as equally as possible amongst the
     # workers with the last worker getting a smaller number of
     # files if the number of files to be processed cannot be
     # exactly divided by the number of workers.
     num_files_curr_node = int(
-        numpy.ceil(
-            len(filelist) / float(mpi_pool_size - 1)
-        )
+        numpy.ceil(len(filelist) / float(mpi_pool_size - 1))
     )
 
     files_curr_node = filelist[
@@ -136,49 +135,3 @@ def event_generator(source,
         event['timestamp'] = os.stat(stripped_entry).st_mtime
 
         yield event
-
-
-class EventFilter(object):
-    """
-    See __init__ for documentation.
-    """
-
-    def __init__(self,
-                 monitor_params):
-        """
-        Filter events based on file extensions.
-
-        Reject files whose extensions are not allowed for the
-        detector(s) being used.
-
-        Args:
-
-            monitor_params (MonitorParams): a
-                :obj:`~onda.utils.parameters.MonitorParams` object
-                containing the monitor parameters from the
-                configuration file.
-        """
-        self._file_extensions = dynamic_import.get_file_extensions(
-            monitor_params
-        )
-
-    def should_reject(self,
-                      event):
-        """
-        Decide if the event should be rejected.
-
-        Args:
-
-            event (Dict): a dictionary with the event data.
-
-        Returns:
-
-            bool: True if the event should be rejected. False if the
-            event should be processed.
-        """
-        if os.path.basename(
-                event['full_path']
-        ).endswith(self._file_extensions):
-            return False
-        else:
-            return True

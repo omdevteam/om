@@ -12,13 +12,15 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Manipulation of CBF files.
 
-This module contains the implementation of several functions used to
-manipulate CBF files.
+Classes and functions used to manipulate files in CBF format.
 """
-from __future__ import absolute_import, division, print_function,
+from __future__ import absolute_import, division, print_function
 
 from future.utils import raise_from
 
@@ -29,8 +31,9 @@ try:
 except ImportError:
     raise_from(
         exc=exceptions.MissingDependency(
-            "The petra3_pilatus module could not be loaded. The following "
-            "dependency does not appear to be available on the system: fabio."
+            "The cbf_files module could not be loaded. The following"
+            "dependency does not appear to be available on the "
+            "system: fabio."
         ),
         cause=None
     )
@@ -38,28 +41,28 @@ except ImportError:
 
 def open_event(event):
     """
-    Open the event.
+    Opens a CBF file event.
 
-    Make the content of the event (file) available in the 'data' entry
+    Makes the content of the event (file) available in the 'data' entry
     of the event dictionary.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Open the CBF file using the fabio library and saved the content
+    # Opens the CBF file using the fabio library and saves the content
     # (stored as a cbf_obj object) in the 'data' entry of the event
     # dictionary.
     event['data'] = fabio.open(event['full_path'])
 
 
-def close_event(_):
+def close_event(event):
     """
-    Close event.
+    Closes an CBF file event.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Do nothing: CBF files do not need to be closed.
-    pass
+    del event
+    # The function does nothing: CBF files do not need to be closed.

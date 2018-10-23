@@ -12,18 +12,19 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Retrieval of data from the Lambda detector at Petra III.
 
-This module contains the implementation of several functions used to
-retrieve data from the Lambda detector as used at the Petra III
-facility.
+Functions and classes used to retrieve data from the Lambda detector as
+used at the Petra III facility.
 """
 from __future__ import absolute_import, division, print_function
 
 from onda.data_retrieval_layer.file_formats import hdf5_files
 from onda.utils import named_tuples
-
 
 #####################
 #                   #
@@ -31,20 +32,27 @@ from onda.utils import named_tuples
 #                   #
 #####################
 
+
 def get_file_extensions():
     """
-    Retrieve allowed files extensions.
+    Extensions used for Lambda files at Petra III.
+
+    Returns the extensions used for files written by the Lambda
+    detector at the Petra III facility.
 
     Returns:
 
-        Tuple[str]: the list of allowed file extensions.
+        Tuple[str]: the list of file extensions.
     """
     return (".nxs", ".h5")
 
 
 def get_peakfinder8_info():
     """
-    Retrieve the peakfinder8 detector information.
+    Peakfinder8 info for the Eiger detector at LCLS.
+
+    Retrieves the peakfinder8 information matching the data format used
+    by the Lambda detector at the Petra III facility.
 
     Returns:
 
@@ -65,15 +73,17 @@ def get_peakfinder8_info():
 #                          #
 ############################
 
-open_event = hdf5_files.open_event  # pylint: disable=C0103
+open_event = hdf5_files.open_event  # pylint: disable=invalid-name
 
-
-close_event = hdf5_files.close_event  # pylint: disable=C0103
+close_event = hdf5_files.close_event  # pylint: disable=invalid-name
 
 
 def get_num_frames_in_event(event):
     """
-    Retrieve the number of frames in the event.
+    Number of Lambda frames in  Petra III event.
+
+    Returns the number of Lambda detector frames in an event retrieved
+    at the Petra III facility (1 event = 1 file).
 
     Args:
 
@@ -81,22 +91,26 @@ def get_num_frames_in_event(event):
 
     Retuns:
 
-        int: the number of frames in an event.
+        int: the number of frames in the event.
     """
     # The number of frames in an event is the length of the first axis
     # in the data block where the data is stored.
     return event['data']['/entry/instrument/detector/data'].shape[0]
 
 
-#############################################
-#                                           #
-# PETRAIII-LAMBDA DATA EXTRACTION FUNCTIONS #
-#                                           #
-#############################################
+#############################
+#                           #
+# DATA EXTRACTION FUNCTIONS #
+#                           #
+#############################
+
 
 def detector_data(event):
     """
-    Retrieve one frame of detector data.
+    One frame of Lambda detector data at Petra III.
+
+    Extracts one frame of Lambda detector data from an event retrieved
+    at the Petra III facility.
 
     Args:
 
@@ -104,7 +118,7 @@ def detector_data(event):
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        ndarray: one frame of detector data.
     """
     data_block = event['data']['/entry/instrument/detector/data']
     return data_block[event['frame_offset']]
@@ -112,7 +126,11 @@ def detector_data(event):
 
 def filename_and_frame_index(event):
     """
-    Retrieve the filename and frame index of the frame being processed.
+    Filename and frame index of the current frame.
+
+    For Lambda events retrieved at the Petra III facility, returns the
+    name of the file where the current frame can be found, together
+    with the index of the frame in the file.
 
     Args:
 

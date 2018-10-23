@@ -12,9 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Algorithms for OnDA.
+OnDA algorithms.
 
-This package contains the implementation of several algorithms
-(classes) used to perform calculations and operations on the data.
+OnDA algorithms that can be used to perform various calculations and
+operations on the data.
 """

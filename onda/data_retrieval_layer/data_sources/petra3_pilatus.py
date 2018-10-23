@@ -12,12 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Retrieval of data from the Pilatus detector at Petra III.
 
-This module contains the implementation of several functions used to
-retrieve data from the Pilatus detector as used at the Petra III
-facility.
+Functions and classes used to retrieve data from the Pilatus detector
+as used at the Petra III facility.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -38,27 +40,33 @@ except ImportError:
         cause=None
     )
 
-
 #####################
 #                   #
 # UTILITY FUNCTIONS #
 #                   #
 #####################
 
+
 def get_file_extensions():
     """
-    Retrieve allowed files extensions.
+    Extensions used for Lambda files at Petra III.
+
+    Returns the extensions used for files written by the Lambda
+    detector at the Petra III facility.
 
     Returns:
 
-        Tuple[str]: the list of allowed file extensions.
+        Tuple[str]: the list of file extensions.
     """
     return (".nxs", ".h5")
 
 
 def get_peakfinder8_info():
     """
-    Retrieve the peakfinder8 detector information.
+    Peakfinder8 info for the Pilatus detector at LCLS.
+
+    Retrieves the peakfinder8 information matching the data format used
+    by the Pilatus detector at the Petra III facility.
 
     Returns:
 
@@ -79,51 +87,56 @@ def get_peakfinder8_info():
 #                          #
 ############################
 
+
 def open_event(event):
     """
-    Open the event.
+    Opens a Pilatus event retrieved at Petra III.
 
-    Make the content of the event available in the 'data' entry of the
-    event dictionary.
+    Makes the content of a Pilatus event retrieved at the petra III
+    facility available in the 'data' entry of the event dictionary.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Wrap the binary data that HiDRA streams to OnDA in a BytesIO
+    # Wraps the binary data that HiDRA sends to OnDA in a BytesIO
     # object.
     byio_data = io.BytesIO(event['data'])
 
-    # Read the data that using the fabio library and store the content
-    # as a cbf_obj object in the 'data' entry of the event dictionary.
+    # Reads the data using the fabio library and stores the content as
+    # a cbf_obj object in the 'data' entry of the event dictionary.
     cbf_image = fabio.cbfimage.CbfImage()
     event['data'] = cbf_image.read(byio_data)
 
 
-def close_event(_):
+def close_event(event):
     """
-    Close the event.
+    Closes a Pilatus event retrieved at Petra III.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Do nothing: cbf_obj objects don't need to be closed.
-    pass
+    del event
+    # Does nothing: cbf_obj objects don't need to be closed.
 
 
-def get_num_frames_in_event(_):
+def get_num_frames_in_event(event):
     """
-    Retrieve the number of frames in the event.
+    Number of Pilatus frames in  Petra III event.
+
+    Returns the number of Lambda detector frames in an event retrieved
+    at the Petra III facility (1 event = 1 file).
 
     Args:
 
         event (Dict): a dictionary with the event data.
 
-    Returns:
+    Retuns:
 
-        int: the number of frames in an event.
+        int: the number of frames in the event.
     """
+    del event
     # Each event from a Pilatus detector usually contains only a single
     # frame.
     return 1
@@ -135,9 +148,13 @@ def get_num_frames_in_event(_):
 #                           #
 #############################
 
+
 def detector_data(event):
     """
-    Retrieve one frame of detector data.
+    One frame of Pilatus detector data at Petra III.
+
+    Extracts one frame of Pilatus detector data from an event retrieved
+    at the Petra III facility.
 
     Args:
 
@@ -145,16 +162,20 @@ def detector_data(event):
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        ndarray: one frame of detector data.
     """
-    # Extract frame information from the data stored in the event
+    # Extracts frame information from the data stored in the event
     # dictionary.
     return event['data'].data
 
 
 def filename_and_frame_index(event):
     """
-    Retrieve the filename and frame index of the frame being processed.
+    Filename and frame index of the current frame.
+
+    For Pilatus events retrieved at the Petra III facility, returns the
+    name of the file where the current frame can be found, together
+    with the index of the frame in the file.
 
     Args:
 

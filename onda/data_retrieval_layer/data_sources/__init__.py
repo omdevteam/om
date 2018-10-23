@@ -12,9 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Retrieval of data from detectors and other sensors.
 
-This package contains the implementations of functions used to extract
-and retrieve data from detectors and other sensors.
+Classes and functions used to extract and retrieve data from detectors
+and other sensors.
 """

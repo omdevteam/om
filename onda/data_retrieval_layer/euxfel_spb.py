@@ -12,16 +12,31 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Data retrieval from files using the Jungfrau 1M detector.
+Data retrieval at the SPB beamline of XFEL.
 
-This module collects several functions and classes used to manage
-events and retrieve data when reading Jungfrau 1M data from files.
+Classes and functions used to retrieve and extract data at the SPB
+beamline of the European XFEL facility.
 """
 from __future__ import absolute_import, division, print_function
 
 from onda.data_retrieval_layer.data_sources import euxfel_agipd
 from onda.data_retrieval_layer.facility_profiles import euxfel_karabo
+
+
+#####################
+#                   #
+# UTILITY FUNCTIONS #
+#                   #
+#####################
+
+
+get_peakfinder8_info_detector_data = (  # pylint: disable=invalid-name
+    euxfel_agipd.get_peakfinder8_info
+)
 
 
 ############################
@@ -30,37 +45,38 @@ from onda.data_retrieval_layer.facility_profiles import euxfel_karabo
 #                          #
 ############################
 
-initialize_event_source = (  # pylint: disable=C0103
+
+initialize_event_source = (  # pylint: disable=invalid-name
     euxfel_karabo.initialize_event_source
 )
 
 
-event_generator = (  # pylint: disable=C0103
+event_generator = (  # pylint: disable=invalid-name
     euxfel_karabo.event_generator
 )
 
 
-EventFilter = (  # pylint: disable=C0103
+EventFilter = (  # pylint: disable=invalid-name
     euxfel_karabo.EventFilter
 )
 
 
-FrameFilter = (  # pylint: disable=C0103
+FrameFilter = (  # pylint: disable=invalid-name
     euxfel_karabo.FrameFilter
 )
 
 
-open_event = (  # pylint: disable=C0103
+open_event = (  # pylint: disable=invalid-name
     euxfel_karabo.open_event
 )
 
 
-close_event = (  # pylint: disable=C0103
+close_event = (  # pylint: disable=invalid-name
     euxfel_karabo.close_event
 )
 
 
-get_num_frames_in_event = (  # pylint: disable=C0103
+get_num_frames_in_event = (  # pylint: disable=invalid-name
     euxfel_agipd.get_num_frames_in_event
 )
 
@@ -71,32 +87,22 @@ get_num_frames_in_event = (  # pylint: disable=C0103
 #                           #
 #############################
 
-detector_data = (  # pylint: disable=C0103
+
+detector_data = (  # pylint: disable=invalid-name
     euxfel_agipd.detector_data
 )
 
 
-timestamp = (  # pylint: disable=C0103
+timestamp = (  # pylint: disable=invalid-name
     euxfel_karabo.timestamp
 )
 
 
-detector_distance = (  # pylint: disable=C0103
-    euxfel_karabo.detector_distance)
-
-
-beam_energy = (  # pylint: disable=C0103
-    euxfel_karabo.beam_energy
+detector_distance = (  # pylint: disable=invalid-name
+    euxfel_karabo.detector_distance
 )
 
 
-############################
-#                          #
-# EVENT HANDLING FUNCTIONS #
-#                          #
-############################
-
-
-get_peakfinder8_info_detector_data = (  # pylint: disable=C0103
-    euxfel_agipd.get_peakfinder8_info
+beam_energy = (  # pylint: disable=invalid-name
+    euxfel_karabo.beam_energy
 )

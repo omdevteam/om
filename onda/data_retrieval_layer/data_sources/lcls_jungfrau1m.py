@@ -12,12 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Retrieval of data from the Jungfrau 1M detector at LCLS.
 
-This module contains the implementation of several functions used to
-retrieve data from the Jungfrau 1M detector as used at the LCLS
-facility.
+Functions and classes used to retrieve data from the EPIX detector as
+used at the LCLS facility.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -30,9 +32,13 @@ from onda.utils import named_tuples
 #                   #
 #####################
 
+
 def get_peakfinder8_info():
     """
-    Retrieve the peakfinder8 detector information.
+    Peakfinder8 info for the Jungfrau 1M detector at LCLS.
+
+    Retrieves the peakfinder8 information matching the data format used
+    by the Jungfrau 1M detector at the LCLS facility.
 
     Returns:
 
@@ -47,33 +53,50 @@ def get_peakfinder8_info():
     )
 
 
-def detector_data(event,
-                  data_extraction_func_name):
+#############################
+#                           #
+# DATA EXTRACTION FUNCTIONS #
+#                           #
+#############################
+
+
+
+def detector_data(
+        event,
+        data_extraction_func_name
+):
     """
-    Retrieve one frame of detector data.
+    One frame of Jungfrau 1M detector data at LCLS.
+
+    Extracts one frame of Jungfrau 1M detector data from an event
+    retrieved at the LCLS facility.
 
     Args:
 
         event (Dict): a dictionary with the event data.
 
-        data_extraction_func_name (str): the name of the data
-          extraction function ("detector_data", "detector2_data",
-          "detector3_data", etc.) that is associated with the current
-          detector.
+        data_extraction_func_name: specific name of the data extraction
+            function with which this generic data extraction function
+            should be associated (e.g: 'detector_data',
+            'detector2_data'. 'detector3_data', etc.). This is required
+            to resuse this data extraction function with multiple
+            detectors. The `functools.partial` python function is used
+            to create 'personalized' versions of this function for each
+            detector, by fixing this argument.
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        ndarray: one frame of detector data.
     """
-    # Recover the data from psana.
+    # Recovers the data from psana.
     cspad_psana = (
         event['psana_detector_interface'][data_extraction_func_name].calib(
             event['psana_event']
         )
     )
 
-    # Rearrange the data into 'slab' format.
+    # Rearranges the data into 'slab' format.
     cspad_reshaped = cspad_psana.reshape(1024, 1024)
 
-    # Retrun the rearranged data.
+    # Retruns the rearranged data.
     return cspad_reshaped

@@ -12,9 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Manipulation of files in various formats.
 
-This package contains the implementation of several functions used
-to manipulate files in several different formats.
+Classes and functions used to manipulate files in several different
+formats.
 """

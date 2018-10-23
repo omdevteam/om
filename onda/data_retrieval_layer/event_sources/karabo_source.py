@@ -12,11 +12,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Retrieval of events from Karabo.
+Retrieval of events from HiDRA.
 
-This module contains the implementation of event handling functions
-used to retrieve data from Karabo.
+Functions and classes used to retrieve data events from Karabo.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -24,26 +26,35 @@ import sys
 
 import numpy
 from future.utils import raise_from
+
 from onda.data_retrieval_layer.event_sources.karabo_api import client
 from onda.utils import exceptions
 
 
-def initialize_event_source(source,  # pylint: disable=W0613
-                            node_rank,  # pylint: disable=W0613
-                            mpi_pool_size,  # pylint: disable=W0613
-                            monitor_params):  # pylint: disable=W0613
+############################
+#                          #
+# EVENT HANDLING FUNCTIONS #
+#                          #
+############################
+
+
+def initialize_event_source(
+        source,
+        mpi_pool_size,
+        monitor_params
+):
     """
-    Initialize the event source.
+    Initializes the Karabo event source.
 
     This function must be called on the master node before the
     :obj:`event_generator` function is called on the worker nodes.
 
     Args:
 
-        source (str): full path to a file containing the list of
-            files to process (one per line, with their full path).
-
-        node_rank (int): rank of the node where the function is called.
+        source (str): a string containing the IP address (or the
+            hostname) and the port of the machine where the Karabo
+            Bridge is running, separated by a colon (i.e:
+            'ip:port').
 
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
@@ -52,32 +63,33 @@ def initialize_event_source(source,  # pylint: disable=W0613
             :obj:`~onda.utils.parameters.MonitorParams` object
             containing the monitor parameters from the configuration
             file.
-
-     Yields:
-
-        Dict: A dictionary containing the data and metadata of an
-        event.
     """
-    # Karabo needs no initialization, so do nothing.
-    pass
+    del source
+    del mpi_pool_size
+    del monitor_params
+    # Karabo needs no initialization, so the function does nothing.
 
 
-def event_generator(source,
-                    node_rank,
-                    mpi_pool_size,  # pylint: disable=W0613
-                    monitor_params):  # pylint: disable=W0613
+def event_generator(
+        source,
+        node_rank,
+        mpi_pool_size,
+        monitor_params
+):
     """
-    Initialize the event recovery from Karabo.
+    Initializes the recovery of events from Karabo.
 
-    Return an iterator over the events that should be processed by the
+    Returns an iterator over the events that should be processed by the
     worker that calls the function. This function must be called on
     each worker node after the :obj:`initialize_event_source` function
     has been called on the master node.
 
     Args:
 
-        source (str): the IP or hostname of the machine where HiDRA is
-            running.
+        source (str): a string containing the IP address (or the
+            hostname) and the port of the machine where the Karabo
+            Bridge is running, separated by a colon (i.e:
+            'ip:port').
 
         node_rank (int): rank of the node where the function is called.
 
@@ -91,9 +103,11 @@ def event_generator(source,
 
     Yields:
 
-        Dict: A dictionary containing the data and metadata of an
-        event.
+        Dict: A dictionary containing the metadata and data of an event
+        (at XFEL: 1 event = 1 train).
     """
+    del mpi_pool_size
+    del monitor_params
     source_parts = source.split(':')
     try:
         hostname = source_parts[0]
@@ -115,7 +129,7 @@ def event_generator(source,
     )
     sys.stdout.flush()
 
-    # Connect to the Karabo Bridge using the Karabo API.
+    # Connects to the Karabo Bridge using the Karabo API.
     krb_client = client.Client('tcp://{}'.format(source))
     while True:
         event = {}
@@ -123,49 +137,41 @@ def event_generator(source,
 
         event['timestamp'] = numpy.float64(
             str(
-                event[
-                    'metadata'
-                ][
-                    'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-                ][
-                    'timestamp.sec'
-                ]
+                event['metadata']['SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED']
+                ['timestamp.sec']
             ) + '.' + str(
-                event[
-                    'metadata'
-                ][
-                    'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-                ][
-                    'timestamp.frac'
-                ]
+                event['metadata']['SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED']
+                ['timestamp.frac']
             )
         )
 
         yield event
 
 
-def open_event(event):  # pylint: disable=W0613
+def open_event(event):
     """
-    Open the event.
+    Opens an event retrieved from Karabo.
 
-    Make the content of the event available in the 'data' entry of the
-    event dictionary.
+    Makes the content of a retrieved Karabo event available in the
+    'data' entry of the event dictionary.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Karabo events do not need to be opened. Do nothing.
-    pass
+    del event
+    # Karabo events do not need to be opened. this function does
+    # nothing.
 
 
-def close_event(event):  # pylint: disable=W0613
+def close_event(event):
     """
-    Close the event.
+    Closes an event retrieved from Karabo.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Karabo events do not need to be closed. Do nothing.
-    pass
+    del event
+    # Karabo events do not need to be closed. This function does
+    # nothing.
