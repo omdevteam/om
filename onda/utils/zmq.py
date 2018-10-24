@@ -12,11 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-ZMQ-based data broadcasting and receiving.
+ZMQ-based data broadcasting and receiving for OnDA.
 
-This module contains the implementation of several ZMQ-based classes
-that can used by OnDA montiors and GUIs to broadcast and receive data.
+ZMQ-based functions and classes used by OnDA monitors and GUIs to
+broadcast and receive data.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -37,16 +40,18 @@ except ImportError:
 
 class DataBroadcaster(object):
     """
-    See __init__ for documentation.
+    ZMQ-based data-broadcasting socket for OnDA monitors.
+
+    A broadcasting socket based on a ZMQ PUB socket. The socket sends
+    tagged data, supports multiple clients and has no queuing system:
+    it drops messages that are not received by clients. It broadcasts
+    the data using the MessagePack protocol, which is
+    language-independent.
     """
 
     def __init__(self, publish_ip=None, publish_port=None):
         """
-        ZMQ-based data-broadcasting socket for OnDA monitors.
-
-        The socket supports multiple clients (it is based on the ZMQ
-        PUB socket). It also has no queuing system: it drops messages
-        that are not received by clients.
+        Initializes the DataBroadcaster class.
 
         Args:
 
@@ -59,14 +64,15 @@ class DataBroadcaster(object):
                 Defaults to None.
         """
         self._context = zmq.Context()
-        self._sock = self._context.socket(zmq.PUB)  # pylint: disable=E1101
+        self._sock = self._context.socket(
+            zmq.PUB  # pylint: disable=no-member
+        )
 
         if publish_ip is not None:
             pip = publish_ip
         else:
-
-            # If required, use the socket module to autodetect the
-            # hostname of the machine where the OnDA monitor is
+            # If required, uses the python socket module to autodetect
+            # the hostname of the machine where the OnDA monitor is
             # running.
             pip = [
                 (
@@ -88,20 +94,20 @@ class DataBroadcaster(object):
         print('Binding to tcp://{0}:{1}'.format(pip, pport))
         sys.stdout.flush()
 
-        # Set a high water mark of 1 (A messaging queue 1 message
+        # Sets a high water mark of 1 (A messaging queue 1 message
         # long, so no queuing).
         self._sock.set_hwm(1)
         self._sock.bind('tcp://%s:%d' % (pip, pport))
 
     def send_data(self, tag, message):
         """
-        Broadcast data.
+        Broadcasts data.
 
-        Send data (a python object) through the broadcasting socket.
+        Sends data (a python object) through the broadcasting socket.
 
         Args:
 
-            tag (str): tag for the data to be sent.
+            tag (str): tag for the sent data.
 
             message (Any): a python object to be sent.
         """
@@ -113,7 +119,15 @@ class DataBroadcaster(object):
 
 class DataListener(QtCore.QObject):
     """
-    See __init__ for documentation.
+    ZMQ-based data listening socket for OnDA GUIs and clients.
+
+    A listening socket based on a ZMQ SUB socket. The socket receives
+    and filters tagged data, and has no queuing system: messages that
+    are not received are dropped. It receives data sent using the
+    MessagePack protocol and is designed to be used in a separate Qt
+    listening thread. The DataListener checks continuously if data is
+    coming through the socket. Every time data comes, it emits a custom
+    Qt signal with the received data as payload.
     """
 
     zmqmessage = QtCore.pyqtSignal(list)
@@ -124,12 +138,7 @@ class DataListener(QtCore.QObject):
                  pub_port,
                  subscription_string):
         """
-        ZMQ-based listening socket for OnDA clients.
-
-        Designed to be used in a separate Qt listening thread. Check
-        continuously if data is coming through the socket. Emit a
-        custom Qt signal every time data is received through the
-        socket. Send the data together with the signal.
+        Initializes the DataListener class.
 
         Args:
 
@@ -140,13 +149,14 @@ class DataListener(QtCore.QObject):
                 broadcasting information.
 
             subscribe string (str): data tag to which the listener
-                should subscribe.
+                should subscribe. Data tagged with other tags is
+                discarded.
         """
         QtCore.QObject.__init__(self)
 
-        # These following information is needed to disconnect/reconnect
+        # The following information is needed to disconnect/reconnect
         # the socket without destroying and reinstantiating the
-        # listener.
+        # the DataListener.
         self._pub_hostname = pub_hostname
         self._pub_port = pub_port
         self._subscription_string = subscription_string
@@ -154,14 +164,14 @@ class DataListener(QtCore.QObject):
         self._zmq_subscribe = None
         self._zmq_poller = None
 
-        # Initialize the listening timer. Every time this timer ticks,
-        # try to read from the socket.
+        # Initializes the listening timer. Every time this timer ticks,
+        # the class tries to read from the socket.
         self._listening_timer = QtCore.QTimer()
         self._listening_timer.timeout.connect(self.listen)
 
     def start_listening(self):
         """
-        Connect to a broadcasting socket and start listening.
+        Connects and starts listening to a broadcasting socket.
         """
         print(
             "Connecting to tcp://{}:{}".format(
@@ -183,7 +193,7 @@ class DataListener(QtCore.QObject):
             optval=self._subscription_string
         )
 
-        # Set a high water mark of 1 (A messaging queue 1 message
+        # Sets a high water mark of 1 (A messaging queue 1 message
         # long, so no queuing).
         self._zmq_subscribe.set_hwm(1)
         self._zmq_poller = zmq.Poller()
@@ -196,7 +206,7 @@ class DataListener(QtCore.QObject):
 
     def stop_listening(self):
         """
-        Stop listening to a broadcasting socket and disconnect.
+        Stops listening to a broadcasting socket and disconnects.
         """
         self._listening_timer.stop()
         print(
@@ -218,9 +228,10 @@ class DataListener(QtCore.QObject):
 
     def listen(self):
         """
-        Listen for data.
+        Listens for data.
 
-        When data comes, emit a signal adding the data as payload.
+        When data comes, this function emits a signal, adding the
+        received data as payload.
         """
         socks = dict(self._zmq_poller.poll(0))
         if (
@@ -230,16 +241,15 @@ class DataListener(QtCore.QObject):
             full_msg = self._zmq_subscribe.recv_multipart()
             msgpack_msg = full_msg[1]
 
-            # Deserialize the message and emit the signal.
+            # Deserializes the message and emits the signal.
             msg = msgpack.unpackb(msgpack_msg)
             self.zmqmessage.emit(msg)
 
 
-# Monkey-patching msgpack-python to have non-copy serialization.
 
 def _patched_encode(obj, chain=None):
-    # 'encode' function from msgpack-python, patched to use the
-    # 'data' method as opposed to to to tobytes one
+    # This function is the 'encode' function from msgpack-numpy,
+    # patched to use the 'data' method as opposed to the 'tobytes' one.
     if isinstance(obj, numpy.ndarray):
         # If the dtype is structured, store the interface description;
         # otherwise, store the corresponding array protocol type string:
@@ -264,7 +274,8 @@ def _patched_encode(obj, chain=None):
     else:
         return obj if chain is None else chain(obj)
 
+# Monkey-patching msgpack-python to have non-copy serialization.
 msgpack_numpy.encode = _patched_encode
 
-# Initialization of msgpack-python
+# Initialization of msgpack-python.
 msgpack_numpy.patch()

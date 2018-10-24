@@ -12,10 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Data retrieval profiles for various facilities.
 
-This package contains the implementation of functions and classes used
-to retrieve data from different software frameworks at various
-facilities.
+Non detector-specific classes and functions used to retrieve and
+extract data at different facilities.
 """

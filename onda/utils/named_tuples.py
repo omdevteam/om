@@ -12,15 +12,15 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Named tuples for OnDA.
-
-This module contains the implementation of several named tuples used
-in OnDA.
+Named tuples used in OnDA.
 """
 from __future__ import absolute_import, division, print_function
-import collections
 
+import collections
 
 PeakList = collections.namedtuple(
     typename='PeakList',
@@ -34,9 +34,9 @@ PeakList = collections.namedtuple(
 A list of peaks detected in a detector frame.
 
 The first two fields, named 'fs' and 'ss' respectively, are
-lists which store fractional indexes locating the detected peaks in
-the slab-format detector frame data. The third field, named
-'intensity', is a list storing the integrated intensity of each peak.
+lists which store fractional indexes locating the detected peaks in a
+slab-format data array. The third field, named 'intensity', is a list
+storing the integrated intensity of each peak.
 """
 
 
@@ -53,8 +53,8 @@ QuadVmiPeaks = collections.namedtuple(
 A set of peaks from a VMI quad-type detector.
 
 Each of the four fields, named respectively 'x_1', 'x_2', 'y_1' and
-'y_2', stores a fractional index locating the peak on the waveform data
-of the detector wire with the same name.
+'y_2', stores a fractional index locating a peak in the waveform data
+array of the wire with the same name.
 """
 
 

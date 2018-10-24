@@ -12,11 +12,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 OnDA Monitor for serial x-ray crystallography.
 
-This module contains the implementation of an OnDA real-time monitor
-for serial x-ray crystallography experiments.
+An OnDA real-time monitor for serial x-ray crystallography experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -31,8 +33,8 @@ from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
 from onda.parallelization_layer import mpi
-from onda.utils import zmq as onda_zmq
 from onda.utils import named_tuples
+from onda.utils import zmq as onda_zmq
 from onda.utils.dynamic_import import get_peakfinder8_info
 
 
@@ -40,13 +42,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
     """
     An OnDA real-time monitor for serial crystallography experiments.
 
-    Provide real time hit and saturation rate information, plus a
-    virtual powder pattern-style plot of the processed data.
-    Optionally, apply detector calibration, dark calibration and gain
-    map correction to each frame.
+    This monitor provides real time hit and saturation rate
+    information, along with information about peaks detected in each
+    detector frame. Optionally, it applies detector calibration, dark
+    calibration and gain map correction to each frame.
 
-    Carry out the peak finding using the peakfinder8 algorithm from the
-    Cheetah software package:
+    It uses the peakfinder8 algorithm from the Cheetah software package
+    to detect peaks:
 
     A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon,
     T. A. White, and H. N. Chapman, "Cheetah: software for
@@ -54,35 +56,37 @@ class OndaMonitor(mpi.ParallelizationEngine):
     diffraction data," J Appl Crystallogr, vol. 47,
     pp. 1118-1131 (2014).
 
-    Broadcast reduced data for visualization. Optionally also broadcast
-    corrected frame data for visualization.
+    The monitor broadcasts hit, saturation and peak data for
+    visualization. Optionally, it can also broadcast corrected
+    detector frames.
     """
     def __init__(self,
                  source,
                  monitor_parameters):
         """
-        Initialize the OndaMonitor class.
+        Initializes the OndaMonitor class.
 
         Args:
 
             source (str): A string describing the data source. The
                 exact format of the string depends on the data recovery
-                layer used by the monitor (e.g:the string could be a
-                psana experiment descriptor at the LCLS facility, the
-                IP of the machine where HiDRA is running at the
-                PetraIII facility, etc.)
+                layer used by the monitor (e.g: the string could be a
+                psana experiment descriptor at the LCLS facility,
+                information on where HiDRA is running at the PetraIII
+                facility, etc.).
 
             monitor_params (MonitorParams): a
                 :obj:`~onda.utils.parameters.MonitorParams` object
                 containing the monitor parameters from the
                 configuration file.
         """
-        super(OndaMonitor, self).__init__(
-            process_func=self.process_data,
-            collect_func=self.collect_data,
-            source=source,
-            monitor_params=monitor_parameters
-        )
+        super(OndaMonitor,
+              self).__init__(
+                  process_func=self.process_data,
+                  collect_func=self.collect_data,
+                  source=source,
+                  monitor_params=monitor_parameters
+              )
 
         if self.role == 'worker':
             requested_calib_alg = monitor_parameters.get_param(
@@ -105,21 +109,20 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     )
                 )
             else:
-
-                # If no calibration is required store None in the
+                # If no calibration is required, stores None in the
                 # 'calibration_alg' attribute.
                 self._calibration_alg = None
 
-            # Initialize the non_hit_frame_sending_counter and the
+            # Initializes the non_hit_frame_sending_counter and the
             # hit_frame_sending_counter to keep track of how often the
             # detector frame data needs to be sent to the master
             # worker.
             self._hit_frame_sending_counter = 0
             self._non_hit_frame_sending_counter = 0
 
-            # Read from the configuration file all the parameters
+            # Reads from the configuration file all the parameters
             # needed to instantiate the dark calibration correction
-            # algorithm, then instatiate the algorithm.
+            # algorithm, then instatiates the algorithm.
             dark_cal_fname = monitor_parameters.get_param(
                 section='DarkCalCorrection',
                 parameter='filename',
@@ -167,14 +170,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 gain_map_hdf5_path=dark_cal_gain_map_hdf5_pth
             )
 
-            # Load the geometry data and compute the pixel maps.
+            # Loads the geometry data and computes the pixel maps.
             geometry_filename = monitor_parameters.get_param(
                 section='General',
                 parameter='geometry_file',
                 type_=str,
                 required=True
             )
-
             geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
             pixelmaps = geometry_utils.compute_pix_maps(geometry)
             radius_pixel_map = pixelmaps.r
@@ -186,9 +188,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 detector='detector_data',
             )
 
-            # Read from the configuration file all the parameters
+            # Reads from the configuration file all the parameters
             # needed to instantiate the peakfinder8 algorithm. Then
-            # instantiate the algorithm.
+            # instantiates the algorithm.
             pf8_max_num_peaks = monitor_parameters.get_param(
                 section='Peakfinder8PeakDetection',
                 parameter='max_num_peaks',
@@ -338,18 +340,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            # Read from the configuration file how many events should
+            # Reads from the configuration file how many events should
             # be accumulated by the master node before broadcasting the
-            # acccumulated data. Then instantiate the peak accumulator.
-            pa_num_events_to_accumulate = monitor_parameters.get_param(
-                section='PeakAccumulator',
+            # acccumulated data. Then instantiates the data
+            # accumulator.
+            da_num_events_to_accumulate = monitor_parameters.get_param(
+                section='DataAccumulator',
                 parameter='num_events_to_accumulate',
                 type_=int,
                 required=True
             )
 
             self._data_accumulator = cryst_algs.DataAccumulator(
-                num_events_to_accumulate=pa_num_events_to_accumulate
+                num_events_to_accumulate=da_num_events_to_accumulate
             )
 
             self._num_events = 0
@@ -386,6 +389,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 parameter='publish_port',
                 type_=int
             )
+
             self._data_broadcast_socket = onda_zmq.DataBroadcaster(
                 publish_ip=broadcast_socket_ip,
                 publish_port=broadcast_socket_port
@@ -396,11 +400,11 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
     def process_data(self, data):
         """
-        Process frame information.
+        Processes frame information.
 
-        Perform detector and dark calibration corrections, extract the
-        peak information and evaluate the extracted data. Return the
-        data that need to be sent to the master node.
+        Performs detector and dark calibration corrections, extracts
+        the peak information and evaluates the extracted data. Returns
+        the data that needs to be sent to the master node.
 
         Args:
 
@@ -430,12 +434,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         peak_list = self._peakfinder8_peak_det.find_peaks(corr_det_data)
 
-        # Determine if the the frame should be labelled as 'saturated'.
+        # Determines if the the frame should be labelled as 'saturated'.
         sat = len(
             [x for x in peak_list.intensity if x > self._saturation_value]
         ) > self._max_saturated_peaks
 
-        # Determine if the the frame should be labelled as a 'hit'.
+        # Determines if the the frame should be labelled as a 'hit'.
         hit = (
             self._min_num_peaks_for_hit <
             len(peak_list.intensity) <
@@ -459,14 +463,15 @@ class OndaMonitor(mpi.ParallelizationEngine):
                         self._hit_frame_sending_interval
                 ):
                     # If the frame is a hit, and if the
-                    # 'hit_sending_interval' attribute says we should
-                    # send the detector frame data to the master node,
-                    # add it to the dictionary (and reset the counter).
+                    # 'hit_sending_interval' attribute says that the
+                    # detector frame data should be sent to the master
+                    # node, adds the data to the dictionary (and
+                    # resets the counter).
                     results_dict['detector_data'] = corr_det_data
                     self._hit_frame_sending_counter = 0
 
         else:
-            # If the frame is not a hit, send an empty peak list
+            # If the frame is not a hit, sends an empty peak list
             results_dict['peak_list'] = named_tuples.PeakList(
                 fs=[],
                 ss=[],
@@ -479,10 +484,11 @@ class OndaMonitor(mpi.ParallelizationEngine):
                         self._non_hit_frame_sending_counter ==
                         self._non_hit_frame_sending_interval
                 ):
-                    # If the frame is not a  hit, and if the
-                    # 'frame_sending_interval' attribute says we should
-                    # send the detector frame data to the master node,
-                    # add it to the dictionary (and reset the counter).
+                    # If the frame is a not a hit, and if the
+                    # 'hit_sending_interval' attribute says that the
+                    # detector frame data should be sent to the master
+                    # node, adds the data to the dictionary (and
+                    # resets the counter).
                     results_dict['detector_data'] = corr_det_data
                     self._non_hit_frame_sending_counter = 0
 
@@ -490,11 +496,11 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
     def collect_data(self, data):
         """
-        Compute aggregated data statistics and broadcast the data.
+        Computes aggregated data statistics and broadcasts the data.
 
-        Accumulate the data received from the worker nodes and compute
-        statistics on the aggregated data (e.g.: hit rate,
-        saturation_rate). Finally, broadcast the reduced data for
+        Accumulates the data received from the worker nodes and
+        computes statistics on the aggregated data (e.g.: hit rate,
+        saturation_rate). Finally, broadcast sthe reduced data for
         visualization.
 
         Args:
@@ -529,7 +535,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._run_avg_wdw_size
         )
 
-        # Inject additional information into the dictionary that will
+        # Injects additional information into the dictionary that will
         # be stored in the data accumulator end eventually sent out
         # from the master.
         results_dict['hit_rate'] = avg_hit_rate
@@ -538,8 +544,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         # Since the data will be sent out of the master node using
         # msgpack, NamedTuple structures will not be preserved.
-        # The peak list is here converted to a dictionary, which
-        # suvives the msgpack conversion and allows introspection ont
+        # The peak list is then converted here to a dictionary, which
+        # suvives the msgpack conversion and allows introspection on
         # the receiver side.
         results_dict['peak_list'] = {
             'fs': results_dict['peak_list'].fs,
@@ -548,20 +554,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
         }
 
         if 'detector_data' in results_dict:
-
             # If detector frame data is found in the data received from
             # a worker node, the frame must be broadcasted to the
-            # frame viewer. The frame is wrapped into a list because
-            # GUIs expect list aggregated events as opposed to single
-            # events.
+            # frame viewer. Before that, the frame is wrapped into a
+            # list because GUIs expect lists of aggregated events as
+            # opposed to single events.
             self._data_broadcast_socket.send_data(
                 tag='ondaframedata',
                 message=[results_dict]
             )
 
-        # Remove the detector frame data from the dictionary that will
-        # be stored in the data accumulator (it doesn't need to sent to
-        # any other receiver.
+        # Removes the detector frame data from the dictionary that will
+        # be stored in the data accumulator (it doesn't need to be sent
+        # to any other receiver).
         if 'detector_data' in results_dict:
             del results_dict['detector_data']
 

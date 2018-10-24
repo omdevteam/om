@@ -12,74 +12,72 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Karabo at the European XFEL facility.
+Event and data retrieval from Karabo at XFEL.
 
-This module contains the implementation of event handling functions
-and data extraction functions used to interact with Karabo at the
-European XFEL facility.
+Non detector-specific functions and classes used for event and data
+retrieval from Karabo at the European XFEL facility.
 """
 from __future__ import absolute_import, division, print_function
 
 from onda.data_retrieval_layer.event_sources import karabo_source
-from onda.data_retrieval_layer.file_formats import ini_files
 from onda.data_retrieval_layer.filters import event_filters, frame_filters
+from onda.utils import parameters
 
-########################################
-#                                      #
-# XFEL-KARABO EVENT HANDLING FUNCTIONS #
-#                                      #
-########################################
 
-initialize_event_source = (  # pylint: disable=C0103
+############################
+#                          #
+# EVENT HANDLING FUNCTIONS #
+#                          #
+############################
+
+
+initialize_event_source = (  # pylint: disable=invalid-name
     karabo_source.initialize_event_source
 )
 
-event_generator = (  # pylint: disable=C0103
+
+event_generator = (  # pylint: disable=invalid-name
     karabo_source.event_generator
 )
 
 
-open_event = (  # pylint: disable=C0103
+open_event = (  # pylint: disable=invalid-name
     karabo_source.open_event
 )
 
 
-close_event = (  # pylint: disable=C0103
+close_event = (  # pylint: disable=invalid-name
     karabo_source.close_event
 )
 
 
-EventFilter = (  # pylint: disable=C0103
+EventFilter = (  # pylint: disable=invalid-name
     event_filters.AgeEventFilter
 )
 
 
-FrameFilter = (  # pylint: disable=C0103
+FrameFilter = (  # pylint: disable=invalid-name
     frame_filters.IndexBasedFrameFilter
 )
 
 
-# The function:
-#
-# - get_num_frames_in_event
-#
-# is detector-dependent when using the Karabo framework at the
-# European XFEL facility. Please import the function from the
-# 'data_source' submodules.
+#############################
+#                           #
+# DATA EXTRACTION FUNCTIONS #
+#                           #
+#############################
 
-
-#########################################
-#                                       #
-# XFEL-KARABO DATA EXTRACTION FUNCTIONS #
-#                                       #
-#########################################
 
 def timestamp(event):
     """
-    Retrieve the timestamp of the event.
+    Timestamp of an event retrieved from Karabo at XFEL.
 
-    As extracted previously and stored in the event structure.
+    Extracts the timestamp of an event retrieved from Karabo at the
+    European XFEL facility.
 
     Args:
 
@@ -87,25 +85,20 @@ def timestamp(event):
 
     Returns:
 
-        numpy.float64: the time at which the event was collected.
+        numpy.float64: the timestamp of the event.
     """
     return event['timestamp']
-
-beam_energy = (  # pylint: disable=C0103
-    ini_files.beam_energy_from_config
-)
-
-
-detector_distance = (  # pylint: disable=C0103
-    ini_files.detector_distance_from_config
-)
 
 
 def optical_laser_active(event):
     """
-    Retrieve the timestamp of the event.
+    Retrieves from Karabo the optical laser status at XFEL.
 
-    As extracted previously and stored in the event structure.
+    Returns whether the optical laser is active or not. In order to
+    determine this, it needs information about the optical laser
+    activation pattern to be provided in the configuration file.
+    The configuration file should contain a list of cellIds for which
+    the optical laser is supposed to be active.
 
     Args:
 
@@ -113,7 +106,7 @@ def optical_laser_active(event):
 
     Returns:
 
-        numpy.float64: the time at which the event was collected.
+        bool: True if the optical laser is active. False otherwise.
     """
     cell_id = (
         event[
@@ -133,5 +126,11 @@ def optical_laser_active(event):
     )
 
 
-# Import other data extraction functions from the 'data_sources'
-# submodules.
+beam_energy = (  # pylint: disable=invalid-name
+    parameters.beam_energy_from_monitor_params
+)
+
+
+detector_distance = (  # pylint: disable=invalid-name
+    parameters.detector_distance_from_monitor_params
+)

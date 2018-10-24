@@ -12,26 +12,37 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
+"""
+Event filters.
+
+Filters to skip the processing of events according to various criteria.
+"""
 from __future__ import absolute_import, division, print_function
 
+import os.path
 import time
 
 import numpy
 
+from onda.utils import dynamic_import
 
-class AgeEventFilter(object):
+
+class NullEventFilter(object):
     """
-    See __init__ for documentation.
+    Null event filter.
+
+    This filter does not filter any events.
     """
 
-    def __init__(self,
-                 monitor_params):
+    def __init__(
+            self,
+            monitor_params
+    ):
         """
-        Filter events based on their 'age'.
-
-        Reject files whose 'age' (the time between the data collection
-        and the moment OnDA receives the data) is higher than a
-        predefined threshold.
+        Initializes the NullEventFilter class.
 
         Args:
 
@@ -40,8 +51,56 @@ class AgeEventFilter(object):
                 containing the monitor parameters from the
                 configuration file.
         """
-        # Read the rejection threshold from the configuration file
-        # and store it in an attribute.
+        del monitor_params
+        # No initialization needed. This function does nothing.
+
+    def should_reject(
+            self,
+            event
+    ):
+        """
+        Decides if the event should be rejected (not processed).
+
+        For this null event filter, this function never rejects
+        events.
+
+        Args:
+
+            event (Dict): a dictionary with the event data.
+
+        Returns:
+
+            bool: True if the event should be rejected. False if the
+            event should be processed.
+        """
+        del event
+
+
+class AgeEventFilter(object):
+    """
+    Age-based event filter.
+
+    This filter rejects events whose 'age' (the time between the data
+    collection and the moment OnDA receives the data) is higher than a
+    predefined threshold.
+    """
+
+    def __init__(
+            self,
+            monitor_params
+    ):
+        """
+        Initializes the AgeEventFilter class.
+
+        Args:
+
+            monitor_params (MonitorParams): a
+                :obj:`~onda.utils.parameters.MonitorParams` object
+                containing the monitor parameters from the
+                configuration file.
+        """
+        # Reads the rejection threshold from the configuration file
+        # and stores it in an attribute.
         rejection_threshold = monitor_params.get_param(
             section='DataRetrievalLayer',
             parameter='event_rejection_threshold',
@@ -51,12 +110,17 @@ class AgeEventFilter(object):
         if rejection_threshold:
             self._event_rejection_threshold = rejection_threshold
         else:
+            # If no threshold is provided, uses a very high threshold
+            # (more than 300 years).
             self._event_rejection_threshold = 10000000000
 
-    def should_reject(self,
-                      event):
+
+    def should_reject(
+            self,
+            event
+    ):
         """
-        Decide if the event should be rejected.
+        Decides if the event should be rejected (not processed).
 
         Args:
 
@@ -67,28 +131,30 @@ class AgeEventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        time_now = numpy.float64(time.time())  # pylint: disable=E1101
+        time_now = numpy.float64(time.time())  # pylint: disable=no-member
         if (time_now - event['timestamp']) > self._event_rejection_threshold:
-
-            # Store the timestamp in the event dictionary so it does
-            # not have to be extracted again if the timestamp is one
-            # of the requested data sources.
             return True
         else:
             return False
 
 
-class NullEventFilter(object):
+class ExtensionEventFilter(object):
     """
-    See __init__ for documentation.
+    FIle-extension-based event filter.
+
+    This filter looks at the file from which an event has been
+    retrieved (when applicable), extracts its extension and compares
+    it to the list of extensions used with files written by the
+    detector(s) being used. It rejects the event if the file does not
+    have the correct extension.
     """
 
-    def __init__(self,
-                 monitor_params):   # pylint: disable=W0613
+    def __init__(
+            self,
+            monitor_params
+    ):
         """
-        Null filter.
-
-        Do not filter events.
+        Initializes the ExtensionEventFilter class.
 
         Args:
 
@@ -97,12 +163,16 @@ class NullEventFilter(object):
                 containing the monitor parameters from the
                 configuration file.
         """
-        pass
+        self._file_extensions = dynamic_import.get_file_extensions(
+            monitor_params
+        )
 
-    def should_reject(self,
-                      event):     # pylint: disable=W0613
+    def should_reject(
+            self,
+            event
+    ):
         """
-        Decide if the event should be rejected.
+        Decides if the event should be rejected (not processed).
 
         Args:
 
@@ -113,4 +183,7 @@ class NullEventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        return False
+        if os.path.basename(event['full_path']).endswith(self._file_extensions):
+            return False
+        else:
+            return True

@@ -12,11 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Algorithms for the processing of crystallography data.
 
-This module contains the implementation of several algorithms used to
-process crystallography data (peak finders, peak accumulators, etc.).
+Specific crystallography arguments: peak finders, data accumulators,
+etc.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -24,54 +27,57 @@ import h5py
 import numpy
 from future.utils import raise_from
 
-from onda.utils import named_tuples
 from onda.algorithms.peakfinder8_extension import peakfinder_8
+from onda.utils import named_tuples
 
 
 ##############################
 # PEAKFINDER8 PEAK DETECTION #
 ##############################
 
+
 class Peakfinder8PeakDetection(object):
     """
-    See __init__ for documentation.
+    Peakfinder8 algorithm for peak detection.
+
+    See this paper for a description of the peakfinder8 algorithm:
+
+    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H.
+    Yoon, T. A. White, and H. N. Chapman, "Cheetah: software for
+    high-throughput reduction and analysis of serial femtosecond
+    X-ray diffraction data", J Appl Crystallogr, vol. 47,
+    pp. 1118-1131 (2014).
     """
 
-    def __init__(self,
-                 max_num_peaks,
-                 asic_nx,
-                 asic_ny,
-                 nasics_x,
-                 nasics_y,
-                 adc_threshold,
-                 minimum_snr,
-                 min_pixel_count,
-                 max_pixel_count,
-                 local_bg_radius,
-                 min_res,
-                 max_res,
-                 bad_pixel_map_filename,
-                 bad_pixel_map_hdf5_path,
-                 radius_pixel_map):
+    def __init__(
+            self,
+            max_num_peaks,
+            asic_nx,
+            asic_ny,
+            nasics_x,
+            nasics_y,
+            adc_threshold,
+            minimum_snr,
+            min_pixel_count,
+            max_pixel_count,
+            local_bg_radius,
+            min_res,
+            max_res,
+            bad_pixel_map_filename,
+            bad_pixel_map_hdf5_path,
+            radius_pixel_map
+    ):
         """
-        Detect peaks with Cheetah's peakfinder8 algorithm.
-
-        See this paper for a description of the peakfinder8 algorithm:
-
-        A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H.
-        Yoon, T. A. White, and H. N. Chapman, 'Cheetah: software for
-        high-throughput reduction and analysis of serial femtosecond
-        X-ray diffraction data', J Appl Crystallogr, vol. 47,
-        pp. 1118-1131 (2014).
+        Initializes the Peakfinder8PeakDetection class.
 
         Args:
 
             max_num_peaks (int): maximum number of peaks that will be
                 returned to the user. Additional peaks are ignored.
 
-            asic_nx (int): fs size of a detector's ASIC.
+            asic_nx (int): fs size of each detector's ASIC.
 
-            asic_ny (int): ss size of a detector's ASIC.
+            asic_ny (int): ss size of each detector's ASIC.
 
             nasics_x (int): number of ASICs along the fs axis of the
                 data array.
@@ -98,7 +104,7 @@ class Peakfinder8PeakDetection(object):
 
             bad_pixel_map_filename (str): name of the file containing
                 the bad pixel map. The map must have the same internal
-                layout ('shape') as the data on which it is applied.
+                layout ("shape") as the data on which it is applied.
                 The pixels should have a value of 0 or 1, with 0
                 meaning that the pixel is bad and 1 meaning that the
                 pixel should be processed. The map only excludes some
@@ -106,10 +112,10 @@ class Peakfinder8PeakDetection(object):
                 modified in any way.
 
             bad_pixel_map_hdf5_path (str): internal HDF5 path of the
-                data block where the bad pixel map (in 'slab' format)
+                data block where the bad pixel map (in "slab" format)
                 is stored.
 
-            radius_pixel_map (numpy.ndarray): a pixel map that, for each
+            radius_pixel_map (ndarray): a pixel map that, for each
                 pixel in the data array, stores its distance (in
                 pixels) from the center of the detector.
         """
@@ -126,57 +132,58 @@ class Peakfinder8PeakDetection(object):
         self._radius_pixel_map = radius_pixel_map
 
         try:
-            with h5py.File(
-                name=bad_pixel_map_filename,
-                mode='r'
-            ) as fhandle:
+            with h5py.File(name=bad_pixel_map_filename, mode="r") as fhandle:
                 loaded_mask = fhandle[bad_pixel_map_hdf5_path][:]
         except OSError:
             raise_from(
-                exc=RuntimeError(
-                    "Error reading the {} HDF5 file.".format(
-                        bad_pixel_map_filename
-                    )
+                RuntimeError(
+                    "Error reading the {} HDF5 file.".
+                    format(bad_pixel_map_filename)
                 ),
-                cause=None
+                None
             )
 
-        res_mask = numpy.ones(
-            shape=loaded_mask.shape,
-            dtype=numpy.int8
-        )
+        res_mask = numpy.ones(shape=loaded_mask.shape, dtype=numpy.int8)
         res_mask[numpy.where(self._radius_pixel_map < min_res)] = 0
         res_mask[numpy.where(self._radius_pixel_map > max_res)] = 0
         self._mask = loaded_mask * res_mask
 
-    def find_peaks(self,
-                   data):
+    def find_peaks(
+            self,
+            data
+    ):
         """
-        Detect peaks in the data.
+        Detects peaks in the data.
 
-        The data provided by the user must be in 'slab' format.
+        The data provided by the user must be in "slab" format.
 
         Args:
 
-            data (numpy.ndarray): the data (in 'slab' format) on which
+            data (ndarray): the data (in "slab" format) on which
                 the peak finding should be performed.
 
         Returns:
 
-            PeakList: the detected peaks.
+            PeakList: a named tuple with the detected peaks. The three
+            fields, "ss", "fs" and "intensity", store the ss and fs
+            coordinate of each peak in the data array, and its
+            intensity.
         """
         peak_list = peakfinder_8(
             self._max_num_peaks,
-            data.astype(numpy.float32),  # pylint: disable=E1101
+            data.astype(numpy.float32),
             self._mask.astype(numpy.int8),
             self._radius_pixel_map,
-            self._asic_nx, self._asic_ny,
-            self._nasics_x, self._nasics_y,
-            self._adc_thresh, self._minimum_snr,
-            self._min_pixel_count, self._max_pixel_count,
+            self._asic_nx,
+            self._asic_ny,
+            self._nasics_x,
+            self._nasics_y,
+            self._adc_thresh,
+            self._minimum_snr,
+            self._min_pixel_count,
+            self._max_pixel_count,
             self._local_bg_radius
         )
-
         return named_tuples.PeakList(*peak_list[0:3])
 
 
@@ -184,46 +191,54 @@ class Peakfinder8PeakDetection(object):
 # DATA ACCUMULATOR #
 ####################
 
+
 class DataAccumulator(object):
     """
-    See __init__ for documentation.
+    Algorithm to accumulate data for susequent bulk retrieval.
+
+    Accumulates data until data has been added to the accumulator
+    for a predefined numberof times (The accumulator is "full"), then
+    returns all the accumulated data and empties the accumulator.
     """
 
-    def __init__(self, num_events_to_accumulate):
+    def __init__(
+            self,
+            num_events_to_accumulate
+    ):
         """
-        Accumulate data for susequent bulk retrieval.
-
-        Accumulate data until the accumulator is full (i.e. the user
-        to has added data to the accumulator for a predefined number
-        of times). Then return all the accumulated data and
-        empty the accumulator.
+        Initializes the DataAccumulator class.
 
         Args:
 
             num_events_to_accumulate (int): the number of times that
-                peaks can be added to the accumulator before the
+                data can be added to the accumulator before the
                 accumulator is full.
         """
         self._n_events_to_accumulate = num_events_to_accumulate
         self._accumulator = []
         self._events_in_accumulator = 0
 
-    def add_data(self, data):
-        """
-        Add data to the accumulator.
 
-        If the accumulator is full, return the accumulated data
-        and empty the accumulator.
+    def add_data(
+            self,
+            data
+    ):
+        """
+        Adds data to the accumulator.
+
+        When the accumulator is full, returns the accumulated data
+        and empties the accumulator.
 
         Args:
 
-            data: (Dict): dictionary containing the data to be
+            data: (Dict): a dictionary containing the data to be
                 added to the accumulator.
 
         Returns:
 
-            Union[List[Dict], None]: a list containing the accumulated
-            data if the accumulator is full, otherwise None.
+            Union[List[Dict], None]: either a list containing the
+            accumulated data (if the accumulator is full), otherwise
+            None.
         """
         self._accumulator.append(data)
         self._events_in_accumulator += 1

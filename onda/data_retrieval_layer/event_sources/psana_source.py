@@ -12,15 +12,15 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Retrieval of events from psana.
+Retrieval of events from HiDRA.
 
-This module contains the implementation of event handling functions
-used retrieve data from psana.
+Functions and classes used to retrieve data events from psana.
 """
 from __future__ import absolute_import, division, print_function
-
-from builtins import str  # pylint: disable=W0622
 
 import numpy
 from future.utils import iteritems, raise_from
@@ -28,22 +28,32 @@ from future.utils import iteritems, raise_from
 from onda.utils import dynamic_import, exceptions
 
 try:
-    import psana  # pylint: disable=E0401
+    import psana  # pylint: disable=import-error
 except ImportError:
     raise_from(
         exc=exceptions.MissingDependency(
             "The psana module could not be loaded. The following "
-            "dependency does not appear to be available on the system: psana."
+            "dependency does not appear to be available on the "
+            "system: psana."
         ),
         cause=None
     )
 
 
-def _psana_offline_event_generator(psana_source,
-                                   node_rank,
-                                   mpi_pool_size):
+############################
+#                          #
+# EVENT HANDLING FUNCTIONS #
+#                          #
+############################
 
-    # Compute how many events the current worker node should process
+
+def _psana_offline_event_generator(
+        psana_source,
+        node_rank,
+        mpi_pool_size
+):
+
+    # Computes how many events the current worker node should process
     # Split the events as equally as possible amongst the workers with
     # the last worker getting a smaller number of events if the number
     # of files to be processed cannot be exactly divided by the number
@@ -52,66 +62,63 @@ def _psana_offline_event_generator(psana_source,
         times = run.times()
 
         num_events_curr_node = int(
-            numpy.ceil(
-                len(times) / float(mpi_pool_size - 1)
-            )
+            numpy.ceil(len(times) / float(mpi_pool_size - 1))
         )
 
-        events_curr_node = times[
-            (node_rank - 1) * num_events_curr_node:
-            node_rank * num_events_curr_node
-        ]
+        events_curr_node = times[(node_rank - 1) *
+                                 num_events_curr_node:node_rank *
+                                 num_events_curr_node]
 
         for evt in events_curr_node:
             yield run.event(evt)
 
 
-def initialize_event_source(source,  # pylint: disable=W0613
-                            node_rank,  # pylint: disable=W0613
-                            mpi_pool_size,  # pylint: disable=W0613
-                            monitor_params):  # pylint: disable=W0613
+def initialize_event_source(
+        source,
+        mpi_pool_size,
+        monitor_params
+):
     """
-    Initialize the event source.
+    Initializes the psana event source.
 
     This function must be called on the master node before the
-    :obj:`event_generator` function is called on the worker nodes..
+    :obj:`event_generator` function is called on the worker nodes.
 
     Args:
 
         source (str): a psana experiment string.
 
-        node_rank (int): rank of the node where the function is called.
-
         mpi_pool_size (int): size of the node pool that includes the
             node where the function is called.
 
-        monitor_params (:obj:`~onda.utils.parameters.MonitorParams`):
-            a MonitorParams object containing the monitor parameters
-            from the configuration file.
-
-     Yields:
-
-        dict: A dictionary containing the data and metadata of a
-        psana event.
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
     """
-    # Psana needs no initialization, so do nothing.
-    pass
+    del source
+    del mpi_pool_size
+    del monitor_params
+    # Psana needs no initialization, so thid function does nothing.
 
 
-def event_generator(source,
-                    node_rank,
-                    mpi_pool_size,  # pylint: disable=W0613
-                    monitor_params):
+def event_generator(
+        source,
+        node_rank,
+        mpi_pool_size,
+        monitor_params
+):
     """
-    Return an iterator over the events that should be processed by the
+    Initializes the recovery of events from psana.
+
+    Returns an iterator over the events that should be processed by the
     worker that calls the function. This function must be called on
     each worker node after the :obj:`initialize_event_source` function
     has been called on the master node.
 
     Args:
 
-        source (str): the IP or hostname of the machine where HiDRA is
-            running.
+        source (str): a psana experiment string.
 
         node_rank (int): rank of the node where the function is called.
 
@@ -125,20 +132,18 @@ def event_generator(source,
 
     Yields:
 
-        Dict: A dictionary containing the data and metadata of an
-        event.
+        Dict: A dictionary containing the metadata and data of an event
     """
-    # Detect if data is being read from an online or offline source.
+    # Detects if data is being read from an online or offline source.
     if 'shmem' in source:
         offline = False
     else:
         offline = True
-
     if offline and not source[-4:] == ':idx':
         source += ':idx'
 
     # If the psana calibration directory is provided in the
-    # configuration file, add it as an option to psana.
+    # configuration file, adds it as an option to psana.
     psana_calib_dir = monitor_params.get_param(
         section='DataRetrievalLayer',
         parameter='psana_calibration_directory',
@@ -152,18 +157,16 @@ def event_generator(source,
     else:
         print('Calibration directory not provided or not found.')
 
-    psana_source = psana.DataSource(source.encode('ascii'))
+    psana_source = psana.DataSource(source)
     psana_interface_funcs = (
         dynamic_import.get_psana_det_interface_funcs(monitor_params)
     )
 
-    # Call all the required psana detector interface initialization
-    # functions and store the returned handlers in a dictionary.
+    # Calls all the required psana detector interface initialization
+    # functions and stores the returned handlers in a dictionary.
     psana_det_interface = {}
     for f_name, func in iteritems(psana_interface_funcs):
-        psana_det_interface[
-            f_name.split("_init")[0]
-        ] = func(monitor_params)
+        psana_det_interface[f_name.split("_init")[0]] = func(monitor_params)
 
     if offline:
         psana_events = _psana_offline_event_generator(
@@ -175,16 +178,15 @@ def event_generator(source,
         psana_events = psana_source.events()
 
     for psana_event in psana_events:
-
         event = {
             'psana_detector_interface': psana_det_interface,
             'psana_event': psana_event
         }
 
-        # Recover the timestamp from the psana event
-        # (in epoch format) and store it in the event dictionary.
+        # Recovers the timestamp from the psana event
+        # (in epoch format) and stores it in the event dictionary.
         timestamp_epoch_format = psana_event.get(
-            psana.EventId  # pylint: disable=E1101
+            psana.EventId  # pylint: disable=no-member
         ).time()
 
         event['timestamp'] = numpy.float64(
@@ -195,44 +197,50 @@ def event_generator(source,
         yield event
 
 
-def open_event(event):  # pylint: disable=W0613
+def open_event(event):
     """
-    Open the event.
+    Opens an event retrieved from psana.
 
-    Make the content of the event available in the 'data' entry of the
-    event dictionary.
+    Makes the content of a retrieved psana event available in the
+    'data' entry of the event dictionary.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Psana events do not need to be opened. Do nothing.
-    pass
+    # Psana events do not need to be opened. This function does
+    # nothing.
+    del event
 
 
-def close_event(event):  # pylint: disable=W0613
+def close_event(event):
     """
-    Close the event.
+    Closes an event retrieved from psana.
 
     Args:
 
         event (Dict): a dictionary with the event data.
     """
-    # Events do not need to be closed. Do nothing.
-    pass
+    # Psana events do not need to be closed. This function does
+    # nothing.
+    del event
 
 
-def get_num_frames_in_event(event):  # pylint: disable=W0613
+def get_num_frames_in_event(event):
     """
-    Retrieve the number of frames in the event.
+    Number of frames in an psana event.
+
+    Returns the number of frames in an event retrieved from psana.
 
     Args:
 
         event (Dict): a dictionary with the event data.
 
-    Returns:
+    Retuns:
 
-        int: the number of frames in an event.
+        int: the number of frames in the event.
     """
+    del event
+
     # Psana events usually contain just one frame.
     return 1

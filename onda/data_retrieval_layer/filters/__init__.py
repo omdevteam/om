@@ -12,3 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
+"""
+Filters for events and frames.
+
+Filters to skip the processing of events and frames according to
+various criteria.
+"""

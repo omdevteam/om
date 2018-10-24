@@ -12,9 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 OnDA GUIs and Viewers.
 
-This package contains the implementation of several GUIs and Viewers
-used to visualize data processed by OnDA monitors.
+Several GUIs and viewers used to display data broadcasted by the OnDA
+monitor.
 """

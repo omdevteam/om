@@ -12,13 +12,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Algorithms for the processing of photofragmentation data.
 
-This module contains the implementation of several algorithms used
-to process photofragmentation data. These algorithms have been
-developed in order to monitor Controlled Molecule Imaging (CMI)
-experiments.
+Uused to process data from Delayline VMI detectors.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -31,31 +31,33 @@ from onda.utils import named_tuples
 # DELAYLINE DETECTOR ANALYSIS #
 ###############################
 
-def _filter_hit(mcp_peak,
-                x1_corr_peaks,
-                x2_corr_peaks,
-                y1_corr_peaks,
-                y2_corr_peaks,
-                min_sum_x,
-                max_sum_x,
-                min_sum_y,
-                max_sum_y,
-                max_radius):
-    # Check all possible peak combinations and reject any set of peaks
-    # for which the the delays along the wires are outside of the
-    # accepted range provided by the user. Reject also all peaks
-    # combinations for which the spatial coordinates fall outside of
-    # the boundaries of the detector. Use the first set of peaks, if
-    # one is found, that passes these checks to compute the VMI hit
-    # information. If no peak combination passed the check, return
-    # None.
+
+def _filter_hit(
+        mcp_peak,
+        x1_corr_peaks,
+        x2_corr_peaks,
+        y1_corr_peaks,
+        y2_corr_peaks,
+        min_sum_x,
+        max_sum_x,
+        min_sum_y,
+        max_sum_y,
+        max_radius
+):
+    # This function checks all possible peak combinations and rejects
+    # any set of peaks for which the the delays along the wires are
+    # outside of the accepted range provided by the user. It also
+    # rejects all the peaks combinations for which the spatial
+    # coordinates fall outside of the boundaries of the detector.
+    # The function then uses the first set of peaks that passes all the
+    # checks (if there is one) to compute the VMI hit information. If
+    # no peak combination passes the check, it returns None.
     for x_1 in x1_corr_peaks:
         for x_2 in x2_corr_peaks:
             for y_1 in y1_corr_peaks:
                 for y_2 in y2_corr_peaks:
 
-                    # These calculations come from the standard
-                    # formulas used to compute these values.
+                    # These calculations come from standard formulas.
                     wires_x_sum = x_1 + x_2 - 2 * mcp_peak
                     wires_y_sum = y_1 + y_2 - 2 * mcp_peak
                     if (
@@ -65,9 +67,8 @@ def _filter_hit(mcp_peak,
                         peak = named_tuples.VmiHit(
                             timestamp=mcp_peak,
                             coords=named_tuples.VmiCoords(
-                                # These calculations come from the
-                                # standard formulas used to compute
-                                # these values.
+                                # These calculations come from standard
+                                # formulas.
                                 x=x_1 - x_2,
                                 y=y_1 - y_2
                             ),
@@ -79,7 +80,7 @@ def _filter_hit(mcp_peak,
                             )
                         )
 
-                        # Check if the spatial coodrinates fall within
+                        # Checks if the spatial coordinates fall within
                         # the boundaries of the detector.
                         if numpy.sqrt(
                                 (
@@ -96,23 +97,28 @@ def _filter_hit(mcp_peak,
 
 class DelaylineDetectorAnalysis(object):
     """
-    See __init__ for documentation.
+    Algorithm for the processing of Delayline VMI detector hits.
+
+    For each particle hit (a peak in the detector 's MCP waveform),
+    computes the most likely spatial coordinates of the particle.
+    It looks for corresponding peaks in the other waveforms of the
+    detector, then compiles a list of plausible VMI detector
+    hits, with their corresponding spatial coordinates.
     """
 
-    def __init__(self,
-                 peak_search_delay,
-                 peak_search_tolerance,
-                 peak_search_scaling_factor,
-                 min_sum_x,
-                 max_sum_x,
-                 min_sum_y,
-                 max_sum_y,
-                 max_radius):
+    def __init__(
+            self,
+            peak_search_delay,
+            peak_search_tolerance,
+            peak_search_scaling_factor,
+            min_sum_x,
+            max_sum_x,
+            min_sum_y,
+            max_sum_y,
+            max_radius
+    ):
         """
-        Process particle hits on a delayline VMI detector.
-
-        For each particle hit (a peak in the detector 's MCP waveform)
-        compute the most likely spatial coordinates of the particle.
+        Intializes the DelayLineDetectorAnalysis.
 
         Args:
 
@@ -124,7 +130,7 @@ class DelaylineDetectorAnalysis(object):
 
             peak_search_tolerance (int): tolerance interval (in pixels)
                 around the MCP timestamp when searching for
-                corresponding peaks in the delayline waveforms.
+                corresponding peaks in the other delayline waveforms.
 
             min_sum (float): minimum allowed sum of delayline times of
                 flight.
@@ -144,23 +150,24 @@ class DelaylineDetectorAnalysis(object):
         self._max_sum_y = max_sum_y
         self._max_radius = max_radius
 
-    def find_particle_hits(self,
-                           mcp_peaks,
-                           x1_peaks,
-                           x2_peaks,
-                           y1_peaks,
-                           y2_peaks):
+    def find_particle_hits(
+            self,
+            mcp_peaks,
+            x1_peaks,
+            x2_peaks,
+            y1_peaks,
+            y2_peaks
+    ):
         """
-        Extract particle hit data from peaks detected in waveforms.
+        Extracts particle hit data from peaks detected in waveforms.
 
-        Starting from the list of detected peaks in the MCP and
-        delayline waveforms, return a list of plausible VMI detector
-        hits. For each peak in the detector's MCP waveform, search for
+        For each peak in the detector's MCP waveform, searches for
         corresponding peaks in the x1, x2, y1 and y2 delayline
-        waveforms, then compute the spatial coordinates of the particle
-        hit, rejecting physically impossible results. When more than
-        one set of results are compatible with an MCP peak, use the
-        first found set of plausible spatial coordinates.
+        waveforms, then computes the spatial coordinates of the
+        particle hit, rejecting physically impossible results. When
+        more than one set of results are compatible with an MCP peak,
+        this function returns the first found set of plausible spatial
+        coordinates.
 
         Args:
 
@@ -187,20 +194,17 @@ class DelaylineDetectorAnalysis(object):
         """
         hit_list = []
         for mcp_peak in mcp_peaks:
-
-            # Scale the index of the mcp peak to the resolution of the
+            # Scales the index of the mcp peak to the resolution of the
             # delayline data.
             scaled_mcp_peak = (
                 float(mcp_peak) / float(self._peak_search_scaling_factor)
             )
 
-            # Look for peaks in each waveform with indexes that are
+            # Looks for peaks in each waveform with indexes that are
             # close to the scaled index of the mcp peak.
             x1_related_peaks = [
                 x for x in x1_peaks if (
-                    (
-                        scaled_mcp_peak + self._peak_search_delay
-                    ) < x < (
+                    (scaled_mcp_peak + self._peak_search_delay) < x < (
                         scaled_mcp_peak + self._peak_search_delay +
                         float(self._peak_search_tolerance)
                     )
@@ -209,9 +213,7 @@ class DelaylineDetectorAnalysis(object):
 
             x2_related_peaks = [
                 x for x in x2_peaks if (
-                    (
-                        scaled_mcp_peak + self._peak_search_delay
-                    ) < x < (
+                    (scaled_mcp_peak + self._peak_search_delay) < x < (
                         scaled_mcp_peak + self._peak_search_delay +
                         float(self._peak_search_tolerance)
                     )
@@ -220,9 +222,7 @@ class DelaylineDetectorAnalysis(object):
 
             y1_related_peaks = [
                 x for x in y1_peaks if (
-                    (
-                        scaled_mcp_peak + self._peak_search_delay
-                    ) < x < (
+                    (scaled_mcp_peak + self._peak_search_delay) < x < (
                         scaled_mcp_peak + self._peak_search_delay +
                         float(self._peak_search_tolerance)
                     )
@@ -231,16 +231,14 @@ class DelaylineDetectorAnalysis(object):
 
             y2_related_peaks = [
                 x for x in y2_peaks if (
-                    (
-                        scaled_mcp_peak + self._peak_search_delay
-                    ) < x < (
+                    (scaled_mcp_peak + self._peak_search_delay) < x < (
                         scaled_mcp_peak + self._peak_search_delay +
                         float(self._peak_search_tolerance)
                     )
                 )
             ]
 
-            # Call the function that filter the hits for plausibility.
+            # Calls the function that filter the hits for plausibility.
             filtered_hit = _filter_hit(
                 mcp_peak=scaled_mcp_peak,
                 x1_corr_peaks=x1_related_peaks,

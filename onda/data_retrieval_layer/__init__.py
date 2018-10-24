@@ -12,18 +12,12 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Data retrieval layer.
 
-This package contains the implementation of classes and functions used
-to retrieve data from various sources at different facilites
-(the so-called 'data_retrieval_layer'}.
-
-The submodules of this package contain the implementation of the data
-retrieval layer for specific instruments or specific experiments
-at specific facilties.
-
-The subpackages contain instead collections of functions and classes
-that can be used to create new data retrieval layer implementations for
-new facilities and experiments.
+Classes and functions used to retrieve and extract data from various
+sources at various facilites.
 """

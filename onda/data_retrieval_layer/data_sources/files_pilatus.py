@@ -12,11 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Retrieval of data from files written by the Pilatus detector.
+Retrieval of data from Jungfrau 1M detector files.
 
-This module contains the implementation of several functions used to
-retrieve data from files written by the Pilatus detector.
+Functions and classes used to retrieve data from files written by the
+Pilatus detector.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -30,20 +33,27 @@ from onda.utils import named_tuples
 #                   #
 #####################
 
+
 def get_file_extensions():
     """
-    Retrieve allowed files extensions.
+    Extensions used for Pilatus files.
+
+    Returns the extensions used for files written by the Pilatus
+    detector.
 
     Returns:
 
-        Tuple[str]: the list of allowed file extensions.
+        Tuple[str]: the list of file extensions.
     """
     return (".cbf",)
 
 
 def get_peakfinder8_info():
     """
-    Retrieve the peakfinder8 detector information.
+    Peakfinder8 info for the Pilatus detector.
+
+    Retrieves the peakfinder8 information matching the data format
+    used in files written by the the Pilatus detector.
 
     Returns:
 
@@ -64,24 +74,28 @@ def get_peakfinder8_info():
 #                          #
 ############################
 
-open_event = cbf_files.open_event  # pylint: disable=C0103
+
+open_event = cbf_files.open_event  # pylint: disable=invalid-name
+
+close_event = cbf_files.close_event  # pylint: disable=invalid-name
 
 
-close_event = cbf_files.close_event  # pylint: disable=C0103
-
-
-def get_num_frames_in_event(event):  # pylint: disable=W0613
+def get_num_frames_in_event(event):
     """
-    The number of frames in the file.
+    Number of frames in a Pilatus file.
+
+    Returns the number of Pilatus detector frames in an event recovered
+    from a file (1 event = 1 file).
 
     Args:
 
         event (Dict): a dictionary with the event data.
 
-    Returns:
+    Retuns:
 
-        int: the number of frames in an event.
+        int:
     """
+    del event
     # CBF files from the Pilatus detector usually contain only one
     # frame.
     return 1
@@ -93,9 +107,10 @@ def get_num_frames_in_event(event):  # pylint: disable=W0613
 #                           #
 #############################
 
+
 def detector_data(event):
     """
-    Retrieve one frame of detector data.
+    One frame of detector data from a Pilatus file.
 
     Args:
 
@@ -103,16 +118,20 @@ def detector_data(event):
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        ndarray: one frame of detector data.
     """
-    # Return the data from the fabio cbf_obj object, previously stored
+    # Returns the data from the fabio cbf_obj object previously stored
     # in the input dictionary.
     return event['data'].data
 
 
 def filename_and_frame_index(event):
     """
-    Retrieve the filename and frame index of the frame being processed.
+    Filename and frame index of the current frame.
+
+    For files written by the Jungfrau 1M detector, retrieves the name
+    of the file where the current frame can be found, together with the
+    index of the frame in the file.
 
     Args:
 

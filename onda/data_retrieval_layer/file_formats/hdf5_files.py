@@ -12,9 +12,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-This module contains the implementation of several functions used to
-manipulate HDF5 files.
+Manipulation of HDF5 files.
+
+Classes and functions used to manipulate files in HDF5 format.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -23,9 +27,9 @@ import h5py
 
 def open_event(event):
     """
-    Open the event.
+    Opens an HDF5 file event.
 
-    Make the content of the event (file) available in the 'data' entry
+    Makes the content of the event (file) available in the 'data' entry
     of the event dictionary.
 
     Args:
@@ -40,10 +44,10 @@ def open_event(event):
 
 def close_event(event):
     """
-    Close event.
+    Closes an HDF5 file event.
 
     Args:
 
-        event (dict): a dictionary with the event data.
+        event (Dict): a dictionary with the event data.
     """
     event['data'].close()

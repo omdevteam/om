@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #    This file is part of OnDA.
 #
 #    OnDA is free software: you can redistribute it and/or modify
@@ -13,19 +12,20 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Main OnDA monitor.
+Main OnDA monitor function.
 
-This module contains the implementation of the main function used to
-start OnDA monitors.
 """
 from __future__ import absolute_import, division, print_function
 
 import argparse
 import sys
-from builtins import str  # pylint: disable=W0622
 
 import toml
+
 from onda.utils import dynamic_import, exceptions, parameters
 
 
@@ -33,7 +33,7 @@ def main():
     """
     Main OnDA monitor function.
     """
-    # Set a custom exception handler to deal with OnDA-specific
+    # Sets a custom exception handler to deal with OnDA-specific
     # exceptions.
     sys.excepthook = exceptions.onda_exception_handler
 
@@ -60,7 +60,7 @@ def main():
     try:
         config = toml.load(args.ini)
     except IOError:
-        # Raise an exception if the file cannot be opened or read.
+        # Raises an exception if the file cannot be opened or read.
         raise exceptions.ConfigFileReadingError(
             "Cannot open or read the configuration file {0}".format(
                 args.ini
@@ -68,7 +68,7 @@ def main():
         )
 
     except toml.TomlDecodeError:
-        # Raise an exception if the file cannot be interpreted.
+        # Raises an exception if the file cannot be interpreted.
         raise exceptions.ConfigFileSyntaxError(
             "Syntax error in the configuration file {0}. "
             "Make sure that the configuration file follows "

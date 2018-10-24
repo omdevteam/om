@@ -12,18 +12,38 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Data retrieval from files using the Jungfrau 1M detector.
+Data retrieval at from Jungfrau 1M files.
 
-This module collects several functions and classes used to manage
-events and retrieve data when reading Jungfrau 1M data from files.
+Classes and functions used to retrieve and extract data at from
+files written by a Jungfrau 1M detector.
 """
 from __future__ import absolute_import, division, print_function
 
 from onda.data_retrieval_layer.data_sources import files_jungfrau1module
 from onda.data_retrieval_layer.event_sources import file_source
-from onda.data_retrieval_layer.file_formats import ini_files
 from onda.data_retrieval_layer.filters import event_filters, frame_filters
+from onda.utils import parameters
+
+
+#####################
+#                   #
+# UTILITY FUNCTIONS #
+#                   #
+#####################
+
+
+get_file_extensions = (  # pylint: disable=invalid-name
+    files_jungfrau1module.get_file_extensions
+)
+
+
+get_peakfinder8_info_detector_data = (  # pylint: disable=invalid-name
+    files_jungfrau1module.get_peakfinder8_info
+)
 
 
 ############################
@@ -32,37 +52,38 @@ from onda.data_retrieval_layer.filters import event_filters, frame_filters
 #                          #
 ############################
 
-initialize_event_source = (  # pylint: disable=C0103
+
+initialize_event_source = (  # pylint: disable=invalid-name
     file_source.initialize_event_source
 )
 
 
-event_generator = (  # pylint: disable=C0103
+event_generator = (  # pylint: disable=invalid-name
     file_source.event_generator
 )
 
 
-EventFilter = (  # pylint: disable=C0103
+EventFilter = (  # pylint: disable=invalid-name
     event_filters.NullEventFilter
 )
 
 
-FrameFilter = (  # pylint: disable=C0103
+FrameFilter = (  # pylint: disable=invalid-name
     frame_filters.NullFrameFilter
 )
 
 
-open_event = (  # pylint: disable=C0103
+open_event = (  # pylint: disable=invalid-name
     files_jungfrau1module.open_event
 )
 
 
-close_event = (  # pylint: disable=C0103
+close_event = (  # pylint: disable=invalid-name
     files_jungfrau1module.close_event
 )
 
 
-get_num_frames_in_event = (  # pylint: disable=C0103
+get_num_frames_in_event = (  # pylint: disable=invalid-name
     files_jungfrau1module.get_num_frames_in_event
 )
 
@@ -73,11 +94,14 @@ get_num_frames_in_event = (  # pylint: disable=C0103
 #                           #
 #############################
 
+
 def timestamp(event):
     """
-    Retrieve the timestamp of the event.
+    Retrieves the timestamp of a Junfgrau 1M file event.
 
-    As extracted previously and stored in the event structure.
+    Since the Jungfrau 1M does not provide timestamp information, the
+    modification time of the source file is used as a first
+    approximation of the timestamp when the timestamp is not available.
 
     Args:
 
@@ -90,36 +114,22 @@ def timestamp(event):
     return event['timestamp']
 
 
-detector_data = (  # pylint: disable=C0103
+
+detector_data = (  # pylint: disable=invalid-name
     files_jungfrau1module.detector_data
 )
 
 
-detector_distance = (  # pylint: disable=C0103
-    ini_files.detector_distance_from_config
+detector_distance = (  # pylint: disable=invalid-name
+    parameters.detector_distance_from_monitor_params
 )
 
 
-beam_energy = (  # pylint: disable=C0103
-    ini_files.beam_energy_from_config
+beam_energy = (  # pylint: disable=invalid-name
+    parameters.beam_energy_from_monitor_params
 )
 
 
-filename_and_frame_index = (  # pylint: disable=C0103
+filename_and_frame_index = (  # pylint: disable=invalid-name
     files_jungfrau1module.filename_and_frame_index
-)
-
-############################
-#                          #
-# EVENT HANDLING FUNCTIONS #
-#                          #
-############################
-
-get_file_extensions = (  # pylint: disable=C0103
-    files_jungfrau1module.get_file_extensions
-)
-
-
-get_peakfinder8_info_detector_data = (  # pylint: disable=C0103
-    files_jungfrau1module.get_peakfinder8_info
 )

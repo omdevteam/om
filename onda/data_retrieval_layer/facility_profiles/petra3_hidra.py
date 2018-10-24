@@ -12,66 +12,64 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-HiDRA at the Petra III facility.
+Event and data retrieval from HiDRA at Petra III.
 
-This module contains the implementation of event handling functions and
-data extraction functions used to interacti with HiDRA at the PetraIII
-facility.
+Non detector-specific functions and classes used for event and data
+retrieval from HiDRA at the Petra III facility.
 """
 from __future__ import absolute_import, division, print_function
 
 from onda.data_retrieval_layer.event_sources import hidra_source
-from onda.data_retrieval_layer.file_formats import ini_files
 from onda.data_retrieval_layer.filters import event_filters, frame_filters
+from onda.utils import parameters
 
-###########################################
-#                                         #
-# PETRAIII-HIDRA EVENT HANDLING FUNCTIONS #
-#                                         #
-###########################################
 
-initialize_event_source = (  # pylint: disable=C0103
+############################
+#                          #
+# EVENT HANDLING FUNCTIONS #
+#                          #
+############################
+
+
+initialize_event_source = (  # pylint: disable=invalid-name
     hidra_source.initialize_event_source
 )
 
 
-event_generator = (  # pylint: disable=C0103
+event_generator = (  # pylint: disable=invalid-name
     hidra_source.event_generator
 )
 
 
-EventFilter = (  # pylint: disable=C0103
+EventFilter = (  # pylint: disable=invalid-name
     event_filters.NullEventFilter
 )
 
 
-FrameFilter = (  # pylint: disable=C0103
+FrameFilter = (  # pylint: disable=invalid-name
     frame_filters.NullFrameFilter
 )
 
 
-# The functions:
-#
-# - open_event
-# - close_event
-# - get_num_frames_in_event
-#
-# are detector-dependent when using the HiDRA framework at the PetraIII
-# facility. Please import them from the 'data_sources' submodules.
+#############################
+#                           #
+# DATA EXTRACTION FUNCTIONS #
+#                           #
+#############################
 
-
-############################################
-#                                          #
-# PETRAIII-HIDRA DATA EXTRACTION FUNCTIONS #
-#                                          #
-############################################
 
 def timestamp(event):
     """
-    Retrieve the timestamp of the event.
+    Timestamp of an event retrieved from HiDRA at Petra III.
 
-    As approximated by the file creation time provided by HiDRA.
+    Extracts the timestamp of an event retrieved from HiDRA at the
+    Petra III facility (1 event = 1 file, and when the timestamp
+    is not otherwise available, the creation data of the file is taken
+    as timestamp of the event).
 
     Args:
 
@@ -79,20 +77,16 @@ def timestamp(event):
 
     Returns:
 
-        timestamp: the time at which the event was collected.
+        numpy.float64: the timestamp of the event.
     """
     return event['file_creation_time']
 
 
-beam_energy = (  # pylint: disable=C0103
-    ini_files.beam_energy_from_config
+beam_energy = (  # pylint: disable=invalid-name
+    parameters.beam_energy_from_monitor_params
 )
 
 
-detector_distance = (  # pylint: disable=C0103
-    ini_files.detector_distance_from_config
+detector_distance = (  # pylint: disable=invalid-name
+    parameters.detector_distance_from_monitor_params
 )
-
-
-# Import other data extraction functions from the 'data_sources'
-# submodules.

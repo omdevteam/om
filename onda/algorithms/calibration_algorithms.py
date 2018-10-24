@@ -12,69 +12,71 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Algorithms for detector calibration.
 
-This module contains the implementation of algorithms used to preform
-detector calibration (i.e.: all the corrections and ajustments that
-need to be applied to the detector *before* looking at the data).
+Algorithms for all the corrections and ajustments that need to be
+applied to detector data due to detector design and electronic noise.
 """
 from __future__ import absolute_import, division, print_function
 
 import h5py
 from future.utils import raise_from
 
-
 #######################
 # LAMBDA CALIBRATION  #
 #######################
 
+
 class SingleModuleLambdaCalibration(object):
     """
-    See __init__ for documentation.
+    Algorithm for the calbration of a single module Lambda detector.
+
+    Applies flatfield correction to a single lambda module.
     """
 
-    def __init__(self,
-                 calibration_filename):
+    def __init__(
+            self,
+            calibration_filename
+    ):
         """
-        Calibrate a single-module Lambda detector.
-
-        Apply a flatfield correction to module data.
+        Initalizes the SingleModuleLambdaCalibration class.
 
         Args:
 
             calibration_filename (str): name of an HDF5 file with the
                 calibration data. The file must contain the flatfield
-                data for the module in an entry called '/flatfield'.
+                data for the module at the "/flatfield" hdf5 path.
         """
 
         try:
-            with h5py.File(
-                name=calibration_filename,
-                mode='r'
-            ) as fhandle:
-                self._flatfield = fhandle['/flatfield']
+            with h5py.File(name=calibration_filename, mode="r") as fhandle:
+                self._flatfield = fhandle["/flatfield"]
         except OSError:
             raise_from(
                 RuntimeError(
-                    "Error reading the {} HDF5 file.".format(
-                        calibration_filename
-                    )
+                    "Error reading the {} HDF5 file.".
+                    format(calibration_filename)
                 ),
-                cause=None
+                None
             )
 
-    def apply_calibration(self,
-                          data):
+    def apply_calibration(
+            self,
+            data
+    ):
         """
-        Apply the calibration.
+        Applies the calibration.
 
-        Multiply the module data by a flatfield.
+        Multiplies the detector data by a flatfield.
 
         Args:
 
-            data (numpy.ndarray): the module data on which the
-                calibration must be applied.
+            data (ndarray): the module data on which to apply the
+            calibration.
 
         Returns:
 

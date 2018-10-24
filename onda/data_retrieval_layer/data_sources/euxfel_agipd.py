@@ -12,12 +12,14 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Retrieval of data from the Eiger detector at Petra III.
+Retrieval of data from the AGIPD detector at XFEL.
 
-This module contains the implementation of several functions used to
-retrieve data from the Eiger detector as used at the Petra III
-facility.
+Functions and classes used to retrieve data from the AGIPD detector as
+used at the European XFEL facility.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -31,25 +33,19 @@ from onda.utils import named_tuples
 #                   #
 #####################
 
-def get_file_extensions():
-    """
-    Retrieve allowed files extensions.
-
-    Returns:
-
-        Tuple[str]: the list of allowed file extensions.
-    """
-    return (".h5",)
-
 
 def get_peakfinder8_info():
     """
-    Retrieve the peakfinder8 detector information.
+    Peakfinder8 info for the AGIPD detector at XFEL.
+
+    Retrieves the peakfinder8 information matching the data format used
+    by the AGIPD detector at the European XFEL facility.
 
     Returns:
 
-        Peakfinder8DetInfo: the peakfinder8-related detector
-        information.
+        Peakfinder8DetInfo: a named tuple for which the four fields,
+        'asic_nx', 'asic_ny', 'nasics_x' and 'nasics_y' store the
+        four peakfinder8 parameters.
     """
     return named_tuples.Peakfinder8DetInfo(
         asic_nx=512,
@@ -65,15 +61,19 @@ def get_peakfinder8_info():
 #                          #
 ############################
 
-open_event = hdf5_files.open_event  # pylint: disable=C0103
+
+open_event = hdf5_files.open_event  # pylint: disable=invalid-name
 
 
-close_event = hdf5_files.close_event  # pylint: disable=C0103
+close_event = hdf5_files.close_event  # pylint: disable=invalid-name
 
 
 def get_num_frames_in_event(event):
     """
-    Retrieve the number of frames in the event.
+    Number of AGIPD frames in an XFEL event.
+
+    Returns the number of AGIPD detector frames in an event retrieved
+    at the European XFEL facility.
 
     Args:
 
@@ -81,18 +81,13 @@ def get_num_frames_in_event(event):
 
     Retuns:
 
-        int: the number of frames in an event.
+        int: the number of frames in the event.
     """
     # The data is stored in a 4-d block. The last axis is the nunmber
     # of frames.
     return (
-        event[
-            'data'
-        ][
-            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-        ][
-            'image.data'
-        ].shape[-1]
+        event['data']['SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED']['image.data'].
+        shape[-1]
     )
 
 
@@ -102,9 +97,13 @@ def get_num_frames_in_event(event):
 #                           #
 #############################
 
+
 def detector_data(event):
     """
-    Retrieve one frame of detector data.
+    One frame of AGIPD detector data (at XFEL).
+
+    Extracts one frame of AGIPD detector data from an event retrieved
+    at the European XFEL facility.
 
     Args:
 
@@ -112,14 +111,10 @@ def detector_data(event):
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        ndarray: one frame of detector data.
     """
     return (
-        event[
-            'data'
-        ][
-            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-        ][
-            'image.data'
-        ][..., event['frame_offset']].reshape(16*128, 512)
+        event['data']['SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED']['image.data'][
+            ..., event['frame_offset']
+        ].reshape(16 * 128, 512)
     )
