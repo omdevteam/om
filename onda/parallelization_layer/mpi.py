@@ -12,20 +12,21 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-MPI-based parallelization engine.
-
-This module contains the implementation of an MPI-based parallelization
-engine for OnDA.
+MPI-based parallelization engine for OnDA.
 """
 from __future__ import absolute_import, division, print_function
 
 import sys
 
 from future.utils import iteritems
-from mpi4py import MPI
 
+from mpi4py import MPI
 from onda.utils import dynamic_import
+
 
 # Define some labels for internal MPI communication (just some
 # syntactic sugar).
@@ -36,7 +37,15 @@ _DEADTAG = 1000
 
 class ParallelizationEngine(object):
     """
-    See __init__ for documentation.
+    An MPI-based master-worker parallelization engine for OnDA.
+
+    On each worker node, this engine retrieves a data event from the
+    source specified by the user, then executes the 'process_func'
+    function on the data. The engine then transfers the returned value
+    to the master node. On the master node, it executes the
+    'collect_func' function every time data is received.
+    This class should be subclassed to implement an MPI-based OnDA
+    monitor.
     """
 
     def __init__(self,
@@ -45,14 +54,7 @@ class ParallelizationEngine(object):
                  source,
                  monitor_params):
         """
-        An MPI-based master-worker parallelization engine for OnDA.
-
-        On each worker node, retrieve a data event from the source
-        specified by the user, then execute the 'process_func' function
-        on the data. Transfer the returned value to the master node.
-        On the master node, execute the 'collect_func' function
-        every time data is received. This class should be subclassed
-        to implement an MPI-based OnDA monitor.
+        Initializes the ParallelizationEngine class.
 
         Attributes:
 
@@ -71,11 +73,11 @@ class ParallelizationEngine(object):
                 master node every time some data is received from a
                 worker node.
 
-            source (str): a string describing a data source, to be
-                passed to a 'event_generator' function imported from
-                the data retrieval layer.
+            source (str): string describing a data source, to be passed
+                to a 'event_generator' function imported from the data
+                retrieval layer.
 
-            monitor_params (MonitorParams): a
+            monitor_params (MonitorParams):
                 :obj:`~onda.utils.parameters.MonitorParams` object
                 containing the monitor parameters from the
                 configuration file.
@@ -119,17 +121,16 @@ class ParallelizationEngine(object):
             if not self._num_frames_in_event_to_process:
                 self._num_frames_in_event_to_process = 1
 
-
         if self.role == 'master':
             self._num_nomore = 0
             self._num_collected_events = 0
 
     def start(self):
         """
-        Start the parallelization engine.
+        Starts the parallelization engine.
 
-        On a worker node, start recovering and processing the data.
-        On the master node, start listening for communications coming
+        On a worker node, starts recovering and processing the data.
+        On the master node, starts listening for communications coming
         from the worker nodes.
         """
         if self.role == 'worker':
@@ -146,8 +147,7 @@ class ParallelizationEngine(object):
             )
 
             for event in events:
-
-                # Listen for requests to shut down coming from the
+                # Listens for requests to shut down coming from the
                 # master node.
                 if MPI.COMM_WORLD.Iprobe(
                         source=0,
@@ -157,8 +157,8 @@ class ParallelizationEngine(object):
                         "Shutting down RANK: {0}.".format(self.rank)
                     )
 
-                # If the event must be rejected, skip to next iteration
-                # of the loop.
+                # If the event must be rejected, skips to next
+                # iteration of the loop.
                 if self._event_filter.should_reject(event):
                     continue
 
@@ -167,18 +167,18 @@ class ParallelizationEngine(object):
                 if n_frames_in_evt < self._num_frames_in_event_to_process:
                     self._num_frames_in_event_to_process = n_frames_in_evt
 
-                # Add the monitor parameters to the event dictionary,
+                # Adds the monitor parameters to the event dictionary,
                 # in order for the extraction functions to be able to
                 # read the parameters.
                 event['monitor_params'] = self._mon_params
 
-                # Iterate over the last n frames in the event, wher n
+                # Iterates over the last n frames in the event, where n
                 # is 'num_frames_in_event_to_process'.
                 for frame_offset in range(
                         -self._num_frames_in_event_to_process,
                         0
                 ):
-                    # If the frame must be rejected, skip to next
+                    # If the frame must be rejected, skips to next
                     # iteration of the loop.
                     if self._frame_filter.should_reject(
                             num_frames_in_event=n_frames_in_evt,
@@ -189,15 +189,18 @@ class ParallelizationEngine(object):
                     event['frame_offset'] = frame_offset
                     data = {}
 
-                    # Try to extract the data by calling the data
-                    # extraction functions one after the other. Store
+                    # Tries to extract the data by calling the data
+                    # extraction functions one after the other. Stores
                     # the values returned by the functions in the data
                     # dictionary, each with a key corresponding to
                     # the name of the extraction function.
                     try:
                         for f_name, func in iteritems(self._data_extr_funcs):
                             data[f_name] = func(event)
-                    except Exception as exc:  # pylint: disable=W0703
+                    # One should never do the following, but it is not
+                    # possible to anticipate every possible error
+                    # raised by the facility frameworks.
+                    except Exception as exc:  # pylint: disable=broad-except
                         print(
                             "OnDA Warning: Cannot interpret some event"
                             "data:"
@@ -220,14 +223,14 @@ class ParallelizationEngine(object):
                         tag=0
                     )
 
-                # Make sure that the last MPI message has been sent.
+                # Makes sure that the last MPI message has been sent.
                 if req:
                     req.Wait()
 
                 self._close_event(event)
 
             # After finishing iterating over the events to process,
-            # send a message to the master node saying that there are
+            # sends a message to the master node saying that there are
             # no more events to process.
             end_dict = {'end': True}
             req = MPI.COMM_WORLD.isend(
@@ -257,12 +260,11 @@ class ParallelizationEngine(object):
                     )
 
                     if 'end' in received_data[0].keys():
-
                         # If the message announces a worker node has
-                        # finished processing data, keep track of how
+                        # finished processing data, keeps track of how
                         # many worker nodes have already finished. When
-                        # all workers have finished, call the
-                        # 'end_processing' function, then shut down.
+                        # all workers have finished, calls the
+                        # 'end_processing' function, then shuts down.
                         print(
                             "Finalizing {}".format(received_data[1])
                         )
@@ -291,16 +293,17 @@ class ParallelizationEngine(object):
 
     def shutdown(self, msg="Reason not provided."):
         """
-        Shut down the parallelization engine.
+        Shuts down the parallelization engine.
 
-        On a worker node, communicate to the master node that the
-        worker is shutting down, then shut down. On the master node,
-        tell each worker node to shut down, wait for all the workers to
-        confirm that they have indeed shut down, then cease operations.
+        On a worker node, this function communicates to the master node
+        that the worker is shutting down, then shuts down. On the
+        master node, it tells each worker node to shut down, waits for
+        all the workers to confirm that they have indeed shut down,
+        then ceases operations.
 
         Args:
 
-            msg (Optional[str]): reason for shutting down of the
+            msg (Optional[str]): reason for shutting down the
                 parallelization engine. Defaults to "Reason not
                 provided".
         """
@@ -316,11 +319,10 @@ class ParallelizationEngine(object):
             exit(0)
 
         if self.role == 'master':
-
-            # Tell all the worker nodes to shut down and wait for
-            # confirmation. During the whole process, keep receiving
-            # normal MPI messages from the nodes: MPI cannot shut down
-            # if there are unreceived messages.
+            # Tells all the worker nodes to shut down and waits for
+            # confirmation. During the whole process, keeps receiving
+            # normal MPI messages from the nodes (MPI cannot shut down
+            # if there are unreceived messages).
             try:
                 for nod_num in range(1, self._mpi_size()):
                     MPI.COMM_WORLD.isend(
@@ -350,26 +352,24 @@ class ParallelizationEngine(object):
                     if num_shutdown_confirm == self._mpi_size() - 1:
                         break
 
-                # When all the worker nodes have confirmed, shut down.
+                # When all the worker nodes have confirmed, shuts down.
                 MPI.Finalize()
                 exit(0)
-
             except RuntimeError:
-
                 # In case of error in the clean shut down procedure,
-                # crash hard!
+                # crashes hard!
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
 
     def end_processing(self):
         """
-        Execute end-of-processing actions.
+        Executes end-of-processing actions.
 
-        Execute some final actions at the end of the processing and
-        exit. By default, print a message to the console. This function
-        is called by the parallelization engine at the end of the data
-        processing and can be overridden in a derived class to
-        implement custom end-of-processing actions.
+        This function executes some final actions at the end of the
+        processing and exits. By default, prints a message to the
+        console. This function is called by the parallelization engine
+        at the end of the data processing and can be overridden in a
+        derived class to implement custom end-of-processing actions.
         """
         print(
             "Processing finished. OnDA has processed {} events in "

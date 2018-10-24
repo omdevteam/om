@@ -12,29 +12,10 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Main OnDA package.
-
-This package contains several subpackages which contain the
-implementation of different parts of the OnDA framework.
-
-The 'algorithms' subpackage contains the implementation of functions
-and classes used to perform operations and calculations on the data.
-
-The 'data_retrieval layer' subpackage contains the implementation of
-classes and functions used to retrieve data from different sources at
-various facilities.
-
-The 'graphical_interfaces' subpackage contains the implementation of
-several GUIs and Viewers for OnDA monitors.
-
-The 'parallelization_layer' subpackage contains the implementation of
-parallelization engines used by OnDA monitors.
-
-The 'processing_layer' subpackage contains the implementation of
-several OnDA monitors.
-
-Finally, the 'utils' subpackage contains the implemetaion of several
-OnDA-specific utility functions and classes.
 """
 __version__ = "0.9"

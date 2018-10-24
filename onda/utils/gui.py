@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #    This file is part of OnDA.
 #
 #    OnDA is free software: you can redistribute it and/or modify
@@ -13,11 +12,11 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
-Base GUI class.
-
-This module contains the implementation of the base OnDA GUI class.
-This class should be subclassed to create OnDA GUIs.
+Base OnDA GUI class.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -34,7 +33,16 @@ except ImportError:
 
 class OndaGui(QtGui.QMainWindow):
     """
-    See __init_ for documentation.
+    Main GUI class.
+
+    A class implementing the common GUI elements. It is designed to be
+    subclassed to implement an OnDA GUI. It lets the user set up the
+    GUI in the constructor method of the derived class. It then makes
+    sure that the 'gui_update_func' function is called at regular
+    intervals to update the GUI. Furthermore, it instantiates a
+    listening thread to receive data from an OnDA monitor and make
+    the data available to the derived class as soon as it is
+    received.
     """
 
     _listening_thread_start_processing = QtCore.pyqtSignal()
@@ -46,16 +54,7 @@ class OndaGui(QtGui.QMainWindow):
                  subscription_string,
                  gui_update_func,):
         """
-        Main GUI class.
-
-        A class implementing the common GUI elements. It should be
-        subclassed to create an OnDA GUI. Let the user set up the GUI
-        in the constructor method of the derived class. Then make then
-        sure that the 'gui_update_func' function is called at regular
-        intervals to update the GUI. Furthermore, instantiate a
-        listening thread to receive data from an OnDA monitor and make
-        the data available to the derived class as soon as it is
-        received.
+        Initializes the OndaGui class.
 
         Attributes:
 
@@ -75,21 +74,22 @@ class OndaGui(QtGui.QMainWindow):
                 broadcasting information.
 
             subscription_string (str): the subscription string used to
-                filter data received from the OnDA monitor.
+                filter the data received from the OnDA monitor.
 
             gui_update_func (Callable): function that updates the GUI,
                 to be called at regular intervals.
         """
-        super(OndaGui, self).__init__()
+        super(OndaGui,
+              self).__init__()
 
         self._gui_update_func = gui_update_func
         self.data = None
         self.listening = False
 
-        # Initialize an empty status bar
+        # Initializes an empty status bar
         self.statusBar().showMessage('')
 
-        # Create and initialize the ZMQ listening thread.
+        # Creates and initializes the ZMQ listening thread.
         self._data_listener_thread = QtCore.QThread()
         self._data_listener = zmq.DataListener(
             pub_hostname=pub_hostname,
@@ -114,7 +114,7 @@ class OndaGui(QtGui.QMainWindow):
         self._data_listener_thread.start()
         self.start_listening()
 
-        # Set and start the timer that will call the GUI update
+        # Sets up and starts the timer that will call the GUI update
         # function at regular intervals (hardcoded to 500ms).
         self._refresh_timer = QtCore.QTimer()
         self._refresh_timer.timeout.connect(self._gui_update_func)
@@ -122,7 +122,7 @@ class OndaGui(QtGui.QMainWindow):
 
     def start_listening(self):
         """
-        Start listening for data from the OnDA monitor.
+        Starts listening for data from the OnDA monitor.
         """
         if not self.listening:
             self.listening = True
@@ -130,7 +130,7 @@ class OndaGui(QtGui.QMainWindow):
 
     def stop_listening(self):
         """
-        Stop listening for data from the OnDA monitor.
+        Stops listening for data from the OnDA monitor.
         """
         if self.listening:
             self.listening = False
@@ -138,16 +138,18 @@ class OndaGui(QtGui.QMainWindow):
 
     def _data_received(self,
                        data_dictionary):
-        # This function is called when the listening thread receives data.
+        # This function is called every time thath listening thread
+        # receives data from the OnDA monitor.
 
-        # Store the received dictionary as an attribute.
+        # Stores the received dictionary as an attribute.
         self.data = copy.deepcopy(data_dictionary)
 
-        # Compute the esimated delay and print it into the status bar.
-        # (A GUI is supposed to be a MainWindow widget, so it is suppposed
-        # to have a status bar.)
-        # Use the timestamp of the last event accumulated event to
-        # compute the estimated delay.
+        # Computes the esimated delay and prints it into the status
+        # bar. (The GUI is supposed to be a Qt MainWindow widget, so it
+        # is supposed to have a status bar. This function expects the
+        # GUI to have it).
+        # The timestamp of the last event in the received list of
+        # accumulated events is used to compute the estimated delay.
         timestamp = self.data[-1][b'timestamp']
         timenow = time.time()
         self.statusBar().showMessage(

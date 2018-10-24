@@ -12,12 +12,13 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 OnDA-specific exceptions and exception handling.
 
-This module contains the implementation of several OnDA specific
-exceptions. It also contains the implementation of a custom exception
-handler.
+Several OnDA specific exceptions, plus a custom exception handler.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -107,7 +108,7 @@ class InvalidSource(OndaException):
 
 class MissingDependency(OndaException):
     """
-    One of the dependecy of the module is not installed.
+    One of the dependecies of a module is not installed.
     """
     pass
 
@@ -121,7 +122,7 @@ class ConfigFileSyntaxError(OndaException):
 
 class ConfigFileReadingError(OndaException):
     """
-    There is a syntax error in the configuration file.
+    Error while reading the configuration file.
     """
     pass
 
@@ -131,8 +132,8 @@ def onda_exception_handler(type_, value, traceback):
     Custom OnDA exception handler.
 
     Not to be called directly, but to be used as a replacement for the
-    standard exception handler. Add a label and hide the stracktrace
-    for all OnDA exceptions. Report all other exceptions normally.
+    standard exception handler. Adds a label and hide the stracktrace
+    for all OnDA exceptions. Reports all other exceptions normally.
 
     Args:
 

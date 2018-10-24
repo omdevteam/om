@@ -12,15 +12,16 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 """
 Configuration parameter retrieval and validation.
 
-This module contains the implementation of utilities used to store,
-retrieve and validate configuration options for OnDA monitors.
+Functions and classes used to retrieve and validate configuration
+options from OnDA monitor configuration files.
 """
 from __future__ import absolute_import, division, print_function
-
-from builtins import str  # pylint: disable=W0622
 
 from scipy import constants
 
@@ -29,39 +30,44 @@ from onda.utils import exceptions
 
 class MonitorParams(object):
     """
-    See __init__ for documentation.
-    """
+    Storage, retrieval and validation of OnDA monitor parameters.
 
+    A class that stores a set of configuration parameters for an OnDA
+    monitor read from a configuration file. The class has members that
+    allow the retrieval of data options from different sections of the
+    configuration files. Optionally, the parameter type can also be
+    checkes and validated.
+
+    Raises:
+
+        MissingParameterFileSection: if the requested section is
+            not present in the configuration file.
+
+        MissingParameter: if the parameter is strictly required
+            (i.e. the 'required' argument is set to True) but
+            cannot be found in the configuration file.
+
+        WrongParameterType: if the requested parameter type does
+            not match the type of the parameter in the
+            configuration file.
+    """
     def __init__(self, param_dictionary):
         """
-        Storage, retrieval and validation of OnDA monitor parameters.
+        Initializes the MonitorParams class.
 
         Args:
 
             param_dictionary (Dict): a dictionary containing the
                 parameters from a configuration file, as returned by
                 the :obj:`toml` python module.
-
-        Raises:
-
-            MissingParameterFileSection: if the requested section is
-                not present in the configuration file.
-
-            MissingParameter: if the parameter is strictly required
-                (i.e. the 'required' argument is set to True) but
-                cannot be found in the configuration file.
-
-            WrongParameterType: if the requested parameter type does
-                not match the type of the parameter in the
-                configuration file.
         """
         self._monitor_params = param_dictionary
 
     def get_param(self, section, parameter, type_=None, required=False):
         """
-        Retrieve an OnDA monitor parameter.
+        Retrieves an OnDA monitor parameter.
 
-        Optionally, check that the type of the retrieved parameter
+        Optionally, checks that the type of the retrieved parameter
         matches the type needed by the user.
 
         Args:
@@ -74,16 +80,16 @@ class MonitorParams(object):
             type_ (type): required type of the parameter. If this
                 argument is not None, the function will make sure that
                 the type of the recovered parameter matches the type
-                requested here. Otherwise, an exception will be raised.
-                If the type of the recovered parameter is None, or if
-                the parameter is not present in the configuration
-                file, the check will not be performed. Defaults
-                to None.
+                requested here. If the type does not match, an
+                exception will be raised. If the type of the recovered
+                parameter is None, or if the parameter is not present
+                in the configuration file, the check will not be
+                performed. Defaults to None.
 
             required (bool): if this argument is True, the function
                 will raise an exception if the parameter is not present
                 in the configuration file (Normally the function
-                returns None for parameters that were not found in the
+                returns None for parameters that are not found in the
                 configuration file).
 
         Returns:
@@ -122,7 +128,7 @@ class MonitorParams(object):
 
 def beam_energy_from_monitor_params(event):
     """
-    Retrieve the beam energy from the configuration file.
+    Retrieves the beam energy from the configuration file.
 
     The beam energy should be stored in the 'General' section under the
     'fallback_beam_energy' entry.
@@ -147,7 +153,7 @@ def beam_energy_from_monitor_params(event):
 
 def detector_distance_from_monitor_params(event):
     """
-    Retrieve the beam energy from the configuration file.
+    Retrieves the beam energy from the configuration file.
 
     The beam energy should be stored in the 'General' section under the
     'fallback_detector_distance' entry.
