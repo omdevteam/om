@@ -114,12 +114,12 @@ def optical_laser_active(event):
         ][
             'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
         ][
-            'image.cellid'
+            'image.cellId'
         ]
     )
 
     return cell_id in event['monitor_params'].get_param(
-        section='DataProcessingLayer',
+        section='DataRetrievalLayer',
         parameter='cell_ids_with_active_optical_laser',
         type_=list,
         required=True
