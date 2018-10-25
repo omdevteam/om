@@ -165,3 +165,21 @@ field, 'active_optical_laser_evr_code', stores the EVR code that
 corresponds, at the LCLS facility, to the optical laser being
 active.
 """
+
+
+RadialBinInfo = collections.namedtuple(
+    typename='RadialBinInfo',
+    field_names=[
+        'radial_bin_pixel_map',
+        'radial_bin_size'
+    ]
+)
+"""
+Radial binning information.
+
+Information about radial binning of detector frame data. The first
+field, 'radial_bin_pixel_map', is a pixel map of the same size as the
+detector frame data, storing, for each pixel, its radial bin
+assignment. The second field, 'radial_bin_size', contains the size of
+the regular radius bins.
+"""

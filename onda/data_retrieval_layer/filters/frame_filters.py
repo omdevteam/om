@@ -12,9 +12,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
-<<<<<<< HEAD
-from __future__ import absolute_import, division, print_function
-=======
 #
 #    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 #    a research centre of the Helmholtz Association.
@@ -26,7 +23,6 @@ criteria.
 """
 from __future__ import absolute_import, division, print_function
 
->>>>>>> develop
 
 class NullFrameFilter(object):
     """

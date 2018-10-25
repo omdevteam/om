@@ -24,11 +24,20 @@ import numpy
 import scipy.constants
 from scipy import optimize
 
+from onda.utils import named_tuples
+
 ###################################
 # PIXEL SPACE / QSPACE CONVERSION #
 ###################################
 
-def pix2q(detector_distance, beam_energy, pixel_size, bins, coffset, dr):
+def pixel_bin_to_q_bins(
+		detector_distance,
+		beam_energy,
+                pixel_size,
+                bins,
+                coffset,
+                radial_bin_size
+):
     """
     Converts pixel-space radial bins to q-space radial_bins.
 
@@ -45,13 +54,13 @@ def pix2q(detector_distance, beam_energy, pixel_size, bins, coffset, dr):
         # TODO: Is this right?
         pixel_size (float): size of the pixel in m.
 
-        bins (array): array of pixel bins (e.g. np.arange(1000)).
+        pixel_bins (array): array of pixel bins (e.g. np.arange(1000)).
 
         coffset (float) : detector distance's offset in meters
             (adjustment to the detector distance reported by the
             facility).
 
-        dr (float): size of each bin in pixels
+        radial_bin_size (float): size of each bin in pixels
 
     Returns:
 
@@ -66,7 +75,7 @@ def pix2q(detector_distance, beam_energy, pixel_size, bins, coffset, dr):
     )
 
     theta = 0.5 * numpy.arctan(
-        (bins * dr * pixel_size) /
+        (bins * radial_bin_size * pixel_size) /
         (detector_distance + coffset)
     )
 
@@ -77,7 +86,8 @@ def pix2q(detector_distance, beam_energy, pixel_size, bins, coffset, dr):
 
     return q_in_meters * 1.0e-10
 
-def calculate_radial_bin_pixel_map(radius_pixel_map, num_bins):
+
+def calculate_radial_bin_info(radius_pixel_map, num_bins):
     """
     Calculates a radial bin pixel map.
 
@@ -93,8 +103,7 @@ def calculate_radial_bin_pixel_map(radius_pixel_map, num_bins):
 
        Returns:
 
-           ndarray: pixel map storing, for each pixel, its radial bin
-           assignment.
+           RadialBinInfo: a named tuple with the radial bin info.
     """
     radial_bin_pixel_map = numpy.zeros(radius_pixel_map.shape, dtype=int)
 
@@ -110,7 +119,10 @@ def calculate_radial_bin_pixel_map(radius_pixel_map, num_bins):
             radius_pixel_map >= num_bins * deltar
         ] = num_bins
 
-    return radial_bin_pixel_map, deltar
+    return named_tuples.RadialBinInfo(
+        radial_bin_pixel_map=radial_bin_pixel_map,
+        radial_bin_size=deltar
+    )
 
 
 def scale_profile(radial_profile, min_radial_bin, max_radial_bin):
@@ -166,34 +178,3 @@ def calculate_avg_radial_intensity(data, radial_bin_pixel_map):
     )
 
     return radial_average
-
-def opt_func(coeffs, dark_radial, pumped_radial):
-    scaled_dark_rad = dark_radial*coeffs[0] + coeffs[1]
-    resid = pumped_radial - scaled_dark_rad
-    return numpy.sum(resid**2)
-
-def get_scaled_dark(init_coeffs, dark_radial, pumped_radial, scale_region):
-    fit = optimize.minimize(
-        opt_func, 
-        init_coeffs, 
-        args=(dark_radial[scale_region[0]:scale_region[1]], 
-            pumped_radial[scale_region[0]:scale_region[1]]), 
-        method='Nelder-Mead'
-        )
-    scaled_dark = fit['x'][0]*dark_radial + fit['x'][1]
-    return scaled_dark
-
-def digitizer_opt_func(shift, digitizer_data, reference_digitizer_data):
-    shifted = numpy.roll(digitizer_data,shift)
-    resid = (shifted-reference_digitizer_data)
-    return numpy.sum(resid**2)
-
-def fit_digitizer(init_shift, digitizer_data, reference_digitizer_data):
-    fit = optimize.minimize(
-        digitizer_opt_func, 
-        init_shift, 
-        args=(digitizer_data,reference_digitizer_data), 
-        method='Nelder-Mead'
-        )
-    return fit.x
-
