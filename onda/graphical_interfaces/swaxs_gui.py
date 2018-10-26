@@ -44,7 +44,7 @@ class SWAXSGui(gui.OndaGui):
                  pub_port):
         """
         Initializes the SwaxsGui class.
-        
+
         Args:
 
             geometry (Dict): a dictionary containing CrystFEL geometry
@@ -89,8 +89,8 @@ class SWAXSGui(gui.OndaGui):
         # Tries to extract the coffset and res information from the
         # geometry. The geometry allows these two values to be defined
         # individually for each panel, but the GUI just needs simple
-        # values for the whole detector. This code ususe the values
-        # from first panel.
+        # values for the whole detector. This code uses the values from
+        # the first panel.
         first_panel = list(geometry['panels'].keys())[0]
         try:
             self._coffset = geometry['panels'][first_panel]['coffset']
@@ -102,6 +102,7 @@ class SWAXSGui(gui.OndaGui):
         except KeyError:
             self._res = None
 
+        # Initializes several arrays used for plotting.
         self._q_bins = collections.deque(
             iterable=1000 * [0.0],
             maxlen=1000
@@ -177,10 +178,10 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
-        # Set the PyQtGraph background color.
+        # Sets the PyQtGraph background color.
         pyqtgraph.setConfigOption('background', 1.0)
 
-        # Initialize the radial profile plot widget.
+        # Initialize sthe radial profile plot widget.
         self._radial_plot_widget = pyqtgraph.PlotWidget()
         self._radial_plot_widget.setTitle(
             'Radial Profile'
@@ -261,7 +262,7 @@ class SWAXSGui(gui.OndaGui):
             pen='b'
         )
 
-        # Initialize the hit rate plot widget.
+        # Initializes the hit rate plot widget.
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
         self._hit_rate_plot_widget.setTitle(
             'Hit Rate vs. Events'
@@ -307,7 +308,7 @@ class SWAXSGui(gui.OndaGui):
             symbolSize=2
         )
 
-        # Initialize the intensity sum histogram widget.
+        # Initializes the intensity sum histogram widget.
         self._intensity_sums_plot_widget = pyqtgraph.PlotWidget()
         self._intensity_sums_plot_widget.setTitle(
             'Total unscaled radial intensity sum histogram'
@@ -338,12 +339,12 @@ class SWAXSGui(gui.OndaGui):
             symbolSize=5
         )
 
-        # Initialize 'reset plots' button.
+        # Initializes the 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton()
         self._reset_plots_button.setText("Reset Plots")
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
-        # Initialize and fill the layouts.
+        # Initializes and fills the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
         horizontal_layout.addWidget(self._reset_plots_button)
         horizontal_layout.addStretch()
@@ -358,7 +359,7 @@ class SWAXSGui(gui.OndaGui):
         vertical_layout.addWidget(splitter_0)
         vertical_layout.addLayout(horizontal_layout)
 
-        # Initialize the central widget for the main window.
+        # Initializes the central widget for the main window.
         self._central_widget = QtGui.QWidget()
         self._central_widget.setLayout(vertical_layout)
         self.setCentralWidget(self._central_widget)
@@ -366,7 +367,7 @@ class SWAXSGui(gui.OndaGui):
         self.show()
 
     def _reset_plots(self):
-        # Reset the plots.
+        # Resets the plots.
         self._hitrate_history = collections.deque(
             10000 * [0.0],
             maxlen=10000
@@ -396,15 +397,12 @@ class SWAXSGui(gui.OndaGui):
         self._dark_hitrate_plot.setData(self._dark_hitrate_history)
         self._intensity_sums_plot.setData(self._intensity_sum_hist)
 
-    def _reset_virt_powder_plot(self):
-        return
-
     def _update_image_and_plots(self):
-        # Update all elements in the GUI.
+        # Updates all elements in the GUI.
 
         if self.data:
-            # Check if data has been received. If new data has been
-            # received, move them to a new attribute and reset the
+            # Checks if data has been received. If new data has been
+            # received, move sthem to a new attribute and resets the
             # 'data' attribute. In this way, one can check if data has
             # been received simply by checking if the 'data' attribute
             # is not None.
@@ -417,8 +415,8 @@ class SWAXSGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        # Add data from all frames accumulated in local_data to the
-        # plots,but updated the displayed images and plots onley once
+        # Adds data from all frames accumulated in local_data to the
+        # plots, but updates the displayed images and plots only once
         # at the end.
         for frame in self._local_data:
             self._hitrate_history.append(frame[b'hit_rate'])
@@ -429,6 +427,7 @@ class SWAXSGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
+        # Updates the plots
         self._q_bins = last_frame[b'q_bins']
         self._unscaled_radial = last_frame[b'unscaled_radial']
         self._radial = last_frame[b'radial']
@@ -492,17 +491,17 @@ class SWAXSGui(gui.OndaGui):
             self._intensity_sum_hist
         )
 
-        # Reset local_data so that the same data is not processed
+        # Resets local_data so that the same data is not processed
         # multiple times.
         self._local_data = []
 
 
 def main():
     """
-    Start the GUI for OnDA SWAXS.
+    Starts the GUI for OnDA SWAXS.
 
-    Initialize and start the GUI for OnDA SWAXS. Manage command line
-    arguments, load the geometry and instantiate the graphical
+    Initializes and starts the GUI for OnDA SWAXS. Manages command line
+    arguments, loads the geometry and instantiates the graphical
     interface.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)

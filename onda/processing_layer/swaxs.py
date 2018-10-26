@@ -457,6 +457,11 @@ class OndaMonitor(mpi.ParallelizationEngine):
         else:
             subtracted_profile = radial
 
+        # Tries to extract the coffset and res information from the
+        # geometry. The geometry allows these two values to be defined
+        # individually for each panel, but the GUI just needs simple
+        # values for the whole detector. This code uses the values from
+        # the first panel.
         pixel_size = 1. / list(self.geometry['panels'].items())[0][1]['res']
         coffset = list(self.geometry['panels'].items())[0][1]['coffset']
 
