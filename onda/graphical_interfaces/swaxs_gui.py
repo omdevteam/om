@@ -15,9 +15,6 @@
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 """
 GUI for OnDA SWAXS.
-
-GUI for the visualization of Small And Wide Angle X-Ray Scattering
-Data.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -38,7 +35,7 @@ except ImportError:
 
 class SWAXSGui(gui.OndaGui):
     """
-    See __init__ for documentation.
+    GUI for OnDA SWAXS.
     """
 
     def __init__(self,
@@ -46,10 +43,8 @@ class SWAXSGui(gui.OndaGui):
                  pub_hostname,
                  pub_port):
         """
-        GUI for OnDA SWAXS.
-
-        TODO: GUI description.
-
+        Initializes the SwaxsGui class.
+        
         Args:
 
             geometry (Dict): a dictionary containing CrystFEL geometry
@@ -63,6 +58,7 @@ class SWAXSGui(gui.OndaGui):
             pub_port (int): port on which the the OnDA monitor is
                 broadcasting information.
         """
+        # TODO: GUI description.
         super(SWAXSGui, self).__init__(
             pub_hostname=pub_hostname,
             pub_port=pub_port,
@@ -70,11 +66,10 @@ class SWAXSGui(gui.OndaGui):
             subscription_string=u'ondadata',
         )
 
-        # Initialize the attribute that will store the local data.
+        # Initializes the attribute that will store the local data.
         self._local_data = None
 
-
-        # Compte the pixel maps for visualization.
+        # Computes the pixel maps for visualization.
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
         # The following information will be used later to create the
@@ -91,11 +86,11 @@ class SWAXSGui(gui.OndaGui):
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
-        # Try to extract the coffset and res information from the
+        # Tries to extract the coffset and res information from the
         # geometry. The geometry allows these two values to be defined
         # individually for each panel, but the GUI just needs simple
-        # values for the whole detector. Just take the values from the
-        # first panel.
+        # values for the whole detector. This code ususe the values
+        # from first panel.
         first_panel = list(geometry['panels'].keys())[0]
         try:
             self._coffset = geometry['panels'][first_panel]['coffset']
@@ -107,7 +102,7 @@ class SWAXSGui(gui.OndaGui):
         except KeyError:
             self._res = None
 
-        self._q = collections.deque(
+        self._q_bins = collections.deque(
             iterable=1000 * [0.0],
             maxlen=1000
         )
@@ -209,14 +204,16 @@ class SWAXSGui(gui.OndaGui):
         self._radial_plot_widget.addLegend()
 
         self._unscaled_radial_plot = self._radial_plot_widget.plot(
-            self._q, self._unscaled_radial,
+            self._q_bins,
+            self._unscaled_radial,
             name='Single Unscaled Radial'
         )
 
         self._radial_plot = self._radial_plot_widget.plot(
-            self._q, self._radial,
+            self._q_bins,
+            self._radial,
             name='Single Scaled Radial',
-            pen=(0,0,0,25),
+            pen=(0, 0, 0, 25),
             symbol='o',
             symbolPen='k',
             symbolBrush='k',
@@ -224,7 +221,8 @@ class SWAXSGui(gui.OndaGui):
         )
 
         self._cumulative_pumped_plot = self._radial_plot_widget.plot(
-            self._q, self._cumulative_pumped,
+            self._q_bins,
+            self._cumulative_pumped,
             name='Cumulative Pumped Radial',
             pen='r',
             symbol='o',
@@ -234,7 +232,8 @@ class SWAXSGui(gui.OndaGui):
         )
 
         self._cumulative_dark_plot = self._radial_plot_widget.plot(
-            self._q, self._cumulative_dark,
+            self._q_bins,
+            self._cumulative_dark,
             name='Cumulative Dark Radial',
             pen='b',
             symbol='o',
@@ -244,9 +243,10 @@ class SWAXSGui(gui.OndaGui):
         )
 
         self._diff_plot = self._radial_plot_widget.plot(
-            self._q, self._diff,
+            self._q_bins,
+            self._diff,
             name='Single Difference',
-            pen=(0,0,0,20)
+            pen=(0, 0, 0, 20)
         )
 
         self._recent_radial_plot = self._radial_plot_widget.plot(
@@ -291,7 +291,7 @@ class SWAXSGui(gui.OndaGui):
 
         self._pumped_hitrate_plot = self._hit_rate_plot_widget.plot(
             self._pumped_hitrate_history,
-            pen=[0,0,0,0],
+            pen=[0, 0, 0, 0],
             symbol='o',
             symbolPen='r',
             symbolBrush='r',
@@ -300,7 +300,7 @@ class SWAXSGui(gui.OndaGui):
 
         self._dark_hitrate_plot = self._hit_rate_plot_widget.plot(
             self._dark_hitrate_history,
-            pen=[0,0,0,0],
+            pen=[0, 0, 0, 0],
             symbol='o',
             symbolPen='b',
             symbolBrush='b',
@@ -337,16 +337,7 @@ class SWAXSGui(gui.OndaGui):
             symbolBrush='k',
             symbolSize=5
         )
-        """
-        self._digitizer_data_plot = self._intensity_sums_plot_widget.plot(
-            self._digitizer_data,
-            pen='b',
-            symbol='o',
-            symbolPen='b',
-            symbolBrush='b',
-            symbolSize=5
-        )
-        """
+
         # Initialize 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton()
         self._reset_plots_button.setText("Reset Plots")
@@ -412,7 +403,6 @@ class SWAXSGui(gui.OndaGui):
         # Update all elements in the GUI.
 
         if self.data:
-
             # Check if data has been received. If new data has been
             # received, move them to a new attribute and reset the
             # 'data' attribute. In this way, one can check if data has
@@ -439,7 +429,7 @@ class SWAXSGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        self._q = last_frame[b'q']
+        self._q_bins = last_frame[b'q_bins']
         self._unscaled_radial = last_frame[b'unscaled_radial']
         self._radial = last_frame[b'radial']
         self._cumulative_pumped = last_frame[b'cumulative_pumped_avg']
@@ -447,21 +437,60 @@ class SWAXSGui(gui.OndaGui):
         self._diff = last_frame[b'diff']
         self._cumulative_radial = last_frame[b'cumulative_radial']
         self._recent_radial = last_frame[b'recent_radial']
-        self._unscaled_radial_plot.setData(self._q,self._unscaled_radial)
-        self._radial_plot.setData(self._q,self._radial)
-        self._cumulative_pumped_plot.setData(self._q,self._cumulative_pumped)
-        self._cumulative_dark_plot.setData(self._q,self._cumulative_dark)
-        self._diff_plot.setData(self._q,self._diff)
-        self._recent_radial_plot.setData(self._q,self._recent_radial)
-        self._cumulative_radial_plot.setData(self._q,self._cumulative_radial)
-        self._hitrate_plot.setData(self._hitrate_history)
-        self._pumped_hitrate_plot.setData(self._pumped_hitrate_history)
-        self._dark_hitrate_plot.setData(self._dark_hitrate_history)
+
+        self._unscaled_radial_plot.setData(
+            self._q_bins,
+            self._unscaled_radial
+        )
+
+        self._radial_plot.setData(
+            self._q,
+            self._radial
+        )
+
+        self._cumulative_pumped_plot.setData(
+            self._q_bins,
+            self._cumulative_pumped
+        )
+
+        self._cumulative_dark_plot.setData(
+            self._q_bins,
+            self._cumulative_dark
+        )
+
+        self._diff_plot.setData(
+            self._q_bins,
+            self._diff
+        )
+
+        self._recent_radial_plot.setData(
+            self._q_bins,
+            self._recent_radial
+        )
+
+        self._cumulative_radial_plot.setData(
+            self._q_bins,
+            self._cumulative_radial
+        )
+
+        self._hitrate_plot.setData(
+            self._hitrate_history
+        )
+
+        self._pumped_hitrate_plot.setData(
+            self._pumped_hitrate_history
+        )
+
+        self._dark_hitrate_plot.setData(
+            self._dark_hitrate_history
+        )
+
         self._intensity_sum_hist = last_frame[b'intensity_sum_hist']
         self._intensity_sum_hist_bins = last_frame[b'intensity_sum_hist_bins']
-        self._intensity_sums_plot.setData(self._intensity_sum_hist_bins,self._intensity_sum_hist)
-        #self._digitizer_data = last_frame[b'digitizer_data']
-        #self._digitizer_data_plot.setData(self._digitizer_data)
+        self._intensity_sums_plot.setData(
+            self._intensity_sum_hist_bins,
+            self._intensity_sum_hist
+        )
 
         # Reset local_data so that the same data is not processed
         # multiple times.

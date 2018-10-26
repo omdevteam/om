@@ -12,6 +12,9 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Copyright ©
+#
 """
 Processing of SWAXS data.
 
@@ -22,21 +25,17 @@ from __future__ import absolute_import, division, print_function
 
 import numpy
 import scipy.constants
-from scipy import optimize
 
 from onda.utils import named_tuples
 
-###################################
-# PIXEL SPACE / QSPACE CONVERSION #
-###################################
 
-def pixel_bin_to_q_bins(
-		detector_distance,
-		beam_energy,
-                pixel_size,
-                bins,
-                coffset,
-                radial_bin_size
+def pixel_bins_to_q_bins(
+        detector_distance,
+        beam_energy,
+        pixel_size,
+        pixel_radial_bins,
+        coffset,
+        radial_bin_size
 ):
     """
     Converts pixel-space radial bins to q-space radial_bins.
@@ -75,12 +74,12 @@ def pixel_bin_to_q_bins(
     )
 
     theta = 0.5 * numpy.arctan(
-        (bins * radial_bin_size * pixel_size) /
+        (pixel_radial_bins * radial_bin_size * pixel_size) /
         (detector_distance + coffset)
     )
 
     q_in_meters = (
-        4.0 * scipy.constants.pi *numpy.sin(theta) /
+        4.0 * scipy.constants.pi * numpy.sin(theta) /
         lambda_
     )
 
@@ -148,7 +147,7 @@ def scale_profile(radial_profile, min_radial_bin, max_radial_bin):
     average = numpy.average(scaling_region)
     if average == 0:
         average = 1.0
-    scaled_radial_profile = radial_profile/ average
+    scaled_radial_profile = radial_profile / average
     return scaled_radial_profile
 
 

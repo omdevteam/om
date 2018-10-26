@@ -246,7 +246,6 @@ class DataListener(QtCore.QObject):
             self.zmqmessage.emit(msg)
 
 
-
 def _patched_encode(obj, chain=None):
     # This function is the 'encode' function from msgpack-numpy,
     # patched to use the 'data' method as opposed to the 'tobytes' one.
@@ -263,11 +262,11 @@ def _patched_encode(obj, chain=None):
                 b'type': descr,
                 b'kind': kind,
                 b'shape': obj.shape,
-                b'data': obj.tobytes()}
+                b'data': obj.data}
     elif isinstance(obj, (numpy.bool_, numpy.number)):
         return {b'nd': False,
                 b'type': obj.dtype.str,
-                b'data': obj.tobytes()}
+                b'data': obj.data}
     elif isinstance(obj, complex):
         return {b'complex': True,
                 b'data': obj.__repr__()}
