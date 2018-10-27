@@ -22,9 +22,9 @@ import collections
 import signal
 import sys
 
+import numpy
 import pyqtgraph
 from cfelpyutils import crystfel_utils, geometry_utils
-
 from onda.utils import gui
 
 try:
@@ -103,45 +103,23 @@ class SWAXSGui(gui.OndaGui):
             self._res = None
 
         # Initializes several arrays used for plotting.
-        self._q_bins = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._q_bins = numpy.zeros(100)
 
-        self._unscaled_radial = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._unscaled_radial = numpy.zeros(100)
 
-        self._radial = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._radial = numpy.zeros(100)
 
-        self._cumulative_pumped = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._cumulative_pumped = numpy.zeros(100)
 
-        self._cumulative_dark = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._cumulative_dark = numpy.zeros(100)
 
-        self._diff = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._diff = numpy.zeros(100)
 
-        self._recent_radial = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._recent_radial = numpy.zeros(100)
 
-        self._cumulative_radial = collections.deque(
-            iterable=1000 * [0.0],
-            maxlen=1000
-        )
+        self._cumulative_radial = numpy.zeros(100)
+
+        self._cumulative_diff_stack = numpy.zeros((100, 100))
 
         self._hitrate_history = collections.deque(
             iterable=10000 * [0.0],
@@ -158,25 +136,11 @@ class SWAXSGui(gui.OndaGui):
             maxlen=10000
         )
 
-        self._intensity_sums = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
-        )
+        self._intensity_sums = numpy.zeros(100)
 
-        self._intensity_sum_hist = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
-        )
+        self._intensity_sum_hist = numpy.zeros(100)
 
-        self._intensity_sum_hist_bins = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
-        )
-
-        self._digitizer_data = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
-        )
+        self._intensity_sum_hist_bins = numpy.zeros(100)
 
         # Sets the PyQtGraph background color.
         pyqtgraph.setConfigOption('background', 1.0)
@@ -189,7 +153,7 @@ class SWAXSGui(gui.OndaGui):
 
         self._radial_plot_widget.setLabel(
             axis='bottom',
-            text='Radius (pixels)'
+            text='q (1/angstrom)'
         )
 
         self._radial_plot_widget.setLabel(
@@ -203,6 +167,8 @@ class SWAXSGui(gui.OndaGui):
         )
 
         self._radial_plot_widget.addLegend()
+
+        self._radial_plot_widget.setYRange(-1.0, 1.0)
 
         self._unscaled_radial_plot = self._radial_plot_widget.plot(
             self._q_bins,
@@ -261,6 +227,24 @@ class SWAXSGui(gui.OndaGui):
             name='Cumulative Average Difference',
             pen='b'
         )
+
+        # Initializes the image viewer.
+        self._image_view = pyqtgraph.ImageView(view=pyqtgraph.PlotItem())
+        self._image_view.ui.menuBtn.hide()
+        self._image_view.ui.roiBtn.hide()
+        self._image_view.view.setAspectLocked(False)
+        self._image_view.setLevels(-10, 10)
+        image_colormap = pyqtgraph.ColorMap(
+            pos=[0.00, 0.25, 0.50, 0.75, 1.00],
+            color=[
+                (0, 0, 255),
+                (0, 255, 255),
+                (255, 255, 255),
+                (255, 255, 0),
+                (255, 0, 0)
+            ]
+        )
+        self._image_view.setColorMap(image_colormap)
 
         # Initializes the hit rate plot widget.
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
@@ -345,19 +329,24 @@ class SWAXSGui(gui.OndaGui):
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
         # Initializes and fills the layouts.
-        horizontal_layout = QtGui.QHBoxLayout()
-        horizontal_layout.addWidget(self._reset_plots_button)
-        horizontal_layout.addStretch()
         splitter_0 = QtGui.QSplitter()
+        splitter_0.setOrientation(QtCore.Qt.Vertical)
         splitter_0.addWidget(self._radial_plot_widget)
+        splitter_0.addWidget(self._image_view)
         splitter_1 = QtGui.QSplitter()
         splitter_1.setOrientation(QtCore.Qt.Vertical)
         splitter_1.addWidget(self._hit_rate_plot_widget)
         splitter_1.addWidget(self._intensity_sums_plot_widget)
-        splitter_0.addWidget(splitter_1)
+        splitter_2 = QtGui.QSplitter()
+        splitter_2.setOrientation(QtCore.Qt.Horizontal)
+        splitter_2.addWidget(splitter_0)
+        splitter_2.addWidget(splitter_1)
+        horizontal_layout_1 = QtGui.QHBoxLayout()
+        horizontal_layout_1.addWidget(self._reset_plots_button)
+        horizontal_layout_1.addStretch()
         vertical_layout = QtGui.QVBoxLayout()
-        vertical_layout.addWidget(splitter_0)
-        vertical_layout.addLayout(horizontal_layout)
+        vertical_layout.addWidget(splitter_2)
+        vertical_layout.addLayout(horizontal_layout_1)
 
         # Initializes the central widget for the main window.
         self._central_widget = QtGui.QWidget()
@@ -443,7 +432,7 @@ class SWAXSGui(gui.OndaGui):
         )
 
         self._radial_plot.setData(
-            self._q,
+            self._q_bins,
             self._radial
         )
 
@@ -489,6 +478,14 @@ class SWAXSGui(gui.OndaGui):
         self._intensity_sums_plot.setData(
             self._intensity_sum_hist_bins,
             self._intensity_sum_hist
+        )
+
+        self._cumulative_diff_stack = last_frame[b'cumulative_diff_stack'].T
+        self._image_view.setImage(
+            self._cumulative_diff_stack,
+            autoHistogramRange=False,
+            autoLevels=False,
+            autoRange=False
         )
 
         # Resets local_data so that the same data is not processed

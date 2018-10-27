@@ -144,7 +144,7 @@ def scale_profile(radial_profile, min_radial_bin, max_radial_bin):
         ndarray: array with the  scaled radial intensity values.
     """
     scaling_region = radial_profile[min_radial_bin:max_radial_bin]
-    average = numpy.average(scaling_region)
+    average = numpy.abs(numpy.average(scaling_region))
     if average == 0:
         average = 1.0
     scaled_radial_profile = radial_profile / average
@@ -170,10 +170,65 @@ def calculate_avg_radial_intensity(data, radial_bin_pixel_map):
 
         ndarray: average intensity values for each radial bin.
     """
-    radial_average = scipy.ndimage.mean(
+    radial_average = scipy.ndimage.median(
         data,
         labels=radial_bin_pixel_map,
         index=numpy.unique(radial_bin_pixel_map)
     )
 
     return radial_average
+
+def mask_panel( panel, sub_sh=(32,32), thresh=7):
+    """
+    Make a mask for an AGIPD panel
+    
+    panel, np.array (128x512)
+        an AGIPD panel whose slow-scan, fast-scan is 128, 512
+    sub_sh, tuple, 
+        divides the panel into chunks of this size
+    thresh, float
+        outlier threshold in units of pixel median
+        (see is_outlier below)
+
+    returns a mask array, 0 is bad, 1 is good 
+    """
+
+    subs = panel.reshape( (-1,32,32) )
+    masks = np.zeros( subs.shape, np.bool)
+    for i,s in enumerate(subs):
+        m = ~is_outlier( s.ravel(), thresh).reshape(s.shape)
+        masks[i] = m 
+    return masks.reshape( panel.shape)
+
+
+def is_outlier(points, thresh=3.5):
+    """
+    http://stackoverflow.com/a/22357811/2077270
+    
+    Returns a boolean array with True if points are outliers and False 
+    otherwise.
+    Parameters:
+    -----------
+        points : An numobservations by numdimensions array of observations
+        thresh : The modified z-score to use as a threshold. Observations with
+            a modified z-score (based on the median absolute deviation) greater
+            than this value will be classified as outliers.
+    Returns:
+    --------
+        mask : A numobservations-length boolean array.
+    References:
+    ----------
+        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Handle Outliers", The ASQC Basic References in Quality Control:
+        Statistical Techniques, Edward F. Mykytka, Ph.D., Editor. 
+    """
+    if len(points.shape) == 1:
+        points = points[:,None]
+    median = np.median(points, axis=0)
+    diff = np.sum((points-median)**2, axis=-1)
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+
+    modified_z_score = 0.6745*diff / med_abs_deviation
+
+    return modified_z_score > thresh
