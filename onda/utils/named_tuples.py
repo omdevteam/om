@@ -93,22 +93,6 @@ wires of the detector.
 """
 
 
-FilenameAndFrameIndex = collections.namedtuple(
-    typename='FilenameAndFrameIndex',
-    field_names=[
-        'filename',
-        'frame_index'
-    ]
-)
-"""
-Information necessary to locate a data frame in a file.
-
-The two fields, called 'filename' and 'frame_index' respectively, store
-the path to the file where the frame is stored, and the index of the
-frame within the file.
-"""
-
-
 Peakfinder8DetInfo = collections.namedtuple(
     typename='Peakfinder8DetInfo',
     field_names=[

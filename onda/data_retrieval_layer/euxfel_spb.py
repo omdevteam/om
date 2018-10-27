@@ -108,6 +108,15 @@ beam_energy = (  # pylint: disable=invalid-name
 )
 
 
+frame_id = (  # pylint: disable=invalid-name
+    euxfel_karabo.frame_id
+)
+
+
+event_id = (  # pylint: disable=invalid-name
+    euxfel_karabo.frame_id
+)
+
 optical_laser_active = (  # pylint: disable=invalid-name
     euxfel_karabo.optical_laser_active
 )

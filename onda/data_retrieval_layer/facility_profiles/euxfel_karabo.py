@@ -108,22 +108,86 @@ def optical_laser_active(event):
 
         bool: True if the optical laser is active. False otherwise.
     """
-    cell_id = (
+    frame_cell_id = (
         event[
             'data'
         ][
             'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
         ][
             'image.cellId'
+        ][
+            event['frame_offset']
         ]
     )
 
-    return cell_id in event['monitor_params'].get_param(
+    return frame_cell_id in event['monitor_params'].get_param(
         section='DataRetrievalLayer',
-        parameter='cell_ids_with_active_optical_laser',
+        parameter='frame_ids_with_active_optical_laser',
         type_=list,
         required=True
     )
+
+
+def event_id(event):
+    """
+    Retrieves from Karabo a unique event idenitfier at XFEL.
+
+    Returns a unique label that unambiguosly identifies the current
+    event within an experiment. When using Karabo at the
+    European XFEL facility, the train id of the current event is used
+    as an identifier.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        str: a unique event identifier.
+    """
+    frame_cell_id = (
+        event[
+            'data'
+        ][
+            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+        ][
+            'timestamp.trainId'
+        ]
+    )
+
+    return str(frame_cell_id)
+
+
+def frame_id(event):
+    """
+    Retrieves from Karabo a unique frame identifier at XFEL.
+
+    Returns a unique label that unambiguosly identifies the current
+    detector frame within the event. When using Karabo at the
+    European XFEL facility, the cell id of the current frame is used as
+    an idenitifer.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        str: a unique frame identifier with the event.
+    """
+    frame_cell_id = (
+        event[
+            'data'
+        ][
+            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+        ][
+            'image.cellId'
+        ][
+            event['frame_offset']
+        ]
+    )
+
+    return str(frame_cell_id)
 
 
 beam_energy = (  # pylint: disable=invalid-name
