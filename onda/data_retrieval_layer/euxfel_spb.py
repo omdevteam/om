@@ -117,6 +117,12 @@ event_id = (  # pylint: disable=invalid-name
     euxfel_karabo.frame_id
 )
 
+
 optical_laser_active = (  # pylint: disable=invalid-name
     euxfel_karabo.optical_laser_active
+)
+
+
+xrays_active = (  # pylint: disable=invalid-name
+    euxfel_karabo.xrays_active
 )

@@ -24,7 +24,7 @@ data (radial pixel map calculation, radial profile scaling, etc.).
 from __future__ import absolute_import, division, print_function
 
 import numpy
-import scipy.constants
+import scipy.constants, scipy.stats
 
 from onda.utils import named_tuples
 
@@ -64,7 +64,7 @@ def pixel_bins_to_q_bins(
     Returns:
 
         ndarray: array of q values associated with each
-        radius bin.
+        radius bin in inverse angstroms.
     """
 
     # TODO: Check the calculation. The units are now SI.
@@ -82,8 +82,10 @@ def pixel_bins_to_q_bins(
         4.0 * scipy.constants.pi * numpy.sin(theta) /
         lambda_
     )
+    
+    q_in_angstroms = q_in_meters * 1.0e-10
 
-    return q_in_meters * 1.0e-10
+    return q_in_angstroms
 
 
 def calculate_radial_bin_info(radius_pixel_map, num_bins):
@@ -147,11 +149,11 @@ def scale_profile(radial_profile, min_radial_bin, max_radial_bin):
     average = numpy.abs(numpy.average(scaling_region))
     if average == 0:
         average = 1.0
-    scaled_radial_profile = radial_profile / average
+    scaled_radial_profile = radial_profile / numpy.sum(radial_profile[min_radial_bin:max_radial_bin])
     return scaled_radial_profile
 
 
-def calculate_avg_radial_intensity(data, radial_bin_pixel_map):
+def calculate_avg_radial_intensity(data, radial_bin_pixel_map, mask):
     """
     Calculates average radial intensities.
 
@@ -170,13 +172,24 @@ def calculate_avg_radial_intensity(data, radial_bin_pixel_map):
 
         ndarray: average intensity values for each radial bin.
     """
-    radial_average = scipy.ndimage.median(
+    idx, counts = numpy.unique(radial_bin_pixel_map,return_counts=True)
+    radial_average = scipy.ndimage.sum(
         data,
         labels=radial_bin_pixel_map,
-        index=numpy.unique(radial_bin_pixel_map)
+        index=idx
     )
+    #mask = numpy.ones(data.shape)
+    #mask[data==0] = 0
+    mask_radial = scipy.ndimage.sum(
+        mask,
+        labels=radial_bin_pixel_map,
+        index=idx
+    )
+    radial_average /= mask_radial
 
-    return radial_average
+    return numpy.nan_to_num(radial_average)
+
+np = numpy
 
 def mask_panel( panel, sub_sh=(32,32), thresh=7):
     """

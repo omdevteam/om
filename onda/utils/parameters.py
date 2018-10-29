@@ -144,7 +144,7 @@ def beam_energy_from_monitor_params(event):
     return float(
         event['monitor_params'].get_param(
             section='General',
-            parameter='fallback_beam_energy',
+            parameter='fallback_beam_energy_in_eV',
             type_=float,
             required=True
         )

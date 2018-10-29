@@ -114,7 +114,7 @@ def optical_laser_active(event):
         ][
             'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
         ][
-            'image.cellId'
+            'image.pulseId'
         ][
             event['frame_offset']
         ]
@@ -122,7 +122,45 @@ def optical_laser_active(event):
 
     return frame_cell_id in event['monitor_params'].get_param(
         section='DataRetrievalLayer',
-        parameter='frame_ids_with_active_optical_laser',
+        parameter='frame_ids_with_optical_laser_active',
+        type_=list,
+        required=True
+    )
+
+
+def xrays_active(event):
+    """
+    Retrieves from Karabo the X-ray status at XFEL.
+
+    Returns whether the X-rays are active or not. In order to
+    determine this, it needs information about the X-ray
+    activation pattern to be provided in the configuration file.
+    The configuration file should contain a list of cellIds for which
+    the X-rays are supposed to be active.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        bool: True if the X-rays are active. False otherwise.
+    """
+    frame_cell_id = (
+        event[
+            'data'
+        ][
+            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
+        ][
+            'image.pulseId'
+        ][
+            event['frame_offset']
+        ]
+    )
+
+    return frame_cell_id in event['monitor_params'].get_param(
+        section='DataRetrievalLayer',
+        parameter='frame_ids_with_xrays_active',
         type_=list,
         required=True
     )
@@ -181,7 +219,7 @@ def frame_id(event):
         ][
             'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
         ][
-            'image.cellId'
+            'image.pulseId'
         ][
             event['frame_offset']
         ]

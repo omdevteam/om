@@ -29,6 +29,7 @@ from cfelpyutils import crystfel_utils, geometry_utils
 
 from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import generic_algorithms as gen_algs
+from onda.algorithms import grouping_algorithms as group_algs
 from onda.parallelization_layer import mpi
 from onda.utils import zmq as zmq_utils
 from onda.utils import swaxs as swaxs_utils
@@ -211,6 +212,26 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # 'calibration_alg' attribute.
                 self._calibration_alg = None
 
+            requested_grouping_alg = monitor_parameters.get_param(
+                section='Grouping',
+                parameter='grouping_algorithm',
+                type_=str
+            )
+
+            if requested_grouping_alg is not None:
+                grouping_alg_class = getattr(
+                    group_algs,
+                    requested_grouping_alg
+                )
+
+                self._grouping_alg = grouping_alg_class(
+                    monitor_parameters
+                )
+            else:
+                # If no calibration is required, stores None in the
+                # 'calibration_alg' attribute.
+                self._grouping_alg = None
+
             # Reads from the configuration file all the parameters
             # needed to instantiate the dark calibration correction
             # algorithm, then instatiate the algorithm.
@@ -386,36 +407,25 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 num_radial_bins
             )
 
-            num_frames_per_event = monitor_parameters.get_param(
+            num_groups = monitor_parameters.get_param(
                 section='DataRetrievalLayer',
-                parameter='num_frames_per_event',
+                parameter='num_groups',
                 type_=int,
                 required=True
             )
 
-            self._frame_idx = numpy.arange(num_frames_per_event)
-
-            self._frame_ids_with_active_optical_laser = (
-                monitor_parameters.get_param(
-                    section='DataRetrievalLayer',
-                    parameter='frame_ids_with_active_optical_laser',
-                    type_=list,
-                    required=True
-                )
-            )
-
             self._cumulative_unscaled_stack = numpy.zeros(
-                (num_frames_per_event,
+                (num_groups,
                  num_radial_bins)
             )
 
             self._cumulative_scaled_stack = numpy.zeros(
-                (num_frames_per_event,
+                (num_groups,
                  num_radial_bins)
             )
 
             self._cumulative_diff_stack = numpy.zeros(
-                (num_frames_per_event,
+                (num_groups,
                  num_radial_bins)
             )
 
@@ -470,21 +480,28 @@ class OndaMonitor(mpi.ParallelizationEngine):
         else:
             calib_det_data = data['detector_data']
 
+        if self._grouping_alg is not None:
+            group_id = self._grouping_alg.get_group(data)
+        else:
+            group_id = 0
+
         corr_det_data = numpy.nan_to_num(
             self._dark_cal_corr_alg.apply_darkcal_correction(
                 data=calib_det_data
             )
         )
-
+        mask = swaxs_utils.mask_panel(corr_det_data)
         unscaled_radial = swaxs_utils.calculate_avg_radial_intensity(
-            corr_det_data,
-            self._radial_bin_pixel_map
+            data=corr_det_data*mask,
+            radial_bin_pixel_map=self._radial_bin_pixel_map,
+            mask=mask
         )
         results_dict['unscaled_radial'] = unscaled_radial
 
-        intensity_sum = numpy.median(corr_det_data.ravel())
-
         # Determine if the the frame is a hit candidate'.
+        intensity_sum = numpy.sum(
+            unscaled_radial[self._scale_region_begin:self._scale_region_end]
+        )
         candidate_hit = (intensity_sum > self._intensity_threshold_for_hit)
 
         if self._scale:
@@ -527,7 +544,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['beam_energy'] = data['beam_energy']
         results_dict['native_data_shape'] = data['detector_data'].shape
         results_dict['optical_laser_active'] = data['optical_laser_active']
-        results_dict['frame_id'] = data['frame_id']
+        results_dict['xrays_active'] = data['xrays_active']
+        results_dict['group_id'] = group_id
 
         return results_dict, self.rank
 
@@ -584,17 +602,25 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 ) - self._cumulative_unscaled_radial_mean**2
             )
         )
-        radial_subset = unscaled_radial[self._scale_region_begin:self.
-                                        _scale_region_end]
+        radial_subset = unscaled_radial[
+            self._scale_region_begin:self._scale_region_end
+        ]
+
         mean_subset = self._cumulative_unscaled_radial_mean[
-            self._scale_region_begin:self._scale_region_end]
+            self._scale_region_begin:self._scale_region_end
+        ]
+
         std_subset = self._cumulative_unscaled_radial_std[
-            self._scale_region_begin:self._scale_region_end]
+            self._scale_region_begin:self._scale_region_end
+        ]
 
         std_dev_hit = numpy.all(
-            radial_subset < numpy.
-            abs(radial_subset - (mean_subset + 3 * std_subset))
+            radial_subset < numpy.abs(
+                radial_subset - (mean_subset + 30 * std_subset)
+            )
         )
+        if self._num_events < self._cumulative_diff_stack.shape[0]:
+            std_dev_hit = True
 
         hit_flag = numpy.logical_and(
             results_dict['cand_hit_flag'],
@@ -614,7 +640,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         )
         results_dict['hit_rate'] = avg_hit_rate
 
-        if self._pump_probe:
+        if results_dict['xrays_active']:
             # Calculates separate statistics for 'light' and 'dark'
             # profiles.
             if results_dict['optical_laser_active']:
@@ -679,6 +705,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             else:
                 self._num_dark += 1
                 if hit_flag:
+
                     self._cumulative_dark += unscaled_radial
                     self._cumulative_dark_avg = (
                         self._cumulative_dark / self._num_dark
@@ -728,75 +755,51 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # A None value sent to the GUI if the experiment is not
                 # pump probe.
                 results_dict['pumped_hit_rate'] = -1
-
-            self._cumulative_radial_avg = (
-                self._cumulative_pumped_avg - self._cumulative_dark_avg
-            )
-            self._recent_radial_avg = (
-                self._recent_pumped_avg - self._recent_dark_avg
-            )
-
-            diff = (radial - self._cumulative_dark_avg)
-            results_dict['cumulative_pumped_avg'] = self._cumulative_pumped_avg
-            results_dict['cumulative_dark_avg'] = self._cumulative_dark_avg
-            results_dict['diff'] = diff
-
-            # TODO: Check this. What is going on?
-            # Any frame_id greater than expected in the list of frames
-            # is piled into the last frame expected.
-            frame_id = min(
-                int(results_dict['frame_id']),
-                self._cumulative_unscaled_stack.shape[0]
-            )
-
-            self._cumulative_unscaled_stack[frame_id] += (unscaled_radial)
-
-            if self._scale:
-                self._cumulative_scaled_stack[frame_id] = (
-                    swaxs_utils.scale_profile(
-                        self._cumulative_unscaled_stack[frame_id],
-                        self._scale_region_begin,
-                        self._scale_region_end
-                    )
-                )
-            else:
-                self._cumulative_scaled_stack[frame_id] = (
-                    self._cumulative_unscaled_stack[frame_id]
-                )
-
-            self._cumulative_diff_stack[frame_id] = (
-                self._cumulative_scaled_stack[frame_id] -
-                self._cumulative_dark_avg
-            )
-
-            results_dict['cumulative_diff_stack'] = self._cumulative_diff_stack
-
         else:
-            if hit_flag:
-                self._cumulative_radial += unscaled_radial
-                self._cumulative_radial_avg = (
-                    self._cumulative_radial / self._num_events
-                )
-
-                self._recent_profiles = numpy.roll(
-                    self._recent_profiles,
-                    -1,
-                    axis=0
-                )
-
-                self._recent_profiles[-1] = unscaled_radial
-                self._recent_radial_avg = numpy.mean(
-                    self._recent_profiles,
-                    axis=0
-                )
-            results_dict['pumped_hit_rate'] = -1
             results_dict['dark_hit_rate'] = -1
-            results_dict['diff'] = radial * 0
-            results_dict['cumulative_pumped_avg'] = radial * 0
-            results_dict['cumulative_dark_avg'] = radial * 0
+            results_dict['pumped_hit_rate'] = -1
 
-            results_dict['cumulative_diff_stack'] = self._cumulative_diff_stack
+        self._cumulative_radial_avg = (
+            self._cumulative_pumped_avg - self._cumulative_dark_avg
+        )
+        self._recent_radial_avg = (
+            self._recent_pumped_avg - self._recent_dark_avg
+        )
 
+        diff = (radial - self._cumulative_dark_avg)
+        results_dict['cumulative_pumped_avg'] = self._cumulative_pumped_avg
+        results_dict['cumulative_dark_avg'] = self._cumulative_dark_avg
+        results_dict['diff'] = diff
+
+        # TODO: Check this. What is going on?
+        # Any frame_id greater than expected in the list of frames
+        # is piled into the last frame expected.
+        group_id = min(
+            int(results_dict['group_id']),
+            self._cumulative_unscaled_stack.shape[0]
+        )
+
+        self._cumulative_unscaled_stack[group_id] += (unscaled_radial)
+
+        if self._scale:
+            self._cumulative_scaled_stack[group_id] = (
+                swaxs_utils.scale_profile(
+                    self._cumulative_unscaled_stack[group_id],
+                    self._scale_region_begin,
+                    self._scale_region_end
+                )
+            )
+        else:
+            self._cumulative_scaled_stack[group_id] = (
+                self._cumulative_unscaled_stack[group_id]
+            )
+
+        self._cumulative_diff_stack[group_id] = (
+            self._cumulative_scaled_stack[group_id] -
+            self._cumulative_dark_avg
+        )
+
+        results_dict['cumulative_diff_stack'] = self._cumulative_diff_stack
         results_dict['cumulative_radial'] = (self._cumulative_radial_avg)
         results_dict['recent_radial'] = self._recent_radial_avg
 

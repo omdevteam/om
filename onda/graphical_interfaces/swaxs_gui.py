@@ -171,20 +171,21 @@ class SWAXSGui(gui.OndaGui):
         self._radial_plot_widget.setYRange(-1.0, 1.0)
 
         self._unscaled_radial_plot = self._radial_plot_widget.plot(
-            self._q_bins,
-            self._unscaled_radial,
-            name='Single Unscaled Radial'
+            self._q_bins, 
+            self._unscaled_radial, 
+            name='Single Unscaled Radial', 
+            pen=(0 ,0 ,0 ,50)
         )
 
         self._radial_plot = self._radial_plot_widget.plot(
             self._q_bins,
             self._radial,
             name='Single Scaled Radial',
-            pen=(0, 0, 0, 25),
+            pen=(0, 0, 0, 0),
             symbol='o',
             symbolPen='k',
             symbolBrush='k',
-            symbolSize=2
+            symbolSize=0
         )
 
         self._cumulative_pumped_plot = self._radial_plot_widget.plot(
@@ -213,7 +214,7 @@ class SWAXSGui(gui.OndaGui):
             self._q_bins,
             self._diff,
             name='Single Difference',
-            pen=(0, 0, 0, 20)
+            pen=(0, 0, 0, 0)
         )
 
         self._recent_radial_plot = self._radial_plot_widget.plot(
