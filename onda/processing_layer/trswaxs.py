@@ -16,7 +16,7 @@
 #    Copyright ©
 #
 """
-OnDA Monitor for SWAXS.
+OnDA Monitor for time-resolved SWAXS.
 """
 from __future__ import absolute_import, division, print_function
 
