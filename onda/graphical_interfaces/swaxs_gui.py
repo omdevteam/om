@@ -174,7 +174,11 @@ class SWAXSGui(gui.OndaGui):
             self._q_bins, 
             self._unscaled_radial, 
             name='Single Unscaled Radial', 
-            pen=(0 ,0 ,0 ,50)
+            pen=(0 ,0 ,0 ,0),
+            symbol='o',
+            symbolPen='k',
+            symbolBrush='k',
+            symbolSize=1
         )
 
         self._radial_plot = self._radial_plot_widget.plot(

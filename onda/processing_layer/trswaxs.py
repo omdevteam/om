@@ -282,6 +282,14 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 gain_map_hdf5_path=dark_cal_gain_map_hdf5_pth
             )
 
+            self._file_mask = self._dark_cal_corr_alg._mask
+
+            self._pixel_mask_threshold = monitor_parameters.get_param(
+                section='Radial',
+                parameter='pixel_threshold_in_ADU',
+                type_=int
+            ) 
+
             # Reads from the configuration file the information for
             # profile subtraction.
             profile_for_subtr_fname = monitor_parameters.get_param(
@@ -413,7 +421,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=int,
                 required=True
             )
-
+            self._num_groups = num_groups
             self._cumulative_unscaled_stack = numpy.zeros(
                 (num_groups,
                  num_radial_bins)
@@ -428,6 +436,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 (num_groups,
                  num_radial_bins)
             )
+
+            self._image = None
 
             # Reads from the configuration file the information used
             # to set up the broadcasting socket.
@@ -490,7 +500,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 data=calib_det_data
             )
         )
-        mask = swaxs_utils.mask_panel(corr_det_data)
+        dynamic_mask = swaxs_utils.mask_panel(corr_det_data)
+
+        mask = dynamic_mask 
         unscaled_radial = swaxs_utils.calculate_avg_radial_intensity(
             data=corr_det_data*mask,
             radial_bin_pixel_map=self._radial_bin_pixel_map,
@@ -499,7 +511,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         results_dict['unscaled_radial'] = unscaled_radial
 
         # Determine if the the frame is a hit candidate'.
-        intensity_sum = numpy.sum(
+        intensity_sum = numpy.mean(
             unscaled_radial[self._scale_region_begin:self._scale_region_end]
         )
         candidate_hit = (intensity_sum > self._intensity_threshold_for_hit)
@@ -585,6 +597,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
         radial = results_dict['radial']
         unscaled_radial = results_dict['unscaled_radial']
 
+        group_id = results_dict['group_id']
+
         # Runs a second hit finder. This second hit finder filters out
         # frames whose radial profile in the scaling region is more
         # than 3 standard deviations d outside of the mean. It does
@@ -619,6 +633,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 radial_subset - (mean_subset + 30 * std_subset)
             )
         )
+
         if self._num_events < self._cumulative_diff_stack.shape[0]:
             std_dev_hit = True
 
