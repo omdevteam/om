@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 #    a research centre of the Helmholtz Association.
 """
 OnDA Monitor for serial x-ray crystallography.
@@ -25,7 +25,6 @@ from __future__ import absolute_import, division, print_function
 import collections
 import sys
 import time
-from builtins import str  # pylint: disable=W0622
 
 from cfelpyutils import crystfel_utils, geometry_utils
 

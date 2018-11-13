@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 #    a research centre of the Helmholtz Association.
 """
 Retrieval of data from the Jungfrau 1M detector at LCLS.
@@ -58,7 +58,6 @@ def get_peakfinder8_info():
 # DATA EXTRACTION FUNCTIONS #
 #                           #
 #############################
-
 
 
 def detector_data(

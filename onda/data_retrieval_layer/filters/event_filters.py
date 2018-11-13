@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 #    a research centre of the Helmholtz Association.
 """
 Event filters.
@@ -114,7 +114,6 @@ class AgeEventFilter(object):
             # (more than 300 years).
             self._event_rejection_threshold = 10000000000
 
-
     def should_reject(
             self,
             event
@@ -183,7 +182,9 @@ class ExtensionEventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        if os.path.basename(event['full_path']).endswith(self._file_extensions):
+        if os.path.basename(event['full_path']).endswith(
+            self._file_extensions
+        ):
             return False
         else:
             return True

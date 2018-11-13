@@ -13,7 +13,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright © 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 #    a research centre of the Helmholtz Association.
 """
 Data retrieval at from Jungfrau 1M files.
@@ -112,7 +112,6 @@ def timestamp(event):
         numpy.float64: the time at which the event was collected.
     """
     return event['timestamp']
-
 
 
 detector_data = (  # pylint: disable=invalid-name

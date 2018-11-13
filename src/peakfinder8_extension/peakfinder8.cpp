@@ -1,18 +1,20 @@
-//   This file is part of OnDA.
+//    This file is part of OnDA.
 //
-//   OnDA is free software: you can redistribute it and/or modify
-//   it under the terms of the GNU General Public License as published by
-//   the Free Software Foundation, either version 3 of the License, or
-//   (at your option) any later version.
+//    OnDA is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
 //
-//   OnDA is distributed in the hope that it will be useful,
-//   but WITHOUT ANY WARRANTY; without even the implied warranty of
-//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//   GNU General Public License for more details.
+//    OnDA is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
 //
-//   You should have received a copy of the GNU General Public License
-//   along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
-
+//    You should have received a copy of the GNU General Public License
+//    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+//
+//    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+//    a research centre of the Helmholtz Association.
 #include <cstdlib>
 #include <cmath>
 #include <cstring>
@@ -136,35 +138,35 @@ static struct radial_stats* allocate_radial_stats(int num_rad_bins)
 
 	rstats->rthreshold = (float *)malloc(num_rad_bins*sizeof(float));
 	if ( rstats->rthreshold == NULL ) {
-		free(rstats);
 		free(rstats->roffset);
+		free(rstats);
 		return NULL;
 	}
 
 	rstats->lthreshold = (float *)malloc(num_rad_bins*sizeof(float));
 	if ( rstats->lthreshold == NULL ) {
-		free(rstats);
 		free(rstats->rthreshold);
 		free(rstats->roffset);
+		free(rstats);
 		return NULL;
 	}
 
 	rstats->rsigma = (float *)malloc(num_rad_bins*sizeof(float));
 	if ( rstats->rsigma == NULL ) {
-		free(rstats);
 		free(rstats->roffset);
 		free(rstats->rthreshold);
 		free(rstats->lthreshold);
+		free(rstats);
 		return NULL;
 	}
 
 	rstats->rcount = (int *)malloc(num_rad_bins*sizeof(int));
 	if ( rstats->rcount == NULL ) {
-		free(rstats);
 		free(rstats->roffset);
 		free(rstats->rthreshold);
 		free(rstats->lthreshold);
 		free(rstats->rsigma);
+		free(rstats);
 		return NULL;
 	}
 
@@ -341,8 +343,8 @@ struct peakfinder_peak_data *allocate_peak_data(int max_num_peaks)
 
 	pkdata->npix = (int *)malloc(max_num_peaks*sizeof(int));
 	if ( pkdata->npix == NULL ) {
-		free(pkdata);
 		free(pkdata->npix);
+		free(pkdata);
 		return NULL;
 	}
 
@@ -780,8 +782,8 @@ static void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_fs,
 					// Remember that curr_idx = curr_fs + curr_ss*num_pix_fs
 					curr_fs = curr_idx % num_pix_fs;
 					curr_ss = curr_idx / num_pix_fs;
-					sum_com_fs += curr_i * ((float)curr_fs);
-					sum_com_ss += curr_i * ((float)curr_ss);
+					sum_com_fs += curr_i_raw * ((float)curr_fs);
+					sum_com_ss += curr_i_raw * ((float)curr_ss);
 
 					if ( curr_i_raw > pk_max_i_raw ) pk_max_i_raw = curr_i_raw;
 					if ( curr_i > peak_max_i ) peak_max_i = curr_i;
@@ -789,10 +791,10 @@ static void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_fs,
 
 
 				// This CAN happen! Better to skip...
-				if ( fabs(peak_tot_i) < 1e-10 ) continue;
+				if ( fabs(pk_tot_i_raw) < 1e-10 ) continue;
 
-				peak_com_fs = sum_com_fs / fabs(peak_tot_i);
-				peak_com_ss = sum_com_ss / fabs(peak_tot_i);
+				peak_com_fs = sum_com_fs / fabs(pk_tot_i_raw);
+				peak_com_ss = sum_com_ss / fabs(pk_tot_i_raw);
 
 				// Calculate signal-to-noise and apply SNR criteria
 				if ( fabs(local_sigma) > 1e-10 ) {
@@ -810,6 +812,14 @@ static void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_fs,
 				// if (peak_max_i < f_background_thresh) {               // these lines the result is
 				// different!
 				if (peak_max_i < background_max_i - local_offset) continue;
+
+				if ( peak_com_fs < aifs*asic_size_fs
+				  || peak_com_fs > (aifs+1)*asic_size_fs-1
+				  || peak_com_ss < aiss*asic_size_ss
+				  || peak_com_ss > (aiss+1)*asic_size_ss-1)
+				{
+					continue;
+				}
 
 				// This is a peak? If so, add info to peak list
 				if ( num_pix_in_peak >= min_pix_count
