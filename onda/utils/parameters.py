@@ -23,6 +23,7 @@ options from OnDA monitor configuration files.
 """
 from __future__ import absolute_import, division, print_function
 
+from past.builtins import basestring
 from scipy import constants
 
 from onda.utils import exceptions
@@ -111,7 +112,30 @@ class MonitorParams(object):
                     "required.".format(parameter, section)
                 )
             if ret is not None and type_ is not None:
-                if not isinstance(ret, type_):
+                if type_ is str:
+                    if not isinstance(ret, basestring):
+                        raise exceptions.WrongParameterType(
+                            "Wrong type for parameter {}: should be {}, "
+                            "is {}.".format(
+                                parameter,
+                                str(type_).split()[1][1:-2],
+                                str(type(ret)).split()[1][1:-2]
+                            )
+                        )
+                elif type_ is float:
+                    if (
+                            not isinstance(ret, float) or
+                            not isinstance(ret, int)
+                    ):
+                        raise exceptions.WrongParameterType(
+                            "Wrong type for parameter {}: should be {}, "
+                            "is {}.".format(
+                                parameter,
+                                str(type_).split()[1][1:-2],
+                                str(type(ret)).split()[1][1:-2]
+                            )
+                        )
+                elif not isinstance(ret, type_):
                     raise exceptions.WrongParameterType(
                         "Wrong type for parameter {}: should be {}, "
                         "is {}.".format(
@@ -120,8 +144,7 @@ class MonitorParams(object):
                             str(type(ret)).split()[1][1:-2]
                         )
                     )
-                else:
-                    return ret
+                return ret
             else:
                 return ret
 
