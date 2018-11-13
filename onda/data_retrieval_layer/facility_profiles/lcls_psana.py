@@ -367,8 +367,8 @@ def timetool_data(event):
 
 
 def digitizer_data(
-    event,
-    data_extraction_func_name
+        event,
+        data_extraction_func_name
 ):
     """
     Retrieves the waveforms from a digitizer (All channels).

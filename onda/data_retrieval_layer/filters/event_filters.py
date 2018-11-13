@@ -114,7 +114,6 @@ class AgeEventFilter(object):
             # (more than 300 years).
             self._event_rejection_threshold = 10000000000
 
-
     def should_reject(
             self,
             event
@@ -183,7 +182,9 @@ class ExtensionEventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        if os.path.basename(event['full_path']).endswith(self._file_extensions):
+        if os.path.basename(event['full_path']).endswith(
+            self._file_extensions
+        ):
             return False
         else:
             return True

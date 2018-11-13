@@ -15,6 +15,9 @@
 #
 #    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 #    a research centre of the Helmholtz Association.
+"""
+setup.py file for OnDA
+"""
 from __future__ import absolute_import, division, print_function
 
 from setuptools import Extension, setup

@@ -136,7 +136,9 @@ class CrystallographyGui(gui.OndaGui):
 
         self._resolution_rings_regex = QtCore.QRegExp(r'[0-9.,]+')
         self._resolution_rings_validator = QtGui.QRegExpValidator()
-        self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
+        self._resolution_rings_validator.setRegExp(
+            self._resolution_rings_regex
+        )
         self._resolution_rings_in_a = [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
         self._resolution_rings_textitems = []
 

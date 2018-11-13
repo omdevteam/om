@@ -179,7 +179,6 @@ class DataAccumulator(object):
         self._accumulator = []
         self._events_in_accumulator = 0
 
-
     def add_data(
             self,
             data

@@ -244,7 +244,6 @@ class DataListener(QtCore.QObject):
             self.zmqmessage.emit(msg)
 
 
-
 def _patched_encode(obj, chain=None):
     # This function is the 'encode' function from msgpack-numpy,
     # patched to use the 'data' method as opposed to the 'tobytes' one.

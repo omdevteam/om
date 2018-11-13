@@ -114,7 +114,6 @@ def timestamp(event):
     return event['timestamp']
 
 
-
 detector_data = (  # pylint: disable=invalid-name
     files_jungfrau1module.detector_data
 )

@@ -60,7 +60,6 @@ def get_peakfinder8_info():
 #############################
 
 
-
 def detector_data(
         event,
         data_extraction_func_name
