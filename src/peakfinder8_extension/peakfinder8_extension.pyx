@@ -12,8 +12,9 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
-
-
+#
+#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+#    a research centre of the Helmholtz Association.
 from libcpp.vector cimport vector
 from libc.stdlib cimport malloc, free
 from libc.stdint cimport int8_t

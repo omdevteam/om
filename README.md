@@ -3,8 +3,8 @@ OnDA
 
 Real-time monitoring of x-ray imaging experiments
 
-Copyright © 2018 Deutsches Elektronen-Synchrotron DESY,
-                 a research centre of the Helmholtz Association.
+Copyright 2018 Deutsches Elektronen-Synchrotron DESY,
+               a research centre of the Helmholtz Association.
 
 <http://www.cfel.de>
 
