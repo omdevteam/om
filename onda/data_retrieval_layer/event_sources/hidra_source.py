@@ -25,7 +25,6 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import socket
 import sys
-from builtins import str  # pylint: disable=W0622
 
 from future.utils import raise_from
 

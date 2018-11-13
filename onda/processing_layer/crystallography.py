@@ -25,7 +25,6 @@ from __future__ import absolute_import, division, print_function
 import collections
 import sys
 import time
-from builtins import str  # pylint: disable=W0622
 
 from cfelpyutils import crystfel_utils, geometry_utils
 
