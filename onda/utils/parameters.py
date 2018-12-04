@@ -124,7 +124,7 @@ class MonitorParams(object):
                         )
                 elif type_ is float:
                     if (
-                            not isinstance(ret, float) or
+                            not isinstance(ret, float) and
                             not isinstance(ret, int)
                     ):
                         raise exceptions.WrongParameterType(

@@ -245,9 +245,8 @@ class ParallelizationEngine(object):
             exit(0)
 
         if self.role == 'master':
-            self._initialize_event_source(
+            _ = self._initialize_event_source(
                 source=self._source,
-                node_rank=self.rank,
                 mpi_pool_size=self._mpi_size,
                 monitor_params=self._mon_params
             )

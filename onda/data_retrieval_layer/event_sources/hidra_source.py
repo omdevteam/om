@@ -49,7 +49,7 @@ def _get_hidra_info(
     # from the data extraction layer and use that.
     transfer_type = monitor_params.get_param(
         section='DataRetrievalLayer',
-        parameter='transfer_type',
+        parameter='hidra_transfer_type',
         type_=str,
     )
     if transfer_type is None:
@@ -72,7 +72,7 @@ def _get_hidra_info(
         data_base_path = os.path.join(
             monitor_params.getparam(
                 section='DataRetrievalLayer',
-                parameter='data_base_path',
+                parameter='hidra_data_base_path',
                 type_=str,
                 required=True
             )
@@ -82,7 +82,7 @@ def _get_hidra_info(
 
     base_port = monitor_params.get_param(
         section='DataRetrievalLayer',
-        parameter='base_port',
+        parameter='hidra_base_port',
         type_=int,
         required=True
     )
@@ -170,6 +170,7 @@ def initialize_event_source(
             ),
             cause=None
         )
+    return hidra_info
 
 
 def event_generator(
