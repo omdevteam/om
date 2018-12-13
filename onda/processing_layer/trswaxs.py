@@ -500,8 +500,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 data=calib_det_data
             )
         )
-        dynamic_mask = swaxs_utils.mask_panel(corr_det_data)
-
+        #dynamic_mask = swaxs_utils.mask_panel(corr_det_data)
+        dynamic_mask = numpy.ones_like(corr_det_data)
         mask = dynamic_mask 
         unscaled_radial = swaxs_utils.calculate_avg_radial_intensity(
             data=corr_det_data*mask,
@@ -794,28 +794,33 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._cumulative_unscaled_stack.shape[0]
         )
 
-        self._cumulative_unscaled_stack[group_id] += (unscaled_radial)
+        if (
+            results_dict['xrays_active'] and 
+            results_dict['optical_laser_active'] and
+            hit_flag
+            ):
+            self._cumulative_unscaled_stack[group_id] += (unscaled_radial)
 
-        if self._scale:
-            self._cumulative_scaled_stack[group_id] = (
-                swaxs_utils.scale_profile(
-                    self._cumulative_unscaled_stack[group_id],
-                    self._scale_region_begin,
-                    self._scale_region_end
+            if self._scale:
+                self._cumulative_scaled_stack[group_id] = (
+                    swaxs_utils.scale_profile(
+                        self._cumulative_unscaled_stack[group_id],
+                        self._scale_region_begin,
+                        self._scale_region_end
+                    )
                 )
-            )
-        else:
-            self._cumulative_scaled_stack[group_id] = (
-                self._cumulative_unscaled_stack[group_id]
-            )
+            else:
+                self._cumulative_scaled_stack[group_id] = (
+                    self._cumulative_unscaled_stack[group_id]
+                )
 
-        self._cumulative_diff_stack[group_id] = (
-            self._cumulative_scaled_stack[group_id] -
-            self._cumulative_dark_avg
-        )
+            self._cumulative_diff_stack[group_id] = (
+                self._cumulative_scaled_stack[group_id] -
+                self._cumulative_dark_avg
+            )
 
         results_dict['cumulative_diff_stack'] = self._cumulative_diff_stack
-        results_dict['cumulative_radial'] = (self._cumulative_radial_avg)
+        results_dict['cumulative_radial'] = self._cumulative_radial_avg
         results_dict['recent_radial'] = self._recent_radial_avg
 
         # Injects additional information into the dictionary that will

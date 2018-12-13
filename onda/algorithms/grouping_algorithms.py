@@ -15,6 +15,7 @@
 #
 #    Copyright
 
+import numpy
 
 class FrameIdGrouping(object):
 
@@ -41,3 +42,22 @@ class FrameIdGrouping(object):
         except KeyError:
             ret_val = self._num_groups-1
         return ret_val
+
+
+class TargetTimeDelayGrouping(object):
+
+    def __init__(self, monitor_params):
+
+        self.group_bin_edges = monitor_params.get_param(
+            section='Grouping',
+            parameter='time_delay_group_bin_edges',
+            type_=list,
+            required=True
+        )
+
+    def get_group(self, data):
+
+        delay = data['target_time_delay']
+        group_id = numpy.digitize(delay,self.group_bin_edges) - 1
+        return group_id
+

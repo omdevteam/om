@@ -329,6 +329,68 @@ def optical_laser_active_init(monitor_params):
         active_laser_evr_code=active_laser_evr_code
     )
 
+def xrays_active_init(monitor_params):
+    """
+    Initializes the psana detector interface for the status of the
+    optical laser.
+
+    Args:
+
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
+
+    Returns:
+
+        Tuple[psana.Detector, evr_codes]: a tuple where the first
+        entry is a psana Detector interface object, while the second
+        is a list of EVR codes corresponding to the optical laser
+        being active. Both can be used later to retrieve the data.
+    """
+    active_laser_evr_code = monitor_params.get_param(
+        section='DataRetrievalLayer',
+        parameter='evr_code_for_active_xray_laser',
+        type_=int,
+        required=True
+    )
+
+    evr_source_name = monitor_params.get_param(
+        section='DataRetrievalLayer',
+        parameter='evr_source_name',
+        type_=str,
+        required=True
+    )
+
+    return named_tuples.OpticalLaserStateDataRetrievalInfo(
+        psana_detector_handle=psana.Detector(evr_source_name),
+        active_laser_evr_code=active_laser_evr_code
+    )
+
+def target_time_delay_init(monitor_params):
+    """
+    Initializes the psana detector interface for target time delay.
+
+    Args:
+
+        monitor_params (MonitorParams): a
+            :obj:`~onda.utils.parameters.MonitorParams` object
+            containing the monitor parameters from the configuration
+            file.
+
+    Returns:
+
+        Detector: a handle (a psana Detector object) that can be used
+        later to retrieve the data.
+    """
+    return psana.Detector(
+        monitor_params.get_param(
+            section='DataRetrievalLayer',
+            parameter='target_time_delay_epics_name',
+            type_=str,
+            required=True
+        )
+    )
 
 #############################
 #                           #
@@ -480,3 +542,60 @@ def optical_laser_active(event):
             'optical_laser_active'
         ].active_laser_evr_code in current_evr_codes
     )
+
+def xrays_active(event):
+    """
+    Retrieves the x-ray laser status.
+
+    Returns whether the x-rays are active or not.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        bool: True if the x-rays is active. False otherwise.
+    """
+    current_evr_codes = (
+        event[
+            'psana_detector_interface'
+        ][
+            'xrays_active'
+        ].psana_detector_handle.eventCodes(event['psana_event'])
+    )
+
+    return (
+        event[
+            'psana_detector_interface'
+        ][
+            'xrays_active'
+        ].active_laser_evr_code in current_evr_codes
+    )
+
+def target_time_delay(event):
+    """
+    Retrieves the target pump-probe time delay.
+
+    Returns whether the target time delay.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        float: The target time delay.
+    """
+    #target time delay at cxi is negative and given in nanoseconds.
+    #lets make it positive, since we generally consider the delay to
+    #be the X-rays to be delayed relative to the pump laser
+    #lets also convert to picoseconds
+    #lets also limit the precision to 1 fs and round to ensure proper binning
+    return round(
+                event[
+                    'psana_detector_interface'
+                ][
+                    'target_time_delay'
+                ]() * -1000, 3
+            )

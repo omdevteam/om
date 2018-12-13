@@ -115,6 +115,13 @@ optical_laser_active_init = (  # pylint: disable=invalid-name
     lcls_psana.optical_laser_active_init
 )
 
+xrays_active_init = (  # pylint: disable=invalid-name
+    lcls_psana.xrays_active_init
+)
+
+target_time_delay_init = (  # pylint: disable=invalid-name
+    lcls_psana.target_time_delay_init
+)
 
 #############################
 #                           #
@@ -146,4 +153,13 @@ beam_energy = (  # pylint: disable=invalid-name
 
 optical_laser_active = (  # pylint: disable=invalid-name
     lcls_psana.optical_laser_active
+)
+
+
+xrays_active = (  # pylint: disable=invalid-name
+    lcls_psana.xrays_active
+)
+
+target_time_delay = (  # pylint: disable=invalid-name
+    lcls_psana.target_time_delay
 )

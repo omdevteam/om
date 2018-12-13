@@ -145,7 +145,7 @@ class SWAXSGui(gui.OndaGui):
         # Sets the PyQtGraph background color.
         pyqtgraph.setConfigOption('background', 1.0)
 
-        # Initialize sthe radial profile plot widget.
+        # Initializes the radial profile plot widget.
         self._radial_plot_widget = pyqtgraph.PlotWidget()
         self._radial_plot_widget.setTitle(
             'Radial Profile'
@@ -238,7 +238,7 @@ class SWAXSGui(gui.OndaGui):
         self._image_view.ui.menuBtn.hide()
         self._image_view.ui.roiBtn.hide()
         self._image_view.view.setAspectLocked(False)
-        self._image_view.setLevels(-10, 10)
+        #self._image_view.setLevels(-10, 10)
         image_colormap = pyqtgraph.ColorMap(
             pos=[0.00, 0.25, 0.50, 0.75, 1.00],
             color=[

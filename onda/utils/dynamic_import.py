@@ -59,7 +59,7 @@ def import_processing_layer(monitor_params):
                     type_=str,
                     required=True
                 )
-            )
+            ).encode('ascii')
         )
     except ImportError:
         processing_layer = importlib.import_module(
@@ -70,7 +70,7 @@ def import_processing_layer(monitor_params):
                     type_=str,
                     required=True
                 )
-            )
+            ).encode('ascii')
         )
 
     return processing_layer
@@ -105,7 +105,7 @@ def import_parallelization_layer(monitor_params):
                     type_=str,
                     required=True
                 )
-            )
+            ).encode('ascii')
         )
     except ImportError:
         data_retrieval_layer = importlib.import_module(
@@ -116,7 +116,7 @@ def import_parallelization_layer(monitor_params):
                     type_=str,
                     required=True
                 )
-            )
+            ).encode('ascii')
         )
 
     return data_retrieval_layer
@@ -151,7 +151,7 @@ def import_data_retrieval_layer(monitor_params):
                     type_=str,
                     required=True
                 )
-            )
+            ).encode('ascii')
         )
     except ImportError:
         data_retrieval_layer = importlib.import_module(
@@ -162,7 +162,7 @@ def import_data_retrieval_layer(monitor_params):
                     type_=str,
                     required=True
                 )
-            )
+            ).encode('ascii')
         )
 
     return data_retrieval_layer

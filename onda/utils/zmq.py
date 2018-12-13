@@ -262,11 +262,11 @@ def _patched_encode(obj, chain=None):
                 b'type': descr,
                 b'kind': kind,
                 b'shape': obj.shape,
-                b'data': obj.data}
+                b'data': obj.tobytes()}
     elif isinstance(obj, (numpy.bool_, numpy.number)):
         return {b'nd': False,
                 b'type': obj.dtype.str,
-                b'data': obj.data}
+                b'data': obj.tobytes()}
     elif isinstance(obj, complex):
         return {b'complex': True,
                 b'data': obj.__repr__()}
