@@ -350,7 +350,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True
             )
 
-            self._data_accumulator = cryst_algs.DataAccumulator(
+            self._data_accumulator = gen_algs.DataAccumulator(
                 num_events_to_accumulate=da_num_events_to_accumulate
             )
 
@@ -399,7 +399,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
     def process_data(self, data):
         """
-        Processes frame information.
+        Processes frame data.
 
         Performs detector and dark calibration corrections, extracts
         the peak information and evaluates the extracted data. Returns
@@ -499,7 +499,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Accumulates the data received from the worker nodes and
         computes statistics on the aggregated data (e.g.: hit rate,
-        saturation_rate). Finally, broadcast sthe reduced data for
+        saturation_rate). Finally, broadcast the reduced data for
         visualization.
 
         Args:

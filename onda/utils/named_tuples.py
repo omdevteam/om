@@ -93,22 +93,6 @@ wires of the detector.
 """
 
 
-FilenameAndFrameIndex = collections.namedtuple(
-    typename='FilenameAndFrameIndex',
-    field_names=[
-        'filename',
-        'frame_index'
-    ]
-)
-"""
-Information necessary to locate a data frame in a file.
-
-The two fields, called 'filename' and 'frame_index' respectively, store
-the path to the file where the frame is stored, and the index of the
-frame within the file.
-"""
-
-
 Peakfinder8DetInfo = collections.namedtuple(
     typename='Peakfinder8DetInfo',
     field_names=[
@@ -144,4 +128,42 @@ type and the required data. The 'targets' field stores information
 about the worker nodes that will receive data from HiDRA. The
 'data_base_path' field contains the base path to be used for locating
 files in the file system when HiDRA sends relative paths to OnDA.
+"""
+
+
+OpticalLaserStateDataRetrievalInfo = collections.namedtuple(
+    typename='OpticalLaserStateDataRetrievalInfo',
+    field_names=[
+        'psana_detector_handle',
+        'active_laser_evr_code'
+    ]
+)
+"""
+Optical laser state data retrieval information.
+
+Information needed to receover from psana the inforamtion about the
+state of the optical laser. The first field,
+'psana_detector_handle', contains the handle of the psana Detector
+interface for the retrieval of EVR code information, while the second
+field, 'active_optical_laser_evr_code', stores the EVR code that
+corresponds, at the LCLS facility, to the optical laser being
+active.
+"""
+
+
+RadialBinInfo = collections.namedtuple(
+    typename='RadialBinInfo',
+    field_names=[
+        'radial_bin_pixel_map',
+        'radial_bin_size'
+    ]
+)
+"""
+Radial binning information.
+
+Information about radial binning of detector frame data. The first
+field, 'radial_bin_pixel_map', is a pixel map of the same size as the
+detector frame data, storing, for each pixel, its radial bin
+assignment. The second field, 'radial_bin_size', contains the size of
+the regular radius bins.
 """

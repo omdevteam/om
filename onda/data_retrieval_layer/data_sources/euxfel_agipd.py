@@ -48,8 +48,8 @@ def get_peakfinder8_info():
         four peakfinder8 parameters.
     """
     return named_tuples.Peakfinder8DetInfo(
-        asic_nx=512,
-        asic_ny=128,
+        asic_nx=128,
+        asic_ny=512,
         nasics_x=1,
         nasics_y=16
     )
@@ -87,7 +87,7 @@ def get_num_frames_in_event(event):
     # of frames.
     return (
         event['data']['SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED']['image.data'].
-        shape[-1]
+        shape[0]
     )
 
 
@@ -115,6 +115,6 @@ def detector_data(event):
     """
     return (
         event['data']['SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED']['image.data'][
-            ..., event['frame_offset']
-        ].reshape(16 * 128, 512)
+            event['frame_offset'], ...
+        ].reshape(16 * 512, 128)
     )

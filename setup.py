@@ -28,6 +28,10 @@ import onda
 
 USE_CYTHON = 0
 
+
+
+
+
 ext = '.pyx' if USE_CYTHON else '.c'  # pylint: disable=C0103
 
 peakfinder8_ext = Extension(  # pylint: disable=C0103
@@ -116,7 +120,8 @@ setup(
     scripts=[
         'bin/onda_crystallography_gui.py',
         'bin/onda_crystallography_hit_viewer.py',
-        'bin/onda_monitor.py'
+        'bin/onda_monitor.py',
+        'bin/onda_swaxs_gui.py'
     ],
     ext_modules=extensions,
     packages=[

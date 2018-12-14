@@ -25,6 +25,7 @@ from __future__ import absolute_import, division, print_function
 
 from onda.data_retrieval_layer.file_formats import hdf5_files
 from onda.utils import named_tuples
+from onda.utils import parameters
 
 
 #####################
@@ -125,13 +126,14 @@ def detector_data(event):
     return event['data']['/entry/data/data'][event['frame_offset']]
 
 
-def filename_and_frame_index(event):
+def event_id(event):
     """
-    Filename and frame index of the current frame.
+    Retrieves a unique Eiger event identifier at Petra III.
 
-    For Eiger events retrieved at the Petra III facility, returns the
-    name of the file where the current frame can be found, together
-    with the index of the frame in the file.
+    Returns a unique label that unambiguosly identifies the current
+    Eiger event within an experiment. When using the Eiger detector at
+    the Petra III facility, the full path to the file containing the
+    event is used as an identifier.
 
     Args:
 
@@ -139,15 +141,38 @@ def filename_and_frame_index(event):
 
     Returns:
 
-        FilenameAndFrameIndex: a
-        :obj:`~onda.utils.named_tuples.FilenameAndFrameIndex` object
-        with the path to the file which stores the current frame, and
-        the index of the frame in the data block containing the
-        detector data.
+        str: a unique event identifier.
     """
-    return named_tuples.FilenameAndFrameIndex(
-        filename=event['full_path'],
-        frame_index=(
-            event['data']['/entry/data/data'].shape[0] + event['frame_offset']
-        )
+    return event['full_path']
+
+
+def frame_id(event):
+    """
+    Retrieves a unique Eiger frame identifier at Petra III.
+
+    Returns a unique label that unambiguosly identifies the current
+    detector frame within the event. When using the Eiger detector at
+    the Petra III facility, the index of the frame within the file
+    storing the event is used as idenitifier.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        str: a unique frame identifier with the event.
+    """
+    return str(
+        event['data']['/entry/data/data'].shape[0] + event['frame_offset']
     )
+
+
+beam_energy = (  # pylint: disable=invalid-name
+    parameters.beam_energy_from_monitor_params
+)
+
+
+detector_distance = (  # pylint: disable=invalid-name
+    parameters.detector_distance_from_monitor_params
+)

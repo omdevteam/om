@@ -395,7 +395,7 @@ class CrystallographyGui(gui.OndaGui):
         QtGui.QApplication.processEvents()
 
         # Adds data from all frames accumulated in local_data to the
-        # plots ,but updates the displayed images and plots only once
+        # plots, but updates the displayed images and plots only once
         # at the end.
         for frame in self._local_data:
 

@@ -344,8 +344,7 @@ class FindMinimaInWaveforms(object):
 
         self._smoothing_array = numpy.ones(
             shape=estimated_noise_width,
-            dtype=numpy.float
-        ) / float(estimated_noise_width)
+            dtype=numpy.float) / float(estimated_noise_width)
 
     def find_minima(
             self,
@@ -375,15 +374,10 @@ class FindMinimaInWaveforms(object):
             # Applies the median filter, then interpolate the filtered
             # data.
             sliced_data = median_filter(
-                input=sliced_data,
-                size=self._backgr_filter_win_size
-            )
+                input=sliced_data, size=self._backgr_filter_win_size)
 
             interpolated_data = numpy.interp(
-                x=index,
-                xp=sliced_index,
-                fp=sliced_data
-            )
+                x=index, xp=sliced_index, fp=sliced_data)
 
             # Finally subtracts the filtered data from the data.
             background_subtracted_data = data - interpolated_data
@@ -411,8 +405,8 @@ class FindMinimaInWaveforms(object):
         # the user.
         intensity_offset = numpy.mean(smoothed_data)
         filtered_peaks = numpy.where(
-            smoothed_data[peak_locations] - intensity_offset <
-            (-abs(self._threshold))
+            smoothed_data[peak_locations] -
+            intensity_offset < (-abs(self._threshold))
         )
         peak_list = list(peak_locations[filtered_peaks])
 
@@ -444,8 +438,7 @@ class FindMinimaInWaveforms(object):
 
                     if dist_from_prev_peak < self._minimum_peak_width:
                         internal_peak_list.append(
-                            smoothed_data[peak_list[peak_index - 1]]
-                        )
+                            smoothed_data[peak_list[peak_index - 1]])
 
                 if peak_index < len(peak_list) - 1:
                     # If the current peak is not the last one, computes
@@ -458,8 +451,7 @@ class FindMinimaInWaveforms(object):
 
                     if dist_to_next_peak < self._minimum_peak_width:
                         internal_peak_list.append(
-                            smoothed_data[peak_list[peak_index + 1]]
-                        )
+                            smoothed_data[peak_list[peak_index + 1]])
 
                 if numpy.all(
                         [

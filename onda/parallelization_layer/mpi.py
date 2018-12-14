@@ -118,9 +118,6 @@ class ParallelizationEngine(object):
                 )
             )
 
-            if not self._num_frames_in_event_to_process:
-                self._num_frames_in_event_to_process = 1
-
         if self.role == 'master':
             self._num_nomore = 0
             self._num_collected_events = 0
@@ -164,7 +161,12 @@ class ParallelizationEngine(object):
 
                 self._open_event(event)
                 n_frames_in_evt = self._get_num_frames_in_event(event)
-                if n_frames_in_evt < self._num_frames_in_event_to_process:
+
+                self._num_frames_in_event_to_process = n_frames_in_evt
+                if (
+                        self._num_frames_in_event_to_process and
+                        n_frames_in_evt < self._num_frames_in_event_to_process
+                ):
                     self._num_frames_in_event_to_process = n_frames_in_evt
 
                 # Adds the monitor parameters to the event dictionary,
