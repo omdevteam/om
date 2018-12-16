@@ -23,6 +23,8 @@ broadcast and receive data.
 """
 from __future__ import absolute_import, division, print_function
 
+from builtins import str
+
 import socket
 import sys
 
@@ -190,7 +192,7 @@ class DataListener(QtCore.QObject):
         )
         self._zmq_subscribe.setsockopt_string(
             option=zmq.SUBSCRIBE,  # pylint: disable=E1101
-            optval=self._subscription_string
+            optval=str(self._subscription_string)
         )
 
         # Sets a high water mark of 1 (A messaging queue 1 message

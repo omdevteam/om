@@ -319,7 +319,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     type_=int,
                 )
             )
-
+            
             print("Starting worker: {0}.".format(self.rank))
             sys.stdout.flush()
 
@@ -559,7 +559,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # list because GUIs expect lists of aggregated events as
             # opposed to single events.
             self._data_broadcast_socket.send_data(
-                tag='ondaframedata',
+                tag=u'ondaframedata',
                 message=[results_dict]
             )
 
@@ -574,7 +574,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         )
         if collected_data:
             self._data_broadcast_socket.send_data(
-                tag='ondadata',
+                tag=u'ondadata',
                 message=collected_data
             )
 

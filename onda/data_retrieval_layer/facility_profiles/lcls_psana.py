@@ -124,7 +124,7 @@ def detector_data_init(
     return psana.Detector(
         monitor_params.get_param(
             section='DataRetrievalLayer',
-            parameter='{0}_detector_name'.format(data_extraction_func_name),
+            parameter='psana_{0}_detector_name'.format(data_extraction_func_name),
             type_=str,
             required=True
         )
@@ -174,7 +174,7 @@ def detector_distance_init(monitor_params):
     return psana.Detector(
         monitor_params.get_param(
             section='DataRetrievalLayer',
-            parameter='detector_distance_epics_name',
+            parameter='psana_detector_distance_epics_name',
             type_=str,
             required=True
         )
@@ -220,7 +220,7 @@ def timetool_data_init(monitor_params):
     return psana.Detector(
         monitor_params.get_param(
             section='DataRetrievalLayer',
-            parameter='timetool_epics_name',
+            parameter='psana_timetool_epics_name',
             type_=str,
             required=True
         )
@@ -258,7 +258,7 @@ def digitizer_data_init(
     return psana.Detector(
         monitor_params.get_param(
             section='DataRetrievalLayer',
-            parameter='{0}_digitizer_name'.format(data_extraction_func_name),
+            parameter='psana_{0}_digitizer_name'.format(data_extraction_func_name),
             type_=str,
             required=True
         )
@@ -284,7 +284,7 @@ def opal_data_init(monitor_params):
     return psana.Detector(
         monitor_params.get_param(
             section='DataRetrievalLayer',
-            parameter='opal_name',
+            parameter='psana_opal_name',
             type_=str,
             required=True
         )
@@ -312,14 +312,14 @@ def optical_laser_active_init(monitor_params):
     """
     active_laser_evr_code = monitor_params.get_param(
         section='DataRetrievalLayer',
-        parameter='evr_code_for_active_optical_laser',
+        parameter='psana_evr_code_for_active_optical_laser',
         type_=int,
         required=True
     )
 
     evr_source_name = monitor_params.get_param(
         section='DataRetrievalLayer',
-        parameter='evr_source_name',
+        parameter='psana_evr_source_name',
         type_=str,
         required=True
     )
@@ -350,14 +350,14 @@ def xrays_active_init(monitor_params):
     """
     active_laser_evr_code = monitor_params.get_param(
         section='DataRetrievalLayer',
-        parameter='evr_code_for_active_xray_laser',
+        parameter='psana_evr_code_for_active_xray_laser',
         type_=int,
         required=True
     )
 
     evr_source_name = monitor_params.get_param(
         section='DataRetrievalLayer',
-        parameter='evr_source_name',
+        parameter='psana_evr_source_name',
         type_=str,
         required=True
     )
@@ -386,7 +386,7 @@ def target_time_delay_init(monitor_params):
     return psana.Detector(
         monitor_params.get_param(
             section='DataRetrievalLayer',
-            parameter='target_time_delay_epics_name',
+            parameter='psana_target_time_delay_epics_name',
             type_=str,
             required=True
         )
