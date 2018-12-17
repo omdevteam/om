@@ -94,4 +94,7 @@ def detector_data(
         )
     )
 
+    if cspad_psana is None:
+        raise RuntimeError("No data retrieved.")
+
     return cspad_psana

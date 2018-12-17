@@ -93,5 +93,8 @@ def detector_data(
             event['psana_event']
         )
     )
+  
+    if cspad_psana is None:
+        raise RuntimeError("No data retrieved.")
 
     return cspad_psana

@@ -94,8 +94,15 @@ def detector_data(
         )
     )
 
+    if cspad_psana is None:
+        raise RuntimeError("No data retrieved.")
+
     # Rearranges the data into 'slab' format.
     cspad_reshaped = cspad_psana.reshape(1024, 1024)
+
+    if not cspad_reshaped:
+        raise RuntimeError("No data retrieved")
+
 
     # Retruns the rearranged data.
     return cspad_reshaped

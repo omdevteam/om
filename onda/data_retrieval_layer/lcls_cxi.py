@@ -16,7 +16,7 @@
 #    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 #    a research centre of the Helmholtz Association.
 """
-Data retrieval at the AMO beamline of LCLS.
+Data retrieval at the CXI beamline of LCLS.
 
 Classes and functions used to retrieve and extract data at the CXI
 beamline of the LCLS facility.

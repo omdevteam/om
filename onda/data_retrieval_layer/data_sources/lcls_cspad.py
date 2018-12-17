@@ -96,6 +96,9 @@ def detector_data(
         )
     )
 
+    if cspad_psana is None:
+        raise RuntimeError("No data retrieved.")
+
     # Rearranges the data into 'slab' format.
     cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))
     cspad_slab = numpy.zeros(shape=(1480, 1552), dtype=cspad_reshaped.dtype)
@@ -108,6 +111,6 @@ def detector_data(
                            cspad_reshaped.shape[3]
                        )
                    )
-
+    
     # Returns the rearranged data.
     return cspad_slab

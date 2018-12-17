@@ -96,6 +96,9 @@ def detector_data(
         )
     )
 
+    if pnccd_psana is None:
+        raise RuntimeError("No data retrieved.")
+
     # Rearranges the data into 'slab' format.
     pnccd_slab = numpy.zeros(shape=(1024, 1024), dtype=pnccd_psana.dtype)
     pnccd_slab[0:512, 0:512] = pnccd_psana[0]
