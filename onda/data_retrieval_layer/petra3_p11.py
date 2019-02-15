@@ -56,29 +56,19 @@ initialize_event_source = (  # pylint: disable=invalid-name
 )
 
 
-event_generator = (  # pylint: disable=invalid-name
-    petra3_hidra.event_generator
-)
+event_generator = petra3_hidra.event_generator  # pylint: disable=invalid-name
 
 
-EventFilter = (  # pylint: disable=invalid-name
-    petra3_hidra.EventFilter
-)
+EventFilter = petra3_hidra.EventFilter  # pylint: disable=invalid-name
 
 
-FrameFilter = (  # pylint: disable=invalid-name
-    petra3_hidra.FrameFilter
-)
+FrameFilter = petra3_hidra.FrameFilter  # pylint: disable=invalid-name
 
 
-open_event = (  # pylint: disable=invalid-name
-    petra3_pilatus.open_event
-)
+open_event = petra3_pilatus.open_event  # pylint: disable=invalid-name
 
 
-close_event = (  # pylint: disable=invalid-name
-    petra3_pilatus.close_event
-)
+close_event = petra3_pilatus.close_event  # pylint: disable=invalid-name
 
 
 get_num_frames_in_event = (  # pylint: disable=invalid-name
@@ -93,14 +83,10 @@ get_num_frames_in_event = (  # pylint: disable=invalid-name
 #############################
 
 
-detector_data = (  # pylint: disable=invalid-name
-    petra3_pilatus.detector_data
-)
+detector_data = petra3_pilatus.detector_data  # pylint: disable=invalid-name
 
 
-timestamp = (  # pylint: disable=invalid-name
-    petra3_hidra.timestamp
-)
+timestamp = petra3_hidra.timestamp  # pylint: disable=invalid-name
 
 
 detector_distance = (  # pylint: disable=invalid-name
@@ -108,16 +94,10 @@ detector_distance = (  # pylint: disable=invalid-name
 )
 
 
-beam_energy = (  # pylint: disable=invalid-name
-    petra3_hidra.beam_energy
-)
+beam_energy = petra3_hidra.beam_energy  # pylint: disable=invalid-name
 
 
-event_id = (  # pylint: disable=invalid-name
-    petra3_pilatus.event_id
-)
+event_id = petra3_pilatus.event_id  # pylint: disable=invalid-name
 
 
-frame_id = (  # pylint: disable=invalid-name
-    petra3_pilatus.frame_id
-)
+frame_id = petra3_pilatus.frame_id  # pylint: disable=invalid-name

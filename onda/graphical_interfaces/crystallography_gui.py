@@ -47,12 +47,7 @@ class CrystallographyGui(gui.OndaGui):
     plot of the processed data.
     """
 
-    def __init__(
-            self,
-            geometry,
-            pub_hostname,
-            pub_port
-    ):
+    def __init__(self, geometry, pub_hostname, pub_port):
         """
         Initializes the Crystallography GUI class.
 
@@ -69,24 +64,19 @@ class CrystallographyGui(gui.OndaGui):
             pub_port (int): port on which the the OnDA monitor is
                 broadcasting information.
         """
-        super(CrystallographyGui,
-              self).__init__(
-                  pub_hostname=pub_hostname,
-                  pub_port=pub_port,
-                  gui_update_func=self._update_image_and_plots,
-                  subscription_string='ondadata',
-              )
+        super(CrystallographyGui, self).__init__(
+            pub_hostname=pub_hostname,
+            pub_port=pub_port,
+            gui_update_func=self._update_image_and_plots,
+            subscription_string="ondadata",
+        )
 
         # Initializes the local data dictionary with 'null' values.
         self._local_data = {
-            'peak_list': named_tuples.PeakList(
-                fs=[],
-                ss=[],
-                intensity=[]
-            ),
-            'hit_rate': 0.0,
-            'hit_flag': True,
-            'saturation_rate': 0.0
+            "peak_list": named_tuples.PeakList(fs=[], ss=[], intensity=[]),
+            "hit_rate": 0.0,
+            "hit_flag": True,
+            "saturation_rate": 0.0,
         }
 
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
@@ -108,47 +98,42 @@ class CrystallographyGui(gui.OndaGui):
         # individually for each panel, but the GUI just needs simple
         # values for the whole detector. The GUI just takes the values
         # from the first panel.
-        first_panel = list(geometry['panels'].keys())[0]
+        first_panel = list(geometry["panels"].keys())[0]
         try:
-            self._coffset = geometry['panels'][first_panel]['coffset']
+            self._coffset = geometry["panels"][first_panel]["coffset"]
         except KeyError:
             self._coffset = None
 
         try:
-            self._res = geometry['panels'][first_panel]['res']
+            self._res = geometry["panels"][first_panel]["res"]
         except KeyError:
             self._res = None
 
         self._img_virt_powder_plot = numpy.zeros(
-            shape=self._img_shape,
-            dtype=numpy.float32  # pylint: disable=E1101
+            shape=self._img_shape, dtype=numpy.float32  # pylint: disable=E1101
         )
 
         self._hitrate_history = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
+            iterable=10000 * [0.0], maxlen=10000
         )
 
         self._satrate_history = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
+            iterable=10000 * [0.0], maxlen=10000
         )
 
-        self._resolution_rings_regex = QtCore.QRegExp(r'[0-9.,]+')
+        self._resolution_rings_regex = QtCore.QRegExp(r"[0-9.,]+")
         self._resolution_rings_validator = QtGui.QRegExpValidator()
-        self._resolution_rings_validator.setRegExp(
-            self._resolution_rings_regex
-        )
+        self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
         self._resolution_rings_in_a = [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
         self._resolution_rings_textitems = []
 
         # Initializes the pen and canvas used to draw the resolution
         # rings.
-        self._resolution_rings_pen = pyqtgraph.mkPen('w', width=0.5)
+        self._resolution_rings_pen = pyqtgraph.mkPen("w", width=0.5)
         self._resolution_rings_canvas = pyqtgraph.ScatterPlotItem()
 
         # Sets the PyQtGraph background color.
-        pyqtgraph.setConfigOption('background', 0.2)
+        pyqtgraph.setConfigOption("background", 0.2)
 
         # Initalizes the resolution rings checkbox.
         self._resolution_rings_check_box = QtGui.QCheckBox()
@@ -166,7 +151,7 @@ class CrystallographyGui(gui.OndaGui):
         )
 
         self._resolution_rings_lineedit.setText(
-            ','.join(str(x) for x in self._resolution_rings_in_a)
+            ",".join(str(x) for x in self._resolution_rings_in_a)
         )
 
         self._resolution_rings_lineedit.editingFinished.connect(
@@ -182,17 +167,11 @@ class CrystallographyGui(gui.OndaGui):
 
         # Initializes the hit rate plot widget.
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
-        self._hit_rate_plot_widget.setTitle('Hit Rate vs. Events')
+        self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
 
-        self._hit_rate_plot_widget.setLabel(
-            axis='bottom',
-            text='Events'
-        )
+        self._hit_rate_plot_widget.setLabel(axis="bottom", text="Events")
 
-        self._hit_rate_plot_widget.setLabel(
-            axis='left',
-            text='Hit Rate'
-        )
+        self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate")
 
         self._hit_rate_plot_widget.showGrid(x=True, y=True)
 
@@ -204,17 +183,13 @@ class CrystallographyGui(gui.OndaGui):
         # Initializes the saturation rate plot widget.
         self._saturation_plot_widget = pyqtgraph.PlotWidget()
         self._saturation_plot_widget.setTitle(
-            'Fraction of hits with too many saturated peaks'
+            "Fraction of hits with too many saturated peaks"
         )
 
-        self._saturation_plot_widget.setLabel(
-            axis='bottom',
-            text='Events'
-        )
+        self._saturation_plot_widget.setLabel(axis="bottom", text="Events")
 
         self._saturation_plot_widget.setLabel(
-            axis='left',
-            text='Saturation rate'
+            axis="left", text="Saturation rate"
         )
 
         self._saturation_plot_widget.showGrid(x=True, y=True)
@@ -269,27 +244,26 @@ class CrystallographyGui(gui.OndaGui):
     def _reset_virt_powder_plot(self):
         # Resets the virtual powder plot.
         self._img_virt_powder_plot = numpy.zeros(
-            shape=self._img_shape,
-            dtype=numpy.float32  # pylint: disable=E1101
+            shape=self._img_shape, dtype=numpy.float32  # pylint: disable=E1101
         )
 
         self._image_view.setImage(
             self._img_virt_powder_plot.T,
             autoHistogramRange=False,
             autoLevels=False,
-            autoRange=False
+            autoRange=False,
         )
 
     def _update_resolution_rings(self):
         # Updates the resolution rings.
 
-        items = str(self._resolution_rings_lineedit.text()).split(',')
+        items = str(self._resolution_rings_lineedit.text()).split(",")
 
         if items:
             self._resolution_rings_in_a = [
                 float(item)
                 for item in items
-                if item != '' and float(item) != 0.0
+                if item != "" and float(item) != 0.0
             ]
         else:
             self._resolution_rings_in_a = []
@@ -298,9 +272,7 @@ class CrystallographyGui(gui.OndaGui):
             self._image_view.getView().removeItem(text_item)
 
         self._resolution_rings_textitems = [
-            pyqtgraph.TextItem(text='{}A'.format(x),
-                               anchor=(0.5,
-                                       0.8))
+            pyqtgraph.TextItem(text="{}A".format(x), anchor=(0.5, 0.8))
             for x in self._resolution_rings_in_a
         ]
         for text_item in self._resolution_rings_textitems:
@@ -308,14 +280,17 @@ class CrystallographyGui(gui.OndaGui):
 
         try:
             lambda_ = (
-                constants.h * constants.c / self._local_data[b'beam_energy']
+                constants.h * constants.c / self._local_data[b"beam_energy"]
             )
             resolution_rings_in_pix = [1.0]
             resolution_rings_in_pix.extend(
                 [
-                    2.0 * self._res *
-                    (self._local_data[b'detector_distance'] + self._coffset) *
-                    numpy.tan(2.0 * numpy.arcsin(lambda_ / (2.0 * resolution)))
+                    2.0
+                    * self._res
+                    * (self._local_data[b"detector_distance"] + self._coffset)
+                    * numpy.tan(
+                        2.0 * numpy.arcsin(lambda_ / (2.0 * resolution))
+                    )
                     for resolution in self._resolution_rings_in_a
                 ]
             )
@@ -326,32 +301,32 @@ class CrystallographyGui(gui.OndaGui):
             )
             self._resolution_rings_canvas.setData([], [])
             for index, item in enumerate(self._resolution_rings_textitems):
-                item.setText('')
+                item.setText("")
         else:
             if (
-                    self._resolution_rings_check_box.isEnabled() and
-                    self._resolution_rings_check_box.isChecked()
+                self._resolution_rings_check_box.isEnabled()
+                and self._resolution_rings_check_box.isChecked()
             ):
                 self._resolution_rings_canvas.setData(
                     [self._img_center_y] * len(resolution_rings_in_pix),
                     [self._img_center_x] * len(resolution_rings_in_pix),
-                    symbol='o',
+                    symbol="o",
                     size=resolution_rings_in_pix,
                     pen=self._resolution_rings_pen,
                     brush=(0, 0, 0, 0),
-                    pxMode=False
+                    pxMode=False,
                 )
 
                 for index, item in enumerate(self._resolution_rings_textitems):
                     item.setText(
-                        '{}A'.format(self._resolution_rings_in_a[index])
+                        "{}A".format(self._resolution_rings_in_a[index])
                     )
                     item.setPos(
                         self._img_center_y,
                         (
-                            self._img_center_x +
-                            resolution_rings_in_pix[index + 1] / 2.0
-                        )
+                            self._img_center_x
+                            + resolution_rings_in_pix[index + 1] / 2.0
+                        ),
                     )
             else:
 
@@ -360,7 +335,7 @@ class CrystallographyGui(gui.OndaGui):
                 # content.
                 self._resolution_rings_canvas.setData([], [])
                 for index, item in enumerate(self._resolution_rings_textitems):
-                    item.setText('')
+                    item.setText("")
 
     def _update_image_and_plots(self):
         # Updates all elements in the GUI.
@@ -381,7 +356,7 @@ class CrystallographyGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        if last_frame[b'geometry_is_optimized']:
+        if last_frame[b"geometry_is_optimized"]:
             if not self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(True)
                 self._resolution_rings_lineedit.setEnabled(True)
@@ -400,21 +375,21 @@ class CrystallographyGui(gui.OndaGui):
         for frame in self._local_data:
 
             for peak_fs, peak_ss, peak_value in zip(
-                    frame[b'peak_list'][b'fs'],
-                    frame[b'peak_list'][b'ss'],
-                    frame[b'peak_list'][b'intensity']
+                frame[b"peak_list"][b"fs"],
+                frame[b"peak_list"][b"ss"],
+                frame[b"peak_list"][b"intensity"],
             ):
-                peak_index_in_slab = (
-                    int(round(peak_ss)) * frame[b'native_data_shape'][1] +
-                    int(round(peak_fs))
-                )
+                peak_index_in_slab = int(round(peak_ss)) * frame[
+                    b"native_data_shape"
+                ][1] + int(round(peak_fs))
 
                 self._img_virt_powder_plot[
                     self._visual_pixel_map_y[peak_index_in_slab],
-                    self._visual_pixel_map_x[peak_index_in_slab]] += peak_value
+                    self._visual_pixel_map_x[peak_index_in_slab],
+                ] += peak_value
 
-            self._hitrate_history.append(frame[b'hit_rate'])
-            self._satrate_history.append(frame[b'saturation_rate'])
+            self._hitrate_history.append(frame[b"hit_rate"])
+            self._satrate_history.append(frame[b"saturation_rate"])
 
         QtGui.QApplication.processEvents()
 
@@ -424,7 +399,7 @@ class CrystallographyGui(gui.OndaGui):
             self._img_virt_powder_plot.T,
             autoHistogramRange=False,
             autoLevels=False,
-            autoRange=False
+            autoRange=False,
         )
 
         # Resets local_data so that the same data is not processed
@@ -444,7 +419,7 @@ def main():
 
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]
-        rec_ip = '127.0.0.1'
+        rec_ip = "127.0.0.1"
         rec_port = 12321
     elif len(sys.argv) == 4:
         geom_filename = sys.argv[1]

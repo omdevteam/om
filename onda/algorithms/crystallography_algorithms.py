@@ -50,22 +50,22 @@ class Peakfinder8PeakDetection(object):
     """
 
     def __init__(
-            self,
-            max_num_peaks,
-            asic_nx,
-            asic_ny,
-            nasics_x,
-            nasics_y,
-            adc_threshold,
-            minimum_snr,
-            min_pixel_count,
-            max_pixel_count,
-            local_bg_radius,
-            min_res,
-            max_res,
-            bad_pixel_map_filename,
-            bad_pixel_map_hdf5_path,
-            radius_pixel_map
+        self,
+        max_num_peaks,
+        asic_nx,
+        asic_ny,
+        nasics_x,
+        nasics_y,
+        adc_threshold,
+        minimum_snr,
+        min_pixel_count,
+        max_pixel_count,
+        local_bg_radius,
+        min_res,
+        max_res,
+        bad_pixel_map_filename,
+        bad_pixel_map_hdf5_path,
+        radius_pixel_map,
     ):
         """
         Initializes the Peakfinder8PeakDetection class.
@@ -137,10 +137,11 @@ class Peakfinder8PeakDetection(object):
         except OSError:
             raise_from(
                 RuntimeError(
-                    "Error reading the {} HDF5 file.".
-                    format(bad_pixel_map_filename)
+                    "Error reading the {} HDF5 file.".format(
+                        bad_pixel_map_filename
+                    )
                 ),
-                None
+                None,
             )
 
         res_mask = numpy.ones(shape=loaded_mask.shape, dtype=numpy.int8)
@@ -148,10 +149,7 @@ class Peakfinder8PeakDetection(object):
         res_mask[numpy.where(self._radius_pixel_map > max_res)] = 0
         self._mask = loaded_mask * res_mask
 
-    def find_peaks(
-            self,
-            data
-    ):
+    def find_peaks(self, data):
         """
         Detects peaks in the data.
 
@@ -182,6 +180,6 @@ class Peakfinder8PeakDetection(object):
             self._minimum_snr,
             self._min_pixel_count,
             self._max_pixel_count,
-            self._local_bg_radius
+            self._local_bg_radius,
         )
         return named_tuples.PeakList(*peak_list[0:3])

@@ -36,10 +36,7 @@ def open_event(event):
 
         event (Dict): a dictionary with the event data.
     """
-    event['data'] = h5py.File(
-        name=event['full_path'],
-        mode='r'
-    )
+    event["data"] = h5py.File(name=event["full_path"], mode="r")
 
 
 def close_event(event):
@@ -50,4 +47,4 @@ def close_event(event):
 
         event (Dict): a dictionary with the event data.
     """
-    event['data'].close()
+    event["data"].close()

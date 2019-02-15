@@ -16,7 +16,7 @@ import pickle
 import zmq
 
 
-__all__ = ['Client']
+__all__ = ["Client"]
 
 
 class Client:
@@ -48,32 +48,33 @@ class Client:
     ZMQError
         if provided endpoint is not valid.
     """
-    def __init__(self, endpoint, sock='REQ', ser='msgpack'):
+
+    def __init__(self, endpoint, sock="REQ", ser="msgpack"):
 
         self._context = zmq.Context()
         self._socket = None
         self._deserializer = None
 
-        if sock == 'REQ':
+        if sock == "REQ":
             self._socket = self._context.socket(zmq.REQ)
             self._socket.setsockopt(zmq.LINGER, 0)
             self._socket.connect(endpoint)
-        elif sock == 'SUB':
+        elif sock == "SUB":
             self._socket = self._context.socket(zmq.SUB)
             self._socket.set_hwm(1)
-            self._socket.setsockopt(zmq.SUBSCRIBE, b'')
+            self._socket.setsockopt(zmq.SUBSCRIBE, b"")
             self._socket.connect(endpoint)
         else:
-            raise NotImplementedError('socket is not supported:', str(sock))
+            raise NotImplementedError("socket is not supported:", str(sock))
 
         self._pattern = self._socket.TYPE
 
-        if ser == 'msgpack':
+        if ser == "msgpack":
             self._deserializer = partial(msgpack.loads, raw=False)
-        elif ser == 'pickle':
+        elif ser == "pickle":
             self._deserializer = pickle.loads
         else:
-            raise NotImplementedError('serializer is not supported:', str(ser))
+            raise NotImplementedError("serializer is not supported:", str(ser))
 
     def next(self):
         """Request next data container.
@@ -92,7 +93,7 @@ class Client:
             `data` dict.
         """
         if self._pattern == zmq.REQ:
-            self._socket.send(b'next')
+            self._socket.send(b"next")
         msg = self._socket.recv_multipart()
         return self._deserialize(msg)
 
@@ -101,34 +102,37 @@ class Client:
             data = self._deserializer(msg[-1])
             meta = {}
             for key, value in data.items():
-                meta[key] = value.get('metadata', {})
+                meta[key] = value.get("metadata", {})
             return data, meta
 
         data = {}
         meta = {}
-        for header, payload in zip(*[iter(msg)]*2):
+        for header, payload in zip(*[iter(msg)] * 2):
             md = self._deserializer(header)
-            source = md['source']
-            content = md['content']
+            source = md["source"]
+            content = md["content"]
 
-            if content in ('msgpack', 'pickle.HIGHEST_PROTOCOL',
-                           'pickle.DEFAULT_PROTOCOL'):
+            if content in (
+                "msgpack",
+                "pickle.HIGHEST_PROTOCOL",
+                "pickle.DEFAULT_PROTOCOL",
+            ):
                 data[source] = self._deserializer(payload)
-                meta[source] = md.get('metadata', {})
-            elif content in ('array', 'ImageData'):
-                dtype = md['dtype']
-                shape = md['shape']
+                meta[source] = md.get("metadata", {})
+            elif content in ("array", "ImageData"):
+                dtype = md["dtype"]
+                shape = md["shape"]
 
                 buf = memoryview(payload)
                 array = np.frombuffer(buf, dtype=dtype).reshape(shape)
 
-                if content == 'array':
-                    data[source].update({md['path']: array})
+                if content == "array":
+                    data[source].update({md["path"]: array})
                 else:
-                    data[source].update({md['path']: md['params']})
-                    data[source][md['path']]['Data'] = array
+                    data[source].update({md["path"]: md["params"]})
+                    data[source][md["path"]]["Data"] = array
             else:
-                raise RuntimeError('unknown message content:', md['content'])
+                raise RuntimeError("unknown message content:", md["content"])
         return data, meta
 
     def __enter__(self):

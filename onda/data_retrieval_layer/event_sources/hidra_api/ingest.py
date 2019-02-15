@@ -23,7 +23,7 @@ def is_windows():
         return False
 
 
-class Ingest():
+class Ingest:
     # return error code
     def __init__(self, use_log=False, context=None):
 
@@ -53,15 +53,20 @@ class Ingest():
         self.current_pid = os.getpid()
 
         self.localhost = "127.0.0.1"
-#        self.localhost = socket.gethostbyaddr("localhost")[2][0]
+        #        self.localhost = socket.gethostbyaddr("localhost")[2][0]
         try:
             socket.inet_aton(self.localhost)
-            self.log.info("IPv4 address detected for localhost: {0}."
-                          .format(self.localhost))
+            self.log.info(
+                "IPv4 address detected for localhost: {0}.".format(
+                    self.localhost
+                )
+            )
             self.localhost_is_ipv6 = False
         except socket.error:
-            self.log.info("Address '{0}' is not a IPv4 address, asume it is "
-                          "an IPv6 address.".format(self.localhost))
+            self.log.info(
+                "Address '{0}' is not a IPv4 address, asume it is "
+                "an IPv6 address.".format(self.localhost)
+            )
             self.localhost_is_ipv6 = True
 
         self.ext_ip = "0.0.0.0"
@@ -77,30 +82,34 @@ class Ingest():
         # as ...
         self.data_fetch_port = "50010"
 
-        self.signal_con_id = "tcp://{0}:{1}".format(self.signal_host,
-                                                    self.signal_port)
+        self.signal_con_id = "tcp://{0}:{1}".format(
+            self.signal_host, self.signal_port
+        )
 
         if is_windows():
             self.log.info("Using tcp for internal communication.")
-            self.eventdet_con_id = "tcp://{0}:{1}".format(self.localhost,
-                                                          self.event_det_port)
-            self.datafetch_con_id = ("tcp://{0}:{1}"
-                                     .format(self.localhost,
-                                             self.data_fetch_port))
+            self.eventdet_con_id = "tcp://{0}:{1}".format(
+                self.localhost, self.event_det_port
+            )
+            self.datafetch_con_id = "tcp://{0}:{1}".format(
+                self.localhost, self.data_fetch_port
+            )
         else:
             self.log.info("Using ipc for internal communication.")
-            self.eventdet_con_id = "ipc://{0}/{1}".format(self.ipc_path,
-                                                          "eventDet")
-            self.datafetch_con_id = "ipc://{0}/{1}".format(self.ipc_path,
-                                                           "dataFetch")
-#            self.eventdet_con_id = ("ipc://{0}/{1}_{2}"
-#                                    .format(self.ipc_path,
-#                                            self.current_pid,
-#                                            "eventDet"))
-#            self.datafetch_con_id = ("ipc://{0}/{1}_{2}"
-#                                     .format(self.ipc_path,
-#                                             self.current_pid,
-#                                             "dataFetch"))
+            self.eventdet_con_id = "ipc://{0}/{1}".format(
+                self.ipc_path, "eventDet"
+            )
+            self.datafetch_con_id = "ipc://{0}/{1}".format(
+                self.ipc_path, "dataFetch"
+            )
+        #            self.eventdet_con_id = ("ipc://{0}/{1}_{2}"
+        #                                    .format(self.ipc_path,
+        #                                            self.current_pid,
+        #                                            "eventDet"))
+        #            self.datafetch_con_id = ("ipc://{0}/{1}_{2}"
+        #                                     .format(self.ipc_path,
+        #                                             self.current_pid,
+        #                                             "dataFetch"))
 
         self.file_op_socket = None
         self.eventdet_socket = None
@@ -122,19 +131,26 @@ class Ingest():
         self.file_op_socket = self.context.socket(zmq.REQ)
 
         # time to wait for the sender to give a confirmation of the signal
-#        self.file_op_socket.RCVTIMEO = self.response_timeout
+        #        self.file_op_socket.RCVTIMEO = self.response_timeout
         try:
             self.file_op_socket.connect(self.signal_con_id)
-            self.log.info("file_op_socket started (connect) for '{0}'"
-                          .format(self.signal_con_id))
+            self.log.info(
+                "file_op_socket started (connect) for '{0}'".format(
+                    self.signal_con_id
+                )
+            )
         except Exception:
-            self.log.error("Failed to start file_op_socket (connect): '{0}'"
-                           .format(self.signal_con_id), exc_info=True)
+            self.log.error(
+                "Failed to start file_op_socket (connect): '{0}'".format(
+                    self.signal_con_id
+                ),
+                exc_info=True,
+            )
             raise
 
         # using a Poller to implement the file_op_socket timeout
         # (in older ZMQ version there is no option RCVTIMEO)
-#        self.poller = zmq.Poller()
+        #        self.poller = zmq.Poller()
         self.poller.register(self.file_op_socket, zmq.POLLIN)
 
         self.eventdet_socket = self.context.socket(zmq.PUSH)
@@ -149,20 +165,34 @@ class Ingest():
 
         try:
             self.eventdet_socket.connect(self.eventdet_con_id)
-            self.log.info("eventdet_socket started (connect) for '{0}'"
-                          .format(self.eventdet_con_id))
+            self.log.info(
+                "eventdet_socket started (connect) for '{0}'".format(
+                    self.eventdet_con_id
+                )
+            )
         except:
-            self.log.error("Failed to start eventdet_socket (connect): '{0}'"
-                           .format(self.eventdet_con_id), exc_info=True)
+            self.log.error(
+                "Failed to start eventdet_socket (connect): '{0}'".format(
+                    self.eventdet_con_id
+                ),
+                exc_info=True,
+            )
             raise
 
         try:
             self.datafetch_socket.connect(self.datafetch_con_id)
-            self.log.info("datafetch_socket started (connect) for '{0}'"
-                          .format(self.datafetch_con_id))
+            self.log.info(
+                "datafetch_socket started (connect) for '{0}'".format(
+                    self.datafetch_con_id
+                )
+            )
         except:
-            self.log.error("Failed to start datafetch_socket (connect): '{0}'"
-                           .format(self.datafetch_con_id), exc_info=True)
+            self.log.error(
+                "Failed to start datafetch_socket (connect): '{0}'".format(
+                    self.datafetch_con_id
+                ),
+                exc_info=True,
+            )
             raise
 
     # return error code
@@ -183,8 +213,9 @@ class Ingest():
             self.filename = filename
             self.filepart = 0
         else:
-            self.log.debug("signal={0} and filename={1}"
-                           .format(signal, filename))
+            self.log.debug(
+                "signal={0} and filename={1}".format(signal, filename)
+            )
             raise Exception("Wrong responce received: {0}".format(message))
 
     def write(self, data):
@@ -192,17 +223,18 @@ class Ingest():
         message = {
             "filename": self.filename,
             "filepart": self.filepart,
-            "chunksize": len(data)
+            "chunksize": len(data),
         }
-#        message = ('{ "filepart": {0}, "filename": "{1}" }'
-#                   .format(self.filepart, self.filename))
+        #        message = ('{ "filepart": {0}, "filename": "{1}" }'
+        #                   .format(self.filepart, self.filename))
         message = json.dumps(message).encode("utf-8")
         self.eventdet_socket.send_multipart([message])
 
         # send data to ZMQ-Queue
         self.datafetch_socket.send(data)
         self.filepart += 1
-#        self.log.debug("write action sent: {0}".format(message))
+
+    #        self.log.debug("write action sent: {0}".format(message))
 
     # return error code
     def close_file(self):
@@ -212,18 +244,22 @@ class Ingest():
             self.file_op_socket.send_multipart(send_message)
             self.log.info("Sending signal to close the file to file_op_socket")
         except:
-            raise Exception("Sending signal to close the file to "
-                            "file_op_socket...failed")
+            raise Exception(
+                "Sending signal to close the file to " "file_op_socket...failed"
+            )
 
         # send close-signal to event Detector
         try:
             self.eventdet_socket.send_multipart(send_message)
-            self.log.debug("Sending signal to close the file to "
-                           "eventdet_socket (send_message={0})"
-                           .format(send_message))
+            self.log.debug(
+                "Sending signal to close the file to "
+                "eventdet_socket (send_message={0})".format(send_message)
+            )
         except:
-            raise Exception("Sending signal to close the file to "
-                            "eventdet_socket...failed")
+            raise Exception(
+                "Sending signal to close the file to "
+                "eventdet_socket...failed"
+            )
 
         try:
             socks = dict(self.poller.poll(10000))  # in ms
@@ -232,22 +268,24 @@ class Ingest():
             self.log.error("Could not poll for signal", exc_info=True)
 
         # if there was a response
-        if (socks
-                and self.file_op_socket in socks
-                and socks[self.file_op_socket] == zmq.POLLIN):
+        if (
+            socks
+            and self.file_op_socket in socks
+            and socks[self.file_op_socket] == zmq.POLLIN
+        ):
             self.log.info("Received answer to signal...")
             #  Get the reply.
             recv_message = self.file_op_socket.recv_multipart()
-            self.log.info("Received answer to signal: {0}"
-                          .format(recv_message))
+            self.log.info("Received answer to signal: {0}".format(recv_message))
         else:
             recv_message = None
 
         if recv_message != send_message:
             self.log.debug("received message: {0}".format(recv_message))
             self.log.debug("send message: {0}".format(send_message))
-            raise Exception("Something went wrong while notifying to close "
-                            "the file")
+            raise Exception(
+                "Something went wrong while notifying to close " "the file"
+            )
 
         self.filename = None
         self.filepart = None

@@ -35,11 +35,7 @@ from future.utils import raise_from
 ############################
 
 
-def initialize_event_source(
-        source,
-        mpi_pool_size,
-        monitor_params
-):
+def initialize_event_source(source, mpi_pool_size, monitor_params):
     """
     Initializes the file event source.
 
@@ -66,12 +62,7 @@ def initialize_event_source(
     # from files, so does nothing.
 
 
-def event_generator(
-        source,
-        node_rank,
-        mpi_pool_size,
-        monitor_params
-):
+def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     """
     Initializes the recovery of events from files.
 
@@ -102,14 +93,14 @@ def event_generator(
     """
     del monitor_params
     try:
-        with open(source, 'r') as fhandle:
+        with open(source, "r") as fhandle:
             filelist = fhandle.readlines()
     except (IOError, OSError):
         raise_from(
             exc=RuntimeError(
                 "Error reading the {} source file.".format(source)
             ),
-            cause=None
+            cause=None,
         )
 
     # Computes how many files the current worker node should
@@ -122,16 +113,17 @@ def event_generator(
     )
 
     files_curr_node = filelist[
-        ((node_rank - 1) * num_files_curr_node):
-        (node_rank * num_files_curr_node)
+        ((node_rank - 1) * num_files_curr_node) : (
+            node_rank * num_files_curr_node
+        )
     ]
 
     for entry in files_curr_node:
         stripped_entry = entry.strip()
-        event = {'full_path': stripped_entry}
+        event = {"full_path": stripped_entry}
 
         # File modification time is used as a first approximation of
         # the timestamp when the timestamp is not available.
-        event['timestamp'] = os.stat(stripped_entry).st_mtime
+        event["timestamp"] = os.stat(stripped_entry).st_mtime
 
         yield event

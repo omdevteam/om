@@ -29,34 +29,34 @@ import onda
 USE_CYTHON = 0
 
 
-
-
-
-ext = '.pyx' if USE_CYTHON else '.c'  # pylint: disable=C0103
+ext = ".pyx" if USE_CYTHON else ".c"  # pylint: disable=C0103
 
 peakfinder8_ext = Extension(  # pylint: disable=C0103
-    name='onda.algorithms.peakfinder8_extension.peakfinder8_extension',
+    name="onda.algorithms.peakfinder8_extension.peakfinder8_extension",
     include_dirs=[numpy.get_include()],
-    libraries=['stdc++'],
+    libraries=["stdc++"],
     sources=[
-        'src/peakfinder8_extension/peakfinder8.cpp',
-        'src/peakfinder8_extension/peakfinder8_extension.pyx',
-    ] if USE_CYTHON else [
-        'src/peakfinder8_extension/peakfinder8_extension.cpp',
-        'src/peakfinder8_extension/peakfinder8.cpp',
+        "src/peakfinder8_extension/peakfinder8.cpp",
+        "src/peakfinder8_extension/peakfinder8_extension.pyx",
+    ]
+    if USE_CYTHON
+    else [
+        "src/peakfinder8_extension/peakfinder8_extension.cpp",
+        "src/peakfinder8_extension/peakfinder8.cpp",
     ],
-    language='c++'
+    language="c++",
 )
 
 extensions = [peakfinder8_ext]  # pylint: disable=C0103
 
 if USE_CYTHON:
     from Cython.Build import cythonize
+
     extensions = cythonize(peakfinder8_ext)  # pylint: disable=C0103
 
 
 setup(
-    name='onda',
+    name="onda",
     version=onda.__version__,
     url="https://github.com/ondateam/cfelpyutils",
     license="GNU General Public License v3.0",
@@ -105,62 +105,55 @@ setup(
         """
     ),
     install_requires=[
-        'cfelpyutils>=0.9',
-        'h5py>=2.7.0',
-        'numpy>=1.11.3',
-        'scipy>=1.1.0',
-        'mpi4py>=2.0.0'],
+        "cfelpyutils>=0.9",
+        "h5py>=2.7.0",
+        "numpy>=1.11.3",
+        "scipy>=1.1.0",
+        "mpi4py>=2.0.0",
+    ],
     extras_require={
-        'gui-qt5': ['pyqt>=5.9.2', 'pyqtgraph>=0.10.0'],
-        'gui-qt4': ['pyqt>=4.11.4', 'pyqtgraph>=0.10.0'],
-        'monitor': [],
-        'monitor-cbf': ['fabio>=0.6.0'],
-        'monitor-psana': ['psana>=1.3.54']
+        "gui-qt5": ["pyqt>=5.9.2", "pyqtgraph>=0.10.0"],
+        "gui-qt4": ["pyqt>=4.11.4", "pyqtgraph>=0.10.0"],
+        "monitor": [],
+        "monitor-cbf": ["fabio>=0.6.0"],
+        "monitor-psana": ["psana>=1.3.54"],
     },
     scripts=[
-        'bin/onda_crystallography_gui.py',
-        'bin/onda_crystallography_hit_viewer.py',
-        'bin/onda_monitor.py',
-        'bin/onda_swaxs_gui.py'
+        "bin/onda_crystallography_gui.py",
+        "bin/onda_crystallography_hit_viewer.py",
+        "bin/onda_monitor.py",
+        "bin/onda_swaxs_gui.py",
     ],
     ext_modules=extensions,
     packages=[
-        'onda',
-        'onda.algorithms',
-        'onda.algorithms.peakfinder8_extension',
-        'onda.data_retrieval_layer',
-        'onda.data_retrieval_layer.data_sources',
-        'onda.data_retrieval_layer.event_sources',
-        'onda.data_retrieval_layer.event_sources.hidra_api',
-        'onda.data_retrieval_layer.event_sources.karabo_api',
-        'onda.data_retrieval_layer.facility_profiles',
-        'onda.data_retrieval_layer.file_formats',
-        'onda.data_retrieval_layer.filters',
-        'onda.graphical_interfaces',
-        'onda.parallelization_layer',
-        'onda.processing_layer',
-        'onda.utils'
+        "onda",
+        "onda.algorithms",
+        "onda.algorithms.peakfinder8_extension",
+        "onda.data_retrieval_layer",
+        "onda.data_retrieval_layer.data_sources",
+        "onda.data_retrieval_layer.event_sources",
+        "onda.data_retrieval_layer.event_sources.hidra_api",
+        "onda.data_retrieval_layer.event_sources.karabo_api",
+        "onda.data_retrieval_layer.facility_profiles",
+        "onda.data_retrieval_layer.file_formats",
+        "onda.data_retrieval_layer.filters",
+        "onda.graphical_interfaces",
+        "onda.parallelization_layer",
+        "onda.processing_layer",
+        "onda.utils",
     ],
     include_package_data=True,
-    platforms='any',
+    platforms="any",
     classifiers=[
         "Programming Language :: Python",
-
         "Development Status :: 4 - Beta",
-
         "Programming Language :: Python :: 3",
-
         "Programming Language :: Python :: 2",
-
         "Operating System :: OS Independent",
-
         "Topic :: Software Development :: Libraries :: Python Modules",
-
         "License :: OSI Approved :: GNU General Public License v3 "
         "or later (GPLv3+)",
-
         "Natural Language :: English",
-
         "Intended Audience :: Science/Research",
     ],
 )

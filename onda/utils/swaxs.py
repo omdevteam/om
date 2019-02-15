@@ -30,12 +30,12 @@ from onda.utils import named_tuples
 
 
 def pixel_bins_to_q_bins(
-        detector_distance,
-        beam_energy,
-        pixel_size,
-        pixel_radial_bins,
-        coffset,
-        radial_bin_size
+    detector_distance,
+    beam_energy,
+    pixel_size,
+    pixel_radial_bins,
+    coffset,
+    radial_bin_size,
 ):
     """
     Converts pixel-space radial bins to q-space radial_bins.
@@ -68,21 +68,15 @@ def pixel_bins_to_q_bins(
     """
 
     # TODO: Check the calculation. The units are now SI.
-    lambda_ = (
-        (scipy.constants.h * scipy.constants.c) /
-        beam_energy
-    )
+    lambda_ = (scipy.constants.h * scipy.constants.c) / beam_energy
 
     theta = 0.5 * numpy.arctan(
-        (pixel_radial_bins * radial_bin_size * pixel_size) /
-        (detector_distance + coffset)
+        (pixel_radial_bins * radial_bin_size * pixel_size)
+        / (detector_distance + coffset)
     )
 
-    q_in_meters = (
-        4.0 * scipy.constants.pi * numpy.sin(theta) /
-        lambda_
-    )
-    
+    q_in_meters = 4.0 * scipy.constants.pi * numpy.sin(theta) / lambda_
+
     q_in_angstroms = q_in_meters * 1.0e-10
 
     return q_in_angstroms
@@ -112,17 +106,14 @@ def calculate_radial_bin_info(radius_pixel_map, num_bins):
 
     for i in range(0, num_bins - 1):
         radial_bin_pixel_map[
-            (radius_pixel_map >= i * deltar) &
-            (radius_pixel_map < (i + 1) * deltar)
+            (radius_pixel_map >= i * deltar)
+            & (radius_pixel_map < (i + 1) * deltar)
         ] = i
 
-        radial_bin_pixel_map[
-            radius_pixel_map >= num_bins * deltar
-        ] = num_bins
+        radial_bin_pixel_map[radius_pixel_map >= num_bins * deltar] = num_bins
 
     return named_tuples.RadialBinInfo(
-        radial_bin_pixel_map=radial_bin_pixel_map,
-        radial_bin_size=deltar
+        radial_bin_pixel_map=radial_bin_pixel_map, radial_bin_size=deltar
     )
 
 
@@ -149,7 +140,9 @@ def scale_profile(radial_profile, min_radial_bin, max_radial_bin):
     average = numpy.abs(numpy.average(scaling_region))
     if average == 0:
         average = 1.0
-    scaled_radial_profile = radial_profile / numpy.sum(radial_profile[min_radial_bin:max_radial_bin])
+    scaled_radial_profile = radial_profile / numpy.sum(
+        radial_profile[min_radial_bin:max_radial_bin]
+    )
     return scaled_radial_profile
 
 
@@ -172,26 +165,24 @@ def calculate_avg_radial_intensity(data, radial_bin_pixel_map, mask):
 
         ndarray: average intensity values for each radial bin.
     """
-    idx, counts = numpy.unique(radial_bin_pixel_map,return_counts=True)
+    idx, counts = numpy.unique(radial_bin_pixel_map, return_counts=True)
     radial_average = scipy.ndimage.sum(
-        data,
-        labels=radial_bin_pixel_map,
-        index=idx
+        data, labels=radial_bin_pixel_map, index=idx
     )
-    #mask = numpy.ones(data.shape)
-    #mask[data==0] = 0
+    # mask = numpy.ones(data.shape)
+    # mask[data==0] = 0
     mask_radial = scipy.ndimage.sum(
-        mask,
-        labels=radial_bin_pixel_map,
-        index=idx
+        mask, labels=radial_bin_pixel_map, index=idx
     )
     radial_average /= mask_radial
 
     return numpy.nan_to_num(radial_average)
 
+
 np = numpy
 
-def mask_panel( panel, sub_sh=(32,32), thresh=7):
+
+def mask_panel(panel, sub_sh=(32, 32), thresh=7):
     """
     Make a mask for an AGIPD panel
     
@@ -206,12 +197,12 @@ def mask_panel( panel, sub_sh=(32,32), thresh=7):
     returns a mask array, 0 is bad, 1 is good 
     """
 
-    subs = panel.reshape( (-1,32,32) )
-    masks = np.zeros( subs.shape, np.bool)
-    for i,s in enumerate(subs):
-        m = ~is_outlier( s.ravel(), thresh).reshape(s.shape)
-        masks[i] = m 
-    return masks.reshape( panel.shape)
+    subs = panel.reshape((-1, 32, 32))
+    masks = np.zeros(subs.shape, np.bool)
+    for i, s in enumerate(subs):
+        m = ~is_outlier(s.ravel(), thresh).reshape(s.shape)
+        masks[i] = m
+    return masks.reshape(panel.shape)
 
 
 def is_outlier(points, thresh=3.5):
@@ -236,12 +227,12 @@ def is_outlier(points, thresh=3.5):
         Statistical Techniques, Edward F. Mykytka, Ph.D., Editor. 
     """
     if len(points.shape) == 1:
-        points = points[:,None]
+        points = points[:, None]
     median = np.median(points, axis=0)
-    diff = np.sum((points-median)**2, axis=-1)
+    diff = np.sum((points - median) ** 2, axis=-1)
     diff = np.sqrt(diff)
     med_abs_deviation = np.median(diff)
 
-    modified_z_score = 0.6745*diff / med_abs_deviation
+    modified_z_score = 0.6745 * diff / med_abs_deviation
 
     return modified_z_score > thresh

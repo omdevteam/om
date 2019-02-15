@@ -43,13 +43,13 @@ class DarkCalCorrection(object):
     """
 
     def __init__(
-            self,
-            darkcal_filename,
-            darkcal_hdf5_path,
-            mask_filename=None,
-            mask_hdf5_path=False,
-            gain_map_filename=None,
-            gain_map_hdf5_path=None
+        self,
+        darkcal_filename,
+        darkcal_hdf5_path,
+        mask_filename=None,
+        mask_hdf5_path=False,
+        gain_map_filename=None,
+        gain_map_hdf5_path=None,
     ):
         """
         Initializes the DarkCalCorrection class.
@@ -93,7 +93,7 @@ class DarkCalCorrection(object):
                 exc=RuntimeError(
                     "Error reading the {} HDF5 file.".format(darkcal_filename)
                 ),
-                cause=None
+                cause=None,
             )
 
         if mask_filename:
@@ -105,7 +105,7 @@ class DarkCalCorrection(object):
                     exc=RuntimeError(
                         "Error reading the {} HDF5 file.".format(mask_filename)
                     ),
-                    cause=None
+                    cause=None,
                 )
         else:
             # True here is equivalent to an all-ones mask.
@@ -120,16 +120,13 @@ class DarkCalCorrection(object):
                     exc=RuntimeError(
                         "Error reading the {} HDF5 file.".format(mask_filename)
                     ),
-                    cause=None
+                    cause=None,
                 )
         else:
             # True here is equivalent to an all-ones map.
             self._gain_map = True
 
-    def apply_darkcal_correction(
-            self,
-            data
-    ):
+    def apply_darkcal_correction(self, data):
         """
         Applies the correction.
 
@@ -162,10 +159,7 @@ class DataAccumulator(object):
     returns all the accumulated data and empties the accumulator.
     """
 
-    def __init__(
-            self,
-            num_events_to_accumulate
-    ):
+    def __init__(self, num_events_to_accumulate):
         """
         Initializes the DataAccumulator class.
 
@@ -179,10 +173,7 @@ class DataAccumulator(object):
         self._accumulator = []
         self._events_in_accumulator = 0
 
-    def add_data(
-            self,
-            data
-    ):
+    def add_data(self, data):
         """
         Adds data to the accumulator.
 
@@ -225,11 +216,7 @@ class FrameDataAveraging(object):
     the average of the accumulated data, resetting the accumulator.
     """
 
-    def __init__(
-            self,
-            num_frames_to_average,
-            slab_shape
-    ):
+    def __init__(self, num_frames_to_average, slab_shape):
         """
         Initializes the FrameDataAveraging class.
 
@@ -270,7 +257,7 @@ class FrameDataAveraging(object):
             None otherwise.
         """
         # Adds the frame data and normalizes them in a single step.
-        self._avg_frame_data += (data / self._num_frames_to_average)
+        self._avg_frame_data += data / self._num_frames_to_average
         self._num_averaged_frames += 1
 
         if self._num_averaged_frames == self._num_frames_to_average:
@@ -299,11 +286,11 @@ class FindMinimaInWaveforms(object):
     """
 
     def __init__(
-            self,
-            threshold,
-            estimated_noise_width,
-            minimum_peak_width,
-            background_subtraction=False
+        self,
+        threshold,
+        estimated_noise_width,
+        minimum_peak_width,
+        background_subtraction=False,
     ):
         """
         Initializes the FindMinimaInWaveforms class.
@@ -343,13 +330,10 @@ class FindMinimaInWaveforms(object):
         self._backgr_filter_step = 20
 
         self._smoothing_array = numpy.ones(
-            shape=estimated_noise_width,
-            dtype=numpy.float) / float(estimated_noise_width)
+            shape=estimated_noise_width, dtype=numpy.float
+        ) / float(estimated_noise_width)
 
-    def find_minima(
-            self,
-            data
-    ):
+    def find_minima(self, data):
         """
         Finds minima in the waveform.
 
@@ -368,16 +352,18 @@ class FindMinimaInWaveforms(object):
 
             # Index array for the data.
             index = numpy.arange(data.shape[0])
-            sliced_data = data[::self._backgr_filter_step]
-            sliced_index = index[::self._backgr_filter_step]
+            sliced_data = data[:: self._backgr_filter_step]
+            sliced_index = index[:: self._backgr_filter_step]
 
             # Applies the median filter, then interpolate the filtered
             # data.
             sliced_data = median_filter(
-                input=sliced_data, size=self._backgr_filter_win_size)
+                input=sliced_data, size=self._backgr_filter_win_size
+            )
 
             interpolated_data = numpy.interp(
-                x=index, xp=sliced_index, fp=sliced_data)
+                x=index, xp=sliced_index, fp=sliced_data
+            )
 
             # Finally subtracts the filtered data from the data.
             background_subtracted_data = data - interpolated_data
@@ -388,7 +374,7 @@ class FindMinimaInWaveforms(object):
         smoothed_data = numpy.convolve(
             background_subtracted_data.astype(numpy.float32),
             self._smoothing_array,
-            mode="same"
+            mode="same",
         )
 
         # Computes first and second derivative of the smoothed data.
@@ -397,16 +383,16 @@ class FindMinimaInWaveforms(object):
 
         # Uses the derivatives to locate the peaks.
         peak_locations = numpy.where(
-            (numpy.diff(numpy.sign(d_smoothed_data)) > 0) *
-            (dd_smoothed_data[:-1] > 0)
+            (numpy.diff(numpy.sign(d_smoothed_data)) > 0)
+            * (dd_smoothed_data[:-1] > 0)
         )[0]
 
         # Filters peaks according to the negative threshold provided by
         # the user.
         intensity_offset = numpy.mean(smoothed_data)
         filtered_peaks = numpy.where(
-            smoothed_data[peak_locations] -
-            intensity_offset < (-abs(self._threshold))
+            smoothed_data[peak_locations] - intensity_offset
+            < (-abs(self._threshold))
         )
         peak_list = list(peak_locations[filtered_peaks])
 
@@ -438,26 +424,26 @@ class FindMinimaInWaveforms(object):
 
                     if dist_from_prev_peak < self._minimum_peak_width:
                         internal_peak_list.append(
-                            smoothed_data[peak_list[peak_index - 1]])
+                            smoothed_data[peak_list[peak_index - 1]]
+                        )
 
                 if peak_index < len(peak_list) - 1:
                     # If the current peak is not the last one, computes
                     # the distance between the current peak and the
                     # next one. If the peaks are too close, appends to
                     # the internal list the value of the next peak.
-                    dist_to_next_peak = (
-                        peak_list[peak_index + 1] - peak_postion
-                    )
+                    dist_to_next_peak = peak_list[peak_index + 1] - peak_postion
 
                     if dist_to_next_peak < self._minimum_peak_width:
                         internal_peak_list.append(
-                            smoothed_data[peak_list[peak_index + 1]])
+                            smoothed_data[peak_list[peak_index + 1]]
+                        )
 
                 if numpy.all(
-                        [
-                            smoothed_data[peak_postion] < v
-                            for v in internal_peak_list
-                        ]
+                    [
+                        smoothed_data[peak_postion] < v
+                        for v in internal_peak_list
+                    ]
                 ):
                     # If the value of the current peak is lower than
                     # all the values of the peaks that surround it,

@@ -35,7 +35,7 @@ except ImportError:
             "dependency does not appear to be available on the "
             "system: fabio."
         ),
-        cause=None
+        cause=None,
     )
 
 
@@ -53,7 +53,7 @@ def open_event(event):
     # Opens the CBF file using the fabio library and saves the content
     # (stored as a cbf_obj object) in the 'data' entry of the event
     # dictionary.
-    event['data'] = fabio.open(event['full_path'])
+    event["data"] = fabio.open(event["full_path"])
 
 
 def close_event(event):

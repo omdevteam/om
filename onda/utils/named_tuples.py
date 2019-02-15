@@ -23,12 +23,7 @@ from __future__ import absolute_import, division, print_function
 import collections
 
 PeakList = collections.namedtuple(
-    typename='PeakList',
-    field_names=[
-        'fs',
-        'ss',
-        'intensity'
-    ]
+    typename="PeakList", field_names=["fs", "ss", "intensity"]
 )
 """
 A list of peaks detected in a detector frame.
@@ -41,13 +36,7 @@ storing the integrated intensity of each peak.
 
 
 QuadVmiPeaks = collections.namedtuple(
-    typename='QuadVmiPeaks',
-    field_names=[
-        'x_1',
-        'x_2',
-        'y_1',
-        'y_2'
-    ]
+    typename="QuadVmiPeaks", field_names=["x_1", "x_2", "y_1", "y_2"]
 )
 """
 A set of peaks from a VMI quad-type detector.
@@ -58,13 +47,7 @@ array of the wire with the same name.
 """
 
 
-VmiCoords = collections.namedtuple(
-    typename='VmiCoords',
-    field_names=[
-        'x',
-        'y'
-    ]
-)
+VmiCoords = collections.namedtuple(typename="VmiCoords", field_names=["x", "y"])
 """
 Spatial coordinates of a VMI detector hit.
 
@@ -74,12 +57,7 @@ of a VMI detector hit.
 
 
 VmiHit = collections.namedtuple(
-    typename='VmiHit',
-    field_names=[
-        'timestamp',
-        'coords',
-        'peaks'
-    ]
+    typename="VmiHit", field_names=["timestamp", "coords", "peaks"]
 )
 """
 VMI detector hit information.
@@ -94,13 +72,8 @@ wires of the detector.
 
 
 Peakfinder8DetInfo = collections.namedtuple(
-    typename='Peakfinder8DetInfo',
-    field_names=[
-        'asic_nx',
-        'asic_ny',
-        'nasics_x',
-        'nasics_y'
-    ]
+    typename="Peakfinder8DetInfo",
+    field_names=["asic_nx", "asic_ny", "nasics_x", "nasics_y"],
 )
 """
 Peakfinder8-related information.
@@ -112,12 +85,7 @@ algorithm to describe the format of the input data.
 
 
 HidraInfo = collections.namedtuple(
-    typename='HidraInfo',
-    field_names=[
-        'query',
-        'targets',
-        'data_base_path'
-    ]
+    typename="HidraInfo", field_names=["query", "targets", "data_base_path"]
 )
 """
 HiDRA initialization information.
@@ -132,11 +100,8 @@ files in the file system when HiDRA sends relative paths to OnDA.
 
 
 OpticalLaserStateDataRetrievalInfo = collections.namedtuple(
-    typename='OpticalLaserStateDataRetrievalInfo',
-    field_names=[
-        'psana_detector_handle',
-        'active_laser_evr_code'
-    ]
+    typename="OpticalLaserStateDataRetrievalInfo",
+    field_names=["psana_detector_handle", "active_laser_evr_code"],
 )
 """
 Optical laser state data retrieval information.
@@ -152,11 +117,8 @@ active.
 
 
 RadialBinInfo = collections.namedtuple(
-    typename='RadialBinInfo',
-    field_names=[
-        'radial_bin_pixel_map',
-        'radial_bin_size'
-    ]
+    typename="RadialBinInfo",
+    field_names=["radial_bin_pixel_map", "radial_bin_size"],
 )
 """
 Radial binning information.

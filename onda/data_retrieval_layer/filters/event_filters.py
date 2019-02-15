@@ -37,10 +37,7 @@ class NullEventFilter(object):
     This filter does not filter any events.
     """
 
-    def __init__(
-            self,
-            monitor_params
-    ):
+    def __init__(self, monitor_params):
         """
         Initializes the NullEventFilter class.
 
@@ -54,10 +51,7 @@ class NullEventFilter(object):
         del monitor_params
         # No initialization needed. This function does nothing.
 
-    def should_reject(
-            self,
-            event
-    ):
+    def should_reject(self, event):
         """
         Decides if the event should be rejected (not processed).
 
@@ -85,10 +79,7 @@ class AgeEventFilter(object):
     predefined threshold.
     """
 
-    def __init__(
-            self,
-            monitor_params
-    ):
+    def __init__(self, monitor_params):
         """
         Initializes the AgeEventFilter class.
 
@@ -102,9 +93,9 @@ class AgeEventFilter(object):
         # Reads the rejection threshold from the configuration file
         # and stores it in an attribute.
         rejection_threshold = monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='event_rejection_threshold',
-            type_=float
+            section="DataRetrievalLayer",
+            parameter="event_rejection_threshold",
+            type_=float,
         )
 
         if rejection_threshold:
@@ -114,10 +105,7 @@ class AgeEventFilter(object):
             # (more than 300 years).
             self._event_rejection_threshold = 10000000000
 
-    def should_reject(
-            self,
-            event
-    ):
+    def should_reject(self, event):
         """
         Decides if the event should be rejected (not processed).
 
@@ -131,7 +119,7 @@ class AgeEventFilter(object):
             event should be processed.
         """
         time_now = numpy.float64(time.time())  # pylint: disable=no-member
-        if (time_now - event['timestamp']) > self._event_rejection_threshold:
+        if (time_now - event["timestamp"]) > self._event_rejection_threshold:
             return True
         else:
             return False
@@ -148,10 +136,7 @@ class ExtensionEventFilter(object):
     have the correct extension.
     """
 
-    def __init__(
-            self,
-            monitor_params
-    ):
+    def __init__(self, monitor_params):
         """
         Initializes the ExtensionEventFilter class.
 
@@ -166,10 +151,7 @@ class ExtensionEventFilter(object):
             monitor_params
         )
 
-    def should_reject(
-            self,
-            event
-    ):
+    def should_reject(self, event):
         """
         Decides if the event should be rejected (not processed).
 
@@ -182,9 +164,7 @@ class ExtensionEventFilter(object):
             bool: True if the event should be rejected. False if the
             event should be processed.
         """
-        if os.path.basename(event['full_path']).endswith(
-            self._file_extensions
-        ):
+        if os.path.basename(event["full_path"]).endswith(self._file_extensions):
             return False
         else:
             return True

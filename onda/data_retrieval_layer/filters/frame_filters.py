@@ -44,9 +44,9 @@ class NullFrameFilter(object):
         """
         pass
 
-    def should_reject(self,
-                      num_frames_in_event,  # pylint: disable=W0613
-                      frame_offset):     # pylint: disable=W0613
+    def should_reject(
+        self, num_frames_in_event, frame_offset  # pylint: disable=W0613
+    ):  # pylint: disable=W0613
         """
         Decides if the frame should be rejected (not processed).
 
@@ -74,10 +74,7 @@ class IndexBasedFrameFilter(object):
     user.
     """
 
-    def __init__(
-            self,
-            monitor_params
-    ):
+    def __init__(self, monitor_params):
         """
         Initializes the IndexBasedFrameFilter class.
 
@@ -91,9 +88,7 @@ class IndexBasedFrameFilter(object):
         # Reads the list of frames to reject from the configuration
         # file and stores it in an attribute.
         frame_indexes_to_reject = monitor_params.get_param(
-            section='General',
-            parameter='frame_indexes_to_skip',
-            type_=list
+            section="General", parameter="frame_indexes_to_skip", type_=list
         )
 
         if not frame_indexes_to_reject:
@@ -103,11 +98,7 @@ class IndexBasedFrameFilter(object):
         else:
             self._frame_idxs_to_rej = tuple(frame_indexes_to_reject)
 
-    def should_reject(
-            self,
-            num_frames_in_event,
-            frame_offset
-    ):
+    def should_reject(self, num_frames_in_event, frame_offset):
         """
         Decides if the frame should be rejected (not processed).
 

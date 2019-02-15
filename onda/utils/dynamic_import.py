@@ -52,25 +52,25 @@ def import_processing_layer(monitor_params):
     """
     try:
         processing_layer = importlib.import_module(
-            '{0}'.format(
+            "{0}".format(
                 monitor_params.get_param(
-                    section='Onda',
-                    parameter='processing_layer',
+                    section="Onda",
+                    parameter="processing_layer",
                     type_=str,
-                    required=True
+                    required=True,
                 )
-            ).encode('ascii')
+            ).encode("ascii")
         )
     except ImportError:
         processing_layer = importlib.import_module(
-            'onda.processing_layer.{0}'.format(
+            "onda.processing_layer.{0}".format(
                 monitor_params.get_param(
-                    section='Onda',
-                    parameter='processing_layer',
+                    section="Onda",
+                    parameter="processing_layer",
                     type_=str,
-                    required=True
+                    required=True,
                 )
-            ).encode('ascii')
+            ).encode("ascii")
         )
 
     return processing_layer
@@ -98,25 +98,25 @@ def import_parallelization_layer(monitor_params):
     """
     try:
         data_retrieval_layer = importlib.import_module(
-            '{0}'.format(
+            "{0}".format(
                 monitor_params.get_param(
-                    section='Onda',
-                    parameter='parallelization_layer',
+                    section="Onda",
+                    parameter="parallelization_layer",
                     type_=str,
-                    required=True
+                    required=True,
                 )
-            ).encode('ascii')
+            ).encode("ascii")
         )
     except ImportError:
         data_retrieval_layer = importlib.import_module(
-            'onda.parallelization_layer.{0}'.format(
+            "onda.parallelization_layer.{0}".format(
                 monitor_params.get_param(
-                    section='Onda',
-                    parameter='data_retrieval_layer',
+                    section="Onda",
+                    parameter="data_retrieval_layer",
                     type_=str,
-                    required=True
+                    required=True,
                 )
-            ).encode('ascii')
+            ).encode("ascii")
         )
 
     return data_retrieval_layer
@@ -144,25 +144,25 @@ def import_data_retrieval_layer(monitor_params):
     """
     try:
         data_retrieval_layer = importlib.import_module(
-            '{0}'.format(
+            "{0}".format(
                 monitor_params.get_param(
-                    section='Onda',
-                    parameter='data_retrieval_layer',
+                    section="Onda",
+                    parameter="data_retrieval_layer",
                     type_=str,
-                    required=True
+                    required=True,
                 )
-            ).encode('ascii')
+            ).encode("ascii")
         )
     except ImportError:
         data_retrieval_layer = importlib.import_module(
-            'onda.data_retrieval_layer.{0}'.format(
+            "onda.data_retrieval_layer.{0}".format(
                 monitor_params.get_param(
-                    section='Onda',
-                    parameter='data_retrieval_layer',
+                    section="Onda",
+                    parameter="data_retrieval_layer",
                     type_=str,
-                    required=True
+                    required=True,
                 )
-            ).encode('ascii')
+            ).encode("ascii")
         )
 
     return data_retrieval_layer
@@ -197,13 +197,13 @@ def get_event_handling_funcs(monitor_params):
     data_ret_layer = import_data_retrieval_layer(monitor_params)
     event_handl_func_dict = {}
     for func_name in [
-            'initialize_event_source',
-            'event_generator',
-            'open_event',
-            'close_event',
-            'get_num_frames_in_event',
-            'EventFilter',
-            'FrameFilter',
+        "initialize_event_source",
+        "event_generator",
+        "open_event",
+        "close_event",
+        "get_num_frames_in_event",
+        "EventFilter",
+        "FrameFilter",
     ]:
         try:
             event_handl_func_dict[func_name] = getattr(
@@ -215,7 +215,7 @@ def get_event_handling_funcs(monitor_params):
                     "Event handling function {0} is not "
                     "defined.".format(func_name)
                 ),
-                cause=None
+                cause=None,
             )
 
     return event_handl_func_dict
@@ -248,27 +248,23 @@ def get_data_extraction_funcs(monitor_params):
         not found.
     """
     data_extraction_funcs = [
-        x.strip() for x in monitor_params.get_param(
-            section='Onda',
-            parameter='required_data',
-            type_=list,
-            required=True
+        x.strip()
+        for x in monitor_params.get_param(
+            section="Onda", parameter="required_data", type_=list, required=True
         )
     ]
     data_ret_layer = import_data_retrieval_layer(monitor_params)
     data_ext_func_dict = {}
     for func_name in data_extraction_funcs:
         try:
-            data_ext_func_dict[func_name] = getattr(
-                data_ret_layer, func_name
-            )
+            data_ext_func_dict[func_name] = getattr(data_ret_layer, func_name)
         except AttributeError:
             raise_from(
                 exc=exceptions.MissingDataExtractionFunction(
                     "Data extraction function {0} not "
                     "defined".format(func_name)
                 ),
-                cause=None
+                cause=None,
             )
 
     return data_ext_func_dict
@@ -305,11 +301,9 @@ def get_psana_det_interface_funcs(monitor_params):
     # extraction functions:, then looks for matching initialization
     # functions.
     data_extraction_funcs = [
-        x.strip() for x in monitor_params.get_param(
-            section='Onda',
-            parameter='required_data',
-            type_=list,
-            required=True
+        x.strip()
+        for x in monitor_params.get_param(
+            section="Onda", parameter="required_data", type_=list, required=True
         )
     ]
 
@@ -322,7 +316,7 @@ def get_psana_det_interface_funcs(monitor_params):
             # function name (This is the convention OnDA uses for
             # naming the psana detector initialization functions).
             psana_interface_func_dict[func_name] = getattr(
-                data_ret_layer, func_name + '_init'
+                data_ret_layer, func_name + "_init"
             )
         except AttributeError:
             raise_from(
@@ -330,14 +324,13 @@ def get_psana_det_interface_funcs(monitor_params):
                     "Psana Detector interface initialization function "
                     "{} not defined".format(func_name)
                 ),
-                cause=None
+                cause=None,
             )
 
     return psana_interface_func_dict
 
 
-def get_peakfinder8_info(monitor_params,
-                         detector):
+def get_peakfinder8_info(monitor_params, detector):
     """
     Gets the peakfinder8 information for a specific detector.
 
@@ -365,8 +358,7 @@ def get_peakfinder8_info(monitor_params,
     # that OnDA uses to name these functions is:
     # get_peakfinder8_info_<detector_name>.
     get_pf8_info_func = getattr(
-        data_ret_layer,
-        'get_peakfinder8_info_{}'.format(detector)
+        data_ret_layer, "get_peakfinder8_info_{}".format(detector)
     )
 
     return get_pf8_info_func()
@@ -391,13 +383,10 @@ def get_file_extensions(monitor_params):
         Tuple: a tuple with the file extensions allowed for the
         detector(s) currently in use.
     """
-    data_retrieval_layer = import_data_retrieval_layer(
-        monitor_params
-    )
+    data_retrieval_layer = import_data_retrieval_layer(monitor_params)
 
     file_extension_info_func = getattr(
-        data_retrieval_layer,
-        'get_file_extensions'
+        data_retrieval_layer, "get_file_extensions"
     )
 
     return file_extension_info_func()
@@ -421,13 +410,10 @@ def get_hidra_transfer_type(monitor_params):
 
         str: the HiDRA trasport type ('data' or 'metadata').
     """
-    data_retrieval_layer = import_data_retrieval_layer(
-        monitor_params
-    )
+    data_retrieval_layer = import_data_retrieval_layer(monitor_params)
 
     hidra_transport_type_func = getattr(
-        data_retrieval_layer,
-        'get_hidra_transport_type'
+        data_retrieval_layer, "get_hidra_transport_type"
     )
 
     return hidra_transport_type_func()

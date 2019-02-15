@@ -41,29 +41,19 @@ initialize_event_source = (  # pylint: disable=invalid-name
 )
 
 
-event_generator = (  # pylint: disable=invalid-name
-    lcls_psana.event_generator
-)
+event_generator = lcls_psana.event_generator  # pylint: disable=invalid-name
 
 
-EventFilter = (  # pylint: disable=invalid-name
-    lcls_psana.EventFilter
-)
+EventFilter = lcls_psana.EventFilter  # pylint: disable=invalid-name
 
 
-FrameFilter = (  # pylint: disable=invalid-name
-    lcls_psana.FrameFilter
-)
+FrameFilter = lcls_psana.FrameFilter  # pylint: disable=invalid-name
 
 
-open_event = (  # pylint: disable=invalid-name
-    lcls_psana.open_event
-)
+open_event = lcls_psana.open_event  # pylint: disable=invalid-name
 
 
-close_event = (  # pylint: disable=invalid-name
-    lcls_psana.close_event
-)
+close_event = lcls_psana.close_event  # pylint: disable=invalid-name
 
 
 get_num_frames_in_event = (  # pylint: disable=invalid-name
@@ -79,15 +69,12 @@ get_num_frames_in_event = (  # pylint: disable=invalid-name
 
 
 detector_data_init = functools.partial(  # pylint: disable=invalid-name
-    lcls_psana.detector_data_init,
-    data_extraction_func_name='detector_data'
+    lcls_psana.detector_data_init, data_extraction_func_name="detector_data"
 )
 functools.update_wrapper(detector_data_init, lcls_psana.detector_data_init)
 
 
-timestamp_init = (  # pylint: disable=invalid-name
-    lcls_psana.timestamp_init
-)
+timestamp_init = lcls_psana.timestamp_init  # pylint: disable=invalid-name
 
 
 detector_distance_init = (  # pylint: disable=invalid-name
@@ -95,9 +82,7 @@ detector_distance_init = (  # pylint: disable=invalid-name
 )
 
 
-beam_energy_init = (  # pylint: disable=invalid-name
-    lcls_psana.beam_energy_init
-)
+beam_energy_init = lcls_psana.beam_energy_init  # pylint: disable=invalid-name
 
 
 #############################
@@ -108,22 +93,15 @@ beam_energy_init = (  # pylint: disable=invalid-name
 
 
 detector_data = functools.partial(  # pylint: disable=C0103
-    lcls_pnccd.detector_data,
-    data_extraction_func_name='detector_data'
+    lcls_pnccd.detector_data, data_extraction_func_name="detector_data"
 )
 functools.update_wrapper(detector_data, lcls_pnccd.detector_data)
 
 
-timestamp = (  # pylint: disable=invalid-name
-    lcls_psana.timestamp
-)
+timestamp = lcls_psana.timestamp  # pylint: disable=invalid-name
 
 
-detector_distance = (  # pylint: disable=invalid-name
-    lcls_psana.detector_distance
-)
+detector_distance = lcls_psana.detector_distance  # pylint: disable=invalid-name
 
 
-beam_energy = (  # pylint: disable=invalid-name
-    lcls_psana.beam_energy
-)
+beam_energy = lcls_psana.beam_energy  # pylint: disable=invalid-name

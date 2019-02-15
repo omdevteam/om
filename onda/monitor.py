@@ -39,21 +39,22 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="mpirun [MPI OPTIONS] onda.py",
-        description="OnDA - Online Data Analysis"
+        description="OnDA - Online Data Analysis",
     )
 
     parser.add_argument(
-        'source',
+        "source",
         type=str,
-        help="data source (file list, psana source string, etc.)"
+        help="data source (file list, psana source string, etc.)",
     )
 
     parser.add_argument(
-        '-i', '--ini',
+        "-i",
+        "--ini",
         type=str,
-        default='monitor.ini',
+        default="monitor.ini",
         help="monitor.ini file (default: monitor.ini file in the "
-             "current working directory"
+        "current working directory",
     )
 
     args = parser.parse_args()
@@ -62,9 +63,7 @@ def main():
     except IOError:
         # Raises an exception if the file cannot be opened or read.
         raise exceptions.ConfigFileReadingError(
-            "Cannot open or read the configuration file {0}".format(
-                args.ini
-            )
+            "Cannot open or read the configuration file {0}".format(args.ini)
         )
 
     except toml.TomlDecodeError:
@@ -84,8 +83,7 @@ def main():
     )
 
     monitor = processing_layer.OndaMonitor(
-        source=args.source,
-        monitor_parameters=monitor_parameters
+        source=args.source, monitor_parameters=monitor_parameters
     )
 
     monitor.start()

@@ -66,9 +66,7 @@ class DataBroadcaster(object):
                 Defaults to None.
         """
         self._context = zmq.Context()
-        self._sock = self._context.socket(
-            zmq.PUB  # pylint: disable=no-member
-        )
+        self._sock = self._context.socket(zmq.PUB)  # pylint: disable=no-member
 
         if publish_ip is not None:
             pip = publish_ip
@@ -77,14 +75,9 @@ class DataBroadcaster(object):
             # the hostname of the machine where the OnDA monitor is
             # running.
             pip = [
-                (
-                    s.connect(('8.8.8.8', 80)),
-                    s.getsockname()[0],
-                    s.close()
-                ) for s in [
-                    socket.socket(
-                        family=socket.AF_INET,
-                        type=socket.SOCK_DGRAM)
+                (s.connect(("8.8.8.8", 80)), s.getsockname()[0], s.close())
+                for s in [
+                    socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
                 ]
             ][0][1]
 
@@ -93,13 +86,13 @@ class DataBroadcaster(object):
         else:
             pport = 12321
 
-        print('Binding to tcp://{0}:{1}'.format(pip, pport))
+        print("Binding to tcp://{0}:{1}".format(pip, pport))
         sys.stdout.flush()
 
         # Sets a high water mark of 1 (A messaging queue 1 message
         # long, so no queuing).
         self._sock.set_hwm(1)
-        self._sock.bind('tcp://%s:%d' % (pip, pport))
+        self._sock.bind("tcp://%s:%d" % (pip, pport))
 
     def send_data(self, tag, message):
         """
@@ -135,10 +128,7 @@ class DataListener(QtCore.QObject):
     zmqmessage = QtCore.pyqtSignal(list)
     # Custom Qt signal to be emitted when data is received.
 
-    def __init__(self,
-                 pub_hostname,
-                 pub_port,
-                 subscription_string):
+    def __init__(self, pub_hostname, pub_port, subscription_string):
         """
         Initializes the DataListener class.
 
@@ -177,32 +167,25 @@ class DataListener(QtCore.QObject):
         """
         print(
             "Connecting to tcp://{}:{}".format(
-                self._pub_hostname,
-                self._pub_port
+                self._pub_hostname, self._pub_port
             )
         )
-        self._zmq_subscribe = (
-            self._zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
-        )
+        self._zmq_subscribe = self._zmq_context.socket(
+            zmq.SUB
+        )  # pylint: disable=E1101
         self._zmq_subscribe.connect(
-            'tcp://{0}:{1}'.format(
-                self._pub_hostname,
-                self._pub_port
-            )
+            "tcp://{0}:{1}".format(self._pub_hostname, self._pub_port)
         )
         self._zmq_subscribe.setsockopt_string(
             option=zmq.SUBSCRIBE,  # pylint: disable=E1101
-            optval=str(self._subscription_string)
+            optval=str(self._subscription_string),
         )
 
         # Sets a high water mark of 1 (A messaging queue 1 message
         # long, so no queuing).
         self._zmq_subscribe.set_hwm(1)
         self._zmq_poller = zmq.Poller()
-        self._zmq_poller.register(
-            socket=self._zmq_subscribe,
-            flags=zmq.POLLIN
-        )
+        self._zmq_poller.register(socket=self._zmq_subscribe, flags=zmq.POLLIN)
 
         self._listening_timer.start()
 
@@ -213,16 +196,12 @@ class DataListener(QtCore.QObject):
         self._listening_timer.stop()
         print(
             "Disconnecting from tcp://{}:{}".format(
-                self._pub_hostname,
-                self._pub_port
+                self._pub_hostname, self._pub_port
             )
         )
 
         self._zmq_subscribe.disconnect(
-            "tcp://{}:{}".format(
-                self._pub_hostname,
-                self._pub_port
-            )
+            "tcp://{}:{}".format(self._pub_hostname, self._pub_port)
         )
 
         self._zmq_poller = None
@@ -237,8 +216,8 @@ class DataListener(QtCore.QObject):
         """
         socks = dict(self._zmq_poller.poll(0))
         if (
-                self._zmq_subscribe in socks and
-                socks[self._zmq_subscribe] == zmq.POLLIN
+            self._zmq_subscribe in socks
+            and socks[self._zmq_subscribe] == zmq.POLLIN
         ):
             full_msg = self._zmq_subscribe.recv_multipart()
             msgpack_msg = full_msg[1]
@@ -254,26 +233,26 @@ def _patched_encode(obj, chain=None):
     if isinstance(obj, numpy.ndarray):
         # If the dtype is structured, store the interface description;
         # otherwise, store the corresponding array protocol type string:
-        if obj.dtype.kind == 'V':
-            kind = b'V'
+        if obj.dtype.kind == "V":
+            kind = b"V"
             descr = obj.dtype.descr
         else:
-            kind = b''
+            kind = b""
             descr = obj.dtype.str
-        return {b'nd': True,
-                b'type': descr,
-                b'kind': kind,
-                b'shape': obj.shape,
-                b'data': obj.tobytes()}
+        return {
+            b"nd": True,
+            b"type": descr,
+            b"kind": kind,
+            b"shape": obj.shape,
+            b"data": obj.tobytes(),
+        }
     elif isinstance(obj, (numpy.bool_, numpy.number)):
-        return {b'nd': False,
-                b'type': obj.dtype.str,
-                b'data': obj.tobytes()}
+        return {b"nd": False, b"type": obj.dtype.str, b"data": obj.tobytes()}
     elif isinstance(obj, complex):
-        return {b'complex': True,
-                b'data': obj.__repr__()}
+        return {b"complex": True, b"data": obj.__repr__()}
     else:
         return obj if chain is None else chain(obj)
+
 
 # Monkey-patching msgpack-python to have non-copy serialization.
 msgpack_numpy.encode = _patched_encode

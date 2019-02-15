@@ -40,19 +40,13 @@ initialize_event_source = (  # pylint: disable=invalid-name
 )
 
 
-event_generator = (  # pylint: disable=invalid-name
-    hidra_source.event_generator
-)
+event_generator = hidra_source.event_generator  # pylint: disable=invalid-name
 
 
-EventFilter = (  # pylint: disable=invalid-name
-    event_filters.NullEventFilter
-)
+EventFilter = event_filters.NullEventFilter  # pylint: disable=invalid-name
 
 
-FrameFilter = (  # pylint: disable=invalid-name
-    frame_filters.NullFrameFilter
-)
+FrameFilter = frame_filters.NullFrameFilter  # pylint: disable=invalid-name
 
 
 #############################
@@ -79,7 +73,7 @@ def timestamp(event):
 
         numpy.float64: the timestamp of the event.
     """
-    return event['file_creation_time']
+    return event["file_creation_time"]
 
 
 beam_energy = (  # pylint: disable=invalid-name

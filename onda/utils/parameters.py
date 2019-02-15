@@ -52,6 +52,7 @@ class MonitorParams(object):
             not match the type of the parameter in the
             configuration file.
     """
+
     def __init__(self, param_dictionary):
         """
         Initializes the MonitorParams class.
@@ -119,20 +120,17 @@ class MonitorParams(object):
                             "is {}.".format(
                                 parameter,
                                 str(type_).split()[1][1:-2],
-                                str(type(ret)).split()[1][1:-2]
+                                str(type(ret)).split()[1][1:-2],
                             )
                         )
                 elif type_ is float:
-                    if (
-                            not isinstance(ret, float) and
-                            not isinstance(ret, int)
-                    ):
+                    if not isinstance(ret, float) and not isinstance(ret, int):
                         raise exceptions.WrongParameterType(
                             "Wrong type for parameter {}: should be {}, "
                             "is {}.".format(
                                 parameter,
                                 str(type_).split()[1][1:-2],
-                                str(type(ret)).split()[1][1:-2]
+                                str(type(ret)).split()[1][1:-2],
                             )
                         )
                 elif not isinstance(ret, type_):
@@ -141,7 +139,7 @@ class MonitorParams(object):
                         "is {}.".format(
                             parameter,
                             str(type_).split()[1][1:-2],
-                            str(type(ret)).split()[1][1:-2]
+                            str(type(ret)).split()[1][1:-2],
                         )
                     )
                 return ret
@@ -164,14 +162,17 @@ def beam_energy_from_monitor_params(event):
 
         float: the energy of the beam in J.
     """
-    return float(
-        event['monitor_params'].get_param(
-            section='General',
-            parameter='fallback_beam_energy_in_eV',
-            type_=float,
-            required=True
+    return (
+        float(
+            event["monitor_params"].get_param(
+                section="General",
+                parameter="fallback_beam_energy_in_eV",
+                type_=float,
+                required=True,
+            )
         )
-    ) * constants.electron_volt
+        * constants.electron_volt
+    )
 
 
 def detector_distance_from_monitor_params(event):
@@ -190,10 +191,10 @@ def detector_distance_from_monitor_params(event):
         float: the distance between the detector and the sample in m.
     """
     return float(
-        event['monitor_params'].get_param(
-            section='General',
-            parameter='fallback_detector_distance',
+        event["monitor_params"].get_param(
+            section="General",
+            parameter="fallback_detector_distance",
             type_=float,
-            required=True
+            required=True,
         )
     )

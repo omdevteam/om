@@ -33,16 +33,16 @@ from onda.utils import named_tuples
 
 
 def _filter_hit(
-        mcp_peak,
-        x1_corr_peaks,
-        x2_corr_peaks,
-        y1_corr_peaks,
-        y2_corr_peaks,
-        min_sum_x,
-        max_sum_x,
-        min_sum_y,
-        max_sum_y,
-        max_radius
+    mcp_peak,
+    x1_corr_peaks,
+    x2_corr_peaks,
+    y1_corr_peaks,
+    y2_corr_peaks,
+    min_sum_x,
+    max_sum_x,
+    min_sum_y,
+    max_sum_y,
+    max_radius,
 ):
     # This function checks all possible peak combinations and rejects
     # any set of peaks for which the the delays along the wires are
@@ -61,8 +61,8 @@ def _filter_hit(
                     wires_x_sum = x_1 + x_2 - 2 * mcp_peak
                     wires_y_sum = y_1 + y_2 - 2 * mcp_peak
                     if (
-                            min_sum_x < wires_x_sum < max_sum_x and
-                            min_sum_y < wires_y_sum < max_sum_y
+                        min_sum_x < wires_x_sum < max_sum_x
+                        and min_sum_y < wires_y_sum < max_sum_y
                     ):
                         peak = named_tuples.VmiHit(
                             timestamp=mcp_peak,
@@ -70,23 +70,21 @@ def _filter_hit(
                                 # These calculations come from standard
                                 # formulas.
                                 x=x_1 - x_2,
-                                y=y_1 - y_2
+                                y=y_1 - y_2,
                             ),
                             peaks=named_tuples.QuadVmiPeaks(
-                                x_1=x_1,
-                                x_2=x_2,
-                                y_1=y_1,
-                                y_2=y_2
-                            )
+                                x_1=x_1, x_2=x_2, y_1=y_1, y_2=y_2
+                            ),
                         )
 
                         # Checks if the spatial coordinates fall within
                         # the boundaries of the detector.
                         if numpy.sqrt(
-                                (
-                                    peak.coords.x * peak.coords.x +
-                                    peak.coords.y * peak.coords.y
-                                ) < max_radius
+                            (
+                                peak.coords.x * peak.coords.x
+                                + peak.coords.y * peak.coords.y
+                            )
+                            < max_radius
                         ):
                             # The fist peak that passes all the tests
                             # is returned.
@@ -107,15 +105,15 @@ class DelaylineDetectorAnalysis(object):
     """
 
     def __init__(
-            self,
-            peak_search_delay,
-            peak_search_tolerance,
-            peak_search_scaling_factor,
-            min_sum_x,
-            max_sum_x,
-            min_sum_y,
-            max_sum_y,
-            max_radius
+        self,
+        peak_search_delay,
+        peak_search_tolerance,
+        peak_search_scaling_factor,
+        min_sum_x,
+        max_sum_x,
+        min_sum_y,
+        max_sum_y,
+        max_radius,
     ):
         """
         Intializes the DelayLineDetectorAnalysis.
@@ -151,12 +149,7 @@ class DelaylineDetectorAnalysis(object):
         self._max_radius = max_radius
 
     def find_particle_hits(
-            self,
-            mcp_peaks,
-            x1_peaks,
-            x2_peaks,
-            y1_peaks,
-            y2_peaks
+        self, mcp_peaks, x1_peaks, x2_peaks, y1_peaks, y2_peaks
     ):
         """
         Extracts particle hit data from peaks detected in waveforms.
@@ -196,44 +189,64 @@ class DelaylineDetectorAnalysis(object):
         for mcp_peak in mcp_peaks:
             # Scales the index of the mcp peak to the resolution of the
             # delayline data.
-            scaled_mcp_peak = (
-                float(mcp_peak) / float(self._peak_search_scaling_factor)
+            scaled_mcp_peak = float(mcp_peak) / float(
+                self._peak_search_scaling_factor
             )
 
             # Looks for peaks in each waveform with indexes that are
             # close to the scaled index of the mcp peak.
             x1_related_peaks = [
-                x for x in x1_peaks if (
-                    (scaled_mcp_peak + self._peak_search_delay) < x < (
-                        scaled_mcp_peak + self._peak_search_delay +
-                        float(self._peak_search_tolerance)
+                x
+                for x in x1_peaks
+                if (
+                    (scaled_mcp_peak + self._peak_search_delay)
+                    < x
+                    < (
+                        scaled_mcp_peak
+                        + self._peak_search_delay
+                        + float(self._peak_search_tolerance)
                     )
                 )
             ]
 
             x2_related_peaks = [
-                x for x in x2_peaks if (
-                    (scaled_mcp_peak + self._peak_search_delay) < x < (
-                        scaled_mcp_peak + self._peak_search_delay +
-                        float(self._peak_search_tolerance)
+                x
+                for x in x2_peaks
+                if (
+                    (scaled_mcp_peak + self._peak_search_delay)
+                    < x
+                    < (
+                        scaled_mcp_peak
+                        + self._peak_search_delay
+                        + float(self._peak_search_tolerance)
                     )
                 )
             ]
 
             y1_related_peaks = [
-                x for x in y1_peaks if (
-                    (scaled_mcp_peak + self._peak_search_delay) < x < (
-                        scaled_mcp_peak + self._peak_search_delay +
-                        float(self._peak_search_tolerance)
+                x
+                for x in y1_peaks
+                if (
+                    (scaled_mcp_peak + self._peak_search_delay)
+                    < x
+                    < (
+                        scaled_mcp_peak
+                        + self._peak_search_delay
+                        + float(self._peak_search_tolerance)
                     )
                 )
             ]
 
             y2_related_peaks = [
-                x for x in y2_peaks if (
-                    (scaled_mcp_peak + self._peak_search_delay) < x < (
-                        scaled_mcp_peak + self._peak_search_delay +
-                        float(self._peak_search_tolerance)
+                x
+                for x in y2_peaks
+                if (
+                    (scaled_mcp_peak + self._peak_search_delay)
+                    < x
+                    < (
+                        scaled_mcp_peak
+                        + self._peak_search_delay
+                        + float(self._peak_search_tolerance)
                     )
                 )
             ]
@@ -249,7 +262,7 @@ class DelaylineDetectorAnalysis(object):
                 max_sum_x=self._max_sum_x,
                 min_sum_y=self._min_sum_y,
                 max_sum_y=self._max_sum_y,
-                max_radius=self._max_radius
+                max_radius=self._max_radius,
             )
             if filtered_hit:
                 hit_list.append(filtered_hit)

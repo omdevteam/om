@@ -64,13 +64,12 @@ class CrystallographyHitViewer(gui.OndaGui):
 
             pub_hostname (int): port of the OnDA monitor's PUB socket.
         """
-        super(CrystallographyHitViewer,
-              self).__init__(
-                  pub_hostname=pub_hostname,
-                  pub_port=pub_port,
-                  gui_update_func=self._update_image,
-                  subscription_string='ondaframedata',
-              )
+        super(CrystallographyHitViewer, self).__init__(
+            pub_hostname=pub_hostname,
+            pub_port=pub_port,
+            gui_update_func=self._update_image,
+            subscription_string="ondaframedata",
+        )
 
         # The following information will be used later to create the
         # arrays that will store the assembled detector images.
@@ -97,7 +96,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._current_frame_index = -1
 
         # Initializes the pen and the canvas used to draw the peaks.
-        self._ring_pen = pyqtgraph.mkPen('r', width=2)
+        self._ring_pen = pyqtgraph.mkPen("r", width=2)
         self._peak_canvas = pyqtgraph.ScatterPlotItem()
 
         # Initializes the widget that will display the detector image.
@@ -118,9 +117,7 @@ class CrystallographyHitViewer(gui.OndaGui):
 
         self._back_button.clicked.connect(self._back_button_clicked)
         self._forward_button.clicked.connect(self._forward_button_clicked)
-        self._play_pause_button.clicked.connect(
-            self._play_pause_button_clicked
-        )
+        self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
         # Initializes and fills the layouts.
         self._horizontal_layout = QtGui.QHBoxLayout()
@@ -158,9 +155,9 @@ class CrystallographyHitViewer(gui.OndaGui):
             # anything.
             return
 
-        self._img[self._visual_pixel_map_y,
-                  self._visual_pixel_map_x] = current_data[
-                      b'detector_data'].ravel().astype(self._img.dtype)
+        self._img[self._visual_pixel_map_y, self._visual_pixel_map_x] = (
+            current_data[b"detector_data"].ravel().astype(self._img.dtype)
+        )
 
         QtGui.QApplication.processEvents()
 
@@ -168,7 +165,7 @@ class CrystallographyHitViewer(gui.OndaGui):
             self._img.T,
             autoLevels=False,
             autoRange=False,
-            autoHistogramRange=False
+            autoHistogramRange=False,
         )
 
         QtGui.QApplication.processEvents()
@@ -177,16 +174,14 @@ class CrystallographyHitViewer(gui.OndaGui):
         peak_x_list = []
         peak_y_list = []
         for peak_fs, peak_ss in zip(
-                current_data[b'peak_list'][b'fs'],
-                current_data[b'peak_list'][b'ss'],
+            current_data[b"peak_list"][b"fs"], current_data[b"peak_list"][b"ss"]
         ):
 
             # Computes the array index corresponding to the peak
             # location.
-            peak_index_in_slab = (
-                int(round(peak_ss)) * current_data[b'native_data_shape'][1] +
-                int(round(peak_fs))
-            )
+            peak_index_in_slab = int(round(peak_ss)) * current_data[
+                b"native_data_shape"
+            ][1] + int(round(peak_fs))
 
             # Adds the coordinates of the peak to the lists of peaks to
             # display, mapping the coordinates of the peak to the
@@ -199,11 +194,11 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._peak_canvas.setData(
             x=peak_x_list,
             y=peak_y_list,
-            symbol='o',
-            size=[5] * len(current_data[b'peak_list'][b'intensity']),
+            symbol="o",
+            size=[5] * len(current_data[b"peak_list"][b"intensity"]),
             brush=(255, 255, 255, 0),
             pen=self._ring_pen,
-            pxMode=False
+            pxMode=False,
         )
 
     def _back_button_clicked(self):
@@ -232,14 +227,14 @@ class CrystallographyHitViewer(gui.OndaGui):
         # Stops reading the data stream.
 
         if self.listening:
-            self._play_pause_button.setText('Play')
+            self._play_pause_button.setText("Play")
             self.stop_listening()
 
     def _start_stream(self):
         # Starts reading the data stream.
 
         if not self.listening:
-            self._play_pause_button.setText('Pause')
+            self._play_pause_button.setText("Pause")
             self.start_listening()
 
     def _play_pause_button_clicked(self):
@@ -263,7 +258,7 @@ def main():
 
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]
-        rec_ip = '127.0.0.1'
+        rec_ip = "127.0.0.1"
         rec_port = 12321
     elif len(sys.argv) == 4:
         geom_filename = sys.argv[1]

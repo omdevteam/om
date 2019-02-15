@@ -37,7 +37,7 @@ except ImportError:
             "The petra3_pilatus module could not be loaded. The following "
             "dependency does not appear to be available on the system: fabio."
         ),
-        cause=None
+        cause=None,
     )
 
 #####################
@@ -74,10 +74,7 @@ def get_peakfinder8_info():
         information.
     """
     return named_tuples.Peakfinder8DetInfo(
-        asic_nx=2463,
-        asic_ny=2527,
-        nasics_x=1,
-        nasics_y=1
+        asic_nx=2463, asic_ny=2527, nasics_x=1, nasics_y=1
     )
 
 
@@ -101,12 +98,12 @@ def open_event(event):
     """
     # Wraps the binary data that HiDRA sends to OnDA in a BytesIO
     # object.
-    byio_data = io.BytesIO(event['data'])
+    byio_data = io.BytesIO(event["data"])
 
     # Reads the data using the fabio library and stores the content as
     # a cbf_obj object in the 'data' entry of the event dictionary.
     cbf_image = fabio.cbfimage.CbfImage()
-    event['data'] = cbf_image.read(byio_data)
+    event["data"] = cbf_image.read(byio_data)
 
 
 def close_event(event):
@@ -166,7 +163,7 @@ def detector_data(event):
     """
     # Extracts frame information from the data stored in the event
     # dictionary.
-    return event['data'].data
+    return event["data"].data
 
 
 def event_id(event):
@@ -186,7 +183,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    return event['full_path']
+    return event["full_path"]
 
 
 def frame_id(event):

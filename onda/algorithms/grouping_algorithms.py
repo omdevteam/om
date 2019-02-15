@@ -17,15 +17,15 @@
 
 import numpy
 
-class FrameIdGrouping(object):
 
+class FrameIdGrouping(object):
     def __init__(self, monitor_params):
 
         group_mapping = monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='frame_id_to_group_mapping',
+            section="DataRetrievalLayer",
+            parameter="frame_id_to_group_mapping",
             type_=dict,
-            required=True
+            required=True,
         )
 
         self._internal_dict = {}
@@ -38,26 +38,24 @@ class FrameIdGrouping(object):
     def get_group(self, data):
 
         try:
-            ret_val = self._internal_dict[data['frame_id']]
+            ret_val = self._internal_dict[data["frame_id"]]
         except KeyError:
-            ret_val = self._num_groups-1
+            ret_val = self._num_groups - 1
         return ret_val
 
 
 class TargetTimeDelayGrouping(object):
-
     def __init__(self, monitor_params):
 
         self.group_bin_edges = monitor_params.get_param(
-            section='Grouping',
-            parameter='time_delay_group_bin_edges',
+            section="Grouping",
+            parameter="time_delay_group_bin_edges",
             type_=list,
-            required=True
+            required=True,
         )
 
     def get_group(self, data):
 
-        delay = data['target_time_delay']
-        group_id = numpy.digitize(delay,self.group_bin_edges) - 1
+        delay = data["target_time_delay"]
+        group_id = numpy.digitize(delay, self.group_bin_edges) - 1
         return group_id
-

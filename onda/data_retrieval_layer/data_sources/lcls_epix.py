@@ -46,10 +46,7 @@ def get_peakfinder8_info():
         information.
     """
     return named_tuples.Peakfinder8DetInfo(
-        asic_nx=1024,
-        asic_ny=512,
-        nasics_x=1,
-        nasics_y=2
+        asic_nx=1024, asic_ny=512, nasics_x=1, nasics_y=2
     )
 
 
@@ -60,10 +57,7 @@ def get_peakfinder8_info():
 #############################
 
 
-def detector_data(
-        event,
-        data_extraction_func_name
-):
+def detector_data(event, data_extraction_func_name):
     """
     One frame of EPIX detector data at LCLS.
 
@@ -88,11 +82,9 @@ def detector_data(
 
         ndarray: one frame of detector data.
     """
-    cspad_psana = (
-        event['psana_detector_interface'][data_extraction_func_name].calib(
-            event['psana_event']
-        )
-    )
+    cspad_psana = event["psana_detector_interface"][
+        data_extraction_func_name
+    ].calib(event["psana_event"])
 
     if cspad_psana is None:
         raise RuntimeError("No data retrieved.")

@@ -36,7 +36,7 @@ except ImportError:
             "dependency does not appear to be available on the "
             "system: psana."
         ),
-        cause=None
+        cause=None,
     )
 
 
@@ -47,11 +47,7 @@ except ImportError:
 ############################
 
 
-def _psana_offline_event_generator(
-        psana_source,
-        node_rank,
-        mpi_pool_size
-):
+def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
 
     # Computes how many events the current worker node should process
     # Split the events as equally as possible amongst the workers with
@@ -65,19 +61,17 @@ def _psana_offline_event_generator(
             numpy.ceil(len(times) / float(mpi_pool_size - 1))
         )
 
-        events_curr_node = times[(node_rank - 1) *
-                                 num_events_curr_node:node_rank *
-                                 num_events_curr_node]
+        events_curr_node = times[
+            (node_rank - 1)
+            * num_events_curr_node : node_rank
+            * num_events_curr_node
+        ]
 
         for evt in events_curr_node:
             yield run.event(evt)
 
 
-def initialize_event_source(
-        source,
-        mpi_pool_size,
-        monitor_params
-):
+def initialize_event_source(source, mpi_pool_size, monitor_params):
     """
     Initializes the psana event source.
 
@@ -102,12 +96,7 @@ def initialize_event_source(
     # Psana needs no initialization, so thid function does nothing.
 
 
-def event_generator(
-        source,
-        node_rank,
-        mpi_pool_size,
-        monitor_params
-):
+def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     """
     Initializes the recovery of events from psana.
 
@@ -135,31 +124,30 @@ def event_generator(
         Dict: A dictionary containing the metadata and data of an event
     """
     # Detects if data is being read from an online or offline source.
-    if 'shmem' in source:
+    if "shmem" in source:
         offline = False
     else:
         offline = True
-    if offline and not source[-4:] == ':idx':
-        source += ':idx'
+    if offline and not source[-4:] == ":idx":
+        source += ":idx"
 
     # If the psana calibration directory is provided in the
     # configuration file, adds it as an option to psana.
     psana_calib_dir = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='psana_calibration_directory',
-        type_=str
+        section="DataRetrievalLayer",
+        parameter="psana_calibration_directory",
+        type_=str,
     )
     if psana_calib_dir:
         psana.setOption(
-            'psana.calib-dir'.encode('ascii'),
-            psana_calib_dir.encode('ascii')
+            "psana.calib-dir".encode("ascii"), psana_calib_dir.encode("ascii")
         )
     else:
-        print('Calibration directory not provided or not found.')
+        print("Calibration directory not provided or not found.")
 
     psana_source = psana.DataSource(source)
-    psana_interface_funcs = (
-        dynamic_import.get_psana_det_interface_funcs(monitor_params)
+    psana_interface_funcs = dynamic_import.get_psana_det_interface_funcs(
+        monitor_params
     )
 
     # Calls all the required psana detector interface initialization
@@ -172,15 +160,15 @@ def event_generator(
         psana_events = _psana_offline_event_generator(
             psana_source=psana_source,
             node_rank=node_rank,
-            mpi_pool_size=mpi_pool_size
+            mpi_pool_size=mpi_pool_size,
         )
     else:
         psana_events = psana_source.events()
 
     for psana_event in psana_events:
         event = {
-            'psana_detector_interface': psana_det_interface,
-            'psana_event': psana_event
+            "psana_detector_interface": psana_det_interface,
+            "psana_event": psana_event,
         }
 
         # Recovers the timestamp from the psana event
@@ -189,9 +177,10 @@ def event_generator(
             psana.EventId  # pylint: disable=no-member
         ).time()
 
-        event['timestamp'] = numpy.float64(
-            str(timestamp_epoch_format[0]) + '.' +
-            str(timestamp_epoch_format[1])
+        event["timestamp"] = numpy.float64(
+            str(timestamp_epoch_format[0])
+            + "."
+            + str(timestamp_epoch_format[1])
         )
 
         yield event

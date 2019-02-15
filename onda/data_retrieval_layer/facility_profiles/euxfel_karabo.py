@@ -40,24 +40,16 @@ initialize_event_source = (  # pylint: disable=invalid-name
 )
 
 
-event_generator = (  # pylint: disable=invalid-name
-    karabo_source.event_generator
-)
+event_generator = karabo_source.event_generator  # pylint: disable=invalid-name
 
 
-open_event = (  # pylint: disable=invalid-name
-    karabo_source.open_event
-)
+open_event = karabo_source.open_event  # pylint: disable=invalid-name
 
 
-close_event = (  # pylint: disable=invalid-name
-    karabo_source.close_event
-)
+close_event = karabo_source.close_event  # pylint: disable=invalid-name
 
 
-EventFilter = (  # pylint: disable=invalid-name
-    event_filters.AgeEventFilter
-)
+EventFilter = event_filters.AgeEventFilter  # pylint: disable=invalid-name
 
 
 FrameFilter = (  # pylint: disable=invalid-name
@@ -87,7 +79,7 @@ def timestamp(event):
 
         numpy.float64: the timestamp of the event.
     """
-    return event['timestamp']
+    return event["timestamp"]
 
 
 def optical_laser_active(event):
@@ -108,23 +100,15 @@ def optical_laser_active(event):
 
         bool: True if the optical laser is active. False otherwise.
     """
-    frame_cell_id = (
-        event[
-            'data'
-        ][
-            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-        ][
-            'image.pulseId'
-        ][
-            event['frame_offset']
-        ]
-    )
+    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
+        "image.pulseId"
+    ][event["frame_offset"]]
 
-    return frame_cell_id in event['monitor_params'].get_param(
-        section='DataRetrievalLayer',
-        parameter='frame_ids_with_optical_laser_active',
+    return frame_cell_id in event["monitor_params"].get_param(
+        section="DataRetrievalLayer",
+        parameter="frame_ids_with_optical_laser_active",
         type_=list,
-        required=True
+        required=True,
     )
 
 
@@ -146,23 +130,15 @@ def xrays_active(event):
 
         bool: True if the X-rays are active. False otherwise.
     """
-    frame_cell_id = (
-        event[
-            'data'
-        ][
-            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-        ][
-            'image.pulseId'
-        ][
-            event['frame_offset']
-        ]
-    )
+    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
+        "image.pulseId"
+    ][event["frame_offset"]]
 
-    return frame_cell_id in event['monitor_params'].get_param(
-        section='DataRetrievalLayer',
-        parameter='frame_ids_with_xrays_active',
+    return frame_cell_id in event["monitor_params"].get_param(
+        section="DataRetrievalLayer",
+        parameter="frame_ids_with_xrays_active",
         type_=list,
-        required=True
+        required=True,
     )
 
 
@@ -183,15 +159,9 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    frame_cell_id = (
-        event[
-            'data'
-        ][
-            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-        ][
-            'timestamp.trainId'
-        ]
-    )
+    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
+        "timestamp.trainId"
+    ]
 
     return str(frame_cell_id)
 
@@ -213,17 +183,9 @@ def frame_id(event):
 
         str: a unique frame identifier with the event.
     """
-    frame_cell_id = (
-        event[
-            'data'
-        ][
-            'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-        ][
-            'image.pulseId'
-        ][
-            event['frame_offset']
-        ]
-    )
+    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
+        "image.pulseId"
+    ][event["frame_offset"]]
 
     return str(frame_cell_id)
 

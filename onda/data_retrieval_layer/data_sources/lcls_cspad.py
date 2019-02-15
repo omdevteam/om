@@ -48,10 +48,7 @@ def get_peakfinder8_info():
         information.
     """
     return named_tuples.Peakfinder8DetInfo(
-        asic_nx=194,
-        asic_ny=185,
-        nasics_x=8,
-        nasics_y=8
+        asic_nx=194, asic_ny=185, nasics_x=8, nasics_y=8
     )
 
 
@@ -62,10 +59,7 @@ def get_peakfinder8_info():
 #############################
 
 
-def detector_data(
-        event,
-        data_extraction_func_name
-):
+def detector_data(event, data_extraction_func_name):
     """
     One frame of CSPAD detector data at LCLS.
 
@@ -90,11 +84,9 @@ def detector_data(
         ndarray: one frame of detector data.
     """
     # Recovers the data from psana.
-    cspad_psana = (
-        event['psana_detector_interface'][data_extraction_func_name].calib(
-            event['psana_event']
-        )
-    )
+    cspad_psana = event["psana_detector_interface"][
+        data_extraction_func_name
+    ].calib(event["psana_event"])
 
     if cspad_psana is None:
         raise RuntimeError("No data retrieved.")
@@ -103,14 +95,14 @@ def detector_data(
     cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))
     cspad_slab = numpy.zeros(shape=(1480, 1552), dtype=cspad_reshaped.dtype)
     for i in range(cspad_reshaped.shape[0]):
-        cspad_slab[:,
-                   i * cspad_reshaped.shape[3]:(i + 1) *
-                   cspad_reshaped.shape[3]] = cspad_reshaped[i].reshape(
-                       (
-                           cspad_reshaped.shape[1] * cspad_reshaped.shape[2],
-                           cspad_reshaped.shape[3]
-                       )
-                   )
-    
+        cspad_slab[
+            :, i * cspad_reshaped.shape[3] : (i + 1) * cspad_reshaped.shape[3]
+        ] = cspad_reshaped[i].reshape(
+            (
+                cspad_reshaped.shape[1] * cspad_reshaped.shape[2],
+                cspad_reshaped.shape[3],
+            )
+        )
+
     # Returns the rearranged data.
     return cspad_slab

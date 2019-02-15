@@ -34,6 +34,7 @@ class OndaException(Exception):
 
     All other OnDA-specific exceptions inherit from this exception.
     """
+
     pass
 
 
@@ -41,6 +42,7 @@ class HidraAPIError(OndaException):
     """
     Error within a HiDRA API call.
     """
+
     pass
 
 
@@ -48,6 +50,7 @@ class MissingEventHandlingFunction(OndaException):
     """
     An event handling function is not defined.
     """
+
     pass
 
 
@@ -55,6 +58,7 @@ class MissingDataExtractionFunction(OndaException):
     """
     A data extraction function is not defined.
     """
+
     pass
 
 
@@ -62,6 +66,7 @@ class MissingPsanaInitializationFunction(OndaException):
     """
     A psana detector interface initialization function is not defined.
     """
+
     pass
 
 
@@ -69,6 +74,7 @@ class MissingParameterFileSection(OndaException):
     """
     A section is missing in the configuration file.
     """
+
     pass
 
 
@@ -76,6 +82,7 @@ class MissingParameter(OndaException):
     """
     A parameter is missing in the configuration file.
     """
+
     pass
 
 
@@ -83,6 +90,7 @@ class WrongParameterType(OndaException):
     """
     Type in the configuration file does not match the requested type.
     """
+
     pass
 
 
@@ -90,6 +98,7 @@ class DataExtractionError(OndaException):
     """
     Error during data extraction.
     """
+
     pass
 
 
@@ -103,6 +112,7 @@ class InvalidSource(OndaException):
     """
     The format of the source string is not valid.
     """
+
     pass
 
 
@@ -110,6 +120,7 @@ class MissingDependency(OndaException):
     """
     One of the dependecies of a module is not installed.
     """
+
     pass
 
 
@@ -117,6 +128,7 @@ class ConfigFileSyntaxError(OndaException):
     """
     There is a syntax error in the configuration file.
     """
+
     pass
 
 
@@ -124,6 +136,7 @@ class ConfigFileReadingError(OndaException):
     """
     Error while reading the configuration file.
     """
+
     pass
 
 
@@ -145,9 +158,9 @@ def onda_exception_handler(type_, value, traceback):
         traceback (traceback): traceback to be printed.
     """
     if issubclass(type_, OndaException):
-        print('')
-        print('>>>>> OnDA ERROR: {0} <<<<<'.format(value))
-        print('')
+        print("")
+        print(">>>>> OnDA ERROR: {0} <<<<<".format(value))
+        print("")
         sys.stdout.flush()
         sys.stderr.flush()
         MPI.COMM_WORLD.Abort(0)

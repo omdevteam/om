@@ -38,10 +38,7 @@ class SingleModuleLambdaCalibration(object):
     Applies flatfield correction to a single lambda module.
     """
 
-    def __init__(
-            self,
-            calibration_filename
-    ):
+    def __init__(self, calibration_filename):
         """
         Initalizes the SingleModuleLambdaCalibration class.
 
@@ -58,16 +55,14 @@ class SingleModuleLambdaCalibration(object):
         except OSError:
             raise_from(
                 RuntimeError(
-                    "Error reading the {} HDF5 file.".
-                    format(calibration_filename)
+                    "Error reading the {} HDF5 file.".format(
+                        calibration_filename
+                    )
                 ),
-                None
+                None,
             )
 
-    def apply_calibration(
-            self,
-            data
-    ):
+    def apply_calibration(self, data):
         """
         Applies the calibration.
 

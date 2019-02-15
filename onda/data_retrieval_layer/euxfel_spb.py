@@ -51,29 +51,19 @@ initialize_event_source = (  # pylint: disable=invalid-name
 )
 
 
-event_generator = (  # pylint: disable=invalid-name
-    euxfel_karabo.event_generator
-)
+event_generator = euxfel_karabo.event_generator  # pylint: disable=invalid-name
 
 
-EventFilter = (  # pylint: disable=invalid-name
-    euxfel_karabo.EventFilter
-)
+EventFilter = euxfel_karabo.EventFilter  # pylint: disable=invalid-name
 
 
-FrameFilter = (  # pylint: disable=invalid-name
-    euxfel_karabo.FrameFilter
-)
+FrameFilter = euxfel_karabo.FrameFilter  # pylint: disable=invalid-name
 
 
-open_event = (  # pylint: disable=invalid-name
-    euxfel_karabo.open_event
-)
+open_event = euxfel_karabo.open_event  # pylint: disable=invalid-name
 
 
-close_event = (  # pylint: disable=invalid-name
-    euxfel_karabo.close_event
-)
+close_event = euxfel_karabo.close_event  # pylint: disable=invalid-name
 
 
 get_num_frames_in_event = (  # pylint: disable=invalid-name
@@ -88,14 +78,10 @@ get_num_frames_in_event = (  # pylint: disable=invalid-name
 #############################
 
 
-detector_data = (  # pylint: disable=invalid-name
-    euxfel_agipd.detector_data
-)
+detector_data = euxfel_agipd.detector_data  # pylint: disable=invalid-name
 
 
-timestamp = (  # pylint: disable=invalid-name
-    euxfel_karabo.timestamp
-)
+timestamp = euxfel_karabo.timestamp  # pylint: disable=invalid-name
 
 
 detector_distance = (  # pylint: disable=invalid-name
@@ -103,19 +89,13 @@ detector_distance = (  # pylint: disable=invalid-name
 )
 
 
-beam_energy = (  # pylint: disable=invalid-name
-    euxfel_karabo.beam_energy
-)
+beam_energy = euxfel_karabo.beam_energy  # pylint: disable=invalid-name
 
 
-frame_id = (  # pylint: disable=invalid-name
-    euxfel_karabo.frame_id
-)
+frame_id = euxfel_karabo.frame_id  # pylint: disable=invalid-name
 
 
-event_id = (  # pylint: disable=invalid-name
-    euxfel_karabo.frame_id
-)
+event_id = euxfel_karabo.frame_id  # pylint: disable=invalid-name
 
 
 optical_laser_active = (  # pylint: disable=invalid-name
@@ -123,6 +103,4 @@ optical_laser_active = (  # pylint: disable=invalid-name
 )
 
 
-xrays_active = (  # pylint: disable=invalid-name
-    euxfel_karabo.xrays_active
-)
+xrays_active = euxfel_karabo.xrays_active  # pylint: disable=invalid-name

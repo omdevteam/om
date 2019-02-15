@@ -48,11 +48,9 @@ class OndaGui(QtGui.QMainWindow):
     _listening_thread_start_processing = QtCore.pyqtSignal()
     _listening_thread_stop_processing = QtCore.pyqtSignal()
 
-    def __init__(self,
-                 pub_hostname,
-                 pub_port,
-                 subscription_string,
-                 gui_update_func,):
+    def __init__(
+        self, pub_hostname, pub_port, subscription_string, gui_update_func
+    ):
         """
         Initializes the OndaGui class.
 
@@ -79,22 +77,21 @@ class OndaGui(QtGui.QMainWindow):
             gui_update_func (Callable): function that updates the GUI,
                 to be called at regular intervals.
         """
-        super(OndaGui,
-              self).__init__()
+        super(OndaGui, self).__init__()
 
         self._gui_update_func = gui_update_func
         self.data = None
         self.listening = False
 
         # Initializes an empty status bar
-        self.statusBar().showMessage('')
+        self.statusBar().showMessage("")
 
         # Creates and initializes the ZMQ listening thread.
         self._data_listener_thread = QtCore.QThread()
         self._data_listener = zmq.DataListener(
             pub_hostname=pub_hostname,
             pub_port=pub_port,
-            subscription_string=subscription_string
+            subscription_string=subscription_string,
         )
 
         self._data_listener.zmqmessage.connect(self._data_received)
@@ -107,9 +104,7 @@ class OndaGui(QtGui.QMainWindow):
             self._data_listener.stop_listening
         )
 
-        self._data_listener.moveToThread(
-            self._data_listener_thread
-        )
+        self._data_listener.moveToThread(self._data_listener_thread)
 
         self._data_listener_thread.start()
         self.start_listening()
@@ -136,8 +131,7 @@ class OndaGui(QtGui.QMainWindow):
             self.listening = False
             self._listening_thread_stop_processing.emit()
 
-    def _data_received(self,
-                       data_dictionary):
+    def _data_received(self, data_dictionary):
         # This function is called every time thath listening thread
         # receives data from the OnDA monitor.
 
@@ -150,10 +144,8 @@ class OndaGui(QtGui.QMainWindow):
         # GUI to have it).
         # The timestamp of the last event in the received list of
         # accumulated events is used to compute the estimated delay.
-        timestamp = self.data[-1][b'timestamp']
+        timestamp = self.data[-1][b"timestamp"]
         timenow = time.time()
         self.statusBar().showMessage(
-            "Estimated delay: {} seconds".format(
-                round(timenow - timestamp, 6)
-            )
+            "Estimated delay: {} seconds".format(round(timenow - timestamp, 6))
         )

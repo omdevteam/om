@@ -38,7 +38,7 @@ except ImportError:
             "The lcls_psana module could not be loaded. The following "
             "dependency does not appear to be available on the system: psana."
         ),
-        cause=None
+        cause=None,
     )
 
 
@@ -54,19 +54,13 @@ initialize_event_source = (  # pylint: disable=invalid-name
 )
 
 
-event_generator = (  # pylint: disable=invalid-name
-    psana_source.event_generator
-)
+event_generator = psana_source.event_generator  # pylint: disable=invalid-name
 
 
-open_event = (  # pylint: disable=invalid-name
-    psana_source.open_event
-)
+open_event = psana_source.open_event  # pylint: disable=invalid-name
 
 
-close_event = (  # pylint: disable=invalid-name
-    psana_source.close_event
-)
+close_event = psana_source.close_event  # pylint: disable=invalid-name
 
 
 get_num_frames_in_event = (  # pylint: disable=invalid-name
@@ -74,14 +68,10 @@ get_num_frames_in_event = (  # pylint: disable=invalid-name
 )
 
 
-EventFilter = (  # pylint: disable=invalid-name
-    event_filters.AgeEventFilter
-)
+EventFilter = event_filters.AgeEventFilter  # pylint: disable=invalid-name
 
 
-FrameFilter = (  # pylint: disable=invalid-name
-    frame_filters.NullFrameFilter
-)
+FrameFilter = frame_filters.NullFrameFilter  # pylint: disable=invalid-name
 
 
 #####################################################
@@ -91,10 +81,7 @@ FrameFilter = (  # pylint: disable=invalid-name
 #####################################################
 
 
-def detector_data_init(
-        monitor_params,
-        data_extraction_func_name
-):
+def detector_data_init(monitor_params, data_extraction_func_name):
     """
     Initializes the psana detector interface for x-ray detector data.
 
@@ -123,10 +110,12 @@ def detector_data_init(
     # to the data extraction func name.
     return psana.Detector(
         monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='psana_{0}_detector_name'.format(data_extraction_func_name),
+            section="DataRetrievalLayer",
+            parameter="psana_{0}_detector_name".format(
+                data_extraction_func_name
+            ),
             type_=str,
-            required=True
+            required=True,
         )
     )
 
@@ -173,10 +162,10 @@ def detector_distance_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='psana_detector_distance_epics_name',
+            section="DataRetrievalLayer",
+            parameter="psana_detector_distance_epics_name",
             type_=str,
-            required=True
+            required=True,
         )
     )
 
@@ -198,7 +187,7 @@ def beam_energy_init(monitor_params):
         later to retrieve the data.
     """
     del monitor_params
-    return psana.Detector('EBeam')
+    return psana.Detector("EBeam")
 
 
 def timetool_data_init(monitor_params):
@@ -219,18 +208,15 @@ def timetool_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='psana_timetool_epics_name',
+            section="DataRetrievalLayer",
+            parameter="psana_timetool_epics_name",
             type_=str,
-            required=True
+            required=True,
         )
     )
 
 
-def digitizer_data_init(
-        monitor_params,
-        data_extraction_func_name
-):
+def digitizer_data_init(monitor_params, data_extraction_func_name):
     """
     Initialize the psana detector interface for data from a digitizer.
 
@@ -257,10 +243,12 @@ def digitizer_data_init(
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='psana_{0}_digitizer_name'.format(data_extraction_func_name),
+            section="DataRetrievalLayer",
+            parameter="psana_{0}_digitizer_name".format(
+                data_extraction_func_name
+            ),
             type_=str,
-            required=True
+            required=True,
         )
     )
 
@@ -283,10 +271,10 @@ def opal_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='psana_opal_name',
+            section="DataRetrievalLayer",
+            parameter="psana_opal_name",
             type_=str,
-            required=True
+            required=True,
         )
     )
 
@@ -311,23 +299,24 @@ def optical_laser_active_init(monitor_params):
         being active. Both can be used later to retrieve the data.
     """
     active_laser_evr_code = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='psana_evr_code_for_active_optical_laser',
+        section="DataRetrievalLayer",
+        parameter="psana_evr_code_for_active_optical_laser",
         type_=int,
-        required=True
+        required=True,
     )
 
     evr_source_name = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='psana_evr_source_name',
+        section="DataRetrievalLayer",
+        parameter="psana_evr_source_name",
         type_=str,
-        required=True
+        required=True,
     )
 
     return named_tuples.OpticalLaserStateDataRetrievalInfo(
         psana_detector_handle=psana.Detector(evr_source_name),
-        active_laser_evr_code=active_laser_evr_code
+        active_laser_evr_code=active_laser_evr_code,
     )
+
 
 def xrays_active_init(monitor_params):
     """
@@ -349,23 +338,24 @@ def xrays_active_init(monitor_params):
         being active. Both can be used later to retrieve the data.
     """
     active_laser_evr_code = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='psana_evr_code_for_active_xray_laser',
+        section="DataRetrievalLayer",
+        parameter="psana_evr_code_for_active_xray_laser",
         type_=int,
-        required=True
+        required=True,
     )
 
     evr_source_name = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='psana_evr_source_name',
+        section="DataRetrievalLayer",
+        parameter="psana_evr_source_name",
         type_=str,
-        required=True
+        required=True,
     )
 
     return named_tuples.OpticalLaserStateDataRetrievalInfo(
         psana_detector_handle=psana.Detector(evr_source_name),
-        active_laser_evr_code=active_laser_evr_code
+        active_laser_evr_code=active_laser_evr_code,
     )
+
 
 def target_time_delay_init(monitor_params):
     """
@@ -385,18 +375,20 @@ def target_time_delay_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section='DataRetrievalLayer',
-            parameter='psana_target_time_delay_epics_name',
+            section="DataRetrievalLayer",
+            parameter="psana_target_time_delay_epics_name",
             type_=str,
-            required=True
+            required=True,
         )
     )
+
 
 #############################
 #                           #
 # DATA EXTRACTION FUNCTIONS #
 #                           #
 #############################
+
 
 def timestamp(event):
     """
@@ -412,7 +404,7 @@ def timestamp(event):
     """
     # Returns the timestamp stored in the event dictionary, without
     # extracting it again.
-    return event['timestamp']
+    return event["timestamp"]
 
 
 def detector_distance(event):
@@ -429,7 +421,7 @@ def detector_distance(event):
     """
     # Recovers the detector distance from psana. It is in mm, so we
     # must divide it by 10000 to convert it to SI (m).
-    return event['psana_detector_interface']['detector_distance']() / 1000.0
+    return event["psana_detector_interface"]["detector_distance"]() / 1000.0
 
 
 def beam_energy(event):
@@ -446,9 +438,12 @@ def beam_energy(event):
     """
     # Recovers the detector distance from psana. It is in eV, so we
     # must multiply it by e convert it to SI (J).
-    return event['psana_detector_interface']['beam_energy'].get(
-        event['psana_event']
-    ).ebeamPhotonEnergy() * scipy.constants.e
+    return (
+        event["psana_detector_interface"]["beam_energy"]
+        .get(event["psana_event"])
+        .ebeamPhotonEnergy()
+        * scipy.constants.e
+    )
 
 
 def timetool_data(event):
@@ -463,13 +458,10 @@ def timetool_data(event):
 
         float: the readout of the timetool instrument.
     """
-    return event['psana_detector_interface']['timetool_data']()
+    return event["psana_detector_interface"]["timetool_data"]()
 
 
-def digitizer_data(
-        event,
-        data_extraction_func_name
-):
+def digitizer_data(event, data_extraction_func_name):
     """
     Retrieves the waveforms from a digitizer (All channels).
 
@@ -486,13 +478,9 @@ def digitizer_data(
 
         psana object: a psana object storing the waveform data.
     """
-    return (
-        event[
-            'psana_detector_interface'
-        ][
-            data_extraction_func_name
-        ].waveform(event['psana_event'])
-    )
+    return event["psana_detector_interface"][
+        data_extraction_func_name
+    ].waveform(event["psana_event"])
 
 
 def opal_data(event):
@@ -508,8 +496,8 @@ def opal_data(event):
         ndarray: a 2D array containing the image from the Opal
         camera.
     """
-    return event['psana_detector_interface']['opal_data'].calib(
-        event['psana_event']
+    return event["psana_detector_interface"]["opal_data"].calib(
+        event["psana_event"]
     )
 
 
@@ -527,21 +515,17 @@ def optical_laser_active(event):
 
         bool: True if the optical laser is active. False otherwise.
     """
-    current_evr_codes = (
-        event[
-            'psana_detector_interface'
-        ][
-            'optical_laser_active'
-        ].psana_detector_handle.eventCodes(event['psana_event'])
-    )
+    current_evr_codes = event["psana_detector_interface"][
+        "optical_laser_active"
+    ].psana_detector_handle.eventCodes(event["psana_event"])
 
     return (
-        event[
-            'psana_detector_interface'
-        ][
-            'optical_laser_active'
-        ].active_laser_evr_code in current_evr_codes
+        event["psana_detector_interface"][
+            "optical_laser_active"
+        ].active_laser_evr_code
+        in current_evr_codes
     )
+
 
 def xrays_active(event):
     """
@@ -557,21 +541,15 @@ def xrays_active(event):
 
         bool: True if the x-rays is active. False otherwise.
     """
-    current_evr_codes = (
-        event[
-            'psana_detector_interface'
-        ][
-            'xrays_active'
-        ].psana_detector_handle.eventCodes(event['psana_event'])
-    )
+    current_evr_codes = event["psana_detector_interface"][
+        "xrays_active"
+    ].psana_detector_handle.eventCodes(event["psana_event"])
 
     return (
-        event[
-            'psana_detector_interface'
-        ][
-            'xrays_active'
-        ].active_laser_evr_code in current_evr_codes
+        event["psana_detector_interface"]["xrays_active"].active_laser_evr_code
+        in current_evr_codes
     )
+
 
 def target_time_delay(event):
     """
@@ -587,15 +565,11 @@ def target_time_delay(event):
 
         float: The target time delay.
     """
-    #target time delay at cxi is negative and given in nanoseconds.
-    #lets make it positive, since we generally consider the delay to
-    #be the X-rays to be delayed relative to the pump laser
-    #lets also convert to picoseconds
-    #lets also limit the precision to 1 fs and round to ensure proper binning
+    # target time delay at cxi is negative and given in nanoseconds.
+    # lets make it positive, since we generally consider the delay to
+    # be the X-rays to be delayed relative to the pump laser
+    # lets also convert to picoseconds
+    # lets also limit the precision to 1 fs and round to ensure proper binning
     return round(
-                event[
-                    'psana_detector_interface'
-                ][
-                    'target_time_delay'
-                ]() * -1000, 3
-            )
+        event["psana_detector_interface"]["target_time_delay"]() * -1000, 3
+    )

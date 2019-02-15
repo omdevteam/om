@@ -39,61 +39,55 @@ from onda.utils import dynamic_import, exceptions, named_tuples
 ############################
 
 
-def _get_hidra_info(
-        source,
-        mpi_pool_size,
-        monitor_params
-):
+def _get_hidra_info(source, mpi_pool_size, monitor_params):
     # Reads the requested transfer type from the configuration file.
     # If it is not specified there, imports the suggested transfer type
     # from the data extraction layer and use that.
     transfer_type = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='hidra_transfer_type',
-        type_=str,
+        section="DataRetrievalLayer", parameter="hidra_transfer_type", type_=str
     )
     if transfer_type is None:
         transfer_type = dynamic_import.get_hidra_transfer_type(monitor_params)
 
-    if transfer_type == 'data':
+    if transfer_type == "data":
         # If the transfer type is data-based, requests the latest event
         # with full data, and sets the data base path to an empty path,
         # because HiDRA will provide the data directly, and there will
         # be no need to look for the file.
-        query_text = 'QUERY_NEXT'
-        data_base_path = ''
-    elif transfer_type == 'metadata':
+        query_text = "QUERY_NEXT"
+        data_base_path = ""
+    elif transfer_type == "metadata":
 
         # If the transfer type is metadata-based, requests the latest
         # event with metadata only and reads the data base path from the
         # configuration file: HiDRA will only provide the path to the
         # file relative to the base data path.
-        query_text = 'QUERY_METADATA'
+        query_text = "QUERY_METADATA"
         data_base_path = os.path.join(
             monitor_params.getparam(
-                section='DataRetrievalLayer',
-                parameter='hidra_data_base_path',
+                section="DataRetrievalLayer",
+                parameter="hidra_data_base_path",
                 type_=str,
-                required=True
+                required=True,
             )
         )
     else:
         raise RuntimeError("Unrecognized HiDRA transfer type.")
 
     base_port = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='hidra_base_port',
+        section="DataRetrievalLayer",
+        parameter="hidra_base_port",
         type_=int,
-        required=True
+        required=True,
     )
 
     # Search the configuration file for a HiDRA selection string.
     # If the selection string is not found, use the file extensions
     # from the detector layer as selection string.
     hidra_selection_string = monitor_params.get_param(
-        section='DataRetrievalLayer',
-        parameter='hidra_selection_string',
-        type_=str
+        section="DataRetrievalLayer",
+        parameter="hidra_selection_string",
+        type_=str,
     )
     if hidra_selection_string is None:
         hidra_selection_string = dynamic_import.get_file_extensions(
@@ -103,7 +97,7 @@ def _get_hidra_info(
     # Add an empty target at the beginning to cover the master node. In
     # this way, the index of a node in the target list will match its
     # rank.
-    targets = [['', '', 1, '']]
+    targets = [["", "", 1, ""]]
 
     # Create the HiDRA query object, as requested by the HiDRA API.
     for rank in range(1, mpi_pool_size):
@@ -111,28 +105,20 @@ def _get_hidra_info(
             socket.gethostname(),
             str(base_port + rank),
             str(1),
-            hidra_selection_string
+            hidra_selection_string,
         ]
         targets.append(target_entry)
 
     query = hidra_api.Transfer(
-        connection_type=query_text,
-        signal_host=source,
-        use_log=False
+        connection_type=query_text, signal_host=source, use_log=False
     )
 
     return named_tuples.HidraInfo(
-        query=query,
-        targets=targets,
-        data_base_path=data_base_path
+        query=query, targets=targets, data_base_path=data_base_path
     )
 
 
-def initialize_event_source(
-        source,
-        mpi_pool_size,
-        monitor_params
-):
+def initialize_event_source(source, mpi_pool_size, monitor_params):
     """
     Initializes the HiDRA event source.
 
@@ -158,7 +144,7 @@ def initialize_event_source(
     hidra_info = _get_hidra_info(
         source=source,
         mpi_pool_size=mpi_pool_size,
-        monitor_params=monitor_params
+        monitor_params=monitor_params,
     )
 
     try:
@@ -168,17 +154,12 @@ def initialize_event_source(
             exc=exceptions.HidraAPIError(
                 "Failed to contact HiDRA: {0}".format(exc)
             ),
-            cause=None
+            cause=None,
         )
     return hidra_info
 
 
-def event_generator(
-        source,
-        node_rank,
-        mpi_pool_size,
-        monitor_params
-):
+def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     """
     Initializes the recovery of events from HiDRA.
 
@@ -210,13 +191,12 @@ def event_generator(
     hidra_info = _get_hidra_info(
         source=source,
         mpi_pool_size=mpi_pool_size,
-        monitor_params=monitor_params
+        monitor_params=monitor_params,
     )
 
     print(
         "Worker {0} listening at port {1}".format(
-            node_rank,
-            hidra_info.targets[node_rank][1]
+            node_rank, hidra_info.targets[node_rank][1]
         )
     )
     sys.stdout.flush()
@@ -225,15 +205,15 @@ def event_generator(
     while True:
         recovered_metadata, recovered_data = hidra_info.query.get()
 
-        event = {'data': recovered_data, 'metadata': recovered_metadata}
-        event['full_path'] = os.path.join(
+        event = {"data": recovered_data, "metadata": recovered_metadata}
+        event["full_path"] = os.path.join(
             hidra_info.data_base_path,
-            recovered_metadata['relative_path'],
-            recovered_metadata['filename']
+            recovered_metadata["relative_path"],
+            recovered_metadata["filename"],
         )
 
         # File creation date is used as a first approximation of the
         # timestamp when the timestamp is not available.
-        event['file_creation_time'] = (recovered_metadata['file_create_time'])
+        event["file_creation_time"] = recovered_metadata["file_create_time"]
 
         yield event

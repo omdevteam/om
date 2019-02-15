@@ -61,10 +61,7 @@ def get_peakfinder8_info():
         information.
     """
     return named_tuples.Peakfinder8DetInfo(
-        asic_nx=2463,
-        asic_ny=2527,
-        nasics_x=1,
-        nasics_y=1
+        asic_nx=2463, asic_ny=2527, nasics_x=1, nasics_y=1
     )
 
 
@@ -122,7 +119,7 @@ def detector_data(event):
     """
     # Returns the data from the fabio cbf_obj object previously stored
     # in the input dictionary.
-    return event['data'].data
+    return event["data"].data
 
 
 def event_id(event):
@@ -141,7 +138,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    return event['full_path']
+    return event["full_path"]
 
 
 def frame_id(event):

@@ -21,4 +21,6 @@ Peakfinder 8 extension.
 Peakfinder8 alogrithm from Cheetah (Barty et al.,2014) wrapped using
 Cython.
 """
-from onda.algorithms.peakfinder8_extension.peakfinder8_extension import peakfinder_8  # pylint: disable=line-too-long
+from onda.algorithms.peakfinder8_extension.peakfinder8_extension import (
+    peakfinder_8,
+)  # pylint: disable=line-too-long

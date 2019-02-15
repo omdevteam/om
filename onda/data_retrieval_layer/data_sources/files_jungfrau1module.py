@@ -55,7 +55,7 @@ def get_num_frames_in_event(event):
     """
     # The data is stored in a 3-d block. The first axis is the number
     # of frames.
-    return event['data']['/entry/instrument/detector/data'].shape[0]
+    return event["data"]["/entry/instrument/detector/data"].shape[0]
 
 
 #####################
@@ -92,10 +92,7 @@ def get_peakfinder8_info():
         information.
     """
     return named_tuples.Peakfinder8DetInfo(
-        asic_nx=1024,
-        asic_ny=512,
-        nasics_x=1,
-        nasics_y=1
+        asic_nx=1024, asic_ny=512, nasics_x=1, nasics_y=1
     )
 
 
@@ -118,8 +115,8 @@ def detector_data(event):
 
         ndarray: one frame of detector data.
     """
-    data_block = event['data']['/entry/instrument/detector/data']
-    return data_block[event['frame_offset']]
+    data_block = event["data"]["/entry/instrument/detector/data"]
+    return data_block[event["frame_offset"]]
 
 
 def event_id(event):
@@ -138,7 +135,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    return event['full_path']
+    return event["full_path"]
 
 
 def frame_id(event):
@@ -158,6 +155,6 @@ def frame_id(event):
         str: a unique frame identifier with the event.
     """
     return str(
-        event['data']['/entry/instrument/detector/data'].shape[0] +
-        event['frame_offset']
+        event["data"]["/entry/instrument/detector/data"].shape[0]
+        + event["frame_offset"]
     )

@@ -38,10 +38,7 @@ class SWAXSGui(gui.OndaGui):
     GUI for OnDA SWAXS.
     """
 
-    def __init__(self,
-                 geometry,
-                 pub_hostname,
-                 pub_port):
+    def __init__(self, geometry, pub_hostname, pub_port):
         """
         Initializes the SwaxsGui class.
 
@@ -63,7 +60,7 @@ class SWAXSGui(gui.OndaGui):
             pub_hostname=pub_hostname,
             pub_port=pub_port,
             gui_update_func=self._update_image_and_plots,
-            subscription_string=u'ondadata',
+            subscription_string=u"ondadata",
         )
 
         # Initializes the attribute that will store the local data.
@@ -74,9 +71,7 @@ class SWAXSGui(gui.OndaGui):
 
         # The following information will be used later to create the
         # arrays that will store the assembled detector images.
-        self._img_shape = geometry_utils.compute_min_array_size(
-            pixel_maps
-        )
+        self._img_shape = geometry_utils.compute_min_array_size(pixel_maps)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
 
@@ -91,14 +86,14 @@ class SWAXSGui(gui.OndaGui):
         # individually for each panel, but the GUI just needs simple
         # values for the whole detector. This code uses the values from
         # the first panel.
-        first_panel = list(geometry['panels'].keys())[0]
+        first_panel = list(geometry["panels"].keys())[0]
         try:
-            self._coffset = geometry['panels'][first_panel]['coffset']
+            self._coffset = geometry["panels"][first_panel]["coffset"]
         except KeyError:
             self._coffset = None
 
         try:
-            self._res = geometry['panels'][first_panel]['res']
+            self._res = geometry["panels"][first_panel]["res"]
         except KeyError:
             self._res = None
 
@@ -122,18 +117,15 @@ class SWAXSGui(gui.OndaGui):
         self._cumulative_diff_stack = numpy.zeros((100, 100))
 
         self._hitrate_history = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
+            iterable=10000 * [0.0], maxlen=10000
         )
 
         self._pumped_hitrate_history = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
+            iterable=10000 * [0.0], maxlen=10000
         )
 
         self._dark_hitrate_history = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000
+            iterable=10000 * [0.0], maxlen=10000
         )
 
         self._intensity_sums = numpy.zeros(100)
@@ -143,94 +135,78 @@ class SWAXSGui(gui.OndaGui):
         self._intensity_sum_hist_bins = numpy.zeros(100)
 
         # Sets the PyQtGraph background color.
-        pyqtgraph.setConfigOption('background', 1.0)
+        pyqtgraph.setConfigOption("background", 1.0)
 
         # Initializes the radial profile plot widget.
         self._radial_plot_widget = pyqtgraph.PlotWidget()
-        self._radial_plot_widget.setTitle(
-            'Radial Profile'
-        )
+        self._radial_plot_widget.setTitle("Radial Profile")
 
-        self._radial_plot_widget.setLabel(
-            axis='bottom',
-            text='q (1/angstrom)'
-        )
+        self._radial_plot_widget.setLabel(axis="bottom", text="q (1/angstrom)")
 
-        self._radial_plot_widget.setLabel(
-            axis='left',
-            text='Intensity (ADUs)'
-        )
+        self._radial_plot_widget.setLabel(axis="left", text="Intensity (ADUs)")
 
-        self._radial_plot_widget.showGrid(
-            x=True,
-            y=True
-        )
+        self._radial_plot_widget.showGrid(x=True, y=True)
 
         self._radial_plot_widget.addLegend()
 
         self._radial_plot_widget.setYRange(-1.0, 1.0)
 
         self._unscaled_radial_plot = self._radial_plot_widget.plot(
-            self._q_bins, 
-            self._unscaled_radial, 
-            name='Single Unscaled Radial', 
-            pen=(0 ,0 ,0 ,0),
-            symbol='o',
-            symbolPen='k',
-            symbolBrush='k',
-            symbolSize=1
+            self._q_bins,
+            self._unscaled_radial,
+            name="Single Unscaled Radial",
+            pen=(0, 0, 0, 0),
+            symbol="o",
+            symbolPen="k",
+            symbolBrush="k",
+            symbolSize=1,
         )
 
         self._radial_plot = self._radial_plot_widget.plot(
             self._q_bins,
             self._radial,
-            name='Single Scaled Radial',
+            name="Single Scaled Radial",
             pen=(0, 0, 0, 0),
-            symbol='o',
-            symbolPen='k',
-            symbolBrush='k',
-            symbolSize=0
+            symbol="o",
+            symbolPen="k",
+            symbolBrush="k",
+            symbolSize=0,
         )
 
         self._cumulative_pumped_plot = self._radial_plot_widget.plot(
             self._q_bins,
             self._cumulative_pumped,
-            name='Cumulative Pumped Radial',
-            pen='r',
-            symbol='o',
-            symbolPen='r',
-            symbolBrush='r',
-            symbolSize=2
+            name="Cumulative Pumped Radial",
+            pen="r",
+            symbol="o",
+            symbolPen="r",
+            symbolBrush="r",
+            symbolSize=2,
         )
 
         self._cumulative_dark_plot = self._radial_plot_widget.plot(
             self._q_bins,
             self._cumulative_dark,
-            name='Cumulative Dark Radial',
-            pen='b',
-            symbol='o',
-            symbolPen='b',
-            symbolBrush='b',
-            symbolSize=2
+            name="Cumulative Dark Radial",
+            pen="b",
+            symbol="o",
+            symbolPen="b",
+            symbolBrush="b",
+            symbolSize=2,
         )
 
         self._diff_plot = self._radial_plot_widget.plot(
-            self._q_bins,
-            self._diff,
-            name='Single Difference',
-            pen=(0, 0, 0, 0)
+            self._q_bins, self._diff, name="Single Difference", pen=(0, 0, 0, 0)
         )
 
         self._recent_radial_plot = self._radial_plot_widget.plot(
-            self._recent_radial,
-            name='Recent Average Difference',
-            pen='r'
+            self._recent_radial, name="Recent Average Difference", pen="r"
         )
 
         self._cumulative_radial_plot = self._radial_plot_widget.plot(
             self._cumulative_radial,
-            name='Cumulative Average Difference',
-            pen='b'
+            name="Cumulative Average Difference",
+            pen="b",
         )
 
         # Initializes the image viewer.
@@ -238,7 +214,7 @@ class SWAXSGui(gui.OndaGui):
         self._image_view.ui.menuBtn.hide()
         self._image_view.ui.roiBtn.hide()
         self._image_view.view.setAspectLocked(False)
-        #self._image_view.setLevels(-10, 10)
+        # self._image_view.setLevels(-10, 10)
         image_colormap = pyqtgraph.ColorMap(
             pos=[0.00, 0.25, 0.50, 0.75, 1.00],
             color=[
@@ -246,86 +222,67 @@ class SWAXSGui(gui.OndaGui):
                 (0, 255, 255),
                 (255, 255, 255),
                 (255, 255, 0),
-                (255, 0, 0)
-            ]
+                (255, 0, 0),
+            ],
         )
         self._image_view.setColorMap(image_colormap)
 
         # Initializes the hit rate plot widget.
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
-        self._hit_rate_plot_widget.setTitle(
-            'Hit Rate vs. Events'
-        )
+        self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
 
-        self._hit_rate_plot_widget.setLabel(
-            axis='bottom',
-            text='Events'
-        )
+        self._hit_rate_plot_widget.setLabel(axis="bottom", text="Events")
 
-        self._hit_rate_plot_widget.setLabel(
-            axis='left',
-            text='Hit Rate'
-        )
+        self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate")
 
-        self._hit_rate_plot_widget.showGrid(
-            x=True,
-            y=True
-        )
+        self._hit_rate_plot_widget.showGrid(x=True, y=True)
 
         self._hit_rate_plot_widget.setYRange(0, 1.0)
 
         self._hitrate_plot = self._hit_rate_plot_widget.plot(
-            self._hitrate_history,
-            pen='k'
+            self._hitrate_history, pen="k"
         )
 
         self._pumped_hitrate_plot = self._hit_rate_plot_widget.plot(
             self._pumped_hitrate_history,
             pen=[0, 0, 0, 0],
-            symbol='o',
-            symbolPen='r',
-            symbolBrush='r',
-            symbolSize=2
+            symbol="o",
+            symbolPen="r",
+            symbolBrush="r",
+            symbolSize=2,
         )
 
         self._dark_hitrate_plot = self._hit_rate_plot_widget.plot(
             self._dark_hitrate_history,
             pen=[0, 0, 0, 0],
-            symbol='o',
-            symbolPen='b',
-            symbolBrush='b',
-            symbolSize=2
+            symbol="o",
+            symbolPen="b",
+            symbolBrush="b",
+            symbolSize=2,
         )
 
         # Initializes the intensity sum histogram widget.
         self._intensity_sums_plot_widget = pyqtgraph.PlotWidget()
         self._intensity_sums_plot_widget.setTitle(
-            'Total unscaled radial intensity sum histogram'
+            "Total unscaled radial intensity sum histogram"
         )
 
         self._intensity_sums_plot_widget.setLabel(
-            axis='bottom',
-            text='Intensity Sum (ADUs)'
+            axis="bottom", text="Intensity Sum (ADUs)"
         )
 
-        self._intensity_sums_plot_widget.setLabel(
-            axis='left',
-            text='Counts'
-        )
+        self._intensity_sums_plot_widget.setLabel(axis="left", text="Counts")
 
-        self._intensity_sums_plot_widget.showGrid(
-            x=True,
-            y=True
-        )
+        self._intensity_sums_plot_widget.showGrid(x=True, y=True)
 
         self._intensity_sums_plot = self._intensity_sums_plot_widget.plot(
             self._intensity_sum_hist_bins,
             self._intensity_sum_hist,
-            pen='k',
-            symbol='o',
-            symbolPen='k',
-            symbolBrush='k',
-            symbolSize=5
+            pen="k",
+            symbol="o",
+            symbolPen="k",
+            symbolBrush="k",
+            symbolSize=5,
         )
 
         # Initializes the 'reset plots' button.
@@ -362,24 +319,18 @@ class SWAXSGui(gui.OndaGui):
 
     def _reset_plots(self):
         # Resets the plots.
-        self._hitrate_history = collections.deque(
-            10000 * [0.0],
-            maxlen=10000
-        )
+        self._hitrate_history = collections.deque(10000 * [0.0], maxlen=10000)
 
         self._pumped_hitrate_history = collections.deque(
-            10000 * [0.0],
-            maxlen=10000
+            10000 * [0.0], maxlen=10000
         )
 
         self._dark_hitrate_history = collections.deque(
-            10000 * [0.0],
-            maxlen=10000
+            10000 * [0.0], maxlen=10000
         )
 
         self._intensity_sum_hist = collections.deque(
-            10000 * [0.0],
-            maxlen=10000
+            10000 * [0.0], maxlen=10000
         )
 
         self._radial_plot.setData(self._radial)
@@ -413,84 +364,60 @@ class SWAXSGui(gui.OndaGui):
         # plots, but updates the displayed images and plots only once
         # at the end.
         for frame in self._local_data:
-            self._hitrate_history.append(frame[b'hit_rate'])
-            phr = frame[b'pumped_hit_rate']
-            dhr = frame[b'dark_hit_rate']
+            self._hitrate_history.append(frame[b"hit_rate"])
+            phr = frame[b"pumped_hit_rate"]
+            dhr = frame[b"dark_hit_rate"]
             self._pumped_hitrate_history.append(phr)
             self._dark_hitrate_history.append(dhr)
 
         QtGui.QApplication.processEvents()
 
         # Updates the plots
-        self._q_bins = last_frame[b'q_bins']
-        self._unscaled_radial = last_frame[b'unscaled_radial']
-        self._radial = last_frame[b'radial']
-        self._cumulative_pumped = last_frame[b'cumulative_pumped_avg']
-        self._cumulative_dark = last_frame[b'cumulative_dark_avg']
-        self._diff = last_frame[b'diff']
-        self._cumulative_radial = last_frame[b'cumulative_radial']
-        self._recent_radial = last_frame[b'recent_radial']
+        self._q_bins = last_frame[b"q_bins"]
+        self._unscaled_radial = last_frame[b"unscaled_radial"]
+        self._radial = last_frame[b"radial"]
+        self._cumulative_pumped = last_frame[b"cumulative_pumped_avg"]
+        self._cumulative_dark = last_frame[b"cumulative_dark_avg"]
+        self._diff = last_frame[b"diff"]
+        self._cumulative_radial = last_frame[b"cumulative_radial"]
+        self._recent_radial = last_frame[b"recent_radial"]
 
-        self._unscaled_radial_plot.setData(
-            self._q_bins,
-            self._unscaled_radial
-        )
+        self._unscaled_radial_plot.setData(self._q_bins, self._unscaled_radial)
 
-        self._radial_plot.setData(
-            self._q_bins,
-            self._radial
-        )
+        self._radial_plot.setData(self._q_bins, self._radial)
 
         self._cumulative_pumped_plot.setData(
-            self._q_bins,
-            self._cumulative_pumped
+            self._q_bins, self._cumulative_pumped
         )
 
-        self._cumulative_dark_plot.setData(
-            self._q_bins,
-            self._cumulative_dark
-        )
+        self._cumulative_dark_plot.setData(self._q_bins, self._cumulative_dark)
 
-        self._diff_plot.setData(
-            self._q_bins,
-            self._diff
-        )
+        self._diff_plot.setData(self._q_bins, self._diff)
 
-        self._recent_radial_plot.setData(
-            self._q_bins,
-            self._recent_radial
-        )
+        self._recent_radial_plot.setData(self._q_bins, self._recent_radial)
 
         self._cumulative_radial_plot.setData(
-            self._q_bins,
-            self._cumulative_radial
+            self._q_bins, self._cumulative_radial
         )
 
-        self._hitrate_plot.setData(
-            self._hitrate_history
-        )
+        self._hitrate_plot.setData(self._hitrate_history)
 
-        self._pumped_hitrate_plot.setData(
-            self._pumped_hitrate_history
-        )
+        self._pumped_hitrate_plot.setData(self._pumped_hitrate_history)
 
-        self._dark_hitrate_plot.setData(
-            self._dark_hitrate_history
-        )
+        self._dark_hitrate_plot.setData(self._dark_hitrate_history)
 
-        self._intensity_sum_hist = last_frame[b'intensity_sum_hist']
-        self._intensity_sum_hist_bins = last_frame[b'intensity_sum_hist_bins']
+        self._intensity_sum_hist = last_frame[b"intensity_sum_hist"]
+        self._intensity_sum_hist_bins = last_frame[b"intensity_sum_hist_bins"]
         self._intensity_sums_plot.setData(
-            self._intensity_sum_hist_bins,
-            self._intensity_sum_hist
+            self._intensity_sum_hist_bins, self._intensity_sum_hist
         )
 
-        self._cumulative_diff_stack = last_frame[b'cumulative_diff_stack'].T
+        self._cumulative_diff_stack = last_frame[b"cumulative_diff_stack"].T
         self._image_view.setImage(
             self._cumulative_diff_stack,
             autoHistogramRange=False,
             autoLevels=False,
-            autoRange=False
+            autoRange=False,
         )
 
         # Resets local_data so that the same data is not processed
@@ -510,7 +437,7 @@ def main():
 
     if len(sys.argv) == 2:
         geom_filename = sys.argv[1]
-        rec_ip = '127.0.0.1'
+        rec_ip = "127.0.0.1"
         rec_port = 12321
     elif len(sys.argv) == 4:
         geom_filename = sys.argv[1]

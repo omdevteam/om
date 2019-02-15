@@ -58,29 +58,19 @@ initialize_event_source = (  # pylint: disable=invalid-name
 )
 
 
-event_generator = (  # pylint: disable=invalid-name
-    file_source.event_generator
-)
+event_generator = file_source.event_generator  # pylint: disable=invalid-name
 
 
-EventFilter = (  # pylint: disable=invalid-name
-    event_filters.NullEventFilter
-)
+EventFilter = event_filters.NullEventFilter  # pylint: disable=invalid-name
 
 
-FrameFilter = (  # pylint: disable=invalid-name
-    frame_filters.NullFrameFilter
-)
+FrameFilter = frame_filters.NullFrameFilter  # pylint: disable=invalid-name
 
 
-open_event = (  # pylint: disable=invalid-name
-    files_jungfrau1module.open_event
-)
+open_event = files_jungfrau1module.open_event  # pylint: disable=invalid-name
 
 
-close_event = (  # pylint: disable=invalid-name
-    files_jungfrau1module.close_event
-)
+close_event = files_jungfrau1module.close_event  # pylint: disable=invalid-name
 
 
 get_num_frames_in_event = (  # pylint: disable=invalid-name
@@ -111,7 +101,7 @@ def timestamp(event):
 
         numpy.float64: the time at which the event was collected.
     """
-    return event['timestamp']
+    return event["timestamp"]
 
 
 detector_data = (  # pylint: disable=invalid-name

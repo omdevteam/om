@@ -1,6 +1,7 @@
 # API to communicate with a data transfer unit
 
 from __future__ import print_function
+
 # from __future__ import unicode_literals
 from __future__ import absolute_import
 
@@ -53,16 +54,16 @@ def excecute_ldapsearch(ldap_cn):
     global LDAPURI
 
     p = subprocess.Popen(
-        ["ldapsearch",
-         "-x",
-         "-H ldap://" + LDAPURI,
-         "cn=" + ldap_cn, "-LLL"],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        ["ldapsearch", "-x", "-H ldap://" + LDAPURI, "cn=" + ldap_cn, "-LLL"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
 
     lines = p.stdout.readlines()
 
-    match_host = re.compile(r'nisNetgroupTriple: [(]([\w|\S|.]+),.*,[)]',
-                            re.M | re.I)
+    match_host = re.compile(
+        r"nisNetgroupTriple: [(]([\w|\S|.]+),.*,[)]", re.M | re.I
+    )
     netgroup = []
 
     for line in lines:
@@ -94,12 +95,14 @@ def check_netgroup(hostname, beamline, log=None):
         netgroup_modified.append(host.replace(DOMAIN, ""))
 
     if hostname not in netgroup_modified:
-        log.error("Host {0} is not contained in netgroup of "
-                  "beamline {1}".format(hostname, beamline))
+        log.error(
+            "Host {0} is not contained in netgroup of "
+            "beamline {1}".format(hostname, beamline)
+        )
         sys.exit(1)
 
 
-class Control():
+class Control:
     def __init__(self, beamline, detector, use_log=False):
 
         # print messages of certain level to screen
@@ -129,7 +132,8 @@ class Control():
         try:
             self.con_id = "tcp://{0}:{1}".format(
                 connection_list[self.beamline]["host"],
-                connection_list[self.beamline]["port"])
+                connection_list[self.beamline]["port"],
+            )
             self.log.info("Starting connection to {0}".format(self.con_id))
         except:
             self.log.error("Beamline {0} not supported".format(self.beamline))
@@ -141,7 +145,7 @@ class Control():
 
     def __create_sockets(self):
 
-        #Create ZeroMQ context
+        # Create ZeroMQ context
         self.log.info("Registering ZMQ context")
         self.context = zmq.Context()
 
@@ -149,17 +153,19 @@ class Control():
         try:
             self.socket = self.context.socket(zmq.REQ)
             self.socket.connect(self.con_id)
-            self.log.info("Start socket (connect): '{0}'"
-                          .format(self.con_id))
+            self.log.info("Start socket (connect): '{0}'".format(self.con_id))
         except:
-            self.log.error("Failed to start socket (connect): '{0}'"
-                           .format(self.con_id), exc_info=True)
+            self.log.error(
+                "Failed to start socket (connect): '{0}'".format(self.con_id),
+                exc_info=True,
+            )
             raise
 
     def __check_responding(self):
         test_signal = b"IS_ALIVE"
-        tracker = self.socket.send_multipart([test_signal], zmq.NOBLOCK,
-                                             copy=False, track=True)
+        tracker = self.socket.send_multipart(
+            [test_signal], zmq.NOBLOCK, copy=False, track=True
+        )
 
         # test if someone picks up the test message in the next 2 sec
         if not tracker.done:
@@ -205,11 +211,21 @@ class Control():
             check_netgroup(value[0], self.beamline, self.log)
 
         if attribute == "whitelist":
-            msg = [b"set", self.host, self.detector, attribute,
-                   json.dumps(value)]
+            msg = [
+                b"set",
+                self.host,
+                self.detector,
+                attribute,
+                json.dumps(value),
+            ]
         else:
-            msg = [b"set", self.host, self.detector, attribute,
-                   json.dumps(value[0])]
+            msg = [
+                b"set",
+                self.host,
+                self.detector,
+                attribute,
+                json.dumps(value[0]),
+            ]
 
         self.socket.send_multipart(msg)
         self.log.debug("sent: {0}".format(msg))
@@ -266,14 +282,16 @@ def reset_receiver_status(host, port):
         reset_socket.connect(con_str)
         print("Start reset_socket (connect): '{0}'".format(con_str))
     except:
-        print("Failed to start reset_socket (connect): '{0}'".format(con_str),
-              exc_info=True)
+        print(
+            "Failed to start reset_socket (connect): '{0}'".format(con_str),
+            exc_info=True,
+        )
 
     reset_socket.send_multipart([b"RESET_STATUS"])
-    print ("Reset request sent")
+    print("Reset request sent")
 
     responce = reset_socket.recv_multipart()
-    print ("Responce: {0}".format(responce))
+    print("Responce: {0}".format(responce))
 
     reset_socket.close()
     context.destroy()
