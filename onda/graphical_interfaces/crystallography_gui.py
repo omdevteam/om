@@ -1,20 +1,18 @@
-#    This file is part of OnDA.
+# This file is part of OnDA.
 #
-#    OnDA is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+# OnDA is free software: you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
 #
-#    OnDA is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with OnDA.
+# If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
-#    a research centre of the Helmholtz Association.
+# Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+# a research centre of the Helmholtz Association.
 """
 GUI for OnDA Crystallography.
 """
@@ -41,10 +39,9 @@ class CrystallographyGui(gui.OndaGui):
     """
     GUI for OnDA crystallography.
 
-    This GUI receives data sent by the OnDA monitor when they are
-    tagged with the 'ondadata' tag. It displays the real time hit and
-    saturation rate information, plus a virtual powder-pattern-style
-    plot of the processed data.
+    This GUI receives data sent by the OnDA monitor when they are tagged with the
+    'ondadata' tag. It displays the real time hit and saturation rate information,
+    plus a virtual powder-pattern-style plot of the processed data.
     """
 
     def __init__(self, geometry, pub_hostname, pub_port):
@@ -53,16 +50,16 @@ class CrystallographyGui(gui.OndaGui):
 
         Args:
 
-            geometry (Dict): a dictionary containing CrystFEL geometry
-                information (as returned by the
-                :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
-                function) from the :obj:`cfelpyutils` module.
+            geometry (Dict): a dictionary containing CrystFEL geometry information (as
+                returned by the
+                :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry` function)
+                from the :obj:`cfelpyutils` module.
 
-            pub_hostname (str): hostname or IP address of the machine
-                where the OnDA monitor is running.
+            pub_hostname (str): hostname or IP address of the machine where the OnDA
+                monitor is running.
 
-            pub_port (int): port on which the the OnDA monitor is
-                broadcasting information.
+            pub_port (int): port on which the the OnDA monitor is broadcasting
+                information.
         """
         super(CrystallographyGui, self).__init__(
             pub_hostname=pub_hostname,
@@ -81,23 +78,20 @@ class CrystallographyGui(gui.OndaGui):
 
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
-        # The following information will be used later to create the
-        # arrays that will store the assembled detector images.
+        # The following information will be used later to create the arrays that will
+        # store the assembled detector images.
         self._img_shape = geometry_utils.compute_min_array_size(pixel_maps)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
 
-        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
-            geometry
-        )
+        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(geometry)
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
-        # Tris to extract the coffset and res information from the
-        # geometry. The geometry allows these two values to be defined
-        # individually for each panel, but the GUI just needs simple
-        # values for the whole detector. The GUI just takes the values
-        # from the first panel.
+        # Tris to extract the coffset and res information from the geometry. The
+        # geometry allows these two values to be defined individually for each panel,
+        # but the GUI just needs simple values for the whole detector. The GUI just
+        # takes the values from the first panel.
         first_panel = list(geometry["panels"].keys())[0]
         try:
             self._coffset = geometry["panels"][first_panel]["coffset"]
@@ -110,16 +104,12 @@ class CrystallographyGui(gui.OndaGui):
             self._res = None
 
         self._img_virt_powder_plot = numpy.zeros(
-            shape=self._img_shape, dtype=numpy.float32  # pylint: disable=E1101
-        )
+            shape=self._img_shape, dtype=numpy.float32
+        )  # pylint: disable=E1101
 
-        self._hitrate_history = collections.deque(
-            iterable=10000 * [0.0], maxlen=10000
-        )
+        self._hitrate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
 
-        self._satrate_history = collections.deque(
-            iterable=10000 * [0.0], maxlen=10000
-        )
+        self._satrate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
 
         self._resolution_rings_regex = QtCore.QRegExp(r"[0-9.,]+")
         self._resolution_rings_validator = QtGui.QRegExpValidator()
@@ -127,8 +117,7 @@ class CrystallographyGui(gui.OndaGui):
         self._resolution_rings_in_a = [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
         self._resolution_rings_textitems = []
 
-        # Initializes the pen and canvas used to draw the resolution
-        # rings.
+        # Initializes the pen and canvas used to draw the resolution rings.
         self._resolution_rings_pen = pyqtgraph.mkPen("w", width=0.5)
         self._resolution_rings_canvas = pyqtgraph.ScatterPlotItem()
 
@@ -146,9 +135,7 @@ class CrystallographyGui(gui.OndaGui):
 
         # Intializes the resolution rings lineedit widget.
         self._resolution_rings_lineedit = QtGui.QLineEdit()
-        self._resolution_rings_lineedit.setValidator(
-            self._resolution_rings_validator
-        )
+        self._resolution_rings_lineedit.setValidator(self._resolution_rings_validator)
 
         self._resolution_rings_lineedit.setText(
             ",".join(str(x) for x in self._resolution_rings_in_a)
@@ -176,9 +163,7 @@ class CrystallographyGui(gui.OndaGui):
         self._hit_rate_plot_widget.showGrid(x=True, y=True)
 
         self._hit_rate_plot_widget.setYRange(0, 1.0)
-        self._hitrate_plot = self._hit_rate_plot_widget.plot(
-            self._hitrate_history
-        )
+        self._hitrate_plot = self._hit_rate_plot_widget.plot(self._hitrate_history)
 
         # Initializes the saturation rate plot widget.
         self._saturation_plot_widget = pyqtgraph.PlotWidget()
@@ -188,16 +173,12 @@ class CrystallographyGui(gui.OndaGui):
 
         self._saturation_plot_widget.setLabel(axis="bottom", text="Events")
 
-        self._saturation_plot_widget.setLabel(
-            axis="left", text="Saturation rate"
-        )
+        self._saturation_plot_widget.setLabel(axis="left", text="Saturation rate")
 
         self._saturation_plot_widget.showGrid(x=True, y=True)
         self._saturation_plot_widget.setYRange(0, 1.0)
         self._saturation_plot_widget.setXLink(self._hit_rate_plot_widget)
-        self._satrate_plot = self._saturation_plot_widget.plot(
-            self._satrate_history
-        )
+        self._satrate_plot = self._saturation_plot_widget.plot(self._satrate_history)
 
         # Initializes the 'reset peaks' button.
         self._reset_peaks_button = QtGui.QPushButton()
@@ -244,8 +225,8 @@ class CrystallographyGui(gui.OndaGui):
     def _reset_virt_powder_plot(self):
         # Resets the virtual powder plot.
         self._img_virt_powder_plot = numpy.zeros(
-            shape=self._img_shape, dtype=numpy.float32  # pylint: disable=E1101
-        )
+            shape=self._img_shape, dtype=numpy.float32
+        )  # pylint: disable=E1101
 
         self._image_view.setImage(
             self._img_virt_powder_plot.T,
@@ -261,9 +242,7 @@ class CrystallographyGui(gui.OndaGui):
 
         if items:
             self._resolution_rings_in_a = [
-                float(item)
-                for item in items
-                if item != "" and float(item) != 0.0
+                float(item) for item in items if item != "" and float(item) != 0.0
             ]
         else:
             self._resolution_rings_in_a = []
@@ -279,25 +258,21 @@ class CrystallographyGui(gui.OndaGui):
             self._image_view.getView().addItem(text_item)
 
         try:
-            lambda_ = (
-                constants.h * constants.c / self._local_data[b"beam_energy"]
-            )
+            lambda_ = constants.h * constants.c / self._local_data[b"beam_energy"]
             resolution_rings_in_pix = [1.0]
             resolution_rings_in_pix.extend(
                 [
                     2.0
                     * self._res
                     * (self._local_data[b"detector_distance"] + self._coffset)
-                    * numpy.tan(
-                        2.0 * numpy.arcsin(lambda_ / (2.0 * resolution))
-                    )
+                    * numpy.tan(2.0 * numpy.arcsin(lambda_ / (2.0 * resolution)))
                     for resolution in self._resolution_rings_in_a
                 ]
             )
         except TypeError:
             print(
-                "Beam energy or detector distance are not available. "
-                "Resolution rings cannot be computed."
+                "Beam energy or detector distance are not available. Resolution"
+                "rings cannot be computed."
             )
             self._resolution_rings_canvas.setData([], [])
             for index, item in enumerate(self._resolution_rings_textitems):
@@ -318,21 +293,15 @@ class CrystallographyGui(gui.OndaGui):
                 )
 
                 for index, item in enumerate(self._resolution_rings_textitems):
-                    item.setText(
-                        "{}A".format(self._resolution_rings_in_a[index])
-                    )
+                    item.setText("{}A".format(self._resolution_rings_in_a[index]))
                     item.setPos(
                         self._img_center_y,
-                        (
-                            self._img_center_x
-                            + resolution_rings_in_pix[index + 1] / 2.0
-                        ),
+                        (self._img_center_x + resolution_rings_in_pix[index + 1] / 2.0),
                     )
             else:
 
-                # If the relevant checkbox is not ticked, sets the
-                # resolution rings and the text labels to 'null'
-                # content.
+                # If the relevant checkbox is not ticked, sets the resolution rings
+                # and the text labels to 'null' content.
                 self._resolution_rings_canvas.setData([], [])
                 for index, item in enumerate(self._resolution_rings_textitems):
                     item.setText("")
@@ -342,11 +311,10 @@ class CrystallographyGui(gui.OndaGui):
 
         if self.data:
 
-            # Checks if data has been received. If new data has been
-            # received, moves them to a new attribute and resets the
-            # 'data' attribute. In this way, one can check if data has
-            # been received simply by checking if the 'data' attribute
-            # is not None.
+            # Checks if data has been received. If new data has been received, moves
+            # them to a new attribute and resets the 'data' attribute. In this way,
+            # one can check if data has been received simply by checking if the 'data'
+            # attribute is not None.
             self._local_data = self.data
             self.data = None
         else:
@@ -369,9 +337,8 @@ class CrystallographyGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        # Adds data from all frames accumulated in local_data to the
-        # plots, but updates the displayed images and plots only once
-        # at the end.
+        # Adds data from all frames accumulated in local_data to the plots, but
+        # updates the displayed images and plots only once at the end.
         for frame in self._local_data:
 
             for peak_fs, peak_ss, peak_value in zip(
@@ -379,9 +346,9 @@ class CrystallographyGui(gui.OndaGui):
                 frame[b"peak_list"][b"ss"],
                 frame[b"peak_list"][b"intensity"],
             ):
-                peak_index_in_slab = int(round(peak_ss)) * frame[
-                    b"native_data_shape"
-                ][1] + int(round(peak_fs))
+                peak_index_in_slab = int(round(peak_ss)) * frame[b"native_data_shape"][
+                    1
+                ] + int(round(peak_fs))
 
                 self._img_virt_powder_plot[
                     self._visual_pixel_map_y[peak_index_in_slab],
@@ -402,8 +369,7 @@ class CrystallographyGui(gui.OndaGui):
             autoRange=False,
         )
 
-        # Resets local_data so that the same data is not processed
-        # multiple times.
+        # Resets local_data so that the same data is not processed multiple times.
         self._local_data = []
 
 
@@ -411,9 +377,8 @@ def main():
     """
     Starts the GUI for OnDA Crystallography,
 
-    Initializes and starts the GUI for OnDA Crystallography. Manages
-    command line arguments, loads the geometry and instantiates the
-    graphical interface.
+    Initializes and starts the GUI for OnDA Crystallography. Manages command line
+    arguments, loads the geometry and instantiates the graphical interface.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -427,8 +392,8 @@ def main():
         rec_port = int(sys.argv[3])
     else:
         print(
-            "Usage: onda-crystallography-gui.py geometry_filename "
-            "<listening ip> <listening port>"
+            "Usage: onda-crystallography-gui.py geometry_filename <listening ip> "
+            "<listening port>"
         )
         sys.exit()
 

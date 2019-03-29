@@ -1,18 +1,18 @@
-#!/usr/bin/env python
-#    This file is part of OnDA.
+# This file is part of OnDA.
 #
-#    OnDA is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+# OnDA is free software: you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
 #
-#    OnDA is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with OnDA.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+# Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+# a research centre of the Helmholtz Association.
 """
 GUI for OnDA SWAXS.
 """
@@ -44,16 +44,16 @@ class SWAXSGui(gui.OndaGui):
 
         Args:
 
-            geometry (Dict): a dictionary containing CrystFEL geometry
-                information (as returned by the
-                :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry`
-                function) from the :obj:`cfelpyutils` module.
+            geometry (Dict): a dictionary containing CrystFEL geometry information (as
+                returned by the
+                :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry` function)
+                from the :obj:`cfelpyutils` module.
 
-            pub_hostname (str): hostname or IP address of the machine
-                where the OnDA monitor is running.
+            pub_hostname (str): hostname or IP address of the machine where the OnDA
+                monitor is running.
 
-            pub_port (int): port on which the the OnDA monitor is
-                broadcasting information.
+            pub_port (int): port on which the the OnDA monitor is broadcasting
+                information.
         """
         # TODO: GUI description.
         super(SWAXSGui, self).__init__(
@@ -69,23 +69,20 @@ class SWAXSGui(gui.OndaGui):
         # Computes the pixel maps for visualization.
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
-        # The following information will be used later to create the
-        # arrays that will store the assembled detector images.
+        # The following information will be used later to create the arrays that will
+        # store the assembled detector images.
         self._img_shape = geometry_utils.compute_min_array_size(pixel_maps)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
 
-        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
-            geometry
-        )
+        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(geometry)
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
-        # Tries to extract the coffset and res information from the
-        # geometry. The geometry allows these two values to be defined
-        # individually for each panel, but the GUI just needs simple
-        # values for the whole detector. This code uses the values from
-        # the first panel.
+        # Tries to extract the coffset and res information from the geometry. The
+        # geometry allows these two values to be defined individually for each panel,
+        # but the GUI just needs simple values for the whole detector. This code uses
+        # the values from the first panel.
         first_panel = list(geometry["panels"].keys())[0]
         try:
             self._coffset = geometry["panels"][first_panel]["coffset"]
@@ -99,39 +96,23 @@ class SWAXSGui(gui.OndaGui):
 
         # Initializes several arrays used for plotting.
         self._q_bins = numpy.zeros(100)
-
         self._unscaled_radial = numpy.zeros(100)
-
         self._radial = numpy.zeros(100)
-
         self._cumulative_pumped = numpy.zeros(100)
-
         self._cumulative_dark = numpy.zeros(100)
-
         self._diff = numpy.zeros(100)
-
         self._recent_radial = numpy.zeros(100)
-
         self._cumulative_radial = numpy.zeros(100)
-
         self._cumulative_diff_stack = numpy.zeros((100, 100))
-
-        self._hitrate_history = collections.deque(
-            iterable=10000 * [0.0], maxlen=10000
-        )
-
+        self._hitrate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
         self._pumped_hitrate_history = collections.deque(
             iterable=10000 * [0.0], maxlen=10000
         )
-
         self._dark_hitrate_history = collections.deque(
             iterable=10000 * [0.0], maxlen=10000
         )
-
         self._intensity_sums = numpy.zeros(100)
-
         self._intensity_sum_hist = numpy.zeros(100)
-
         self._intensity_sum_hist_bins = numpy.zeros(100)
 
         # Sets the PyQtGraph background color.
@@ -140,17 +121,11 @@ class SWAXSGui(gui.OndaGui):
         # Initializes the radial profile plot widget.
         self._radial_plot_widget = pyqtgraph.PlotWidget()
         self._radial_plot_widget.setTitle("Radial Profile")
-
         self._radial_plot_widget.setLabel(axis="bottom", text="q (1/angstrom)")
-
         self._radial_plot_widget.setLabel(axis="left", text="Intensity (ADUs)")
-
         self._radial_plot_widget.showGrid(x=True, y=True)
-
         self._radial_plot_widget.addLegend()
-
         self._radial_plot_widget.setYRange(-1.0, 1.0)
-
         self._unscaled_radial_plot = self._radial_plot_widget.plot(
             self._q_bins,
             self._unscaled_radial,
@@ -204,9 +179,7 @@ class SWAXSGui(gui.OndaGui):
         )
 
         self._cumulative_radial_plot = self._radial_plot_widget.plot(
-            self._cumulative_radial,
-            name="Cumulative Average Difference",
-            pen="b",
+            self._cumulative_radial, name="Cumulative Average Difference", pen="b"
         )
 
         # Initializes the image viewer.
@@ -230,15 +203,10 @@ class SWAXSGui(gui.OndaGui):
         # Initializes the hit rate plot widget.
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
         self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
-
         self._hit_rate_plot_widget.setLabel(axis="bottom", text="Events")
-
         self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate")
-
         self._hit_rate_plot_widget.showGrid(x=True, y=True)
-
         self._hit_rate_plot_widget.setYRange(0, 1.0)
-
         self._hitrate_plot = self._hit_rate_plot_widget.plot(
             self._hitrate_history, pen="k"
         )
@@ -320,19 +288,9 @@ class SWAXSGui(gui.OndaGui):
     def _reset_plots(self):
         # Resets the plots.
         self._hitrate_history = collections.deque(10000 * [0.0], maxlen=10000)
-
-        self._pumped_hitrate_history = collections.deque(
-            10000 * [0.0], maxlen=10000
-        )
-
-        self._dark_hitrate_history = collections.deque(
-            10000 * [0.0], maxlen=10000
-        )
-
-        self._intensity_sum_hist = collections.deque(
-            10000 * [0.0], maxlen=10000
-        )
-
+        self._pumped_hitrate_history = collections.deque(10000 * [0.0], maxlen=10000)
+        self._dark_hitrate_history = collections.deque(10000 * [0.0], maxlen=10000)
+        self._intensity_sum_hist = collections.deque(10000 * [0.0], maxlen=10000)
         self._radial_plot.setData(self._radial)
         self._diff_plot.setData(self._diff)
         self._cumulative_radial_plot.setData(self._cumulative_radial)
@@ -381,31 +339,16 @@ class SWAXSGui(gui.OndaGui):
         self._diff = last_frame[b"diff"]
         self._cumulative_radial = last_frame[b"cumulative_radial"]
         self._recent_radial = last_frame[b"recent_radial"]
-
         self._unscaled_radial_plot.setData(self._q_bins, self._unscaled_radial)
-
         self._radial_plot.setData(self._q_bins, self._radial)
-
-        self._cumulative_pumped_plot.setData(
-            self._q_bins, self._cumulative_pumped
-        )
-
+        self._cumulative_pumped_plot.setData(self._q_bins, self._cumulative_pumped)
         self._cumulative_dark_plot.setData(self._q_bins, self._cumulative_dark)
-
         self._diff_plot.setData(self._q_bins, self._diff)
-
         self._recent_radial_plot.setData(self._q_bins, self._recent_radial)
-
-        self._cumulative_radial_plot.setData(
-            self._q_bins, self._cumulative_radial
-        )
-
+        self._cumulative_radial_plot.setData(self._q_bins, self._cumulative_radial)
         self._hitrate_plot.setData(self._hitrate_history)
-
         self._pumped_hitrate_plot.setData(self._pumped_hitrate_history)
-
         self._dark_hitrate_plot.setData(self._dark_hitrate_history)
-
         self._intensity_sum_hist = last_frame[b"intensity_sum_hist"]
         self._intensity_sum_hist_bins = last_frame[b"intensity_sum_hist_bins"]
         self._intensity_sums_plot.setData(
@@ -429,9 +372,8 @@ def main():
     """
     Starts the GUI for OnDA SWAXS.
 
-    Initializes and starts the GUI for OnDA SWAXS. Manages command line
-    arguments, loads the geometry and instantiates the graphical
-    interface.
+    Initializes and starts the GUI for OnDA SWAXS. Manages command line arguments,
+    loads the geometry and instantiates the graphical interface.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -445,8 +387,8 @@ def main():
         rec_port = int(sys.argv[3])
     else:
         print(
-            "Usage: onda_swaxs_gui.py geometry_filename "
-            "<listening ip> <listening port>"
+            "Usage: onda_swaxs_gui.py geometry_filename <listening ip> <listening "
+            "port>"
         )
         sys.exit()
 
