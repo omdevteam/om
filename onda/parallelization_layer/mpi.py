@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 
-from future.utils import iteritems
 
 from mpi4py import MPI
 from onda.utils import dynamic_import
@@ -79,13 +78,10 @@ class ParallelizationEngine(object):
         else:
             self.role = "worker"
 
-        self._event_handling_funcs = dynamic_import.get_event_handling_funcs(
-            self._monitor_params
-        )
-
         if self.role == "worker":
-            self._data_extraction_funcs = dynamic_import.get_data_extraction_funcs(
-                self._monitor_params
+
+            self._event_generator = dynamic_import.get_event_generator_func(
+                monitor_params
             )
 
             self._num_frames_in_event_to_process = monitor_params.get_param(
@@ -101,6 +97,11 @@ class ParallelizationEngine(object):
                 self._frames_in_event_to_skip = tuple()
 
         if self.role == "master":
+
+            self._initialize_event_source = dynamic_import.get_initialize_event_source_func(
+                monitor_params
+            )
+
             self._num_nomore = 0
             self._num_collected_events = 0
 
@@ -116,14 +117,7 @@ class ParallelizationEngine(object):
             # Flag used to make sure that the MPI messages have been sent.
             req = None
 
-            event_generator = self._event_handling_funcs["event_generator"]
-            open_event = self._event_handling_funcs["event_generator"]
-            close_event = self._event_handling_funcs["event_generator"]
-            get_num_frames_in_event = self._event_handling_funcs[
-                "get_num_frames_in_event"
-            ]
-
-            events = event_generator(
+            events = self._event_generator(
                 source=self._source,
                 node_rank=self.rank,
                 mpi_pool_size=self._mpi_size,
@@ -135,8 +129,8 @@ class ParallelizationEngine(object):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
                     self.shutdown("Shutting down RANK: {0}.".format(self.rank))
 
-                open_event(event)
-                n_frames_in_evt = get_num_frames_in_event(event)
+                event.open_event()
+                n_frames_in_evt = event.get_num_frames_in_event()
 
                 if self._num_frames_in_event_to_process:
                     num_frames_to_process = min(
@@ -151,25 +145,20 @@ class ParallelizationEngine(object):
                     # If the frame must be rejected, skips to next iteration of the
                     # loop.
 
-                    frame_to_extract = n_frames_in_evt + frame_offset
-                    if frame_to_extract in self._frames_in_event_to_skip:
+                    current_frame = n_frames_in_evt + frame_offset
+                    if current_frame in self._frames_in_event_to_skip:
                         continue
-                    event["frame_to_extract"] = frame_offset
-                    data = {}
+                    event.current_frame = current_frame
 
-                    # Tries to extract the data by calling the data extraction
-                    # functions one after the other. Stores the values returned by the
-                    # functions in the data dictionary, each with a key corresponding
-                    # to the name of the extraction function.
                     try:
-                        for f_name, func in iteritems(self._data_extraction_funcs):
-                            data[f_name] = func(event)
-                    # One should never do the following, but it is not possible to
-                    # anticipate every possible error raised by the facility
-                    # frameworks.
+                        data = event.extract_data()
+                        # One should never do the following, but it is not possible to
+                        # anticipate every possible error raised by the facility
+                        # frameworks.
                     except Exception as exc:  # pylint: disable=broad-except
-                        print("OnDA Warning: Cannot interpret some event" "data:")
-                        print("Error extracting {}: {}".format(func.__name__, exc))
+                        print("Cannot interpret some event data due to the "
+                              "following error:")
+                        print(exc)
                         print("Skipping event.....")
                         continue
 
@@ -182,7 +171,7 @@ class ParallelizationEngine(object):
                 if req:
                     req.Wait()
 
-                close_event(event)
+                event.close_event()
 
             # After finishing iterating over the events to process, sends a message to
             # the master node saying that there are no more events to process.
@@ -196,11 +185,7 @@ class ParallelizationEngine(object):
 
         if self.role == "master":
 
-            initialize_event_source = self._event_handling_funcs[
-                "initialize_event_source"
-            ]
-
-            initialize_event_source(
+            self._initialize_event_source(
                 source=self._source,
                 mpi_pool_size=self._mpi_size,
                 monitor_params=self._monitor_params,

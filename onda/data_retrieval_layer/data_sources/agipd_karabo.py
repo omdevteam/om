@@ -71,9 +71,7 @@ def get_num_frames_in_event(event):
         int: the number of frames in the event.
     """
     # The data is stored in a 4-d block. The last axis is the nunmber of frames.
-    return event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"]["image.data"].shape[
-        0
-    ]
+    return event.data[event.framework_info["data_label"]]["image.data"].shape[0]
 
 
 #############################
@@ -98,6 +96,8 @@ def detector_data(event):
 
         ndarray: one frame of detector data.
     """
-    return event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"]["image.data"][
-        event["frame_offset"], ...
+    print(event.data[event.framework_info["data_label"]]["image.data"].shape)
+
+    return event.data[event.framework_info["data_label"]]["image.data"][
+        event.current_frame, ...
     ].reshape(16 * 512, 128)

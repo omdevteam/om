@@ -25,10 +25,9 @@ import time
 
 import numpy
 from future.utils import raise_from
-from scipy import constants
 
 from onda.data_retrieval_layer.frameworks.karabo_api import client
-from onda.utils import exceptions
+from onda.utils import data_event, dynamic_import, exceptions
 
 
 ############################
@@ -91,7 +90,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         event = 1 train).
     """
     del mpi_pool_size
-    del monitor_params
     source_parts = source.split(":")
     try:
         hostname = source_parts[0]
@@ -115,32 +113,68 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     if not max_event_age:
         max_event_age = 10000000000
 
+    event_handling_funcs = dynamic_import.get_event_handling_funcs(monitor_params)
+    event = data_event.DataEvent(
+        event_handling_funcs["open_event"],
+        event_handling_funcs["open_event"],
+        event_handling_funcs["get_num_frames_in_event"],
+    )
+
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
+    event.data_extraction_functions = data_extraction_functions
+
+    # Fills required frameworks info.
+    event.framework_info["data_label"] = data_label
+    if "beam_energy" in data_extraction_functions:
+        event.framework_info["beam_energy"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="karabo_fallback_beam_energy_in_eV",
+            type_=float,
+            required=True,
+        )
+
+    if "detector_distance" in data_extraction_functions:
+        event.framework_info["detector_distance"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="karabo_fallback_detector_distance_in_mm",
+            type_=float,
+            required=True,
+        )
+
+    if "optical_laser_active" in data_extraction_functions:
+        event.framework_info["frames_with_optical_laser"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="karabo_frame_ids_with_optical_laser_active",
+            type_=list,
+            required=True,
+        )
+
+    if "xrays_active" in data_extraction_functions:
+        event.framework_info["frames_with_xrays"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="karabo_frame_ids_with_xrays_active",
+            type_=list,
+            required=True,
+        )
+
     print("Worker {} listening to {} at port {}".format(node_rank, hostname, port))
     sys.stdout.flush()
 
     # Connects to the Karabo Bridge using the Karabo API.
     krb_client = client.Client("tcp://{}".format(source))
     while True:
-        event = {}
-        event["data"], event["metadata"] = krb_client.next()
-        event["timestamp"] = numpy.float64(
+        event.data, event.metadata = krb_client.next()
+        print(event.metadata.keys())
+        event.timestamp = numpy.float64(
             "{0}.{1}".format(
-                event["metadata"][data_label]["timestamp.sec"],
-                event["metadata"][data_label]["timestamp.frac"],
+                event.metadata[data_label]["timestamp.sec"],
+                event.metadata[data_label]["timestamp.frac"],
             )
         )
         time_now = numpy.float64(time.time())  # pylint: disable=no-member
-        if (time_now - event["timestamp"]) > max_event_age:
+        if (time_now - event.timestamp) > max_event_age:
             continue
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         yield event
 
 
@@ -153,10 +187,11 @@ def open_event(event):
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
     """
-    del event
     # Karabo events do not need to be opened. this function does nothing.
+    del event
 
 
 def close_event(event):
@@ -165,10 +200,11 @@ def close_event(event):
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
     """
-    del event
     # Karabo events do not need to be closed. This function does nothing.
+    del event
 
 
 #############################
@@ -187,13 +223,15 @@ def timestamp(event):
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
         numpy.float64: the timestamp of the event.
     """
-    return event["timestamp"]
+    # Returns the timestamp previously store in the event.
+    return event.timestamp
 
 
 def optical_laser_active(event):
@@ -207,22 +245,17 @@ def optical_laser_active(event):
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
         bool: True if the optical laser is active. False otherwise.
     """
-    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
-        "image.pulseId"
-    ][event["frame_offset"]]
-
-    return frame_cell_id in event["monitor_params"].get_param(
-        section="DataRetrievalLayer",
-        parameter="frame_ids_with_optical_laser_active",
-        type_=list,
-        required=True,
-    )
+    frame_cell_id = event.data[event.framework_info["data_label"]]["image.pulseId"][
+        event.current_frame
+    ]
+    return frame_cell_id in event.framework_info["frames_with_optical_laser"]
 
 
 def xrays_active(event):
@@ -236,22 +269,17 @@ def xrays_active(event):
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
         bool: True if the X-rays are active. False otherwise.
     """
-    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
-        "image.pulseId"
-    ][event["frame_offset"]]
-
-    return frame_cell_id in event["monitor_params"].get_param(
-        section="DataRetrievalLayer",
-        parameter="frame_ids_with_xrays_active",
-        type_=list,
-        required=True,
-    )
+    frame_cell_id = event.data[event.framework_info["data_label"]]["image.pulseId"][
+        event.current_frame
+    ]
+    return frame_cell_id in event.framework_info["frames_with_xrays"]
 
 
 def event_id(event):
@@ -264,16 +292,14 @@ def event_id(event):
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
         str: a unique event identifier.
     """
-    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
-        "timestamp.trainId"
-    ]
-
+    frame_cell_id = event.data[event.framework_info["data_label"]]["timestamp.trainId"]
     return str(frame_cell_id)
 
 
@@ -287,67 +313,57 @@ def frame_id(event):
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
         str: a unique frame identifier with the event.
     """
-    frame_cell_id = event["data"]["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"][
-        "image.pulseId"
-    ][event["frame_offset"]]
-
+    frame_cell_id = event["data"][event.framework_info["data_label"]]["image.pulseId"][
+        event.current_frame
+    ]
     return str(frame_cell_id)
 
 
 def beam_energy(event):
     """
-    Retrieves the beam energy from the configuration file.
+    Retrieves the beam energy from Karabo.
 
-    The beam energy should be stored in the 'General' section under the
-    'fallback_beam_energy' entry.
+    Karabo does not currently provide information about the beam energy. The value is
+    taken from the configuration file, specifically fromt the
+    'karabo_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
-        float: the energy of the beam in J.
+        float: the energy of the beam in eV.
     """
-    return (
-        float(
-            event["monitor_params"].get_param(
-                section="General",
-                parameter="fallback_beam_energy_in_eV",
-                type_=float,
-                required=True,
-            )
-        )
-        * constants.electron_volt
-    )
+    # Returns the value previously stored in the event.
+    return event.framework_info["beam_energy"]
 
 
 def detector_distance(event):
     """
-    Retrieves the beam energy from the configuration file.
+    Retrieves the detector distance from Karabo.
 
-    The beam energy should be stored in the 'General' section under the
-    'fallback_detector_distance' entry.
+    Karabo does not currently provide information about the detector distance. The
+    value is taken from the configuration file, specifically fromt the
+    'karabo_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
+    section.
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
         float: the distance between the detector and the sample in m.
     """
-    return float(
-        event["monitor_params"].get_param(
-            section="General",
-            parameter="fallback_detector_distance",
-            type_=float,
-            required=True,
-        )
-    )
+    # Returns the value previously stored in the event.
+    return event.framework_info["detector_distance"]

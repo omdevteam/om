@@ -32,7 +32,7 @@ def main():
     Main OnDA monitor function.
     """
     # Sets a custom exception handler to deal with OnDA-specific exceptions.
-    sys.excepthook = exceptions.onda_exception_handler
+    #sys.excepthook = exceptions.onda_exception_handler
 
     parser = argparse.ArgumentParser(
         prog="mpirun [MPI OPTIONS] onda.py", description="OnDA - Online Data Analysis"

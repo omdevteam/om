@@ -32,7 +32,7 @@ from onda.data_retrieval_layer.data_sources import agipd_karabo
 #####################
 
 
-globals()["get_peakfinder8_info"] = agipd_karabo.get_peakfinder8_info
+globals()["get_peakfinder8_info_detector_data"] = agipd_karabo.get_peakfinder8_info
 
 
 ############################

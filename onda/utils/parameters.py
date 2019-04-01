@@ -96,7 +96,7 @@ class MonitorParams(object):
             )
         else:
             ret = self._monitor_params[section].get(parameter)
-            if not ret and required:
+            if ret is None and required is True:
                 raise exceptions.MissingParameter(
                     "Parameter {} in section [{}] was not found, but is "
                     "required.".format(parameter, section)

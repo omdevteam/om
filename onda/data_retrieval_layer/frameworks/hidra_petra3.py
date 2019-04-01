@@ -38,7 +38,7 @@ from onda.utils import dynamic_import, exceptions, named_tuples
 ############################
 
 
-def create_hidra_info(source, mpi_pool_size, monitor_params):
+def _create_hidra_info(source, mpi_pool_size, monitor_params):
     # Creates the HidraInfo object needed to initialize the HiDRA event source.
 
     # Reads the requested transfer type from the configuration file. If it is not
@@ -133,7 +133,7 @@ def initialize_event_source(source, mpi_pool_size, monitor_params):
     print("Announcing OnDA to HiDRA.")
     sys.stdout.flush()
 
-    hidra_info = create_hidra_info(
+    hidra_info = _create_hidra_info(
         source=source, mpi_pool_size=mpi_pool_size, monitor_params=monitor_params
     )
 
@@ -171,7 +171,7 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         Dict: A dictionary containing the metadata and data of an event
         (1 event = 1file).
     """
-    hidra_info = create_hidra_info(
+    hidra_info = _create_hidra_info(
         source=source, mpi_pool_size=mpi_pool_size, monitor_params=monitor_params
     )
 

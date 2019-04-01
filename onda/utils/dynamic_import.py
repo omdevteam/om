@@ -146,7 +146,7 @@ def import_data_retrieval_layer(monitor_params):
         )
     except ImportError:
         data_retrieval_layer = importlib.import_module(
-            "onda.data_retrieval_layer.{0}".format(
+            "onda.data_retrieval_layer.layer_files.{0}".format(
                 monitor_params.get_param(
                     section="Onda",
                     parameter="data_retrieval_layer",
@@ -183,13 +183,7 @@ def get_event_handling_funcs(monitor_params):
     """
     data_ret_layer = import_data_retrieval_layer(monitor_params)
     event_handl_func_dict = {}
-    for func_name in [
-        "initialize_event_source",
-        "event_generator",
-        "open_event",
-        "close_event",
-        "get_num_frames_in_event",
-    ]:
+    for func_name in ["open_event", "close_event", "get_num_frames_in_event"]:
         try:
             event_handl_func_dict[func_name] = getattr(data_ret_layer, func_name)
         except AttributeError:
@@ -201,6 +195,77 @@ def get_event_handling_funcs(monitor_params):
             )
 
     return event_handl_func_dict
+
+def get_initialize_event_source_func(monitor_params):
+    """
+    Retrieves the function to initialize the data event source.
+
+    Retrieves the event source initialization function from the data retrieval layer.
+    Raises a MissingEventHandlingFunction exception if a function is not found.
+
+    Args:
+
+        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
+            object containing the monitor parameters from the configuration
+            file.
+
+    Returns:
+
+        function: the event source initialization function.
+
+    Raises:
+
+        MissingEventHandlingFunction: if an event handling function is not found.
+    """
+    data_ret_layer = import_data_retrieval_layer(monitor_params)
+    try:
+        initialize_event_source_func = getattr(
+            data_ret_layer, "initialize_event_source"
+        )
+    except AttributeError:
+        raise_from(
+            exc=exceptions.MissingEventHandlingFunction(
+                "Event handling function initialize_event_source is not defined."
+            ),
+            cause=None,
+        )
+
+    return initialize_event_source_func
+
+
+def get_event_generator_func(monitor_params):
+    """
+    Retrieves the function the retrieves data events.
+
+    Retrieves the event generator function from the data retrieval layer. Raises a
+    MissingEventHandlingFunction exception if a function is not found.
+
+    Args:
+
+        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
+            object containing the monitor parameters from the configuration
+            file.
+
+    Returns:
+
+        function: the event source initialization function.
+
+    Raises:
+
+        MissingEventHandlingFunction: if an event handling function is not found.
+    """
+    data_ret_layer = import_data_retrieval_layer(monitor_params)
+    try:
+        event_generator_func = getattr(data_ret_layer, "event_generator")
+    except AttributeError:
+        raise_from(
+            exc=exceptions.MissingEventHandlingFunction(
+                "Event handling function event_generator is not defined."
+            ),
+            cause=None,
+        )
+
+    return event_generator_func
 
 
 def get_data_extraction_funcs(monitor_params):

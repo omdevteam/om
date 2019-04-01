@@ -152,7 +152,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             # Recovers the peakfinder8 information for the detectorbeing used.
             pf8_detector_info = get_peakfinder8_info(
-                monitor_params=self._mon_params, detector="detector_data"
+                monitor_params=monitor_parameters, detector="detector_data"
             )
 
             # Reads from the configuration file all the parameters needed to
