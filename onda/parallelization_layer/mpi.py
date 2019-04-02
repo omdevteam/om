@@ -22,7 +22,7 @@ import sys
 
 
 from mpi4py import MPI
-from onda.utils import dynamic_import
+from onda.utils import dynamic_import, exceptions
 
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
@@ -98,10 +98,9 @@ class ParallelizationEngine(object):
 
         if self.role == "master":
 
-            self._initialize_event_source = dynamic_import.get_initialize_event_source_func(
-                monitor_params
+            self._initialize_event_source = (
+                dynamic_import.get_initialize_event_source_func(monitor_params)
             )
-
             self._num_nomore = 0
             self._num_collected_events = 0
 
@@ -152,14 +151,9 @@ class ParallelizationEngine(object):
 
                     try:
                         data = event.extract_data()
-                        # One should never do the following, but it is not possible to
-                        # anticipate every possible error raised by the facility
-                        # frameworks.
-                    except Exception as exc:  # pylint: disable=broad-except
-                        print("Cannot interpret some event data due to the "
-                              "following error:")
+                    except exceptions.DataExtractionError as exc:  # pylint: disable=broad-except
                         print(exc)
-                        print("Skipping event.....")
+                        print("Skipping event...")
                         continue
 
                     result = self._map(data)

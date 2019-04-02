@@ -24,6 +24,8 @@ import types
 
 from future.utils import iteritems
 
+from onda.utils import exceptions
+
 
 class DataEvent(object):
     """
@@ -74,9 +76,19 @@ class DataEvent(object):
         the results returned by each function.
         """
         data = {}
-        for f_name, func in iteritems(self.data_extraction_functions):
-            print("Error extracting {0}.".format(func.__name__))
-            data[f_name] = func(self)
+        # Tries to extract the data by calling the data extraction functions one after
+        # the other. Stores the values returned by the functions in the data
+        # dictionary, each with a key corresponding to the name of the extraction
+        # function.
+        try:
+            for f_name, func in iteritems(self.data_extraction_functions):
+                data[f_name] = func(self)
+        # One should never do the following, but it is not possible to anticipate
+        # every possible error raised by the facility frameworks.
+        except Exception as exc:
+            raise exceptions.DataExtractionError(
+                "OnDA Warning: Cannot interpret {0} event data due to the following "
+                "error: {1}".format(func.__name__, exc)
+            )
 
-        print('Data:', data.keys())
         return data

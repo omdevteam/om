@@ -70,6 +70,13 @@ def get_num_frames_in_event(event):
 
         int: the number of frames in the event.
     """
+    # Workaround for Krabo Bridge simulator bug
+    # det_data = event.data[event.framework_info["data_label"]]["image.data"]
+    # import  numpy
+    # rolled_data = numpy.moveaxis(det_data, -1, 0)
+    # rolled_data2 = numpy.moveaxis(rolled_data, -2, 1)
+    # return rolled_data2.shape[0]
+
     # The data is stored in a 4-d block. The last axis is the nunmber of frames.
     return event.data[event.framework_info["data_label"]]["image.data"].shape[0]
 
@@ -96,7 +103,12 @@ def detector_data(event):
 
         ndarray: one frame of detector data.
     """
-    print(event.data[event.framework_info["data_label"]]["image.data"].shape)
+    # Workaround for Krabo Bridge simulator bug
+    # det_data = event.data[event.framework_info["data_label"]]["image.data"]
+    # import  numpy
+    # rolled_data = numpy.moveaxis(det_data, -1, 0)
+    # rolled_data2 = numpy.moveaxis(rolled_data, -2, 1)
+    # return rolled_data2[event.current_frame].reshape(16 * 512, 128)
 
     return event.data[event.framework_info["data_label"]]["image.data"][
         event.current_frame, ...
