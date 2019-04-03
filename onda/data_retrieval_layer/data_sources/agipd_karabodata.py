@@ -14,10 +14,10 @@
 # Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of AGIPD detector data from Karabo at XFEL .
+Retrieval of AGIPD detector data from karabo-data at XFEL.
 
-Functions used to retrieve, using the Karabo framework, data from the AGIPD detector
-as used at the European XFEL facility.
+Functions used to retrieve, using the karabo-data library, data from the AGIPD
+detector as used at the European XFEL facility.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -70,15 +70,8 @@ def get_num_frames_in_event(event):
 
         int: the number of frames in the event.
     """
-    # Workaround for Krabo Bridge simulator bug
-    # det_data = event.data[event.framework_info["data_label"]]["image.data"]
-    # import  numpy
-    # rolled_data = numpy.moveaxis(det_data, -1, 0)
-    # rolled_data2 = numpy.moveaxis(rolled_data, -2, 1)
-    # return rolled_data2.shape[0]
-
     # The data is stored in a 4-d block. The last axis is the nunmber of frames.
-    return event.data[event.framework_info["data_label"]]["image.data"].shape[0]
+    return event.data.get_array('image.data').shape[2]
 
 
 #############################
@@ -103,13 +96,24 @@ def detector_data(event):
 
         ndarray: one frame of detector data.
     """
-    # Workaround for Krabo Bridge simulator bug
-    # det_data = event.data[event.framework_info["data_label"]]["image.data"]
-    # import  numpy
-    # rolled_data = numpy.moveaxis(det_data, -1, 0)
-    # rolled_data2 = numpy.moveaxis(rolled_data, -2, 1)
-    # return rolled_data2[event.current_frame].reshape(16 * 512, 128)
 
-    return event.data[event.framework_info["data_label"]]["image.data"][
-        event.current_frame, ...
-    ].reshape(16 * 512, 128)
+    return event.data[:, 0, event.current_frame, 0, ...].reshape(16 * 512, 128)
+
+
+def detector_gain_stage_data(event):
+    """
+    One frame of AGIPD detector data (at XFEL).
+
+    Extracts one frame of AGIPD detector data from an event retrieved at the European
+    XFEL facility.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        ndarray: one frame of detector data.
+    """
+
+    return event.data[:, 0, event.current_frame, 1, ...].reshape(16 * 512, 128)

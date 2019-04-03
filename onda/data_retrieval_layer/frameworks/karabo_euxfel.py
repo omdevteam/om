@@ -115,9 +115,9 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
     event_handling_funcs = dynamic_import.get_event_handling_funcs(monitor_params)
     event = data_event.DataEvent(
-        event_handling_funcs["open_event"],
-        event_handling_funcs["open_event"],
-        event_handling_funcs["get_num_frames_in_event"],
+        open_event_func=event_handling_funcs["open_event"],
+        close_event_func=event_handling_funcs["close_event"],
+        get_num_frames_in_event_func=event_handling_funcs["get_num_frames_in_event"],
     )
 
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)

@@ -14,10 +14,10 @@
 # Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of data from the CSPAD detector at LCLS.
+Retrieval of CSPAD detector data from psana at LCLS.
 
-Functions and classes used to retrieve data from the CSPAD detector as used at the
-LCLS facility.
+Functions used to retrieve, using the psana framework, data from the CSPAD detector as
+used at the LCLS facility.
 """
 from __future__ import absolute_import, division, print_function
 

@@ -14,10 +14,10 @@
 # Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of data from the Eiger detector at Petra III.
+Retrieval Eiger detector data from HiDRA at Petra III.
 
-Functions and classes used to retrieve data from the Eiger detector as used at the
-Petra III facility.
+Functions used to retrieve, using the HiDRA framework, data from the Eiger detector as
+used at the Petra III facility.
 """
 from __future__ import absolute_import, division, print_function
 
