@@ -20,8 +20,8 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 
-
 from mpi4py import MPI
+
 from onda.utils import dynamic_import, exceptions
 
 
@@ -98,8 +98,8 @@ class ParallelizationEngine(object):
 
         if self.role == "master":
 
-            self._initialize_event_source = (
-                dynamic_import.get_initialize_event_source_func(monitor_params)
+            self._initialize_event_source = dynamic_import.get_initialize_event_source_func(
+                monitor_params
             )
             self._num_nomore = 0
             self._num_collected_events = 0
@@ -170,7 +170,7 @@ class ParallelizationEngine(object):
             # After finishing iterating over the events to process, sends a message to
             # the master node saying that there are no more events to process.
             end_dict = {"end": True}
-            req = MPI.COMM_WORLD.isend(buf=(end_dict, self.rank), dest=0, tag=0)
+            req = MPI.COMM_WORLD.isend((end_dict, self.rank), dest=0, tag=0)
             if req:
                 req.Wait()
 
@@ -205,6 +205,8 @@ class ParallelizationEngine(object):
 
                             MPI.Finalize()
                             exit(0)
+                        else:
+                            continue
 
                     self._reduce(received_data)
                     self._num_collected_events += 1
