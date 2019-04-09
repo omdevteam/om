@@ -111,6 +111,7 @@ setup(
     scripts=[
         "bin/onda_crystallography_gui.py",
         "bin/onda_crystallography_hit_viewer.py",
+        "bin/onda_mll_gui.py",
         "bin/onda_monitor.py",
     ],
     ext_modules=extensions,

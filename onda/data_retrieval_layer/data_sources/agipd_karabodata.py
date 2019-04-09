@@ -71,7 +71,7 @@ def get_num_frames_in_event(event):
         int: the number of frames in the event.
     """
     # The data is stored in a 4-d block. The last axis is the nunmber of frames.
-    return event.data.get_array('image.data').shape[2]
+    return event.data.data.shape[2]
 
 
 #############################
@@ -83,29 +83,10 @@ def get_num_frames_in_event(event):
 
 def detector_data(event):
     """
-    One frame of AGIPD detector data (at XFEL).
+    One frame of AGIPD detector data from karabo-data at XFEL.
 
-    Extracts one frame of AGIPD detector data from an event retrieved at the European
-    XFEL facility.
-
-    Args:
-
-        event (Dict): a dictionary with the event data.
-
-    Returns:
-
-        ndarray: one frame of detector data.
-    """
-
-    return event.data[:, 0, event.current_frame, 0, ...].reshape(16 * 512, 128)
-
-
-def detector_gain_stage_data(event):
-    """
-    One frame of AGIPD detector data (at XFEL).
-
-    Extracts one frame of AGIPD detector data from an event retrieved at the European
-    XFEL facility.
+    Extracts one frame of AGIPD detector data from an event retrieved from the
+    karabo-data framework at the European XFEL facility.
 
     Args:
 
@@ -116,4 +97,23 @@ def detector_gain_stage_data(event):
         ndarray: one frame of detector data.
     """
 
-    return event.data[:, 0, event.current_frame, 1, ...].reshape(16 * 512, 128)
+    return event.data.data[:, 0, event.current_frame, 0, ...].reshape(16 * 512, 128)
+
+
+def detector_gain_data(event):
+    """
+    One frame of AGIPD detector data from karabo-data at XFEL.
+
+    Extracts one frame of AGIPD detector data from an event retrieved from the
+    karabo-data framework at the European XFEL facility.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        ndarray: one frame of detector data.
+    """
+
+    return event.data.data[:, 0, event.current_frame, 1, ...].reshape(16 * 512, 128)

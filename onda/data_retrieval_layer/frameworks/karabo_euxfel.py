@@ -114,14 +114,13 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         max_event_age = 10000000000
 
     event_handling_funcs = dynamic_import.get_event_handling_funcs(monitor_params)
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
     event = data_event.DataEvent(
         open_event_func=event_handling_funcs["open_event"],
         close_event_func=event_handling_funcs["close_event"],
         get_num_frames_in_event_func=event_handling_funcs["get_num_frames_in_event"],
+        data_extraction_funcs=data_extraction_functions,
     )
-
-    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
-    event.data_extraction_functions = data_extraction_functions
 
     # Fills required frameworks info.
     event.framework_info["data_label"] = data_label
@@ -230,7 +229,7 @@ def timestamp(event):
 
         numpy.float64: the timestamp of the event.
     """
-    # Returns the timestamp previously store in the event.
+    # Returns the timestamp previously stored in the event.
     return event.timestamp
 
 

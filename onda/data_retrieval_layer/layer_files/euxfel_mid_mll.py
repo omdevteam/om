@@ -21,15 +21,14 @@ MID beamline of the European XFEL facility during MLL experiments.
 """
 from __future__ import absolute_import, division, print_function
 
+import karabo_data
 import numpy
 from future.utils import raise_from
-
-import karabo_data
 from karabo_data import components
 
-from onda.utils import data_event
 from onda.data_retrieval_layer.data_sources import agipd_karabodata
 from onda.data_retrieval_layer.frameworks import karabo_euxfel
+from onda.utils import data_event, dynamic_import
 
 
 ############################
@@ -69,7 +68,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         Dict: A dictionary containing the metadata and data of an event
         (1 event = 1file).
     """
-    del monitor_params
     source_parts = source.split(":")
 
     karabo_run_dir_path = source_parts[0]
@@ -80,12 +78,12 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             log_file_lines = fhandle.readlines()
     except (IOError, OSError):
         raise_from(
-            exc=RuntimeError("Error reading the {0} log file.".format(source)),
+            exc=RuntimeError("Error reading the {0} log file.".format(log_file_path)),
             cause=None,
         )
 
-    scan_template_lines = (
-        line for line in log_file_lines if line.lower().startswith("scan template")
+    scan_template_lines = tuple(
+        line for line in log_file_lines if line.lower().startswith("# scan template")
     )
     if "2d" in scan_template_lines[-1].lower():
         scan_type = 2
@@ -94,43 +92,23 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     else:
         raise RuntimeError("Unknown scan template (not 1D or 2D)")
 
-    points_count_lines = (
-        line for line in log_file_lines if line.lower().startswith("steps count")
+    points_count_lines = tuple(
+        line for line in log_file_lines if line.lower().startswith("# steps count")
     )
     try:
-        point_counts = (int(line.split(":")[1]) for line in points_count_lines)
+        points_count = tuple(int(line.split(":")[1]) + 1 for line in points_count_lines)
     except ValueError:
         raise RuntimeError("Error reading point counts from log file.")
 
-    # start_point_lines = (line for line in log_file_lines if line.lower().startswith('start point'))
-    # try:
-    #     start_points = (float(line.split(':')[1]) for line in start_point_lines)
-    # except ValueError:
-    #     raise RuntimeError("Error reading start points from log file.")
-
-    # end_point_lines = (line for line in log_file_lines if line.lower().startswith('end point'))
-    # try:
-    #     end_points = (float(line.split(':')[1]) for line in end_point_lines)
-    # except ValueError:
-    #     raise RuntimeError("Error reading end points from log file.")
-
-    # step_size_lines = (line for line in log_file_lines if line.lower().startswith('step size'))
-    # try:
-    #     step_sizes = (float(line.split(':')[1]) for line in step_size_lines)
-    # except ValueError:
-    #     raise RuntimeError("Error reading step sizes from log file.")
-
-    scan_lines = (
-        line
-        for line in log_file_lines
-        if not line.lower().startswith("# scan template")
+    scan_lines = tuple(
+        line for line in log_file_lines if not line.lower().startswith("# ")
     )
     if scan_type == 1:
         scan_lines_with_images = list(scan_lines)
     else:
         scan_lines_with_images = []
         for line_idx, line in enumerate(scan_lines):
-            if line_idx % (point_counts[0] + 1) == 0:
+            if line_idx % (points_count[0] + 1) == 0:
                 continue
             scan_lines_with_images.append(line)
 
@@ -167,33 +145,117 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     lines_curr_node = scan_lines_with_images[slice_current_node]
     range_curr_node = range(0, num_lines_to_process)[slice_current_node]
 
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
     event = data_event.DataEvent(
         open_event_func=karabo_euxfel.open_event,
         close_event_func=karabo_euxfel.close_event,
         get_num_frames_in_event_func=agipd_karabodata.get_num_frames_in_event,
+        data_extraction_funcs=data_extraction_functions,
     )
 
+    # Fills required frameworks info.
+    if "beam_energy" in data_extraction_functions:
+        event.framework_info["beam_energy"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="karabo_fallback_beam_energy_in_eV",
+            type_=float,
+            required=True,
+        )
+
+    if "detector_distance" in data_extraction_functions:
+        event.framework_info["detector_distance"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="karabo_fallback_detector_distance_in_mm",
+            type_=float,
+            required=True,
+        )
+
+    # Connects to the Karabo Bridge using the Karabo API.
     for entry_idx, entry in zip(range_curr_node, lines_curr_node):
         items = entry.strip().split(";")
         if scan_type == 2:
             event.framework_info["motor_positions"] = tuple(
-                float(value) for value in items[-2:]
+                float(value.strip().split(" ")[0]) for value in items[-2:]
             )
         else:
-            event.framework_info["motor_positions"] = tuple(float(items[-1]))
+            event.framework_info["motor_positions"] = (
+                float(items[-1].strip().split(" ")[0]),
+            )
 
         event.framework_info["index_in_scan"] = entry_idx
 
+        event.timestamp = numpy.float64(items[3].split(" ")[0])
+
         if scan_type == 2:
-            train_id = int(items[-3])
+            train_id = int(round(float(items[-3]), 0))
         else:
-            train_id = int(items[-2])
+            train_id = int(round(float(items[-2]), 0))
 
         train = karabo_data_coll.select_trains(karabo_data.by_id[[train_id]])
-        event.data = components.AGIPD1M(train)
+        print(
+            "Recovering train {0} from karabo-data on node {1}".format(
+                train_id, node_rank
+            )
+        )
+        event.data = components.AGIPD1M(train).get_array("image.data")
         yield event
 
 
 globals()["open_event"] = karabo_euxfel.open_event
 globals()["close_event"] = karabo_euxfel.close_event
 globals()["get_num_frames_in_event"] = agipd_karabodata.get_num_frames_in_event
+
+
+############################
+#                          #
+# DATA EXTRATION FUNCTIONS #
+#                          #
+############################
+
+
+globals()["detector_data"] = agipd_karabodata.detector_data
+globals()["detector_gain_data"] = agipd_karabodata.detector_data
+globals()["timestamp"] = karabo_euxfel.timestamp
+globals()["detector_distance"] = karabo_euxfel.detector_distance
+globals()["beam_energy"] = karabo_euxfel.beam_energy
+
+
+def motor_positions(event):
+    """
+    Motor positions for a MLL event retrieved from karabo-data at XFEL.
+
+    Extracts the motor positions of an event retrieved from the karabo-data framework
+    at the European XFEL facility during a multi-layer lenses experiment.
+
+    Args:
+
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
+
+    Returns:
+
+        tuple[float, float]: a tuple with motor positions for fast-moving and
+        slow-moving axis respectively.
+    """
+    # Returns the motor positions previously stored in the event.
+    return event.framework_info["motor_positions"]
+
+
+def index_in_scan(event):
+    """
+    Motor positions Timestamp of an event retrieved from karabo-data at XFEL.
+
+    Extracts the timestamp of an event retrieved from the karabo-data framework at the
+    European XFEL facility.
+
+    Args:
+
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
+
+    Returns:
+
+        numpy.float64: the timestamp of the event.
+    """
+    # Returns the timestamp previously store in the event.
+    return event.framework_info["index_in_scan"]
