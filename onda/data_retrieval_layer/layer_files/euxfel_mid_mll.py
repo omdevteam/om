@@ -24,7 +24,7 @@ from __future__ import absolute_import, division, print_function
 import karabo_data
 import numpy
 from future.utils import raise_from
-from karabo_data import components
+from karabo_data import components  # pylint: disable=ungrouped-imports
 
 from onda.data_retrieval_layer.data_sources import agipd_karabodata
 from onda.data_retrieval_layer.frameworks import karabo_euxfel

@@ -98,8 +98,10 @@ class ParallelizationEngine(object):
 
         if self.role == "master":
 
-            self._initialize_event_source = dynamic_import.get_initialize_event_source_func(
-                monitor_params
+            self._initialize_event_source = (
+                dynamic_import.get_initialize_event_source_func(
+                    monitor_params
+                )
             )
             self._num_nomore = 0
             self._num_collected_events = 0
