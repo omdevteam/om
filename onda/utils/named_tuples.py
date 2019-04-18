@@ -28,8 +28,9 @@ PeakList = collections.namedtuple(
 A list of peaks detected in a detector frame.
 
 The first two fields, named 'fs' and 'ss' respectively, are lists which store
-fractional indexes locating the detected peaks in a slab-format data array. The third
-field, named 'intensity', is a list storing the integrated intensity of each peak.
+fractional indexes locating the detected peaks in a "slab" format data array. The
+third field, named 'intensity', is a list storing the integrated intensity of each
+peak.
 """
 
 
@@ -120,4 +121,16 @@ Information about radial binning of detector frame data. The first field,
 'radial_bin_pixel_map', is a pixel map of the same size as the detector frame data,
 storing, for each pixel, its radial bin assignment. The second field,
 'radial_bin_size', contains the size of the regular radius bins.
+"""
+
+DetectorDataForCalibration = collections.namedtuple(
+    typename="DetectorDataForCalibration", field_names=["data", "info"]
+)
+"""
+Detector frame data and additional information needed for calibration
+
+Detector data on which calibration must be applied, and additional information needed
+for the calibration. The first field, 'data' stores the frame data that must be
+corrected, the second, 'info', stores additional information needed for the correction
+(for example, for multi-gain stage detectors, the gain stage status of each pixel).
 """

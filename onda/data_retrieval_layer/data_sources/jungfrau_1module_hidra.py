@@ -14,10 +14,9 @@
 # Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of data from Jungfrau 1M detector files.
+Retrieval of 1 module Jungfrau detector data from HiDRA.
 
-Functions and classes used to retrieve data from files written by the Jungfrau 1M
-detector.
+Functions used to retrieve data from the 1 module Jungfrau detector using HiDRA.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -71,7 +70,7 @@ def get_peakfinder8_info():
 
 def open_event(event):
     """
-    Opens a Jungfrau event retrieved from a files.
+    Opens a Jungfrau event retrieved from HiDRA.
 
     Makes the content of a retrieved Jungfrau event available in the 'data' entry of
     the event dictionary.
@@ -81,12 +80,12 @@ def open_event(event):
         event (Dict): a dictionary with the event data.
     """
     # The event is an HDF5 file. The h5py File function is used to open it.
-    event.data = h5py.File(name=event["full_path"], mode="r")
+    event.data = h5py.File(name=event.framework_info["full_path"], mode="r")
 
 
 def close_event(event):
     """
-    Closes a Jungfrau event retrieved from files.
+    Closes a Jungfrau event retrieved from HiDRA.
 
     Args:
 
@@ -98,10 +97,10 @@ def close_event(event):
 
 def get_num_frames_in_event(event):
     """
-    Number of frames in a Jungfrau 1M event.
+    Number of frames in a Jungfrau 1M event retrieved from HiDRA.
 
-    Returns the number of Junfgrau 1M detector frames in an event recovered from a
-    file (1 event = 1 file).
+    Returns the number of Junfgrau 1M detector frames in an event recovered from HiDRA.
+    (Currently 1 event = 1 file).
 
     Args:
 
@@ -125,7 +124,7 @@ def get_num_frames_in_event(event):
 
 def detector_data(event):
     """
-    One frame of detector data from a Jungfrau 1M file.
+    One frame of detector data from a Jungfrau 1M event retrieved from HiDRA.
 
     Args:
 
@@ -135,16 +134,16 @@ def detector_data(event):
 
         ndarray: one frame of detector data.
     """
-    return event["data"]["/entry/instrument/detector/data"][event.current_frame]
+    return event.data["/entry/instrument/detector/data"][event.current_frame]
 
 
 def event_id(event):
     """
-    Retrieves a unique event identifier for Jungfrau 1M files.
+    Retrieves a unique event identifier for a Jungfrau 1M events from HiDRA.
 
     Returns a unique label that unambiguosly identifies the current event within an
-    experiment. For Jungfrau 1M files, the full path to the file storing the event is
-    used as an identifier.
+    experiment. For Jungfrau 1M events retrieved from HiDRA, the full path to the file
+    storing the event is used as identifier.
 
     Args:
 
@@ -159,11 +158,11 @@ def event_id(event):
 
 def frame_id(event):
     """
-    Retrieves a unique identifier for a Jungfrau 1M frame.
+    Retrieves a unique identifier for a Jungfrau 1M frame from HiDRA.
 
     Returns a unique label that unambiguosly identifies the current detector frame
-    within the event. For Jungfrau 1M files, the index of the frame within the file is
-    used as an identifier.
+    within the event. For Jungfrau 1M events retrieved from HiDRA, the index of the
+    frame within the file storing the event is used as identifier.
 
     Args:
 

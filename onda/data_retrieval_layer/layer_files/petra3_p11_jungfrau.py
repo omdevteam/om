@@ -14,14 +14,14 @@
 # Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Data retrieval at the P11 beamline of Petra III.
+Data retrieval at the P11 beamline of Petra III using a 1 module Jungfrau detector.
 
-Classes and functions used to retrieve and extract data at the P11 beamline of the
-Petra III facility.
+Classes and functions used to retrieve and extract data from a 1 module Jungfrau
+detector at the P11 beamline of the Petra III facility.
 """
 from __future__ import absolute_import, division, print_function
 
-from onda.data_retrieval_layer.data_sources import pilatus_hidra
+from onda.data_retrieval_layer.data_sources import jungfrau_1module_hidra
 from onda.data_retrieval_layer.frameworks import hidra_petra3
 
 
@@ -32,8 +32,10 @@ from onda.data_retrieval_layer.frameworks import hidra_petra3
 #####################
 
 
-globals()["get_peakfinder8_info_detector_data"] = pilatus_hidra.get_peakfinder8_info
-globals()["get_file_extensions"] = pilatus_hidra.get_file_extensions
+globals()[
+    "get_peakfinder8_info_detector_data"
+] = jungfrau_1module_hidra.get_peakfinder8_info
+globals()["get_file_extensions"] = jungfrau_1module_hidra.get_file_extensions
 
 
 ############################
@@ -45,9 +47,9 @@ globals()["get_file_extensions"] = pilatus_hidra.get_file_extensions
 
 globals()["initialize_event_source"] = hidra_petra3.initialize_event_source
 globals()["event_generator"] = hidra_petra3.event_generator
-globals()["open_event"] = pilatus_hidra.open_event
-globals()["close_event"] = pilatus_hidra.close_event
-globals()["get_num_frames_in_event"] = pilatus_hidra.get_num_frames_in_event
+globals()["open_event"] = jungfrau_1module_hidra.open_event
+globals()["close_event"] = jungfrau_1module_hidra.close_event
+globals()["get_num_frames_in_event"] = jungfrau_1module_hidra.get_num_frames_in_event
 
 
 #############################
@@ -57,9 +59,9 @@ globals()["get_num_frames_in_event"] = pilatus_hidra.get_num_frames_in_event
 #############################
 
 
-globals()["detector_data"] = pilatus_hidra.detector_data
+globals()["detector_data"] = jungfrau_1module_hidra.detector_data
 globals()["timestamp"] = hidra_petra3.timestamp
 globals()["detector_distance"] = hidra_petra3.detector_distance
 globals()["beam_energy"] = hidra_petra3.beam_energy
-globals()["event_id"] = pilatus_hidra.frame_id
-globals()["frame_id"] = pilatus_hidra.frame_id
+globals()["event_id"] = jungfrau_1module_hidra.frame_id
+globals()["frame_id"] = jungfrau_1module_hidra.frame_id

@@ -78,11 +78,13 @@ class ParallelizationEngine(object):
         else:
             self.role = "worker"
 
+        event_handling_functions = dynamic_import.get_event_handling_funcs(
+            monitor_params
+        )
+
         if self.role == "worker":
 
-            self._event_generator = dynamic_import.get_event_generator_func(
-                monitor_params
-            )
+            self._event_generator = event_handling_functions["event_generator"]
 
             self._num_frames_in_event_to_process = monitor_params.get_param(
                 section="General", parameter="num_frames_in_event_to_process", type_=int
@@ -98,11 +100,9 @@ class ParallelizationEngine(object):
 
         if self.role == "master":
 
-            self._initialize_event_source = (
-                dynamic_import.get_initialize_event_source_func(
-                    monitor_params
-                )
-            )
+            self._initialize_event_source = event_handling_functions[
+                "initialize_event_source"
+            ]
             self._num_nomore = 0
             self._num_collected_events = 0
 
@@ -181,12 +181,14 @@ class ParallelizationEngine(object):
 
         if self.role == "master":
 
-            self._initialize_event_source(
-                source=self._source,
-                mpi_pool_size=self._mpi_size,
-                monitor_params=self._monitor_params,
+            event_source = (
+                self._initialize_event_source(  # pylint: disable=unused-variable
+                    source=self._source,
+                    mpi_pool_size=self._mpi_size,
+                    monitor_params=self._monitor_params,
+                )
             )
-
+                
             while True:
                 try:
                     received_data = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)

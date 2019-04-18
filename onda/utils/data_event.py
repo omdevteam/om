@@ -38,35 +38,23 @@ class DataEvent(object):
     class.
     """
 
-    def __init__(
-        self,
-        open_event_func,
-        close_event_func,
-        get_num_frames_in_event_func,
-        data_extraction_funcs,
-    ):
+    def __init__(self, event_handling_funcs, data_extraction_funcs):
         """
         Initializes the Event class.
 
         Args:
 
-            open_event_func (function): function used to open the event and make
-                available the data contained therein for further processing.
-
-            close_event_func (function): function used to close the event before
-                getting ready to to the next one.
-
-            get_num_frames_in_event (function): function used to determine how many
-                frames the event contain.
+            event_handling_funcs (Dict): dictionary containg a set of event handling
+                functions for the event.
 
             data_extraction_funcs (Dict): dictionary containg a set of data extraction
                 functions to be run on the event.
         """
 
-        self.open_event = types.MethodType(open_event_func, self)
-        self.close_event = types.MethodType(close_event_func, self)
+        self.open_event = types.MethodType(event_handling_funcs["open_event"], self)
+        self.close_event = types.MethodType(event_handling_funcs["close_event"], self)
         self.get_num_frames_in_event = types.MethodType(
-            get_num_frames_in_event_func, self
+            event_handling_funcs["get_num_frames_in_event"], self
         )
 
         self.data = None

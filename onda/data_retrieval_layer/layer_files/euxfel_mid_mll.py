@@ -21,14 +21,45 @@ MID beamline of the European XFEL facility during MLL experiments.
 """
 from __future__ import absolute_import, division, print_function
 
-import karabo_data
+import h5py
 import numpy
 from future.utils import raise_from
-from karabo_data import components  # pylint: disable=ungrouped-imports
 
-from onda.data_retrieval_layer.data_sources import agipd_karabodata
+from onda.data_retrieval_layer.data_sources import agipd_vds
 from onda.data_retrieval_layer.frameworks import karabo_euxfel
 from onda.utils import data_event, dynamic_import
+
+
+def vds_reader_agipd(file_handle, data_label, required_train, required_pulses):
+
+    base_path = "/INSTRUMENT/{0}/DET/{1}CH0:xtdf/image/{2}"
+
+    train_ids = file_handle[base_path.format(data_label, 0, "trainId")][:, 0]
+    pulse_ids = file_handle[base_path.format(data_label, 0, "cellId")][:, 0]
+
+    required_train_indices = numpy.where(required_train == train_ids)[0]
+    pulse_indices = tuple(
+        index for index in required_train_indices if pulse_ids[index] in required_pulses
+    )
+
+    data = numpy.zeros((len(pulse_indices), 16 * 512, 128))
+    gain = numpy.zeros((len(pulse_indices), 16 * 512, 128))
+    for data_idx, pulse_idx in enumerate(pulse_indices):
+        for panel_idx in range(0, 16):
+            try:
+                data[
+                    data_idx, panel_idx * 512 : (panel_idx + 1) * 512, :
+                ] = file_handle[base_path.format(data_label, panel_idx, "data")][
+                    pulse_idx, 0, ...
+                ]
+                gain[
+                    data_idx, panel_idx * 512 : (panel_idx + 1) * 512, :
+                ] = file_handle[base_path.format(data_label, panel_idx, "data")][
+                    pulse_idx, 1, ...
+                ]
+            except KeyError:
+                continue
+    return (data, gain)
 
 
 ############################
@@ -70,7 +101,7 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     """
     source_parts = source.split(":")
 
-    karabo_run_dir_path = source_parts[0]
+    vds_file_path = source_parts[0]
     log_file_path = source_parts[1]
 
     try:
@@ -92,6 +123,20 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     else:
         raise RuntimeError("Unknown scan template (not 1D or 2D)")
 
+    device_lines = (
+        line for line in log_file_lines if line.lower().startswith("# device")
+    )
+    try:
+        devices = tuple(line.split(":")[1].strip() for line in device_lines)
+    except ValueError:
+        raise_from(exc=RuntimeError("Error reading devices log file."), cause=None)
+    if "KaraboClient" in devices:
+        scan_with_karabo = True
+        move_offset = 2
+    else:
+        scan_with_karabo = False
+        move_offset = 1
+
     points_count_lines = tuple(
         line for line in log_file_lines if line.lower().startswith("# steps count")
     )
@@ -103,14 +148,27 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     scan_lines = tuple(
         line for line in log_file_lines if not line.lower().startswith("# ")
     )
-    if scan_type == 1:
-        scan_lines_with_images = list(scan_lines)
-    else:
-        scan_lines_with_images = []
+    if scan_type == 2:
+        temp_scan_lines_with_images = []
         for line_idx, line in enumerate(scan_lines):
-            if line_idx % (points_count[0] + 1) == 0:
+            if line_idx % (points_count[0] * move_offset + 1) == 0:
                 continue
-            scan_lines_with_images.append(line)
+            temp_scan_lines_with_images.append(line)
+        if scan_with_karabo:
+            scan_lines_with_images = tuple(
+                line
+                for line_idx, line in enumerate(temp_scan_lines_with_images)
+                if line_idx % 2 == 0
+            )
+        else:
+            scan_lines_with_images = tuple(temp_scan_lines_with_images)
+    else:
+        if scan_with_karabo:
+            scan_lines_with_images = tuple(
+                line for line_idx, line in enumerate(scan_lines) if line_idx % 2 == 0
+            )
+        else:
+            scan_lines_with_images = tuple(scan_lines)
 
     num_lines_to_process = len(scan_lines_with_images)
 
@@ -125,34 +183,25 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         ((node_rank - 1) * num_files_curr_node), (node_rank * num_files_curr_node)
     )
 
-    print(
-        "Initializing karabo-data data collection for run {0} on node {1}".format(
-            karabo_run_dir_path, node_rank
-        )
-    )
-    try:
-        karabo_data_coll = karabo_data.RunDirectory(karabo_run_dir_path)
-    except Exception:
-        raise RuntimeError(
-            "Error opening Karabo run directory: {0}.".format(karabo_run_dir_path)
-        )
-    print(
-        "Done initializing karabo-data data collection for run {0} on node {1}".format(
-            karabo_run_dir_path, node_rank
-        )
-    )
-
     lines_curr_node = scan_lines_with_images[slice_current_node]
     range_curr_node = range(0, num_lines_to_process)[slice_current_node]
+
+    data_label = monitor_params.get_param(
+        section="DataRetrievalLayer",
+        parameter="karabo_data_label",
+        type_=str,
+        required=True,
+    )
 
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
     event = data_event.DataEvent(
         open_event_func=karabo_euxfel.open_event,
         close_event_func=karabo_euxfel.close_event,
-        get_num_frames_in_event_func=agipd_karabodata.get_num_frames_in_event,
+        get_num_frames_in_event_func=agipd_vds.get_num_frames_in_event,
         data_extraction_funcs=data_extraction_functions,
     )
 
+    event.file_handle = h5py.File(vds_file_path, "r")
     # Fills required frameworks info.
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
@@ -191,19 +240,15 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         else:
             train_id = int(round(float(items[-2]), 0))
 
-        train = karabo_data_coll.select_trains(karabo_data.by_id[[train_id]])
-        print(
-            "Recovering train {0} from karabo-data on node {1}".format(
-                train_id, node_rank
-            )
+        event.data, event.framework_info["gain"] = vds_reader_agipd(
+            event.file_handle, data_label, train_id, [1]
         )
-        event.data = components.AGIPD1M(train).get_array("image.data")
         yield event
 
 
 globals()["open_event"] = karabo_euxfel.open_event
 globals()["close_event"] = karabo_euxfel.close_event
-globals()["get_num_frames_in_event"] = agipd_karabodata.get_num_frames_in_event
+globals()["get_num_frames_in_event"] = agipd_vds.get_num_frames_in_event
 
 
 ############################
@@ -213,11 +258,12 @@ globals()["get_num_frames_in_event"] = agipd_karabodata.get_num_frames_in_event
 ############################
 
 
-globals()["detector_data"] = agipd_karabodata.detector_data
-globals()["detector_gain_data"] = agipd_karabodata.detector_data
+globals()["detector_data"] = agipd_vds.detector_data
+globals()["detector_gain_data"] = agipd_vds.detector_data
 globals()["timestamp"] = karabo_euxfel.timestamp
 globals()["detector_distance"] = karabo_euxfel.detector_distance
 globals()["beam_energy"] = karabo_euxfel.beam_energy
+globals()["frame_id"] = karabo_euxfel.frame_id
 
 
 def motor_positions(event):

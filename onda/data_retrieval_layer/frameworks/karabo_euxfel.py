@@ -113,12 +113,10 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     if not max_event_age:
         max_event_age = 10000000000
 
-    event_handling_funcs = dynamic_import.get_event_handling_funcs(monitor_params)
+    event_handling_functions = dynamic_import.get_event_handling_funcs(monitor_params)
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
     event = data_event.DataEvent(
-        open_event_func=event_handling_funcs["open_event"],
-        close_event_func=event_handling_funcs["close_event"],
-        get_num_frames_in_event_func=event_handling_funcs["get_num_frames_in_event"],
+        event_handling_funcs=event_handling_functions,
         data_extraction_funcs=data_extraction_functions,
     )
 
@@ -163,7 +161,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     krb_client = client.Client("tcp://{}".format(source))
     while True:
         event.data, event.metadata = krb_client.next()
-        print(event.metadata.keys())
         event.timestamp = numpy.float64(
             "{0}.{1}".format(
                 event.metadata[data_label]["timestamp.sec"],
@@ -298,8 +295,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    frame_cell_id = event.data[event.framework_info["data_label"]]["timestamp.trainId"]
-    return str(frame_cell_id)
+    return str(event.data[event.framework_info["data_label"]]["timestamp.trainId"])
 
 
 def frame_id(event):
@@ -319,10 +315,7 @@ def frame_id(event):
 
         str: a unique frame identifier with the event.
     """
-    frame_cell_id = event["data"][event.framework_info["data_label"]]["image.pulseId"][
-        event.current_frame
-    ]
-    return str(frame_cell_id)
+    return str(event.current_frame)
 
 
 def beam_energy(event):

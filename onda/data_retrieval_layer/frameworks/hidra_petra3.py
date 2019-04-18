@@ -25,17 +25,9 @@ import socket
 import sys
 
 from future.utils import raise_from
-from scipy import constants
 
 from onda.data_retrieval_layer.frameworks import hidra_api
-from onda.utils import dynamic_import, exceptions, named_tuples
-
-
-############################
-#                          #
-# EVENT HANDLING FUNCTIONS #
-#                          #
-############################
+from onda.utils import data_event, dynamic_import, exceptions, named_tuples
 
 
 def _create_hidra_info(source, mpi_pool_size, monitor_params):
@@ -63,7 +55,7 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
         # HiDRA will only provide the path to the file relative to the base data path.
         query_text = "QUERY_METADATA"
         data_base_path = os.path.join(
-            monitor_params.getparam(
+            monitor_params.get_param(
                 section="DataRetrievalLayer",
                 parameter="hidra_data_base_path",
                 type_=str,
@@ -112,6 +104,13 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
     )
 
 
+############################
+#                          #
+# EVENT HANDLING FUNCTIONS #
+#                          #
+############################
+
+
 def initialize_event_source(source, mpi_pool_size, monitor_params):
     """
     Initializes the HiDRA event source.
@@ -145,6 +144,8 @@ def initialize_event_source(source, mpi_pool_size, monitor_params):
             cause=None,
         )
 
+    return hidra_info
+
 
 def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     """
@@ -171,6 +172,32 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         Dict: A dictionary containing the metadata and data of an event
         (1 event = 1file).
     """
+
+    event_handling_functions = dynamic_import.get_event_handling_funcs(monitor_params)
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
+
+    event = data_event.DataEvent(
+        event_handling_funcs=event_handling_functions,
+        data_extraction_funcs=data_extraction_functions,
+    )
+
+    # Fills required frameworks info.
+    if "beam_energy" in data_extraction_functions:
+        event.framework_info["beam_energy"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="hidra_fallback_beam_energy_in_eV",
+            type_=float,
+            required=True,
+        )
+
+    if "detector_distance" in data_extraction_functions:
+        event.framework_info["detector_distance"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="hidra_fallback_detector_distance_in_mm",
+            type_=float,
+            required=True,
+        )
+
     hidra_info = _create_hidra_info(
         source=source, mpi_pool_size=mpi_pool_size, monitor_params=monitor_params
     )
@@ -180,14 +207,22 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             node_rank, hidra_info.targets[node_rank][1]
         )
     )
+
     sys.stdout.flush()
 
-    hidra_info.query.start(hidra_info.targets[node_rank][1])
+    try:
+        hidra_info.query.start(hidra_info.targets[node_rank][1])
+    except hidra_api.transfer.CommunicationFailed as exc:
+        raise_from(
+            exc=exceptions.HidraAPIError("Failed to contact HiDRA: {0}".format(exc)),
+            cause=None,
+        )
+
     while True:
         recovered_metadata, recovered_data = hidra_info.query.get()
-
-        event = {"data": recovered_data, "metadata": recovered_metadata}
-        event["full_path"] = os.path.join(
+        event.data = recovered_data
+        event.metadata = recovered_metadata
+        event.framework_info["full_path"] = os.path.join(
             hidra_info.data_base_path,
             recovered_metadata["relative_path"],
             recovered_metadata["filename"],
@@ -195,7 +230,9 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
         # File creation date is used as a first approximation of the
         # timestamp when the timestamp is not available.
-        event["file_creation_time"] = recovered_metadata["file_create_time"]
+        event.framework_info["file_creation_time"] = recovered_metadata[
+            "file_create_time"
+        ]
 
         yield event
 
@@ -223,57 +260,47 @@ def timestamp(event):
 
         numpy.float64: the timestamp of the event.
     """
-    return event["file_creation_time"]
+    # Returns the file creation time previously stored in the event.
+    return event.framework_info["file_creation_time"]
 
 
 def beam_energy(event):
     """
-    Retrieves the beam energy from the configuration file.
+    Retrieves the beam energy from Karabo.
 
-    The beam energy should be stored in the 'General' section under the
-    'fallback_beam_energy' entry.
+    HiDRA does not currently provide information about the beam energy. The value is
+    taken from the configuration file, specifically fromt the
+    'hidra_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
-        float: the energy of the beam in J.
+        float: the energy of the beam in eV.
     """
-    return (
-        float(
-            event["monitor_params"].get_param(
-                section="General",
-                parameter="fallback_beam_energy_in_eV",
-                type_=float,
-                required=True,
-            )
-        )
-        * constants.electron_volt
-    )
+    # Returns the value previously stored in the event.
+    return event.framework_info["beam_energy"]
 
 
 def detector_distance(event):
     """
-    Retrieves the beam energy from the configuration file.
+    Retrieves the detector distance from Karabo.
 
-    The beam energy should be stored in the 'General' section under the
-    'fallback_detector_distance' entry.
+    HiDRA does not currently provide information about the detector distance. The value
+    is taken from the configuration file, specifically fromt the
+    'hidra_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer' section.
 
     Args:
 
-        event (Dict): a dictionary with the event data.
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
 
     Returns:
 
-        float: the distance between the detector and the sample in m.
+        float: the distance between the detector and the sample in mm.
     """
-    return float(
-        event["monitor_params"].get_param(
-            section="General",
-            parameter="fallback_detector_distance",
-            type_=float,
-            required=True,
-        )
-    )
+    # Returns the value previously stored in the event.
+    return event.framework_info["detector_distance"]
