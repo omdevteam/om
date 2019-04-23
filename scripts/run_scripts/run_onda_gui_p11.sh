@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with OnDA.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
+# Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 export PATH=/home/p11user/CfelSoft/anaconda3/bin:$PATH
 onda_crystallography_gui.py pilatus.geom haspp11eval01 12321
