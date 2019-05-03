@@ -1,20 +1,18 @@
-#    This file is part of OnDA.
+# This file is part of OnDA.
 #
-#    OnDA is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+# OnDA is free software: you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
 #
-#    OnDA is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with OnDA.
+# If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
-#    a research centre of the Helmholtz Association.
+# Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+# a research centre of the Helmholtz Association.
 """
 Hit Viewer for OnDA Crystallography.
 """
@@ -41,11 +39,10 @@ class CrystallographyHitViewer(gui.OndaGui):
     """
     Hit Viewer for OnDA Crystallography.
 
-    This GUI receives data sent by the OnDA monitor when they are
-    tagged with the 'ondarawdata' tag and displays the received
-    detector frames along with the detected peaks. It is also possible
-    to stop the stream and move back and forth between the last
-    received frames.
+    This GUI receives data sent by the OnDA monitor when they are tagged with the
+    'ondarawdata' tag and displays the received detector frames along with the
+    detected peaks. It is also possible to stop the stream and move back and forth
+    between the last received frames.
     """
 
     def __init__(self, geometry, pub_hostname, pub_port):
@@ -54,13 +51,13 @@ class CrystallographyHitViewer(gui.OndaGui):
 
         Args:
 
-            geometry (Dict): a dictionary containing CrystFEL geometry
-                information (as returned by the
+            geometry (Dict): a dictionary containing CrystFEL geometry information (as
+                returned by the
                 :obj:`~onda.cfelpyutils.crystfel_utils.load_crystfel_geometry`
                 function).
 
-            pub_hostname (str): hostname or IP address of the host
-                where OnDA is running.
+            pub_hostname (str): hostname or IP address of the host where OnDA is
+                running.
 
             pub_hostname (int): port of the OnDA monitor's PUB socket.
         """
@@ -71,27 +68,23 @@ class CrystallographyHitViewer(gui.OndaGui):
             subscription_string="ondaframedata",
         )
 
-        # The following information will be used later to create the
-        # arrays that will store the assembled detector images.
+        # The following information will be used later to create the arrays that will
+        # store the assembled detector images.
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
         self._img_shape = geometry_utils.compute_min_array_size(pixel_maps)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
 
-        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(
-            geometry
-        )
+        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(geometry)
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
-        # Creates the array that will store the frame to be displayed.
-        # Fills it with zeros to have something to display before the
-        # first data comes.
+        # Creates the array that will store the frame to be displayed. Fills it with
+        # zeros to have something to display before the first data comes.
         self._img = numpy.zeros(shape=self._img_shape, dtype=numpy.float)
 
-        # Initializes the buffer that will store the lastest received
-        # frames, and sets the current frame index to the last frame in
-        # the buffer.
+        # Initializes the buffer that will store the lastest received frames, and sets
+        # the current frame index to the last frame in the buffer.
         self._frame_list = collections.deque(maxlen=20)
         self._current_frame_index = -1
 
@@ -139,11 +132,10 @@ class CrystallographyHitViewer(gui.OndaGui):
         # Updates the frame image shown by the hit viewer.
 
         if self.data:
-            # Checks if data has been received. If new data has been
-            # received, appends it to the frame buffer. Then resets
-            # the 'data' attribute to None. In this way, one can check
-            # if data has been received simply by checking if the
-            # 'data' attribute is not None.
+            # Checks if data has been received. If new data has been received, appends
+            # it to the frame buffer. Then resets the 'data' attribute to None. In
+            # this way, one can check if data has been received simply by checking if
+            # the 'data' attribute is not None.
             self._frame_list.append(copy.deepcopy(self.data[0]))
             self.data = None
             self._current_frame_index = len(self._frame_list) - 1
@@ -151,8 +143,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         try:
             current_data = self._frame_list[self._current_frame_index]
         except IndexError:
-            # If the framebuffer is empty, returns without drawing
-            # anything.
+            # If the framebuffer is empty, returns without drawing anything.
             return
 
         self._img[self._visual_pixel_map_y, self._visual_pixel_map_x] = (
@@ -162,10 +153,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         QtGui.QApplication.processEvents()
 
         self._image_view.setImage(
-            self._img.T,
-            autoLevels=False,
-            autoRange=False,
-            autoHistogramRange=False,
+            self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False
         )
 
         QtGui.QApplication.processEvents()
@@ -177,15 +165,14 @@ class CrystallographyHitViewer(gui.OndaGui):
             current_data[b"peak_list"][b"fs"], current_data[b"peak_list"][b"ss"]
         ):
 
-            # Computes the array index corresponding to the peak
-            # location.
+            # Computes the array index corresponding to the peak location.
             peak_index_in_slab = int(round(peak_ss)) * current_data[
                 b"native_data_shape"
             ][1] + int(round(peak_fs))
 
-            # Adds the coordinates of the peak to the lists of peaks to
-            # display, mapping the coordinates of the peak to the
-            # displayed image according to the pixel maps.
+            # Adds the coordinates of the peak to the lists of peaks to display,
+            # mapping the coordinates of the peak to the displayed image according
+            # to the pixel maps.
             peak_x_list.append(self._visual_pixel_map_x[peak_index_in_slab])
             peak_y_list.append(self._visual_pixel_map_y[peak_index_in_slab])
 
@@ -207,9 +194,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        print(
-            "Showing frame {} in the buffer".format(self._current_frame_index)
-        )
+        print("Showing frame {} in the buffer".format(self._current_frame_index))
         self._update_image()
 
     def _forward_button_clicked(self):
@@ -218,9 +203,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        print(
-            "Showing frame {} in the buffer".format(self._current_frame_index)
-        )
+        print("Showing frame {} in the buffer".format(self._current_frame_index))
         self._update_image()
 
     def _stop_stream(self):
@@ -266,8 +249,8 @@ def main():
         rec_port = int(sys.argv[3])
     else:
         print(
-            "Usage: fibers_hit_viewer.py geometry_filename "
-            "<listening ip> <listening port>"
+            "Usage: fibers_hit_viewer.py geometry_filename <listening ip> "
+            "<listening port>"
         )
         sys.exit()
 

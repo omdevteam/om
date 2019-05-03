@@ -1,20 +1,18 @@
-#    This file is part of OnDA.
+# This file is part of OnDA.
 #
-#    OnDA is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+# OnDA is free software: you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
 #
-#    OnDA is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with OnDA.
+# If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
-#    a research centre of the Helmholtz Association.
+# Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+# a research centre of the Helmholtz Association.
 from libcpp.vector cimport vector
 from libc.stdlib cimport malloc, free
 from libc.stdint cimport int8_t
@@ -53,30 +51,26 @@ cdef extern from "peakfinder8.hh":
 
 cdef extern from "peakfinder8.hh":
 
-    int peakfinder8(tPeakList *peaklist,
-                    float *data, char *mask, float *pix_r, long asic_nx, long asic_ny,
-                    long nasics_x, long nasics_y, float ADCthresh, float hitfinderMinSNR,
+    int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
+                    long asic_nx, long asic_ny, long nasics_x, long nasics_y,
+                    float ADCthresh, float hitfinderMinSNR,
                     long hitfinderMinPixCount, long hitfinderMaxPixCount,
                     long hitfinderLocalBGRadius, char *outliersMask)
 
 
-def peakfinder_8(int max_num_peaks,
-                 float[:,::1] data,
-                 char[:,::1] mask,
-                 float[:,::1] pix_r,
-                 long asic_nx, long asic_ny,
-                 long nasics_x, long nasics_y, float adc_thresh,
-                 float hitfinder_min_snr,
+def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,
+                 float[:,::1] pix_r, long asic_nx, long asic_ny, long nasics_x,
+                 long nasics_y, float adc_thresh, float hitfinder_min_snr,
                  long hitfinder_min_pix_count, long hitfinder_max_pix_count,
                  long hitfinder_local_bg_radius):
 
     cdef tPeakList peak_list
     allocatePeakList(&peak_list, max_num_peaks)
 
-    peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0],
-                asic_nx, asic_ny, nasics_x, nasics_y,
-                adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count,
-                hitfinder_max_pix_count, hitfinder_local_bg_radius, NULL)
+    peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], asic_nx, asic_ny,
+                nasics_x, nasics_y, adc_thresh, hitfinder_min_snr,
+                hitfinder_min_pix_count, hitfinder_max_pix_count,
+                hitfinder_local_bg_radius, NULL)
 
     cdef int i
     cdef float peak_x, peak_y, peak_value
@@ -116,28 +110,27 @@ def peakfinder_8(int max_num_peaks,
 
     freePeakList(peak_list)
 
-    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi,
-            peak_list_sigma, peak_list_snr)
+    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,
+            peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
 
 
-def peakfinder_8_with_pixel_information(int max_num_peaks,
-                                        float[:,::1] data,
-                                        char[:,::1] mask,
-                                        float[:,::1] pix_r,
-                                        long asic_nx, long asic_ny,
-                                        long nasics_x, long nasics_y, float adc_thresh,
+def peakfinder_8_with_pixel_information(int max_num_peaks, float[:,::1] data,
+                                        char[:,::1] mask, float[:,::1] pix_r,
+                                        long asic_nx, long asic_ny, long nasics_x,
+                                        long nasics_y, float adc_thresh,
                                         float hitfinder_min_snr,
-                                        long hitfinder_min_pix_count, long hitfinder_max_pix_count,
+                                        long hitfinder_min_pix_count,
+                                        long hitfinder_max_pix_count,
                                         long hitfinder_local_bg_radius,
                                         char[:,::1] outlier_mask):
 
     cdef tPeakList peak_list
     allocatePeakList(&peak_list, max_num_peaks)
 
-    peakfinder8(&peak_list, &data[0, 0], &mask[0, 0], &pix_r[0, 0],
-                asic_nx, asic_ny, nasics_x, nasics_y,
-                adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count,
-                hitfinder_max_pix_count, hitfinder_local_bg_radius, &outlier_mask[0, 0])
+    peakfinder8(&peak_list, &data[0, 0], &mask[0, 0], &pix_r[0, 0], asic_nx, asic_ny,
+                nasics_x, nasics_y, adc_thresh, hitfinder_min_snr,
+                hitfinder_min_pix_count, hitfinder_max_pix_count,
+                hitfinder_local_bg_radius, &outlier_mask[0, 0])
 
     cdef int i
     cdef float peak_x, peak_y, peak_value
@@ -177,7 +170,7 @@ def peakfinder_8_with_pixel_information(int max_num_peaks,
 
     freePeakList(peak_list)
 
-    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index, peak_list_npix, peak_list_maxi,
-            peak_list_sigma, peak_list_snr)
+    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,
+            peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
 
 

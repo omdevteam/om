@@ -1,25 +1,22 @@
-#    This file is part of OnDA.
+# This file is part of OnDA.
 #
-#    OnDA is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+# OnDA is free software: you can redistribute it and/or modify it under the terms of
+# the GNU General Public License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
 #
-#    OnDA is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+# OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with OnDA.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with OnDA.
+# If not, see <http://www.gnu.org/licenses/>.
 #
-#    Copyright 2014-2018 Deutsches Elektronen-Synchrotron DESY,
-#    a research centre of the Helmholtz Association.
+# Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+# a research centre of the Helmholtz Association.
 """
 Algorithms for the processing of crystallography data.
 
-Specific crystallography arguments: peak finders, data accumulators,
-etc.
+Specific crystallography arguments: peak finders, data accumulators, etc.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -31,21 +28,15 @@ from onda.algorithms.peakfinder8_extension import peakfinder_8
 from onda.utils import named_tuples
 
 
-##############################
-# PEAKFINDER8 PEAK DETECTION #
-##############################
-
-
 class Peakfinder8PeakDetection(object):
     """
     Peakfinder8 algorithm for peak detection.
 
     See this paper for a description of the peakfinder8 algorithm:
 
-    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H.
-    Yoon, T. A. White, and H. N. Chapman, "Cheetah: software for
-    high-throughput reduction and analysis of serial femtosecond
-    X-ray diffraction data", J Appl Crystallogr, vol. 47,
+    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White, and
+    H. N. Chapman, "Cheetah: software for high-throughput reduction and analysis of
+    serial femtosecond X-ray diffraction data", J Appl Crystallogr, vol. 47,
     pp. 1118-1131 (2014).
     """
 
@@ -72,52 +63,44 @@ class Peakfinder8PeakDetection(object):
 
         Args:
 
-            max_num_peaks (int): maximum number of peaks that will be
-                returned to the user. Additional peaks are ignored.
+            max_num_peaks (int): maximum number of peaks that will be returned to the
+                user. Additional peaks are ignored.
 
             asic_nx (int): fs size of each detector's ASIC.
 
             asic_ny (int): ss size of each detector's ASIC.
 
-            nasics_x (int): number of ASICs along the fs axis of the
-                data array.
+            nasics_x (int): number of ASICs along the fs axis of the data array.
 
-            nasics_y (int): number of ASICs along the ss axis of the
-                data array.
+            nasics_y (int): number of ASICs along the ss axis of the data array.
 
-            adc_threshold (float): minimum adc threshold for peak
-                detection.
+            adc_threshold (float): minimum adc threshold for peak detection.
 
-            minimum_snr (float): minimum signal to noise ratio for peak
-                detection.
+            minimum_snr (float): minimum signal to noise ratio for peak detection.
 
             min_pixel_count (int): minimum size of the peak in pixels.
 
             max_pixel_count (int): maximum size of the peak in pixels.
 
-            local_bg_radius (int): radius for the estimation of the
-                local background.
+            local_bg_radius (int): radius for the estimation of the local background.
 
             min_res (int): minimum resolution for the peak (in pixels).
 
             max_res (int): minimum resolution for the peak (in pixels).
 
-            bad_pixel_map_filename (str): name of the file containing
-                the bad pixel map. The map must have the same internal
-                layout ("shape") as the data on which it is applied.
-                The pixels should have a value of 0 or 1, with 0
-                meaning that the pixel is bad and 1 meaning that the
-                pixel should be processed. The map only excludes some
-                regions from the peak finding, the input data is not
-                modified in any way.
+            bad_pixel_map_filename (str): name of the file containing the bad pixel
+                map. The map must have the same internal layout ("shape") as the data
+                on which it is applied. The pixels should have a value of 0 or 1, with
+                0 meaning that the pixel is bad and 1 meaning that the pixel should be
+                processed. The map only excludes some regions from the peak finding,
+                the input data is not modified in any way.
 
-            bad_pixel_map_hdf5_path (str): internal HDF5 path of the
-                data block where the bad pixel map (in "slab" format)
-                is stored.
+            bad_pixel_map_hdf5_path (str): internal HDF5 path of the data block where
+                the bad pixel map (in "slab" format) is stored.
 
-            radius_pixel_map (ndarray): a pixel map that, for each
-                pixel in the data array, stores its distance (in
-                pixels) from the center of the detector.
+            radius_pixel_map (ndarray): a pixel map that, for each pixel in the data
+                array, stores its distance (in pixels) from the center of the
+                detector.
         """
         self._max_num_peaks = max_num_peaks
         self._asic_nx = asic_nx
@@ -137,9 +120,7 @@ class Peakfinder8PeakDetection(object):
         except OSError:
             raise_from(
                 RuntimeError(
-                    "Error reading the {} HDF5 file.".format(
-                        bad_pixel_map_filename
-                    )
+                    "Error reading the {} HDF5 file.".format(bad_pixel_map_filename)
                 ),
                 None,
             )
@@ -157,15 +138,14 @@ class Peakfinder8PeakDetection(object):
 
         Args:
 
-            data (ndarray): the data (in "slab" format) on which
-                the peak finding should be performed.
+            data (ndarray): the data (in "slab" format) on which the peak finding
+                should be performed.
 
         Returns:
 
-            PeakList: a named tuple with the detected peaks. The three
-            fields, "ss", "fs" and "intensity", store the ss and fs
-            coordinate of each peak in the data array, and its
-            intensity.
+            PeakList: a named tuple with the detected peaks. The three fields, "ss",
+            "fs" and "intensity", store the ss and fs coordinate of each peak in the
+            data array, and its intensity.
         """
         peak_list = peakfinder_8(
             self._max_num_peaks,
