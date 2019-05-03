@@ -99,7 +99,6 @@ setup(
         "h5py>=2.7.0",
         "numpy>=1.11.3",
         "scipy>=1.1.0",
-        "mpi4py>=2.0.0",
     ],
     extras_require={
         "gui-qt5": ["pyqt>=5.9.2", "pyqtgraph>=0.10.0"],
