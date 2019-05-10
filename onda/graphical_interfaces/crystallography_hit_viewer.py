@@ -88,28 +88,22 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._frame_list = collections.deque(maxlen=20)
         self._current_frame_index = -1
 
-        # Initializes the pen and the canvas used to draw the peaks.
-        self._ring_pen = pyqtgraph.mkPen("r", width=2)
-        self._peak_canvas = pyqtgraph.ScatterPlotItem()
+        # Sets the PyQtGraph background color.
+        pyqtgraph.setConfigOption("background", 0.2)
+
+        # Initializes widget used to draw the peaks.
+        self._peak_widget = gui.OndaScatterPlotWidget(symbol="o", color="r")
 
         # Initializes the widget that will display the detector image.
-        self._image_view = pyqtgraph.ImageView()
-        self._image_view.ui.menuBtn.hide()
-        self._image_view.ui.roiBtn.hide()
-        self._image_view.getView().addItem(self._peak_canvas)
+        self._image_widget = gui.OndaImageWidget()
+        self._image_widget.set_scatter_plot_overlays(self._peak_widget)
 
         # Initializes the 'forward', 'back' and 'play/pause' buttons.
-        self._back_button = QtGui.QPushButton()
-        self._back_button.setText("Back")
-
-        self._forward_button = QtGui.QPushButton()
-        self._forward_button.setText("Forward")
-
-        self._play_pause_button = QtGui.QPushButton()
-        self._play_pause_button.setText("Pause")
-
+        self._back_button = QtGui.QPushButton(text="Back")
         self._back_button.clicked.connect(self._back_button_clicked)
+        self._forward_button = QtGui.QPushButton(text="Forward")
         self._forward_button.clicked.connect(self._forward_button_clicked)
+        self._play_pause_button = QtGui.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
         # Initializes and fills the layouts.
@@ -118,7 +112,7 @@ class CrystallographyHitViewer(gui.OndaGui):
         self._horizontal_layout.addWidget(self._forward_button)
         self._horizontal_layout.addWidget(self._play_pause_button)
         self._vertical_layout = QtGui.QVBoxLayout()
-        self._vertical_layout.addWidget(self._image_view)
+        self._vertical_layout.addWidget(self._image_widget.widget)
         self._vertical_layout.addLayout(self._horizontal_layout)
 
         # Initializes the central widget for the main window.
@@ -152,15 +146,14 @@ class CrystallographyHitViewer(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        self._image_view.setImage(
-            self._img.T, autoLevels=False, autoRange=False, autoHistogramRange=False
-        )
+        self._image_widget.update(self._img.T)
 
         QtGui.QApplication.processEvents()
 
         # Draws the detected peaks over the displayed frame.
         peak_x_list = []
         peak_y_list = []
+        print(len(current_data[b"peak_list"][b"fs"]))
         for peak_fs, peak_ss in zip(
             current_data[b"peak_list"][b"fs"], current_data[b"peak_list"][b"ss"]
         ):
@@ -178,15 +171,7 @@ class CrystallographyHitViewer(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        self._peak_canvas.setData(
-            x=peak_x_list,
-            y=peak_y_list,
-            symbol="o",
-            size=[5] * len(current_data[b"peak_list"][b"intensity"]),
-            brush=(255, 255, 255, 0),
-            pen=self._ring_pen,
-            pxMode=False,
-        )
+        self._peak_widget.update((peak_y_list, peak_x_list), size=5)
 
     def _back_button_clicked(self):
         # Manages clicks on the 'back' button.

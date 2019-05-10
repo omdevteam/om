@@ -23,12 +23,12 @@ from __future__ import absolute_import, division, print_function
 
 import socket
 import sys
+from builtins import str as unicode_str
 
 import msgpack
+import msgpack_numpy
 import numpy
 import zmq
-
-import msgpack_numpy
 
 try:
     from PyQt5 import QtCore
@@ -162,7 +162,7 @@ class DataListener(QtCore.QObject):
         )
         self._zmq_subscribe.setsockopt_string(
             option=zmq.SUBSCRIBE,  # pylint: disable=no-member
-            optval=str(self._subscription_string)
+            optval=unicode_str(self._subscription_string)
         )
 
         # Sets a high water mark of 1 (A messaging queue 1 message long, so no

@@ -27,7 +27,7 @@ import pyqtgraph
 from cfelpyutils import crystfel_utils, geometry_utils
 from scipy import constants
 
-from onda.utils import gui, named_tuples
+from onda.utils import gui
 
 try:
     from PyQt5 import QtCore, QtGui
@@ -69,12 +69,14 @@ class CrystallographyGui(gui.OndaGui):
         )
 
         # Initializes the local data dictionary with 'null' values.
-        self._local_data = {
-            "peak_list": named_tuples.PeakList(fs=[], ss=[], intensity=[]),
-            "hit_rate": 0.0,
-            "hit_flag": True,
-            "saturation_rate": 0.0,
-        }
+        # self._local_data = {
+        #     "peak_list": named_tuples.PeakList(fs=[], ss=[], intensity=[]),
+        #     "hit_rate": 0.0,
+        #     "hit_flag": True,
+        #     "saturation_rate": 0.0,
+        # }
+
+        self._local_data = None
 
         pixel_maps = geometry_utils.compute_pix_maps(geometry)
 
@@ -88,7 +90,7 @@ class CrystallographyGui(gui.OndaGui):
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
-        # Tris to extract the coffset and res information from the geometry. The
+        # Tries to extract the coffset and res information from the geometry. The
         # geometry allows these two values to be defined individually for each panel,
         # but the GUI just needs simple values for the whole detector. The GUI just
         # takes the values from the first panel.
@@ -105,89 +107,76 @@ class CrystallographyGui(gui.OndaGui):
 
         self._img_virt_powder_plot = numpy.zeros(
             shape=self._img_shape, dtype=numpy.float32
-        )  # pylint: disable=E1101
+        )
 
         self._hitrate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
-
         self._satrate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
-
-        self._resolution_rings_regex = QtCore.QRegExp(r"[0-9.,]+")
-        self._resolution_rings_validator = QtGui.QRegExpValidator()
-        self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
-        self._resolution_rings_in_a = [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
-        self._resolution_rings_textitems = []
-
-        # Initializes the pen and canvas used to draw the resolution rings.
-        self._resolution_rings_pen = pyqtgraph.mkPen("w", width=0.5)
-        self._resolution_rings_canvas = pyqtgraph.ScatterPlotItem()
 
         # Sets the PyQtGraph background color.
         pyqtgraph.setConfigOption("background", 0.2)
 
-        # Initalizes the resolution rings checkbox.
-        self._resolution_rings_check_box = QtGui.QCheckBox()
-        self._resolution_rings_check_box.setText("Show Resolution Rings")
-        self._resolution_rings_check_box.setChecked(True)
+        # Initializes all that is needed to draw resolution rings.
+        self._resolution_rings_regex = QtCore.QRegExp(r"[0-9.,]+")
+        self._resolution_rings_validator = QtGui.QRegExpValidator()
+        self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
+        self._resolution_rings_in_a = [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
+
+        self._resolution_rings_check_box = QtGui.QCheckBox(
+            text="Show Resolution Rings", checked=True
+        )
         self._resolution_rings_check_box.stateChanged.connect(
-            self._update_resolution_rings
+            self._update_resolution_rings_to_display
         )
         self._resolution_rings_check_box.setEnabled(True)
 
-        # Intializes the resolution rings lineedit widget.
         self._resolution_rings_lineedit = QtGui.QLineEdit()
         self._resolution_rings_lineedit.setValidator(self._resolution_rings_validator)
-
         self._resolution_rings_lineedit.setText(
             ",".join(str(x) for x in self._resolution_rings_in_a)
         )
-
         self._resolution_rings_lineedit.editingFinished.connect(
             self._update_resolution_rings
         )
-
         self._resolution_rings_lineedit.setEnabled(True)
 
+        self._resolution_rings_widget = gui.OndaScatterPlotWidget(symbol="o", color="w")
+
+        self._last_beam_energy = None
+        self._last_detector_distance = None
+
         # Initializes the image viewer.
-        self._image_view = pyqtgraph.ImageView()
-        self._image_view.ui.menuBtn.hide()
-        self._image_view.ui.roiBtn.hide()
+        self._image_widget = gui.OndaImageWidget(axes_visible=True)
+        self._image_widget.set_scatter_plot_overlays(self._resolution_rings_widget)
 
         # Initializes the hit rate plot widget.
-        self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
-        self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
-
-        self._hit_rate_plot_widget.setLabel(axis="bottom", text="Events")
-
-        self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate")
-
-        self._hit_rate_plot_widget.showGrid(x=True, y=True)
-
-        self._hit_rate_plot_widget.setYRange(0, 1.0)
-        self._hitrate_plot = self._hit_rate_plot_widget.plot(self._hitrate_history)
-
-        # Initializes the saturation rate plot widget.
-        self._saturation_plot_widget = pyqtgraph.PlotWidget()
-        self._saturation_plot_widget.setTitle(
-            "Fraction of hits with too many saturated peaks"
+        self._hit_rate_widget = gui.OndaPlotWidget(
+            data=(range(-10000, 0), self._hitrate_history),
+            grid_shown=True,
+            plot_title="Hit Rate vs. Events",
+            x_axis_label="Events",
+            y_axis_label="Hit Rate",
+            x_axis_range=(-10000, 0),
+            y_axis_range=(0, 100),
         )
 
-        self._saturation_plot_widget.setLabel(axis="bottom", text="Events")
-
-        self._saturation_plot_widget.setLabel(axis="left", text="Saturation rate")
-
-        self._saturation_plot_widget.showGrid(x=True, y=True)
-        self._saturation_plot_widget.setYRange(0, 1.0)
-        self._saturation_plot_widget.setXLink(self._hit_rate_plot_widget)
-        self._satrate_plot = self._saturation_plot_widget.plot(self._satrate_history)
+        # Initializes the saturation rate plot widget.
+        self._saturation_widget = gui.OndaPlotWidget(
+            data=(range(-10000, 0), self._satrate_history),
+            grid_shown=True,
+            plot_title="Fraction of hits with too many saturated peaks",
+            x_axis_label="Events",
+            y_axis_label="Saturation Rate",
+            x_axis_range=(-10000, 0),
+            y_axis_range=(0, 100),
+        )
+        self._saturation_widget.link_x_axis(self._hit_rate_widget)
 
         # Initializes the 'reset peaks' button.
-        self._reset_peaks_button = QtGui.QPushButton()
-        self._reset_peaks_button.setText("Reset Peaks")
+        self._reset_peaks_button = QtGui.QPushButton(text="Reset Peaks")
         self._reset_peaks_button.clicked.connect(self._reset_virt_powder_plot)
 
         # Initializes the 'reset plots' button.
-        self._reset_plots_button = QtGui.QPushButton()
-        self._reset_plots_button.setText("Reset Plots")
+        self._reset_plots_button = QtGui.QPushButton(text="Reset Plots")
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
         # Initializes and fills the layouts.
@@ -198,11 +187,11 @@ class CrystallographyGui(gui.OndaGui):
         horizontal_layout.addWidget(self._resolution_rings_check_box)
         horizontal_layout.addWidget(self._resolution_rings_lineedit)
         splitter_0 = QtGui.QSplitter()
-        splitter_0.addWidget(self._image_view)
+        splitter_0.addWidget(self._image_widget.widget)
         splitter_1 = QtGui.QSplitter()
         splitter_1.setOrientation(QtCore.Qt.Vertical)
-        splitter_1.addWidget(self._hit_rate_plot_widget)
-        splitter_1.addWidget(self._saturation_plot_widget)
+        splitter_1.addWidget(self._hit_rate_widget.widget)
+        splitter_1.addWidget(self._saturation_widget.widget)
         splitter_0.addWidget(splitter_1)
         vertical_layout = QtGui.QVBoxLayout()
         vertical_layout.addWidget(splitter_0)
@@ -219,52 +208,50 @@ class CrystallographyGui(gui.OndaGui):
         # Resetsthe plots.
         self._hitrate_history = collections.deque(10000 * [0.0], maxlen=10000)
         self._satrate_history = collections.deque(10000 * [0.0], maxlen=10000)
-        self._hitrate_plot.setData(self._hitrate_history)
-        self._satrate_plot.setData(self._satrate_history)
+        self._hit_rate_widget.update(data=(range(-10000, 0), self._hitrate_history))
+        self._saturation_widget.update(data=(range(-10000, 0), self._satrate_history))
 
     def _reset_virt_powder_plot(self):
         # Resets the virtual powder plot.
         self._img_virt_powder_plot = numpy.zeros(
             shape=self._img_shape, dtype=numpy.float32
-        )  # pylint: disable=E1101
-
-        self._image_view.setImage(
-            self._img_virt_powder_plot.T,
-            autoHistogramRange=False,
-            autoLevels=False,
-            autoRange=False,
         )
+        self._image_widget.update(data=self._img_virt_powder_plot.T)
 
-    def _update_resolution_rings(self):
-        # Updates the resolution rings.
-
+    def _update_resolution_rings_to_display(self):
         items = str(self._resolution_rings_lineedit.text()).split(",")
-
         if items:
             self._resolution_rings_in_a = [
                 float(item) for item in items if item != "" and float(item) != 0.0
             ]
         else:
             self._resolution_rings_in_a = []
+        self._update_resolution_rings()
 
-        for text_item in self._resolution_rings_textitems:
-            self._image_view.getView().removeItem(text_item)
+    def _update_resolution_rings(self):
+        # Updates the resolution rings.
 
-        self._resolution_rings_textitems = [
-            pyqtgraph.TextItem(text="{}A".format(x), anchor=(0.5, 0.8))
-            for x in self._resolution_rings_in_a
-        ]
-        for text_item in self._resolution_rings_textitems:
-            self._image_view.getView().addItem(text_item)
+        if self._local_data:
+            last_frame = self._local_data[-1]
+            curr_beam_energy = last_frame[b"beam_energy"]
+            curr_detector_distance = last_frame[b"detector_distance"]
+            self._last_beam_energy = curr_beam_energy
+            self._last_detector_distance = curr_detector_distance
+        else:
+            if self._last_beam_energy:
+                curr_beam_energy = self._last_beam_energy
+                curr_detector_distance = self._last_detector_distance
+            else:
+                return
 
         try:
-            lambda_ = constants.h * constants.c / self._local_data[b"beam_energy"]
+            lambda_ = constants.h * constants.c / curr_beam_energy
             resolution_rings_in_pix = [1.0]
             resolution_rings_in_pix.extend(
                 [
                     2.0
                     * self._res
-                    * (self._local_data[b"detector_distance"] + self._coffset)
+                    * (curr_detector_distance + self._coffset)
                     * numpy.tan(2.0 * numpy.arcsin(lambda_ / (2.0 * resolution)))
                     for resolution in self._resolution_rings_in_a
                 ]
@@ -274,37 +261,41 @@ class CrystallographyGui(gui.OndaGui):
                 "Beam energy or detector distance are not available. Resolution"
                 "rings cannot be computed."
             )
-            self._resolution_rings_canvas.setData([], [])
-            for index, item in enumerate(self._resolution_rings_textitems):
-                item.setText("")
+            self._resolution_rings_widget.update(data=([], []), size=[])
+            self._image_widget.set_text()
         else:
             if (
                 self._resolution_rings_check_box.isEnabled()
                 and self._resolution_rings_check_box.isChecked()
             ):
-                self._resolution_rings_canvas.setData(
-                    [self._img_center_y] * len(resolution_rings_in_pix),
-                    [self._img_center_x] * len(resolution_rings_in_pix),
-                    symbol="o",
+                num_rings = len(resolution_rings_in_pix)
+                self._resolution_rings_widget.update(
+                    data=(
+                        [self._img_center_y] * num_rings,
+                        [self._img_center_x] * num_rings,
+                    ),
                     size=resolution_rings_in_pix,
-                    pen=self._resolution_rings_pen,
-                    brush=(0, 0, 0, 0),
-                    pxMode=False,
                 )
 
-                for index, item in enumerate(self._resolution_rings_textitems):
-                    item.setText("{}A".format(self._resolution_rings_in_a[index]))
-                    item.setPos(
-                        self._img_center_y,
-                        (self._img_center_x + resolution_rings_in_pix[index + 1] / 2.0),
-                    )
-            else:
+                resolution_rings_text = [
+                    "{}A".format(ring) for ring in self._resolution_rings_in_a
+                ]
 
+                self._image_widget.set_text(
+                    text=resolution_rings_text,
+                    text_coordinates=(
+                        [self._img_center_y] * num_rings,
+                        [
+                            self._img_center_x + resolution_rings_in_pix[index] / 2.0
+                            for index in range(0, num_rings)
+                        ],
+                    ),
+                )
+            else:
                 # If the relevant checkbox is not ticked, sets the resolution rings
                 # and the text labels to 'null' content.
-                self._resolution_rings_canvas.setData([], [])
-                for index, item in enumerate(self._resolution_rings_textitems):
-                    item.setText("")
+                self._resolution_rings_widget.update(data=([], []), size=[])
+                self._image_widget.set_text()
 
     def _update_image_and_plots(self):
         # Updates all elements in the GUI.
@@ -337,8 +328,8 @@ class CrystallographyGui(gui.OndaGui):
 
         QtGui.QApplication.processEvents()
 
-        # Adds data from all frames accumulated in local_data to the plots, but
-        # updates the displayed images and plots only once at the end.
+        # Adds data from all frames accumulated in local_data to the plots, but updates
+        # the displayed images and plots only once at the end.
         for frame in self._local_data:
 
             for peak_fs, peak_ss, peak_value in zip(
@@ -355,19 +346,14 @@ class CrystallographyGui(gui.OndaGui):
                     self._visual_pixel_map_x[peak_index_in_slab],
                 ] += peak_value
 
-            self._hitrate_history.append(frame[b"hit_rate"])
-            self._satrate_history.append(frame[b"saturation_rate"])
+            self._hitrate_history.append(100.0 * frame[b"hit_rate"])
+            self._satrate_history.append(100.0 * frame[b"saturation_rate"])
 
         QtGui.QApplication.processEvents()
 
-        self._hitrate_plot.setData(self._hitrate_history)
-        self._satrate_plot.setData(self._satrate_history)
-        self._image_view.setImage(
-            self._img_virt_powder_plot.T,
-            autoHistogramRange=False,
-            autoLevels=False,
-            autoRange=False,
-        )
+        self._hit_rate_widget.update((range(-10000, 0), self._hitrate_history))
+        self._saturation_widget.update((range(-10000, 0), self._satrate_history))
+        self._image_widget.update(self._img_virt_powder_plot.T)
 
         # Resets local_data so that the same data is not processed multiple times.
         self._local_data = []
