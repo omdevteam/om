@@ -31,8 +31,6 @@ def main():
     """
     Main OnDA monitor function.
     """
-    # Sets a custom exception handler to deal with OnDA-specific exceptions.
-    #sys.excepthook = exceptions.onda_exception_handler
 
     parser = argparse.ArgumentParser(
         prog="mpirun [MPI OPTIONS] onda.py", description="OnDA - Online Data Analysis"
@@ -50,25 +48,30 @@ def main():
             "directory"
         ),
     )
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        help=(
+            "Disable custom OnDA error handle"
+        ),
+    )
     args = parser.parse_args()
 
+    # Sets a custom exception handler to deal with OnDA-specific exceptions.
+    if args.debug is False:
+        sys.excepthook = exceptions.onda_exception_handler
+    
     try:
-        config = toml.load(args.ini)
+        with open(args.ini, "r") as config_file_handle:
+            config = config_file_handle.readlines()
     except IOError:
         # Raises an exception if the file cannot be opened or read.
         raise exceptions.ConfigFileReadingError(
             "Cannot open or read the configuration file {0}".format(args.ini)
         )
-    except toml.TomlDecodeError:
-        # Raises an exception if the file cannot be interpreted.
-        raise exceptions.ConfigFileSyntaxError(
-            "Syntax error in the configuration file {0}. Make sure that the "
-            "configuration file follows the TOML syntax: "
-            "https://github.com/toml-lang/toml".format(args.ini)
-        )
-
     monitor_parameters = parameters.MonitorParams(config)
-
+    
     processing_layer = dynamic_import.import_processing_layer(monitor_parameters)
 
     monitor = processing_layer.OndaMonitor(
