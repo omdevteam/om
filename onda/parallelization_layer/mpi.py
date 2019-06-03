@@ -18,12 +18,12 @@ MPI-based parallelization engine for OnDA.
 """
 from __future__ import absolute_import, division, print_function
 
+import pprint
 import sys
 
 from mpi4py import MPI
 
 from onda.utils import dynamic_import, exceptions
-
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _NOMORE = 998
@@ -180,15 +180,17 @@ class ParallelizationEngine(object):
             exit(0)
 
         if self.role == "master":
+            print("Starting OnDA with the following parameters:")
+            pprint.pprint(self._monitor_params.get_all_parameters())
 
-            event_source = (
+            _ = (
                 self._initialize_event_source(  # pylint: disable=unused-variable
                     source=self._source,
                     mpi_pool_size=self._mpi_size,
                     monitor_params=self._monitor_params,
                 )
             )
-                
+
             while True:
                 try:
                     received_data = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)

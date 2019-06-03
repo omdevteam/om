@@ -22,8 +22,6 @@ from __future__ import absolute_import, division, print_function
 import argparse
 import sys
 
-import toml
-
 from onda.utils import dynamic_import, exceptions, parameters
 
 
@@ -61,7 +59,7 @@ def main():
     # Sets a custom exception handler to deal with OnDA-specific exceptions.
     if args.debug is False:
         sys.excepthook = exceptions.onda_exception_handler
-    
+
     try:
         with open(args.ini, "r") as config_file_handle:
             config = config_file_handle.readlines()
@@ -71,7 +69,7 @@ def main():
             "Cannot open or read the configuration file {0}".format(args.ini)
         )
     monitor_parameters = parameters.MonitorParams(config)
-    
+
     processing_layer = dynamic_import.import_processing_layer(monitor_parameters)
 
     monitor = processing_layer.OndaMonitor(
