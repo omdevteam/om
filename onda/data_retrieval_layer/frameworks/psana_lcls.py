@@ -28,14 +28,13 @@ from onda.utils import dynamic_import, exceptions, named_tuples
 
 try:
     import psana  # pylint: disable=import-error
-except ImportError:
+except ImportError as exc:
     raise_from(
         exc=exceptions.MissingDependency(
-            "The psana module could not be loaded. The following "
-            "dependency does not appear to be available on the "
-            "system: psana."
+            "The psana module could not be loaded. The following dependency does not "
+            "appear to be available on the system: psana."
         ),
-        cause=None,
+        cause=exc,
     )
 
 

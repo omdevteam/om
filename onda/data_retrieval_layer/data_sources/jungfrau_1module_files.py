@@ -81,7 +81,7 @@ def open_event(event):
         event (Dict): a dictionary with the event data.
     """
     # The event is an HDF5 file. The h5py File function is used to open it.
-    event.data = h5py.File(name=event["full_path"], mode="r")
+    event.data = h5py.File(name=event.framework_info["full_path"], mode="r")
 
 
 def close_event(event):

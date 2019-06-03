@@ -75,24 +75,24 @@ class DarkCalCorrection(object):
         try:
             with h5py.File(name=darkcal_filename, mode="r") as fhandle:
                 self._darkcal = fhandle[darkcal_hdf5_path][:]
-        except OSError:
+        except OSError as exc:
             raise_from(
                 exc=RuntimeError(
                     "Error reading the {} HDF5 file.".format(darkcal_filename)
                 ),
-                cause=None,
+                cause=exc,
             )
 
         if mask_filename:
             try:
                 with h5py.File(name=mask_filename, mode="r") as fhandle:
                     self._darkcal = fhandle[mask_hdf5_path]
-            except OSError:
+            except OSError as exc:
                 raise_from(
                     exc=RuntimeError(
                         "Error reading the {} HDF5 file.".format(mask_filename)
                     ),
-                    cause=None,
+                    cause=exc,
                 )
         else:
             # True here is equivalent to an all-ones mask.
@@ -107,7 +107,7 @@ class DarkCalCorrection(object):
                     exc=RuntimeError(
                         "Error reading the {} HDF5 file.".format(mask_filename)
                     ),
-                    cause=None,
+                    cause=exc,
                 )
         else:
             # True here is equivalent to an all-ones map.

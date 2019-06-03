@@ -25,6 +25,8 @@ import os.path
 import numpy
 from future.utils import raise_from
 
+from onda.utils import data_event, dynamic_import
+
 
 ############################
 #                          #
@@ -84,14 +86,38 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         Dict: A dictionary containing the metadata and data of an event
         (1 event = 1file).
     """
-    del monitor_params
+    event_handling_functions = dynamic_import.get_event_handling_funcs(monitor_params)
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
+
+    event = data_event.DataEvent(
+        event_handling_funcs=event_handling_functions,
+        data_extraction_funcs=data_extraction_functions,
+    )
+
+    # Fills required frameworks info.
+    if "beam_energy" in data_extraction_functions:
+        event.framework_info["beam_energy"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="files_fallback_beam_energy_in_eV",
+            type_=float,
+            required=True,
+        )
+
+    if "detector_distance" in data_extraction_functions:
+        event.framework_info["detector_distance"] = monitor_params.get_param(
+            section="DataRetrievalLayer",
+            parameter="files_fallback_detector_distance_in_mm",
+            type_=float,
+            required=True,
+        )
+
     try:
         with open(source, "r") as fhandle:
             filelist = fhandle.readlines()
-    except (IOError, OSError):
+    except (IOError, OSError) as exc:
         raise_from(
             exc=RuntimeError("Error reading the {} source file.".format(source)),
-            cause=None,
+            cause=exc,
         )
 
     # Computes how many files the current worker node should process. Splits the files
@@ -106,10 +132,79 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
     for entry in files_curr_node:
         stripped_entry = entry.strip()
-        event = {"full_path": stripped_entry}
+        event.framework_info["full_path"] = stripped_entry
 
         # File modification time is used as a first approximation of the timestamp
         # when the timestamp is not available.
-        event["timestamp"] = os.stat(stripped_entry).st_mtime
-
+        event.framework_info["file_creation_time"] = (
+            os.stat(stripped_entry).st_mtime
+        )
         yield event
+
+
+#############################
+#                           #
+# DATA EXTRACTION FUNCTIONS #
+#                           #
+#############################
+
+
+def timestamp(event):
+    """
+    Timestamp for detector file data.
+
+    Files written by the detectors don't usually contain timestamp information.
+    The creation date and time of the file is taken as timestamp of the event.
+
+    Args:
+
+        event (Dict): a dictionary with the event data.
+
+    Returns:
+
+        numpy.float64: the timestamp of the event.
+    """
+    # Returns the file creation time previously stored in the event.
+    return event.framework_info["file_creation_time"]
+
+
+def beam_energy(event):
+    """
+    Retrieves the beam energy for detector file data.
+
+    Files written by the detectors don't usually contain beam energy information.
+    The value is taken from the configuration file, specifically from the
+    'files_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
+
+    Args:
+
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
+
+    Returns:
+
+        float: the energy of the beam in eV.
+    """
+    # Returns the value previously stored in the event.
+    return event.framework_info["beam_energy"]
+
+
+def detector_distance(event):
+    """
+    Retrieves the detector distance for detector file data.
+
+    Files written by the detectors don't usually contain detector distance information.
+    The value is taken from the configuration file, specifically from the
+    'files_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer' section.
+
+    Args:
+
+        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
+            data event.
+
+    Returns:
+
+        float: the distance between the detector and the sample in mm.
+    """
+    # Returns the value previously stored in the event.
+    return event.framework_info["detector_distance"]

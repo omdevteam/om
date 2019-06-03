@@ -94,10 +94,10 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     try:
         hostname = source_parts[0]
         port = source_parts[1]
-    except IndexError:
+    except IndexError as exc:
         raise_from(
             exc=exceptions.InvalidSource("Invalid source format: {}.".format(source)),
-            cause=None,
+            cause=exc,
         )
 
     data_label = monitor_params.get_param(

@@ -117,12 +117,12 @@ class Peakfinder8PeakDetection(object):
         try:
             with h5py.File(name=bad_pixel_map_filename, mode="r") as fhandle:
                 loaded_mask = fhandle[bad_pixel_map_hdf5_path][:]
-        except OSError:
+        except OSError as exc:
             raise_from(
-                RuntimeError(
+                exc=RuntimeError(
                     "Error reading the {} HDF5 file.".format(bad_pixel_map_filename)
                 ),
-                None,
+                cause=exc,
             )
 
         res_mask = numpy.ones(shape=loaded_mask.shape, dtype=numpy.int8)

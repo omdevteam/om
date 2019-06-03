@@ -192,12 +192,12 @@ def get_event_handling_funcs(monitor_params):
     ]:
         try:
             event_handl_func_dict[func_name] = getattr(data_ret_layer, func_name)
-        except AttributeError:
+        except AttributeError as exc:
             raise_from(
                 exc=exceptions.MissingEventHandlingFunction(
                     "Event handling function {0} is not defined.".format(func_name)
                 ),
-                cause=None,
+                cause=exc,
             )
 
     return event_handl_func_dict
@@ -235,12 +235,12 @@ def get_data_extraction_funcs(monitor_params):
     for func_name in data_extraction_funcs:
         try:
             data_ext_func_dict[func_name] = getattr(data_ret_layer, func_name)
-        except AttributeError:
+        except AttributeError as exc:
             raise_from(
                 exc=exceptions.MissingDataExtractionFunction(
                     "Data extraction function {0} not defined".format(func_name)
                 ),
-                cause=None,
+                cause=exc,
             )
 
     return data_ext_func_dict
@@ -290,13 +290,13 @@ def get_psana_det_interface_funcs(monitor_params):
             psana_interface_func_dict[func_name] = getattr(
                 data_ret_layer, func_name + "_init"
             )
-        except AttributeError:
+        except AttributeError as exc:
             raise_from(
                 exc=exceptions.MissingPsanaInitializationFunction(
                     "Psana Detector interface initialization function {} "
                     "not defined".format(func_name)
                 ),
-                cause=None,
+                cause=exc,
             )
 
     return psana_interface_func_dict

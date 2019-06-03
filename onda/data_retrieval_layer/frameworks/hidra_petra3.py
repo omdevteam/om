@@ -141,7 +141,7 @@ def initialize_event_source(source, mpi_pool_size, monitor_params):
     except hidra_api.transfer.CommunicationFailed as exc:
         raise_from(
             exc=exceptions.HidraAPIError("Failed to contact HiDRA: {0}".format(exc)),
-            cause=None,
+            cause=exc,
         )
 
     return hidra_info
@@ -172,7 +172,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         Dict: A dictionary containing the metadata and data of an event
         (1 event = 1file).
     """
-
     event_handling_functions = dynamic_import.get_event_handling_funcs(monitor_params)
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
 
@@ -215,7 +214,7 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     except hidra_api.transfer.CommunicationFailed as exc:
         raise_from(
             exc=exceptions.HidraAPIError("Failed to contact HiDRA: {0}".format(exc)),
-            cause=None,
+            cause=exc,
         )
 
     while True:

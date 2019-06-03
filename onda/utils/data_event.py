@@ -20,6 +20,7 @@ Structure used to store retrieved events.
 """
 from __future__ import absolute_import, division, print_function
 
+import sys
 import types
 
 from future.utils import iteritems
@@ -82,10 +83,11 @@ class DataEvent(object):
                 data[f_name] = func(self)
         # One should never do the following, but it is not possible to anticipate
         # every possible error raised by the facility frameworks.
-        except Exception as exc:
+        except Exception:
+            exc_type, exc_value = sys.exc_info()[:2]
             raise exceptions.DataExtractionError(
                 "OnDA Warning: Cannot interpret {0} event data due to the following "
-                "error: {1}".format(func.__name__, exc)
+                "error: {1}: {2}".format(func.__name__, exc_type.__name__, exc_value)
             )
 
         return data

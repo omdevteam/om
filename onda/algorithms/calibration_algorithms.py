@@ -47,12 +47,12 @@ class SingleModuleLambdaCalibration(object):
         try:
             with h5py.File(name=calibration_filename, mode="r") as fhandle:
                 self._flatfield = fhandle["/flatfield"]
-        except OSError:
+        except OSError as exc:
             raise_from(
-                RuntimeError(
+                exc=RuntimeError(
                     "Error reading the {} HDF5 file.".format(calibration_filename)
                 ),
-                None,
+                cause=exc,
             )
 
     def apply_calibration(self, data):
@@ -95,13 +95,12 @@ class Agipd1MCalibration(object):
                 self._offset = fhandle["/AnalogOffset"][:]
                 self._digital_gain = fhandle["/DigitalGainLevel"][:]
                 self._relative_gain = fhandle["/RelativeGain"][:]
-
-        except OSError:
+        except OSError as exc:
             raise_from(
-                RuntimeError(
+                exc=RuntimeError(
                     "Error reading the {} HDF5 file.".format(calibration_filename)
                 ),
-                None,
+                cause=exc,
             )
 
     def apply_calibration(self, data):
