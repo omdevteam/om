@@ -21,6 +21,8 @@ monitor configuration files.
 """
 from __future__ import absolute_import, division, print_function
 
+import tomlkit
+from future.utils import raise_from
 from past.builtins import basestring
 
 from onda.utils import exceptions
@@ -47,16 +49,23 @@ class MonitorParams(object):
             the parameter in the configuration file.
     """
 
-    def __init__(self, param_dictionary):
+    def __init__(self, config):
         """
         Initializes the MonitorParams class.
 
         Args:
 
-            param_dictionary (Dict): a dictionary containing the parameters from a
-                configuration file, as returned by the :obj:`toml` python module.
+            config (List): the lines read from the configuration file.
         """
-        self._monitor_params = param_dictionary
+        try:
+            self._monitor_params = tomlkit.parse("".join(config))
+        except tomlkit.exceptions.TOMLKitError as exc:
+            raise_from(
+                exc=exceptions.ConfigFileSyntaxError(
+                    "Syntax error in the configuration file: {0}".format(exc)
+                ),
+                cause=exc,
+            )
 
     def get_param(self, section, parameter, type_=None, required=False):
         """
@@ -133,3 +142,14 @@ class MonitorParams(object):
                 return ret
             else:
                 return ret
+
+    def get_all_parameters(self):
+        """
+        Returns the whole set of parameters read from the configuration file.
+
+        Returns:
+
+            Dict: a dictionary containing the parameters read from the configuration
+            file.
+        """
+        return self._monitor_params
