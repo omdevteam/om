@@ -107,12 +107,18 @@ setup(
         "monitor-cbf": ["fabio>=0.6.0"],
         "monitor-psana": ["psana>=1.3.54"],
     },
-    scripts=[
-        "bin/onda_crystallography_gui.py",
-        "bin/onda_crystallography_hit_viewer.py",
-        "bin/onda_mll_gui.py",
-        "bin/onda_monitor.py",
-    ],
+    entry_points={
+        "console_scripts":[
+            "onda_monitor.py=onda.monitor:onda_monitor",
+        ],
+        "gui_scripts": [
+            "onda_crystallography_gui.py=onda.graphical_interfaces."
+            "crystallography_gui.py",
+            "onda_crystallography_frame_viewer.py=onda.graphical_interfaces."
+            "crystallography_frame_viewer.py",
+        ]
+
+    },
     ext_modules=extensions,
     packages=[
         "onda",
