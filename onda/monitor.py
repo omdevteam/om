@@ -19,60 +19,59 @@ Main OnDA monitor function.
 """
 from __future__ import absolute_import, division, print_function
 
-import argparse
 import sys
+
+import click
 
 from onda.utils import dynamic_import, exceptions, parameters
 
 
-def main():
+@click.command()
+@click.option(
+    "--config",
+    "-c",
+    default="monitor.ini",
+    type=click.Path(),
+    help="configuration file (default: monitor.ini file in the current working "
+         "directory"
+)
+@click.option(
+    "--debug",
+    "-d",
+    default=False,
+    type=bool,
+    is_flag=True,
+    help="Disable custom OnDA error handler"
+)
+@click.argument('source', type=str)
+def onda_monitor(source, config, debug):
     """
-    Main OnDA monitor function.
+    OnDA monitor. This script starts a monitor based on the provided configuration
+    file. When the 'mpi' Parallelization Layer is used, this script should be launched
+    using the 'mpirun' or 'mpiexec' commands. The script accepts the following
+    arguments:
+
+    SOURCE: the source of data for the OnDA monitor. The exact format of this string
+    depends on the Data Extraction Layer used by the specific monitor instance (see
+    documentation).
     """
-
-    parser = argparse.ArgumentParser(
-        prog="mpirun [MPI OPTIONS] onda.py", description="OnDA - Online Data Analysis"
-    )
-    parser.add_argument(
-        "source", type=str, help="data source (file list, psana source string, etc.)"
-    )
-    parser.add_argument(
-        "-i",
-        "--ini",
-        type=str,
-        default="monitor.ini",
-        help=(
-            "monitor.ini file (default: monitor.ini file in the current working"
-            "directory"
-        ),
-    )
-    parser.add_argument(
-        "-d",
-        "--debug",
-        action="store_true",
-        help=(
-            "Disable custom OnDA error handle"
-        ),
-    )
-    args = parser.parse_args()
-
     # Sets a custom exception handler to deal with OnDA-specific exceptions.
-    if args.debug is False:
+    if debug is False:
         sys.excepthook = exceptions.onda_exception_handler
 
     try:
-        with open(args.ini, "r") as config_file_handle:
+        with open(config, "r") as config_file_handle:
             config = config_file_handle.readlines()
     except IOError:
         # Raises an exception if the file cannot be opened or read.
         raise exceptions.ConfigFileReadingError(
-            "Cannot open or read the configuration file {0}".format(args.ini)
+            "Cannot open or read the configuration file {0}".format(config)
         )
     monitor_parameters = parameters.MonitorParams(config)
 
     processing_layer = dynamic_import.import_processing_layer(monitor_parameters)
 
     monitor = processing_layer.OndaMonitor(
-        source=args.source, monitor_parameters=monitor_parameters
+        source=source, monitor_parameters=monitor_parameters
     )
     monitor.start()

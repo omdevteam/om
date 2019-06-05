@@ -17,6 +17,6 @@
 """
 Executable that launches the OnDA Crystallography Hit Viewer.
 """
-from onda.graphical_interfaces import crystallography_hit_viewer
+import onda.graphical_interfaces.crystallography_frame_viewer as frame_viewer
 
-crystallography_hit_viewer.main()
+frame_viewer.main()    # pylint: disable=no-value-for-parameter

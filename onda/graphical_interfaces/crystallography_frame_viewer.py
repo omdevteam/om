@@ -23,19 +23,21 @@ import copy
 import signal
 import sys
 
+import cfelpyutils.crystfel_utils as cfel_crystfel
+import cfelpyutils.geometry_utils as cfel_geometry
+import click
 import numpy
 import pyqtgraph
-from cfelpyutils import crystfel_utils, geometry_utils
 
-from onda.utils import gui
+import onda.utils.gui as onda_gui
 
 try:
-    from PyQt5 import QtGui
+    import PyQt5.QtGui as QtGui
 except ImportError:
-    from PyQt4 import QtGui
+    import PyQt4.QtGui as QtGui
 
 
-class CrystallographyHitViewer(gui.OndaGui):
+class CrystallographyHitViewer(onda_gui.OndaGui):
     """
     Hit Viewer for OnDA Crystallography.
 
@@ -70,12 +72,12 @@ class CrystallographyHitViewer(gui.OndaGui):
 
         # The following information will be used later to create the arrays that will
         # store the assembled detector images.
-        pixel_maps = geometry_utils.compute_pix_maps(geometry)
-        self._img_shape = geometry_utils.compute_min_array_size(pixel_maps)
+        pixel_maps = cfel_geometry.compute_pix_maps(geometry)
+        self._img_shape = cfel_geometry.compute_min_array_size(pixel_maps)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
 
-        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(geometry)
+        visual_pixel_map = cfel_geometry.compute_visualization_pix_maps(geometry)
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
@@ -92,10 +94,10 @@ class CrystallographyHitViewer(gui.OndaGui):
         pyqtgraph.setConfigOption("background", 0.2)
 
         # Initializes widget used to draw the peaks.
-        self._peak_widget = gui.OndaScatterPlotWidget(symbol="o", color="r")
+        self._peak_widget = onda_gui.OndaScatterPlotWidget(symbol="o", color="r")
 
         # Initializes the widget that will display the detector image.
-        self._image_widget = gui.OndaImageWidget()
+        self._image_widget = onda_gui.OndaImageWidget()
         self._image_widget.set_scatter_plot_overlays(self._peak_widget)
 
         # Initializes the 'forward', 'back' and 'play/pause' buttons.
@@ -213,34 +215,35 @@ class CrystallographyHitViewer(gui.OndaGui):
         else:
             self._start_stream()
 
-
-def main():
+@click.command()
+@click.argument("geometry_file", type=click.Path())
+@click.argument("hostname", type=str, required=False)
+@click.argument("port", type=int, required=False)
+def main(geometry_file, hostname, port):
     """
-    Starts the hit viewer for OnDA Crystallography.
+    OnDA frame viewer for crystallography. This script starts a frame viewer and tries
+    to connect to a running OnDA monitor. The script accepts the following arguments:
 
-    Initializes and starts the Hit Viewer for OnDA Crystallography.
-    Manages command line arguments, loads the geometry and instantiates
-    the graphical interface.
+    GEOMETRY_FILE:  the full path to a file containing the geometry information to be
+    used for data visualization.
+
+    HOSTNAME: the hostname where the monitor is running. Optional: if not provided,
+    it defaults to localhost (127.0.0.1).
+
+    PORT: the port on HOSTNAME where the monitor is running. Optional: if not
+    provided, it defaults to 12321.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    if len(sys.argv) == 2:
-        geom_filename = sys.argv[1]
-        rec_ip = "127.0.0.1"
-        rec_port = 12321
-    elif len(sys.argv) == 4:
-        geom_filename = sys.argv[1]
-        rec_ip = sys.argv[2]
-        rec_port = int(sys.argv[3])
-    else:
-        print(
-            "Usage: fibers_hit_viewer.py geometry_filename <listening ip> "
-            "<listening port>"
-        )
-        sys.exit()
+    if hostname is None:
+        hostname = "127.0.0.1"
+    if port is None:
+        port = 12321
 
-    geometry = crystfel_utils.load_crystfel_geometry(geom_filename)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    geometry = cfel_crystfel.load_crystfel_geometry(geometry_file)
 
     app = QtGui.QApplication(sys.argv)
-    _ = CrystallographyHitViewer(geometry, rec_ip, rec_port)
+    _ = CrystallographyHitViewer(geometry, hostname, port)
     sys.exit(app.exec_())

@@ -135,7 +135,7 @@ def detector_data(event):
 
         ndarray: one frame of detector data.
     """
-    return event["data"]["/entry/instrument/detector/data"][event.current_frame]
+    return event.data["/entry/instrument/detector/data"][event.current_frame]
 
 
 def event_id(event):

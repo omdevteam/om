@@ -22,20 +22,24 @@ import collections
 import signal
 import sys
 
+import cfelpyutils.crystfel_utils as cfel_crystfel
+import cfelpyutils.geometry_utils as cfel_geometry
+import click
 import numpy
 import pyqtgraph
-from cfelpyutils import crystfel_utils, geometry_utils
-from scipy import constants
+import scipy.constants
 
-from onda.utils import gui
+import onda.utils.gui as onda_gui
 
 try:
-    from PyQt5 import QtCore, QtGui
+    import PyQt5.QtCore as QtCore
+    import PyQt5.QtGui as QtGui
 except ImportError:
-    from PyQt4 import QtCore, QtGui
+    import PyQt4.QtCore as QtCore
+    import PyQt4.QtGui as QtGui
 
 
-class CrystallographyGui(gui.OndaGui):
+class CrystallographyGui(onda_gui.OndaGui):
     """
     GUI for OnDA crystallography.
 
@@ -78,15 +82,15 @@ class CrystallographyGui(gui.OndaGui):
 
         self._local_data = None
 
-        pixel_maps = geometry_utils.compute_pix_maps(geometry)
+        pixel_maps = cfel_geometry.compute_pix_maps(geometry)
 
         # The following information will be used later to create the arrays that will
         # store the assembled detector images.
-        self._img_shape = geometry_utils.compute_min_array_size(pixel_maps)
+        self._img_shape = cfel_geometry.compute_min_array_size(pixel_maps)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
 
-        visual_pixel_map = geometry_utils.compute_visualization_pix_maps(geometry)
+        visual_pixel_map = cfel_geometry.compute_visualization_pix_maps(geometry)
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
 
@@ -139,17 +143,20 @@ class CrystallographyGui(gui.OndaGui):
         )
         self._resolution_rings_lineedit.setEnabled(True)
 
-        self._resolution_rings_widget = gui.OndaScatterPlotWidget(symbol="o", color="w")
+        self._resolution_rings_widget = onda_gui.OndaScatterPlotWidget(
+            symbol="o",
+            color="w"
+        )
 
         self._last_beam_energy = None
         self._last_detector_distance = None
 
         # Initializes the image viewer.
-        self._image_widget = gui.OndaImageWidget(axes_visible=True)
+        self._image_widget = onda_gui.OndaImageWidget(axes_visible=True)
         self._image_widget.set_scatter_plot_overlays(self._resolution_rings_widget)
 
         # Initializes the hit rate plot widget.
-        self._hit_rate_widget = gui.OndaPlotWidget(
+        self._hit_rate_widget = onda_gui.OndaPlotWidget(
             data=(range(-10000, 0), self._hitrate_history),
             grid_shown=True,
             plot_title="Hit Rate vs. Events",
@@ -160,7 +167,7 @@ class CrystallographyGui(gui.OndaGui):
         )
 
         # Initializes the saturation rate plot widget.
-        self._saturation_widget = gui.OndaPlotWidget(
+        self._saturation_widget = onda_gui.OndaPlotWidget(
             data=(range(-10000, 0), self._satrate_history),
             grid_shown=True,
             plot_title="Fraction of hits with too many saturated peaks",
@@ -245,7 +252,7 @@ class CrystallographyGui(gui.OndaGui):
                 return
 
         try:
-            lambda_ = constants.h * constants.c / curr_beam_energy
+            lambda_ = scipy.constants.h * scipy.constants.c / curr_beam_energy
             resolution_rings_in_pix = [1.0]
             resolution_rings_in_pix.extend(
                 [
@@ -358,33 +365,33 @@ class CrystallographyGui(gui.OndaGui):
         # Resets local_data so that the same data is not processed multiple times.
         self._local_data = []
 
-
-def main():
+@click.command()
+@click.argument("geometry_file", type=click.Path())
+@click.argument("hostname", type=str, required=False)
+@click.argument("port", type=int, required=False)
+def main(geometry_file, hostname, port):
     """
-    Starts the GUI for OnDA Crystallography,
+    OnDA GUI for crystallography. This script starts a GUI and tries to connect to a
+    running OnDA monitor. The script accepts the following arguments:
 
-    Initializes and starts the GUI for OnDA Crystallography. Manages command line
-    arguments, loads the geometry and instantiates the graphical interface.
+    GEOMETRY_FILE:  the full path to a file containing the geometry information to be
+    used for data visualization.
+
+    HOSTNAME: the hostname where the monitor is running. Optional: if not provided,
+    it defaults to localhost (127.0.0.1).
+
+    PORT: the port on HOSTNAME where the monitor is running. Optional: if not
+    provided, it defaults to 12321.
     """
+    if hostname is None:
+        hostname = "127.0.0.1"
+    if port is None:
+        port = 12321
+
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    if len(sys.argv) == 2:
-        geom_filename = sys.argv[1]
-        rec_ip = "127.0.0.1"
-        rec_port = 12321
-    elif len(sys.argv) == 4:
-        geom_filename = sys.argv[1]
-        rec_ip = sys.argv[2]
-        rec_port = int(sys.argv[3])
-    else:
-        print(
-            "Usage: onda-crystallography-gui.py geometry_filename <listening ip> "
-            "<listening port>"
-        )
-        sys.exit()
-
-    geometry = crystfel_utils.load_crystfel_geometry(geom_filename)
+    geometry = cfel_crystfel.load_crystfel_geometry(geometry_file)
 
     app = QtGui.QApplication(sys.argv)
-    _ = CrystallographyGui(geometry, rec_ip, rec_port)
+    _ = CrystallographyGui(geometry, hostname, port)
     sys.exit(app.exec_())

@@ -17,6 +17,6 @@
 """
 Executable that launches the OnDA Crystallography GUI.
 """
-from onda.graphical_interfaces import crystallography_gui
+import onda.graphical_interfaces.crystallography_gui as gui
 
-crystallography_gui.main()
+gui.main()   # pylint: disable=no-value-for-parameter
