@@ -15,6 +15,4 @@
 # a research centre of the Helmholtz Association.
 """
 Parallelization layer.
-
-Parallelization engines used by OnDA.
 """

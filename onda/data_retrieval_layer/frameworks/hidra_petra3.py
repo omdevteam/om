@@ -14,23 +14,30 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of events from HiDRA.
-
-Functions and classes used to retrieve data events from HidDRA.
+Retrieval of events from HiDRA at Petra III.
 """
 from __future__ import absolute_import, division, print_function
 
 import os.path
 import socket
 import sys
+from typing import Generator  # pylint: disable=unused-import
 
 from future.utils import raise_from
 
-from onda.data_retrieval_layer.frameworks import hidra_api
-from onda.utils import data_event, dynamic_import, exceptions, named_tuples
+from onda.utils import (  # pylint: disable=unused-import
+    data_event,
+    dynamic_import,
+    exceptions,
+    named_tuples,
+    parameters,
+)
+from . import hidra_api
 
 
 def _create_hidra_info(source, mpi_pool_size, monitor_params):
+    # type: (str, int, parameters.MonitorParams) -> named_tuples.HidraInfo
+
     # Creates the HidraInfo object needed to initialize the HiDRA event source.
 
     # Reads the requested transfer type from the configuration file. If it is not
@@ -41,7 +48,6 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
     )
     if transfer_type is None:
         transfer_type = dynamic_import.get_hidra_transfer_type(monitor_params)
-
     if transfer_type == "data":
         # If the transfer type is data-based, requests the latest event with full
         # data, and sets the data base path to an empty path, because HiDRA will
@@ -49,7 +55,6 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
         query_text = "QUERY_NEXT"
         data_base_path = ""
     elif transfer_type == "metadata":
-
         # If the transfer type is metadata-based, requests the latest event with
         # metadata only and reads the data base path from the configuration file:
         # HiDRA will only provide the path to the file relative to the base data path.
@@ -94,7 +99,6 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
             hidra_selection_string,
         ]
         targets.append(target_entry)
-
     query = hidra_api.Transfer(
         connection_type=query_text, signal_host=source, use_log=False
     )
@@ -112,75 +116,112 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
 
 
 def initialize_event_source(source, mpi_pool_size, monitor_params):
+    # type: (str, int, parameters.MonitorParams) -> None
     """
-    Initializes the HiDRA event source.
+    Initializes the HiDRA event source at Petra III.
 
-    This function must be called on the master node before the :obj:`event_generator`
+    This function must be called on the master node before the :func:`event_generator`
     function is called on the worker nodes.
 
-    Args:
+    Arguments:
 
-        source (str): the IP address or hostname of the machine where HiDRA is
-            running.
+        source (str): the hostname or ip address of the machine where HiDRA is running.
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
+
+    Raises:
+
+        :class:`~onda.utils.exceptions.OndaHidraAPIError`: if the initial connection to
+            HiDRA fails.
     """
     print("Announcing OnDA to HiDRA.")
     sys.stdout.flush()
-
     hidra_info = _create_hidra_info(
         source=source, mpi_pool_size=mpi_pool_size, monitor_params=monitor_params
     )
-
     try:
         hidra_info.query.initiate(hidra_info.targets[1:])
     except hidra_api.transfer.CommunicationFailed as exc:
         raise_from(
-            exc=exceptions.HidraAPIError("Failed to contact HiDRA: {0}".format(exc)),
+            exc=exceptions.OndaHidraAPIError(
+                "Failed to contact HiDRA: {0}".format(exc)
+            ),
             cause=exc,
         )
 
     return hidra_info
 
 
-def event_generator(source, node_rank, mpi_pool_size, monitor_params):
+def event_generator(
+    source,  # type: str
+    node_rank,  # type: int
+    node_pool_size,  # type: int
+    monitor_params,  # type: parameters.MonitorParams
+):
+    # type: (...) -> Generator[data_event.DataEvent]
     """
-    Initializes the recovery of events from HiDRA.
+    Retrieves from HiDRA at Petra III events to process.
 
-    Returns an iterator over the events that should be processed by the worker that
-    calls the function. This function must be called on each worker node after the
-    :obj:`initialize_event_source` function has been called on the master node.
+    This function must be called on each worker node after the
+    :func:`initialize_event_source` function has been called on the master node.
+    The function is a generator and it returns an iterator over the events that the
+    calling worker must process.
 
-    Args:
 
-        source (str): ip address or hostname of the machine where HiDRA is running.
+    Arguments:
 
-        node_rank (int): rank of the node where the function is called.
+        source (str): the hostname or ip address of the machine where HiDRA is running.
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_rank (int): the rank, in the OnDA pool, of the worker node calling the
+            function.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
+
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Yields:
 
-        Dict: A dictionary containing the metadata and data of an event
-        (1 event = 1file).
-    """
-    event_handling_functions = dynamic_import.get_event_handling_funcs(monitor_params)
-    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
+        :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
 
+    Raises:
+
+        :class:`~onda.utils.exceptions.OndaHidraAPIError`: if the initial connection to
+            HiDRA fails.
+    """
+    data_retrieval_layer_filename = monitor_params.get(
+        section="Onda",
+        parameter="data_retrieval_layer",
+        type_=list,
+        required=True,
+    )
+    data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
+        data_retrieval_layer_filename=data_retrieval_layer_filename
+    )
+    required_data = monitor_params.get(
+        section="Onda",
+        parameter="required_data",
+        type_=list,
+        required=True,
+    )
+    event_handling_functions = dynamic_import.get_event_handling_funcs(
+        data_retrieval_layer=data_retrieval_layer
+    )
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(
+        required_data=required_data,
+        data_retrieval_layer=data_retrieval_layer,
+    )
     event = data_event.DataEvent(
         event_handling_funcs=event_handling_functions,
         data_extraction_funcs=data_extraction_functions,
     )
 
-    # Fills required frameworks info.
+    # Fills the framework info with static data that will be retrieved later.
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -188,7 +229,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             type_=float,
             required=True,
         )
-
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -197,23 +237,23 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             required=True,
         )
 
+    # Creates the hidra_info object and connect to HiDRA.
     hidra_info = _create_hidra_info(
-        source=source, mpi_pool_size=mpi_pool_size, monitor_params=monitor_params
+        source=source, mpi_pool_size=node_pool_size, monitor_params=monitor_params
     )
-
     print(
         "Worker {0} listening at port {1}".format(
             node_rank, hidra_info.targets[node_rank][1]
         )
     )
-
     sys.stdout.flush()
-
     try:
         hidra_info.query.start(hidra_info.targets[node_rank][1])
     except hidra_api.transfer.CommunicationFailed as exc:
         raise_from(
-            exc=exceptions.HidraAPIError("Failed to contact HiDRA: {0}".format(exc)),
+            exc=exceptions.OndaHidraAPIError(
+                "Failed to contact HiDRA: {0}".format(exc)
+            ),
             cause=exc,
         )
 
@@ -226,9 +266,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             recovered_metadata["relative_path"],
             recovered_metadata["filename"],
         )
-
-        # File creation date is used as a first approximation of the
-        # timestamp when the timestamp is not available.
         event.framework_info["file_creation_time"] = recovered_metadata[
             "file_create_time"
         ]
@@ -244,37 +281,39 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
 
 def timestamp(event):
+    # type: (data_event.DataEvent) -> numpy.float64
     """
-    Timestamp of an event retrieved from HiDRA at Petra III.
+    Gets the timestamp of an event retrieved from HiDRA at Petra III
 
-    Extracts the timestamp of an event retrieved from HiDRA at the Petra III facility
-    (1 event = 1 file, and when the timestamp is not otherwise available, the creation
-    data of the file is taken as timestamp of the event).
+    A HiDRA event usually corresponds to a single data file written by a detector. The
+    creation date and time of the file is used as timestamp for the event.
 
-    Args:
+    Arguments:
 
-        event (Dict): a dictionary with the event data.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        numpy.float64: the timestamp of the event.
+        numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
     return event.framework_info["file_creation_time"]
 
 
 def beam_energy(event):
+    # type: (data_event.DataEvent) -> float
     """
-    Retrieves the beam energy from Karabo.
+    Gets the beam energy for an event retrieved from HiDRA at Petra III.
 
-    HiDRA does not currently provide information about the beam energy. The value is
-    taken from the configuration file, specifically fromt the
+    HiDRA events do not usually contain beam energy information. This function takes
+    the beam energy value from the configuration file, specifically from the
     'hidra_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
@@ -285,21 +324,23 @@ def beam_energy(event):
 
 
 def detector_distance(event):
+    # type: (data_event.DataEvent) -> float
     """
-    Retrieves the detector distance from Karabo.
+    Gets the detector distance for an event retrieved from HiDRA at Petra III.
 
-    HiDRA does not currently provide information about the detector distance. The value
-    is taken from the configuration file, specifically fromt the
-    'hidra_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer' section.
+    HiDRA events don't usually contain detector distance information. This function
+    takes it from the configuration file, specifically from the
+    'hidra_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
+    section.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        float: the distance between the detector and the sample in mm.
+        float: the detector distance in mm.
     """
     # Returns the value previously stored in the event.
     return event.framework_info["detector_distance"]

@@ -14,62 +14,59 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA Monitor for serial x-ray crystallography.
-
-An OnDA real-time monitor for serial x-ray crystallography experiments.
+OnDA monitor for crystallography.
 """
 from __future__ import absolute_import, division, print_function
 
 import collections
 import sys
 import time
+from typing import Dict, Any  # pylint: disable=unused-import
 
 from cfelpyutils import crystfel_utils, geometry_utils
 
-from onda.algorithms import calibration_algorithms as calib_algs
-from onda.algorithms import crystallography_algorithms as cryst_algs
-from onda.algorithms import generic_algorithms as gen_algs
+from onda.algorithms import (
+    calibration_algorithms as calib_algs,
+    crystallography_algorithms as cryst_algs,
+    generic_algorithms as gen_algs,
+)
 from onda.parallelization_layer import mpi
-from onda.utils import named_tuples
-from onda.utils import zmq as onda_zmq
-from onda.utils.dynamic_import import get_peakfinder8_info
+from onda.utils import (  # pylint: disable=unused-import
+    dynamic_import,
+    named_tuples,
+    parameters,
+    data_transmission,
+)
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
     """
-    An OnDA real-time monitor for serial crystallography experiments.
-
-    This monitor provides real time hit and saturation rate information, along with
-    information about peaks detected in each detector frame. Optionally, it applies
-    detector calibration, dark calibration and gain map correction to each frame.
-
-    It uses the peakfinder8 algorithm from the Cheetah software package to detect
-    peaks:
-
-    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White, and
-    H. N. Chapman, "Cheetah: software for high-throughput reduction and analysis of
-    serial femtosecond X-ray diffraction data," J Appl Crystallogr, vol. 47,
-    pp. 1118-1131 (2014).
-
-    The monitor broadcasts hit, saturation and peak data for visualization.
-    Optionally, it can also broadcast corrected detector frames.
+    See documentation for the '__init__' function.
     """
 
     def __init__(self, source, monitor_parameters):
+        # type: (str, params.MonitorParams) -> None
         """
-        Initializes the OndaMonitor class.
+        An OnDA real-time monitor for serial crystallography experiments.
 
-        Args:
+        This monitor processes detector data frames, optionally applying detector
+        calibration, dark correction and gain correction. It detects Bragg peaks in
+        each detector frame using the peakfinder8 algorithm from Cheetah, providing
+        information about the location and intergrated intensity of each peak.
+        Additionally, it calculates the evolution of the hit and saturation rates over
+        time. It broadcasts all this information over a network socket for
+        visualization by other programs. Optionally, it can also broadcast calibrated
+        and corrected detector data frames.
 
-            source (str): A string describing the data source. The exact format of the
-                string depends on the data recovery layer used by the monitor (e.g:
-                the string could be a psana experiment descriptor at the LCLS
-                facility, information on where HiDRA is running at the Petra III
-                facility, etc.).
+        Arguments:
 
-            monitor_params (MonitorParams): a
-                :obj:`~onda.utils.parameters.MonitorParams` object
-                containing the monitor parameters from the configuration file.
+            source (str): a string describing the data source. The exact format of the
+                string depends on the specific Data Recovery Layer currently being used
+                by the OnDA monitor. See the documentation of the relevant
+                'initialize_event_source' function).
+
+            monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+                storing the OnDA monitor parameters from the configuration file.
         """
         super(OndaMonitor, self).__init__(
             process_func=self.process_data,
@@ -79,15 +76,14 @@ class OndaMonitor(mpi.ParallelizationEngine):
         )
 
         if self.role == "worker":
-            requested_calib_alg = monitor_parameters.get_param(
+            requested_calibration_algorithm = monitor_parameters.get_param(
                 section="DetectorCalibration",
                 parameter="calibration_algorithm",
                 type_=str,
             )
-            if requested_calib_alg is not None:
-                calibration_alg_class = getattr(calib_algs, requested_calib_alg)
-
-                self._calibration_alg = calibration_alg_class(
+            if requested_calibration_algorithm is not None:
+                calibration_alg = getattr(calib_algs, requested_calibration_algorithm)
+                self._calibration = calibration_alg(
                     calibration_file=monitor_parameters.get_param(
                         section="DetectorCalibration",
                         parameter="calibration_file",
@@ -100,63 +96,45 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 # attribute.
                 self._calibration_alg = None
 
-            # Initializes the non_hit_frame_sending_counter and the
-            # hit_frame_sending_counter to keep track of how often the detector frame
-            # data needs to be sent to the master worker.
             self._hit_frame_sending_counter = 0
             self._non_hit_frame_sending_counter = 0
 
-            # Reads from the configuration file all the parameters needed to
-            # instantiate the dark calibration correction algorithm, then instatiates
-            # the algorithm.
-            dark_cal_fname = monitor_parameters.get_param(
-                section="DarkCalCorrection",
-                parameter="filename",
-                type_=str,
-                required=True,
+            dark_data_filename = monitor_parameters.get_param(
+                section="Correction", parameter="dark_filename", type_=str
             )
-            dark_cal_hdf5_pth = monitor_parameters.get_param(
-                section="DarkCalCorrection",
-                parameter="hdf5_path",
-                type_=str,
-                required=True,
+            dark_data_hdf5_path = monitor_parameters.get_param(
+                section="Correction", parameter="dark_hdf5_path", type_=str
             )
-            dark_cal_mask_fname = monitor_parameters.get_param(
+            mask_filename = monitor_parameters.get_param(
                 section="DarkCalCorrection", parameter="mask_filename", type_=str
             )
-            dark_cal_mask_hdf5_pth = monitor_parameters.get_param(
+            mask_hdf5_path = monitor_parameters.get_param(
                 section="DarkCalCorrection", parameter="mask_hdf5_path", type_=str
             )
-            dark_cal_gain_map_fname = monitor_parameters.get_param(
-                section="DarkCalCorrection", parameter="gain_map_filename", type_=str
+            gain_map_filename = monitor_parameters.get_param(
+                section="DarkCalCorrection", parameter="gain_filename", type_=str
             )
-            dark_cal_gain_map_hdf5_pth = monitor_parameters.get_param(
-                section="DarkCalCorrection", parameter="gain_map_hdf5_path", type_=str
+            gain_map_hdf5_path = monitor_parameters.get_param(
+                section="DarkCalCorrection", parameter="gain_hdf5_path", type_=str
             )
-            self._dark_cal_corr_alg = gen_algs.DarkCalCorrection(
-                darkcal_filename=dark_cal_fname,
-                darkcal_hdf5_path=dark_cal_hdf5_pth,
-                mask_filename=dark_cal_mask_fname,
-                mask_hdf5_path=dark_cal_mask_hdf5_pth,
-                gain_map_filename=dark_cal_gain_map_fname,
-                gain_map_hdf5_path=dark_cal_gain_map_hdf5_pth,
+            self._correction = gen_algs.Correction(
+                dark_filename=dark_data_filename,
+                dark_hdf5_path=dark_data_hdf5_path,
+                mask_filename=mask_filename,
+                mask_hdf5_path=mask_hdf5_path,
+                gain_filename=gain_map_filename,
+                gain_hdf5_path=gain_map_hdf5_path,
             )
 
-            # Loads the geometry data and computes the pixel maps.
             geometry_filename = monitor_parameters.get_param(
                 section="General", parameter="geometry_file", type_=str, required=True
             )
             geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
             pixelmaps = geometry_utils.compute_pix_maps(geometry)
             radius_pixel_map = pixelmaps.r
-
-            # Recovers the peakfinder8 information for the detectorbeing used.
-            pf8_detector_info = get_peakfinder8_info(
-                monitor_params=monitor_parameters, detector="detector_data"
+            pf8_detector_info = dynamic_import.get_peakfinder8_info(
+                monitor_params=monitor_parameters
             )
-
-            # Reads from the configuration file all the parameters needed to
-            # instantiate the peakfinder8 algorithm. Then instantiates the algorithm.
             pf8_max_num_peaks = monitor_parameters.get_param(
                 section="Peakfinder8PeakDetection",
                 parameter="max_num_peaks",
@@ -217,7 +195,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=str,
                 required=True,
             )
-            self._peakfinder8_peak_det = cryst_algs.Peakfinder8PeakDetection(
+            self._peak_detection = cryst_algs.Peakfinder8PeakDetection(
                 max_num_peaks=pf8_max_num_peaks,
                 asic_nx=pf8_detector_info.asic_nx,
                 asic_ny=pf8_detector_info.asic_ny,
@@ -268,84 +246,83 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
             print("Starting worker: {0}.".format(self.rank))
             sys.stdout.flush()
-
         if self.role == "master":
-
             self._speed_report_interval = monitor_parameters.get_param(
                 section="General",
                 parameter="speed_report_interval",
                 type_=int,
                 required=True,
             )
-
             self._geometry_is_optimized = monitor_parameters.get_param(
                 section="General",
                 parameter="geometry_is_optimized",
                 type_=bool,
                 required=True,
             )
-
-            # Reads from the configuration file how many events should
-            # be accumulated by the master node before broadcasting the
-            # acccumulated data. Then instantiates the data
-            # accumulator.
-            da_num_events_to_accumulate = monitor_parameters.get_param(
+            num_events_to_accumulate = monitor_parameters.get_param(
                 section="DataAccumulator",
                 parameter="num_events_to_accumulate",
                 type_=int,
                 required=True,
             )
             self._data_accumulator = gen_algs.DataAccumulator(
-                num_events_to_accumulate=da_num_events_to_accumulate
+                num_events_to_accumulate=num_events_to_accumulate
+            )
+
+            self._running_average_window_size = monitor_parameters.get_param(
+                section="General",
+                parameter="running_average_window_size",
+                type_=int,
+                required=True,
+            )
+            self._hit_rate_running_window = collections.deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._saturation_rate_running_window = collections.deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._avg_hit_rate = 0
+            self._avg_sat_rate = 0
+
+            broadcast_socket_ip = monitor_parameters.get_param(
+                section="General", parameter="publish_hostname", type_=str
+            )
+            broadcast_socket_port = monitor_parameters.get_param(
+                section="General", parameter="publish_port", type_=int
+            )
+            self._data_broadcast_socket = data_transmission.ZmqDataBroadcaster(
+                hostname=broadcast_socket_ip, port=broadcast_socket_port
             )
 
             self._num_events = 0
             self._old_time = time.time()
             self._time = None
 
-            self._run_avg_wdw_size = monitor_parameters.get_param(
-                section="General",
-                parameter="running_average_window_size",
-                type_=int,
-                required=True,
-            )
-            self._hit_rate_run_wdw = collections.deque(
-                [0.0] * self._run_avg_wdw_size, maxlen=self._run_avg_wdw_size
-            )
-            self._saturation_rate_run_wdw = collections.deque(
-                [0.0] * self._run_avg_wdw_size, maxlen=self._run_avg_wdw_size
-            )
-            self._avg_hit_rate = 0
-            self._avg_sat_rate = 0
-
-            broadcast_socket_ip = monitor_parameters.get_param(
-                section="General", parameter="publish_ip", type_=str
-            )
-            broadcast_socket_port = monitor_parameters.get_param(
-                section="General", parameter="publish_port", type_=int
-            )
-
-            self._data_broadcast_socket = onda_zmq.DataBroadcaster(
-                publish_ip=broadcast_socket_ip, publish_port=broadcast_socket_port
-            )
-
             print("Starting the monitor...")
             sys.stdout.flush()
 
     def process_data(self, data):
+        # type: (Dict[str, Any]) -> Tuple[Dict[str, Any], int]
         """
-        Processes frame data.
+        Processes a detector data frame.
 
-        Performs detector and dark calibration corrections, extracts the peak
-        information and evaluates the extracted data. Returns the data that needs
-        to be sent to the master node.
+        This function performs calibration and correction (if required) and then
+        extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
+        optionally, the detector data frame) to be sent to the master node.
 
-        Args:
+        Arguments:
 
-            data (Dict): a dictionary containing the frame raw data. Keys in the
-                dictionary correspond to entries in the required_data list in the
-                configuration file (e.g.: 'detector_distance', 'beam_energy',
-                'detector_data', etc.).
+            data(Dict[str, Any]): a dictionary containing data retrieved by the
+                OnDA monitor and related to the same data event as the detector frame.
+
+                * Dictionary keys correspond to entries in the 'required_data' list in
+                  the 'Onda' section of the configuration file.
+
+                * The corresponding dictionary values store the realated data (for the
+                  exact format of the data, see the documentaion of the relevant
+                  Data Extraction function).
 
         Returns:
 
@@ -353,127 +330,125 @@ class OndaMonitor(mpi.ParallelizationEngine):
             that should be sent to the master node, and the second is the rank of the
             current worker.
         """
-        results_dict = {}
-        if self._calibration_alg is not None:
-            calib_det_data = self._calibration_alg.apply_calibration(
+        processed_data = {}
+        if self._calibration is not None:
+            calibrated_detector_data = self._calibration_alg.apply_calibration(
                 calibration_file_name=data["detector_data"]
             )
         else:
-            calib_det_data = data["detector_data"]
-
-        corr_det_data = self._dark_cal_corr_alg.apply_darkcal_correction(
-            data=calib_det_data
+            calibrated_detector_data = data["detector_data"]
+        corrected_detector_data = self._correction.apply_correction(
+            data=calibrated_detector_data
         )
-        peak_list = self._peakfinder8_peak_det.find_peaks(corr_det_data)
-
-        # Determines if the the frame should be labelled as 'saturated'.
-        sat = (
+        peak_list = self._peak_detection.find_peaks(corrected_detector_data)
+        frame_is_saturated = (
             len([x for x in peak_list.intensity if x > self._saturation_value])
             > self._max_saturated_peaks
         )
-
-        # Determines if the the frame should be labelled as a 'hit'.
-        hit = (
+        frame_is_hit = (
             self._min_num_peaks_for_hit
             < len(peak_list.intensity)
             < self._max_num_peaks_for_hit
         )
 
-        results_dict["timestamp"] = data["timestamp"]
-        results_dict["saturation_flag"] = sat
-        results_dict["hit_flag"] = hit
-        results_dict["detector_distance"] = data["detector_distance"]
-        results_dict["beam_energy"] = data["beam_energy"]
-        results_dict["native_data_shape"] = data["detector_data"].shape
-        if hit:
-            results_dict["peak_list"] = peak_list
-
+        processed_data["timestamp"] = data["timestamp"]
+        processed_data["frame_is_saturated"] = frame_is_saturated
+        processed_data["frame_is_hit"] = frame_is_hit
+        processed_data["detector_distance"] = data["detector_distance"]
+        processed_data["beam_energy"] = data["beam_energy"]
+        processed_data["native_data_shape"] = data["detector_data"].shape
+        if frame_is_hit:
+            processed_data["peak_list"] = peak_list
             if self._hit_frame_sending_interval:
                 self._hit_frame_sending_counter += 1
-
                 if self._hit_frame_sending_counter == self._hit_frame_sending_interval:
                     # If the frame is a hit, and if the 'hit_sending_interval'
                     # attribute says that the detector frame data should be sent to
-                    # the master node, adds the data to the dictionary (and resets
-                    # the counter).
-                    results_dict["detector_data"] = corr_det_data
+                    # the master node, adds the data to the 'processed_dat' dictionary
+                    # (and resets the counter).
+                    processed_data["detector_data"] = corrected_detector_data
                     self._hit_frame_sending_counter = 0
-
         else:
             # If the frame is not a hit, sends an empty peak list.
-            results_dict["peak_list"] = named_tuples.PeakList(
+            processed_data["peak_list"] = named_tuples.PeakList(
                 fs=[], ss=[], intensity=[]
             )
             if self._non_hit_frame_sending_interval:
                 self._non_hit_frame_sending_counter += 1
-
                 if (
                     self._non_hit_frame_sending_counter
                     == self._non_hit_frame_sending_interval
                 ):
                     # If the frame is a not a hit, and if the 'hit_sending_interval'
                     # attribute says that the detector frame data should be sent to
-                    # the master node, adds the data to the dictionary (and resets the
-                    # counter).
-                    results_dict["detector_data"] = corr_det_data
+                    # the master node, adds the data to the 'results_dict' dictionary
+                    # (and resets the counter).
+                    processed_data["detector_data"] = corrected_detector_data
                     self._non_hit_frame_sending_counter = 0
 
-        return results_dict, self.rank
+        return named_tuples.ProcessedData(
+            data=processed_data,
+            worker_rank=self.rank
+        )
 
-    def collect_data(self, data):
+    def collect_data(self, processed_data):
+        # type: (Tuple[Dict[str, Any], int]) -> None
         """
-        Computes aggregated data statistics and broadcasts the data.
+        Computes aggregated data and broadcasts it via a network socket.
 
-        Accumulates the data received from the worker nodes and computes statistics on
-        the aggregated data (e.g.: hit rate, saturation_rate). Finally, broadcast the
-        reduced data for visualization.
+        This function receives data from the worker nodes and computes statistics on
+        the aggregated data. It then broadcasts the data via a network socket for
+        visualzation by other programs. The data is sent using the MessagePack
+        protocol.
 
-        Args:
+        Arguments:
 
-            data (Tuple): a tuple where the first field is a dictionary containing the
-                data received from a worker node, and the second is the rank of the
-                worker node sending the data.
+            processed_data (Tuple[Dict[str, Any], int]): a tuple where the first field is a
+                dictionary containing the data received from a worker node, and the
+                second is the rank of the worker node sending the data.
         """
-        results_dict, _ = data
+        received_data = processed_data.data
         self._num_events += 1
 
-        self._hit_rate_run_wdw.append(float(results_dict["hit_flag"]))
-        self._saturation_rate_run_wdw.append(float(results_dict["saturation_flag"]))
-
-        avg_hit_rate = sum(self._hit_rate_run_wdw) / self._run_avg_wdw_size
-        avg_sat_rate = sum(self._saturation_rate_run_wdw) / self._run_avg_wdw_size
-
-        # Injects additional information into the dictionary that will be stored in
-        # the data accumulator end eventually sent out from the master.
-        results_dict["hit_rate"] = avg_hit_rate
-        results_dict["saturation_rate"] = avg_sat_rate
-        results_dict["geometry_is_optimized"] = self._geometry_is_optimized
+        self._hit_rate_running_window.append(float(received_data["hit_flag"]))
+        self._saturation_rate_running_window.append(
+            float(received_data["saturation_flag"])
+        )
+        avg_hit_rate = (
+            sum(self._hit_rate_running_window) / self._running_average_window_size
+        )
+        avg_sat_rate = (
+            sum(self._saturation_rate_running_window) / self._running_average_window_size
+        )
+        received_data["hit_rate"] = avg_hit_rate
+        received_data["saturation_rate"] = avg_sat_rate
+        received_data["geometry_is_optimized"] = self._geometry_is_optimized
 
         # Since the data will be sent out of the master node using msgpack, NamedTuple
-        # structures will not be preserved. The peak list is then converted here to a
+        # structures will not be preserved. The peak list is converted here to a
         # dictionary, which suvives the msgpack conversion and allows introspection on
         # the receiver side.
-        results_dict["peak_list"] = {
-            "fs": results_dict["peak_list"].fs,
-            "ss": results_dict["peak_list"].ss,
-            "intensity": results_dict["peak_list"].intensity,
+        received_data["peak_list"] = {
+            "fs": received_data["peak_list"].fs,
+            "ss": received_data["peak_list"].ss,
+            "intensity": received_data["peak_list"].intensity,
         }
 
-        if "detector_data" in results_dict:
-            # If detector frame data is found in the data received from a worker node,
-            # the frame must be broadcasted to the frame viewer. Before that, the
-            # frame is wrapped into a list because GUIs expect lists of aggregated
-            # events as opposed to single events.
+        if "detector_data" in received_data:
+            # If detector frame data is found in the data received from the worker
+            # node, it must be broadcasted to visualization programs. The frame is
+            # wrapped into a list because the receiving programs usually expect lists
+            # of aggregated events as opposed to single events.
             self._data_broadcast_socket.send_data(
-                tag=u"ondaframedata", message=[results_dict]
+                tag=u"ondaframedata", message=[received_data]
             )
+        # After it has been broadcasted, it removes the detector frame data from the
+        # 'received_data' dictionary (the frame data is not needed anymore, so we
+        # remove it for efficiency reasons).
+        if "detector_data" in received_data:
+            del received_data["detector_data"]
 
-        # Removes the detector frame data from the dictionary that will be stored in
-        # the data accumulator (it doesn't need to be sent to any other receiver).
-        if "detector_data" in results_dict:
-            del results_dict["detector_data"]
-
-        collected_data = self._data_accumulator.add_data(data=results_dict)
+        collected_data = self._data_accumulator.add_data(data=received_data)
         if collected_data:
             self._data_broadcast_socket.send_data(
                 tag=u"ondadata", message=collected_data

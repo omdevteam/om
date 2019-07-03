@@ -1,5 +1,5 @@
-onda.utils.gui module
-=====================
+gui Module
+==========
 
 .. automodule:: onda.utils.gui
     :members:

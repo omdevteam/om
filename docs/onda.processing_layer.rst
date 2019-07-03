@@ -1,15 +1,15 @@
-onda.processing\_layer package
-==============================
+processing\_layer Module
+========================
 
 .. automodule:: onda.processing_layer
     :members:
     :undoc-members:
     :show-inheritance:
 
-Submodules
-----------
+Subpackages / Submodules
+--------------------------
 
 .. toctree::
 
-   onda.processing_layer.crystallography
+   crystallography <onda.processing_layer.crystallography>
 

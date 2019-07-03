@@ -5,6 +5,7 @@
 # This file does only contain a selection of the most common options. For a
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
+# pylint: disable=invalid-name, redefined-builtin
 
 # -- Path setup --------------------------------------------------------------
 
@@ -14,35 +15,39 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, '/home/vmariani/Software/onda-internal/onda')
-
+# sys.path.insert(0, "/home/vmariani/Work/Maxwell Home/Software/onda-internal/onda")
+import sphinx_bootstrap_theme
 
 # -- Project information -----------------------------------------------------
 
 project = "onda"
-copyright = "2018, Author"
-author = "Author"
+copyright = """
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+"""
+author = "Valerio Mariani"
 
 # The short X.Y version
-version = ""
+version = "2019.01.00"
 # The full version, including alpha/beta/rc tags
-release = ""
+release = "2019.01.00"
 
 
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
+# needs_sphinx = "1.0"
 
 # Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# extensions coming with Sphinx (named "sphinx.ext.*") or your custom
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
-    "sphinx.ext.napoleon",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -51,7 +56,7 @@ templates_path = ["_templates"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
+# source_suffix = [".rst", ".md"]
 source_suffix = ".rst"
 
 # The master toctree document.
@@ -66,11 +71,11 @@ language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-# This pattern also affects html_static_path and html_extra_path .
+# This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
+pygments_style = None
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -78,13 +83,24 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "bootstrap"
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "bootswatch_theme": "lumen",
+    "navbar_title": "OnDA by CFEL",
+    "globaltoc_depth": 1,
+    "navbar_links": [
+        ("Get OnDA", "documentation_installation"),
+        ("Run OnDA", "documentation_configuration"),
+        ("Source Code", "https://github.com/ondateam/onda", True),
+    ],
+    "navbar_sidebarrel": False,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -94,12 +110,18 @@ html_static_path = ["_static"]
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
-# The default sidebars (for documents that don't match any pattern) are
+# The default sidebars (for documents that don"t match any pattern) are
 # defined by theme itself.  Builtin themes are using these templates by
-# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
-# 'searchbox.html']``.
+# default: ``["localtoc.html", "relations.html", "sourcelink.html",
+# "searchbox.html"]``.
 #
-# html_sidebars = {}
+html_sidebars = {
+    "index": [],
+    "documentation*": ["localtoc.html"],
+    "onda*": ["localtoc.html"],
+}
+
+html_show_sourcelink = False
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -111,25 +133,29 @@ htmlhelp_basename = "ondadoc"
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
+    # The paper size ("letterpaper" or "a4paper").
     #
-    # 'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
+    # "papersize": "letterpaper",
+
+    # The font size ("10pt", "11pt" or "12pt").
     #
-    # 'pointsize': '10pt',
+    # "pointsize": "10pt",
+
     # Additional stuff for the LaTeX preamble.
     #
-    # 'preamble': '',
+    # "preamble": "",
+
     # Latex figure (float) alignment
     #
-    # 'figure_align': 'htbp',
+    # "figure_align": "htbp",
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "onda.tex", "onda Documentation", "Author", "manual")
+    (master_doc, "onda.tex", "onda Documentation",
+     "Author", "manual"),
 ]
 
 
@@ -137,7 +163,10 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "onda", "onda Documentation", [author], 1)]
+man_pages = [
+    (master_doc, "onda", "onda Documentation",
+     [author], 1)
+]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -146,15 +175,9 @@ man_pages = [(master_doc, "onda", "onda Documentation", [author], 1)]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (
-        master_doc,
-        "onda",
-        "onda Documentation",
-        author,
-        "onda",
-        "One line description of project.",
-        "Miscellaneous",
-    )
+    (master_doc, "onda", "onda Documentation",
+     author, "onda", "One line description of project.",
+     "Miscellaneous"),
 ]
 
 
@@ -162,31 +185,21 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = project
-epub_author = author
-epub_publisher = author
-epub_copyright = copyright
 
 # The unique identifier of the text. This can be a ISBN number
 # or the project homepage.
 #
-# epub_identifier = ''
+# epub_identifier = ""
 
 # A unique identification for the text.
 #
-# epub_uid = ''
+# epub_uid = ""
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ["search.html"]
 
 
 # -- Extension configuration -------------------------------------------------
-
-# -- Options for todo extension ----------------------------------------------
-
-# If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True
-
-
 add_module_names = False
 autodoc_mock_imports = [
     "psana",
@@ -196,3 +209,9 @@ autodoc_mock_imports = [
 ]
 autodoc_member_order = "bysource"
 autoclass_content = "init"
+
+# -- Options for todo extension ----------------------------------------------
+
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = True
+

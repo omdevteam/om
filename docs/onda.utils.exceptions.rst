@@ -1,5 +1,5 @@
-onda.utils.exceptions module
-============================
+exceptions Module
+=================
 
 .. automodule:: onda.utils.exceptions
     :members:

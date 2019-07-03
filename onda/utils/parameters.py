@@ -14,12 +14,11 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Configuration parameter retrieval and validation.
-
-Functions and classes used to retrieve and validate configuration options from OnDA
-monitor configuration files.
+OnDA configuration parameter storage, retrieval and validation.
 """
 from __future__ import absolute_import, division, print_function
+
+from typing import Any, Dict, List, Union  # pylint: disable=unused-import
 
 import tomlkit
 from future.utils import raise_from
@@ -30,90 +29,103 @@ from onda.utils import exceptions
 
 class MonitorParams(object):
     """
-    Storage, retrieval and validation of OnDA monitor parameters.
-
-    A class that stores a set of configuration parameters for an OnDA monitor read
-    from a configuration file. The class has members that allow the retrieval of
-    data options from different sections of the configuration files. Optionally, the
-    parameter type can also be checkes and validated.
-
-    Raises:
-
-        MissingParameterFileSection: if the requested section is not present in the
-            configuration file.
-
-        MissingParameter: if the parameter is strictly required (i.e. the 'required'
-            argument is set to True) but cannot be found in the configuration file.
-
-        WrongParameterType: if the requested parameter type does not match the type of
-            the parameter in the configuration file.
+    See documentation for the '__init__' function.
     """
 
     def __init__(self, config):
+        # type: (List[str, ...]) -> None
         """
-        Initializes the MonitorParams class.
+        Storage, retrieval and validation of OnDA monitor parameters.
 
-        Args:
+        This object stores a set of OnDA configuration parameters read from a
+        configuration file. The parameters, which are grouped together in 'Parameter
+        Groups', must come from a TOML-formatted file. They can be retrieved from
+        this object via the 'get_param' member function. Optionally, the parameters
+        can also be validated at the time of retrieval.
 
-            config (List): the lines read from the configuration file.
+        Arguments:
+
+            config (List[str, ...]): the lines read from the TOML-format configuration
+                file.
+
+        Raises:
+
+            :class:`~onda.utils.exceptions.OndaConfigurationFileSyntaxError`: if there
+                is a syntax error in theconfiguration file.
         """
         try:
             self._monitor_params = tomlkit.parse("".join(config))
         except tomlkit.exceptions.TOMLKitError as exc:
             raise_from(
-                exc=exceptions.ConfigFileSyntaxError(
+                exc=exceptions.OndaConfigurationFileSyntaxError(
                     "Syntax error in the configuration file: {0}".format(exc)
                 ),
                 cause=exc,
             )
 
     def get_param(self, section, parameter, type_=None, required=False):
+        # type (str, str, type, bool) -> Union[Any, None]
         """
-        Retrieves an OnDA monitor parameter.
+        Retrieves an OnDA monitor configuration parameter.
 
-        Optionally, checks that the type of the retrieved parameter matches the type
-        needed by the user.
+        This functions returns the retrived configuration parameter.
 
-        Args:
+        * If the 'required'  arguments is True and the parameter cannot be found in the
+          configuration file, this function will raise an exception.
 
-            section (str): name of configuration file section where the parameter is
-                located.
+        * If the 'required'  arguments is False and the parameter cannot be found in the
+          configuration file, this function will return None.
 
-            parameter (str): name of the parameter.
+        * If a required type is specified (the 'type_' argument is not None), this
+          function will raise an exception if the type of the retrieved parameter does
+          not match the requested one.
 
-            type_ (type): required type of the parameter. If this argument is not
-                None, the function will make sure that the type of the recovered
-                parameter matches the type requested here. If the type does not match,
-                an exception will be raised. If the type of the recovered parameter is
-                None, or if the parameter is not present in the configuration file,
-                the check will not be performed. Defaults to None.
+        Arguments:
 
-            required (bool): if this argument is True, the function will raise an
-                exception if the parameter is not present in the configuration file
-                (Normally the function returns None for parameters that are not found
-                in the configuration file).
+            section (str): the name of the parameter group in which the parameter to
+                to retrieve is located.
+
+            parameter (str): the name of the parameter to retrieve.
+
+            type_ (type): the required type of the parameter. If a type is specified
+                and the argument is not None, the type of the retrieved parameter will
+                be validated. Defaults to None.
+
+            required (bool): True if the parameter is required (must be present in the
+                configuration file), False otherwise. Defaults to False.
 
         Returns:
 
-            Union[Any, None]: the value of the requested parameter. If the parameter
-            is not found, the value None is returned, unless the 'required' input
-            argument is True, in which case an exception is raised.
+            Union[Any, None]: the value of the requested parameter, or None, if the
+            parameter was not found in the configuration file.
+
+        Raises:
+
+            :class:`onda.utils.exceptions.OndaMissingParameterGroupError`: if the
+                requested parameter group is not present in the configuration file.
+
+            :class:`onda.utils.exceptions.OndaMissingParameterError`: if the parameter
+                is required but cannot be found in the configuration file.
+
+            :class:`onda.utils.exceptions.OndaWrongParameterTypeError`: if the
+                requested parameter type does not match the type of the parameter in
+                the configuration file.
         """
         if section not in self._monitor_params:
-            raise exceptions.MissingParameterFileSection(
-                "Section {} is not in the configuration file".format(section)
+            raise exceptions.OndaMissingParameterGroupError(
+                "Parameter group [{}] is not in the configuration file".format(section)
             )
         else:
             ret = self._monitor_params[section].get(parameter)
             if ret is None and required is True:
-                raise exceptions.MissingParameter(
+                raise exceptions.OndaMissingParameterError(
                     "Parameter {} in section [{}] was not found, but is "
                     "required.".format(parameter, section)
                 )
             if ret is not None and type_ is not None:
                 if type_ is str:
                     if not isinstance(ret, basestring):
-                        raise exceptions.WrongParameterType(
+                        raise exceptions.OndaWrongParameterTypeError(
                             "Wrong type for parameter {}: should be {}, is "
                             "{}.".format(
                                 parameter,
@@ -123,7 +135,7 @@ class MonitorParams(object):
                         )
                 elif type_ is float:
                     if not isinstance(ret, float) and not isinstance(ret, int):
-                        raise exceptions.WrongParameterType(
+                        raise exceptions.OndaWrongParameterTypeError(
                             "Wrong type for parameter {}: should be {}, is "
                             "{}.".format(
                                 parameter,
@@ -132,24 +144,27 @@ class MonitorParams(object):
                             )
                         )
                 elif not isinstance(ret, type_):
-                    raise exceptions.WrongParameterType(
+                    raise exceptions.OndaWrongParameterTypeError(
                         "Wrong type for parameter {}: should be {}, is {}.".format(
                             parameter,
                             str(type_).split()[1][1:-2],
                             str(type(ret)).split()[1][1:-2],
                         )
                     )
+
                 return ret
             else:
+
                 return ret
 
     def get_all_parameters(self):
+        # type: () -> Dict[str, Dict[str, Any]]
         """
         Returns the whole set of parameters read from the configuration file.
 
         Returns:
 
-            Dict: a dictionary containing the parameters read from the configuration
-            file.
+            Dict[str, Dict[str, Any]]: a dictionary containing the parameters read
+            from the configuration file.
         """
         return self._monitor_params

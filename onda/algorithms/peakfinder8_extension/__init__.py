@@ -14,8 +14,6 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Peakfinder 8 extension.
-
-Peakfinder8 alogrithm from Cheetah (Barty et al.,2014) wrapped using Cython.
+Peakfinder8 algorithm wrapped using cython.
 """
-from onda.algorithms.peakfinder8_extension.peakfinder8_extension import peakfinder_8
+from .peakfinder8_extension import peakfinder_8  # pylint: disable=import-error

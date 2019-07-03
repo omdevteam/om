@@ -14,17 +14,17 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of CSPAD detector data from psana at LCLS.
-
-Functions used to retrieve, using the psana framework, data from the CSPAD detector as
-used at the LCLS facility.
+Retrieval of CSPAD detector data from psana.
 """
 from __future__ import absolute_import, division, print_function
 
 import numpy
 
-from onda.utils import named_tuples
-
+from onda.utils import (  # pylint: disable=unused-import
+    data_event,
+    exceptions,
+    named_tuples,
+)
 
 #####################
 #                   #
@@ -34,17 +34,16 @@ from onda.utils import named_tuples
 
 
 def get_peakfinder8_info():
+    # type () -> named_tuples.Peakfinder8Info
     """
-    Peakfinder8 info for the CSPAD detector at LCLS.
-
-    Retrieves the peakfinder8 information matching the data format used by the CSPAD
-    detector at the LCLS facility.
+    Retrieves the peakfinder8 information for the CSPAD detector.
 
     Returns:
 
-        Peakfinder8DetInfo: the peakfinder8-related detector information.
+        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
+        peakfinder8 information.
     """
-    return named_tuples.Peakfinder8DetInfo(
+    return named_tuples.Peakfinder8Info(
         asic_nx=194, asic_ny=185, nasics_x=8, nasics_y=8
     )
 
@@ -56,35 +55,27 @@ def get_peakfinder8_info():
 #############################
 
 
-def detector_data(event, data_extraction_func_name):
+def detector_data(event):
+    # type: (data_event.DataEvent, str) -> numpy.ndarray
     """
-    One frame of CSPAD detector data at LCLS.
+    Retrieves from psana one frame of CSPAD detector data.
 
-    Extracts one frame of CSPAD detector data from an event retrieved at the LCLS
-    facility.
+    Arguments:
 
-    Args:
-
-        event (Dict): a dictionary with the event data.
-
-        data_extraction_func_name: specific name of the data extraction function with
-            which this generic data extraction function should be associated (e.g:
-            'detector_data', 'detector2_data'. 'detector3_data', etc.). This is
-            required to resuse this data extraction function with multiple detectors.
-            The `functools.partial` python function is used to create 'personalized'
-            versions of this function for each detector, by fixing this argument.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        ndarray: one frame of detector data.
+        numpy.ndarray: one frame of detector data.
     """
-    # Recovers the data from psana.
-    cspad_psana = event["psana_detector_interface"][data_extraction_func_name].calib(
-        event["psana_event"]
-    )
-
-    if not cspad_psana:
-        raise RuntimeError("No data retrieved.")
+    cspad_psana = event["psana_detector_interface"][
+        event.framework_info["detector_label"]
+    ].calib(event.data)
+    if cspad_psana is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve detector from psana."
+        )
 
     # Rearranges the data into 'slab' format.
     cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))
@@ -96,5 +87,4 @@ def detector_data(event, data_extraction_func_name):
             (cspad_reshaped.shape[1] * cspad_reshaped.shape[2], cspad_reshaped.shape[3])
         )
 
-    # Returns the rearranged data.
     return cspad_slab

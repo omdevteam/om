@@ -14,7 +14,5 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Event retrieval and handling.
-
-Classes and functions used to manage events and retrieve data from various sources.
+Event and data retrieval from facility frameworks.
 """

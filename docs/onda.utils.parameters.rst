@@ -1,5 +1,5 @@
-onda.utils.parameters module
-============================
+parameters Module
+=================
 
 .. automodule:: onda.utils.parameters
     :members:

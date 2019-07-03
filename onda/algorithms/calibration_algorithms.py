@@ -15,118 +15,83 @@
 # a research centre of the Helmholtz Association.
 """
 Algorithms for detector calibration.
-
-Algorithms for the corrections and ajustments that need to be applied to detector data
-due to detector design and electronic noise.
 """
 from __future__ import absolute_import, division, print_function
 
-import h5py
 import numpy
-from future.utils import raise_from
 
-
-class SingleModuleLambdaCalibration(object):
-    """
-    Algorithm for the calbration of a single module Lambda detector.
-
-    Applies flatfield correction to a single lambda module.
-    """
-
-    def __init__(self, calibration_filename):
-        """
-        Initalizes the SingleModuleLambdaCalibration class.
-
-        Args:
-
-            calibration_filename (str): name of an HDF5 file with the calibration
-                data. The file must contain the flatfield data for the module at
-                the "/flatfield" hdf5 path.
-        """
-
-        try:
-            with h5py.File(name=calibration_filename, mode="r") as fhandle:
-                self._flatfield = fhandle["/flatfield"]
-        except OSError as exc:
-            raise_from(
-                exc=RuntimeError(
-                    "Error reading the {} HDF5 file.".format(calibration_filename)
-                ),
-                cause=exc,
-            )
-
-    def apply_calibration(self, data):
-        """
-        Applies the calibration.
-
-        Multiplies the detector data by a flatfield.
-
-        Args:
-
-            data (ndarray): the module data on which to apply the calibration.
-
-        Returns:
-
-            ndarray:  the corrected data.
-        """
-        return data * self._flatfield
+from onda.utils import exceptions, named_tuples, hdf5  # pylint: disable=unused-import
 
 
 class Agipd1MCalibration(object):
     """
-    Algorithm for the calbration of an AGIPD 1M detector.
-
-    Applies precomputed gain and offsets for all three gain stages to all data from
-    a pulse train.
+    See documentation of the '__init__' function.
     """
 
     def __init__(self, calibration_filename):
+        # type: (str) -> None
         """
-        Initalizes the Agipd1MCalibration class.
+        Algorithm for the calibration of the AGIPD 1M detector.
 
-        Args:
+        This algorithm stores the calibration parameters for an AGIPD 1M detector and
+        applies the calibration to a detector data frame upon request.
 
-            calibration_filename (str): name of an HDF5 file with the calibration
-                data. The file must have the following structure:
+        Arguments:
+
+            calibration_filename (str): the absolute or relative path to an HDF5 file
+                with the calibration parameters. The HDF5 file must have the
+                following internal structure:
+
+                * /AnalogOffset
+                * /DigitalGainLevel
+                * /RelativeGain
+
+                TODO: describe file structure.
         """
-        try:
+        self._offset = hdf5.load_hdf5_data(
+            hdf5_filename=calibration_filename, hdf5_path="/AnalogOffset"
+        )
+        self._digital_gain = hdf5.load_hdf5_data(
+            hdf5_filename=calibration_filename, hdf5_path="/DigitalGainLevel"
+        )
+        self._relative_gain = hdf5.load_hdf5_data(
+            hdf5_filename=calibration_filename, hdf5_path="/RelativeGain"
+        )
 
-            with h5py.File(name=calibration_filename, mode="r") as fhandle:
-                self._offset = fhandle["/AnalogOffset"][:]
-                self._digital_gain = fhandle["/DigitalGainLevel"][:]
-                self._relative_gain = fhandle["/RelativeGain"][:]
-        except OSError as exc:
-            raise_from(
-                exc=RuntimeError(
-                    "Error reading the {} HDF5 file.".format(calibration_filename)
-                ),
-                cause=exc,
-            )
-
-    def apply_calibration(self, data):
+    def apply_calibration(self, data_and_calib_info):
+        # type: (named_tuples.DataAndCalibrationInfo) -> numpy.ndarray
         """
-        Applies the calibration.
+        Applies the calibration to a detector data frame.
 
-        Determines in which gain stage each pixel is, subtracts the relevant offset,
-        then multiplies the value by the relative gain.
+        This function determines the gain stage of each pixel in the data frame, and
+        applies the relevant gain and offset corrections.
 
-        Args:
+        Arguments:
 
-            data (Tuple[ndarray, Dict]): a named tuple where the first field, named
-                "data", stores the pulse train data (in "slab" format) on which to
-                apply the calibration, while the second, named "info", is a dictionary
-                which contains at least two values. The first one, with key "gain",
-                is an array, of the same shape as the data, which stores the gain
-                information for the data provided by the detector. The second, with
-                key "num_frame' stores the index of the frame being corrected.
+            data (:class:`~onda.utils.named_tuples.DataAndCalibrationInfo`): a named
+                tuple containing the data frame to calibrate, and some additional
+                necessary information. In detail:
+
+                * The 'data' field of the named tuple must contain the detector data
+                  frame to calibrate.
+
+                * The 'info' field must be a dictionary containing two keys:
+
+                  - A key called 'gain' whose value is a numpy array of the same shape
+                    as the data frame to calibrate. Each pixel in this array must
+                    contain the information needed to determine the gain stage of the
+                    corresponding pixel in the data frame.
+
+                  - A key  called 'num_frame', whose value is the index, within an
+                    event, of the detector frame to calibrate.
 
         Returns:
 
-            ndarray:  the corrected data.
+            numpy.ndarray:  the corrected data frame.
         """
-        gain = data.info["gain"]
-        num_frame = data.info["num_frame"]
-        gain_state = numpy.zeros_like(data.data, dtype=int)
+        gain_state = numpy.zeros_like(data_and_calib_info.data, dtype=int)
+        gain = data_and_calib_info.info["gain"]
+        num_frame = data_and_calib_info.info["num_frame"]
         gain_state[
             numpy.where(gain > numpy.squeeze(self._digital_gain[1, num_frame, ...]))
         ] = 1
@@ -135,7 +100,7 @@ class Agipd1MCalibration(object):
         ] = 2
 
         return (
-            data.data
+            data_and_calib_info.data
             - numpy.choose(
                 gain_state,
                 (

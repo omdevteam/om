@@ -14,8 +14,7 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Main OnDA monitor function.
-
+OnDA entry point function.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -45,15 +44,16 @@ from onda.utils import dynamic_import, exceptions, parameters
 )
 @click.argument('source', type=str)
 def onda_monitor(source, config, debug):
+    # type: (str, str, bool) -> None
     """
-    OnDA monitor. This script starts a monitor based on the provided configuration
-    file. When the 'mpi' Parallelization Layer is used, this script should be launched
-    using the 'mpirun' or 'mpiexec' commands. The script accepts the following
-    arguments:
+    OnDA monitor. This script starts a monitor that is based on the provided
+    configuration file and retrieves data from the specified source. Please note: when
+    the 'mpi' Parallelization Layer is used, this script should be launched
+    via the 'mpirun' or 'mpiexec' commands.
 
     SOURCE: the source of data for the OnDA monitor. The exact format of this string
-    depends on the Data Extraction Layer used by the specific monitor instance (see
-    documentation).
+    depends on the specific Data Extraction Layer currently used by the OnDA monitor
+    (see documentation).
     """
     # Sets a custom exception handler to deal with OnDA-specific exceptions.
     if debug is False:
@@ -64,13 +64,19 @@ def onda_monitor(source, config, debug):
             config = config_file_handle.readlines()
     except IOError:
         # Raises an exception if the file cannot be opened or read.
-        raise exceptions.ConfigFileReadingError(
+        raise exceptions.OndaConfigurationFileReadingError(
             "Cannot open or read the configuration file {0}".format(config)
         )
     monitor_parameters = parameters.MonitorParams(config)
-
-    processing_layer = dynamic_import.import_processing_layer(monitor_parameters)
-
+    processing_layer_filename = monitor_parameters.get_param(
+        section="Onda",
+        parameter="processing_layer",
+        type_=str,
+        required=True,
+    )
+    processing_layer = dynamic_import.import_processing_layer(
+        processing_layer_filename
+    )
     monitor = processing_layer.OndaMonitor(
         source=source, monitor_parameters=monitor_parameters
     )

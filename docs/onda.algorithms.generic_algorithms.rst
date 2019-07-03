@@ -1,5 +1,5 @@
-onda.algorithms.generic\_algorithms module
-==========================================
+generic\_algorithms Module
+==========================
 
 .. automodule:: onda.algorithms.generic_algorithms
     :members:

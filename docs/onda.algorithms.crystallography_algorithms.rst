@@ -1,5 +1,5 @@
-onda.algorithms.crystallography\_algorithms module
-==================================================
+crystallography\_algorithms Module
+==================================
 
 .. automodule:: onda.algorithms.crystallography_algorithms
     :members:

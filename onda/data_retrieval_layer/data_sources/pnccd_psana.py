@@ -14,16 +14,17 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of data from the pnCCD detector at LCLS.
-
-Functions and classes used to retrieve data from the EPIX detector as used at the LCLS
-facility.
+Retrieval of pnCCD detector data from psana.
 """
 from __future__ import absolute_import, division, print_function
 
 import numpy
 
-from onda.utils import named_tuples
+from onda.utils import (  # pylint: disable=unused-import
+    exceptions,
+    named_tuples,
+    data_event,
+)
 
 
 #####################
@@ -34,17 +35,17 @@ from onda.utils import named_tuples
 
 
 def get_peakfinder8_info():
+    # type () -> named_tuples.Peakfinder8Info
     """
-    Peakfinder8 info for the pnCCD detector at LCLS.
-
-    Retrieves the peakfinder8 information matching the data format used by the pnCCD
-    detector at the LCLS facility.
+    Retrieves the peakfinder8 information for the pnCCD detector.
 
     Returns:
 
-        Peakfinder8DetInfo: the peakfinder8-related detector information.
+        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
+        peakfinder8 information.
     """
-    return named_tuples.Peakfinder8DetInfo(
+
+    return named_tuples.Peakfinder8Info(
         asic_nx=1024, asic_ny=512, nasics_x=1, nasics_y=2
     )
 
@@ -57,34 +58,26 @@ def get_peakfinder8_info():
 
 
 def detector_data(event, data_extraction_func_name):
+    # type: (data_event.DataEvent, str) -> numpy.ndarray
     """
-    One frame of pnCCD detector data at LCLS.
+    Retrieves from psana one frame of pnCCD detector data.
 
-    Extracts one frame of pnCCD detector data from an event retrieved at the LCLS
-    facility.
+    Arguments:
 
-    Args:
-
-        event (Dict): a dictionary with the event data.
-
-        data_extraction_func_name: specific name of the data extraction function with
-            which this generic data extraction function should be associated (e.g:
-            'detector_data', 'detector2_data'. 'detector3_data', etc.). This is
-            required to resuse this data extraction function with multiple detectors.
-            The `functools.partial` python function is used to create 'personalized'
-            versions of this function for each detector, by fixing this argument.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        ndarray: one frame of detector data.
+        numpy.ndarray: one frame of detector data.
     """
-    # Recovers the data from psana.
     pnccd_psana = event["psana_detector_interface"][data_extraction_func_name].calib(
         event["psana_event"]
     )
-
     if pnccd_psana is None:
-        raise RuntimeError("No data retrieved.")
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve detector from psana."
+        )
 
     # Rearranges the data into 'slab' format.
     pnccd_slab = numpy.zeros(shape=(1024, 1024), dtype=pnccd_psana.dtype)
@@ -93,5 +86,4 @@ def detector_data(event, data_extraction_func_name):
     pnccd_slab[512:1024, 512:1024] = pnccd_psana[2][::-1, ::-1]
     pnccd_slab[0:512, 512:1024] = pnccd_psana[3]
 
-    # Returns the rearranged data.
     return pnccd_slab

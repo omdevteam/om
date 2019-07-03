@@ -1,4 +1,4 @@
-onda package
+onda Package
 ============
 
 .. automodule:: onda
@@ -6,22 +6,15 @@ onda package
     :undoc-members:
     :show-inheritance:
 
-Subpackages
------------
+Subpackages / Submodules
+--------------------------
 
 .. toctree::
 
-    onda.algorithms
-    onda.data_retrieval_layer
-    onda.graphical_interfaces
-    onda.parallelization_layer
-    onda.processing_layer
-    onda.utils
-
-Submodules
-----------
-
-.. toctree::
-
-   onda.monitor
-
+    algorithms <onda.algorithms>
+    data_retrieval_layer <onda.data_retrieval_layer>
+    graphical_interfaces <onda.graphical_interfaces>
+    monitor <onda.monitor>
+    parallelization_layer <onda.parallelization_layer>
+    processing_layer <onda.processing_layer>
+    utils <onda.utils>

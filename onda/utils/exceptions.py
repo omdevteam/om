@@ -15,13 +15,13 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA-specific exceptions and exception handling.
-
-Several OnDA specific exceptions, plus a custom exception handler.
 """
 from __future__ import absolute_import, division, print_function
 
 import sys
+import traceback  # pylint: disable=unused-import
 from traceback import print_exception
+from typing import NoReturn  # pylint: disable=unused-import
 
 from mpi4py import MPI
 
@@ -30,103 +30,103 @@ class OndaException(Exception):
     """
     Base OnDA exception.
 
-    All other OnDA-specific exceptions inherit from this exception.
+    All other OnDA-specific exceptions must subclass from this exception.
     """
 
 
-class HidraAPIError(OndaException):
+class OndaHidraAPIError(OndaException):
     """
     Error within a HiDRA API call.
     """
 
 
-class MissingEventHandlingFunction(OndaException):
+class OndaMissingEventHandlingFunctionError(OndaException):
     """
     An event handling function is not defined.
     """
 
 
-class MissingDataExtractionFunction(OndaException):
+class OndaMissingDataExtractionFunctionError(OndaException):
     """
     A data extraction function is not defined.
     """
 
 
-class MissingPsanaInitializationFunction(OndaException):
+class OndaMissingPsanaInitializationFunctionError(OndaException):
     """
-    A psana detector interface initialization function is not defined.
-    """
-
-
-class MissingParameterFileSection(OndaException):
-    """
-    A section is missing in the configuration file.
+    A psana Detector interface initialization function is not defined.
     """
 
-
-class MissingParameter(OndaException):
-    """
-    A parameter is missing in the configuration file.
-    """
-
-
-class WrongParameterType(OndaException):
-    """
-    Type in the configuration file does not match the requested type.
-    """
-
-
-class DataExtractionError(OndaException):
-    """
-    Error during data extraction.
-    """
-
-
-class DataNotAvailable(OndaException):
-    """
-    Data not available in the current data retrieval layer.
-    """
-
-
-class InvalidSource(OndaException):
-    """
-    The format of the source string is not valid.
-    """
-
-
-class MissingDependency(OndaException):
-    """
-    One of the dependecies of a module is not installed.
-    """
-
-
-class ConfigFileSyntaxError(OndaException):
+class OndaConfigurationFileSyntaxError(OndaException):
     """
     There is a syntax error in the configuration file.
     """
 
 
-class ConfigFileReadingError(OndaException):
+class OndaConfigurationFileReadingError(OndaException):
     """
     Error while reading the configuration file.
     """
 
 
-def onda_exception_handler(type_, value, traceback):
+class OndaMissingParameterGroupError(OndaException):
+    """
+    A group of parameters is missing in the configuration file.
+    """
+
+
+class OndaMissingParameterError(OndaException):
+    """
+    A parameter is missing in the configuration file.
+    """
+
+
+class OndaWrongParameterTypeError(OndaException):
+    """
+    The type of the parameter in the config file does not match the requested type.
+    """
+
+
+class OndaDataExtractionError(OndaException):
+    """
+    Error during data extraction.
+    """
+
+
+class OndaInvalidSourceError(OndaException):
+    """
+    The format of the source string is not valid.
+    """
+
+
+class OndaMissingDependencyError(OndaException):
+    """
+    One of the dependecies of a module is not installed.
+    """
+
+
+class OndaHdf5FileReadingError(OndaException):
+    """
+    Error while reading an HDF5 file.
+    """
+
+def onda_exception_handler(type_, value, traceback_):
+    # type: (Exception, str, traceback.traceback) -> NoReturn
     """
     Custom OnDA exception handler.
 
-    Not to be called directly, but to be used as a replacement for the standard
-    exception handler. Adds a label and hide the stracktrace for all OnDA
-    exceptions. Reports all other exceptions normally.
+    This function should never be called directly. Instead it should be used as a
+    replacement for the standard exception handler. For all OnDA excceptions, it adds a
+    label to the Exception and hide the stacktrace. All non-OnDA exceptions are instead
+    reported normally.
 
-    Args:
+    Arguments:
 
-        type_ (type): exception type.
+        type_ (Exception): exception type.
 
         value (str): exception value (the message that comes with the exception).
 
-        traceback (traceback): traceback to be printed.
+        traceback_ (traceback.traceback): traceback to be printed.
     """
     if issubclass(type_, OndaException):
         print("")
@@ -136,7 +136,7 @@ def onda_exception_handler(type_, value, traceback):
         sys.stderr.flush()
         MPI.COMM_WORLD.Abort(0)
     else:
-        print_exception(type_, value, traceback)
+        print_exception(type_, value, traceback_)
         sys.stdout.flush()
         sys.stderr.flush()
         MPI.COMM_WORLD.Abort(0)

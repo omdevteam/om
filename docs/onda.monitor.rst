@@ -1,5 +1,5 @@
-onda.monitor module
-===================
+monitor Package
+===============
 
 .. automodule:: onda.monitor
     :members:

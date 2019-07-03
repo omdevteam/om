@@ -1,5 +1,5 @@
-onda.parallelization\_layer.mpi module
-======================================
+mpi Module
+==========
 
 .. automodule:: onda.parallelization_layer.mpi
     :members:

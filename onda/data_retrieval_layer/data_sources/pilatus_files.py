@@ -14,16 +14,13 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of data from Jungfrau 1M detector files.
-
-Functions and classes used to retrieve data from files written by the Pilatus
-detector.
+Retrieval of Pilatus detector data from files.
 """
 from __future__ import absolute_import, division, print_function
 
 import fabio
 
-from onda.utils import named_tuples
+from onda.utils import named_tuples, data_event  # pylint: disable=unused-import
 
 
 #####################
@@ -34,30 +31,28 @@ from onda.utils import named_tuples
 
 
 def get_file_extensions():
+    # type: () -> Tuple[str, ...]
     """
-    Extensions used for Pilatus files.
-
-    Returns the extensions used for files written by the Pilatus detector.
+    Retrieves a list of extensions used by Pilatus data files.
 
     Returns:
 
-        Tuple[str]: the list of file extensions.
+        Tuple[str, ...]: the list of file extensions.
     """
     return (".cbf",)
 
 
 def get_peakfinder8_info():
+    # type () -> named_tuples.Peakfinder8Info
     """
-    Peakfinder8 info for the Pilatus detector.
-
-    Retrieves the peakfinder8 information matching the data format used in files
-    written by the the Pilatus detector.
+    Retrieves the peakfinder8 information for the Pilatus detector.
 
     Returns:
 
-        Peakfinder8DetInfo: the peakfinder8-related detector information.
+        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
+        peakfinder8 information.
     """
-    return named_tuples.Peakfinder8DetInfo(
+    return named_tuples.Peakfinder8Info(
         asic_nx=2463, asic_ny=2527, nasics_x=1, nasics_y=1
     )
 
@@ -70,51 +65,72 @@ def get_peakfinder8_info():
 
 
 def open_event(event):
+    # type: (data_event.DataEvent) -> None
     """
-    Opens a Pilatus event retrieved from files.
+    Opens an event retrieved from Pilatus files.
 
-    Makes the content of the event (file) available in the 'data' entry of the event
-    dictionary.
+    For Pilatus data files, an event corresponds to the full content of a single
+    Pilatus CBF file. This function makes the content of the file available in the
+    'data' field of the 'event' object.
 
-    Args:
+    Note:
 
-        event (Dict): a dictionary with the event data.
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
     """
-    # The event is a CBF file. Opens the CBF file using the fabio library and saves
-    # the content (stored as a cbf_obj object) in the 'data' entry of the event
-    # dictionary.
     event["data"] = fabio.open(event["full_path"])
 
 
 def close_event(event):
+    # type: (data_event.DataEvent) -> None
     """
-    Closes an CBF file event.
+    Closes an event retrieved from Pilatus files.
 
-    Args:
+    Since an event corresponds to a CBF data file, which does not need to be closed,
+    this function actually does nothing.
 
-        event (Dict): a dictionary with the event data.
+    Note:
+
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
     """
     del event
-    # The event is a CBF file, which does not need to be closed.
 
 
 def get_num_frames_in_event(event):
+    # type: (data_event.DataEvent) -> int
     """
-    Number of frames in a Pilatus file.
+    Gets the number of frames in an event retrieved from Pilatus files (or HiDRA).
 
-    Returns the number of Pilatus detector frames in an event recovered from a file
-    (1 event = 1 file).
+    For the Pilatus detector, an event corresponds to the content of one CBF data file,
+    and since the detector writes one frame per file, this function always returns 1.
 
-    Args:
+    Note:
 
-        event (Dict): a dictionary with the event data.
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
 
-    Retuns:
+    Arguments:
 
-        int:
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
+
+    Returns:
+
+        int: the number of frames in the event.
     """
     del event
-    # CBF files from the Pilatus detector usually contain only one frame.
+
     return 1
 
 
@@ -126,33 +142,36 @@ def get_num_frames_in_event(event):
 
 
 def detector_data(event):
+    # type: (data_event.DataEvent) -> numpy.ndarray
     """
-    One frame of detector data from a Pilatus file.
+    Retrieves one frame of Pilatus detector data from files (or HiDRA).
 
-    Args:
+    Arguments:
 
-        event (Dict): a dictionary with the event data.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        ndarray: one frame of detector data.
+        numpy.ndarray: one frame of detector data.
     """
-    # Returns the data from the fabio cbf_obj object previously stored
-    # in the input dictionary.
+    # Returns the data from the fabio cbf_obj object previously stored in the event.
     return event["data"].data
 
 
 def event_id(event):
+    # type: (data_event.DataEvent) -> str
     """
-    Retrieves a unique event identifier for Pilatus files.
+    Gets a unique identifier for an event retrieved from Pilatus files (or HiDRA).
 
-    Returns a unique label that unambiguosly identifies the current event within an
-    experiment. For Pilatus files, the full path to the file storing the event is used
-    as an identifier.
+    Returns a label that unambiguosly identifies, within an experiment, the event
+    currently being processed. For the Pilatus detector, an event corresponds to a
+    single CBF file, and the full path to the file is used as identifier.
 
-    Args:
+    Arguments:
 
-        event (Dict): a dictionary with the event data.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
@@ -162,21 +181,24 @@ def event_id(event):
 
 
 def frame_id(event):
+    # type: (data_event.DataEvent) -> str
     """
-    Retrieves a unique identifier for a Pilaltus frame.
+    Gets a unique identifier for a Pilatus data frame retrieved from files (or HiDRA).
 
-    Returns a unique label that unambiguosly identifies the current detector frame
-    within the event. For Pilatus files, the index of the frame within the file is
-    used as an identifier.
+    Returns a label that unambiguosly identifies, within an event, the frame currently
+    being processed. For the Pilatus detector, the index of the frame within the event
+    is used as identifier. However, each Pilatus event only contains one frame, so this
+    function always returns the string "0".
 
-    Args:
+    Arguments:
 
-        event (Dict): a dictionary with the event data.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        str: a unique frame identifier with the event.
+        str: a unique frame identifier (within an event).
     """
-    # The frame index is always 0, as Pilatus files usually contain just one frame.
     del event
+
     return str(0)

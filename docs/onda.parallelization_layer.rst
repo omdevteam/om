@@ -1,15 +1,15 @@
-onda.parallelization\_layer package
-===================================
+parallelization\_layer Package
+==============================
 
 .. automodule:: onda.parallelization_layer
     :members:
     :undoc-members:
     :show-inheritance:
 
-Submodules
-----------
+Subpackages / Submodules
+--------------------------
 
 .. toctree::
 
-   onda.parallelization_layer.mpi
+   mpi <onda.parallelization_layer.mpi>
 

@@ -1,5 +1,5 @@
-onda.algorithms.calibration\_algorithms module
-==============================================
+calibration\_algorithms Module
+==============================
 
 .. automodule:: onda.algorithms.calibration_algorithms
     :members:

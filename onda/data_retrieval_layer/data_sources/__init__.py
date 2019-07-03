@@ -15,7 +15,4 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of data from detectors and other sensors.
-
-Classes and functions used to extract and retrieve data from detectors and other
-sensors.
 """

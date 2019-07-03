@@ -1,21 +1,19 @@
-onda.data\_retrieval\_layer.data\_sources package
-=================================================
+data\_sources Package
+=====================
 
 .. automodule:: onda.data_retrieval_layer.data_sources
     :members:
     :undoc-members:
     :show-inheritance:
 
-Submodules
-----------
+Subpackages / Submodules
+--------------------------
 
 .. toctree::
 
-   onda.data_retrieval_layer.data_sources.files_pilatus
-   onda.data_retrieval_layer.data_sources.lcls_cspad
-   onda.data_retrieval_layer.data_sources.lcls_epix
-   onda.data_retrieval_layer.data_sources.lcls_jungfrau1m
-   onda.data_retrieval_layer.data_sources.petra3_eiger
-   onda.data_retrieval_layer.data_sources.petra3_lambda
-   onda.data_retrieval_layer.data_sources.petra3_pilatus
+   agipd_1m_karabo <onda.data_retrieval_layer.data_sources.agipd_1m_karabo>
+   cspad_psana <onda.data_retrieval_layer.data_sources.cspad_psana>
+   pilatus_files <onda.data_retrieval_layer.data_sources.pilatus_files>
+   pilatus_hidra <onda.data_retrieval_layer.data_sources.pilatus_hidra>
+   pnccd_psana <onda.data_retrieval_layer.data_sources.pnccd_psana>
 

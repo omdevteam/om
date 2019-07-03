@@ -1,16 +1,16 @@
-onda.graphical\_interfaces package
-==================================
+graphical\_interfaces Package
+=============================
 
 .. automodule:: onda.graphical_interfaces
     :members:
     :undoc-members:
     :show-inheritance:
 
-Submodules
-----------
+Subpackages / Submodules
+--------------------------
 
 .. toctree::
 
-   onda.graphical_interfaces.crystallography
-   onda.graphical_interfaces.crystallography_hit_viewer
+   crystallography_frame_viewer <onda.graphical_interfaces.crystallography_frame_viewer>
+   crystallography_gui <onda.graphical_interfaces.crystallography_gui>
 

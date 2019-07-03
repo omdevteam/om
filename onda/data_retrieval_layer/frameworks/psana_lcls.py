@@ -14,23 +14,22 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of events from HiDRA.
-
-Functions and classes used to retrieve data events from psana.
+Retrieval of events from psana at LCLS.
 """
 from __future__ import absolute_import, division, print_function
 
+from typing import Generator, List  # pylint: disable=unused-import
+
 import numpy
-import scipy
 from future.utils import iteritems, raise_from
 
-from onda.utils import dynamic_import, exceptions, named_tuples
+from onda.utils import dynamic_import, exceptions
 
 try:
     import psana  # pylint: disable=import-error
 except ImportError as exc:
     raise_from(
-        exc=exceptions.MissingDependency(
+        exc=exceptions.OndaMissingDependencyError(
             "The psana module could not be loaded. The following dependency does not "
             "appear to be available on the system: psana."
         ),
@@ -46,70 +45,77 @@ except ImportError as exc:
 
 
 def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
-
-    # Computes how many events the current worker node should process. Split the
-    # events as equally as possible amongst the workers with the last worker
-    # getting a smaller number of events if the number of files to be processed cannot
-    # be exactly divided by the number of workers.
+    # type: (psana._DataSource, int, int) -> Generator[psana.Event]
+    # Computes how many events the current worker node should process. Splits the
+    # events as equally as possible amongst the workers. If the number of events cannot
+    # be exactly divided by the number of workers, an additional worker is assigned
+    # the residual events.
     for run in psana_source.runs():
         times = run.times()
-
         num_events_curr_node = int(numpy.ceil(len(times) / float(mpi_pool_size - 1)))
-
         events_curr_node = times[
             (node_rank - 1) * num_events_curr_node : node_rank * num_events_curr_node
         ]
-
         for evt in events_curr_node:
+
             yield run.event(evt)
 
 
-def initialize_event_source(source, mpi_pool_size, monitor_params):
+def initialize_event_source(source, node_pool_size, monitor_params):
+    # type: (str, int, parameters.MonitorParams) -> None
     """
-    Initializes the psana event source.
+    Initializes the psana event source at LCLS.
 
-    This function must be called on the master node before the :obj:`event_generator`
-    function is called on the worker nodes.
+    This function must be called on the master node before the :func:`event_generator`
+    function is called on the worker nodes. There is no need to initialize the psana
+    event source, so this function actually does nothing.
 
-    Args:
+    Arguments:
 
-        source (str): a psana experiment string.
+        source (str): a psana-style DataSource string.
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
     """
     del source
-    del mpi_pool_size
+    del node_pool_size
     del monitor_params
-    # Psana needs no initialization, so thid function does nothing.
 
 
-def event_generator(source, node_rank, mpi_pool_size, monitor_params):
+def event_generator(
+    source,  # type: str
+    node_rank,  # type: int
+    node_pool_size,  # type: int
+    monitor_params,  # type: parameters.MonitorParams
+):
+    # type: (...) -> Generator[data_event.DataEvent]
     """
-    Initializes the recovery of events from psana.
+    Retrieves events from psana at LCLS.
 
-    Returns an iterator over the events that should be processed by the worker that
-    calls the function. This function must be called on each worker node after the
-    :obj:`initialize_event_source` function has been called on the master node.
+    This function must be called on each worker node after the
+    :func:`initialize_event_source` function has been called on the master node.
+    The function is a generator and it returns an iterator over the events that the
+    calling worker must process.
 
-    Args:
+    Arguments:
 
-        source (str): a psana experiment string.
+        source (str): a psana-style DataSource string.
 
-        node_rank (int): rank of the node where the function is called.
+        node_rank (int): the rank, in the OnDA pool, of the worker node calling the
+            function.
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Yields:
 
-        Dict: A dictionary containing the metadata and data of an event.
+        :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
     """
     # Detects if data is being read from an online or offline source.
     if "shmem" in source:
@@ -119,8 +125,8 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
     if offline and not source[-4:] == ":idx":
         source += ":idx"
 
-    # If the psana calibration directory is provided in the
-    # configuration file, adds it as an option to psana.
+    # If the psana calibration directory is provided in the configuration file, it is
+    # added as an option to psana.
     psana_calib_dir = monitor_params.get_param(
         section="DataRetrievalLayer", parameter="psana_calibration_directory", type_=str
     )
@@ -130,33 +136,50 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
         )
     else:
         print("Calibration directory not provided or not found.")
-
     psana_source = psana.DataSource(source)
-    psana_interface_funcs = dynamic_import.get_psana_det_interface_funcs(monitor_params)
-
-    # Calls all the required psana detector interface initialization
-    # functions and stores the returned handlers in a dictionary.
+    data_retrieval_layer_filename = monitor_params.get(
+        section="Onda",
+        parameter="data_retrieval_layer",
+        type_=list,
+        required=True,
+    )
+    data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
+        data_retrieval_layer_filename=data_retrieval_layer_filename
+    )
+    required_data = monitor_params.get(
+        section="Onda",
+        parameter="required_data",
+        type_=list,
+        required=True,
+    )
+    psana_detector_interface_funcs = dynamic_import.get_psana_detector_interface_funcs(
+        required_data=required_data,
+        data_retrieval_layer=data_retrieval_layer,
+    )
+    # Calls all the required psana detector interface initialization functions and
+    # stores the returned objects in a dictionary.
     psana_det_interface = {}
-    for f_name, func in iteritems(psana_interface_funcs):
+    for f_name, func in iteritems(psana_detector_interface_funcs):
         psana_det_interface[f_name.split("_init")[0]] = func(monitor_params)
 
+    # Initializes the psana event source and starts retrieving events.
     if offline:
         psana_events = _psana_offline_event_generator(
-            psana_source=psana_source, node_rank=node_rank, mpi_pool_size=mpi_pool_size
+            psana_source=psana_source,
+            node_rank=node_rank,
+            mpi_pool_size=node_pool_size,
         )
     else:
         psana_events = psana_source.events()
-
     for psana_event in psana_events:
         event = {
             "psana_detector_interface": psana_det_interface,
             "psana_event": psana_event,
         }
 
-        # Recovers the timestamp from the psana event
-        # (in epoch format) and stores it in the event dictionary.
+        # Recovers the timestamp from the psana event (as seconds from the Epoch) and
+        # stores it in the event dictionary to be retrieved later.
         timestamp_epoch_format = psana_event.get(psana.EventId).time()
-
         event["timestamp"] = numpy.float64(
             str(timestamp_epoch_format[0]) + "." + str(timestamp_epoch_format[1])
         )
@@ -165,45 +188,64 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
 
 def open_event(event):
+    # type: (data_event.DataEvent) -> None
     """
-    Opens an event retrieved from psana.
+    Opens an event retrieved from psana at LCLS.
 
-    Makes the content of a retrieved psana event available in the 'data' entry of the
-    event dictionary.
+    Psana events do not need to be opened, so this function actually does nothing.
 
-    Args:
+    Note:
 
-        event (Dict): a dictionary with the event data.
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
     """
-    # Psana events do not need to be opened. This function does
-    # nothing.
     del event
 
 
 def close_event(event):
+    # type: (data_event.DataEvent) -> None
     """
-    Closes an event retrieved from psana.
+    Closes an event retrieved from psana at LCLS.
 
-    Args:
+    Psana events do not need to be closed, so this function actually does nothing.
 
-        event (Dict): a dictionary with the event data.
+    Note:
+
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
     """
-    # Psana events do not need to be closed. This function does
-    # nothing.
     del event
 
 
 def get_num_frames_in_event(event):
+    # type: (data_event.DataEvent) -> int
     """
-    Number of frames in an psana event.
+    Gets the number of frames in an event retrieved from psana at LCLS.
 
-    Returns the number of frames in an event retrieved from psana.
+    Psana events are frame-based, and always contain just one frame. This function
+    always returns 1.
 
-    Args:
+    Note:
 
-        event (Dict): a dictionary with the event data.
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
 
-    Retuns:
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
+
+    Returns:
 
         int: the number of frames in the event.
     """
@@ -220,34 +262,29 @@ def get_num_frames_in_event(event):
 #####################################################
 
 
-def detector_data_init(monitor_params, data_extraction_func_name):
+def detector_data_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector.AreaDetector.AreaDetector
     """
-    Initializes the psana detector interface for x-ray detector data.
+    Initializes the psana Detector interface for x-ray detector data at LCLS.
 
-    Args:
+    This function initializes the Detector interface for the detector identified by the
+    'psana_detector_name' entry in the "DataRetrievalLayer" section of the
+    configuration file.
 
-        monitor_params (MonitorParams): a
-            :obj:`~onda.utils.parameters.MonitorParams` object containing the monitor
-            parameters from the configuration file.
+    Arguments:
 
-        data_extraction_func_name: specific name of the data extraction function with
-            which this generic initialization function should be associated (e.g:
-            'detector_data', 'detector2_data'. 'detector3_data', etc.). This is
-            required to resuse this initialization function with multiple detectors.
-            The `functools.partial` python function is used to create 'personalized'
-            versions of this function for each detector, by fixing this argument.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Detector: a handle (a psana Detector object) that can be used later to
-        retrieve the data.
+        psana.Detector.AreaDetector.AreaDetector: a psana object that can be used later
+        to retrieve the data.
     """
-    # Calls the psana interface initialization function corresponding to the data
-    # extraction func name.
     return psana.Detector(
         monitor_params.get_param(
             section="DataRetrievalLayer",
-            parameter="psana_{0}_detector_name".format(data_extraction_func_name),
+            parameter="psana_detector_name",
             type_=str,
             required=True,
         )
@@ -255,19 +292,14 @@ def detector_data_init(monitor_params, data_extraction_func_name):
 
 
 def timestamp_init(monitor_params):
+    # type (parameters.MonitorParams) -> None
     """
-    Initializes the psana detector interface for timestamp data.
+    Initializes the psana Detector interface for timestamp data at LCLS.
 
-    Args:
+    Arguments:
 
-        monitor_params (MonitorParams): a
-            :obj:`~onda.utils.parameters.MonitorParams` object containing the monitor
-            parameters from the configuration file.
-
-    Returns:
-
-        Detector: a handle (a psana Detector object) that can be used later to
-        retrieve the data.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
     """
     # The event timestamp gets recovered in other ways by the event recovery code. No
     # need to initialize the psana interface: the timestamp will already be in the
@@ -277,18 +309,24 @@ def timestamp_init(monitor_params):
 
 
 def detector_distance_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector.EpicsDetector.EpicsDetector
     """
-    Initializes the psana detector interface for detector dist. data.
+    Initializes the psana Detector interface for detector distance data at LCLS.
 
-    Args:
+    Detector distance information is recovered at LCLS from an Epics controller.
+    This function initializes the Detector interface for the Epics controller
+    identified by the 'psana_detector_distance_epics_name' entry in the
+    'DataRetrievalLayer' section of the configuration file.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+    Arguments:
+
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Detector: a handle (a psana Detector object) that can be used later to
-        retrieve the data.
+        psana.Detector.EpicsDetector.EpicsDetector: a psana object that can be used
+        later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -301,36 +339,43 @@ def detector_distance_init(monitor_params):
 
 
 def beam_energy_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector.DdlDetector.DdlDetector
     """
-    Initializes the psana detector interface for beam energy data.
+    Initializes the psana Detector interface for beam energy data at LCLS.
 
-    Args:
+    Arguments:
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Detector: a handle (a psana Detector object) that can be used later to
-        retrieve the data.
+        psana.Detector.DdlDetector.DdlDetector: a psana object that can be used later
+        to retrieve the data.
     """
     del monitor_params
     return psana.Detector("EBeam")
 
 
 def timetool_data_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector  TODO: Determine return type
     """
-    Initializes the psana detector interface for data from a timetool.
+    Initializes the psana Detector interface for timetool data at LCLS.
 
-    Args:
+    Timetool data is recovered at LCLS from an Epics controller. This function
+    initializes the Detector interface for the Epics controller identified by the
+    'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' section
+    of the configuration file.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+    Arguments:
+
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Detector: a handle (a psana Detector object) that can be used later to
-        retrieve the data.
+        psana.Detector.EpicsDetector.EpicsDetector: a psana object that can be used
+        later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -342,32 +387,29 @@ def timetool_data_init(monitor_params):
     )
 
 
-def digitizer_data_init(monitor_params, data_extraction_func_name):
+def digitizer_data_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector.WFDetector.WFDetector
     """
-    Initialize the psana detector interface for data from a digitizer.
+    Initializes the psana Detector interface for digitizer data at LCLS.
 
-    Args:
+    This function initializes the Detector interface for the digitizer indentified by
+    the 'psana_digitizer_name' entry in the 'DataRetrievalLayer' section of the
+    configuration file.
 
-        monitor_params (MonitorParams): a
-            :obj:`~onda.utils.parameters.MonitorParams` object containing the monitor
-            parameters from the configurationfile.
+    Arguments:
 
-        data_extraction_func_name: specific name of the data extraction function with
-            which this generic initialization function should be associated (e.g:
-            'digitizer_data', 'digitizer2_data'. 'digitizer3_data', etc.). This is
-            required to resuse this initialization function with multiple digitizers.
-            The `functools.partial` python function is used to create 'personalized'
-            versions of this function for each digitizer, by fixing this argument.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Detector: a handle (a psana Detector object) that can be used later to
+        psana.Detector.WFDetector.WFDetector: a psana object that can be used later to
         retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
             section="DataRetrievalLayer",
-            parameter="psana_{0}_digitizer_name".format(data_extraction_func_name),
+            parameter="psana_digitizer_name",
             type_=str,
             required=True,
         )
@@ -375,18 +417,23 @@ def digitizer_data_init(monitor_params, data_extraction_func_name):
 
 
 def opal_data_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector.AreaDetector.AreaDetector
     """
-    Initializes the psana detector interface for Opal camera data.
+    Initializes the psana Detector interface for Opal camera data at LCLS.
 
-    Args:
+    This function initialize the Detector interface for the Opel camera identified by
+    the 'psana_opal_name' entry in the 'DataRetrievalLayer' section of the
+    configuration file.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+    Arguments:
+
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Detector: a handle (a psana Detector object) that can be used later to
-        retrieve the data.
+        psana.Detector.AreaDetector.AreaDetector: a psana object that can be used later
+        to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -399,28 +446,25 @@ def opal_data_init(monitor_params):
 
 
 def optical_laser_active_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector.EvrDetector.EvrDetector
     """
-    Initializes the psana detector interface for the status of the optical laser.
+    Initializes the psana Detector interface for an optical laser at LCLS.
 
-    Args:
+    The status of an optical laser is determined at LCLS by monitoring an EVR event
+    source. This function initializes the Detector interface for the EVR event source
+    identified by the 'psana_evr_source_name' entry of the 'DataRetrievalLayer'
+    section of the configuration file.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+    Arguments:
+
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Tuple[psana.Detector, evr_codes]: a tuple where the first entry is a psana
-        Detector interface object, while the second is a list of EVR codes
-        corresponding to the optical laser being active. Both can be used later to
-        retrieve the data.
+        psana.Detector.EvrDetector.EvrDetector: a psana object that can be used later
+            to retrieve the data.
     """
-    active_laser_evr_code = monitor_params.get_param(
-        section="DataRetrievalLayer",
-        parameter="psana_evr_code_for_active_optical_laser",
-        type_=int,
-        required=True,
-    )
-
     evr_source_name = monitor_params.get_param(
         section="DataRetrievalLayer",
         parameter="psana_evr_source_name",
@@ -428,35 +472,29 @@ def optical_laser_active_init(monitor_params):
         required=True,
     )
 
-    return named_tuples.OpticalLaserStateDataRetrievalInfo(
-        psana_detector_handle=psana.Detector(evr_source_name),
-        active_laser_evr_code=active_laser_evr_code,
-    )
+    return psana.Detector(evr_source_name)
 
 
 def xrays_active_init(monitor_params):
+    # type (parameters.MonitorParams) -> psana.Detector.EvrDetector.EvrDetector
     """
-    Initializes the psana detector interface for the status of the optical laser.
+    Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
-    Args:
+    The status of the x-ray beam  is determined at LCLS by monitoring an EVR event
+    source. This function initializes the Detector interface for the EVR event source
+    identified by the 'psana_evr_source_name' entry of the 'DataRetrievalLayer'
+    section of the configuration file.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+    Arguments:
+
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Returns:
 
-        Tuple[psana.Detector, evr_codes]: a tuple where the first entry is a psana
-        Detector interface object, while the second is a list of EVR codes
-        corresponding to the optical laser being active. Both can be used later to
-        retrieve the data.
+        psana.Detector.EvrDetector.EvrDetector: a psana object that can be used later
+            to retrieve the data.
     """
-    active_laser_evr_code = monitor_params.get_param(
-        section="DataRetrievalLayer",
-        parameter="psana_evr_code_for_active_xray_laser",
-        type_=int,
-        required=True,
-    )
-
     evr_source_name = monitor_params.get_param(
         section="DataRetrievalLayer",
         parameter="psana_evr_source_name",
@@ -464,34 +502,7 @@ def xrays_active_init(monitor_params):
         required=True,
     )
 
-    return named_tuples.OpticalLaserStateDataRetrievalInfo(
-        psana_detector_handle=psana.Detector(evr_source_name),
-        active_laser_evr_code=active_laser_evr_code,
-    )
-
-
-def target_time_delay_init(monitor_params):
-    """
-    Initializes the psana detector interface for target time delay.
-
-    Args:
-
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
-
-    Returns:
-
-        Detector: a handle (a psana Detector object) that can be used later to
-        retrieve the data.
-    """
-    return psana.Detector(
-        monitor_params.get_param(
-            section="DataRetrievalLayer",
-            parameter="psana_target_time_delay_epics_name",
-            type_=str,
-            required=True,
-        )
-    )
+    return psana.Detector(evr_source_name)
 
 
 #############################
@@ -502,16 +513,18 @@ def target_time_delay_init(monitor_params):
 
 
 def timestamp(event):
+    # type (data_event.DataEvent) -> ? TODO: Determine return type
     """
-    Retrieves the timestamp of the psana event.
+    Gets the timestamp of an event retrieved from psana at LCLS.
 
-    Args:
+    Arguments:
 
-        event (Dict): a dictionary with the event data.
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        timestamp: the time at which the event was collected.
+        numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the timestamp stored in the event dictionary, without extracting it
     # again.
@@ -519,51 +532,61 @@ def timestamp(event):
 
 
 def detector_distance(event):
+    # type (data_event.DataEvent) -> float
     """
-    Retrieves the distance of the detector from the sample location.
+    Gets the detector distance for an event retrieved from psana at LCLS.
 
-    Args:
+    Detector distance information is recovered at LCLS from an Epics controller. This
+    function retrieves the information from the Epics controller identified by the
+    'psana_detector_distance_epics_name' entry in the 'DataRetrievalLayer' section of
+    the configuration file.
 
-        event (Dict): a dictionary with the event data.
+    Arguments:
+
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        float: the distance between the detector and the sample in m.
+        float: the distance between the detector and the sample in mm.
     """
-    # Recovers the detector distance from psana. It is in mm, so we must divide it by
-    # 10000 to convert it to SI (m).
-    return event["psana_detector_interface"]["detector_distance"]() / 1000.0
-
+    return event["psana_detector_interface"]["detector_distance"]()
 
 def beam_energy(event):
+    # type (data_event.DataEvent) -> float
     """
-    Retrieves the beam energy.
+    Gets the beam energy for an event retrieved from psana at LCLS.
 
-    Args:
+    Arguments:
 
-        event (Dict): a dictionary with the event data.
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        float: the energy of the beam in J.
+        float: the energy of the beam in # TODO: determine units.
     """
-    # Recovers the detector distance from psana. It is in eV, so we must multiply it
-    # by e convert it to SI (J).
     return (
         event["psana_detector_interface"]["beam_energy"]
         .get(event["psana_event"])
         .ebeamPhotonEnergy()
-        * scipy.constants.e
     )
 
 
 def timetool_data(event):
+    # type (data_event.DataEvent) -> float # TODO: Determine return type
     """
-    Retrieves the data from a timetool.
+    Gets timetool data for an event retrieved from psana at LCLS.
 
-    Args:
+    Timetool data is recovered at LCLS from an Epics controller. This function
+    retrieves the data from a  controller identified by the
+    'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' section of the
+    configuration file.
 
-        event (Dict): a dictionary with the event data.
+    Arguments:
+
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
@@ -572,55 +595,78 @@ def timetool_data(event):
     return event["psana_detector_interface"]["timetool_data"]()
 
 
-def digitizer_data(event, data_extraction_func_name):
+def digitizer_data(event):
+    # type (data_event.DataEvent) -> numpy.array TODO: Determine return type
     """
-    Retrieves the waveforms from a digitizer (All channels).
+    Get digitizer data for an event retrieved from psana at LCLS.
 
-    Args:
+    This function retrieves data from the digitizer identified by the
+    'psana_digitizer_name' entry in the 'DataRetrievalLayer' section of the
+    configuration file.
 
-        event (Dict): a dictionary with the event data.
+    Arguments:
 
-        data_extraction_func_name (str): the name of the data extraction function
-            ("digitizer_data", "digitizer2_data", "digitizer3_data", etc.) that is
-            associated with this digitizer.
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        psana object: a psana object storing the waveform data.
+        numpy.array: the waveform from the digitizer.
     """
-    return event["psana_detector_interface"][data_extraction_func_name].waveform(
+    return event["psana_detector_interface"]["digitizer_data"].waveform(
         event["psana_event"]
     )
 
 
 def opal_data(event):
+    # type (data_event.DataEvent) -> ? TODO: Determine return type
     """
-    Retrieves data from an Opal camera.
+    Gets Opal camera data for an event retrieved from psana at LCLS.
 
-    Args:
+    This function retrieves data from the Opel camera identified by the
+    'psana_opal_name' entry in the 'DataRetrievalLayer' section of the configuration
+    file.
 
-        event (Dict): a dictionary with the event data.
+    Arguments:
+
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        ndarray: a 2D array containing the image from the Opal camera.
+        numpy.ndarray: a 2D array containing the image from the Opal camera.
     """
     return event["psana_detector_interface"]["opal_data"].calib(event["psana_event"])
 
 
 def optical_laser_active(event):
+    # type (data_event.DataEvent) -> bool
     """
-    Retrieves the optical laser status.
+    Gets the status of an optical laser for an event retrieved from psana at LCLS.
 
-    Returns whether the optical laser is active or not.
+    The status of an optical laser is determined at LCLS by monitoring an EVR event
+    source. This function determines the status of the optical laser by checking if
+    the EVR source provides a specific event code for a certain frame.
 
-    Args:
+    * The name of the source must be specified in the 'psana_evr_source_name' entry of
+      the "DataRetrievalLayer" section of the configuration file.
 
-        event (Dict): a dictionary with the event data.
+    * The EVR event code that signals an active optical laser must be provided in
+      the 'psana_evr_code_for_active_optical_laser' entry in the same section of the
+      file.
+
+    If the source shows this EVR code for a frame, the optical laser will be considered
+    active.
+
+    Arguments:
+
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+           data.
 
     Returns:
 
-        bool: True if the optical laser is active. False otherwise.
+        bool: True if the optical laser is active for the current frame. False
+        otherwise.
     """
     current_evr_codes = event["psana_detector_interface"][
         "optical_laser_active"
@@ -633,18 +679,31 @@ def optical_laser_active(event):
 
 
 def xrays_active(event):
+    # type (data_event.DataEvent) -> bool
     """
-    Retrieves the x-ray laser status.
+    Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
-    Returns whether the x-rays are active or not.
+    The status of an optical laser is determined at LCLS by monitoring an EVR event
+    source. This function determines the status of the x-ray beam by checking if the
+    EVR source provides a specific event code for a certain frame.
 
-    Args:
+    * The name of the source must be specified in the 'psana_evr_source_name' entry of
+      the 'DataRetrievalLayer' section of the configuration file.
 
-        event (Dict): a dictionary with the event data.
+    * The EVR event code that signals an active x-ray beam must be provided in the
+      'psana_evr_code_for_active_xray_beam" entry in the same section of the file.
+
+    If the source shows this EVR code for a frame, the x-ray beam will be conisdered
+    active.
+
+    Arguments:
+
+        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+           data.
 
     Returns:
 
-        bool: True if the x-rays is active. False otherwise.
+        bool: True if the x-ray beam is active for the current frame. False otherwise.
     """
     current_evr_codes = event["psana_detector_interface"][
         "xrays_active"
@@ -654,24 +713,3 @@ def xrays_active(event):
         event["psana_detector_interface"]["xrays_active"].active_laser_evr_code
         in current_evr_codes
     )
-
-
-def target_time_delay(event):
-    """
-    Retrieves the target pump-probe time delay.
-
-    Returns whether the target time delay.
-
-    Args:
-
-        event (Dict): a dictionary with the event data.
-
-    Returns:
-
-        float: The target time delay in ps.
-    """
-    # Target time delay at cxi is negative and given in nanoseconds. It needs to be
-    # mode positive to match the usual convention. It needa also to be converted to
-    # picoseconds lets also limit the precision to 1 fs and round to ensure proper
-    # binning.
-    return round(event["psana_detector_interface"]["target_time_delay"]() * -1000, 3)

@@ -28,6 +28,6 @@ clean:
 		-name "peakfinder8_extension*.so" -delete
 
 docs:
-	sphinx-apidoc -f -M -e -o docs --separate onda \
-	    onda/data_retrieval_layer/event_sources/hidra_api/ \
-		onda/data_retrieval_layer/event_sources/karabo_api/
+	sphinx-apidoc -fMeF --ext-githubpages -o docs onda \
+	    onda/data_retrieval_layer/frameworks/hidra_api/ \
+		onda/data_retrieval_layer/frameworks/karabo_api/

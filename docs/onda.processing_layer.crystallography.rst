@@ -1,5 +1,5 @@
-onda.processing\_layer.crystallography module
-=============================================
+crystallography Module
+======================
 
 .. automodule:: onda.processing_layer.crystallography
     :members:

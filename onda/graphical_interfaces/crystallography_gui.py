@@ -14,22 +14,22 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-GUI for OnDA Crystallography.
+OnDA GUI for cystallography.
 """
 from __future__ import absolute_import, division, print_function
 
 import collections
-import signal
 import sys
+from typing import Any, Dict  # pylint: disable=unused-import
 
 import cfelpyutils.crystfel_utils as cfel_crystfel
 import cfelpyutils.geometry_utils as cfel_geometry
 import click
 import numpy
 import pyqtgraph
-import scipy.constants
+from scipy import constants
 
-import onda.utils.gui as onda_gui
+from onda.utils import gui
 
 try:
     import PyQt5.QtCore as QtCore
@@ -39,65 +39,53 @@ except ImportError:
     import PyQt4.QtGui as QtGui
 
 
-class CrystallographyGui(onda_gui.OndaGui):
+class CrystallographyGui(gui.OndaGui):
     """
-    GUI for OnDA crystallography.
-
-    This GUI receives data sent by the OnDA monitor when they are tagged with the
-    'ondadata' tag. It displays the real time hit and saturation rate information,
-    plus a virtual powder-pattern-style plot of the processed data.
+    See documentation of the __init__ function.
     """
 
-    def __init__(self, geometry, pub_hostname, pub_port):
+    def __init__(self, geometry, hostname, port):
+        # type: (Dict[str, Any], str, int) -> None
         """
-        Initializes the Crystallography GUI class.
+        OnDa GUI for crystallography.
 
-        Args:
+        This GUI receives detector data frames broadcasted from an OnDA monitor, but
+        only when they are tagged with the 'ondadata' label. It displays plots showing
+        the evolution of the hit and saturation rates over time, plus a real-time
+        virtual powder pattern created using the detected Bragg peaks.
 
-            geometry (Dict): a dictionary containing CrystFEL geometry information (as
-                returned by the
-                :obj:`cfelpyutils.crystfel_utils.load_crystfel_geometry` function)
-                from the :obj:`cfelpyutils` module.
+        Arguments:
 
-            pub_hostname (str): hostname or IP address of the machine where the OnDA
-                monitor is running.
+            geometry (Dict[str, Any]): a dictionary containing CrystFEL detector
+                geometry information (as returned by the
+                :func:`~cfelpyutils.crystfel_utils.load_crystfel_geometry` function).
 
-            pub_port (int): port on which the the OnDA monitor is broadcasting
-                information.
+            hostname (str): the hostname (or IP address) of the machine where the OnDA
+                monitor is broadcasting the data.
+
+            port (int): the port where the OnDA monitor is broadcasting the data.
         """
         super(CrystallographyGui, self).__init__(
-            pub_hostname=pub_hostname,
-            pub_port=pub_port,
+            hostname=hostname,
+            port=port,
             gui_update_func=self._update_image_and_plots,
             subscription_string="ondadata",
         )
-
-        # Initializes the local data dictionary with 'null' values.
-        # self._local_data = {
-        #     "peak_list": named_tuples.PeakList(fs=[], ss=[], intensity=[]),
-        #     "hit_rate": 0.0,
-        #     "hit_flag": True,
-        #     "saturation_rate": 0.0,
-        # }
-
-        self._local_data = None
-
         pixel_maps = cfel_geometry.compute_pix_maps(geometry)
-
-        # The following information will be used later to create the arrays that will
-        # store the assembled detector images.
         self._img_shape = cfel_geometry.compute_min_array_size(pixel_maps)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
-
         visual_pixel_map = cfel_geometry.compute_visualization_pix_maps(geometry)
         self._visual_pixel_map_x = visual_pixel_map.x.flatten()
         self._visual_pixel_map_y = visual_pixel_map.y.flatten()
+        self._img_virt_powder_plot = numpy.zeros(
+            shape=self._img_shape, dtype=numpy.float32
+        )
 
         # Tries to extract the coffset and res information from the geometry. The
-        # geometry allows these two values to be defined individually for each panel,
-        # but the GUI just needs simple values for the whole detector. The GUI just
-        # takes the values from the first panel.
+        # CrystFEL geometry format allows these two values to be defined individually
+        # for each detector panel, but this GUI needs just a single value for the whole
+        # detector. The values from the first panel are taken.
         first_panel = list(geometry["panels"].keys())[0]
         try:
             self._coffset = geometry["panels"][first_panel]["coffset"]
@@ -109,22 +97,27 @@ class CrystallographyGui(onda_gui.OndaGui):
         except KeyError:
             self._res = None
 
-        self._img_virt_powder_plot = numpy.zeros(
-            shape=self._img_shape, dtype=numpy.float32
+        self._local_data = None
+        self._last_beam_energy = None
+        self._last_detector_distance = None
+        self._hit_rate_history = collections.deque(
+            iterable=10000 * [0.0],
+            maxlen=10000,
+        )
+        self._saturation_rate_history = collections.deque(
+            iterable=10000 * [0.0],
+            maxlen=10000,
         )
 
-        self._hitrate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
-        self._satrate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
-
-        # Sets the PyQtGraph background color.
         pyqtgraph.setConfigOption("background", 0.2)
 
-        # Initializes all that is needed to draw resolution rings.
+        self._resolution_rings_pen = pyqtgraph.mkPen("w", width=0.5)
+        self._resolution_rings_canvas = pyqtgraph.ScatterPlotItem()
         self._resolution_rings_regex = QtCore.QRegExp(r"[0-9.,]+")
         self._resolution_rings_validator = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
         self._resolution_rings_in_a = [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
-
+        self._resolution_rings_textitems = []
         self._resolution_rings_check_box = QtGui.QCheckBox(
             text="Show Resolution Rings", checked=True
         )
@@ -132,7 +125,6 @@ class CrystallographyGui(onda_gui.OndaGui):
             self._update_resolution_rings_to_display
         )
         self._resolution_rings_check_box.setEnabled(True)
-
         self._resolution_rings_lineedit = QtGui.QLineEdit()
         self._resolution_rings_lineedit.setValidator(self._resolution_rings_validator)
         self._resolution_rings_lineedit.setText(
@@ -143,46 +135,34 @@ class CrystallographyGui(onda_gui.OndaGui):
         )
         self._resolution_rings_lineedit.setEnabled(True)
 
-        self._resolution_rings_widget = onda_gui.OndaScatterPlotWidget(
-            symbol="o",
-            color="w"
+        self._image_view = pyqtgraph.ImageView()
+        self._image_view.ui.menuBtn.hide()
+        self._image_view.ui.roiBtn.hide()
+
+        self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
+        self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
+        self._hit_rate_plot_widget.setLabel(axis="bottom", text="Events")
+        self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate")
+        self._hit_rate_plot_widget.showGrid(x=True, y=True)
+        self._hit_rate_plot_widget.setYRange(0, 1.0)
+        self._hit_rate_plot = self._hit_rate_plot_widget.plot(self._hitrate_history)
+
+        self._saturation_plot_widget = pyqtgraph.PlotWidget()
+        self._saturation_plot_widget.setTitle(
+            "Fraction of hits with too many saturated peaks"
+        )
+        self._saturation_plot_widget.setLabel(axis="bottom", text="Events")
+        self._saturation_plot_widget.setLabel(axis="left", text="Saturation rate")
+        self._saturation_plot_widget.showGrid(x=True, y=True)
+        self._saturation_plot_widget.setYRange(0, 1.0)
+        self._saturation_plot_widget.setXLink(self._hit_rate_plot_widget)
+        self._saturation_rate_plot = self._saturation_plot_widget.plot(
+            self._satrate_history
         )
 
-        self._last_beam_energy = None
-        self._last_detector_distance = None
-
-        # Initializes the image viewer.
-        self._image_widget = onda_gui.OndaImageWidget(axes_visible=True)
-        self._image_widget.set_scatter_plot_overlays(self._resolution_rings_widget)
-
-        # Initializes the hit rate plot widget.
-        self._hit_rate_widget = onda_gui.OndaPlotWidget(
-            data=(range(-10000, 0), self._hitrate_history),
-            grid_shown=True,
-            plot_title="Hit Rate vs. Events",
-            x_axis_label="Events",
-            y_axis_label="Hit Rate",
-            x_axis_range=(-10000, 0),
-            y_axis_range=(0, 100),
-        )
-
-        # Initializes the saturation rate plot widget.
-        self._saturation_widget = onda_gui.OndaPlotWidget(
-            data=(range(-10000, 0), self._satrate_history),
-            grid_shown=True,
-            plot_title="Fraction of hits with too many saturated peaks",
-            x_axis_label="Events",
-            y_axis_label="Saturation Rate",
-            x_axis_range=(-10000, 0),
-            y_axis_range=(0, 100),
-        )
-        self._saturation_widget.link_x_axis(self._hit_rate_widget)
-
-        # Initializes the 'reset peaks' button.
         self._reset_peaks_button = QtGui.QPushButton(text="Reset Peaks")
         self._reset_peaks_button.clicked.connect(self._reset_virt_powder_plot)
 
-        # Initializes the 'reset plots' button.
         self._reset_plots_button = QtGui.QPushButton(text="Reset Plots")
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
@@ -194,38 +174,44 @@ class CrystallographyGui(onda_gui.OndaGui):
         horizontal_layout.addWidget(self._resolution_rings_check_box)
         horizontal_layout.addWidget(self._resolution_rings_lineedit)
         splitter_0 = QtGui.QSplitter()
-        splitter_0.addWidget(self._image_widget.widget)
+        splitter_0.addWidget(self._image_view)
         splitter_1 = QtGui.QSplitter()
         splitter_1.setOrientation(QtCore.Qt.Vertical)
-        splitter_1.addWidget(self._hit_rate_widget.widget)
-        splitter_1.addWidget(self._saturation_widget.widget)
+        splitter_1.addWidget(self._hit_rate_plot_widget)
+        splitter_1.addWidget(self._saturation_plot_widget)
         splitter_0.addWidget(splitter_1)
         vertical_layout = QtGui.QVBoxLayout()
         vertical_layout.addWidget(splitter_0)
         vertical_layout.addLayout(horizontal_layout)
-
-        # Initializes the central widget for the main window.
         self._central_widget = QtGui.QWidget()
         self._central_widget.setLayout(vertical_layout)
         self.setCentralWidget(self._central_widget)
-
         self.show()
 
     def _reset_plots(self):
-        # Resetsthe plots.
-        self._hitrate_history = collections.deque(10000 * [0.0], maxlen=10000)
-        self._satrate_history = collections.deque(10000 * [0.0], maxlen=10000)
-        self._hit_rate_widget.update(data=(range(-10000, 0), self._hitrate_history))
-        self._saturation_widget.update(data=(range(-10000, 0), self._satrate_history))
+        # type () -> None
+        # Resets the hit and saturation rate plots.
+        self._hit_rate_history = collections.deque(10000 * [0.0], maxlen=10000)
+        self._saturation_rate_history = collections.deque(10000 * [0.0], maxlen=10000)
+        self._hit_rate_plot.setData(self._hitrate_history)
+        self._saturation_rate_plot.setData(self._satrate_history)
 
     def _reset_virt_powder_plot(self):
+        # type: () -> None
         # Resets the virtual powder plot.
         self._img_virt_powder_plot = numpy.zeros(
             shape=self._img_shape, dtype=numpy.float32
         )
-        self._image_widget.update(data=self._img_virt_powder_plot.T)
+        self._image_view.setImage(
+            self._img_virt_powder_plot.T,
+            autoHistogramRange=False,
+            autoLevels=False,
+            autoRange=False,
+        )
 
-    def _update_resolution_rings_to_display(self):
+    def _update_resolution_rings(self):
+        # type: () -> None
+        # Updates the resolution rings.
         items = str(self._resolution_rings_lineedit.text()).split(",")
         if items:
             self._resolution_rings_in_a = [
@@ -233,95 +219,76 @@ class CrystallographyGui(onda_gui.OndaGui):
             ]
         else:
             self._resolution_rings_in_a = []
-        self._update_resolution_rings()
 
-    def _update_resolution_rings(self):
-        # Updates the resolution rings.
-
-        if self._local_data:
-            last_frame = self._local_data[-1]
-            curr_beam_energy = last_frame[b"beam_energy"]
-            curr_detector_distance = last_frame[b"detector_distance"]
-            self._last_beam_energy = curr_beam_energy
-            self._last_detector_distance = curr_detector_distance
-        else:
-            if self._last_beam_energy:
-                curr_beam_energy = self._last_beam_energy
-                curr_detector_distance = self._last_detector_distance
-            else:
-                return
-
+        for text_item in self._resolution_rings_textitems:
+            self._image_view.getView().removeItem(text_item)
+        self._resolution_rings_textitems = [
+            pyqtgraph.TextItem(text="{}A".format(x), anchor=(0.5, 0.8))
+            for x in self._resolution_rings_in_a
+        ]
+        for text_item in self._resolution_rings_textitems:
+            self._image_view.getView().addItem(text_item)
         try:
-            lambda_ = scipy.constants.h * scipy.constants.c / curr_beam_energy
+            lambda_ = constants.h * constants.c / self._local_data[b"beam_energy"]
             resolution_rings_in_pix = [1.0]
             resolution_rings_in_pix.extend(
                 [
                     2.0
                     * self._res
-                    * (curr_detector_distance + self._coffset)
+                    * (self._local_data[b"detector_distance"] + self._coffset)
                     * numpy.tan(2.0 * numpy.arcsin(lambda_ / (2.0 * resolution)))
                     for resolution in self._resolution_rings_in_a
                 ]
             )
         except TypeError:
             print(
-                "Beam energy or detector distance are not available. Resolution"
+                "Beam energy or detector distance are not available. Resolution "
                 "rings cannot be computed."
             )
-            self._resolution_rings_widget.update(data=([], []), size=[])
-            self._image_widget.set_text()
+            self._resolution_rings_canvas.setData([], [])
+            for index, item in enumerate(self._resolution_rings_textitems):
+                item.setText("")
         else:
             if (
                 self._resolution_rings_check_box.isEnabled()
                 and self._resolution_rings_check_box.isChecked()
             ):
-                num_rings = len(resolution_rings_in_pix)
-                self._resolution_rings_widget.update(
-                    data=(
-                        [self._img_center_y] * num_rings,
-                        [self._img_center_x] * num_rings,
-                    ),
+                self._resolution_rings_canvas.setData(
+                    [self._img_center_y] * len(resolution_rings_in_pix),
+                    [self._img_center_x] * len(resolution_rings_in_pix),
+                    symbol="o",
                     size=resolution_rings_in_pix,
+                    pen=self._resolution_rings_pen,
+                    brush=(0, 0, 0, 0),
+                    pxMode=False,
                 )
 
-                resolution_rings_text = [
-                    "{}A".format(ring) for ring in self._resolution_rings_in_a
-                ]
-
-                self._image_widget.set_text(
-                    text=resolution_rings_text,
-                    text_coordinates=(
-                        [self._img_center_y] * num_rings,
-                        [
-                            self._img_center_x + resolution_rings_in_pix[index] / 2.0
-                            for index in range(0, num_rings)
-                        ],
-                    ),
-                )
+                for index, item in enumerate(self._resolution_rings_textitems):
+                    item.setText("{}A".format(self._resolution_rings_in_a[index]))
+                    item.setPos(
+                        self._img_center_y,
+                        (self._img_center_x + resolution_rings_in_pix[index + 1] / 2.0),
+                    )
             else:
-                # If the relevant checkbox is not ticked, sets the resolution rings
-                # and the text labels to 'null' content.
-                self._resolution_rings_widget.update(data=([], []), size=[])
-                self._image_widget.set_text()
+                self._resolution_rings_canvas.setData([], [])
+                for index, item in enumerate(self._resolution_rings_textitems):
+                    item.setText("")
 
     def _update_image_and_plots(self):
+        # type: () -> None
         # Updates all elements in the GUI.
-
-        if self.data:
-
-            # Checks if data has been received. If new data has been received, moves
-            # them to a new attribute and resets the 'data' attribute. In this way,
-            # one can check if data has been received simply by checking if the 'data'
-            # attribute is not None.
-            self._local_data = self.data
-            self.data = None
+        if self.aggregated_data:
+            # Resets the 'aggregated_data' attribute to None. One can then check if
+            # data has been received simply by checking wether the attribute is not
+            # None.
+            self._local_data = self.aggregated_data
+            self.aggregated_data = None
         else:
+            # If no data has been received, returns without drawing anything.
             return
 
-        last_frame = self._local_data[-1]
-
         QtGui.QApplication.processEvents()
-
+        last_frame = self._local_data[-1]
         if last_frame[b"geometry_is_optimized"]:
             if not self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(True)
@@ -332,13 +299,8 @@ class CrystallographyGui(onda_gui.OndaGui):
                 self._resolution_rings_check_box.setEnabled(False)
                 self._resolution_rings_lineedit.setEnabled(False)
             self._update_resolution_rings()
-
         QtGui.QApplication.processEvents()
-
-        # Adds data from all frames accumulated in local_data to the plots, but updates
-        # the displayed images and plots only once at the end.
         for frame in self._local_data:
-
             for peak_fs, peak_ss, peak_value in zip(
                 frame[b"peak_list"][b"fs"],
                 frame[b"peak_list"][b"ss"],
@@ -347,23 +309,24 @@ class CrystallographyGui(onda_gui.OndaGui):
                 peak_index_in_slab = int(round(peak_ss)) * frame[b"native_data_shape"][
                     1
                 ] + int(round(peak_fs))
-
                 self._img_virt_powder_plot[
                     self._visual_pixel_map_y[peak_index_in_slab],
                     self._visual_pixel_map_x[peak_index_in_slab],
                 ] += peak_value
-
-            self._hitrate_history.append(100.0 * frame[b"hit_rate"])
-            self._satrate_history.append(100.0 * frame[b"saturation_rate"])
-
+            self._hitrate_history.append(frame[b"hit_rate"])
+            self._satrate_history.append(frame[b"saturation_rate"])
         QtGui.QApplication.processEvents()
-
-        self._hit_rate_widget.update((range(-10000, 0), self._hitrate_history))
-        self._saturation_widget.update((range(-10000, 0), self._satrate_history))
-        self._image_widget.update(self._img_virt_powder_plot.T)
-
+        self._hit_rate_plot.setData(self._hit_rate_history)
+        self._saturation_rate_plot.setData(self._saturation_rate_history)
+        self._image_view.setImage(
+            self._img_virt_powder_plot.T,
+            autoHistogramRange=False,
+            autoLevels=False,
+            autoRange=False,
+        )
         # Resets local_data so that the same data is not processed multiple times.
         self._local_data = []
+
 
 @click.command()
 @click.argument("geometry_file", type=click.Path())
@@ -371,27 +334,28 @@ class CrystallographyGui(onda_gui.OndaGui):
 @click.argument("port", type=int, required=False)
 def main(geometry_file, hostname, port):
     """
-    OnDA GUI for crystallography. This script starts a GUI and tries to connect to a
-    running OnDA monitor. The script accepts the following arguments:
+    OnDA GUI for crystallography. This program must connect to a running OnDA
+    monitor for crystallography. If the monitor broacasts information on Bragg peaks
+    and hit and saturation rates, this GUI will display their evolution over time, plus
+    a real-time virtual powder pattern created using the detected peaks.
 
-    GEOMETRY_FILE:  the full path to a file containing the geometry information to be
-    used for data visualization.
+    GEOMETRY_FILE: the full path to a file containing the detector geometry information
+    (in CrystFEL format) to be used for visualization.
 
-    HOSTNAME: the hostname where the monitor is running. Optional: if not provided,
-    it defaults to localhost (127.0.0.1).
+    GEOMETRY_FILE: the relative or absolute path to a file containing the detector
+    geometry information (in CrystFEL format) to be used for visualization.
 
-    PORT: the port on HOSTNAME where the monitor is running. Optional: if not
-    provided, it defaults to 12321.
+    HOSTNAME: the hostname where the OnDA monitor is broadcasting data. Optional: if
+    not provided, it defaults to localhost (127.0.0.1).
+
+    PORT: the port on HOSTNAME where the OnDA monitor is broacating data. Optional: if
+    not provided, it defaults to 12321.
     """
     if hostname is None:
         hostname = "127.0.0.1"
     if port is None:
         port = 12321
-
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
     geometry = cfel_crystfel.load_crystfel_geometry(geometry_file)
-
     app = QtGui.QApplication(sys.argv)
     _ = CrystallographyGui(geometry, hostname, port)
     sys.exit(app.exec_())

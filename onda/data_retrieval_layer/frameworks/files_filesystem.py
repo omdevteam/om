@@ -14,18 +14,21 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of events from files.
-
-Functions and classes used to retrieve data events from files.
+Retrieval of file events from the filesystem.
 """
 from __future__ import absolute_import, division, print_function
 
 import os.path
+from typing import Generator  # pylint: disable=unused-import
 
 import numpy
 from future.utils import raise_from
 
-from onda.utils import data_event, dynamic_import
+from onda.utils import (  # pylint: disable=unused-import
+    data_event,
+    dynamic_import,
+    parameters,
+)
 
 
 ############################
@@ -35,66 +38,92 @@ from onda.utils import data_event, dynamic_import
 ############################
 
 
-def initialize_event_source(source, mpi_pool_size, monitor_params):
+def initialize_event_source(source, node_pool_size, monitor_params):
+    # type: (str, int, parameters.MonitorParams) -> None
     """
-    Initializes the file event source.
+    Initializes the file event source when reading files from the filesystem.
 
-    This function must be called on the master node before the :obj:`event_generator`
-    function is called on the worker nodes.
+    This function must be called on the master node before the :func:`event_generator`
+    function is called on the worker nodes. There is no need to initialize the event
+    source when reading from files, so this function actually does nothing.
 
-    Args:
+    Arguments:
 
-        source (str): full path to a file containing the list of files to process
-            (one per line, with their full path).
+        source (str): the relative or absolute path to a file containing the list of
+            files to process (one per line, with their full path).
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
     """
     del source
-    del mpi_pool_size
+    del node_pool_size
     del monitor_params
-    # There is no event source to initialize when recovering events from files, so
-    # does nothing.
 
 
-def event_generator(source, node_rank, mpi_pool_size, monitor_params):
+def event_generator(
+    source,  # type: str
+    node_rank,  # type: int
+    node_pool_size,  # type: int
+    monitor_params,  # type: parameters.MonitorParams
+):
+    # type: (...) -> Generator[data_event.DataEvent]
     """
-    Initializes the recovery of events from files.
+    Retrieves from the filesystem file events to process.
 
-    Returns an iterator over the events that should be processed by the worker that
-    calls the function. This function must be called on each worker node after the
-    :obj:`initialize_event_source` function has been called on the master node.
+    This function must be called on each worker node only after the
+    :func:`initialize_event_source` function has been called on the master node. The
+    function is a generator and it returns an iterator over the events that the calling
+    worker must process.
 
-    Args:
+    Arguments:
 
-        source (str): the full path to a file containing the list of files to be
-            processed (their full path).
+        source (str): the relative or absolute path to a file containing the list of
+            files to process (one per line, with their full path).
 
-        node_rank (int): rank of the node where the function is called.
+        node_rank (int): the rank, in the OnDA pool, of the worker node calling the
+            function.
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Yields:
 
-        Dict: A dictionary containing the metadata and data of an event
-        (1 event = 1file).
+        :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
     """
-    event_handling_functions = dynamic_import.get_event_handling_funcs(monitor_params)
-    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
-
+    data_retrieval_layer_filename = monitor_params.get(
+        section="Onda",
+        parameter="data_retrieval_layer",
+        type_=list,
+        required=True,
+    )
+    data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
+        data_retrieval_layer_filename=data_retrieval_layer_filename
+    )
+    required_data = monitor_params.get(
+        section="Onda",
+        parameter="required_data",
+        type_=list,
+        required=True,
+    )
+    event_handling_functions = dynamic_import.get_event_handling_funcs(
+        data_retrieval_layer=data_retrieval_layer
+    )
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(
+        required_data=required_data,
+        data_retrieval_layer=data_retrieval_layer,
+    )
     event = data_event.DataEvent(
         event_handling_funcs=event_handling_functions,
         data_extraction_funcs=data_extraction_functions,
     )
 
-    # Fills required frameworks info.
+    # Fills the framework info with static data that will be retrieved later.
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -102,7 +131,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             type_=float,
             required=True,
         )
-
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -111,6 +139,10 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             required=True,
         )
 
+    # Computes how many files the current worker node should process. Splits the files
+    # as equally as possible amongst the workers with the last worker getting a
+    # smaller number of files if the number of files to be processed cannot be exactly
+    # divided by the number of workers.
     try:
         with open(source, "r") as fhandle:
             filelist = fhandle.readlines()
@@ -119,13 +151,7 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             exc=RuntimeError("Error reading the {} source file.".format(source)),
             cause=exc,
         )
-
-    # Computes how many files the current worker node should process. Splits the files
-    # as equally as possible amongst the workers with the last worker getting a
-    # smaller number of files if the number of files to be processed cannot be exactly
-    # divided by the number of workers.
-    num_files_curr_node = int(numpy.ceil(len(filelist) / float(mpi_pool_size - 1)))
-
+    num_files_curr_node = int(numpy.ceil(len(filelist) / float(node_pool_size - 1)))
     files_curr_node = filelist[
         ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
     ]
@@ -136,9 +162,7 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
         # File modification time is used as a first approximation of the timestamp
         # when the timestamp is not available.
-        event.framework_info["file_creation_time"] = (
-            os.stat(stripped_entry).st_mtime
-        )
+        event.framework_info["file_creation_time"] = os.stat(stripped_entry).st_mtime
         yield event
 
 
@@ -150,36 +174,39 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
 
 def timestamp(event):
+    # type: (data_event.DataEvent) -> numpy.float64
     """
-    Timestamp for detector file data.
+    Gets the timestamp of a file event retrieved from the filesystem.
 
-    Files written by the detectors don't usually contain timestamp information.
-    The creation date and time of the file is taken as timestamp of the event.
+    Files written by detectors don't usually contain timestamp information. The
+    creation date and time of the file is used as timestamp for the event.
 
-    Args:
+    Arguments:
 
-        event (Dict): a dictionary with the event data.
+         event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        numpy.float64: the timestamp of the event.
+        numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
     return event.framework_info["file_creation_time"]
 
 
 def beam_energy(event):
+    # type: (data_event.DataEvent) -> float
     """
-    Retrieves the beam energy for detector file data.
+    Gets the beam energy for a file event retrieved from the filesystem.
 
-    Files written by the detectors don't usually contain beam energy information.
-    The value is taken from the configuration file, specifically from the
-    'files_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
+    Files written by detectors don't usually contain beam energy information. This
+    function takes the beam energy value from the configuration file, specifically from
+    the 'files_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
@@ -190,21 +217,22 @@ def beam_energy(event):
 
 
 def detector_distance(event):
+    # type: (data_event.DataEvent) -> float
     """
-    Retrieves the detector distance for detector file data.
+    Gets the detector distance for a file event retrieved from the filesystem.
 
-    Files written by the detectors don't usually contain detector distance information.
-    The value is taken from the configuration file, specifically from the
+    Files written by detectors don't usually contain detector distance information.
+    This function takes it from the configuration file, specifically from the
     'files_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer' section.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        float: the distance between the detector and the sample in mm.
+        float: the detector distance in mm.
     """
     # Returns the value previously stored in the event.
     return event.framework_info["detector_distance"]

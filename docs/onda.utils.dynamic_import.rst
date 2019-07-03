@@ -1,5 +1,5 @@
-onda.utils.dynamic\_import module
-=================================
+dynamic\_import Module
+======================
 
 .. automodule:: onda.utils.dynamic_import
     :members:

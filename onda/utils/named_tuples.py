@@ -25,60 +25,37 @@ PeakList = collections.namedtuple(
     typename="PeakList", field_names=["fs", "ss", "intensity"]
 )
 """
-A list of peaks detected in a detector frame.
+Information about a list of Bragg peaks found in a detector data frame.
 
-The first two fields, named 'fs' and 'ss' respectively, are lists which store
-fractional indexes locating the detected peaks in a "slab" format data array. The
-third field, named 'intensity', is a list storing the integrated intensity of each
-peak.
+Arguments:
+
+    fs (List[float, ...]): list of fractional fs indexes locating the detected peaks
+        in the detector data frame.
+
+    ss (List[float, ...]): list of fractional ss indexes locating the detected peaks
+        in the detector data frame.
+
+    intensity (List[float, ...]): list of integrated intensities for the detected
+        peaks.
 """
 
 
-QuadVmiPeaks = collections.namedtuple(
-    typename="QuadVmiPeaks", field_names=["x_1", "x_2", "y_1", "y_2"]
-)
-"""
-A set of peaks from a VMI quad-type detector.
-
-Each of the four fields, named respectively 'x_1', 'x_2', 'y_1' and 'y_2', stores a
-fractional index locating a peak in the waveform data array of the wire with the same
-name.
-"""
-
-
-VmiCoords = collections.namedtuple(typename="VmiCoords", field_names=["x", "y"])
-"""
-Spatial coordinates of a VMI detector hit.
-
-Its two fields ('x' and 'y' respectively) store the spatial coordinates of a VMI
-detector hit.
-"""
-
-
-VmiHit = collections.namedtuple(
-    typename="VmiHit", field_names=["timestamp", "coords", "peaks"]
-)
-"""
-VMI detector hit information.
-
-The first field, 'timestamp', is used to store the timestamp of the hit (in epoch
-format). The second field, 'coords' is a :obj:`VmiCoords` tuple and contains the
-spatial coordinates of the hit. The third field, 'peaks' is a VmiPeak-style tuple (for
-example a :obj:`QuadVmiPeaks` object) and stores a set of peaks detected on the wires
-of the detector.
-"""
-
-
-Peakfinder8DetInfo = collections.namedtuple(
-    typename="Peakfinder8DetInfo",
+Peakfinder8Info = collections.namedtuple(
+    typename="Peakfinder8Info",
     field_names=["asic_nx", "asic_ny", "nasics_x", "nasics_y"],
 )
 """
-Peakfinder8-related information.
+Peakfinder8 information for a detector data frame.
 
-The four fields (named respectively 'asics_nx', 'asics_ny', 'nasics_x', and
-'nasics_y)' are the four parameters used by the peakfinder8 algorithm to
-describe the format of the input data.
+Arguments:
+
+    asic_nx (int): the fs size of each detector's ASIC in the detector data frame.
+
+    asic_ny (int): the ss size of each detector's ASIC in the detector data frame.
+
+    nasics_x (int): the number of ASICs along the fs axis of the detector data frame.
+
+    nasics_y (int): the number of ASICs along the ss axis of the detector data frame.
 """
 
 
@@ -88,49 +65,47 @@ HidraInfo = collections.namedtuple(
 """
 HiDRA initialization information.
 
-Information needed by HiDRA to initiate the connection and the event retrieval. The
-'query' field contains information about the transfer type and the required data. The
-'targets' field stores information about the worker nodes that will receive data from
-HiDRA. The 'data_base_path' field contains the base path to be used for locating files
-in the file system when HiDRA sends relative paths to OnDA.
+TODO: Determine field types.
+
+Arguments:
+
+    query (): information about the transfer type.
+
+    targets (): information about the worker nodes that will receive data from
+        HiDRA.
+
+    data_base_path (str) the absolute or relative base path to be used for locating
+        files in the filesystem when HiDRA sends relative paths to OnDA.
 """
 
 
-OpticalLaserStateDataRetrievalInfo = collections.namedtuple(
-    typename="OpticalLaserStateDataRetrievalInfo",
-    field_names=["psana_detector_handle", "active_laser_evr_code"],
+DataAndCalibrationInfo = collections.namedtuple(
+    typename="DataAndCalibrationInfo", field_names=["data", "info"]
 )
 """
-Optical laser state data retrieval information.
+Detector frame data and additional information needed to calibrate it.
 
-Information needed to receover from psana the inforamtion about the state of the
-optical laser. The first field, 'psana_detector_handle', contains the handle of the
-psana Detector interface for the retrieval of EVR code information, while the second
-field, 'active_optical_laser_evr_code', stores the EVR code that corresponds, at the
-LCLS facility, to the optical laser being active.
+Arguments:
+
+    data (numpy.ndarray): the data frame to calibrate.
+
+    info (Dict[str, Any]): a dictionary storing additional information needed for the
+        calibration. The exact content of this dictionary depends on the calibration
+        algorithm being used (see the documentation of the relevant algorithm).
 """
 
 
-RadialBinInfo = collections.namedtuple(
-    typename="RadialBinInfo", field_names=["radial_bin_pixel_map", "radial_bin_size"]
+
+ProcessedData = collections.namedtuple(
+    typename="ProcessedData", field_names=["data", "worker_rank"]
 )
 """
-Radial binning information.
+Processed data transferred from a worker node to the master node.
 
-Information about radial binning of detector frame data. The first field,
-'radial_bin_pixel_map', is a pixel map of the same size as the detector frame data,
-storing, for each pixel, its radial bin assignment. The second field,
-'radial_bin_size', contains the size of the regular radius bins.
-"""
+Arguments:
 
-DetectorDataForCalibration = collections.namedtuple(
-    typename="DetectorDataForCalibration", field_names=["data", "info"]
-)
-"""
-Detector frame data and additional information needed for calibration
+    data (Dict[str, Any]): a dictionary storing the transferred data.
 
-Detector data on which calibration must be applied, and additional information needed
-for the calibration. The first field, 'data' stores the frame data that must be
-corrected, the second, 'info', stores additional information needed for the correction
-(for example, for multi-gain stage detectors, the gain stage status of each pixel).
+    node_rank (int): the rank, in the OnDA pool, of the worker from which the data
+        is transferred.
 """

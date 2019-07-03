@@ -15,7 +15,4 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA algorithms.
-
-OnDA algorithms that can be used to perform various calculations and operations on the
-data.
 """

@@ -14,7 +14,5 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA GUIs and Viewers.
-
-Several GUIs and viewers used to display data broadcasted by the OnDA monitor.
+OnDA GUIs and viewers.
 """

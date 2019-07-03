@@ -14,9 +14,7 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of events from HiDRA.
-
-Functions and classes used to retrieve data events from Karabo.
+Retrieval of events from Karabo at the European XFEL.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -26,9 +24,14 @@ import time
 import numpy
 from future.utils import raise_from
 
-from onda.data_retrieval_layer.frameworks.karabo_api import client
-from onda.utils import data_event, dynamic_import, exceptions
-
+from onda.utils import (  # pylint: disable=unused-import
+    data_event,
+    dynamic_import,
+    exceptions,
+    named_tuples,
+    parameters,
+)
+from .karabo_api import client
 
 ############################
 #                          #
@@ -38,90 +41,103 @@ from onda.utils import data_event, dynamic_import, exceptions
 
 
 def initialize_event_source(source, mpi_pool_size, monitor_params):
+    # type: (str, int, parameters.MonitorParams) -> None
     """
-    Initializes the Karabo event source.
+    Initializes the Karabo event source at XFEL.
 
-    This function must be called on the master node before the :obj:`event_generator`
-    function is called on the worker nodes.
+    This function must be called on the master node before the :func:`event_generator`
+    function is called on the worker nodes. There is no need to initialize the Karabo
+    event source, so this function actually does nothing.
 
-    Args:
+    Arguments:
 
-        source (str): a string containing the IP address (or the hostname) and the
-            port of the machine where the Karabo Bridge is running, separated by a
-            colon (i.e:'ip:port').
+        source (str): the hostname (or IP address) and the port where the Karabo Bridge
+            is running, separated by a colon.
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
     """
     del source
     del mpi_pool_size
     del monitor_params
-    # Karabo needs no initialization, so the function does nothing.
 
 
-def event_generator(source, node_rank, mpi_pool_size, monitor_params):
+def event_generator(
+    source,  # type: str
+    node_rank,  # type: int
+    node_pool_size,  # type: int
+    monitor_params,  # type: parameters.MonitorParams
+):
+    # type: (...) -> Generator[data_event.DataEvent]
     """
-    Initializes the recovery of events from Karabo.
+    Retrieves from Karabo at XFEL events to process.
 
-    Returns an iterator over the events that should be processed by the worker that
-    calls the function. This function must be called on each worker node after the
-    :obj:`initialize_event_source` function has been called on the master node.
+    This function must be called on each worker node after the
+    :func:`initialize_event_source` function has been called on the master node.
+    The function is a generator and it returns an iterator over the events that the
+    calling worker must process.
 
-    Args:
+    Arguments:
 
-        source (str): a string containing the IP address (or the hostname) and the
-            port of the machine where the Karabo Bridge is running, separated by a
-            colon (i.e:'ip:port').
+        source (str): the hostname (or IP address) and the port where the Karabo Bridge
+            is running, separated by a colon.
 
-        node_rank (int): rank of the node where the function is called.
+        node_rank (int): the rank, in the OnDA pool, of the worker node calling the
+            function.
 
-        mpi_pool_size (int): size of the node pool that includes the node where the
-            function is called.
+        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+            the worker nodes and the master node.
 
-        monitor_params (MonitorParams): a :obj:`~onda.utils.parameters.MonitorParams`
-            object containing the monitor parameters from the configuration file.
+        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+            storing the OnDA monitor parameters from the configuration file.
 
     Yields:
 
-        Dict: A dictionary containing the metadata and data of an event (at XFEL: 1
-        event = 1 train).
-    """
-    del mpi_pool_size
-    source_parts = source.split(":")
-    try:
-        hostname = source_parts[0]
-        port = source_parts[1]
-    except IndexError as exc:
-        raise_from(
-            exc=exceptions.InvalidSource("Invalid source format: {}.".format(source)),
-            cause=exc,
-        )
+        :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
 
-    data_label = monitor_params.get_param(
-        section="DataRetrievalLayer",
-        parameter="karabo_data_label",
-        type_=str,
+    Raises:
+
+        :class:`~onda.utils.exceptions.OndaInvalidSourceError`: if the format of the
+            'source' argument is wrong.
+    """
+    del node_pool_size
+    data_retrieval_layer_filename = monitor_params.get(
+        section="Onda",
+        parameter="data_retrieval_layer",
+        type_=list,
         required=True,
     )
-
-    max_event_age = monitor_params.get_param(
-        section="DataRetrievalLayer", parameter="karabo_max_event_age", type_=float
+    data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
+        data_retrieval_layer_filename=data_retrieval_layer_filename
     )
-    if not max_event_age:
-        max_event_age = 10000000000
-
-    event_handling_functions = dynamic_import.get_event_handling_funcs(monitor_params)
-    data_extraction_functions = dynamic_import.get_data_extraction_funcs(monitor_params)
+    required_data = monitor_params.get(
+        section="Onda",
+        parameter="required_data",
+        type_=list,
+        required=True,
+    )
+    event_handling_functions = dynamic_import.get_event_handling_funcs(
+        data_retrieval_layer=data_retrieval_layer
+    )
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(
+        required_data=required_data,
+        data_retrieval_layer=data_retrieval_layer,
+    )
     event = data_event.DataEvent(
         event_handling_funcs=event_handling_functions,
         data_extraction_funcs=data_extraction_functions,
     )
 
-    # Fills required frameworks info.
-    event.framework_info["data_label"] = data_label
+    # Fills the framework info with static data that will be retrieved later.
+    event.framework_info["data_label"] = monitor_params.get_param(
+        section="DataRetrievalLayer",
+        parameter="karabo_data_label",
+        type_=str,
+        required=True,
+    )
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -129,7 +145,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             type_=float,
             required=True,
         )
-
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -137,7 +152,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             type_=float,
             required=True,
         )
-
     if "optical_laser_active" in data_extraction_functions:
         event.framework_info["frames_with_optical_laser"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -145,7 +159,6 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             type_=list,
             required=True,
         )
-
     if "xrays_active" in data_extraction_functions:
         event.framework_info["frames_with_xrays"] = monitor_params.get_param(
             section="DataRetrievalLayer",
@@ -154,17 +167,36 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
             required=True,
         )
 
+    # Connects to the Karabo Bridge using the Karabo API.
+    max_event_age = monitor_params.get_param(
+        section="DataRetrievalLayer", parameter="karabo_max_event_age", type_=float
+    )
+    if not max_event_age:
+        max_event_age = 10000000000
+
+    source_parts = source.split(":")
+    try:
+        hostname = source_parts[0]
+        port = source_parts[1]
+    except IndexError as exc:
+        raise_from(
+            exc=exceptions.OndaInvalidSourceError(
+                "Invalid source format: {}.".format(source)
+            ),
+            cause=exc,
+        )
     print("Worker {} listening to {} at port {}".format(node_rank, hostname, port))
     sys.stdout.flush()
-
-    # Connects to the Karabo Bridge using the Karabo API.
     krb_client = client.Client("tcp://{}".format(source))
+
     while True:
         event.data, event.metadata = krb_client.next()
         event.timestamp = numpy.float64(
             "{0}.{1}".format(
-                event.metadata[data_label]["timestamp.sec"],
-                event.metadata[data_label]["timestamp.frac"],
+                event.metadata[event.framework_info["detector_label"]]["timestamp.sec"],
+                event.metadata[event.framework_info["detector_label"]][
+                    "timestamp.frac"
+                ],
             )
         )
         time_now = numpy.float64(time.time())  # pylint: disable=no-member
@@ -175,32 +207,68 @@ def event_generator(source, node_rank, mpi_pool_size, monitor_params):
 
 
 def open_event(event):
+    # type: (data_event.DataEvent) -> None
     """
-    Opens an event retrieved from Karabo.
+    Opens an event retrieved from Karabo at XFEL.
 
-    Makes the content of a retrieved Karabo event available in the 'data' entry of the
-    event dictionary.
+    Karabo events do not need to be opened. As soon as an event is retrieved, its
+    content is made available in the 'data' field of the 'event' object. This function
+    actually does nothing.
 
-    Args:
+    Note:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
     """
-    # Karabo events do not need to be opened. this function does nothing.
     del event
 
 
 def close_event(event):
+    # type: (data_event.DataEvent) -> None
     """
-    Closes an event retrieved from Karabo.
+    Closes an event retrieved from Karabo at XFEL.
 
-    Args:
+    Karabo events do not need to be closed, so this function actually does nothing.
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+    Note:
+
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
     """
-    # Karabo events do not need to be closed. This function does nothing.
     del event
+
+
+def get_num_frames_in_event(event):
+    # type: (data_event.DataEvent) -> int
+    """
+    Gets the number of frames in an event retrieved from Karabo at XFEL.
+
+    Note:
+
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
+
+    Returns:
+
+        int: the number of frames in the event.
+    """
+    # The data is stored in a 4-d block. The last axis is the nunmber of frames.
+    return event.data[event.framework_info["data_label"]]["image.data"].shape[0]
 
 
 #############################
@@ -211,42 +279,50 @@ def close_event(event):
 
 
 def timestamp(event):
+    # type: (data_event.DataEvent) -> numpy.float64
     """
-    Timestamp of an event retrieved from Karabo at XFEL.
+    Gets the timestamp of an event retrieved from Karabo at XFEL.
 
-    Extracts the timestamp of an event retrieved from Karabo at the European XFEL
-    facility.
+    Arguments:
 
-    Args:
-
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        numpy.float64: the timestamp of the event.
+        numpy.float64: the timestamp of the event  in seconds from the Epoch.
     """
     # Returns the timestamp previously stored in the event.
     return event.timestamp
 
 
 def optical_laser_active(event):
+    # type: (data_event.DataEvent) -> bool
     """
-    Retrieves from Karabo the optical laser status at XFEL.
+    Retrieves from Karabo the status of the optical laser at XFEL.
 
-    Returns whether the optical laser is active or not. In order to determine this, it
-    needs information about the optical laser activation pattern to be provided in the
-    configuration file. The configuration file should contain a list of cellIds for
-    which the optical laser is supposed to be active.
+    Returns whether, in pump probe experiments, the optical laser is active for the
+    current frame. Currently Karabo provides no information about the status of
+    optical lasers at XFEL. Hence, this function determines the status of the laser
+    according to information provided in the OnDA configuration file.
 
-    Args:
+    * The file must include a entry called 'karabo_frame_ids_with_optical_laser_active'
+      in the 'DataRetrievalLayer' section.
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+    * The entry must contain a list of frame indexes for which the optical laser is
+      supposed to be active.
+
+    * If the index of the current frame within its event is included in the list, the
+      optical laser is considered to be active.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        bool: True if the optical laser is active. False otherwise.
+        bool: True if the optical laser is active, False otherwise.
     """
     frame_cell_id = event.data[event.framework_info["data_label"]]["image.pulseId"][
         event.current_frame
@@ -255,22 +331,32 @@ def optical_laser_active(event):
 
 
 def xrays_active(event):
+    # type: (data_event.DataEvent) -> bool
     """
-    Retrieves from Karabo the X-ray status at XFEL.
+    Retrieves from Karabo the status of the x-ray beam at XFEL.
 
-    Returns whether the X-rays are active or not. In order to determine this, it needs
-    information about the X-ray activation pattern to be provided in the configuration
-    file. The configuration file should contain a list of cellIds for which the X-rays
-    are active.
+    Returns whether the x-ray beam is active for the current frame. Currently Karabo
+    provides no information about the status of the x-ray beam at XFEL. Hence, this
+    function determines the status of the beam according to information provided in the
+    OnDA configuration file.
 
-    Args:
+    * The file must include a entry called 'karabo_frame_ids_with_xrays_active'
+      in the 'DataRetrievalLayer' section.
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+    * The entry must contain a list of frame indexes for which the x-ray beam is
+      supposed to be active.
+
+    * If the index of the current frame within its event is included in the list, the
+      x-ray beam is considered to be active.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        bool: True if the X-rays are active. False otherwise.
+        bool: True if the x-ray beam is active, False otherwise.
     """
     frame_cell_id = event.data[event.framework_info["data_label"]]["image.pulseId"][
         event.current_frame
@@ -279,17 +365,18 @@ def xrays_active(event):
 
 
 def event_id(event):
+    # type: (data_event.DataEvent) -> str
     """
-    Retrieves from Karabo a unique event idenitfier at XFEL.
+    Retrieves a unique identifier for an event retrieved from Karabo at XFEL.
 
-    Returns a unique label that unambiguosly identifies the current event within an
-    experiment. When using Karabo at the European XFEL facility, the train id of the
-    current event is used as an identifier.
+    Returns a label that unambiguosly identifies, within an experiment, the event
+    currently being processed. At the European XFEL facility, an event corresponds to a
+    pulse train and the train id is used as identifier.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
@@ -299,37 +386,39 @@ def event_id(event):
 
 
 def frame_id(event):
+    # type: (data_event.DataEvent) -> str
     """
-    Retrieves from Karabo a unique frame identifier at XFEL.
+    Gets a unique identifier for a data frame retrieved from Karabo at XFEL.
 
-    Returns a unique label that unambiguosly identifies the current detector frame
-    within the event. When using Karabo at the European XFEL facility, the cell id of
-    the current frame is used as an idenitifer.
+    Returns a label that unambiguosly identifies, within an event, the frame currently
+    being processed. At the European XFEL facility, the index of the frame within its
+    train is used as identifier.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+         event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        str: a unique frame identifier with the event.
+        str: a unique frame identifier (within an event).
     """
     return str(event.current_frame)
 
 
 def beam_energy(event):
+    # type: (data_event.DataEvent) -> float
     """
-    Retrieves the beam energy from Karabo.
+    Gets the beam energy for an event retrieved from Karabo at XFEL.
 
-    Karabo does not currently provide information about the beam energy. The value is
-    taken from the configuration file, specifically fromt the
+    Karabo events do not currently contain beam energy information. This function takes
+    it from the configuration file, specifically from the
     'karabo_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
@@ -340,22 +429,23 @@ def beam_energy(event):
 
 
 def detector_distance(event):
+    # type: (data_event.DataEvent) -> float
     """
-    Retrieves the detector distance from Karabo.
+    Gets the detector distance for an event retrieved from Karabo at XFEL.
 
-    Karabo does not currently provide information about the detector distance. The
-    value is taken from the configuration file, specifically fromt the
+    Karabo events don't currently contain detector distance information. This function
+    takes it from the configuration file, specifically from the
     'karabo_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
     section.
 
-    Args:
+    Arguments:
 
-        event (DataEvent): :obj:`onda.utils.data_event.DataEvent` object storing the
-            data event.
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
 
     Returns:
 
-        float: the distance between the detector and the sample in m.
+        float: the detector distance in mm.
     """
     # Returns the value previously stored in the event.
     return event.framework_info["detector_distance"]
