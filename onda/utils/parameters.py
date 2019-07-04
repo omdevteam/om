@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 from typing import Any, Dict, List, Union  # pylint: disable=unused-import
 
-import tomlkit
+import toml
 from future.utils import raise_from
 from past.builtins import basestring
 
@@ -45,8 +45,8 @@ class MonitorParams(object):
 
         Arguments:
 
-            config (List[str, ...]): the lines read from the TOML-format configuration
-                file.
+            config (List[str, ...]): the absolute or relative path to a TOML-format
+                configuration file.
 
         Raises:
 
@@ -54,8 +54,12 @@ class MonitorParams(object):
                 is a syntax error in theconfiguration file.
         """
         try:
-            self._monitor_params = tomlkit.parse("".join(config))
-        except tomlkit.exceptions.TOMLKitError as exc:
+            self._monitor_params = toml.load("".join(config))
+        except OSError:
+            raise exceptions.OndaConfigurationFileReadingError(
+                "Cannot open or read the configuration file {0}".format(config)
+            )
+        except toml.TomlDecodeError as exc:
             raise_from(
                 exc=exceptions.OndaConfigurationFileSyntaxError(
                     "Syntax error in the configuration file: {0}".format(exc)

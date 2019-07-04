@@ -56,17 +56,9 @@ def onda_monitor(source, config, debug):
     (see documentation).
     """
     # Sets a custom exception handler to deal with OnDA-specific exceptions.
-    if debug is False:
+    if not debug:
         sys.excepthook = exceptions.onda_exception_handler
 
-    try:
-        with open(config, "r") as config_file_handle:
-            config = config_file_handle.readlines()
-    except IOError:
-        # Raises an exception if the file cannot be opened or read.
-        raise exceptions.OndaConfigurationFileReadingError(
-            "Cannot open or read the configuration file {0}".format(config)
-        )
     monitor_parameters = parameters.MonitorParams(config)
     processing_layer_filename = monitor_parameters.get_param(
         section="Onda",
