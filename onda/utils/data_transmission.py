@@ -43,7 +43,7 @@ class ZmqDataBroadcaster(object):
     def __init__(self, hostname=None, port=None):
         # type: (Optional[str], Optional[int]) -> None
         """
-        A ZMQ-based data-broadcasting socket for OnDA monitors.
+        ZMQ-based data-broadcasting socket for OnDA monitors.
 
         This class implements a ZMQ PUB socket that broadcasts tagged data. The socket
         supports multiple clients and broadcasts the data using the MessagePack
@@ -110,7 +110,7 @@ class ZmqDataListener(QtCore.QObject):
     def __init__(self, hostname, port, tag):
         # type: (str, int, str) -> None
         """
-        ZMQ-based data listening socket for OnDA GUIs and clients.
+        ZMQ-based data receviing socket for OnDA GUIs and clients.
 
         This class implements a listening socket based on a ZMQ SUB socket. The socket
         receives and filters tagged data, and has no queuing system.  The received data
@@ -120,7 +120,7 @@ class ZmqDataListener(QtCore.QObject):
 
         Arguments:
 
-            hostname (str): the hostname or IP address where th receiver will listen
+            hostname (str): the hostname or IP address where the receiver will listen
                 for data.
 
             port(int): the port at which the receiver will listen for data.
@@ -136,7 +136,7 @@ class ZmqDataListener(QtCore.QObject):
         self._zmq_subscribe = None
         self._zmq_poller = None
 
-        # Initializes the listening timer. Every time this timer ticks, the class
+        # Initializes the listening timer. Every time this timer ticks, this object
         # tries to read from the socket.
         self._listening_timer = QtCore.QTimer()
         self._listening_timer.timeout.connect(self._listen)
@@ -158,7 +158,7 @@ class ZmqDataListener(QtCore.QObject):
             optval=unicode_str(self._subscription_string)
         )
 
-        # Sets a high water mark of 1 (A messaging queue 1 message long, so no
+        # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
         self._zmq_subscribe.set_hwm(1)
         self._zmq_poller = zmq.Poller()

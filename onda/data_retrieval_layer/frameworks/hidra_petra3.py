@@ -35,7 +35,7 @@ from onda.utils import (  # pylint: disable=unused-import
 from . import hidra_api
 
 
-def _create_hidra_info(source, mpi_pool_size, monitor_params):
+def _create_hidra_info(source, node_pool_size, monitor_params):
     # type: (str, int, parameters.MonitorParams) -> named_tuples.HidraInfo
 
     # Creates the HidraInfo object needed to initialize the HiDRA event source.
@@ -91,7 +91,7 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
     targets = [["", "", 1, ""]]
 
     # Create the HiDRA query object, as requested by the HiDRA API.
-    for rank in range(1, mpi_pool_size):
+    for rank in range(1, node_pool_size):
         target_entry = [
             socket.gethostname(),
             str(base_port + rank),
@@ -99,6 +99,7 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
             hidra_selection_string,
         ]
         targets.append(target_entry)
+
     query = hidra_api.Transfer(
         connection_type=query_text, signal_host=source, use_log=False
     )
@@ -115,7 +116,7 @@ def _create_hidra_info(source, mpi_pool_size, monitor_params):
 ############################
 
 
-def initialize_event_source(source, mpi_pool_size, monitor_params):
+def initialize_event_source(source, node_pool_size, monitor_params):
     # type: (str, int, parameters.MonitorParams) -> None
     """
     Initializes the HiDRA event source at Petra III.
@@ -141,8 +142,10 @@ def initialize_event_source(source, mpi_pool_size, monitor_params):
     print("Announcing OnDA to HiDRA.")
     sys.stdout.flush()
     hidra_info = _create_hidra_info(
-        source=source, mpi_pool_size=mpi_pool_size, monitor_params=monitor_params
+        source=source, node_pool_size=node_pool_size, monitor_params=monitor_params
     )
+
+    print("Here!")
     try:
         hidra_info.query.initiate(hidra_info.targets[1:])
     except hidra_api.transfer.CommunicationFailed as exc:
@@ -194,16 +197,16 @@ def event_generator(
         :class:`~onda.utils.exceptions.OndaHidraAPIError`: if the initial connection to
             HiDRA fails.
     """
-    data_retrieval_layer_filename = monitor_params.get(
+    data_retrieval_layer_filename = monitor_params.get_param(
         section="Onda",
         parameter="data_retrieval_layer",
-        type_=list,
+        type_=str,
         required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
-    required_data = monitor_params.get(
+    required_data = monitor_params.get_param(
         section="Onda",
         parameter="required_data",
         type_=list,
@@ -239,7 +242,7 @@ def event_generator(
 
     # Creates the hidra_info object and connect to HiDRA.
     hidra_info = _create_hidra_info(
-        source=source, mpi_pool_size=node_pool_size, monitor_params=monitor_params
+        source=source, node_pool_size=node_pool_size, monitor_params=monitor_params
     )
     print(
         "Worker {0} listening at port {1}".format(

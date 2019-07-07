@@ -64,12 +64,12 @@ def open_event(event):
             data.
     """
     # Wraps the binary data that HiDRA sends to OnDA in a BytesIO object.
-    byio_data = io.BytesIO(event["data"])
+    byio_data = io.BytesIO(event.data)
 
     # Reads the data using the fabio library and stores the content as a cbf_obj
     # object.
     cbf_image = fabio.cbfimage.CbfImage()
-    event["data"] = cbf_image.read(byio_data)
+    event.data = cbf_image.read(byio_data)
 
 
 def close_event(event):

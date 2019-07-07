@@ -94,7 +94,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             else:
                 # If no calibration is required, stores None in the 'calibration_alg'
                 # attribute.
-                self._calibration_alg = None
+                self._calibration = None
 
             self._hit_frame_sending_counter = 0
             self._non_hit_frame_sending_counter = 0
@@ -106,16 +106,16 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 section="Correction", parameter="dark_hdf5_path", type_=str
             )
             mask_filename = monitor_parameters.get_param(
-                section="DarkCalCorrection", parameter="mask_filename", type_=str
+                section="Correction", parameter="mask_filename", type_=str
             )
             mask_hdf5_path = monitor_parameters.get_param(
-                section="DarkCalCorrection", parameter="mask_hdf5_path", type_=str
+                section="Correction", parameter="mask_hdf5_path", type_=str
             )
             gain_map_filename = monitor_parameters.get_param(
-                section="DarkCalCorrection", parameter="gain_filename", type_=str
+                section="Correction", parameter="gain_filename", type_=str
             )
             gain_map_hdf5_path = monitor_parameters.get_param(
-                section="DarkCalCorrection", parameter="gain_hdf5_path", type_=str
+                section="Correction", parameter="gain_hdf5_path", type_=str
             )
             self._correction = gen_algs.Correction(
                 dark_filename=dark_data_filename,
@@ -332,7 +332,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         """
         processed_data = {}
         if self._calibration is not None:
-            calibrated_detector_data = self._calibration_alg.apply_calibration(
+            calibrated_detector_data = self._calibration.apply_calibration(
                 calibration_file_name=data["detector_data"]
             )
         else:
@@ -350,6 +350,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             < len(peak_list.intensity)
             < self._max_num_peaks_for_hit
         )
+
+        print(frame_is_hit)
 
         processed_data["timestamp"] = data["timestamp"]
         processed_data["frame_is_saturated"] = frame_is_saturated
@@ -410,9 +412,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
         received_data = processed_data.data
         self._num_events += 1
 
-        self._hit_rate_running_window.append(float(received_data["hit_flag"]))
+        self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
         self._saturation_rate_running_window.append(
-            float(received_data["saturation_flag"])
+            float(received_data["frame_is_saturated"])
         )
         avg_hit_rate = (
             sum(self._hit_rate_running_window) / self._running_average_window_size

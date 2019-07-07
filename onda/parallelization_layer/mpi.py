@@ -99,8 +99,17 @@ class ParallelizationEngine(object):
         else:
             self.role = "worker"
 
+        data_retrieval_layer_filename = monitor_params.get_param(
+            section="Onda",
+            parameter="data_retrieval_layer",
+            type_=str,
+            required=True,
+        )
+        data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
+            data_retrieval_layer_filename=data_retrieval_layer_filename
+        )
         event_handling_functions = dynamic_import.get_event_handling_funcs(
-            monitor_params
+            data_retrieval_layer=data_retrieval_layer
         )
 
         if self.role == "worker":
@@ -140,7 +149,7 @@ class ParallelizationEngine(object):
             events = self._event_generator(
                 source=self._source,
                 node_rank=self.rank,
-                mpi_pool_size=self._mpi_size,
+                node_pool_size=self._mpi_size,
                 monitor_params=self._monitor_params,
             )
 
@@ -192,7 +201,7 @@ class ParallelizationEngine(object):
             _ = (
                 self._initialize_event_source(  # pylint: disable=unused-variable
                     source=self._source,
-                    mpi_pool_size=self._mpi_size,
+                    node_pool_size=self._mpi_size,
                     monitor_params=self._monitor_params,
                 )
             )

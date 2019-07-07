@@ -96,16 +96,16 @@ def event_generator(
 
         :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
     """
-    data_retrieval_layer_filename = monitor_params.get(
+    data_retrieval_layer_filename = monitor_params.get_param(
         section="Onda",
         parameter="data_retrieval_layer",
-        type_=list,
+        type_=str,
         required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
-    required_data = monitor_params.get(
+    required_data = monitor_params.get_param(
         section="Onda",
         parameter="required_data",
         type_=list,

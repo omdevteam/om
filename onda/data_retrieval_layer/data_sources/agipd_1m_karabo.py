@@ -43,6 +43,40 @@ def get_peakfinder8_info():
     )
 
 
+############################
+#                          #
+# EVENT HANDLING FUNCTIONS #
+#                          #
+############################
+
+
+def get_num_frames_in_event(event):
+    # type: (data_event.DataEvent) -> int
+    """
+    Gets the number of frames in an AGIPD 1M event retrieved from Karabo.
+
+    This function retrieves the number of frames for the detector identified by the
+    'karabo_detector_label' entry in the 'DataRetrievalLayer' section of the
+    configuration file.
+
+    Note:
+
+        This function is designed to be injected as a member function into an
+        :class:`~onda.utils.data_event.DataEvent` object.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+            data.
+
+    Returns:
+
+        int: the number of frames in the event.
+    """
+    #return event.data[event.framework_info["detector_label"]]["image.data"].shape[0]
+    return event.data[event.framework_info["detector_label"]]["image.data"].transpose(3, 0, 2, 1).shape[0]
+
+
 #############################
 #                           #
 # DATA EXTRACTION FUNCTIONS #
@@ -69,6 +103,8 @@ def detector_data(event):
         numpy.ndarray: one frame of detector data.
     """
     # Rearranges the data into 'slab' format.
-    return event.data[event.framework_info["detector_label"]]["image.data"][
+    return event.data[event.framework_info["detector_label"]]["image.data"].transpose(3, 0, 2, 1)[
+    #return event.data[event.framework_info["detector_label"]]["image.data"][
         event.current_frame, ...
     ].reshape(16 * 512, 128)
+

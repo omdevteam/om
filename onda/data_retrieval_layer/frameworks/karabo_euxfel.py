@@ -40,7 +40,7 @@ from .karabo_api import client
 ############################
 
 
-def initialize_event_source(source, mpi_pool_size, monitor_params):
+def initialize_event_source(source, node_pool_size, monitor_params):
     # type: (str, int, parameters.MonitorParams) -> None
     """
     Initializes the Karabo event source at XFEL.
@@ -61,7 +61,7 @@ def initialize_event_source(source, mpi_pool_size, monitor_params):
             storing the OnDA monitor parameters from the configuration file.
     """
     del source
-    del mpi_pool_size
+    del node_pool_size
     del monitor_params
 
 
@@ -104,16 +104,16 @@ def event_generator(
             'source' argument is wrong.
     """
     del node_pool_size
-    data_retrieval_layer_filename = monitor_params.get(
+    data_retrieval_layer_filename = monitor_params.get_param(
         section="Onda",
         parameter="data_retrieval_layer",
-        type_=list,
+        type_=str,
         required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
-    required_data = monitor_params.get(
+    required_data = monitor_params.get_param(
         section="Onda",
         parameter="required_data",
         type_=list,
@@ -132,9 +132,9 @@ def event_generator(
     )
 
     # Fills the framework info with static data that will be retrieved later.
-    event.framework_info["data_label"] = monitor_params.get_param(
+    event.framework_info["detector_label"] = monitor_params.get_param(
         section="DataRetrievalLayer",
-        parameter="karabo_data_label",
+        parameter="karabo_detector_label",
         type_=str,
         required=True,
     )

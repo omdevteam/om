@@ -83,7 +83,7 @@ def open_event(event):
         event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
             data.
     """
-    event["data"] = fabio.open(event["full_path"])
+    event.data = fabio.open(event.framework_info["full_path"])
 
 
 def close_event(event):
@@ -156,7 +156,7 @@ def detector_data(event):
         numpy.ndarray: one frame of detector data.
     """
     # Returns the data from the fabio cbf_obj object previously stored in the event.
-    return event["data"].data
+    return event.data.data
 
 
 def event_id(event):
@@ -177,7 +177,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    return event["full_path"]
+    return event.framework_info["full_path"]
 
 
 def frame_id(event):
