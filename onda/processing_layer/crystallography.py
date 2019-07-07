@@ -351,8 +351,6 @@ class OndaMonitor(mpi.ParallelizationEngine):
             < self._max_num_peaks_for_hit
         )
 
-        print(frame_is_hit)
-
         processed_data["timestamp"] = data["timestamp"]
         processed_data["frame_is_saturated"] = frame_is_saturated
         processed_data["frame_is_hit"] = frame_is_hit
