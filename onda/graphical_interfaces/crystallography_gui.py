@@ -100,13 +100,9 @@ class CrystallographyGui(gui.OndaGui):
         self._local_data = None
         self._last_beam_energy = None
         self._last_detector_distance = None
-        self._hit_rate_history = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000,
-        )
+        self._hit_rate_history = collections.deque(iterable=10000 * [0.0], maxlen=10000)
         self._saturation_rate_history = collections.deque(
-            iterable=10000 * [0.0],
-            maxlen=10000,
+            iterable=10000 * [0.0], maxlen=10000
         )
 
         pyqtgraph.setConfigOption("background", 0.2)

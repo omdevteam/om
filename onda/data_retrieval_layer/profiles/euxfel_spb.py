@@ -21,13 +21,10 @@ from __future__ import absolute_import, division, print_function
 from ..data_sources.agipd_1m_karabo import (  # pylint: disable=unused-import
     # Utility functions.
     get_peakfinder8_info,
-
     # Event handling functions.
     get_num_frames_in_event,
-
     # Data extraction functions.
     detector_data,
-    
 )
 
 from ..frameworks.karabo_euxfel import (  # pylint: disable=unused-import
@@ -36,7 +33,6 @@ from ..frameworks.karabo_euxfel import (  # pylint: disable=unused-import
     event_generator,
     initialize_event_source,
     open_event,
-
     # Data extraction functions.
     beam_energy,
     detector_distance,

@@ -26,12 +26,10 @@ from .pilatus_files import (  # pylint: disable=unused-import
     # Utility functions.
     get_file_extensions,
     get_peakfinder8_info,
-
     # Event_handing_functions.
     get_num_frames_in_event,
-
     # Data extraction functions.
-    detector_data,  
+    detector_data,
     event_id,
     frame_id,
 )

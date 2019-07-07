@@ -22,12 +22,10 @@ from ..data_sources.pilatus_files import (  # pylint: disable=unused-import
     # Utility functions.
     get_file_extensions,
     get_peakfinder8_info,
-
     # Event handling functions.
     close_event,
     get_num_frames_in_event,
     open_event,
-
     # Data extraction functions.
     detector_data,
     event_id,
@@ -38,7 +36,6 @@ from ..frameworks.files_filesystem import (  # pylint: disable=unused-import
     # Event handling functions.
     event_generator,
     initialize_event_source,
-
     # Data extraction functions.
     beam_energy,
     detector_distance,

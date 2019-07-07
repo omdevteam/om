@@ -27,7 +27,7 @@ from mpi4py import MPI
 from onda.utils import (  # pylint: disable=unused-import
     dynamic_import,
     exceptions,
-    parameters
+    parameters,
 )
 
 
@@ -41,12 +41,14 @@ class ParallelizationEngine(object):
     """
     See documentation of the __init__ function.
     """
+
     def __init__(
         self,
         process_func,  # type: Callable[Dict[str, Any]]
         collect_func,  # type: Callable[Tuple[Dict[str, Any]], int]
         source,  # type: str
-        monitor_params):  #type:  parameters.MonitorParams
+        monitor_params,
+    ):  # type:  parameters.MonitorParams
         # type (...) -> None
         """
         An MPI-based master-worker parallelization engine for OnDA.
@@ -100,10 +102,7 @@ class ParallelizationEngine(object):
             self.role = "worker"
 
         data_retrieval_layer_filename = monitor_params.get_param(
-            section="Onda",
-            parameter="data_retrieval_layer",
-            type_=str,
-            required=True,
+            section="Onda", parameter="data_retrieval_layer", type_=str, required=True
         )
         data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
             data_retrieval_layer_filename=data_retrieval_layer_filename
@@ -198,12 +197,10 @@ class ParallelizationEngine(object):
         if self.role == "master":
             print("Starting OnDA with the following parameters:")
             pprint.pprint(self._monitor_params.get_all_parameters())
-            _ = (
-                self._initialize_event_source(  # pylint: disable=unused-variable
-                    source=self._source,
-                    node_pool_size=self._mpi_size,
-                    monitor_params=self._monitor_params,
-                )
+            _ = self._initialize_event_source(  # pylint: disable=unused-variable
+                source=self._source,
+                node_pool_size=self._mpi_size,
+                monitor_params=self._monitor_params,
             )
             while True:
                 try:

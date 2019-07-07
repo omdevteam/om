@@ -105,26 +105,19 @@ def event_generator(
     """
     del node_pool_size
     data_retrieval_layer_filename = monitor_params.get_param(
-        section="Onda",
-        parameter="data_retrieval_layer",
-        type_=str,
-        required=True,
+        section="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        section="Onda",
-        parameter="required_data",
-        type_=list,
-        required=True,
+        section="Onda", parameter="required_data", type_=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
     )
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(
-        required_data=required_data,
-        data_retrieval_layer=data_retrieval_layer,
+        required_data=required_data, data_retrieval_layer=data_retrieval_layer
     )
     event = data_event.DataEvent(
         event_handling_funcs=event_handling_functions,

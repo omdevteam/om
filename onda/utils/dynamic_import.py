@@ -53,9 +53,7 @@ def import_processing_layer(processing_layer_filename):
         processing_layer = importlib.import_module(processing_layer_filename)
     except ImportError:
         processing_layer = importlib.import_module(
-            "onda.processing_layer.{0}".format(
-                processing_layer_filename
-            )
+            "onda.processing_layer.{0}".format(processing_layer_filename)
         )
 
     return processing_layer
@@ -113,9 +111,7 @@ def import_parallelization_layer(parallelization_layer_filename):
         parallelization_layer = importlib.import_module(parallelization_layer_filename)
     except ImportError:
         parallelization_layer = importlib.import_module(
-            "onda.parallelization_layer.{0}".format(
-                parallelization_layer_filename
-            )
+            "onda.parallelization_layer.{0}".format(parallelization_layer_filename)
         )
 
     return parallelization_layer
@@ -235,8 +231,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
             # convention OnDA uses for naming the psana detector initialization
             # functions).
             psana_detector_interface_funcs[func_name] = getattr(
-                data_retrieval_layer,
-                "{}_init".format(func_name),
+                data_retrieval_layer, "{}_init".format(func_name)
             )
         except AttributeError as exc:
             raise_from(
@@ -269,15 +264,10 @@ def get_peakfinder8_info(monitor_params):
         peakfinder8 information.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        section="Onda",
-        parameter="data_retrieval_layer",
-        type_=str,
-        required=True,
+        section="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
-    peakfinder8_retrieval_func = getattr(
-        data_retrieval_layer, "get_peakfinder8_info"
-    )
+    peakfinder8_retrieval_func = getattr(data_retrieval_layer, "get_peakfinder8_info")
 
     return peakfinder8_retrieval_func()
 
@@ -300,10 +290,7 @@ def get_file_extensions(monitor_params):
         Tuple[str, ...]: a tuple storing the file extensions
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        section="Onda",
-        parameter="data_retrieval_layer",
-        type_=str,
-        required=True,
+        section="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
     file_extension_info_func = getattr(data_retrieval_layer, "get_file_extensions")

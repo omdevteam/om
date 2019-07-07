@@ -57,6 +57,7 @@ class OndaMissingPsanaInitializationFunctionError(OndaException):
     A psana Detector interface initialization function is not defined.
     """
 
+
 class OndaConfigurationFileSyntaxError(OndaException):
     """
     There is a syntax error in the configuration file.
@@ -109,6 +110,7 @@ class OndaHdf5FileReadingError(OndaException):
     """
     Error while reading an HDF5 file.
     """
+
 
 def onda_exception_handler(type_, value, traceback_):
     # type: (Exception, str, traceback.traceback) -> NoReturn

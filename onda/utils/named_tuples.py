@@ -95,7 +95,6 @@ Arguments:
 """
 
 
-
 ProcessedData = collections.namedtuple(
     typename="ProcessedData", field_names=["data", "worker_rank"]
 )

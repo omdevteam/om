@@ -96,9 +96,11 @@ setup(
     ),
     install_requires=[
         "cfelpyutils>=0.9",
+        "click>=7.0",
         "h5py>=2.7.0",
         "numpy>=1.11.3",
         "scipy>=1.1.0",
+        "toml>=0.10.0",
     ],
     extras_require={
         "gui-qt5": ["pyqt>=5.9.2", "pyqtgraph>=0.10.0"],
@@ -108,16 +110,13 @@ setup(
         "monitor-psana": ["psana>=1.3.54"],
     },
     entry_points={
-        "console_scripts":[
-            "onda_monitor.py=onda.monitor:onda_monitor",
-        ],
+        "console_scripts": ["onda_monitor.py=onda.monitor:onda_monitor"],
         "gui_scripts": [
             "onda_crystallography_gui.py=onda.graphical_interfaces."
             "crystallography_gui.py",
             "onda_crystallography_frame_viewer.py=onda.graphical_interfaces."
             "crystallography_frame_viewer.py",
-        ]
-
+        ],
     },
     ext_modules=extensions,
     packages=[
@@ -129,7 +128,7 @@ setup(
         "onda.data_retrieval_layer.frameworks",
         "onda.data_retrieval_layer.frameworks.hidra_api",
         "onda.data_retrieval_layer.frameworks.karabo_api",
-        "onda.data_retrieval_layer.layer_files",
+        "onda.data_retrieval_layer.profiles",
         "onda.graphical_interfaces",
         "onda.parallelization_layer",
         "onda.processing_layer",

@@ -21,7 +21,6 @@ from __future__ import absolute_import, division, print_function
 from ..data_sources.pnccd_psana import (  # pylint: disable=unused-import
     # Utility functions.
     get_peakfinder8_info,
-
     # Data extraction functions.
     detector_data,
 )
@@ -33,7 +32,6 @@ from ..frameworks.psana_lcls import (  # pylint: disable=unused-import
     get_num_frames_in_event,
     initialize_event_source,
     open_event,
-
     # Psana detector interface initialization function.
     beam_energy_init,
     detector_data_init,
@@ -41,7 +39,6 @@ from ..frameworks.psana_lcls import (  # pylint: disable=unused-import
     optical_laser_active_init,
     timestamp_init,
     xrays_active_init,
-
     # Data extraction functions.
     beam_energy,
     detector_distance,

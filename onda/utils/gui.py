@@ -85,9 +85,7 @@ class OndaGui(QtGui.QMainWindow):
 
         self._data_listener_thread = QtCore.QThread()
         self._data_listener = data_transmission.ZmqDataListener(
-            hostname=hostname,
-            port=port,
-            tag=subscription_string,
+            hostname=hostname, port=port, tag=subscription_string
         )
         self._data_listener.zmqmessage.connect(self._data_received)
         self._listening_thread_start_processing.connect(

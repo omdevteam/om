@@ -32,7 +32,7 @@ from onda.utils import dynamic_import, exceptions, parameters
     default="monitor.ini",
     type=click.Path(),
     help="configuration file (default: monitor.ini file in the current working "
-         "directory"
+    "directory",
 )
 @click.option(
     "--debug",
@@ -40,9 +40,9 @@ from onda.utils import dynamic_import, exceptions, parameters
     default=False,
     type=bool,
     is_flag=True,
-    help="Disable custom OnDA error handler"
+    help="Disable custom OnDA error handler",
 )
-@click.argument('source', type=str)
+@click.argument("source", type=str)
 def onda_monitor(source, config, debug):
     # type: (str, str, bool) -> None
     """
@@ -61,14 +61,9 @@ def onda_monitor(source, config, debug):
 
     monitor_parameters = parameters.MonitorParams(config)
     processing_layer_filename = monitor_parameters.get_param(
-        section="Onda",
-        parameter="processing_layer",
-        type_=str,
-        required=True,
+        section="Onda", parameter="processing_layer", type_=str, required=True
     )
-    processing_layer = dynamic_import.import_processing_layer(
-        processing_layer_filename
-    )
+    processing_layer = dynamic_import.import_processing_layer(processing_layer_filename)
     monitor = processing_layer.OndaMonitor(
         source=source, monitor_parameters=monitor_parameters
     )

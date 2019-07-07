@@ -138,23 +138,16 @@ def event_generator(
         print("Calibration directory not provided or not found.")
     psana_source = psana.DataSource(source)
     data_retrieval_layer_filename = monitor_params.get(
-        section="Onda",
-        parameter="data_retrieval_layer",
-        type_=list,
-        required=True,
+        section="Onda", parameter="data_retrieval_layer", type_=list, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get(
-        section="Onda",
-        parameter="required_data",
-        type_=list,
-        required=True,
+        section="Onda", parameter="required_data", type_=list, required=True
     )
     psana_detector_interface_funcs = dynamic_import.get_psana_detector_interface_funcs(
-        required_data=required_data,
-        data_retrieval_layer=data_retrieval_layer,
+        required_data=required_data, data_retrieval_layer=data_retrieval_layer
     )
     # Calls all the required psana detector interface initialization functions and
     # stores the returned objects in a dictionary.
@@ -165,9 +158,7 @@ def event_generator(
     # Initializes the psana event source and starts retrieving events.
     if offline:
         psana_events = _psana_offline_event_generator(
-            psana_source=psana_source,
-            node_rank=node_rank,
-            mpi_pool_size=node_pool_size,
+            psana_source=psana_source, node_rank=node_rank, mpi_pool_size=node_pool_size
         )
     else:
         psana_events = psana_source.events()
@@ -551,6 +542,7 @@ def detector_distance(event):
         float: the distance between the detector and the sample in mm.
     """
     return event["psana_detector_interface"]["detector_distance"]()
+
 
 def beam_energy(event):
     # type (data_event.DataEvent) -> float

@@ -388,10 +388,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     processed_data["detector_data"] = corrected_detector_data
                     self._non_hit_frame_sending_counter = 0
 
-        return named_tuples.ProcessedData(
-            data=processed_data,
-            worker_rank=self.rank
-        )
+        return named_tuples.ProcessedData(data=processed_data, worker_rank=self.rank)
 
     def collect_data(self, processed_data):
         # type: (Tuple[Dict[str, Any], int]) -> None
@@ -420,7 +417,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
             sum(self._hit_rate_running_window) / self._running_average_window_size
         )
         avg_sat_rate = (
-            sum(self._saturation_rate_running_window) / self._running_average_window_size
+            sum(self._saturation_rate_running_window)
+            / self._running_average_window_size
         )
         received_data["hit_rate"] = avg_hit_rate
         received_data["saturation_rate"] = avg_sat_rate
