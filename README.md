@@ -43,10 +43,11 @@ Requirements
   **Python Modules: Backend**
 
   * CfelPyUtils
-  * H5py
+  * h5py
   * NumPy
   * SciPy
   * mpi4py
+  * click
   * FabIO (optional, depending on the facility where OnDA is running)
   * psana (optional, depending on the facility where OnDA is running)
 
@@ -61,20 +62,3 @@ Support
 -------
 
   * Report issues on the [GitHub issue tracker](https://github.com/ondateam/onda/issues)
-
-
-Installation Methods
---------------------
-
-  * From pypi:  
-
-        `pip install onda`
-  
-  * From source:
-
-        `python setup.py install`
-
-Documentation
--------------
-
-The documentation can be found on [Read The Docs](https://onda.readthedocs.io/en/latest)
