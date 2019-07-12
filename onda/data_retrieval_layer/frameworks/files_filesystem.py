@@ -69,7 +69,7 @@ def event_generator(
     node_pool_size,  # type: int
     monitor_params,  # type: parameters.MonitorParams
 ):
-    # type: (...) -> Generator[data_event.DataEvent]
+    # type: (...) -> Generator[data_event.DataEvent, None, None]
     """
     Retrieves from the filesystem file events to process.
 

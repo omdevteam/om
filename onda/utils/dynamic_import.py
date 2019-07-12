@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import importlib
 from types import ModuleType  # pylint: disable=unused-import
-from typing import Any, Callable, Dict, List  # pylint: disable=unused-import
+from typing import Any, Callable, Dict, List, Tuple  # pylint: disable=unused-import
 
 from future.utils import raise_from
 
@@ -118,13 +118,13 @@ def import_parallelization_layer(parallelization_layer_filename):
 
 
 def get_event_handling_funcs(data_retrieval_layer):
-    # type: (TypeModule) -> Dict[str, Callable]
+    # type: (ModuleType) -> Dict[str, Callable]
     """
     Retrieves event handling functions from the Data Retrieval Layer.
 
     Arguments:
 
-        data_retrieval_layer (TypeModule): the Data Retrieval Layer module object.
+        data_retrieval_layer (ModuleType): the Data Retrieval Layer module object.
 
     Returns:
 
@@ -158,14 +158,14 @@ def get_event_handling_funcs(data_retrieval_layer):
 
 
 def get_data_extraction_funcs(required_data, data_retrieval_layer):
-    # type: (List[str, ...], ModuleType) -> Dict[str, Callable]
+    # type: (List[str], ModuleType) -> Dict[str, Callable]
     """
     Retrieves data extraction functions from the Data Retrieval Layer.
 
     Arguments:
 
-        required_data (List[str, ...]): a list with the the names of the data
-            extraction functions that must be retrieved.
+        required_data (List[str]): a list with the the names of the data extraction
+            functions that must be retrieved.
 
         data_retrieval_layer (TypeModule): the Data Retrieval Layer module object.
 
@@ -197,13 +197,13 @@ def get_data_extraction_funcs(required_data, data_retrieval_layer):
 
 
 def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
-    # type: (List[str, ...], ModuleType) -> Dict[str, Callable]
+    # type: (List[str], ModuleType) -> Dict[str, Callable]
     """
     Retrieves the psana Detector interface initialization functions.
 
     Arguments:
 
-        required_data (List[str, ...]): a list with the names of the psana Detector
+        required_data (List[str]): a list with the names of the psana Detector
             interface initialization functions that must be retrieved.
 
         data_retrieval_layer (TypeModule): the Data Retrieval Layer module object.

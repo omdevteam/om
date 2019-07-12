@@ -102,11 +102,14 @@ class DataEvent(object):
                 data[f_name] = func(self)
         # One should never do the following, but it is not possible to anticipate
         # every possible error raised by the facility frameworks.
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             exc_type, exc_value = sys.exc_info()[:2]
-            raise exceptions.OndaDataExtractionError(
-                "OnDA Warning: Cannot interpret {0} event data due to the following "
-                "error: {1}: {2}".format(func.__name__, exc_type.__name__, exc_value)
-            )
+            if exc_type is not None:
+                raise exceptions.OndaDataExtractionError(
+                    "OnDA Warning: Cannot interpret {0} event data due to the "
+                    "following error: {1}: {2}".format(
+                        func.__name__, exc_type.__name__, exc_value
+                    )
+                )
 
         return data

@@ -20,13 +20,14 @@ from __future__ import absolute_import, division, print_function
 
 import pprint
 import sys
-from typing import Any, Dict, Callable, Optional  # pylint: disable=unused-import
+from typing import Any, Dict, Callable, Optional, Tuple  # pylint: disable=unused-import
 
 from mpi4py import MPI
 
 from onda.utils import (  # pylint: disable=unused-import
     dynamic_import,
     exceptions,
+    named_tuples,
     parameters,
 )
 
@@ -44,11 +45,11 @@ class ParallelizationEngine(object):
 
     def __init__(
         self,
-        process_func,  # type: Callable[Dict[str, Any]]
-        collect_func,  # type: Callable[Tuple[Dict[str, Any]], int]
+        process_func,  # type: Callable[[Dict[str, Any]], named_tuples.ProcessedData]
+        collect_func,  # type: Callable[[named_tuples.ProcessedData], None]
         source,  # type: str
-        monitor_params,
-    ):  # type:  parameters.MonitorParams
+        monitor_params,  # type:  parameters.MonitorParams
+    ):
         # type (...) -> None
         """
         An MPI-based master-worker parallelization engine for OnDA.
@@ -75,11 +76,13 @@ class ParallelizationEngine(object):
 
         Arguments:
 
-            process_func (Callable): the function that will be executed on each worker
-                node after retrieving the event data.
+            process_func (Callable[[Dict[str, Any]], named_tuples.ProcessedData]):
+                the function that will be executed on each worker node after retrieving
+                the event data.
 
-            collect_func (Callable): the function that will be executed on the master
-                node every time data is received from a worker node.
+            collect_func ( Callable[[named_tuples.ProcessedData], None]): the function
+                that will be executed on the master node every time data is received
+                from a worker node.
 
             source (str): a string describing the data source. The exact format of the
                 string depends on the specific Data Recovery Layer currently being used

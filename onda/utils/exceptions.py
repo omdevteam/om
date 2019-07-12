@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import traceback  # pylint: disable=unused-import
-from traceback import print_exception
 from typing import NoReturn  # pylint: disable=unused-import
 
 from mpi4py import MPI
@@ -112,8 +111,13 @@ class OndaHdf5FileReadingError(OndaException):
     """
 
 
-def onda_exception_handler(type_, value, traceback_):
-    # type: (Exception, str, traceback.traceback) -> NoReturn
+class OndaMissingHdf5PathError(OndaException):
+    """
+    Error while reading an HDF5 file.
+    """
+
+
+def _onda_exception_handler(type_, value, traceback_):
     """
     Custom OnDA exception handler.
 
@@ -128,8 +132,9 @@ def onda_exception_handler(type_, value, traceback_):
 
         value (str): exception value (the message that comes with the exception).
 
-        traceback_ (traceback.traceback): traceback to be printed.
+        traceback_ (str): traceback to be printed.
     """
+    # TODO: Fix types.
     if issubclass(type_, OndaException):
         print("")
         print(">>>>> OnDA ERROR: {0} <<<<<".format(value))
@@ -137,8 +142,9 @@ def onda_exception_handler(type_, value, traceback_):
         sys.stdout.flush()
         sys.stderr.flush()
         MPI.COMM_WORLD.Abort(0)
+        exit(0)
     else:
-        print_exception(type_, value, traceback_)
+        traceback.print_exception(type_, value, traceback_)
         sys.stdout.flush()
         sys.stderr.flush()
         MPI.COMM_WORLD.Abort(0)

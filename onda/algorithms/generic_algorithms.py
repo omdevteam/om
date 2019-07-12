@@ -18,11 +18,11 @@ Generic algorithms.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Dict, List, Optional, Union  # pylint: disable=unused-import
+from typing import Any, Dict, List, Optional, Union  # pylint: disable=unused-import
 
 import numpy  # pylint: disable=unused-import
 
-from onda.utils import hdf5
+from onda.utils import exceptions, hdf5
 
 
 class Correction(object):
@@ -35,7 +35,7 @@ class Correction(object):
         dark_filename=None,  # type: Optional[str]
         dark_hdf5_path=None,  # type: Optional[str]
         mask_filename=None,  # type: Optional[str]
-        mask_hdf5_path=False,  # type: Optional[str]
+        mask_hdf5_path=None,  # type: Optional[str]
         gain_filename=None,  # type: Optional[str]
         gain_hdf5_path=None,  # type: Optional[str]
     ):
@@ -102,31 +102,46 @@ class Correction(object):
                   be provided, and cannot be None. Otherwise it is ignored.
         """
         if mask_filename is not None:
-            self._mask = hdf5.load_hdf5_data(
-                hdf5_filename=mask_filename, hdf5_path=mask_hdf5_path
-            )
+            if mask_hdf5_path is not None:
+                self._mask = hdf5.load_hdf5_data(
+                    hdf5_filename=mask_filename, hdf5_path=mask_hdf5_path
+                )
+            else:
+                raise exceptions.OndaMissingHdf5PathError(
+                    "Correction Algorithm: missing HDF5 path for mask."
+                )
         else:
             # True here is equivalent to an all-one mask.
             self._mask = True
 
         if dark_filename is not None:
-            self._dark = (
-                hdf5.load_hdf5_data(
-                    hdf5_filename=dark_filename, hdf5_path=dark_hdf5_path
+            if dark_hdf5_path is not None:
+                self._dark = (
+                    hdf5.load_hdf5_data(
+                        hdf5_filename=dark_filename, hdf5_path=dark_hdf5_path
+                    )
+                    * self._mask
                 )
-                * self._mask
-            )
+            else:
+                raise exceptions.OndaMissingHdf5PathError(
+                    "Correction Algorithm: missing HDF5 path for dark frame data."
+                )
         else:
             # False here is equivalent to an all-zero mask.
             self._dark = False
 
-        if gain_filename:
-            self._gain = (
-                hdf5.load_hdf5_data(
-                    hdf5_filename=gain_filename, hdf5_path=gain_hdf5_path
+        if gain_filename is not None:
+            if gain_hdf5_path is not None:
+                self._gain = (
+                    hdf5.load_hdf5_data(
+                        hdf5_filename=gain_filename, hdf5_path=gain_hdf5_path
+                    )
+                    * self._mask
                 )
-                * self._mask
-            )
+            else:
+                raise exceptions.OndaMissingHdf5PathError(
+                    "Correction Algorithm: missing HDF5 path for gain map."
+                )
         else:
             # True here is equivalent to an all-one map.
             self._gain_map = True
@@ -178,7 +193,7 @@ class DataAccumulator(object):
         self._num_events_in_accumulator = 0
 
     def add_data(self, data):
-        # type: (Dict[str, Any]) -> Union[List[Dict, ...], None]
+        # type: (Dict[str, Any]) -> Union[List[Dict], None]
         """
         Adds data to the accumulator.
 

@@ -65,6 +65,7 @@ class ZmqDataBroadcaster(object):
         else:
             # If required, uses the python socket module to autodetect the hostname of
             # the machine where the OnDA monitor is running.
+            # TODO: Check mypy output for these lines.
             bhostname = [
                 (s.connect(("8.8.8.8", 80)), s.getsockname()[0], s.close())
                 for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
@@ -147,9 +148,9 @@ class ZmqDataListener(QtCore.QObject):
         Connects to a PUB socket and starts listening.
         """
         print("Connecting to tcp://{}:{}".format(self._pub_hostname, self._pub_port))
-        self._zmq_subscribe = self._zmq_context.socket(
-            zmq.SUB
-        )  # pylint: disable=no-member
+        self._zmq_subscribe = self._zmq_context.socket(  # pylint: disable=no-member
+            zmq.SUB  # pylint: disable=no-member
+        )
         self._zmq_subscribe.connect(
             "tcp://{0}:{1}".format(self._pub_hostname, self._pub_port)
         )

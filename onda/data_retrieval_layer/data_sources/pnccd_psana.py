@@ -71,9 +71,9 @@ def detector_data(event, data_extraction_func_name):
 
         numpy.ndarray: one frame of detector data.
     """
-    pnccd_psana = event["psana_detector_interface"][data_extraction_func_name].calib(
-        event["psana_event"]
-    )
+    pnccd_psana = event.framework_info["psana_detector_interface"][
+        data_extraction_func_name
+    ].calib(event.framework_info["psana_event"])
     if pnccd_psana is None:
         raise exceptions.OndaDataExtractionError(
             "Could not retrieve detector from psana."

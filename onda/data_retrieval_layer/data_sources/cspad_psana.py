@@ -56,7 +56,7 @@ def get_peakfinder8_info():
 
 
 def detector_data(event):
-    # type: (data_event.DataEvent, str) -> numpy.ndarray
+    # type: (data_event.DataEvent) -> numpy.ndarray
     """
     Retrieves from psana one frame of CSPAD detector data.
 
@@ -69,7 +69,7 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    cspad_psana = event["psana_detector_interface"][
+    cspad_psana = event.framework_info["psana_detector_interface"][
         event.framework_info["detector_label"]
     ].calib(event.data)
     if cspad_psana is None:

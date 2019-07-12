@@ -23,7 +23,7 @@ from typing import Generator, List  # pylint: disable=unused-import
 import numpy
 from future.utils import iteritems, raise_from
 
-from onda.utils import dynamic_import, exceptions
+from onda.utils import dynamic_import, data_event, exceptions, parameters
 
 try:
     import psana  # pylint: disable=import-error
@@ -45,7 +45,7 @@ except ImportError as exc:
 
 
 def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
-    # type: (psana._DataSource, int, int) -> Generator[psana.Event]
+    # type: (psana._DataSource, int, int) -> Generator[psana.Event, None, None]
     # Computes how many events the current worker node should process. Splits the
     # events as equally as possible amongst the workers. If the number of events cannot
     # be exactly divided by the number of workers, an additional worker is assigned
@@ -91,7 +91,7 @@ def event_generator(
     node_pool_size,  # type: int
     monitor_params,  # type: parameters.MonitorParams
 ):
-    # type: (...) -> Generator[data_event.DataEvent]
+    # type: (...) -> Generator[data_event.DataEvent, None, None]
     """
     Retrieves events from psana at LCLS.
 
@@ -137,23 +137,34 @@ def event_generator(
     else:
         print("Calibration directory not provided or not found.")
     psana_source = psana.DataSource(source)
-    data_retrieval_layer_filename = monitor_params.get(
+    data_retrieval_layer_filename = monitor_params.get_param(
         section="Onda", parameter="data_retrieval_layer", type_=list, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
-    required_data = monitor_params.get(
+    required_data = monitor_params.get_param(
         section="Onda", parameter="required_data", type_=list, required=True
     )
     psana_detector_interface_funcs = dynamic_import.get_psana_detector_interface_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
     )
+    event_handling_functions = dynamic_import.get_event_handling_funcs(
+        data_retrieval_layer=data_retrieval_layer
+    )
+    data_extraction_functions = dynamic_import.get_data_extraction_funcs(
+        required_data=required_data, data_retrieval_layer=data_retrieval_layer
+    )
+    event = data_event.DataEvent(
+        event_handling_funcs=event_handling_functions,
+        data_extraction_funcs=data_extraction_functions,
+    )
     # Calls all the required psana detector interface initialization functions and
     # stores the returned objects in a dictionary.
-    psana_det_interface = {}
     for f_name, func in iteritems(psana_detector_interface_funcs):
-        psana_det_interface[f_name.split("_init")[0]] = func(monitor_params)
+        event.framework_info["psana_detector_interface"][
+            f_name.split("_init")[0]
+        ] = func(monitor_params)
 
     # Initializes the psana event source and starts retrieving events.
     if offline:
@@ -163,15 +174,12 @@ def event_generator(
     else:
         psana_events = psana_source.events()
     for psana_event in psana_events:
-        event = {
-            "psana_detector_interface": psana_det_interface,
-            "psana_event": psana_event,
-        }
+        event.framework_info["psana_event"] = psana_event
 
         # Recovers the timestamp from the psana event (as seconds from the Epoch) and
         # stores it in the event dictionary to be retrieved later.
         timestamp_epoch_format = psana_event.get(psana.EventId).time()
-        event["timestamp"] = numpy.float64(
+        event.framework_info["timestamp"] = numpy.float64(
             str(timestamp_epoch_format[0]) + "." + str(timestamp_epoch_format[1])
         )
 

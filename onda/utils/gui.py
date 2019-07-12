@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import copy
 import time
-from typing import Any, Dict, List  # pylint: disable=unused-import
+from typing import Any, Callable, Dict, List  # pylint: disable=unused-import
 
 from onda.utils import data_transmission
 
@@ -121,7 +121,7 @@ class OndaGui(QtGui.QMainWindow):
             self._listening_thread_stop_processing.emit()
 
     def _data_received(self, aggregated_data):
-        # type: (List[Dict[str, Any], ...) -> None
+        # type: (List[Dict[str, Any]]) -> None
         # This function is called every time the listening thread receives data from an
         # OnDA monitor. The received data has the format of a list of event data
         # entries, each stored in a dictionary.

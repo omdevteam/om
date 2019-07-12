@@ -18,9 +18,11 @@ Retrieval of Pilatus detector data from files.
 """
 from __future__ import absolute_import, division, print_function
 
+from typing import Tuple
+
 import fabio
 
-from onda.utils import named_tuples, data_event  # pylint: disable=unused-import
+from onda.utils import data_event, named_tuples  # pylint: disable=unused-import
 
 
 #####################

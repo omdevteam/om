@@ -21,9 +21,7 @@ from __future__ import absolute_import, division, print_function
 import collections
 
 
-PeakList = collections.namedtuple(
-    typename="PeakList", field_names=["fs", "ss", "intensity"]
-)
+PeakList = collections.namedtuple("PeakList", ["fs", "ss", "intensity"])
 """
 Information about a list of Bragg peaks found in a detector data frame.
 
@@ -41,8 +39,7 @@ Arguments:
 
 
 Peakfinder8Info = collections.namedtuple(
-    typename="Peakfinder8Info",
-    field_names=["asic_nx", "asic_ny", "nasics_x", "nasics_y"],
+    "Peakfinder8Info", ["asic_nx", "asic_ny", "nasics_x", "nasics_y"]
 )
 """
 Peakfinder8 information for a detector data frame.
@@ -59,9 +56,7 @@ Arguments:
 """
 
 
-HidraInfo = collections.namedtuple(
-    typename="HidraInfo", field_names=["query", "targets", "data_base_path"]
-)
+HidraInfo = collections.namedtuple("HidraInfo", ["query", "targets", "data_base_path"])
 """
 HiDRA initialization information.
 
@@ -80,7 +75,7 @@ Arguments:
 
 
 DataAndCalibrationInfo = collections.namedtuple(
-    typename="DataAndCalibrationInfo", field_names=["data", "info"]
+    "DataAndCalibrationInfo", ["data", "info"]
 )
 """
 Detector frame data and additional information needed to calibrate it.
@@ -95,9 +90,7 @@ Arguments:
 """
 
 
-ProcessedData = collections.namedtuple(
-    typename="ProcessedData", field_names=["data", "worker_rank"]
-)
+ProcessedData = collections.namedtuple("ProcessedData", ["data", "worker_rank"])
 """
 Processed data transferred from a worker node to the master node.
 

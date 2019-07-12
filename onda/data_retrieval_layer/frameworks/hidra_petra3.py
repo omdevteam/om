@@ -23,6 +23,7 @@ import socket
 import sys
 from typing import Generator  # pylint: disable=unused-import
 
+import numpy  # pylint: disable=unused-import
 from future.utils import raise_from
 
 from onda.utils import (  # pylint: disable=unused-import
@@ -32,7 +33,7 @@ from onda.utils import (  # pylint: disable=unused-import
     named_tuples,
     parameters,
 )
-from . import hidra_api
+from .hidra_api import Transfer, transfer
 
 
 def _create_hidra_info(source, node_pool_size, monitor_params):
@@ -100,9 +101,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
         ]
         targets.append(target_entry)
 
-    query = hidra_api.Transfer(
-        connection_type=query_text, signal_host=source, use_log=False
-    )
+    query = Transfer(connection_type=query_text, signal_host=source, use_log=False)
 
     return named_tuples.HidraInfo(
         query=query, targets=targets, data_base_path=data_base_path
@@ -117,7 +116,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
 
 
 def initialize_event_source(source, node_pool_size, monitor_params):
-    # type: (str, int, parameters.MonitorParams) -> None
+    # type: (str, int, parameters.MonitorParams) -> named_tuples.HidraInfo
     """
     Initializes the HiDRA event source at Petra III.
 
@@ -134,6 +133,11 @@ def initialize_event_source(source, node_pool_size, monitor_params):
         monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
             storing the OnDA monitor parameters from the configuration file.
 
+    Returns:
+
+        :class:`~onda.utils.named_tuples.HidraInfo`: a named tuple storing the HiDRA
+            initialization information.
+
     Raises:
 
         :class:`~onda.utils.exceptions.OndaHidraAPIError`: if the initial connection to
@@ -148,7 +152,7 @@ def initialize_event_source(source, node_pool_size, monitor_params):
     print("Here!")
     try:
         hidra_info.query.initiate(hidra_info.targets[1:])
-    except hidra_api.transfer.CommunicationFailed as exc:
+    except transfer.CommunicationFailed as exc:
         raise_from(
             exc=exceptions.OndaHidraAPIError(
                 "Failed to contact HiDRA: {0}".format(exc)
@@ -165,7 +169,7 @@ def event_generator(
     node_pool_size,  # type: int
     monitor_params,  # type: parameters.MonitorParams
 ):
-    # type: (...) -> Generator[data_event.DataEvent]
+    # type: (...) -> Generator[data_event.DataEvent, None, None]
     """
     Retrieves from HiDRA at Petra III events to process.
 
@@ -245,7 +249,7 @@ def event_generator(
     sys.stdout.flush()
     try:
         hidra_info.query.start(hidra_info.targets[node_rank][1])
-    except hidra_api.transfer.CommunicationFailed as exc:
+    except transfer.CommunicationFailed as exc:
         raise_from(
             exc=exceptions.OndaHidraAPIError(
                 "Failed to contact HiDRA: {0}".format(exc)

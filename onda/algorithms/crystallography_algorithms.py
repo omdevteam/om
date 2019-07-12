@@ -30,7 +30,7 @@ class Peakfinder8PeakDetection(object):
     """
 
     def __init__(
-        self,  # type: int
+        self,
         max_num_peaks,  # type: int
         asic_nx,  # type: int
         asic_ny,  # type: int

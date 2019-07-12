@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import time
+from typing import Generator
 
 import numpy
 from future.utils import raise_from
@@ -32,6 +33,7 @@ from onda.utils import (  # pylint: disable=unused-import
     parameters,
 )
 from .karabo_api import client
+
 
 ############################
 #                          #
@@ -71,7 +73,7 @@ def event_generator(
     node_pool_size,  # type: int
     monitor_params,  # type: parameters.MonitorParams
 ):
-    # type: (...) -> Generator[data_event.DataEvent]
+    # type: (...) -> Generator[data_event.DataEvent, None, None]
     """
     Retrieves from Karabo at XFEL events to process.
 

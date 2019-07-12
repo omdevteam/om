@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import collections
 import sys
 import time
-from typing import Dict, Any  # pylint: disable=unused-import
+from typing import Any, Dict, Tuple  # pylint: disable=unused-import
 
 from cfelpyutils import crystfel_utils, geometry_utils
 
@@ -32,10 +32,10 @@ from onda.algorithms import (
 )
 from onda.parallelization_layer import mpi
 from onda.utils import (  # pylint: disable=unused-import
+    data_transmission,
     dynamic_import,
     named_tuples,
     parameters,
-    data_transmission,
 )
 
 
@@ -45,7 +45,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
     """
 
     def __init__(self, source, monitor_parameters):
-        # type: (str, params.MonitorParams) -> None
+        # type: (str, parameters.MonitorParams) -> None
         """
         An OnDA real-time monitor for serial crystallography experiments.
 
@@ -304,7 +304,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             sys.stdout.flush()
 
     def process_data(self, data):
-        # type: (Dict[str, Any]) -> Tuple[Dict[str, Any], int]
+        # type: (Dict[str, Any]) -> named_tuples.ProcessedData
         """
         Processes a detector data frame.
 
@@ -326,9 +326,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Returns:
 
-            Tuple: a tuple where the first field is a dictionary containing the data
-            that should be sent to the master node, and the second is the rank of the
-            current worker.
+            :class:`~onda.utils.named_tuples.ProcessedData`: a named tuple storing the
+            processed data and some information about the node that processed the data.
         """
         processed_data = {}
         if self._calibration is not None:
@@ -389,7 +388,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         return named_tuples.ProcessedData(data=processed_data, worker_rank=self.rank)
 
     def collect_data(self, processed_data):
-        # type: (Tuple[Dict[str, Any], int]) -> None
+        # type: (named_tuples.ProcessedData) -> None
         """
         Computes aggregated data and broadcasts it via a network socket.
 
@@ -400,9 +399,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Arguments:
 
-            processed_data (Tuple[Dict[str, Any], int]): a tuple where the first field is a
-                dictionary containing the data received from a worker node, and the
-                second is the rank of the worker node sending the data.
+            processed_data (:class:`~onda.utils.named_tuples.ProcessedData`: a named
+                tuple storing the processed data received from a worker node, and some
+                information about the node that processed the data.
         """
         received_data = processed_data.data
         self._num_events += 1

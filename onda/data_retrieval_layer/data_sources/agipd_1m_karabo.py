@@ -18,8 +18,9 @@ Retrieval of AGIPD 1M detector data from Karabo.
 """
 from __future__ import absolute_import, division, print_function
 
-from onda.utils import data_event, named_tuples  # pylint: disable=unused-import
+import numpy  # pylint: disable=unused-import
 
+from onda.utils import data_event, named_tuples  # pylint: disable=unused-import
 
 #####################
 #                   #

@@ -18,7 +18,7 @@ OnDA configuration parameter storage, retrieval and validation.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Any, Dict, List, Union  # pylint: disable=unused-import
+from typing import Any, List, MutableMapping, Union  # pylint: disable=unused-import
 
 import toml
 from future.utils import raise_from
@@ -33,7 +33,7 @@ class MonitorParams(object):
     """
 
     def __init__(self, config):
-        # type: (List[str, ...]) -> None
+        # type: (str) -> None
         """
         Storage, retrieval and validation of OnDA monitor parameters.
 
@@ -45,7 +45,7 @@ class MonitorParams(object):
 
         Arguments:
 
-            config (List[str, ...]): the absolute or relative path to a TOML-format
+            config (List[str]): the absolute or relative path to a TOML-format
                 configuration file.
 
         Raises:
@@ -162,13 +162,13 @@ class MonitorParams(object):
                 return ret
 
     def get_all_parameters(self):
-        # type: () -> Dict[str, Dict[str, Any]]
+        # type: () -> MutableMapping[str, Any]
         """
         Returns the whole set of parameters read from the configuration file.
 
         Returns:
 
-            Dict[str, Dict[str, Any]]: a dictionary containing the parameters read
-            from the configuration file.
+            MutableMapping[str, Any]: a dictionary containing the parameters read from 
+            the configuration file.
         """
         return self._monitor_params

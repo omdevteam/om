@@ -22,6 +22,8 @@ import io
 
 import fabio
 
+from onda.utils import data_event
+
 from .pilatus_files import (  # pylint: disable=unused-import
     # Utility functions.
     get_file_extensions,
