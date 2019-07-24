@@ -85,6 +85,9 @@ class CrystallographyFrameViewer(gui.OndaGui):
 
         pyqtgraph.setConfigOption("background", 0.2)
 
+        self._ring_pen = pyqtgraph.mkPen('r', width=2)
+        self._peak_canvas = pyqtgraph.ScatterPlotItem()
+
         self._image_view = pyqtgraph.ImageView()
         self._image_view.ui.menuBtn.hide()
         self._image_view.ui.roiBtn.hide()

@@ -147,12 +147,12 @@ class ZmqDataListener(QtCore.QObject):
         """
         Connects to a PUB socket and starts listening.
         """
-        print("Connecting to tcp://{}:{}".format(self._pub_hostname, self._pub_port))
+        print("Connecting to tcp://{}:{}".format(self._sub_hostname, self._sub_port))
         self._zmq_subscribe = self._zmq_context.socket(  # pylint: disable=no-member
             zmq.SUB  # pylint: disable=no-member
         )
         self._zmq_subscribe.connect(
-            "tcp://{0}:{1}".format(self._pub_hostname, self._pub_port)
+            "tcp://{0}:{1}".format(self._sub_hostname, self._sub_port)
         )
         self._zmq_subscribe.setsockopt_string(
             option=zmq.SUBSCRIBE,  # pylint: disable=no-member

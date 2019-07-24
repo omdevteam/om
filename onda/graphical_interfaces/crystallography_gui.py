@@ -118,7 +118,7 @@ class CrystallographyGui(gui.OndaGui):
             text="Show Resolution Rings", checked=True
         )
         self._resolution_rings_check_box.stateChanged.connect(
-            self._update_resolution_rings_to_display
+            self._update_resolution_rings
         )
         self._resolution_rings_check_box.setEnabled(True)
         self._resolution_rings_lineedit = QtGui.QLineEdit()
@@ -141,7 +141,7 @@ class CrystallographyGui(gui.OndaGui):
         self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate")
         self._hit_rate_plot_widget.showGrid(x=True, y=True)
         self._hit_rate_plot_widget.setYRange(0, 1.0)
-        self._hit_rate_plot = self._hit_rate_plot_widget.plot(self._hitrate_history)
+        self._hit_rate_plot = self._hit_rate_plot_widget.plot(self._hit_rate_history)
 
         self._saturation_plot_widget = pyqtgraph.PlotWidget()
         self._saturation_plot_widget.setTitle(
@@ -153,7 +153,7 @@ class CrystallographyGui(gui.OndaGui):
         self._saturation_plot_widget.setYRange(0, 1.0)
         self._saturation_plot_widget.setXLink(self._hit_rate_plot_widget)
         self._saturation_rate_plot = self._saturation_plot_widget.plot(
-            self._satrate_history
+            self._saturation_rate_history
         )
 
         self._reset_peaks_button = QtGui.QPushButton(text="Reset Peaks")
@@ -309,8 +309,8 @@ class CrystallographyGui(gui.OndaGui):
                     self._visual_pixel_map_y[peak_index_in_slab],
                     self._visual_pixel_map_x[peak_index_in_slab],
                 ] += peak_value
-            self._hitrate_history.append(frame[b"hit_rate"])
-            self._satrate_history.append(frame[b"saturation_rate"])
+            self._hit_rate_history.append(frame[b"hit_rate"])
+            self._saturation_rate_history.append(frame[b"saturation_rate"])
         QtGui.QApplication.processEvents()
         self._hit_rate_plot.setData(self._hit_rate_history)
         self._saturation_rate_plot.setData(self._saturation_rate_history)
