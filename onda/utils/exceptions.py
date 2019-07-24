@@ -117,7 +117,7 @@ class OndaMissingHdf5PathError(OndaException):
     """
 
 
-def _onda_exception_handler(type_, value, traceback_):
+def onda_exception_handler(type_, value, traceback_):
     """
     Custom OnDA exception handler.
 
