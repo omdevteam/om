@@ -174,10 +174,10 @@ class ZmqDataListener(QtCore.QObject):
         """
         self._listening_timer.stop()
         print(
-            "Disconnecting from tcp://{}:{}".format(self._pub_hostname, self._pub_port)
+            "Disconnecting from tcp://{}:{}".format(self._sub_hostname, self._sub_port)
         )
         self._zmq_subscribe.disconnect(
-            "tcp://{}:{}".format(self._pub_hostname, self._pub_port)
+            "tcp://{}:{}".format(self._sub_hostname, self._sub_port)
         )
         self._zmq_poller = None
         self._zmq_subscribe = None
