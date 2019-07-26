@@ -191,8 +191,8 @@ class CrystallographyGui(gui.OndaGui):
         # Resets the hit and saturation rate plots.
         self._hit_rate_history = collections.deque(10000 * [0.0], maxlen=10000)
         self._saturation_rate_history = collections.deque(10000 * [0.0], maxlen=10000)
-        self._hit_rate_plot.setData(self._hitrate_history)
-        self._saturation_rate_plot.setData(self._satrate_history)
+        self._hit_rate_plot.setData(self._hit_rate_history)
+        self._saturation_rate_plot.setData(self._saturation_rate_history)
 
     def _reset_virt_powder_plot(self):
         # type: () -> None
