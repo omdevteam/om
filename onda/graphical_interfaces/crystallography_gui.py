@@ -109,6 +109,12 @@ class CrystallographyGui(gui.OndaGui):
 
         self._resolution_rings_pen = pyqtgraph.mkPen("w", width=0.5)
         self._resolution_rings_canvas = pyqtgraph.ScatterPlotItem()
+
+        self._image_view = pyqtgraph.ImageView()
+        self._image_view.ui.menuBtn.hide()
+        self._image_view.ui.roiBtn.hide()
+        self._image_view.getView().addItem(self._resolution_rings_canvas)
+
         self._resolution_rings_regex = QtCore.QRegExp(r"[0-9.,]+")
         self._resolution_rings_validator = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
@@ -130,10 +136,6 @@ class CrystallographyGui(gui.OndaGui):
             self._update_resolution_rings
         )
         self._resolution_rings_lineedit.setEnabled(True)
-
-        self._image_view = pyqtgraph.ImageView()
-        self._image_view.ui.menuBtn.hide()
-        self._image_view.ui.roiBtn.hide()
 
         self._hit_rate_plot_widget = pyqtgraph.PlotWidget()
         self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
@@ -208,6 +210,9 @@ class CrystallographyGui(gui.OndaGui):
     def _update_resolution_rings(self):
         # type: () -> None
         # Updates the resolution rings.
+        # If there is no data, returns without drawing anything.
+        if not self._local_data:
+            return
         items = str(self._resolution_rings_lineedit.text()).split(",")
         if items:
             self._resolution_rings_in_a = [
@@ -225,14 +230,21 @@ class CrystallographyGui(gui.OndaGui):
         for text_item in self._resolution_rings_textitems:
             self._image_view.getView().addItem(text_item)
         try:
-            lambda_ = constants.h * constants.c / self._local_data[b"beam_energy"]
+            lambda_ = (
+                constants.h
+                * constants.c
+                / (self._local_data[-1][b"beam_energy"] * constants.e)
+            )
             resolution_rings_in_pix = [1.0]
             resolution_rings_in_pix.extend(
                 [
                     2.0
                     * self._res
-                    * (self._local_data[b"detector_distance"] + self._coffset)
-                    * numpy.tan(2.0 * numpy.arcsin(lambda_ / (2.0 * resolution)))
+                    * (self._local_data[-1][b"detector_distance"] + self._coffset)
+                    * 1e-3
+                    * numpy.tan(
+                        2.0 * numpy.arcsin(lambda_ / (2.0 * resolution * 1e-10))
+                    )
                     for resolution in self._resolution_rings_in_a
                 ]
             )
@@ -250,8 +262,8 @@ class CrystallographyGui(gui.OndaGui):
                 and self._resolution_rings_check_box.isChecked()
             ):
                 self._resolution_rings_canvas.setData(
-                    [self._img_center_y] * len(resolution_rings_in_pix),
                     [self._img_center_x] * len(resolution_rings_in_pix),
+                    [self._img_center_y] * len(resolution_rings_in_pix),
                     symbol="o",
                     size=resolution_rings_in_pix,
                     pen=self._resolution_rings_pen,
@@ -262,8 +274,8 @@ class CrystallographyGui(gui.OndaGui):
                 for index, item in enumerate(self._resolution_rings_textitems):
                     item.setText("{}A".format(self._resolution_rings_in_a[index]))
                     item.setPos(
-                        self._img_center_y,
                         (self._img_center_x + resolution_rings_in_pix[index + 1] / 2.0),
+                        self._img_center_y,
                     )
             else:
                 self._resolution_rings_canvas.setData([], [])
