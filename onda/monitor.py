@@ -43,13 +43,13 @@ from onda.utils import dynamic_import, exceptions, parameters
     help="Disable custom OnDA error handler",
 )
 @click.argument("source", type=str)
-def onda_monitor(source, config, debug):
+def main(source, config, debug):
     # type: (str, str, bool) -> None
     """
     OnDA monitor. This script starts a monitor that is based on the provided
-    configuration file and retrieves data from the specified source. Please note: when
-    the 'mpi' Parallelization Layer is used, this script should be launched
-    via the 'mpirun' or 'mpiexec' commands.
+    configuration file and retrieves data from the specified source. When the 'mpi'
+    Parallelization Layer is used, this script should be launched via the 'mpirun' or
+    'mpiexec' commands.
 
     SOURCE: the source of data for the OnDA monitor. The exact format of this string
     depends on the specific Data Extraction Layer currently used by the OnDA monitor
