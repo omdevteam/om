@@ -15,4 +15,6 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA GUIs and viewers.
+
+This package contains several viewers and other graphic applications for OnDA.
 """

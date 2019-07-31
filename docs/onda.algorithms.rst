@@ -1,13 +1,12 @@
-algorithms Package
-==================
+[:doc:`Back to top of code documentation <onda>`]
+
+The algorithms Package
+======================
 
 .. automodule:: onda.algorithms
     :members:
     :undoc-members:
     :show-inheritance:
-
-Subpackages / Submodules
---------------------------
 
 .. toctree::
 
@@ -15,4 +14,3 @@ Subpackages / Submodules
     crystallography_algorithms <onda.algorithms.crystallography_algorithms>
     generic_algorithms <onda.algorithms.generic_algorithms>
     peakfinder8_extension <onda.algorithms.peakfinder8_extension>
- 

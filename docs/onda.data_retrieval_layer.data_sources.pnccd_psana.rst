@@ -1,5 +1,7 @@
-pnccd\_psana Module
-===================
+[:doc:`Back to top of code documentation <onda>`]
+
+The pnccd\_psana Module
+=======================
 
 .. automodule:: onda.data_retrieval_layer.data_sources.pnccd_psana
     :members:

@@ -15,6 +15,8 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA monitor for crystallography.
+
+This module contains an OnDA monitor for serial x-ray crystallography experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -47,12 +49,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
     def __init__(self, source, monitor_parameters):
         # type: (str, parameters.MonitorParams) -> None
         """
-        An OnDA real-time monitor for serial crystallography experiments.
+        An OnDA real-time monitor for serial x-ray crystallography experiments.
 
         This monitor processes detector data frames, optionally applying detector
         calibration, dark correction and gain correction. It detects Bragg peaks in
-        each detector frame using the peakfinder8 algorithm from Cheetah, providing
-        information about the location and intergrated intensity of each peak.
+        each detector frame using the peakfinder8 algorithm from Cheetah. It provides
+        information about the location and integrated intensity of each peak.
         Additionally, it calculates the evolution of the hit and saturation rates over
         time. It broadcasts all this information over a network socket for
         visualization by other programs. Optionally, it can also broadcast calibrated
@@ -61,9 +63,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
         Arguments:
 
             source (str): a string describing the data source. The exact format of the
-                string depends on the specific Data Recovery Layer currently being used
-                by the OnDA monitor. See the documentation of the relevant
-                'initialize_event_source' function).
+                string depends on the specific Data Recovery Layer currently being
+                used. See the documentation of the relevant 'initialize_event_source'
+                function.
 
             monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
                 storing the OnDA monitor parameters from the configuration file.
@@ -77,7 +79,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         if self.role == "worker":
             requested_calibration_algorithm = monitor_parameters.get_param(
-                section="DetectorCalibration",
+                group="DetectorCalibration",
                 parameter="calibration_algorithm",
                 type_=str,
             )
@@ -85,7 +87,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 calibration_alg = getattr(calib_algs, requested_calibration_algorithm)
                 self._calibration = calibration_alg(
                     calibration_file=monitor_parameters.get_param(
-                        section="DetectorCalibration",
+                        group="DetectorCalibration",
                         parameter="calibration_file",
                         type_=str,
                         required=True,
@@ -100,22 +102,22 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._non_hit_frame_sending_counter = 0
 
             dark_data_filename = monitor_parameters.get_param(
-                section="Correction", parameter="dark_filename", type_=str
+                group="Correction", parameter="dark_filename", type_=str
             )
             dark_data_hdf5_path = monitor_parameters.get_param(
-                section="Correction", parameter="dark_hdf5_path", type_=str
+                group="Correction", parameter="dark_hdf5_path", type_=str
             )
             mask_filename = monitor_parameters.get_param(
-                section="Correction", parameter="mask_filename", type_=str
+                group="Correction", parameter="mask_filename", type_=str
             )
             mask_hdf5_path = monitor_parameters.get_param(
-                section="Correction", parameter="mask_hdf5_path", type_=str
+                group="Correction", parameter="mask_hdf5_path", type_=str
             )
             gain_map_filename = monitor_parameters.get_param(
-                section="Correction", parameter="gain_filename", type_=str
+                group="Correction", parameter="gain_filename", type_=str
             )
             gain_map_hdf5_path = monitor_parameters.get_param(
-                section="Correction", parameter="gain_hdf5_path", type_=str
+                group="Correction", parameter="gain_hdf5_path", type_=str
             )
             self._correction = gen_algs.Correction(
                 dark_filename=dark_data_filename,
@@ -127,7 +129,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             geometry_filename = monitor_parameters.get_param(
-                section="General", parameter="geometry_file", type_=str, required=True
+                group="General", parameter="geometry_file", type_=str, required=True
             )
             geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
             pixelmaps = geometry_utils.compute_pix_maps(geometry)
@@ -136,61 +138,61 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 monitor_params=monitor_parameters
             )
             pf8_max_num_peaks = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="max_num_peaks",
                 type_=int,
                 required=True,
             )
             pf8_adc_threshold = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="adc_threshold",
                 type_=float,
                 required=True,
             )
             pf8_minimum_snr = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="minimum_snr",
                 type_=float,
                 required=True,
             )
             pf8_min_pixel_count = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="min_pixel_count",
                 type_=int,
                 required=True,
             )
             pf8_max_pixel_count = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="max_pixel_count",
                 type_=int,
                 required=True,
             )
             pf8_local_bg_radius = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="local_bg_radius",
                 type_=int,
                 required=True,
             )
             pf8_min_res = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="min_res",
                 type_=int,
                 required=True,
             )
             pf8_max_res = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="max_res",
                 type_=int,
                 required=True,
             )
             pf8_bad_pixel_map_fname = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="bad_pixel_map_filename",
                 type_=str,
                 required=True,
             )
             pf8_bad_pixel_map_hdf5_path = monitor_parameters.get_param(
-                section="Peakfinder8PeakDetection",
+                group="Peakfinder8PeakDetection",
                 parameter="bad_pixel_map_hdf5_path",
                 type_=str,
                 required=True,
@@ -214,53 +216,50 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             self._max_saturated_peaks = monitor_parameters.get_param(
-                section="General",
+                group="General",
                 parameter="max_saturated_peaks",
                 type_=int,
                 required=True,
             )
             self._min_num_peaks_for_hit = monitor_parameters.get_param(
-                section="General",
+                group="General",
                 parameter="min_num_peaks_for_hit",
                 type_=int,
                 required=True,
             )
             self._max_num_peaks_for_hit = monitor_parameters.get_param(
-                section="General",
+                group="General",
                 parameter="max_num_peaks_for_hit",
                 type_=int,
                 required=True,
             )
             self._saturation_value = monitor_parameters.get_param(
-                section="General",
-                parameter="saturation_value",
-                type_=int,
-                required=True,
+                group="General", parameter="saturation_value", type_=int, required=True
             )
             self._hit_frame_sending_interval = monitor_parameters.get_param(
-                section="General", parameter="hit_frame_sending_interval", type_=int
+                group="General", parameter="hit_frame_sending_interval", type_=int
             )
             self._non_hit_frame_sending_interval = monitor_parameters.get_param(
-                section="General", parameter="non_hit_frame_sending_interval", type_=int
+                group="General", parameter="non_hit_frame_sending_interval", type_=int
             )
 
             print("Starting worker: {0}.".format(self.rank))
             sys.stdout.flush()
         if self.role == "master":
             self._speed_report_interval = monitor_parameters.get_param(
-                section="General",
+                group="General",
                 parameter="speed_report_interval",
                 type_=int,
                 required=True,
             )
             self._geometry_is_optimized = monitor_parameters.get_param(
-                section="General",
+                group="General",
                 parameter="geometry_is_optimized",
                 type_=bool,
                 required=True,
             )
             num_events_to_accumulate = monitor_parameters.get_param(
-                section="DataAccumulator",
+                group="DataAccumulator",
                 parameter="num_events_to_accumulate",
                 type_=int,
                 required=True,
@@ -270,7 +269,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             self._running_average_window_size = monitor_parameters.get_param(
-                section="General",
+                group="General",
                 parameter="running_average_window_size",
                 type_=int,
                 required=True,
@@ -287,10 +286,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._avg_sat_rate = 0
 
             broadcast_socket_ip = monitor_parameters.get_param(
-                section="General", parameter="publish_hostname", type_=str
+                group="General", parameter="publish_hostname", type_=str
             )
             broadcast_socket_port = monitor_parameters.get_param(
-                section="General", parameter="publish_port", type_=int
+                group="General", parameter="publish_port", type_=int
             )
             self._data_broadcast_socket = data_transmission.ZmqDataBroadcaster(
                 hostname=broadcast_socket_ip, port=broadcast_socket_port
@@ -308,26 +307,24 @@ class OndaMonitor(mpi.ParallelizationEngine):
         """
         Processes a detector data frame.
 
-        This function performs calibration and correction (if required) and then
+        This function performs calibration and correction of a detector data frame and
         extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
-        optionally, the detector data frame) to be sent to the master node.
+        optionally, the detector frame data) for transmission to to the master node.
 
         Arguments:
 
-            data(Dict[str, Any]): a dictionary containing data retrieved by the
-                OnDA monitor and related to the same data event as the detector frame.
+            data(Dict[str, Any]): a dictionary containing the data retrieved by
+                OnDA for the frame being processed.
 
-                * Dictionary keys correspond to entries in the 'required_data' list in
-                  the 'Onda' section of the configuration file.
+                * The dictionary keys must match the entries in the 'required_data'
+                  list found in the 'Onda' configuration parameter group.
 
-                * The corresponding dictionary values store the realated data (for the
-                  exact format of the data, see the documentaion of the relevant
-                  Data Extraction function).
+                * The corresponding dictionary values must store the retrieved data.
 
         Returns:
 
             :class:`~onda.utils.named_tuples.ProcessedData`: a named tuple storing the
-            processed data and some information about the node that processed the data.
+            processed data and some information about the node that processed it.
         """
         processed_data = {}
         if self._calibration is not None:
@@ -390,18 +387,17 @@ class OndaMonitor(mpi.ParallelizationEngine):
     def collect_data(self, processed_data):
         # type: (named_tuples.ProcessedData) -> None
         """
-        Computes aggregated data and broadcasts it via a network socket.
+        Computes statistics on aggregated data and broadcasts them via a network socket.
 
-        This function receives data from the worker nodes and computes statistics on
-        the aggregated data. It then broadcasts the data via a network socket for
-        visualzation by other programs. The data is sent using the MessagePack
-        protocol.
+        This function computes aggregated statistics on data received from the worker
+        nodes. It then broadcasts the results via a network socket (for visualization
+        by other programs) using the MessagePack protocol.
 
         Arguments:
 
-            processed_data (:class:`~onda.utils.named_tuples.ProcessedData`: a named
-                tuple storing the processed data received from a worker node, and some
-                information about the node that processed the data.
+            processed_data(:class:`~onda.utils.named_tuples.ProcessedData`): a named
+                tuple storing the processed data and some information about the node
+                that processed it.
         """
         received_data = processed_data.data
         self._num_events += 1

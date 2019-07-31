@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of events from Karabo at the European XFEL.
+
+This module contains functions and classes that retrieve data events from the Karabo
+framework at the European XFEL facility.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -75,7 +78,7 @@ def event_generator(
 ):
     # type: (...) -> Generator[data_event.DataEvent, None, None]
     """
-    Retrieves from Karabo at XFEL events to process.
+    Retrieves events to process from Karabo at XFEL .
 
     This function must be called on each worker node after the
     :func:`initialize_event_source` function has been called on the master node.
@@ -107,13 +110,13 @@ def event_generator(
     """
     del node_pool_size
     data_retrieval_layer_filename = monitor_params.get_param(
-        section="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        section="Onda", parameter="required_data", type_=list, required=True
+        group="Onda", parameter="required_data", type_=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
@@ -128,35 +131,35 @@ def event_generator(
 
     # Fills the framework info with static data that will be retrieved later.
     event.framework_info["detector_label"] = monitor_params.get_param(
-        section="DataRetrievalLayer",
+        group="DataRetrievalLayer",
         parameter="karabo_detector_label",
         type_=str,
         required=True,
     )
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="karabo_fallback_beam_energy_in_eV",
             type_=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="karabo_fallback_detector_distance_in_mm",
             type_=float,
             required=True,
         )
     if "optical_laser_active" in data_extraction_functions:
         event.framework_info["frames_with_optical_laser"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="karabo_frame_ids_with_optical_laser_active",
             type_=list,
             required=True,
         )
     if "xrays_active" in data_extraction_functions:
         event.framework_info["frames_with_xrays"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="karabo_frame_ids_with_xrays_active",
             type_=list,
             required=True,
@@ -164,7 +167,7 @@ def event_generator(
 
     # Connects to the Karabo Bridge using the Karabo API.
     max_event_age = monitor_params.get_param(
-        section="DataRetrievalLayer", parameter="karabo_max_event_age", type_=float
+        group="DataRetrievalLayer", parameter="karabo_max_event_age", type_=float
     )
     if not max_event_age:
         max_event_age = 10000000000
@@ -210,10 +213,8 @@ def open_event(event):
     content is made available in the 'data' field of the 'event' object. This function
     actually does nothing.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -230,10 +231,8 @@ def close_event(event):
 
     Karabo events do not need to be closed, so this function actually does nothing.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -241,29 +240,6 @@ def close_event(event):
             data.
     """
     del event
-
-
-def get_num_frames_in_event(event):
-    # type: (data_event.DataEvent) -> int
-    """
-    Gets the number of frames in an event retrieved from Karabo at XFEL.
-
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
-
-    Arguments:
-
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
-            data.
-
-    Returns:
-
-        int: the number of frames in the event.
-    """
-    # The data is stored in a 4-d block. The last axis is the nunmber of frames.
-    return event.data[event.framework_info["data_label"]]["image.data"].shape[0]
 
 
 #############################
@@ -302,12 +278,12 @@ def optical_laser_active(event):
     according to information provided in the OnDA configuration file.
 
     * The file must include a entry called 'karabo_frame_ids_with_optical_laser_active'
-      in the 'DataRetrievalLayer' section.
+      in the 'DataRetrievalLayer' parameter group.
 
     * The entry must contain a list of frame indexes for which the optical laser is
       supposed to be active.
 
-    * If the index of the current frame within its event is included in the list, the
+    * If the index of the current frame within the event is included in the list, the
       optical laser is considered to be active.
 
     Arguments:
@@ -336,12 +312,12 @@ def xrays_active(event):
     OnDA configuration file.
 
     * The file must include a entry called 'karabo_frame_ids_with_xrays_active'
-      in the 'DataRetrievalLayer' section.
+      in the 'DataRetrievalLayer' parameter group.
 
     * The entry must contain a list of frame indexes for which the x-ray beam is
       supposed to be active.
 
-    * If the index of the current frame within its event is included in the list, the
+    * If the index of the current frame within the event is included in the list, the
       x-ray beam is considered to be active.
 
     Arguments:
@@ -408,7 +384,8 @@ def beam_energy(event):
 
     Karabo events do not currently contain beam energy information. This function takes
     it from the configuration file, specifically from the
-    'karabo_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
+    'karabo_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' parameter
+    group.
 
     Arguments:
 
@@ -431,7 +408,7 @@ def detector_distance(event):
     Karabo events don't currently contain detector distance information. This function
     takes it from the configuration file, specifically from the
     'karabo_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
-    section.
+    parameter group.
 
     Arguments:
 

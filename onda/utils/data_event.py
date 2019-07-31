@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 DataEvent structure.
+
+This module contains the DataEvent class, which stores all information related to a
+data event.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -37,35 +40,38 @@ class DataEvent(object):
         """
         Data event.
 
-        This object stores all the information related to a data event retrieved from a
-        facility. Methods to open, close and manipulate the event (as well as extract
-        information from it) are attached to each instance of this object at creation
-        time.
-
+        This class stores all the information related to a data event. Methods to
+        open, close and manipulate the event are attached to each instance of this
+        class at creation time, along with functions to extract data from it.
+        
         Arguments:
 
-            event_handling_funcs (Dict[str, Callable]): a dictionary whose values are
-                Event Handling functions to be attached to the object.
+            event_handling_funcs (Dict[str, Callable]): a dictionary containing
+                Event Handling functions to be attached to the class instance being
+                created.
 
                 * Five event handling functions must be defined:
 
-                    - 'initalize_event_source'
-                    - 'event_generator'
-                    - 'open_even'
-                    - 'close_event'
-                    - 'get_num_frames_in_event'
+                  - 'initalize_event_source'
+                  - 'event_generator'
+                  - 'open_even'
+                  - 'close_event'
+                  - 'get_num_frames_in_event'
 
-                The dictionary must contain keys corresponding to these function names.
+                * The dictionary must contain keys corresponding to all these function
+                  names.
 
-                * The dictionary values must store the corresponding function
-                  implementation.
+                * The corresponding dictionary values must store the function
+                  implementations.
 
-            data_extraction_funcs (Dict[str, Callable]): a dictionary whose values are
-                Data Extraction functions to be attached to the object.
+            data_extraction_funcs (Dict[str, Callable]): a dictionary containing
+                Data Extraction functions to be attached to the class instance being
+                created.
 
-                * Each dictionary value must store a function implementetion that will
-                  be attached to the object with a name defined by the corresponding
-                  dictionary key.
+                * Each dictionary value must store a function implementation.
+
+                * The corresponding dictionary key will define the name with which the
+                  function will be attached to the class instance.
         """
         self.open_event = types.MethodType(event_handling_funcs["open_event"], self)
         self.close_event = types.MethodType(event_handling_funcs["close_event"], self)
@@ -83,18 +89,20 @@ class DataEvent(object):
     def extract_data(self):
         # type: () -> Dict[str, Any]
         """
-        Extracts data from event.
+        Extracts data from an event.
 
-        This function calls all the Data Extraction functions that have been attached
-        to the event object, and returns the extracted data.
+        This function calls in sequence all the Data Extraction functions that have
+        been attached to the event, and returns the extracted data.
 
         Returns:
 
-            Dict[str, Any]: a dictionary storing the values returned by the data
-            extraction functions.
+            Dict[str, Any]: a dictionary storing the values returned by the Data
+            Extraction functions.
 
-            * Each dictionary key identifies a function. The corresponding dictionary
-              value stores the the data return by each function.
+            * Each dictionary key identifies a function attached to the event.
+            
+            * The corresponding dictionary value stores the data returned by the
+              function.
         """
         data = {}
         try:

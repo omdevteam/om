@@ -14,7 +14,9 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Named tuples used in OnDA.
+OnDA named tuples.
+
+This module contains a collection of named tuples used throughout the OnDA framework.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -23,17 +25,17 @@ import collections
 
 PeakList = collections.namedtuple("PeakList", ["fs", "ss", "intensity"])
 """
-Information about a list of Bragg peaks found in a detector data frame.
+Information about Bragg peaks found in a detector data frame (list of peaks).
 
 Arguments:
 
-    fs (List[float, ...]): list of fractional fs indexes locating the detected peaks
+    fs (List[float]): a list of fractional fs indexes locating the detected peaks
         in the detector data frame.
 
-    ss (List[float, ...]): list of fractional ss indexes locating the detected peaks
+    ss (List[float]): a list of fractional ss indexes locating the detected peaks
         in the detector data frame.
 
-    intensity (List[float, ...]): list of integrated intensities for the detected
+    intensity (List[float]): a list of integrated intensities for the detected
         peaks.
 """
 
@@ -42,13 +44,15 @@ Peakfinder8Info = collections.namedtuple(
     "Peakfinder8Info", ["asic_nx", "asic_ny", "nasics_x", "nasics_y"]
 )
 """
-Peakfinder8 information for a detector data frame.
+Peakfinder8 information for a detector.
 
 Arguments:
 
-    asic_nx (int): the fs size of each detector's ASIC in the detector data frame.
+    asic_nx (int): the fs size in pixels of each detector's ASIC in the detector data
+        frame.
 
-    asic_ny (int): the ss size of each detector's ASIC in the detector data frame.
+    asic_ny (int): the ss size in pixels of each detector's ASIC in the detector data
+        frame.
 
     nasics_x (int): the number of ASICs along the fs axis of the detector data frame.
 
@@ -64,13 +68,13 @@ TODO: Determine field types.
 
 Arguments:
 
-    query (): information about the transfer type.
+    query(?): an object storing information about the transfer type.
 
-    targets (): information about the worker nodes that will receive data from
-        HiDRA.
+    targets (?): a list of objects storing information about the worker nodes that will
+        receive data from HiDRA.
 
-    data_base_path (str) the absolute or relative base path to be used for locating
-        files in the filesystem when HiDRA sends relative paths to OnDA.
+    data_base_path (str): the absolute or relative base path to be used for locating
+        files in the filesystem when HiDRA only provides relative path information.
 """
 
 
@@ -78,7 +82,7 @@ DataAndCalibrationInfo = collections.namedtuple(
     "DataAndCalibrationInfo", ["data", "info"]
 )
 """
-Detector frame data and additional information needed to calibrate it.
+Detector frame data and additional information needed for the calibration.
 
 Arguments:
 
@@ -98,6 +102,6 @@ Arguments:
 
     data (Dict[str, Any]): a dictionary storing the transferred data.
 
-    node_rank (int): the rank, in the OnDA pool, of the worker from which the data
+    node_rank (int): the rank, in the OnDA pool, of the worker node from which the data
         is transferred.
 """

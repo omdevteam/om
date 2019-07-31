@@ -14,7 +14,11 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA configuration parameter storage, retrieval and validation.
+OnDA configuration parameter object.
+
+This module contains a class that stores a set of configuration parameters read from a
+file. Configuration parameters can be retrieved from this class and optionally
+validated.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -37,16 +41,14 @@ class MonitorParams(object):
         """
         Storage, retrieval and validation of OnDA monitor parameters.
 
-        This object stores a set of OnDA configuration parameters read from a
-        configuration file. The parameters, which are grouped together in 'Parameter
-        Groups', must come from a TOML-formatted file. They can be retrieved from
-        this object via the 'get_param' member function. Optionally, the parameters
-        can also be validated at the time of retrieval.
+        This class stores a set of OnDA configuration parameters read from a file in
+        TOML format. The parameters are grouped together in groups ('Tables' in TOML
+        parlance) and can be retrieved and optionally validated.
 
         Arguments:
 
-            config (List[str]): the absolute or relative path to a TOML-format
-                configuration file.
+            config (str): the absolute or relative path to a TOML-format configuration
+                file.
 
         Raises:
 
@@ -67,64 +69,67 @@ class MonitorParams(object):
                 cause=exc,
             )
 
-    def get_param(self, section, parameter, type_=None, required=False):
+    def get_param(self, group, parameter, type_=None, required=False):
         # type (str, str, type, bool) -> Union[Any, None]
         """
         Retrieves an OnDA monitor configuration parameter.
 
-        This functions returns the retrived configuration parameter.
+        This function retrives a configuration parameter belonging to a parameter
+        group. Optionally, it validates the type of the parameter. The function behaves
+        according to the following rules:
 
-        * If the 'required'  arguments is True and the parameter cannot be found in the
+        * If the 'required' argument is True and the parameter cannot be found in the
           configuration file, this function will raise an exception.
 
-        * If the 'required'  arguments is False and the parameter cannot be found in the
+        * If the 'required' argument is False and the parameter cannot be found in the
           configuration file, this function will return None.
 
-        * If a required type is specified (the 'type_' argument is not None), this
-          function will raise an exception if the type of the retrieved parameter does
-          not match the requested one.
+        * If a type is specified in the function call (the 'type' argument is not
+          None), this function will raise an exception if the type of the retrieved
+          parameter does not match the specified one.
 
         Arguments:
 
-            section (str): the name of the parameter group in which the parameter to
-                to retrieve is located.
+            group (str): the name of the parameter group in which the parameter to
+                retrieve is located.
 
             parameter (str): the name of the parameter to retrieve.
 
-            type_ (type): the required type of the parameter. If a type is specified
-                and the argument is not None, the type of the retrieved parameter will
-                be validated. Defaults to None.
+            type_ (Optional[type]): the type of the parameter. If a type is specified
+                here, the type of the retrieved parameter will be validated. Defaults
+                to None.
 
-            required (bool): True if the parameter is required (must be present in the
-                configuration file), False otherwise. Defaults to False.
+            required (bool): True if the parameter is strictly required and must be
+                present in the configuration file, False otherwise. Defaults to False.
 
         Returns:
 
             Union[Any, None]: the value of the requested parameter, or None, if the
-            parameter was not found in the configuration file.
+            parameter was not found in the configuration file (and it is not
+            required).
 
         Raises:
 
-            :class:`onda.utils.exceptions.OndaMissingParameterGroupError`: if the
+            :class:`~onda.utils.exceptions.OndaMissingParameterGroupError`: if the
                 requested parameter group is not present in the configuration file.
 
-            :class:`onda.utils.exceptions.OndaMissingParameterError`: if the parameter
+            :class:`~onda.utils.exceptions.OndaMissingParameterError`: if the parameter
                 is required but cannot be found in the configuration file.
 
-            :class:`onda.utils.exceptions.OndaWrongParameterTypeError`: if the
+            :class:`~onda.utils.exceptions.OndaWrongParameterTypeError`: if the
                 requested parameter type does not match the type of the parameter in
                 the configuration file.
         """
-        if section not in self._monitor_params:
+        if group not in self._monitor_params:
             raise exceptions.OndaMissingParameterGroupError(
-                "Parameter group [{}] is not in the configuration file".format(section)
+                "Parameter group [{}] is not in the configuration file".format(group)
             )
         else:
-            ret = self._monitor_params[section].get(parameter)
+            ret = self._monitor_params[group].get(parameter)
             if ret is None and required is True:
                 raise exceptions.OndaMissingParameterError(
-                    "Parameter {} in section [{}] was not found, but is "
-                    "required.".format(parameter, section)
+                    "Parameter {} in group [{}] was not found, but is "
+                    "required.".format(parameter, group)
                 )
             if ret is not None and type_ is not None:
                 if type_ is str:

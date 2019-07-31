@@ -14,7 +14,10 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Algorithms for the processing of crystallography data..
+Algorithms for the processing of crystallography data.
+
+This module contains algorithms that carry out crystallography-related data processing
+(peak finding, etc.).
 """
 from __future__ import absolute_import, division, print_function
 
@@ -51,43 +54,44 @@ class Peakfinder8PeakDetection(object):
         """
         Peakfinder8 algorithm for peak detection.
 
-        This class stores the parameters needed by the peakfinder8 algorithm, and
-        performs peak finding on a detector data frame upon request.
-
-        References:
-
-            A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A.
-            White, and H. N. Chapman, "Cheetah: software for high-throughput reduction
-            and analysis of serial femtosecond X-ray diffraction data", J Appl
-            Crystallogr, vol. 47, pp. 1118-1131 (2014).
+        This class stores the parameters needed by the 'peakfinder8' algorithm, and
+        performs peak finding on a detector data frame upon request. The 'peakfinder8'
+        algorithm is described in the following publication:
+        
+        A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
+        and H. N. Chapman, "Cheetah: software for high-throughput reduction and
+        analysis of serial femtosecond X-ray diffraction data", J Appl  Crystallogr,
+        vol. 47, pp. 1118-1131 (2014).
 
         Arguments:
 
             max_num_peaks (int): the maximum number of peaks that will be retrieved
                 from each data frame. Additional peaks will be ignored.
 
-            asic_nx (int): the fs size of each detector's ASIC in the data frame.
+            asic_nx (int): the fs size in pixels of each detector's ASIC in the data
+                frame.
 
-            asic_ny (int): the ss size of each detector's ASIC in the data frame.
+            asic_ny (int): the ss size in pxiels of each detector's ASIC in the data
+                frame.
 
             nasics_x (int): the number of ASICs along the fs axis of the data frame.
 
             nasics_y (int): the number of ASICs along the ss axis of the data frame.
 
-            adc_threshold (float): the minimum adc threshold for peak detection.
+            adc_threshold (float): the minimum ADC threshold for peak detection.
 
-            minimum_snr (float): the minimum signal to noise ratio for peak detection.
+            minimum_snr (float): the minimum signal-to-noise ratio for peak detection.
 
             min_pixel_count (int): the minimum size of a peak in pixels.
 
             max_pixel_count (int): the maximum size of a peak in pixels.
 
-            local_bg_radius (int): the radius (in pixels) for the estimation of the
-                local background.
+            local_bg_radius (int): the radius for the estimation of the
+                local background in pixels.
 
-            min_res (int): the minimum resolution for a peak (in pixels).
+            min_res (int): the minimum resolution for a peak in pixels.
 
-            max_res (int): the maximum resolution for a peak (in pixels).
+            max_res (int): the maximum resolution for a peak in pixels.
 
             bad_pixel_map_filename (str): the absolute or relative path to an HDF5 file
                 containing a bad pixel map. The map should mark areas of the data frame
@@ -107,12 +111,11 @@ class Peakfinder8PeakDetection(object):
                 where the bad pixel map is stored.
 
             radius_pixel_map (numpy.ndarray): a numpy array with radius information.
-                In particular:
 
                 * The array must have the same shape as the data frame on which the
                   algorithm will be applied.
 
-                * Each element of the array must store the distance (in pixels) from
+                * Each element of the array must store the distance in pixels from
                   the center of the detector of the corresponding pixel in the data
                   frame.
         """

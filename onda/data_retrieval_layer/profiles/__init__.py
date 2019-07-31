@@ -14,5 +14,9 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Data retrieval layer profiles.
+Data Retrieval Layer profiles.
+
+This package contains collections of classes and functions (from other parts of the
+Data Retrieval layer) that can be used to retrieve and process data at specific
+beamlines or for specific experiments.  
 """

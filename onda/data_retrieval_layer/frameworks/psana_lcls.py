@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of events from psana at LCLS.
+
+This module contains functions and classes that retrieve data events from the psana
+framework at the LCLS facility.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -128,7 +131,7 @@ def event_generator(
     # If the psana calibration directory is provided in the configuration file, it is
     # added as an option to psana.
     psana_calib_dir = monitor_params.get_param(
-        section="DataRetrievalLayer", parameter="psana_calibration_directory", type_=str
+        group="DataRetrievalLayer", parameter="psana_calibration_directory", type_=str
     )
     if psana_calib_dir:
         psana.setOption(
@@ -138,13 +141,13 @@ def event_generator(
         print("Calibration directory not provided or not found.")
     psana_source = psana.DataSource(source)
     data_retrieval_layer_filename = monitor_params.get_param(
-        section="Onda", parameter="data_retrieval_layer", type_=list, required=True
+        group="Onda", parameter="data_retrieval_layer", type_=list, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        section="Onda", parameter="required_data", type_=list, required=True
+        group="Onda", parameter="required_data", type_=list, required=True
     )
     psana_detector_interface_funcs = dynamic_import.get_psana_detector_interface_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
@@ -193,10 +196,8 @@ def open_event(event):
 
     Psana events do not need to be opened, so this function actually does nothing.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -213,10 +214,8 @@ def close_event(event):
 
     Psana events do not need to be closed, so this function actually does nothing.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -234,10 +233,8 @@ def get_num_frames_in_event(event):
     Psana events are frame-based, and always contain just one frame. This function
     always returns 1.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -267,8 +264,8 @@ def detector_data_init(monitor_params):
     Initializes the psana Detector interface for x-ray detector data at LCLS.
 
     This function initializes the Detector interface for the detector identified by the
-    'psana_detector_name' entry in the "DataRetrievalLayer" section of the
-    configuration file.
+    'psana_detector_name' entry in the 'DataRetrievalLayer' configuration parameter
+    group.
 
     Arguments:
 
@@ -282,7 +279,7 @@ def detector_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="psana_detector_name",
             type_=str,
             required=True,
@@ -312,10 +309,10 @@ def detector_distance_init(monitor_params):
     """
     Initializes the psana Detector interface for detector distance data at LCLS.
 
-    Detector distance information is recovered at LCLS from an Epics controller.
+    Detector distance information is recovered from an Epics controller at LCLS.
     This function initializes the Detector interface for the Epics controller
     identified by the 'psana_detector_distance_epics_name' entry in the
-    'DataRetrievalLayer' section of the configuration file.
+    'DataRetrievalLayer' configuration parameter group.
 
     Arguments:
 
@@ -329,7 +326,7 @@ def detector_distance_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="psana_detector_distance_epics_name",
             type_=str,
             required=True,
@@ -361,11 +358,11 @@ def timetool_data_init(monitor_params):
     """
     Initializes the psana Detector interface for timetool data at LCLS.
 
-    Timetool data is recovered at LCLS from an Epics controller. This function
+    Timetool data is recovered from an Epics controller at LCLS. This function
     initializes the Detector interface for the Epics controller identified by the
-    'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' section
-    of the configuration file.
-
+    'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' configuration
+    parameter group.
+    
     Arguments:
 
         monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
@@ -378,7 +375,7 @@ def timetool_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="psana_timetool_epics_name",
             type_=str,
             required=True,
@@ -392,8 +389,8 @@ def digitizer_data_init(monitor_params):
     Initializes the psana Detector interface for digitizer data at LCLS.
 
     This function initializes the Detector interface for the digitizer indentified by
-    the 'psana_digitizer_name' entry in the 'DataRetrievalLayer' section of the
-    configuration file.
+    the 'psana_digitizer_name' entry in the 'DataRetrievalLayer' configuration
+    parameter group.
 
     Arguments:
 
@@ -407,7 +404,7 @@ def digitizer_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="psana_digitizer_name",
             type_=str,
             required=True,
@@ -421,8 +418,8 @@ def opal_data_init(monitor_params):
     Initializes the psana Detector interface for Opal camera data at LCLS.
 
     This function initialize the Detector interface for the Opel camera identified by
-    the 'psana_opal_name' entry in the 'DataRetrievalLayer' section of the
-    configuration file.
+    the 'psana_opal_name' entry in the 'DataRetrievalLayer' configuration parameter
+    group.
 
     Arguments:
 
@@ -436,7 +433,7 @@ def opal_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="psana_opal_name",
             type_=str,
             required=True,
@@ -449,10 +446,10 @@ def optical_laser_active_init(monitor_params):
     """
     Initializes the psana Detector interface for an optical laser at LCLS.
 
-    The status of an optical laser is determined at LCLS by monitoring an EVR event
-    source. This function initializes the Detector interface for the EVR event source
+    The status of an optical laser is determined by monitoring an EVR event source at
+    LCLS. This function initializes the Detector interface for the EVR event source
     identified by the 'psana_evr_source_name' entry of the 'DataRetrievalLayer'
-    section of the configuration file.
+    configuration parameter group.
 
     Arguments:
 
@@ -462,10 +459,10 @@ def optical_laser_active_init(monitor_params):
     Returns:
 
         psana.Detector.EvrDetector.EvrDetector: a psana object that can be used later
-            to retrieve the data.
+        to retrieve the data.
     """
     evr_source_name = monitor_params.get_param(
-        section="DataRetrievalLayer",
+        group="DataRetrievalLayer",
         parameter="psana_evr_source_name",
         type_=str,
         required=True,
@@ -479,10 +476,10 @@ def xrays_active_init(monitor_params):
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
-    The status of the x-ray beam  is determined at LCLS by monitoring an EVR event
-    source. This function initializes the Detector interface for the EVR event source
+    The status of the x-ray beam is determinedby monitoring an EVR event source at
+    LCLS. This function initializes the Detector interface for the EVR event source
     identified by the 'psana_evr_source_name' entry of the 'DataRetrievalLayer'
-    section of the configuration file.
+    configuration parameter group.
 
     Arguments:
 
@@ -492,10 +489,10 @@ def xrays_active_init(monitor_params):
     Returns:
 
         psana.Detector.EvrDetector.EvrDetector: a psana object that can be used later
-            to retrieve the data.
+        to retrieve the data.
     """
     evr_source_name = monitor_params.get_param(
-        section="DataRetrievalLayer",
+        group="DataRetrievalLayer",
         parameter="psana_evr_source_name",
         type_=str,
         required=True,
@@ -518,7 +515,7 @@ def timestamp(event):
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -535,14 +532,14 @@ def detector_distance(event):
     """
     Gets the detector distance for an event retrieved from psana at LCLS.
 
-    Detector distance information is recovered at LCLS from an Epics controller. This
+    Detector distance information is recovered from an Epics controller at LCLS . This
     function retrieves the information from the Epics controller identified by the
-    'psana_detector_distance_epics_name' entry in the 'DataRetrievalLayer' section of
-    the configuration file.
+    'psana_detector_distance_epics_name' entry in the 'DataRetrievalLayer'
+    configuration parameter group.
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -559,7 +556,7 @@ def beam_energy(event):
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -578,14 +575,14 @@ def timetool_data(event):
     """
     Gets timetool data for an event retrieved from psana at LCLS.
 
-    Timetool data is recovered at LCLS from an Epics controller. This function
-    retrieves the data from a  controller identified by the
-    'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' section of the
-    configuration file.
+    Timetool data is recovered from an Epics controller at LCLS. This function
+    retrieves the data from the Epics controller identified by the
+    'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' configuration
+    parameter group.
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -601,12 +598,12 @@ def digitizer_data(event):
     Get digitizer data for an event retrieved from psana at LCLS.
 
     This function retrieves data from the digitizer identified by the
-    'psana_digitizer_name' entry in the 'DataRetrievalLayer' section of the
-    configuration file.
+    'psana_digitizer_name' entry in the 'DataRetrievalLayer' configuration parameter
+    group.
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -624,12 +621,11 @@ def opal_data(event):
     Gets Opal camera data for an event retrieved from psana at LCLS.
 
     This function retrieves data from the Opel camera identified by the
-    'psana_opal_name' entry in the 'DataRetrievalLayer' section of the configuration
-    file.
+    'psana_opal_name' entry in the 'DataRetrievalLayer' configuration parameter group.
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -644,23 +640,22 @@ def optical_laser_active(event):
     """
     Gets the status of an optical laser for an event retrieved from psana at LCLS.
 
-    The status of an optical laser is determined at LCLS by monitoring an EVR event
-    source. This function determines the status of the optical laser by checking if
-    the EVR source provides a specific event code for a certain frame.
+    The status of an optical laser is determined by monitoring an EVR event source at
+    LCLS. This function determines the status of the optical laser by checking if
+    the EVR source provides a specific event code for the current frame.
 
     * The name of the source must be specified in the 'psana_evr_source_name' entry of
-      the "DataRetrievalLayer" section of the configuration file.
+      the 'DataRetrievalLayer' configuration parameter group.
 
     * The EVR event code that signals an active optical laser must be provided in
-      the 'psana_evr_code_for_active_optical_laser' entry in the same section of the
-      file.
+      the 'psana_evr_code_for_active_optical_laser' entry in the same parameter group.
 
-    If the source shows this EVR code for a frame, the optical laser will be considered
-    active.
+    * If the source shows this EVR code for the current frame, the optical laser is
+      considered active.
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
            data.
 
     Returns:
@@ -683,22 +678,22 @@ def xrays_active(event):
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
-    The status of an optical laser is determined at LCLS by monitoring an EVR event
-    source. This function determines the status of the x-ray beam by checking if the
-    EVR source provides a specific event code for a certain frame.
+    The status of an optical laser is determined by monitoring an EVR event source at
+    LCLS. This function determines the status of the x-ray beam by checking if the EVR
+    source provides a specific event code for the current frame.
 
     * The name of the source must be specified in the 'psana_evr_source_name' entry of
-      the 'DataRetrievalLayer' section of the configuration file.
+      the 'DataRetrievalLayer' configuration parameter group.
 
     * The EVR event code that signals an active x-ray beam must be provided in the
-      'psana_evr_code_for_active_xray_beam" entry in the same section of the file.
+      'psana_evr_code_for_active_xray_beam" entry in the same parameter group.
 
-    If the source shows this EVR code for a frame, the x-ray beam will be conisdered
-    active.
+    * If the source shows this EVR code for the current frame, the x-ray beam is
+      considered active.
 
     Arguments:
 
-        event (:class:`onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
            data.
 
     Returns:

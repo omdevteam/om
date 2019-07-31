@@ -15,6 +15,10 @@
 # a research centre of the Helmholtz Association.
 """
 Generic algorithms.
+
+This module contains algorithms that carry out several operations not specific to one
+experimental technique (e.g.: detector frame masking and correction, data accumulation,
+etc.).
 """
 from __future__ import absolute_import, division, print_function
 
@@ -41,7 +45,7 @@ class Correction(object):
     ):
         # type: (...) -> None
         """
-        Algorithm applying various corrections to a detector data frame.
+        Detector data frame corrections.
 
         This algorithm can store a dark data frame, a bad pixel mask, and a gain map
         (all three are optionals). Upon request, the algorithm can apply all of these
@@ -95,7 +99,7 @@ class Correction(object):
                 * Each pixel in the gain map must store the gain factor that will be
                   applied to the corresponing pixel in the data frame.
 
-            gain_df5_path (Optional[str]): the internal HDF5 path to the data block
+            gain_hdf5_path (Optional[str]): the internal HDF5 path to the data block
                 where the gain map data is located. Defaults to None.
 
                 * If the 'gain_filename' argument is not None, this argument must also
@@ -176,7 +180,7 @@ class DataAccumulator(object):
     def __init__(self, num_events_to_accumulate):
         # type: (int) -> None
         """
-        Algorithm accumulating data for subsequent bulk retrieval.
+        Data accumulation and bulk retrieval.
 
         This algorithm accumulates a predefined number of data entries (each data entry
         has the form of a dictionary). When the accumulator is 'full', the
@@ -193,7 +197,7 @@ class DataAccumulator(object):
         self._num_events_in_accumulator = 0
 
     def add_data(self, data):
-        # type: (Dict[str, Any]) -> Union[List[Dict], None]
+        # type: (Dict[str, Any]) -> Union[List[Dict[str, Any]], None]
         """
         Adds data to the accumulator.
 
@@ -202,13 +206,13 @@ class DataAccumulator(object):
 
         Arguments:
 
-            data: (Dict[str]): a data entry to be added to the accumulator.
+            data: (Dict[str, Any]): a data entry to be added to the accumulator.
 
         Returns:
 
-            Union[List[Dict, ...], None]: either a list containing the accumulated data
-            (if the accumulator is emptied), or None, if more data entries can still be
-            added to the accumulator.
+            Union[List[Dict[str, Any]]], None]: either a list containing the
+            accumulated data (if the accumulator is emptied), or None, if more data
+            entries can still be added to the accumulator.
         """
         self._accumulator.append(data)
         self._num_events_in_accumulator += 1

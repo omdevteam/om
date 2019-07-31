@@ -14,7 +14,9 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA entry point function.
+OnDA main function.
+
+This module contains the main function that instantiates an OnDA monitor.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -46,14 +48,13 @@ from onda.utils import dynamic_import, exceptions, parameters
 def main(source, config, debug):
     # type: (str, str, bool) -> None
     """
-    OnDA monitor. This script starts a monitor that is based on the provided
+    OnDA monitor. This script starts a monitor that runs according to the provided
     configuration file and retrieves data from the specified source. When the 'mpi'
     Parallelization Layer is used, this script should be launched via the 'mpirun' or
     'mpiexec' commands.
 
     SOURCE: the source of data for the OnDA monitor. The exact format of this string
-    depends on the specific Data Extraction Layer currently used by the OnDA monitor
-    (see documentation).
+    depends on the specific Data Extraction Layer currently used (see documentation).
     """
     # Sets a custom exception handler to deal with OnDA-specific exceptions.
     if not debug:
@@ -61,7 +62,7 @@ def main(source, config, debug):
 
     monitor_parameters = parameters.MonitorParams(config)
     processing_layer_filename = monitor_parameters.get_param(
-        section="Onda", parameter="processing_layer", type_=str, required=True
+        group="Onda", parameter="processing_layer", type_=str, required=True
     )
     processing_layer = dynamic_import.import_processing_layer(processing_layer_filename)
     monitor = processing_layer.OndaMonitor(

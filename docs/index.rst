@@ -1,3 +1,4 @@
+
 .. onda documentation master file, created by
    sphinx-quickstart on Thu Jun 27 11:29:47 2019.
    You can adapt this file completely to your liking, but it should at least
@@ -12,7 +13,8 @@ OnDA: Online Data Analysis for x-ray imaging
 
    documentation_installation
    documentation_configuration
-   documentation_advanced_documentation
+   documentation_advanced
+
 
 What is OnDA?
 -------------
@@ -67,7 +69,7 @@ Guidelines on how to configure and run OnDA at several facilities all over the w
 can instead be found :doc:`here <documentation_installation>`.
 
 Finally, for detailed documentation for both users and developers please see
-:doc:`this page <documentation_advanced_documentation>`.
+:doc:`this page <documentation_advanced>`.
 
 Source Code
 -----------

@@ -15,4 +15,7 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA utility functions and classes.
+
+This package contains several functions and classes that perform tasks needed by other
+parts of OnDA.
 """

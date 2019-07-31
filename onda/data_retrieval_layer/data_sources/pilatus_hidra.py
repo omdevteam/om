@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of Pilatus detector data from HiDRA.
+
+This module contains functions that retrieve data from a Pilatus x-ray detector using
+the HiDRA framework. Most functions are shared with the 'pilatus_files' module.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -51,12 +54,10 @@ def open_event(event):
 
     For the Pilatus detector, a HiDRA event corresponds to the full content of a single
     Pilatus CBF data file. This function makes the content of the file available in
-    the 'data' field of the 'event' object.
+    the 'data' attribute of the 'event' object.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -79,10 +80,8 @@ def close_event(event):
 
     The HiDRA event does not need to be closed, so this function actually does nothing.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 

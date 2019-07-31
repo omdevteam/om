@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 MPI-based parallelization engine for OnDA.
+
+This module contains an MPI-based parallelization engine for OnDA, based on a
+master/worker architecture.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -54,43 +57,50 @@ class ParallelizationEngine(object):
         """
         An MPI-based master-worker parallelization engine for OnDA.
 
-        This engine starts multiple processing worker nodes plus a single aggregating
-        master node. They communicate with each other using the MPI protocol.
-        When an instance of the engine is created, two functions ('process_func' and
-        'collect_func') are attached to it.
+        This engine starts several processing worker nodes and an aggregating worker
+        node. The nodes  communicate with each other using the MPI protocol. When the
+        engine starts, two functions, 'process_func' and 'collect_func', are attached
+        to it. The engine operates according to the following rules:
 
-        * On each worker node, the engine retrieves one event data item from a source,
-          executes the 'process_func' function on the data, then makes sure that the
-          object returned by this function is transferred to the master node.
+        * On each worker node, the engine retrieves one data event from a source.
+          It then executes the 'process_func' function on every frame in the event.
+          Each time, it makes sure that the object returned by the function is
+          transferred to the master node.
 
         * On the master node, the engine executes the 'collect_func' function every
-          time data is received from one of the workers.
+          time an object is transferred from a worker node. The engine passes the
+          received object to the function.
 
-        This class is designed to be subclassed to create an OnDA monitor.
+        * When all events from the source have been processed, the engine performs
+          some final clean-up tasks and shuts down.
+
+        NOTE: This class is designed to be subclassed to create an OnDA monitor.
+
+        Arguments:
+
+            process_func (Callable[[Dict[str, Any]], \
+                :class:`~onda.utils.named_tuples.ProcessedData`]): the function that
+                will be called on each worker node for every frame in a data event. The
+                'ProcessedData' named tuple returned by this function will be
+                transferred to the master node.
+
+            collect_func ( Callable[[:class:`~onda.utils.named_tuples.ProcessedData`], \
+                None]): the function that will run on the master node every time a
+                'ProcessedData' named tuple is transferred from a worker node.
+
+            source (str): a string describing a source of event data. The exact format
+                of the string depends on the specific Data Recovery Layer currently
+                being used. See the documentation of the relevant
+                'initialize_event_source' function).
+
+            monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+                storing the OnDA monitor parameters from the configuration file.
 
         Attributes:
 
             role (str): the role of the current node ('worker' or 'master').
 
             rank (int): the rank (in MPI terms) of the current node.
-
-        Arguments:
-
-            process_func (Callable[[Dict[str, Any]], named_tuples.ProcessedData]):
-                the function that will be executed on each worker node after retrieving
-                the event data.
-
-            collect_func ( Callable[[named_tuples.ProcessedData], None]): the function
-                that will be executed on the master node every time data is received
-                from a worker node.
-
-            source (str): a string describing the data source. The exact format of the
-                string depends on the specific Data Recovery Layer currently being used
-                by the OnDA monitor. See the documentation of the relevant
-                'initialize_event_source' function).
-
-            monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-                storing the OnDA monitor parameters from the configuration file.
         """
         self._map = process_func
         self._reduce = collect_func
@@ -105,7 +115,7 @@ class ParallelizationEngine(object):
             self.role = "worker"
 
         data_retrieval_layer_filename = monitor_params.get_param(
-            section="Onda", parameter="data_retrieval_layer", type_=str, required=True
+            group="Onda", parameter="data_retrieval_layer", type_=str, required=True
         )
         data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
             data_retrieval_layer_filename=data_retrieval_layer_filename
@@ -117,10 +127,12 @@ class ParallelizationEngine(object):
         if self.role == "worker":
             self._event_generator = event_handling_functions["event_generator"]
             self._num_frames_in_event_to_process = monitor_params.get_param(
-                section="General", parameter="num_of_most_recent_frames_in_event_to_process", type_=int
+                group="General",
+                parameter="num_of_most_recent_frames_in_event_to_process",
+                type_=int,
             )
             frames_in_event_to_skip = monitor_params.get_param(
-                section="General", parameter="frame_indexes_to_skip", type_=list
+                group="General", parameter="frame_indexes_to_skip", type_=list
             )
             if frames_in_event_to_skip:
                 self._frames_in_event_to_skip = tuple(frames_in_event_to_skip)
@@ -139,11 +151,11 @@ class ParallelizationEngine(object):
         """
         Starts the parallelization engine.
 
-        * On a worker node, this function starts retrieving event data and processing
-          it.
+        * When this function is called on a worker node, the node starts retrieving data
+          events and processing them.
 
-        * On the master node, this function starts receiving data from the worker nodes
-          and aggregating it.
+        * When this function is called on the master node, the node starts receiving
+          data from the worker nodes and aggregating it.
         """
         if self.role == "worker":
             # Flag used to make sure that the MPI messages have been processed.
@@ -241,12 +253,12 @@ class ParallelizationEngine(object):
         """
         Shuts down the parallelization engine.
 
-        * On a worker node, this function communicates to the master node that the
-          worker is shutting down, then shuts it down.
+        * When this function is called on a worker node, the worker communicates to the
+          master node that it is shutting down, then shuts down.
 
-        * On the master node, this function tells each worker node to shut down, waits
-          for all the workers to confirm that they have done that, then stops the
-          master node.
+        * When this function is called on the master node, the master tells each worker
+          to shut down, waits for all the workers to confirm that they done that, then
+          shuts down.
 
         Arguments:
 

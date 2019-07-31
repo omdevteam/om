@@ -27,7 +27,7 @@ clean:
 	find onda/algorithms/peakfinder8_extension \
 		-name "peakfinder8_extension*.so" -delete
 
-docs:
-	sphinx-apidoc -fMeF --ext-githubpages -o docs onda \
-	    onda/data_retrieval_layer/frameworks/hidra_api/ \
-		onda/data_retrieval_layer/frameworks/karabo_api/
+#docs:
+#	sphinx-apidoc -fMeF --ext-githubpages -o docs onda \
+#	    onda/data_retrieval_layer/frameworks/hidra_api/ \
+#		onda/data_retrieval_layer/frameworks/karabo_api/

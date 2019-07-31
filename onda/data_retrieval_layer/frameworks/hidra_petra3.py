@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of events from HiDRA at Petra III.
+
+This module contains functions and classes that retrieve data events from the HiDRA
+framework at the PETRA III facility.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -45,7 +48,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
     # specified there, imports the suggested transfer type from the data extraction
     # layer and use that.
     transfer_type = monitor_params.get_param(
-        section="DataRetrievalLayer", parameter="hidra_transfer_type", type_=str
+        group="DataRetrievalLayer", parameter="hidra_transfer_type", type_=str
     )
     if transfer_type is None:
         transfer_type = dynamic_import.get_hidra_transfer_type(monitor_params)
@@ -62,7 +65,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
         query_text = "QUERY_METADATA"
         data_base_path = os.path.join(
             monitor_params.get_param(
-                section="DataRetrievalLayer",
+                group="DataRetrievalLayer",
                 parameter="hidra_data_base_path",
                 type_=str,
                 required=True,
@@ -72,7 +75,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
         raise RuntimeError("Unrecognized HiDRA transfer type.")
 
     base_port = monitor_params.get_param(
-        section="DataRetrievalLayer",
+        group="DataRetrievalLayer",
         parameter="hidra_base_port",
         type_=int,
         required=True,
@@ -82,7 +85,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
     # string is not found, use the file extensions from the detector layer as
     # selection string.
     hidra_selection_string = monitor_params.get_param(
-        section="DataRetrievalLayer", parameter="hidra_selection_string", type_=str
+        group="DataRetrievalLayer", parameter="hidra_selection_string", type_=str
     )
     if hidra_selection_string is None:
         hidra_selection_string = dynamic_import.get_file_extensions(monitor_params)
@@ -136,7 +139,7 @@ def initialize_event_source(source, node_pool_size, monitor_params):
     Returns:
 
         :class:`~onda.utils.named_tuples.HidraInfo`: a named tuple storing the HiDRA
-            initialization information.
+        initialization information.
 
     Raises:
 
@@ -171,7 +174,7 @@ def event_generator(
 ):
     # type: (...) -> Generator[data_event.DataEvent, None, None]
     """
-    Retrieves from HiDRA at Petra III events to process.
+    Retrieves events to process from HiDRA at Petra III.
 
     This function must be called on each worker node after the
     :func:`initialize_event_source` function has been called on the master node.
@@ -202,13 +205,13 @@ def event_generator(
             HiDRA fails.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        section="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        section="Onda", parameter="required_data", type_=list, required=True
+        group="Onda", parameter="required_data", type_=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
@@ -224,14 +227,14 @@ def event_generator(
     # Fills the framework info with static data that will be retrieved later.
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="hidra_fallback_beam_energy_in_eV",
             type_=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="hidra_fallback_detector_distance_in_mm",
             type_=float,
             required=True,
@@ -308,7 +311,8 @@ def beam_energy(event):
 
     HiDRA events do not usually contain beam energy information. This function takes
     the beam energy value from the configuration file, specifically from the
-    'hidra_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
+    'hidra_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' parameter
+    group.
 
     Arguments:
 
@@ -331,7 +335,7 @@ def detector_distance(event):
     HiDRA events don't usually contain detector distance information. This function
     takes it from the configuration file, specifically from the
     'hidra_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
-    section.
+    parameter group.
 
     Arguments:
 

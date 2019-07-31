@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of Pilatus detector data from files.
+
+This module contains functions that retrieve data from files written by a Pilatus x-ray
+detector.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -75,10 +78,8 @@ def open_event(event):
     Pilatus CBF file. This function makes the content of the file available in the
     'data' field of the 'event' object.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -96,10 +97,8 @@ def close_event(event):
     Since an event corresponds to a CBF data file, which does not need to be closed,
     this function actually does nothing.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -114,13 +113,12 @@ def get_num_frames_in_event(event):
     """
     Gets the number of frames in an event retrieved from Pilatus files (or HiDRA).
 
-    For the Pilatus detector, an event corresponds to the content of one CBF data file,
-    and since the detector writes one frame per file, this function always returns 1.
+    For the Pilatus detector, an event corresponds to the content of a single CBF data
+    file. Since the Pilatus detector writes one frame per file, this function always
+    returns 1.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 

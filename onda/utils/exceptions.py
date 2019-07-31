@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA-specific exceptions and exception handling.
+
+This module contains a set of python exceptions that are specific to OnDA, and a
+custom exception handler that reports the OnDA exceptions in a simplified way.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -35,85 +38,85 @@ class OndaException(Exception):
 
 class OndaHidraAPIError(OndaException):
     """
-    Error within a HiDRA API call.
+    Raised if an error happens during a HiDRA API call.
     """
 
 
 class OndaMissingEventHandlingFunctionError(OndaException):
     """
-    An event handling function is not defined.
+    Raised if an Event Handling Function is not defined.
     """
 
 
 class OndaMissingDataExtractionFunctionError(OndaException):
     """
-    A data extraction function is not defined.
+    Raised if a Data Extraction Function is not defined.
     """
 
 
 class OndaMissingPsanaInitializationFunctionError(OndaException):
     """
-    A psana Detector interface initialization function is not defined.
+    Raised if a psana Detector Interface Initialization Function is not defined.
     """
 
 
 class OndaConfigurationFileSyntaxError(OndaException):
     """
-    There is a syntax error in the configuration file.
+    Raised if there is a syntax error in the configuration file.
     """
 
 
 class OndaConfigurationFileReadingError(OndaException):
     """
-    Error while reading the configuration file.
+    Raised if an error happens while reading the configuration file.
     """
 
 
 class OndaMissingParameterGroupError(OndaException):
     """
-    A group of parameters is missing in the configuration file.
+    Raised if a parameter group is missing from the configuration file.
     """
 
 
 class OndaMissingParameterError(OndaException):
     """
-    A parameter is missing in the configuration file.
+    Raised if a parameter is missing from the configuration file.
     """
 
 
 class OndaWrongParameterTypeError(OndaException):
     """
-    The type of the parameter in the config file does not match the requested type.
+    Raised if the type of the configuration parameter does not match the requested one.
     """
 
 
 class OndaDataExtractionError(OndaException):
     """
-    Error during data extraction.
+    Raise if an error happens during data extraction.
     """
 
 
 class OndaInvalidSourceError(OndaException):
     """
-    The format of the source string is not valid.
+    Raised if the format of the source string is not valid.
     """
 
 
 class OndaMissingDependencyError(OndaException):
     """
-    One of the dependecies of a module is not installed.
+    Raised if one of the dependencies of a module is not found on the system.
     """
 
 
 class OndaHdf5FileReadingError(OndaException):
     """
-    Error while reading an HDF5 file.
+    Raised if an error happens while reading an HDF5 file.
     """
 
 
 class OndaMissingHdf5PathError(OndaException):
     """
-    Error while reading an HDF5 file.
+    Raised if an internal HDF5 path is not found.
     """
 
 
@@ -122,9 +125,9 @@ def onda_exception_handler(type_, value, traceback_):
     Custom OnDA exception handler.
 
     This function should never be called directly. Instead it should be used as a
-    replacement for the standard exception handler. For all OnDA excceptions, it adds a
-    label to the Exception and hide the stacktrace. All non-OnDA exceptions are instead
-    reported normally.
+    replacement for the standard exception handler. For all OnDA excceptions, this
+    handler adds a label to the Exception and hides the stacktrace. All non-OnDA
+    exceptions are instead reported normally.
 
     Arguments:
 

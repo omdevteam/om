@@ -14,5 +14,5 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Processing layer.
+The Processing Layer package.
 """

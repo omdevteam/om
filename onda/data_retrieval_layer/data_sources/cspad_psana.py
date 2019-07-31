@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of CSPAD detector data from psana.
+
+This module contains functions that retrieve data from a CSPAD x-ray detector using the
+psana framework.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -58,7 +61,7 @@ def get_peakfinder8_info():
 def detector_data(event):
     # type: (data_event.DataEvent) -> numpy.ndarray
     """
-    Retrieves from psana one frame of CSPAD detector data.
+    Retrieves one frame of CSPAD detector data from psana.
 
     Arguments:
 

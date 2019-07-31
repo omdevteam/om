@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of pnCCD detector data from psana.
+
+This module contains functions that retrieve data from a pnCCD x-ray detector using the
+psana framework.
 """
 from __future__ import absolute_import, division, print_function
 

@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Data broadcasting and receiving in OnDA.
+
+This module contains classes and functions that allow OnDA monitors to broadcast data
+to external programs, and external programs to receive the data.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -45,10 +48,11 @@ class ZmqDataBroadcaster(object):
         """
         ZMQ-based data-broadcasting socket for OnDA monitors.
 
-        This class implements a ZMQ PUB socket that broadcasts tagged data. The socket
-        supports multiple clients and broadcasts the data using the MessagePack
-        protocol. It has no queuing system: data that has not been picked up by a
-        receiver will be lost when the next broadcast takes place.
+        This class implements a ZMQ PUB socket that can be used to broadcast data. The
+        socket supports multiple clients and broadcasts the data using the MessagePack
+        protocol. The data is tagged with a label. The socket has no queuing system:
+        data that has not been picked up by a receiver will be lost when the next
+        broadcast takes place.
 
         Args:
 
@@ -86,13 +90,14 @@ class ZmqDataBroadcaster(object):
         """
         Broadcasts data from the ZMQ PUB socket.
 
-        This function broadcasts the data in the form of a MessagePack object.
+        This function broadcasts the data in the form of a MessagePack object. The data
+        must be tagged with a label.
 
         Arguments:
 
-            tag (str): the tag that will be attached to the broadcasted data.
+            tag (str): the label that will be attached to the broadcasted data.
 
-            message (Any): Any MessagePack-compatible python object.
+            message (Any): a MessagePack-compatible python object.
         """
         self._sock.send(tag.encode(), zmq.SNDMORE)
         msgpack_message = msgpack.packb(message)
@@ -106,27 +111,33 @@ class ZmqDataListener(QtCore.QObject):
     """
 
     zmqmessage = QtCore.pyqtSignal(list)
-    # Custom Qt signal to be emitted when data is received.
+    """
+    A Qt signal emitted when a message is received.
+
+    The signal brings the received data as payload.
+    """
 
     def __init__(self, hostname, port, tag):
         # type: (str, int, str) -> None
         """
-        ZMQ-based data receviing socket for OnDA GUIs and clients.
+        ZMQ-based data receiving socket for OnDA GUIs and clients.
 
-        This class implements a listening socket based on a ZMQ SUB socket. The socket
-        receives and filters tagged data, and has no queuing system.  The received data
-        message must follow the the MessagePack protocol. This class is designed to be
-        run in a separate Qt thread. Every time a message is received, this class emits
-        a custom Qt signal that carries the received data as payload.
+        This class implements a ZMQ SUB socket that can be used to receive data. The
+        socket receives and filters data tagged with a label, and has no queuing
+        system. It receives messages that follow the MessagePack protocol. This class
+        is designed to be run in a separate Qt thread. Every time a message is
+        received, this class emits a custom Qt signal that carries the received data as
+        payload.
 
         Arguments:
 
-            hostname (str): the hostname or IP address where the receiver will listen
-                for data.
+            hostname (str): the hostname or IP address where the socket will listen for
+                data.
 
-            port(int): the port at which the receiver will listen for data.
+            port(int): the port at which the socket will listen for data.
 
-            subscribe string (str): tag used by the listener to filter incoming data.
+            tag (str): the label used by the socket to filter incoming data. Only data
+                whose label matches this argument will be accepted and received.
         """
         QtCore.QObject.__init__(self)
 
@@ -137,8 +148,8 @@ class ZmqDataListener(QtCore.QObject):
         self._zmq_subscribe = None
         self._zmq_poller = None
 
-        # Initializes the listening timer. Every time this timer ticks, this object
-        # tries to read from the socket.
+        # Initializes the listening timer. Every time this timer ticks, an instance of
+        # this class tries to read from the socket.
         self._listening_timer = QtCore.QTimer()
         self._listening_timer.timeout.connect(self._listen)
 

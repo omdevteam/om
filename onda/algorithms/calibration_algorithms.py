@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Algorithms for detector calibration.
+
+This module contains algorithms that apply corrections for artifacts caused by detector
+design or operation (i.e., not sample- or experiment-related).
 """
 from __future__ import absolute_import, division, print_function
 
@@ -31,7 +34,7 @@ class Agipd1MCalibration(object):
     def __init__(self, calibration_filename):
         # type: (str) -> None
         """
-        Algorithm for the calibration of the AGIPD 1M detector.
+        Calibration of the AGIPD 1M detector.
 
         This algorithm stores the calibration parameters for an AGIPD 1M detector and
         applies the calibration to a detector data frame upon request.

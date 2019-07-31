@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA GUI for cystallography.
+
+This module contains a graphical interface that displays reduced and aggregated data
+for crystallography experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -47,23 +50,24 @@ class CrystallographyGui(gui.OndaGui):
     def __init__(self, geometry, hostname, port):
         # type: (Dict[str, Any], str, int) -> None
         """
-        OnDa GUI for crystallography.
+        OnDA graphical user interface for crystallography.
 
-        This GUI receives detector data frames broadcasted from an OnDA monitor, but
-        only when they are tagged with the 'ondadata' label. It displays plots showing
-        the evolution of the hit and saturation rates over time, plus a real-time
-        virtual powder pattern created using the detected Bragg peaks.
+        This graphical user interface receives reduced and aggregated data from an OnDA
+        crystallography monitor, when it is tagged with the 'ondadata' label. It
+        displays some plots showing the evolution of the hit and saturation rates over
+        time, plus a real-time virtual powder pattern created using the detected Bragg
+        peaks.
 
         Arguments:
 
             geometry (Dict[str, Any]): a dictionary containing CrystFEL detector
-                geometry information (as returned by the
-                :func:`~cfelpyutils.crystfel_utils.load_crystfel_geometry` function).
+                geometry information (as returned by the 'load_crystfel_geometry`
+                function in the 'cfelpyutils' module).
 
-            hostname (str): the hostname (or IP address) of the machine where the OnDA
-                monitor is broadcasting the data.
+            hostname (str): the hostname or IP address where the GUI will listen for
+                data.
 
-            port (int): the port where the OnDA monitor is broadcasting the data.
+            port(int): the port at which the GUI will listen for data.
         """
         super(CrystallographyGui, self).__init__(
             hostname=hostname,
@@ -342,22 +346,20 @@ class CrystallographyGui(gui.OndaGui):
 @click.argument("port", type=int, required=False)
 def main(geometry_file, hostname, port):
     """
-    OnDA GUI for crystallography. This program must connect to a running OnDA
-    monitor for crystallography. If the monitor broacasts information on Bragg peaks
-    and hit and saturation rates, this GUI will display their evolution over time, plus
-    a real-time virtual powder pattern created using the detected peaks.
-
-    GEOMETRY_FILE: the full path to a file containing the detector geometry information
-    (in CrystFEL format) to be used for visualization.
+    OnDA graphical user interface for crystallography. This program must connect to a
+    running OnDA monitor for crystallography. If the monitor broacasts information on
+    Bragg peaks and hit and saturation rates, this GUI will display their evolution
+    over time, plus a real-time virtual powder pattern created using the
+    detected peaks.
 
     GEOMETRY_FILE: the relative or absolute path to a file containing the detector
     geometry information (in CrystFEL format) to be used for visualization.
 
-    HOSTNAME: the hostname where the OnDA monitor is broadcasting data. Optional: if
-    not provided, it defaults to localhost (127.0.0.1).
+    HOSTNAME: the hostname where the GUI will listen for data. Optional: if not
+    provided, it defaults to localhost (127.0.0.1).
 
-    PORT: the port on HOSTNAME where the OnDA monitor is broacating data. Optional: if
-    not provided, it defaults to 12321.
+    PORT: the port at which the GUI will listen for data. Optional: if not provided, it
+    defaults to 12321.
     """
     if hostname is None:
         hostname = "127.0.0.1"

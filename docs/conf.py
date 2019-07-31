@@ -93,13 +93,16 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "bootswatch_theme": "lumen",
     "navbar_title": "OnDA by CFEL",
-    "globaltoc_depth": 1,
     "navbar_links": [
         ("Get OnDA", "documentation_installation"),
         ("Run OnDA", "documentation_configuration"),
+        ("Advanced", "documentation_advanced"),
         ("Source Code", "https://github.com/ondateam/onda", True),
     ],
     "navbar_sidebarrel": False,
+    "navbar_pagenav": False,
+    'globaltoc_depth': -1,
+    'globaltoc_includehidden': "true",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -115,12 +118,7 @@ html_static_path = ["_static"]
 # default: ``["localtoc.html", "relations.html", "sourcelink.html",
 # "searchbox.html"]``.
 #
-html_sidebars = {
-    "index": [],
-    "documentation*": ["localtoc.html"],
-    "onda*": ["localtoc.html"],
-}
-
+html_sidebars = {"**": [],}
 html_show_sourcelink = False
 
 
@@ -215,3 +213,7 @@ autoclass_content = "init"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+
+# -- Setup function ----------------------------------------------------------
+def setup(app):
+    app.add_stylesheet("my-styles.css")

@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of file events from the filesystem.
+
+This module contains functions and classes that retrieve data events from files written
+on disk.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -49,7 +52,7 @@ def initialize_event_source(source, node_pool_size, monitor_params):
 
     Arguments:
 
-        source (str): the relative or absolute path to a file containing the list of
+        source (str): the relative or absolute path to a file containing a list of
             files to process (one per line, with their full path).
 
         node_pool_size (int): the total number of nodes in the OnDA pool, including all
@@ -71,7 +74,7 @@ def event_generator(
 ):
     # type: (...) -> Generator[data_event.DataEvent, None, None]
     """
-    Retrieves from the filesystem file events to process.
+    Retrieves data events to process from the filesystem.
 
     This function must be called on each worker node only after the
     :func:`initialize_event_source` function has been called on the master node. The
@@ -80,7 +83,7 @@ def event_generator(
 
     Arguments:
 
-        source (str): the relative or absolute path to a file containing the list of
+        source (str): the relative or absolute path to a file containing a list of
             files to process (one per line, with their full path).
 
         node_rank (int): the rank, in the OnDA pool, of the worker node calling the
@@ -97,13 +100,13 @@ def event_generator(
         :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        section="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        section="Onda", parameter="required_data", type_=list, required=True
+        group="Onda", parameter="required_data", type_=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
@@ -119,14 +122,14 @@ def event_generator(
     # Fills the framework info with static data that will be retrieved later.
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="files_fallback_beam_energy_in_eV",
             type_=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
-            section="DataRetrievalLayer",
+            group="DataRetrievalLayer",
             parameter="files_fallback_detector_distance_in_mm",
             type_=float,
             required=True,
@@ -169,7 +172,7 @@ def event_generator(
 def timestamp(event):
     # type: (data_event.DataEvent) -> numpy.float64
     """
-    Gets the timestamp of a file event retrieved from the filesystem.
+    Gets the timestamp of a data event retrieved from the filesystem.
 
     Files written by detectors don't usually contain timestamp information. The
     creation date and time of the file is used as timestamp for the event.
@@ -190,11 +193,12 @@ def timestamp(event):
 def beam_energy(event):
     # type: (data_event.DataEvent) -> float
     """
-    Gets the beam energy for a file event retrieved from the filesystem.
+    Gets the beam energy for a data event retrieved from the filesystem.
 
     Files written by detectors don't usually contain beam energy information. This
     function takes the beam energy value from the configuration file, specifically from
-    the 'files_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' section.
+    the 'files_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' parameter
+    group.
 
     Arguments:
 
@@ -212,11 +216,12 @@ def beam_energy(event):
 def detector_distance(event):
     # type: (data_event.DataEvent) -> float
     """
-    Gets the detector distance for a file event retrieved from the filesystem.
+    Gets the detector distance for a data event retrieved from the filesystem.
 
     Files written by detectors don't usually contain detector distance information.
     This function takes it from the configuration file, specifically from the
-    'files_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer' section.
+    'files_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
+    parameter group.
 
     Arguments:
 

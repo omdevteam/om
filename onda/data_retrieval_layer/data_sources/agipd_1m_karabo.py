@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 Retrieval of AGIPD 1M detector data from Karabo.
+
+This module contains functions that retrieve data from an AGIPD 1M x-ray detector
+using the Karabo framework.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -56,14 +59,12 @@ def get_num_frames_in_event(event):
     """
     Gets the number of frames in an AGIPD 1M event retrieved from Karabo.
 
-    This function retrieves the number of frames for the detector identified by the
-    'karabo_detector_label' entry in the 'DataRetrievalLayer' section of the
-    configuration file.
+    This function retrieves the number of frames in each event for the detector
+    identified by the 'karabo_detector_label' entry in the 'DataRetrievalLayer'
+    configuration parameter group.
 
-    Note:
-
-        This function is designed to be injected as a member function into an
-        :class:`~onda.utils.data_event.DataEvent` object.
+    NOTE: This function is designed to be injected as a member function into an
+    :class:`~onda.utils.data_event.DataEvent` object.
 
     Arguments:
 
@@ -95,8 +96,8 @@ def detector_data(event):
     Retrieves from Karabo one frame of AGIPD 1M detector data.
 
     This function retrieves a data frame from the detector identified by the
-    'karabo_detector_label' entry in the 'DataRetrievalLayer' section of the
-    configuration file.
+    'karabo_detector_label' entry in the 'DataRetrievalLayer' configuration parameter
+    group.
 
     Arguments:
 

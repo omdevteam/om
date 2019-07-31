@@ -14,7 +14,10 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Utility functions to manipulate HDF5 files.
+Utility functions for HDF5 files.
+
+This module contains utility functions that manipulate HDF5 files (load whole or
+partial data blocks, write to normal or VDS files, etc.).
 """
 from __future__ import absolute_import, division, print_function
 
@@ -30,7 +33,7 @@ from onda.utils import exceptions
 def load_hdf5_data(hdf5_filename, hdf5_path):
     # type: (str, str) -> Any
     """
-    Loads data from an HDF5 file.
+    Loads a data block from an HDF5 file.
 
     This function loads into memory the whole content of a data block located in an
     HDF5 file.
@@ -40,8 +43,7 @@ def load_hdf5_data(hdf5_filename, hdf5_path):
         hdf_filename (str): the relative or absolute path to an HDF5 file containing
             the data to load.
 
-        mask_hdf5_path (str): the internal HDF5 path to the data block that must be
-            loaded.
+        hdf5_path (str): the internal HDF5 path to the data block to load.
 
     Returns:
 
@@ -50,7 +52,7 @@ def load_hdf5_data(hdf5_filename, hdf5_path):
     Raises:
 
         :class:`~onda.utils.exceptions.OndaHdf5FileReadingError`: if any error occurs
-        while reading the data from the file.
+            while reading the data from the file.
     """
     try:
         with h5py.File(name=hdf5_filename, mode="r") as fhandle:

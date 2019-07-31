@@ -15,4 +15,7 @@
 # a research centre of the Helmholtz Association.
 """
 Event and data retrieval from facility frameworks.
+
+This package contains functions and classes that interact with several facility
+frameworks.
 """

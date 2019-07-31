@@ -1,5 +1,7 @@
-named\_tuples Module
-====================
+[:doc:`Back to top of code documentation <onda>`]
+
+The named\_tuples Module
+========================
 
 .. automodule:: onda.utils.named_tuples
     :members:

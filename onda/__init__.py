@@ -14,6 +14,6 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Main OnDA package.
+The main OnDA package, which contains the whole framework.
 """
 __version__ = "0.93"

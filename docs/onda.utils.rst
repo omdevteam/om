@@ -1,13 +1,12 @@
-utils Package
-=============
+[:doc:`Back to top of code documentation <onda>`]
+
+The utils Package
+=================
 
 .. automodule:: onda.utils
     :members:
     :undoc-members:
     :show-inheritance:
-
-Subpackages / Submodules
---------------------------
 
 .. toctree::
 
@@ -19,4 +18,3 @@ Subpackages / Submodules
    hdf5 <onda.utils.hdf5>
    named_tuples <onda.utils.named_tuples>
    parameters <onda.utils.parameters>
-

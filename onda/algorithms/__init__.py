@@ -14,5 +14,8 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA algorithms.
+OnDA Algorithms.
+
+This package contains OnDA algorithms: objects that are used by OnDA to perform
+calculations and other operations on the data.
 """

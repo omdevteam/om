@@ -15,6 +15,9 @@
 # a research centre of the Helmholtz Association.
 """
 OnDA frame viewer for crystallography.
+
+This module contains a graphical interface that displays detector data frames in
+crystallography experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -47,22 +50,22 @@ class CrystallographyFrameViewer(gui.OndaGui):
         """
         OnDA frame viewer for crystallography.
 
-        This GUI receives detector data frames broadcasted from an OnDA monitor, but
-        only when they are tagged with the 'ondadetectordata' label. It displays the
-        detector frame, together with any detected Bragg peak (if present). A data
-        buffer allows this GUI to stop receiving data from the monitor but still keep
-        in memory the last 10 received data frames for inspection.
+        This viewer receives detector frame data from an OnDA crystallography monitor,
+        when it is tagged with the 'ondadetectordata' label. It displays the received
+        detector frames, together with any detected Bragg peak (if present). A data
+        buffer allows the viewer to stop receiving data from the monitor but still keep
+        in memory the last 10 displayed frames for inspection.
 
         Arguments:
 
             geometry (Dict[str, Any]): a dictionary containing CrystFEL detector
-                geometry information (as returned by the
-                :func:`~cfelpyutils.crystfel_utils.load_crystfel_geometry` function).
+                geometry information (as returned by the 'load_crystfel_geometry`
+                function in the 'cfelpyutils' module).
 
-            hostname (str): the hostname (or IP address) of the machine where the OnDA
-                monitor is broadcasting the data.
+            hostname (str): the hostname or IP address where the viewer will listen for
+                data.
 
-            port (int): the port where the OnDA monitor is broadcasting the data.
+            port(int): the port at which the viewer will listen for data.
         """
         super(CrystallographyFrameViewer, self).__init__(
             hostname=hostname,
@@ -85,7 +88,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
 
         pyqtgraph.setConfigOption("background", 0.2)
 
-        self._ring_pen = pyqtgraph.mkPen('r', width=2)
+        self._ring_pen = pyqtgraph.mkPen("r", width=2)
         self._peak_canvas = pyqtgraph.ScatterPlotItem()
 
         self._image_view = pyqtgraph.ImageView()
@@ -219,17 +222,17 @@ def main(geometry_file, hostname, port):
     monitor for crystallography. If the monitor broadcasts detector frame data, this
     viewer will display it. The viewer will also show, overlayed on the frame data,
     any found Bragg peak. The data stream from the monitor can also be temporarily
-    paused, and any of the last 10 received detector frames can be recalled for
+    paused, and any of the last 10 displayed detector frames can be recalled for
     inspection.
 
     GEOMETRY_FILE: the relative or absolute path to a file containing the detector
     geometry information (in CrystFEL format) to be used for visualization.
 
-    HOSTNAME: the hostname where the OnDA monitor is broadcasting data. Optional: if
-    not provided, it defaults to localhost (127.0.0.1).
+    HOSTNAME: the hostname where viewer will listen for data. Optional: if not
+    provided, it defaults to localhost (127.0.0.1).
 
-    PORT: the port on HOSTNAME where the OnDA monitor is broacating data. Optional: if
-    not provided, it defaults to 12321.
+    PORT: the port at which the viewer will listen for data. Optional: if not provided,
+    it defaults to 12321.
     """
     if hostname is None:
         hostname = "127.0.0.1"
