@@ -117,7 +117,7 @@ class ParallelizationEngine(object):
         if self.role == "worker":
             self._event_generator = event_handling_functions["event_generator"]
             self._num_frames_in_event_to_process = monitor_params.get_param(
-                section="General", parameter="num_frames_in_event_to_process", type_=int
+                section="General", parameter="num_of_most_recent_frames_in_event_to_process", type_=int
             )
             frames_in_event_to_skip = monitor_params.get_param(
                 section="General", parameter="frame_indexes_to_skip", type_=list
