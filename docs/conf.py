@@ -94,10 +94,10 @@ html_theme_options = {
     "bootswatch_theme": "lumen",
     "navbar_title": "OnDA by CFEL",
     "navbar_links": [
-        ("Get OnDA", "documentation_installation"),
-        ("Run OnDA", "documentation_configuration"),
-        ("Advanced", "documentation_advanced"),
+        ("Geting OnDA", "documentation_installation"),
+        ("Running OnDA", "documentation_configuration"),
         ("Source Code", "https://github.com/ondateam/onda", True),
+        ("Advanced", "documentation_advanced"),
     ],
     "navbar_sidebarrel": False,
     "navbar_pagenav": False,

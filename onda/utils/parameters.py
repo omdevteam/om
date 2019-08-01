@@ -84,7 +84,7 @@ class MonitorParams(object):
         * If the 'required' argument is False and the parameter cannot be found in the
           configuration file, this function will return None.
 
-        * If a type is specified in the function call (the 'type' argument is not
+        * If a type is specified in the function call (the 'type\_' argument is not
           None), this function will raise an exception if the type of the retrieved
           parameter does not match the specified one.
 

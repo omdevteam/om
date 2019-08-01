@@ -9,7 +9,6 @@ OnDA: Online Data Analysis for x-ray imaging
 
 .. toctree::
    :hidden:
-   :maxdepth: 4
 
    documentation_installation
    documentation_configuration
