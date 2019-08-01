@@ -228,14 +228,14 @@ def event_generator(
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
             group="DataRetrievalLayer",
-            parameter="hidra_fallback_beam_energy_in_eV",
+            parameter="fallback_beam_energy_in_eV",
             type_=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             group="DataRetrievalLayer",
-            parameter="hidra_fallback_detector_distance_in_mm",
+            parameter="fallback_detector_distance_in_mm",
             type_=float,
             required=True,
         )
@@ -311,8 +311,7 @@ def beam_energy(event):
 
     HiDRA events do not usually contain beam energy information. This function takes
     the beam energy value from the configuration file, specifically from the
-    'hidra_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' parameter
-    group.
+    'fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' parameter group.
 
     Arguments:
 
@@ -334,8 +333,8 @@ def detector_distance(event):
 
     HiDRA events don't usually contain detector distance information. This function
     takes it from the configuration file, specifically from the
-    'hidra_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
-    parameter group.
+    'fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer' parameter
+    group.
 
     Arguments:
 

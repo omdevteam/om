@@ -127,7 +127,7 @@ class ParallelizationEngine(object):
         if self.role == "worker":
             self._event_generator = event_handling_functions["event_generator"]
             self._num_frames_in_event_to_process = monitor_params.get_param(
-                group="General",
+                group="DataRetrievalLayer",
                 parameter="num_of_most_recent_frames_in_event_to_process",
                 type_=int,
             )

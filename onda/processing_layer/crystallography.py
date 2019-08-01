@@ -129,7 +129,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             geometry_filename = monitor_parameters.get_param(
-                group="General", parameter="geometry_file", type_=str, required=True
+                group="Crystallography",
+                parameter="geometry_file",
+                type_=str,
+                required=True,
             )
             geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
             pixelmaps = geometry_utils.compute_pix_maps(geometry)
@@ -216,31 +219,38 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             self._max_saturated_peaks = monitor_parameters.get_param(
-                group="General",
+                group="Crystallography",
                 parameter="max_saturated_peaks",
                 type_=int,
                 required=True,
             )
             self._min_num_peaks_for_hit = monitor_parameters.get_param(
-                group="General",
+                group="Crystallography",
                 parameter="min_num_peaks_for_hit",
                 type_=int,
                 required=True,
             )
             self._max_num_peaks_for_hit = monitor_parameters.get_param(
-                group="General",
+                group="Crystallography",
                 parameter="max_num_peaks_for_hit",
                 type_=int,
                 required=True,
             )
             self._saturation_value = monitor_parameters.get_param(
-                group="General", parameter="saturation_value", type_=int, required=True
+                group="Crystallography",
+                parameter="saturation_value",
+                type_=int,
+                required=True,
             )
             self._hit_frame_sending_interval = monitor_parameters.get_param(
-                group="General", parameter="hit_frame_sending_interval", type_=int
+                group="Crystallography",
+                parameter="hit_frame_sending_interval",
+                type_=int,
             )
             self._non_hit_frame_sending_interval = monitor_parameters.get_param(
-                group="General", parameter="non_hit_frame_sending_interval", type_=int
+                group="General",
+                parameter="non_hit_frame_sending_interval",
+                type_=int,
             )
 
             print("Starting worker: {0}.".format(self.rank))
@@ -253,7 +263,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 required=True,
             )
             self._geometry_is_optimized = monitor_parameters.get_param(
-                group="General",
+                group="Crystallography",
                 parameter="geometry_is_optimized",
                 type_=bool,
                 required=True,
@@ -269,7 +279,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             self._running_average_window_size = monitor_parameters.get_param(
-                group="General",
+                group="Crystallography",
                 parameter="running_average_window_size",
                 type_=int,
                 required=True,
@@ -286,10 +296,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._avg_sat_rate = 0
 
             broadcast_socket_ip = monitor_parameters.get_param(
-                group="General", parameter="publish_hostname", type_=str
+                group="General", parameter="broadcast_ip", type_=str
             )
             broadcast_socket_port = monitor_parameters.get_param(
-                group="General", parameter="publish_port", type_=int
+                group="General", parameter="broadcast_port", type_=int
             )
             self._data_broadcast_socket = data_transmission.ZmqDataBroadcaster(
                 hostname=broadcast_socket_ip, port=broadcast_socket_port

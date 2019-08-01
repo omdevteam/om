@@ -139,14 +139,14 @@ def event_generator(
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
             group="DataRetrievalLayer",
-            parameter="karabo_fallback_beam_energy_in_eV",
+            parameter="fallback_beam_energy_in_eV",
             type_=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             group="DataRetrievalLayer",
-            parameter="karabo_fallback_detector_distance_in_mm",
+            parameter="fallback_detector_distance_in_mm",
             type_=float,
             required=True,
         )
@@ -384,7 +384,7 @@ def beam_energy(event):
 
     Karabo events do not currently contain beam energy information. This function takes
     it from the configuration file, specifically from the
-    'karabo_fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' parameter
+    'fallback_beam_energy_in_eV' entry in the 'DataRetrievalLayer' parameter
     group.
 
     Arguments:
@@ -407,7 +407,7 @@ def detector_distance(event):
 
     Karabo events don't currently contain detector distance information. This function
     takes it from the configuration file, specifically from the
-    'karabo_fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
+    'fallback_detector_distance_in_mm' entry in the 'DataRetrievalLayer'
     parameter group.
 
     Arguments:
