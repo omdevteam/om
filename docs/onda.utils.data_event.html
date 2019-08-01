@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The data_event Module &#8212; onda 2019.01.00 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OnDA by CFEL</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.01.00</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_installation.html">Geting OnDA</a></li>
+                <li><a href="documentation_configuration.html">Running OnDA</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+                <li><a href="documentation_advanced.html">Advanced</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <p>[<a class="reference internal" href="onda.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-onda.utils.data_event">
+<span id="the-data-event-module"></span><h1>The data_event Module<a class="headerlink" href="#module-onda.utils.data_event" title="Permalink to this headline">¶</a></h1>
+<p>DataEvent structure.</p>
+<p>This module contains the DataEvent class, which stores all information related to a
+data event.</p>
+<dl class="class">
+<dt id="onda.utils.data_event.DataEvent">
+<em class="property">class </em><code class="descname">DataEvent</code><span class="sig-paren">(</span><em>event_handling_funcs</em>, <em>data_extraction_funcs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/utils/data_event.html#DataEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.utils.data_event.DataEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Data event.</p>
+<p>This class stores all the information related to a data event. Methods to
+open, close and manipulate the event are attached to each instance of this
+class at creation time, along with functions to extract data from it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event_handling_funcs</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Callable</em><em>]</em>) – <p>a dictionary containing
+Event Handling functions to be attached to the class instance being
+created.</p>
+<ul>
+<li>Five event handling functions must be defined:<ul>
+<li>’initalize_event_source’</li>
+<li>’event_generator’</li>
+<li>’open_even’</li>
+<li>’close_event’</li>
+<li>’get_num_frames_in_event’</li>
+</ul>
+</li>
+<li>The dictionary must contain keys corresponding to all these function
+names.</li>
+<li>The corresponding dictionary values must store the function
+implementations.</li>
+</ul>
+</li>
+<li><strong>data_extraction_funcs</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Callable</em><em>]</em>) – <p>a dictionary containing
+Data Extraction functions to be attached to the class instance being
+created.</p>
+<ul>
+<li>Each dictionary value must store a function implementation.</li>
+<li>The corresponding dictionary key will define the name with which the
+function will be attached to the class instance.</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="onda.utils.data_event.DataEvent.extract_data">
+<code class="descname">extract_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/utils/data_event.html#DataEvent.extract_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.utils.data_event.DataEvent.extract_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts data from an event.</p>
+<p>This function calls in sequence all the Data Extraction functions that have
+been attached to the event, and returns the extracted data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dictionary storing the values returned by the Data
+Extraction functions.<ul class="simple">
+<li>Each dictionary key identifies a function attached to the event.</li>
+<li>The corresponding dictionary value stores the data returned by the
+function.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Dict[str, Any]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

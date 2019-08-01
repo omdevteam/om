@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>OnDA: Online Data Analysis for x-ray imaging &#8212; onda 2019.01.00 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="documentation_installation.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">
+          OnDA by CFEL</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.01.00</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_installation.html">Geting OnDA</a></li>
+                <li><a href="documentation_configuration.html">Running OnDA</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+                <li><a href="documentation_advanced.html">Advanced</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="onda-online-data-analysis-for-x-ray-imaging">
+<h1>OnDA: Online Data Analysis for x-ray imaging<a class="headerlink" href="#onda-online-data-analysis-for-x-ray-imaging" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="what-is-onda">
+<h2>What is OnDA?<a class="headerlink" href="#what-is-onda" title="Permalink to this headline">¶</a></h2>
+<p><strong>OnDA</strong> (<strong>On</strong>line <strong>D</strong>ata <strong>A</strong>nalysis) is a software framework for
+the development of programs that can monitor of X-ray imaging experiments in real-time,
+and also a set of ready-to-go monitoring programs.</p>
+<p>OnDA provides users with a set of stable and efficient real-time monitors for the most
+common types of x-ray imaging experiments. These can be used immediately without
+modifications or can be easily adapted to meet the users’ requirements. In addition,
+the project provides a set of modules that can be used to easily develop other
+monitoring programs tailored to the characteristics of specific experiments.</p>
+<p>OnDA can process imaging data in the broadest sense: multidimensional and
+multiple-pixel data (for example, a diffraction pattern or a photoemission spectrum,
+but also an image coming from a camera or a microscope), but also any kind of digital
+output from an instrument or sensor (for example, a temperature readout, beam and
+pulse energies, etc.).</p>
+<p>OnDA focuses on scalability and portability, in order to facilitate its adoption for a
+wide array of current and future instruments. It also strives for stability and
+performance. In order to achieve these goals, OnDA implements a master/worker
+parallelization paradigm using free and open-source libraries and protocols.</p>
+<p>OnDA is written in Python. The use of the Python programming language, which is
+particularly suited to prototyping and rapid development, makes OnDA easy to modify and
+to adapt to the requirements of specific experiments.</p>
+<p>OnDA also aims to keep the code base simple and as small as possible. The focus is on
+providing a core set of functions, while allowing the framework to be expanded with
+external software when possible, avoiding the need to reimplement already optimized
+algorithms.</p>
+</div>
+<div class="section" id="recommended-citation">
+<h2>Recommended Citation<a class="headerlink" href="#recommended-citation" title="Permalink to this headline">¶</a></h2>
+<p>If you use OnDA in your experiment, please cite the following paper:</p>
+<blockquote>
+<div>Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O’Grady C., Kuhn M.,
+Aplin S., Koglin J., Barty A., Chapman H.N., <strong>OnDA: online data analysis and
+feedback for serial X-ray imaging.</strong>, J. <em>Appl. Crystallogr.</em> 2016 May
+23;49(Pt 3):1073-1080. (<a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/27275150">https://www.ncbi.nlm.nih.gov/pubmed/27275150</a>)</div></blockquote>
+</div>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>Instructions on how to install OnDA can be found
+<a class="reference internal" href="documentation_installation.html"><span class="doc">here</span></a>.</p>
+<p>Guidelines on how to configure and run OnDA at several facilities all over the world
+can instead be found <a class="reference internal" href="documentation_installation.html"><span class="doc">here</span></a>.</p>
+<p>Finally, for detailed documentation for both users and developers please see
+<a class="reference internal" href="documentation_advanced.html"><span class="doc">this page</span></a>.</p>
+</div>
+<div class="section" id="source-code">
+<h2>Source Code<a class="headerlink" href="#source-code" title="Permalink to this headline">¶</a></h2>
+<p>The source code of OnDA can be found on GitHub: <a class="reference external" href="https://github.com/ondateam/onda">https://github.com/ondateam/onda</a></p>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

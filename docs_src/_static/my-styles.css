@@ -1,0 +1,15 @@
+dt {
+    font-weight: normal;
+}
+
+h3 {
+    font-size: 1.2em;
+}
+
+dl.class > dd {
+    padding-left: 40px;
+}
+
+dl.method > dd {
+    padding-left: 40px;
+}

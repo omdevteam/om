@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>onda.graphical_interfaces.crystallography_frame_viewer &#8212; onda 2019.01.00 documentation</title>
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          OnDA by CFEL</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.01.00</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../../../documentation_installation.html">Geting OnDA</a></li>
+                <li><a href="../../../documentation_configuration.html">Running OnDA</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+                <li><a href="../../../documentation_advanced.html">Advanced</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <h1>Source code for onda.graphical_interfaces.crystallography_frame_viewer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This file is part of OnDA.</span>
+<span class="c1">#</span>
+<span class="c1"># OnDA is free software: you can redistribute it and/or modify it under the terms of</span>
+<span class="c1"># the GNU General Public License as published by the Free Software Foundation, either</span>
+<span class="c1"># version 3 of the License, or (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;</span>
+<span class="c1"># without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR</span>
+<span class="c1"># PURPOSE.  See the GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License along with OnDA.</span>
+<span class="c1"># If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,</span>
+<span class="c1"># a research centre of the Helmholtz Association.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">OnDA frame viewer for crystallography.</span>
+
+<span class="sd">This module contains a graphical interface that displays detector data frames in</span>
+<span class="sd">crystallography experiments.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>  <span class="c1"># pylint: disable=unused-import</span>
+
+<span class="kn">import</span> <span class="nn">cfelpyutils.crystfel_utils</span> <span class="k">as</span> <span class="nn">cfel_crystfel</span>
+<span class="kn">import</span> <span class="nn">cfelpyutils.geometry_utils</span> <span class="k">as</span> <span class="nn">cfel_geometry</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pyqtgraph</span>
+
+<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">gui</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">PyQt5.QtGui</span> <span class="k">as</span> <span class="nn">QtGui</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">PyQt4.QtGui</span> <span class="k">as</span> <span class="nn">QtGui</span>
+
+
+<div class="viewcode-block" id="CrystallographyFrameViewer"><a class="viewcode-back" href="../../../onda.graphical_interfaces.crystallography_frame_viewer.html#onda.graphical_interfaces.crystallography_frame_viewer.CrystallographyFrameViewer">[docs]</a><span class="k">class</span> <span class="nc">CrystallographyFrameViewer</span><span class="p">(</span><span class="n">gui</span><span class="o">.</span><span class="n">OndaGui</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    See documentation of the __init__ function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometry</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+        <span class="c1"># type: (Dict[str, Any], str, int) -&gt; None</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        OnDA frame viewer for crystallography.</span>
+
+<span class="sd">        This viewer receives detector frame data from an OnDA crystallography monitor,</span>
+<span class="sd">        when it is tagged with the &#39;ondadetectordata&#39; label. It displays the received</span>
+<span class="sd">        detector frames, together with any detected Bragg peak (if present). A data</span>
+<span class="sd">        buffer allows the viewer to stop receiving data from the monitor but still keep</span>
+<span class="sd">        in memory the last 10 displayed frames for inspection.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            geometry (Dict[str, Any]): a dictionary containing CrystFEL detector</span>
+<span class="sd">                geometry information (as returned by the &#39;load_crystfel_geometry`</span>
+<span class="sd">                function in the &#39;cfelpyutils&#39; module).</span>
+
+<span class="sd">            hostname (str): the hostname or IP address where the viewer will listen for</span>
+<span class="sd">                data.</span>
+
+<span class="sd">            port(int): the port at which the viewer will listen for data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CrystallographyFrameViewer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span>
+            <span class="n">gui_update_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_image</span><span class="p">,</span>
+            <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;ondaframedata&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">pixel_maps</span> <span class="o">=</span> <span class="n">cfel_geometry</span><span class="o">.</span><span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span> <span class="o">=</span> <span class="n">cfel_geometry</span><span class="o">.</span><span class="n">compute_min_array_size</span><span class="p">(</span><span class="n">pixel_maps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img_center_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img_center_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">visual_pixel_map</span> <span class="o">=</span> <span class="n">cfel_geometry</span><span class="o">.</span><span class="n">compute_visualization_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_x</span> <span class="o">=</span> <span class="n">visual_pixel_map</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_y</span> <span class="o">=</span> <span class="n">visual_pixel_map</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame_list</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">pyqtgraph</span><span class="o">.</span><span class="n">setConfigOption</span><span class="p">(</span><span class="s2">&quot;background&quot;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ring_pen</span> <span class="o">=</span> <span class="n">pyqtgraph</span><span class="o">.</span><span class="n">mkPen</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_canvas</span> <span class="o">=</span> <span class="n">pyqtgraph</span><span class="o">.</span><span class="n">ScatterPlotItem</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_image_view</span> <span class="o">=</span> <span class="n">pyqtgraph</span><span class="o">.</span><span class="n">ImageView</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_image_view</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">menuBtn</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_image_view</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">roiBtn</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_image_view</span><span class="o">.</span><span class="n">getView</span><span class="p">()</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_peak_canvas</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_back_button</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Back&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_back_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_back_button_clicked</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_forward_button</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Forward&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_forward_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_forward_button_clicked</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_play_pause_button</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Pause&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_play_pause_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_play_pause_button_clicked</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal_layout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_back_button</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_forward_button</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_play_pause_button</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vertical_layout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vertical_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_image_view</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vertical_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_horizontal_layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_central_widget</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_central_widget</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertical_layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setCentralWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_central_widget</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Type () -&gt; None</span>
+        <span class="c1"># Updates the frame image shown by the viewer.</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">received_data</span><span class="p">:</span>
+            <span class="c1"># The received aggregated data is expected to be a list of event entries</span>
+            <span class="c1"># (each being a dictionary storing the data for an event:</span>
+            <span class="c1"># List[Dict[str, Any], ...]). The last event in the list is extracted for</span>
+            <span class="c1"># visualizaton.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">received_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="c1"># Resets the &#39;received_data&#39; attribute to None. One can then check if</span>
+            <span class="c1"># data has been received simply by checking wether the attribute is not</span>
+            <span class="c1"># None.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">received_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">current_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c1"># If the framebuffer is empty, returns without drawing anything.</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_x</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">current_data</span><span class="p">[</span><span class="sa">b</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_image_view</span><span class="o">.</span><span class="n">setImage</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">autoLevels</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">autoRange</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">autoHistogramRange</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+        <span class="n">peak_x_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">peak_y_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">peak_fs</span><span class="p">,</span> <span class="n">peak_ss</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">current_data</span><span class="p">[</span><span class="sa">b</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="sa">b</span><span class="s2">&quot;fs&quot;</span><span class="p">],</span> <span class="n">current_data</span><span class="p">[</span><span class="sa">b</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="sa">b</span><span class="s2">&quot;ss&quot;</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="n">peak_index_in_slab</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">peak_ss</span><span class="p">))</span> <span class="o">*</span> <span class="n">current_data</span><span class="p">[</span>
+                <span class="sa">b</span><span class="s2">&quot;native_data_shape&quot;</span>
+            <span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">peak_fs</span><span class="p">))</span>
+            <span class="n">peak_x_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_x</span><span class="p">[</span><span class="n">peak_index_in_slab</span><span class="p">])</span>
+            <span class="n">peak_y_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_y</span><span class="p">[</span><span class="n">peak_index_in_slab</span><span class="p">])</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_canvas</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">peak_x_list</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">peak_y_list</span><span class="p">,</span>
+            <span class="n">symbol</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_data</span><span class="p">[</span><span class="sa">b</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="sa">b</span><span class="s2">&quot;intensity&quot;</span><span class="p">]),</span>
+            <span class="n">brush</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">pen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ring_pen</span><span class="p">,</span>
+            <span class="n">pxMode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_back_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Type () -&gt; None</span>
+        <span class="c1"># Manages clicks on the &#39;back&#39; button.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop_stream</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing frame </span><span class="si">{}</span><span class="s2"> in the buffer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_image</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_forward_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Type () -&gt; None</span>
+        <span class="c1"># Manages clicks on the &#39;forward&#39; button.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop_stream</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing frame </span><span class="si">{}</span><span class="s2"> in the buffer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_image</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_stop_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Type () -&gt; None</span>
+        <span class="c1"># Disconnects from the OnDA monitor and stops receiving data.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">listening</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_play_pause_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Play&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_listening</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_start_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Type () -&gt; None</span>
+        <span class="c1"># Connects to the the OnDA monitor and starts receiving data.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">listening</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_play_pause_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Pause&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_listening</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_play_pause_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Type () -&gt; None</span>
+        <span class="c1"># Manages clicks on the &#39;play/pause&#39; button.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">listening</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stop_stream</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_stream</span><span class="p">()</span></div>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;geometry_file&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">())</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;hostname&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">geometry_file</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
+    <span class="c1"># type: (Dict[str, Any], str, int) -&gt; None</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    OnDA frame viewer for crystallography. This program must connect to a running OnDA</span>
+<span class="sd">    monitor for crystallography. If the monitor broadcasts detector frame data, this</span>
+<span class="sd">    viewer will display it. The viewer will also show, overlayed on the frame data,</span>
+<span class="sd">    any found Bragg peak. The data stream from the monitor can also be temporarily</span>
+<span class="sd">    paused, and any of the last 10 displayed detector frames can be recalled for</span>
+<span class="sd">    inspection.</span>
+
+<span class="sd">    GEOMETRY_FILE: the relative or absolute path to a file containing the detector</span>
+<span class="sd">    geometry information (in CrystFEL format) to be used for visualization.</span>
+
+<span class="sd">    HOSTNAME: the hostname where viewer will listen for data. Optional: if not</span>
+<span class="sd">    provided, it defaults to localhost (127.0.0.1).</span>
+
+<span class="sd">    PORT: the port at which the viewer will listen for data. Optional: if not provided,</span>
+<span class="sd">    it defaults to 12321.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">hostname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hostname</span> <span class="o">=</span> <span class="s2">&quot;127.0.0.1&quot;</span>
+    <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="mi">12321</span>
+    <span class="n">geometry</span> <span class="o">=</span> <span class="n">cfel_crystfel</span><span class="o">.</span><span class="n">load_crystfel_geometry</span><span class="p">(</span><span class="n">geometry_file</span><span class="p">)</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">CrystallographyFrameViewer</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

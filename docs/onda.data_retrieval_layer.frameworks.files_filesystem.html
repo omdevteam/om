@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The files_filesystem Module &#8212; onda 2019.01.00 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OnDA by CFEL</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.01.00</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_installation.html">Geting OnDA</a></li>
+                <li><a href="documentation_configuration.html">Running OnDA</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+                <li><a href="documentation_advanced.html">Advanced</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <p>[<a class="reference internal" href="onda.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-onda.data_retrieval_layer.frameworks.files_filesystem">
+<span id="the-files-filesystem-module"></span><h1>The files_filesystem Module<a class="headerlink" href="#module-onda.data_retrieval_layer.frameworks.files_filesystem" title="Permalink to this headline">¶</a></h1>
+<p>Retrieval of file events from the filesystem.</p>
+<p>This module contains functions and classes that retrieve data events from files written
+on disk.</p>
+<dl class="function">
+<dt id="onda.data_retrieval_layer.frameworks.files_filesystem.initialize_event_source">
+<code class="descname">initialize_event_source</code><span class="sig-paren">(</span><em>source</em>, <em>node_pool_size</em>, <em>monitor_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/data_retrieval_layer/frameworks/files_filesystem.html#initialize_event_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.data_retrieval_layer.frameworks.files_filesystem.initialize_event_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the file event source when reading files from the filesystem.</p>
+<p>This function must be called on the master node before the <a class="reference internal" href="#onda.data_retrieval_layer.frameworks.files_filesystem.event_generator" title="onda.data_retrieval_layer.frameworks.files_filesystem.event_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">event_generator()</span></code></a>
+function is called on the worker nodes. There is no need to initialize the event
+source when reading from files, so this function actually does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source</strong> (<em>str</em>) – the relative or absolute path to a file containing a list of
+files to process (one per line, with their full path).</li>
+<li><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OnDA pool, including all
+the worker nodes and the master node.</li>
+<li><strong>monitor_params</strong> (<a class="reference internal" href="onda.utils.parameters.html#onda.utils.parameters.MonitorParams" title="onda.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OnDA monitor parameters from the configuration file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="onda.data_retrieval_layer.frameworks.files_filesystem.event_generator">
+<code class="descname">event_generator</code><span class="sig-paren">(</span><em>source</em>, <em>node_rank</em>, <em>node_pool_size</em>, <em>monitor_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/data_retrieval_layer/frameworks/files_filesystem.html#event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.data_retrieval_layer.frameworks.files_filesystem.event_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves data events to process from the filesystem.</p>
+<p>This function must be called on each worker node only after the
+<a class="reference internal" href="#onda.data_retrieval_layer.frameworks.files_filesystem.initialize_event_source" title="onda.data_retrieval_layer.frameworks.files_filesystem.initialize_event_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">initialize_event_source()</span></code></a> function has been called on the master node. The
+function is a generator and it returns an iterator over the events that the calling
+worker must process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source</strong> (<em>str</em>) – the relative or absolute path to a file containing a list of
+files to process (one per line, with their full path).</li>
+<li><strong>node_rank</strong> (<em>int</em>) – the rank, in the OnDA pool, of the worker node calling the
+function.</li>
+<li><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OnDA pool, including all
+the worker nodes and the master node.</li>
+<li><strong>monitor_params</strong> (<a class="reference internal" href="onda.utils.parameters.html#onda.utils.parameters.MonitorParams" title="onda.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OnDA monitor parameters from the configuration file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first last"><a class="reference internal" href="onda.utils.data_event.html#onda.utils.data_event.DataEvent" title="onda.utils.data_event.DataEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataEvent</span></code></a> – an object storing the event data.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="onda.data_retrieval_layer.frameworks.files_filesystem.timestamp">
+<code class="descname">timestamp</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/data_retrieval_layer/frameworks/files_filesystem.html#timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.data_retrieval_layer.frameworks.files_filesystem.timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the timestamp of a data event retrieved from the filesystem.</p>
+<p>Files written by detectors don’t usually contain timestamp information. The
+creation date and time of the file is used as timestamp for the event.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<a class="reference internal" href="onda.utils.data_event.html#onda.utils.data_event.DataEvent" title="onda.utils.data_event.DataEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataEvent</span></code></a>) – an object storing the event
+data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the timestamp of the event in seconds from the Epoch.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.float64</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="onda.data_retrieval_layer.frameworks.files_filesystem.beam_energy">
+<code class="descname">beam_energy</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/data_retrieval_layer/frameworks/files_filesystem.html#beam_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.data_retrieval_layer.frameworks.files_filesystem.beam_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the beam energy for a data event retrieved from the filesystem.</p>
+<p>Files written by detectors don’t usually contain beam energy information. This
+function takes the beam energy value from the configuration file, specifically from
+the ‘fallback_beam_energy_in_eV’ entry in the ‘DataRetrievalLayer’ parameter group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<a class="reference internal" href="onda.utils.data_event.html#onda.utils.data_event.DataEvent" title="onda.utils.data_event.DataEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataEvent</span></code></a>) – an object storing the event
+data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the energy of the beam in eV.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="onda.data_retrieval_layer.frameworks.files_filesystem.detector_distance">
+<code class="descname">detector_distance</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/data_retrieval_layer/frameworks/files_filesystem.html#detector_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.data_retrieval_layer.frameworks.files_filesystem.detector_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the detector distance for a data event retrieved from the filesystem.</p>
+<p>Files written by detectors don’t usually contain detector distance information.
+This function takes it from the configuration file, specifically from the
+‘fallback_detector_distance_in_mm’ entry in the ‘DataRetrievalLayer’ parameter
+group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> (<a class="reference internal" href="onda.utils.data_event.html#onda.utils.data_event.DataEvent" title="onda.utils.data_event.DataEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataEvent</span></code></a>) – an object storing the event
+data.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the detector distance in mm.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
