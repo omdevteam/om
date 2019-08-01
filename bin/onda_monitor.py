@@ -17,6 +17,6 @@
 """
 Executable that launches the OnDA Monitor.
 """
-import onda.monitor as monitor
+from onda import monitor
 
-monitor.onda_monitor()  # pylint: disable=no-value-for-parameter
+monitor.main()  # pylint: disable=no-value-for-parameter

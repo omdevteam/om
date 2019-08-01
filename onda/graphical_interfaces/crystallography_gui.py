@@ -73,7 +73,7 @@ class CrystallographyGui(gui.OndaGui):
             hostname=hostname,
             port=port,
             gui_update_func=self._update_image_and_plots,
-            subscription_string="ondadata",
+            tag="ondadata",
         )
         pixel_maps = cfel_geometry.compute_pix_maps(geometry)
         self._img_shape = cfel_geometry.compute_min_array_size(pixel_maps)
@@ -289,12 +289,12 @@ class CrystallographyGui(gui.OndaGui):
     def _update_image_and_plots(self):
         # type: () -> None
         # Updates all elements in the GUI.
-        if self.aggregated_data:
-            # Resets the 'aggregated_data' attribute to None. One can then check if
+        if self.received_data:
+            # Resets the 'received_data' attribute to None. One can then check if
             # data has been received simply by checking wether the attribute is not
             # None.
-            self._local_data = self.aggregated_data
-            self.aggregated_data = None
+            self._local_data = self.received_data
+            self.received_data = None
         else:
             # If no data has been received, returns without drawing anything.
             return
