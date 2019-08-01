@@ -31,9 +31,9 @@ from onda.utils import dynamic_import, exceptions, parameters
 @click.option(
     "--config",
     "-c",
-    default="monitor.ini",
+    default="monitor.toml",
     type=click.Path(),
-    help="configuration file (default: monitor.ini file in the current working "
+    help="configuration file (default: monitor.toml file in the current working "
     "directory",
 )
 @click.option(
