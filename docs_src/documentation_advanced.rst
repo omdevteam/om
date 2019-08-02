@@ -1,6 +1,11 @@
 Advanced Documentation
 ======================
 
+.. toctree::
+   :hidden:
+
+   onda
+
 .. contents::
    :local:
 
@@ -310,3 +315,9 @@ Some extension to OnDA can, for performance reason, be written using the
 
 * The `Cython <http://cython.org>`_ project should be used to interface C/C++ code with
   Python.
+
+
+Code Documentation
+------------------
+
+Documentation from the code of OnDA can be found :doc:`here <onda>`.

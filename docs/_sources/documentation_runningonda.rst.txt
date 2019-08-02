@@ -1,13 +1,14 @@
 Running OnDA
 ============
 
-An OnDA monitor requires two pieces of information to operate: a source of event data,
-and a set of configuration parameters. The former is usually provided to the monitor
-when it is launched, and determines from where data to be processed will be retrieved.
-The latter determines instead in detail the behavior of the monitor and comes in the
-form of a configuration file. This section of the documentation discusses both.
-Finally, a list of the most common errors reported by OnDA is provided, with a brief
-discussion of each.
+An OnDA monitor requires two pieces of information to operate: a source of data events,
+and a set of configuration parameters. Information about the data source is usually
+provided as an argument to the monitor's start up script, in the form of a 'source
+string'. Configuration parameters, which fully determine the behavior of the monitor,
+are instead stored in a configuration file. Both are discussed in the following
+paragraphs. When problems arise, an OnDA monitor reports errors in the console. A list
+of the most common errors can be found at the end of this section of the documentation,
+together with advice on how to overcome each problem.
 
 .. contents::
    :local:
@@ -16,25 +17,28 @@ discussion of each.
 The Source String
 -----------------
 
-Information about the source of data to process is provided to the monitor when it is
-started, in the form of an argument of the 'onda_monitor.py' scipt. It usually
-consists in a string which encodes the information in a way that strongly depends on
-which framework the Data Retrieval Layer of OnDa is using to retrieve the data.
-This information is usually provided by the developer that configured the Data
-Retrieval Layer and broadly depends on the facility where the experiment is taking
-place.
+Information about the source of data events is provided to an OnDA monitor at start-up
+time, in the form of a command line argument to the 'onda_monitor.py' script.
 
-A list of the facilities currently supported by OnDA, and a description of the format
-of the source string follows.
+.. code-block:: bash
+
+    onda_monitor.py SOURCE_STRING
+
+It usually consists of a string, the 'Source String', which encodes the information in a
+way that depends on the Data Retrieval Layer being used by the current monitor. This
+information is usually provided by the developer that configured the Data Retrieval
+Layer, and is often related to the facility where the experiment is taking place. The
+following is a list of the facilities currently officially supported by OnDA, with a
+description of the typical format of the source string at each of them.
 
 
 Filesystem
 ^^^^^^^^^^
 
-When the source of data for the monitor is a filesystem, the source string is the
+When the source of data for the monitor is the filesystem, the source string is the
 relative or absolute path to a file containing a list of files that the monitor must
-process. The files must be listed one per line, with their full relative or absolute
-path. Example: files.lst
+process. The files that must be process must be listed one per line, each with their
+full relative or absolute path. Example: files.lst
 
 
 LCLS
@@ -48,7 +52,7 @@ Petra III
 ^^^^^^^^^
 
 When the monitor runs at the Petra III facility, the source string is the ip or
-hostname of the machine where HiDRA is running. Example: eval01.desy.de
+the hostname of the machine where HiDRA is running. Example: eval01.desy.de
 
 
 
@@ -59,37 +63,51 @@ The Configuration File
 
 The behaviour of an OnDA monitor is completely determined by the content of its
 configuration file. By default, OnDA looks for a file called 'monitor.toml' in the
-current working directory. However, the '--config' option of the 'onda_monitor.py'
+current working directory. However, the '--config' command line option to the 'onda_monitor.py'
 script allows a custom location for the configuration file to be specified.
+
+.. code-block:: bash
+
+    onda_monitor.py --config PATH_TO_CONFIG_FILE SOURCE_STRING
 
 The content of the configuration file must formatted according to the rules of the 
 `TOML <https://github.com/toml-lang/toml>`_ language. This language is not very
 different from the one traditionally used by Python 'ini' files. The main differences
 are:
 
-* Strings (including file and directory paths) must be always enclosed with single or
+* Strings (including file and directory paths) must be always enclosed within single or
   double quotes (' or ").
 
 * The 'True' and 'False' keywords are spelled without a capital first letter ('true'
   and 'false' respectively)
 
 * There is no 'None' value. To set a parameter value to 'None', the parameter must
-  be commented out or ommitted from the file.
+  be commented out or completely omitted from the configuration file.
 
-The parameters in the configuration file are divided into parameter groups ('Tables' in
-TOML parlance). Each group contains a set of parameters that are related to each other
-(for example, because they apply to the same algorithm or control the same feature of
-OnDA). The following is an alphabetical list of the parameter groups that can currently
-be found in a configuration file. Depending on the OnDA monitor being run, not all the
-groups need to be present at the same time. Conversely, custom OnDA monitors might
+The parameters in the configuration file are divided into groups ('Tables' in TOML
+parlance). Each group contains a set of parameters that are related to each other
+(for example, because they apply to the same OnDA algorithm, or because they control
+the same feature of the monitor).
+
+.. code-block:: ini
+
+    [General]
+    broadcast_ip = '127.0.0.1'
+    broadcast_port = 12321
+    speed_report_interval = 1000
+
+The following is an alphabetical list of the parameter groups that can be found in the
+configuration file. Depending on which OnDA monitor is being run, not all the groups
+need to be present in the file at the same time. Conversely, custom OnDA monitors might
 introduce additional groups not described here. For each group, a list of the available
 parameters is provided. While some parameter are strictly required (again depending on
-the OnDA monitor being run), others are optional. If a parameter is not found in the
-configuration file, its default value is considered to be 'None'.
+the type of OnDA monitor), others are optional. If a parameter that is not strictly
+required is not found in the configuration file, its default value is considered to be
+'None'.
 
 .. warning::
-   When a parameter is a physical constant, it must be espressed in SI units unless
-   the parameter name says otherwise!!
+   When a parameter is a physical constant, it is assumed to be expressed in SI units
+   unless the parameter name says otherwise!!
 
 
 [Correction]
@@ -135,66 +153,64 @@ detector frames (using the :class:`Correction\
 [Crystallography]
 ^^^^^^^^^^^^^^^^^
 
-This parameter group contains parameters used by the OnDA monitor for crystallography.
+This group contains parameters used by the OnDA monitor for crystallography.
 
-* **geometry_file (str):** absolute or relative path to a geometry file in `CrystFEL \
-  <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_ format.
-  Example: 'pilatus.geom'.
+* **geometry_file (str):** the absolute or relative path to a geometry file in
+  `CrystFEL <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_
+  format. Example: 'pilatus.geom'.
 
 * **geometry_is_optimized (bool):** whether the geometry is optimized. This information
   is broadcasted by the monitor and used by external programs. For example, the OnDA
-  GUI for crystallography uses this information to decide wether to allow the drawing
-  of resolution rings (if the geometry is not optimized, the rings are not reliable).
-  Example: false.
+  GUI for crystallography uses this information to decide if the drawing of
+  resolution rings should be allowed or not (if the geometry is not optimized, the
+  rings are not reliable). Example: false.
 
 * **hit_frame_sending_interval (int or None):** this parameter determines how often the
   monitor sends *full detector frames* to external programs (as opposed to reduced
-  data). This parameter applies to frames labelled as hits. If the value of this
-  parameter is None, no hit frames are ever sent to external programs. If value is a
-  number, it is the number of hit frames that *each worker* skips before sending the
-  next frame to the master node to be broadcasted. If, for example, the value of this
-  parameter is 5, each worker will send every 5th hit frame to the master. Example: 10
+  data). It applies only to frames labelled as hits. If the value of this parameter is
+  None, no hit frames are ever sent. If the value is a number, it is the number of hit
+  frames that *each worker* skips before sending the next frame to the master node to
+  be broadcasted. If, for example, the value of this parameter is 5, each worker sends
+  every 5th hit frame to the master. Example: 10
 
-* **max_num_peaks_for_hit (int):** maximum number of Bragg peaks that need to be
-  found in a detector frame for the frame to be labelled as a hit. Example: 500.
+* **max_num_peaks_for_hit (int):** the maximum number of Bragg peaks that can be found
+  in a detector frame for it to be labelled as a hit. Example: 500.
 
-* **max_saturated_peaks (int):** maximum number of staurated Bragg peaks before a
-  detector frame is marked as saturated. A saturated Bragg peak is a peak whose
-  integrated intensity goes beyond the value specified by the 'saturation_value'
-  parameter in this section.
+* **max_saturated_peaks (int):** the maximum number of saturated Bragg peaks that can
+  be found in a detector before the frame itself is labelled as saturated. A saturated
+  Bragg peak is a peak whose integrated intensity (in ADUs) goes beyond the value
+  specified by the 'saturation_value' parameter in this same group.
 
-* **min_num_peaks_for_hit (int):** minimum number of Bragg peaks that need to be found
-  in a detector frame for the frame to be labelled as a hit. Example: 10
+* **min_num_peaks_for_hit (int):** the minimum number of Bragg peaks that need to be
+  found in a detector frame for the frame to be labelled as a hit. Example: 10
 
 * **non_hit_frame_sending_interval (int or None):** this parameter determines how often
   the monitor sends *full detector frames* to external programs (as opposed to reduced
-  data). This parameter applies to frames that have not been labelled as hits. If the
-  value of this parameter is None, no non-hit frames are ever sent to external
-  programs. If value is a number, it is the number of non-hit frames that *each worker*
-  skips before sending the next frame to the master node to be broadcasted. If, for
-  example, the value of this parameter is 100, each worker will send every 100th
-  non-hit frame to the master. Example: 1000
+  data). It applies only to frames that have not been labelled as hits. If the value of
+  this parameter is None, no non-hit frames are ever sent. If value is a number, it is
+  the number of non-hit frames that *each worker* skips before sending the next frame
+  to the master node to be broadcasted. If, for example, the value of this parameter is
+  100, each worker sends every 100th non-hit frame to the master. Example: 1000
 
-* **running_average_window_size (int):** size of the running average window used by the
-  monitor to compute the average hit and saturation rates. The rates are computer over
-  the number of most recent events specified by this parameter. Example: 100.
+* **running_average_window_size (int):** the size of the running average window used by
+  the monitor to compute the average hit and saturation rates. The rates are computed
+  over the number of most recent events specified by this parameter. Example: 100.
 
-* **saturation_value (float):** minimum value (in ADUs) of the integrated intensity for
-  a Bragg peak for it to be labelled as saturated. The value of this parameter usually
-  depends on the specific detector being used. Example: 5000.5.
+* **saturation_value (float):** the minimum value (in ADUs) of the integrated intensity
+  of a Bragg peak for it to be labelled as saturated. The value of this parameter
+  usually depends on the specific detector being used. Example: 5000.5.
 
 
 [DataAccumulator]
 ^^^^^^^^^^^^^^^^^
 
-This parameter group contains a parameter that dictates how OnDA aggregates event in
-the master node before sending them to external programs. This section relates to the
+This group contains a parameter that dictates how OnDA aggregates event in the master
+node before sending them to external programs. It is related to the
 :class:`DataAccumulator <onda.algorithms.generic_algorithms.DataAccumulator>`
 algorithm.
 
 * **num_events_to_accumulate (int):** number of events for which data is accumulated in
-  the master node before being sent to the external programs in a single transmission. 
-  Example: 20
+  the master node before being broadcasted in a single transmission.  Example: 20
 
 
 [DataRetrievalLayer]

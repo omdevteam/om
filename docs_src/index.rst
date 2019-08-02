@@ -10,8 +10,8 @@ OnDA: Online Data Analysis for x-ray imaging
 .. toctree::
    :hidden:
 
-   documentation_installation
-   documentation_configuration
+   documentation_gettingonda
+   documentation_runningonda
    documentation_advanced
 
 
@@ -48,6 +48,7 @@ providing a core set of functions, while allowing the framework to be expanded w
 external software when possible, avoiding the need to reimplement already optimized
 algorithms.
 
+
 Recommended Citation
 --------------------
 
@@ -58,17 +59,39 @@ If you use OnDA in your experiment, please cite the following paper:
     feedback for serial X-ray imaging.**, J. *Appl. Crystallogr.* 2016 May
     23;49(Pt 3):1073-1080. (https://www.ncbi.nlm.nih.gov/pubmed/27275150)
 
+
+Authors
+-------
+
+OnDA is currently developed in the lab of `Henry Chapman <https://cid.cfel.de/>`_ at
+the Center For Free Electron Laser Science in Hamburg. Many people from different
+institutions worlwide contributed code, testing and support to the project.
+
+* **Valerio Mariani** (corresponding author: valerio.mariani@desy.de)
+* Anton Barty
+* Henry Chapman
+* Thomas Grant
+* Jason Koglin
+* Thomas J. Lane
+* Manuela Kuhn
+* Andrew Morgan
+* Christopher O'Grady
+* Kanupriya Pande
+* Thomas A. White
+* Chun Hong Yoon
+
+
 Documentation
 -------------
 
 Instructions on how to install OnDA can be found
-:doc:`here <documentation_installation>`.
+:doc:`here <documentation_gettingonda>`.
 
 Guidelines on how to configure and run OnDA at several facilities all over the world
-can instead be found :doc:`here <documentation_installation>`.
+can instead be found :doc:`here <documentation_runningonda>`.
 
-Finally, for detailed documentation for both users and developers please see
-:doc:`this page <documentation_advanced>`.
+Finally, for more advanced documentation, see :doc:`this page <documentation_advanced>`.
+
 
 Source Code
 -----------
