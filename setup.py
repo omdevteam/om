@@ -97,17 +97,19 @@ setup(
     install_requires=[
         "cfelpyutils>=0.9",
         "click>=7.0",
+        "future>=0.17.1",
         "h5py>=2.7.0",
         "numpy>=1.11.3",
         "scipy>=1.1.0",
         "toml>=0.10.0",
+        "zmq>=18.0.2",
     ],
     extras_require={
-        "gui-qt5": ["pyqt>=5.9.2", "pyqtgraph>=0.10.0"],
-        "gui-qt4": ["pyqt>=4.11.4", "pyqtgraph>=0.10.0"],
         "monitor": [],
         "monitor-cbf": ["fabio>=0.6.0"],
         "monitor-psana": ["psana>=1.3.54"],
+        "gui-qt5": ["pyqt>=5.9.2", "pyqtgraph>=0.10.0"],
+        "gui-qt4": ["pyqt>=4.11.4", "pyqtgraph>=0.10.0"],
     },
     entry_points={
         "console_scripts": [
