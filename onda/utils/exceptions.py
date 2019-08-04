@@ -23,7 +23,6 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import traceback  # pylint: disable=unused-import
-from typing import NoReturn  # pylint: disable=unused-import
 
 from mpi4py import MPI
 
