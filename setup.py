@@ -23,8 +23,6 @@ import os
 import numpy
 from setuptools import Extension, setup
 
-import onda
-
 ONDA_USE_CYTHON = os.getenv("ONDA_USE_CYTHON")
 
 ext = ".pyx" if ONDA_USE_CYTHON else ".c"  # pylint: disable=invalid-name
@@ -52,9 +50,12 @@ if ONDA_USE_CYTHON:
 else:
     extensions = [peakfinder8_ext]  # pylint: disable=invalid-name
 
+version_fh = open('onda/__init__.py', 'r')
+version = version_fh.readlines()[-1].split("=")[1].strip().split("\"")[1]
+version_fh.close()
 setup(
     name="onda",
-    version=onda.__version__,
+    version=version,
     url="https://github.com/ondateam/cfelpyutils",
     license="GNU General Public License v3.0",
     author="OnDA Team",
@@ -97,19 +98,19 @@ setup(
     install_requires=[
         "cfelpyutils>=0.9",
         "click>=7.0",
+        "fabio>=0.9.0",
         "future>=0.17.1",
-        "h5py>=2.7.0",
-        "numpy>=1.11.3",
-        "scipy>=1.1.0",
+        "h5py>=2.9.0",
+        "msgpack>=0.6.1",
+        "msgpack-numpy>=0.4.4.3",
+        "numpy>=1.16.4",
+        "scipy>=1.2.2",
         "toml>=0.10.0",
-        "zmq>=18.0.2",
+        "pyzmq>=18.0.2",
     ],
     extras_require={
         "monitor": [],
-        "monitor-cbf": ["fabio>=0.6.0"],
-        "monitor-psana": ["psana>=1.3.54"],
-        "gui-qt5": ["pyqt>=5.9.2", "pyqtgraph>=0.10.0"],
-        "gui-qt4": ["pyqt>=4.11.4", "pyqtgraph>=0.10.0"],
+        "gui": ["pyqt5>=5.13.0", "pyqtgraph>=0.10.0"],
     },
     entry_points={
         "console_scripts": [
