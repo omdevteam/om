@@ -110,7 +110,7 @@ setup(
     ],
     extras_require={
         "monitor": [],
-        "gui": ["pyqt5>=5.13.0", "pyqtgraph>=0.10.0"],
+        "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"],
     },
     entry_points={
         "console_scripts": [
