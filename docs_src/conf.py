@@ -20,7 +20,7 @@ import sphinx_bootstrap_theme
 
 # -- Project information -----------------------------------------------------
 
-project = "onda"
+project = "OnDA"
 copyright = """
     2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
     the Helmholtz Association
@@ -28,9 +28,9 @@ copyright = """
 author = "Valerio Mariani"
 
 # The short X.Y version
-version = "2019.01.00"
+version = "2019.8.0"
 # The full version, including alpha/beta/rc tags
-release = "2019.01.00"
+release = "2019.8.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -92,11 +92,10 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 #
 html_theme_options = {
     "bootswatch_theme": "lumen",
-    "navbar_title": "OnDA by CFEL",
     "navbar_links": [
-        ("Getting OnDA", "documentation_gettingonda"),
-        ("Running OnDA", "documentation_runningonda"),
-        ("Advanced", "documentation_advanced"),
+        ("Getting OnDA", "documentation_getting_onda"),
+        ("Running OnDA", "documentation_running_onda"),
+        ("Advanced Topics", "documentation_advanced_topics"),
         ("Source Code", "https://github.com/ondateam/onda", True),
     ],
     "navbar_sidebarrel": False,

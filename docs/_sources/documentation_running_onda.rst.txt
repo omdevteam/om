@@ -18,63 +18,62 @@ Real-time Monitoring
 
 OnDA is a framework for the development of programs that can be used to monitor
 experiments in real-time (or quasi-real time, depending on your definition). This kind
-of programs retrieves data from a facility as soon as possible after it is collected,
-and perform some fast, simple analysis on it, with the goal of providing the people
-running an experiment enough information to make quick decisions.
+of programs retrieve data from a facility as soon as possible after data is collected,
+and perform some fast, simple analysis on it. The goal is to provide the people running
+the experiment enough information to make quick decisions.
 
 Usually, it is not strictly necessary to process all the data being collected in order
 to provide enough information for the decision making (for example, the hit rate for a
-Serial Crystallography experiment can be computed with high accuracy just by analyzing
-only portion of the collected data). It is however crucial that the information
-provided by the program is up to date. Because of this, **the OnDA framework always
-prioritizes the processing of recently collected data over the processing of all
-collected data**. Completeness is not usually the main priority, low latency in
-providing information is. Furthermore, OnDA tends to perform rough calculations on the
-data that simply provide information to the people running an experiment. After being
-provided to the user, **the data is usually discarded without being saved to disk**, as
-not considered useful any more.
+Serial Crystallography experiment can be computed with high accuracy by analyzing only
+a portion of the collected data). It is however crucial that the information provided
+is up to date. Because of this, OnDA always prioritizes the processing of recently
+collected data over the processing of all collected data. Completeness is not the main
+priority, low latency in providing the information is. Additionally, the goal of OnDA
+is strictly to provide quick information to the people running the experiment, not any
+long-term analysis of the data: after the information is delivered to the user, the
+data is discarded without being saved to disk, and new data is retrieved from the
+facility.
 
 In order to achieve its goals of speed and high throughput in data processing, OnDA
-takes advantage of a **master/worker parallel architecture**. Several 'worker'
-processing units ('nodes') analyze single **events** (a single frame or a collection of
-frames presented as a single unit by the facility) in parallel, while a 'master' node
-collects information from the workers and performs computations over multiple events
-(for example, averaging, aggregation, etc.). The data is then presented to the users in
-the console where OnDA is running or sent to a graphical user interface for remote
-visualization.
-
-
-The Four Layers
-^^^^^^^^^^^^^^^
+takes advantage of a master / worker parallel architecture. Several processing units
+('worker nodes' in OnDA parlance) retrieve data events (a single frame or a collection
+of frames presented as a single unit by the facility) from a facility source, and
+process them. A 'master' node collects information from the workers and performs
+computations over multiple events (averaging, aggregation, etc.). The data is finally
+presented to the users in the console or sent to external programs for visualization.
 
 OnDA is mostly written using the Python programming language, however, some processing
 routines are implemented in other languages (C, C++) for performance reasons.
 
-In the OnDA framework, a monitoring program is split into three cleanly separate parts
-(or **'Layers'**, in OnDA parlance):
+
+The Three Layers
+^^^^^^^^^^^^^^^^
+
+In the OnDA framework, a monitoring program is split into four cleanly separate parts
+(or 'Layers', in OnDA parlance):
 
 * A part which deals with the running logic of the program (set up and finalization of
-  the worker and master nodes, communication between the nodes, etc. This is called
-  **Parallelization Layer**.
+  the worker and master nodes, communication between the nodes, etc.). This is called
+  'Parallelization Layer'.
 
 * A part that deals with the retrieval of data from a facility and with the extraction
-  of information from it. This is the **Data Retrieval Layer**.
+  of information from it. This is the 'Data Retrieval Layer'.
 
-* A part that deals with the processing of the extracted data. This is called the
-  **Processing Layer**, and contains the implementation of the monitoring program
-  itself.
+* A part that deals with the scientific processing of the extracted data. This is
+  called the 'Processing Layer'.
 
+The first two layers are usually different for each facility or beamline. The last
+layer, however, encodes the logic of the scientific processing of the data. When the
+same type of monitor is run at different facilities, the same code is run for the
+Processing Layer. Its interface with the other layers is very clearly defined, so they
+can swapped for different implementations without any change to the the Processing
+Layer itself.
 
-Each layer is a separate Python module and can have multiple alternative
-implementations. The first two layers are usually different for each facility. The last
-layer, however, is where the logic of the scientific processing of the data is encoded.
-Its interface with the other layers is very clearly defined. A developer who wants to
-write a monitoring program does not need to worry how data is retrieved from a facility
-or passed around the nodes. All he/she needs to learn is how the data can be accessed
+This clean interface is the reason why a developer who wants to write a monitoring
+program does not need to worry how data is retrieved from each specific facility, or 
+passed around the nodes. All he or she needs to learn is how the data can be accessed
 and manipulated in the Processing Layer. No knowledge of the other two layers is
-strictly required. Furthermore, the interface between the Processing Layer and the
-other layers is almost completely facility-independent. This means that a monitoring
-program implementation written for a facility (in the  Processing Layer) can in most
+required. A monitoring program implementation written for a facility can in most
 cases be run at other facilities just by switching to different implementations of the
 Data Retrieval and Parallelization layers.
 
@@ -82,13 +81,13 @@ Data Retrieval and Parallelization layers.
 How To Start An OnDA Monitor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-An OnDA monitor is usually launched using the following command:
+On a local machine, an OnDA monitor is usually started using the following command:
 
 .. code-block:: bash
 
     onda_monitor.py --config CONFIGURATION_FILE SOURCE_STRING
 
-Or, when the 'mpi' Paralelization Layer is used:
+Or, when the 'mpi' implementation of the Paralleization Layer is used:
 
 .. code-block:: bash
 
@@ -99,27 +98,28 @@ and a set of configuration parameters. Information about the data source is usua
 provided as an argument to the monitor's start up script, in the form of a 'source
 string'. Configuration parameters, which fully determine the behavior of the monitor,
 are instead stored in a configuration file. Both are discussed in the following
-paragraphs. When problems arise, an OnDA monitor reports errors in the console. A list
-of the most common errors can be found at the end of this section of the documentation,
-together with advice on how to overcome each problem.
+paragraphs. 
+
+
 
 
 The Source String
 -----------------
 
-Information about the source of data events is provided to an OnDA monitor at start-up
-time, in the form of a command line argument to the 'onda_monitor.py' script.
+Information about the source of data events is provided to OnDA at start-up, in the
+form of a command line argument to the 'onda_monitor.py' script.
 
 .. code-block:: bash
 
     onda_monitor.py SOURCE_STRING
 
-It usually consists of a string, the 'Source String', which encodes the information in a
-way that depends on the Data Retrieval Layer being used by the current monitor. This
-information is usually provided by the developer that configured the Data Retrieval
-Layer, and is often related to the facility where the experiment is taking place. The
-following is a list of the facilities currently officially supported by OnDA, with a
-description of the typical format of the source string at each of them.
+It usually consists of a string, the 'Source String', which encodes the information in
+a way that depends on the specific Data Retrieval Layer implementation used by the
+monitor. This information is usually provided by the developer that configured the
+Data Retrieval Layer, and is often specific to the facility where the experiment is
+taking place. The following is a list of the facilities currently officially supported
+by OnDA, with a description of the typical format of the source string at each of
+them.
 
 
 Filesystem
@@ -153,8 +153,9 @@ The Configuration File
 
 The behaviour of an OnDA monitor is completely determined by the content of its
 configuration file. By default, OnDA looks for a file called 'monitor.toml' in the
-current working directory. However, the '--config' command line option to the 'onda_monitor.py'
-script allows a custom location for the configuration file to be specified.
+current working directory. However, the '--config' command line option to the
+'onda_monitor.py' script allows a custom location for the configuration file to be
+specified.
 
 .. code-block:: bash
 
@@ -204,7 +205,7 @@ required is not found in the configuration file, its default value is considered
 ^^^^^^^^^^^^
 
 This parameter group contains information used by OnDA for the correction of the
-detector frames (using the :class:`Correction\ 
+detector frames (using the :class:`Correction 
 <onda.algorithms.generic_algorithms.Correction>` algorithm).
 
 * **dark_filename (str or None):** the relative or absolute path to an HDF5 file

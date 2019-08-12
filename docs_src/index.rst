@@ -10,9 +10,21 @@ OnDA: Online Data Analysis for x-ray imaging
 .. toctree::
    :hidden:
 
-   documentation_gettingonda
-   documentation_runningonda
-   documentation_advanced
+   documentation_getting_onda
+   documentation_running_onda
+   documentation_advanced_topics
+
+
+
+
+
+
+.. warning::
+
+    Work in progress! Under costruction!
+
+
+
 
 
 What is OnDA?
@@ -54,10 +66,10 @@ Recommended Citation
 
 If you use OnDA in your experiment, please cite the following paper:
 
-    Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O'Grady C., Kuhn M.,
-    Aplin S., Koglin J., Barty A., Chapman H.N., **OnDA: online data analysis and
-    feedback for serial X-ray imaging.**, J. *Appl. Crystallogr.* 2016 May
-    23;49(Pt 3):1073-1080. (https://www.ncbi.nlm.nih.gov/pubmed/27275150)
+  Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O'Grady C., Kuhn M., Aplin
+  S., Koglin J., Barty A., Chapman H.N., **OnDA: online data analysis and feedback for
+  serial X-ray imaging.**, J. *Appl. Crystallogr.* 2016 May 23;49(Pt 3):1073-1080.
+  (https://www.ncbi.nlm.nih.gov/pubmed/27275150)
 
 
 Authors
@@ -85,12 +97,13 @@ Documentation
 -------------
 
 Instructions on how to install OnDA can be found
-:doc:`here <documentation_gettingonda>`.
+:doc:`here <documentation_getting_onda>`.
 
 Guidelines on how to configure and run OnDA at several facilities all over the world
-can instead be found :doc:`here <documentation_runningonda>`.
+can instead be found :doc:`here <documentation_running_onda>`.
 
-Finally, for more advanced documentation, see :doc:`this page <documentation_advanced>`.
+Finally, for more advanced documentation, see :doc:`this page
+<documentation_advanced_topics>`.
 
 
 Source Code

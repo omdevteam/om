@@ -1,35 +1,125 @@
 Running OnDA
 ============
 
-An OnDA monitor requires two pieces of information to operate: a source of data events,
-and a set of configuration parameters. Information about the data source is usually
-provided as an argument to the monitor's start up script, in the form of a 'source
-string'. Configuration parameters, which fully determine the behavior of the monitor,
-are instead stored in a configuration file. Both are discussed in the following
-paragraphs. When problems arise, an OnDA monitor reports errors in the console. A list
-of the most common errors can be found at the end of this section of the documentation,
-together with advice on how to overcome each problem.
 
 .. contents::
    :local:
 
 
+
+
+
+What Is An OnDA Monitor?
+------------------------
+
+
+Real-time Monitoring
+^^^^^^^^^^^^^^^^^^^^
+
+OnDA is a framework for the development of programs that can be used to monitor
+experiments in real-time (or quasi-real time, depending on your definition). This kind
+of programs retrieve data from a facility as soon as possible after data is collected,
+and perform some fast, simple analysis on it. The goal is to provide the people running
+the experiment enough information to make quick decisions.
+
+Usually, it is not strictly necessary to process all the data being collected in order
+to provide enough information for the decision making (for example, the hit rate for a
+Serial Crystallography experiment can be computed with high accuracy by analyzing only
+a portion of the collected data). It is however crucial that the information provided
+is up to date. Because of this, OnDA always prioritizes the processing of recently
+collected data over the processing of all collected data. Completeness is not the main
+priority, low latency in providing the information is. Additionally, the goal of OnDA
+is strictly to provide quick information to the people running the experiment, not any
+long-term analysis of the data: after the information is delivered to the user, the
+data is discarded without being saved to disk, and new data is retrieved from the
+facility.
+
+In order to achieve its goals of speed and high throughput in data processing, OnDA
+takes advantage of a master / worker parallel architecture. Several processing units
+('worker nodes' in OnDA parlance) retrieve data events (a single frame or a collection
+of frames presented as a single unit by the facility) from a facility source, and
+process them. A 'master' node collects information from the workers and performs
+computations over multiple events (averaging, aggregation, etc.). The data is finally
+presented to the users in the console or sent to external programs for visualization.
+
+OnDA is mostly written using the Python programming language, however, some processing
+routines are implemented in other languages (C, C++) for performance reasons.
+
+
+The Three Layers
+^^^^^^^^^^^^^^^^
+
+In the OnDA framework, a monitoring program is split into four cleanly separate parts
+(or 'Layers', in OnDA parlance):
+
+* A part which deals with the running logic of the program (set up and finalization of
+  the worker and master nodes, communication between the nodes, etc.). This is called
+  'Parallelization Layer'.
+
+* A part that deals with the retrieval of data from a facility and with the extraction
+  of information from it. This is the 'Data Retrieval Layer'.
+
+* A part that deals with the scientific processing of the extracted data. This is
+  called the 'Processing Layer'.
+
+The first two layers are usually different for each facility or beamline. The last
+layer, however, encodes the logic of the scientific processing of the data. When the
+same type of monitor is run at different facilities, the same code is run for the
+Processing Layer. Its interface with the other layers is very clearly defined, so they
+can swapped for different implementations without any change to the the Processing
+Layer itself.
+
+This clean interface is the reason why a developer who wants to write a monitoring
+program does not need to worry how data is retrieved from each specific facility, or 
+passed around the nodes. All he or she needs to learn is how the data can be accessed
+and manipulated in the Processing Layer. No knowledge of the other two layers is
+required. A monitoring program implementation written for a facility can in most
+cases be run at other facilities just by switching to different implementations of the
+Data Retrieval and Parallelization layers.
+
+
+How To Start An OnDA Monitor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On a local machine, an OnDA monitor is usually started using the following command:
+
+.. code-block:: bash
+
+    onda_monitor.py --config CONFIGURATION_FILE SOURCE_STRING
+
+Or, when the 'mpi' implementation of the Paralleization Layer is used:
+
+.. code-block:: bash
+
+    mpirun -n <NUM NODES> onda_monitor.py --config CONFIGURATION_FILE SOURCE_STRING
+
+An OnDA monitor requires two pieces of information to operate: a source of data events,
+and a set of configuration parameters. Information about the data source is usually
+provided as an argument to the monitor's start up script, in the form of a 'source
+string'. Configuration parameters, which fully determine the behavior of the monitor,
+are instead stored in a configuration file. Both are discussed in the following
+paragraphs. 
+
+
+
+
 The Source String
 -----------------
 
-Information about the source of data events is provided to an OnDA monitor at start-up
-time, in the form of a command line argument to the 'onda_monitor.py' script.
+Information about the source of data events is provided to OnDA at start-up, in the
+form of a command line argument to the 'onda_monitor.py' script.
 
 .. code-block:: bash
 
     onda_monitor.py SOURCE_STRING
 
-It usually consists of a string, the 'Source String', which encodes the information in a
-way that depends on the Data Retrieval Layer being used by the current monitor. This
-information is usually provided by the developer that configured the Data Retrieval
-Layer, and is often related to the facility where the experiment is taking place. The
-following is a list of the facilities currently officially supported by OnDA, with a
-description of the typical format of the source string at each of them.
+It usually consists of a string, the 'Source String', which encodes the information in
+a way that depends on the specific Data Retrieval Layer implementation used by the
+monitor. This information is usually provided by the developer that configured the
+Data Retrieval Layer, and is often specific to the facility where the experiment is
+taking place. The following is a list of the facilities currently officially supported
+by OnDA, with a description of the typical format of the source string at each of
+them.
 
 
 Filesystem
@@ -63,8 +153,9 @@ The Configuration File
 
 The behaviour of an OnDA monitor is completely determined by the content of its
 configuration file. By default, OnDA looks for a file called 'monitor.toml' in the
-current working directory. However, the '--config' command line option to the 'onda_monitor.py'
-script allows a custom location for the configuration file to be specified.
+current working directory. However, the '--config' command line option to the
+'onda_monitor.py' script allows a custom location for the configuration file to be
+specified.
 
 .. code-block:: bash
 
@@ -113,8 +204,8 @@ required is not found in the configuration file, its default value is considered
 [Correction]
 ^^^^^^^^^^^^
 
-This parameter group contains information used by OnDA for the correction of the
-detector frames (using the :class:`Correction\ 
+This parameter group contains information used by OnDA for the correction of detector
+frames (using the :class:`Correction 
 <onda.algorithms.generic_algorithms.Correction>` algorithm).
 
 * **dark_filename (str or None):** the relative or absolute path to an HDF5 file
@@ -123,8 +214,8 @@ detector frames (using the :class:`Correction\
   Example: 'run21_dark.h5'
 
 * **dark_hdf5_path (str or None):** the internal HDF5 path to the data block where the
-  dark data frame is located. If the ‘dark_filename’ argument is not None, this argument
-  must also be provided, and cannot be None. Otherwise it is ignored. Example:
+  dark data frame is located. If the ‘dark_filename’ argument is not None, this
+  argument must also be provided, and cannot be None. Otherwise it is ignored. Example:
   '/data/data'
 
 * **gain_filename (str or None):** the relative or absolute path to an HDF5 file
@@ -171,10 +262,10 @@ This group contains parameters used by the OnDA monitor for crystallography.
   None, no hit frames are ever sent. If the value is a number, it is the number of hit
   frames that *each worker* skips before sending the next frame to the master node to
   be broadcasted. If, for example, the value of this parameter is 5, each worker sends
-  every 5th hit frame to the master. Example: 10
+  every 5th hit frame to the master for broadcasting. Example: 10
 
 * **max_num_peaks_for_hit (int):** the maximum number of Bragg peaks that can be found
-  in a detector frame for it to be labelled as a hit. Example: 500.
+  in a detector frame for the frame to be labelled as a hit. Example: 500.
 
 * **max_saturated_peaks (int):** the maximum number of saturated Bragg peaks that can
   be found in a detector before the frame itself is labelled as saturated. A saturated
@@ -190,24 +281,24 @@ This group contains parameters used by the OnDA monitor for crystallography.
   this parameter is None, no non-hit frames are ever sent. If value is a number, it is
   the number of non-hit frames that *each worker* skips before sending the next frame
   to the master node to be broadcasted. If, for example, the value of this parameter is
-  100, each worker sends every 100th non-hit frame to the master. Example: 1000
+  100, each worker sends every 100th non-hit frame to the master for broadcasting.
+  Example: 1000
 
-* **running_average_window_size (int):** the size of the running average window used by
-  the monitor to compute the average hit and saturation rates. The rates are computed
+* **running_average_window_size (int):** the size of the running window used by the
+  monitor to compute the average hit and saturation rates. The rates are computed
   over the number of most recent events specified by this parameter. Example: 100.
 
 * **saturation_value (float):** the minimum value (in ADUs) of the integrated intensity
-  of a Bragg peak for it to be labelled as saturated. The value of this parameter
+  of a Bragg peak for the peak to be labelled as saturated. The value of this parameter
   usually depends on the specific detector being used. Example: 5000.5.
 
 
 [DataAccumulator]
 ^^^^^^^^^^^^^^^^^
 
-This group contains a parameter that dictates how OnDA aggregates event in the master
-node before sending them to external programs. It is related to the
-:class:`DataAccumulator <onda.algorithms.generic_algorithms.DataAccumulator>`
-algorithm.
+This group contains a parameter that dictates how OnDA aggregates events in the master
+node before sending them to external programs. It refers to the :class:`DataAccumulator
+<onda.algorithms.generic_algorithms.DataAccumulator>` algorithm.
 
 * **num_events_to_accumulate (int):** number of events for which data is accumulated in
   the master node before being broadcasted in a single transmission.  Example: 20
@@ -216,16 +307,14 @@ algorithm.
 [DataRetrievalLayer]
 ^^^^^^^^^^^^^^^^^^^^
 
-This parameter group contains information used by the the Data Retrieval Layer to
-extract data from a facility framework.
-
-
-#karabo_max_event_age = 1
+This parameter group contains information that determines how the Data Retrieval Layer
+extracts data from a facility framework.
 
 
 .. warning::
    Please exercise caution when changing the parameters in this group: a wrong choice
    can severly interfere with data retrieval and extraction.
+
 
 * **fallback_beam_energy_in_eV (float)** the beam energy *in eV*. OnDA uses this
   fallback value when the framework does not provide beam energy information.
@@ -236,13 +325,18 @@ extract data from a facility framework.
   information. Example: 250
 
 * **hidra_base_port (int):** the base port used by the HiDRA framework to send data
-  to the worker node. The machine where OnDA is running and the one where HiDRA is
+  to the worker nodes. HiDRA will use this port and the following ones (one per node)
+  to contact the workers. The machine where OnDA is running and the one where HiDRA is
   running should be able to reach each other at this port and the immediately following
-  ones (in a number equal to the number of workers). Example: 52000
+  ones. Example: 52000
 
 * **hidra_transfer_type ('data' or 'metadata'):** the transfer type used by the HiDRA
-  framework for the current monitor. Usually it is automatically determined from the
-  detector(s) being used. It can be overridden using this parameter. Example: 'data'
+  framework for the current monitor. If this parameter has a value of 'data', OnDA asks
+  HiDRA to stream the detector data to the monitor. If instead the value is 'metadata',
+  OnDA asks HiDRA to just stream information on where in the filesystem the most recent
+  data can be found. Usually it is automatically determined from the detector(s) model
+  currently used by the monitor, but it can be overridden using this parameter.
+  Example: 'data'
 
 * **karabo_detector_label (str):** the label of the main x-ray detector from which 
   the Karabo framework retrieves data. Example:

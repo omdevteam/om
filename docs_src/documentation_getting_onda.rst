@@ -14,26 +14,26 @@ OnDA at the LCLS and Petra III Facilities
 
 OnDA comes pre-installed at some beamlines of the Petra III and LCLS facilities:
 
-- LCLS:
+* LCLS:
 
   - AMO
   - CXI
 
-- Petra III
+* Petra III
 
   - P11
 
-Beamline scientists can provide information on how to access OnDA at these beamlines.
-However, for reference, instructions can also be found in the following paragraphs.
+Beamline scientists can provide information on how to access and use OnDA. However, for
+reference, instructions can also be found in the following paragraphs.
 
 
 LCLS - AMO and CXI
 ^^^^^^^^^^^^^^^^^^
 
-In order to use OnDA for real-time monitoring at the CXI and AMO beamlines, one needs
-access to the relevant monitoring nodes, the only machines which can access the data
-stream. Once logged in on one of this machines, the latest version of OnDA can be
-accessed by activating an `Anaconda <https://anaconda.org/>`_ python environment.
+In order to run OnDA at these beamlines, access to the monitoring nodes is needed. They
+are the only machines which can access the real-time data stream. Once access has been
+granted, the latest version of OnDA can be reached by activating an `Anaconda
+<https://anaconda.org/>`_ python environment:
 
 .. code-block:: bash
 
@@ -43,10 +43,9 @@ accessed by activating an `Anaconda <https://anaconda.org/>`_ python environment
 Petra III - P11
 ^^^^^^^^^^^^^^^
 
-At the P11 beamline of the Petra III facility, the 'eval01' machine must be used to
-access and run OnDA. Once logged in on that machine, the following command will
-activate the `Anaconda <https://anaconda.org/>`_ python environment required to run
-OnDA.
+OnDA is available at this beamline on the 'eval01' machine and must be run on it. Once
+logged in, the following command can be used to activate the `Anaconda
+<https://anaconda.org/>`_ python environment in which OnDA is installed:
 
 .. code-block:: bash
 
@@ -59,22 +58,22 @@ OnDA.
 OnDA on a Local Machine
 -----------------------
 
-OnDA can easily installed on a local machine. It is available on `PyPI
-<https://pypi.org/>`_ (The Python Package Index), and can easily be installed from 
-there. An `Anaconda <https://anaconda.org/>`_ package is also available and allows OnDA
-to be installed using this popular Python distribution.
+OnDA can easily be installed on a local machine from the `Python Package Index
+<https://pypi.org/>`_. It is also available as a package for the `Anaconda
+<https://anaconda.org/>`_ Python distribution.
 
 
 Installation from the Python Package Index
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-OnDA can be installed from the PyPI using the `pip` command. The only requirements are:
+OnDA can be installed from the Python Package Index (PyPI) using the 'pip' command.
+This is the preferred installation method. The only requirements are:
 
 * An actively supported version of Python (2.7, 3.5, 3.6, or 3.7).
 
 * The 'pip' utility for the corresponding version of python.
 
-It is reccomended to install OnDA in a clean Python virtual environment. The
+It is recommended to install OnDA in a clean Python virtual environment. The
 environment can be created using the Python 2 `virtualenv
 <https://virtualenv.pypa.io/en/stable/>`_ tool:
 
@@ -83,13 +82,13 @@ environment can be created using the Python 2 `virtualenv
     python2 -m virtualenv onda_env
 
 Or the `venv <https://docs.python.org/3/library/venv.html>`_ module from the
-Python 3 Standard Library.
+Python 3 Standard Library:
 
 .. code-block:: bash
 
     python3 -m venv onda_env
 
-The enviroment can be then activated by sourcing a file:
+It can be then activated by sourcing a file:
 
 .. code-block:: bash
 
@@ -115,8 +114,8 @@ Installation in Anaconda
 
 
 Packages for OnDA and its dependencies are available from the 'ondateam' channel of
-https://anaconda.org. It is reccomended to install onda in a clean Python enviroment
-The enviroment can be created using the following command for Python 2:
+https://anaconda.org. It is reccomended to install onda in a clean Python enviroment,
+which can be created using the following command for Python 2:
 
 .. code-block:: bash
 
@@ -134,7 +133,7 @@ The enviroment can then be activated using the following command:
 
     conda activate onda_env
 
-Finally, OnDA can be installed using the 'conda install command':
+Finally, OnDA can be installed using the 'conda install' command:
 
 
 .. code-block:: bash

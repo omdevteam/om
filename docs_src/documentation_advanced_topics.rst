@@ -10,65 +10,8 @@ Advanced Documentation
    :local:
 
 
-Anatomy of an OnDA monitor
---------------------------
-
-OnDA is a framework for the development of programs that can be used to monitor
-experiments in real-time (or quasi-real time, depending on your definition). This kind
-of programs retrieves data from a facility as soon as possible after it is collected,
-and perform some fast, simple analysis on it, with the goal of providing the people
-running an experiment enough information to make quick decisions.
-
-Usually, it is not strictly necessary to process all the data being collected in order
-to provide enough information for the decision making (for example, the hit rate for a
-Serial Crystallography experiment can be computed with high accuracy just by analyzing
-only portion of the collected data). It is however crucial that the information
-provided by the program is up to date. Because of this, **the OnDA framework always
-prioritizes the processing of recently collected data over the processing of all
-collected data**. Completeness is not usually the main priority, low latency in
-providing information is. Furthermore, OnDA tends to perform rough calculations on the
-data that simply provide information to the people running an experiment. After being
-provided to the user, **the data is usually discarded without being saved to disk**, as
-not considered useful any more.
-
-In order to achieve its goals of speed and high throughput in data processing, OnDA
-takes advantage of a **master/worker parallel architecture**. Several 'worker'
-processing units ('nodes') analyze single **events** (a single frame or a collection of
-frames presented as a single unit by the facility) in parallel, while a 'master' node
-collects information from the workers and performs computations over multiple events
-(for example, averaging, aggregation, etc.). The data is then presented to the users in
-the console where OnDA is running or sent to a graphical user interface for remote
-visualization.
-
-OnDA is mostly written using the Python programming language, however, some processing
-routines are implemented in other languages (C, C++) for performance reasons.
-
-In the OnDA framework, a monitoring program is split into three cleanly separate parts
-(or **'Layers'**, in OnDA parlance):
-
-* A part which deals with the running logic of the program (set up and finalization of
-  the worker and master nodes, communication between the nodes, etc. This is called
-  **Parallelization Layer**.
-
-* A part that deals with the retrieval of data from a facility and with the extraction
-  of information from it. This is the **Data Retrieval Layer**.
-
-* A part that deals with the processing of the extracted data. This is called the
-  **Processing Layer**, and contains the implementation of the monitoring program
-  itself.
-
-Each layer is a separate Python module and can have multiple alternative
-implementations. The first two layers are usually different for each facility. The last
-layer, however, is where the logic of the scientific processing of the data is encoded.
-Its interface with the other layers is very clearly defined. A developer who wants to
-write a monitoring program does not need to worry how data is retrieved from a facility
-or passed around the nodes. All he/she needs to learn is how the data can be accessed
-and manipulated in the Processing Layer. No knowledge of the other two layers is
-strictly required. Furthermore, the interface between the Processing Layer and the
-other layers is almost completely facility-independent. This means that a monitoring
-program implementation written for a facility (in the  Processing Layer) can in most
-cases be run at other facilities just by switching to different implementations of the
-Data Retrieval and Parallelization layers.
+Advanced Topics
+---------------
 
 
 The Processing Layer
@@ -211,7 +154,7 @@ finding, data accumulation, etc.) in the 'onda.algorithms' Python subpackage.
   remain implemented as functions and not turned into an algorithm.
 
 
-How An OnDA Monitor Works
+The OnDA Monitor Workflow
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When an OnDA monitor starts, it first initializes all the worker and master nodes, on a
@@ -267,18 +210,18 @@ OnDA is mainly developed in `Python  <https://www.python.org>`.
 
 * All code in OnDA must run with both version 2 and 3 of Python, except for
   facility-specific code that specifically requires one of the two versions (for example,
-  Python 2 for the LCSL facility). The code must specifically support the following
-  versions of python:
+  Python 2 for the LCSL facility). The code must specifically support all the currently
+  active versions of python:
 
-  **Python 2**
+  * Python 2
 
-  * 2.7
+    * 2.7
 
-  **Python 3**
+  * Python 3
 
-  * 3.5
-  * 3.6
-  * 3.7
+    * 3.5
+    * 3.6
+    * 3.7
 
 * The `python-future <https://python-future.org>`_ project should be used to ensure that
   code contributed to the OnDA project is compatible with all the supported versions of
@@ -293,10 +236,10 @@ OnDA is mainly developed in `Python  <https://www.python.org>`.
 * `Pylint <https://www.pylint.org>`_ should be run on the code before
   submission, as stated in the Google Python Coding Style Guide. In the root
   folder of the OnDA repository, contributors can find  a 'pylintrc' file with
-  the settings that should be applied when linting OnDA's code. Please see here
-  how to use the pylintrc file:
-  `Running Pylint \
-  <http://pylint.pycqa.org/en/latest/user_guide/run.html?highlight=pylintrc>`_.
+  the settings that should be applied when linting OnDA's code. Please see `here
+  <http://pylint.pycqa.org/en/latest/user_guide/run.html?highlight=pylintrc>`_ how to
+  use the pylintrc file.
+  
 
 
 C/C++
@@ -307,11 +250,16 @@ Some extension to OnDA can, for performance reason, be written using the
 `C <https://en.wikipedia.org/wiki/C_(programming_language)>`_ programming languages.
 
 * All C++ code in OnDA should follow at most the C++98 ISO standard, and the code should
-  be able to compile on a Linux RHEL6/CentOS6 platform using the development stack that
+  be able to compile on a Linux RHEL7/CentOS7 platform using the development stack that
   comes with a standard installation of these systems.
 
-* All C++ code in OnDA should follow at most the C99 ISO standard, and should the same
-  restrictions regarding being able to compile on a Linux RHEL6/CentOS6 platform.
+* Part of the C++11 standard can be used when writing extensions. However, it must be
+  possible to compile the code using version 4.8 of the 'gcc' compiler (in order to
+  create the Linux binary Python wheel).
+
+* All C code in OnDA should follow at most the C99 ISO standard, and should the same
+  and the code should be able to compile on a Linux RHEL7/CentOS7 platform using the
+  development stack that comes with a standard installation of these systems.
 
 * The `Cython <http://cython.org>`_ project should be used to interface C/C++ code with
   Python.
