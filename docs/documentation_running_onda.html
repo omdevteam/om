@@ -280,16 +280,16 @@ unless the parameter name says otherwise!!</p>
 </div>
 <div class="section" id="correction">
 <h3><a class="toc-backref" href="#id11">[Correction]</a><a class="headerlink" href="#correction" title="Permalink to this headline">¶</a></h3>
-<p>This parameter group contains information used by OnDA for the correction of the
-detector frames (using the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.Correction" title="onda.algorithms.generic_algorithms.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a> algorithm).</p>
+<p>This parameter group contains information used by OnDA for the correction of detector
+frames (using the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.Correction" title="onda.algorithms.generic_algorithms.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a> algorithm).</p>
 <ul class="simple">
 <li><strong>dark_filename (str or None):</strong> the relative or absolute path to an HDF5 file
 containing a dark data frame. Defaults to None. If this and the ‘dark_hdf5_path’
 arguments are not None, the dark data is loaded applied to the detector frame.
 Example: ‘run21_dark.h5’</li>
 <li><strong>dark_hdf5_path (str or None):</strong> the internal HDF5 path to the data block where the
-dark data frame is located. If the ‘dark_filename’ argument is not None, this argument
-must also be provided, and cannot be None. Otherwise it is ignored. Example:
+dark data frame is located. If the ‘dark_filename’ argument is not None, this
+argument must also be provided, and cannot be None. Otherwise it is ignored. Example:
 ‘/data/data’</li>
 <li><strong>gain_filename (str or None):</strong> the relative or absolute path to an HDF5 file
 containing a gain map. If this and the ‘gain_hdf5_path’ arguments are not None, the
@@ -329,9 +329,9 @@ data). It applies only to frames labelled as hits. If the value of this paramete
 None, no hit frames are ever sent. If the value is a number, it is the number of hit
 frames that <em>each worker</em> skips before sending the next frame to the master node to
 be broadcasted. If, for example, the value of this parameter is 5, each worker sends
-every 5th hit frame to the master. Example: 10</li>
+every 5th hit frame to the master for broadcasting. Example: 10</li>
 <li><strong>max_num_peaks_for_hit (int):</strong> the maximum number of Bragg peaks that can be found
-in a detector frame for it to be labelled as a hit. Example: 500.</li>
+in a detector frame for the frame to be labelled as a hit. Example: 500.</li>
 <li><strong>max_saturated_peaks (int):</strong> the maximum number of saturated Bragg peaks that can
 be found in a detector before the frame itself is labelled as saturated. A saturated
 Bragg peak is a peak whose integrated intensity (in ADUs) goes beyond the value
@@ -344,21 +344,20 @@ data). It applies only to frames that have not been labelled as hits. If the val
 this parameter is None, no non-hit frames are ever sent. If value is a number, it is
 the number of non-hit frames that <em>each worker</em> skips before sending the next frame
 to the master node to be broadcasted. If, for example, the value of this parameter is
-100, each worker sends every 100th non-hit frame to the master. Example: 1000</li>
-<li><strong>running_average_window_size (int):</strong> the size of the running average window used by
-the monitor to compute the average hit and saturation rates. The rates are computed
+100, each worker sends every 100th non-hit frame to the master for broadcasting.
+Example: 1000</li>
+<li><strong>running_average_window_size (int):</strong> the size of the running window used by the
+monitor to compute the average hit and saturation rates. The rates are computed
 over the number of most recent events specified by this parameter. Example: 100.</li>
 <li><strong>saturation_value (float):</strong> the minimum value (in ADUs) of the integrated intensity
-of a Bragg peak for it to be labelled as saturated. The value of this parameter
+of a Bragg peak for the peak to be labelled as saturated. The value of this parameter
 usually depends on the specific detector being used. Example: 5000.5.</li>
 </ul>
 </div>
 <div class="section" id="dataaccumulator">
 <h3><a class="toc-backref" href="#id13">[DataAccumulator]</a><a class="headerlink" href="#dataaccumulator" title="Permalink to this headline">¶</a></h3>
-<p>This group contains a parameter that dictates how OnDA aggregates event in the master
-node before sending them to external programs. It is related to the
-<a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.DataAccumulator" title="onda.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a>
-algorithm.</p>
+<p>This group contains a parameter that dictates how OnDA aggregates events in the master
+node before sending them to external programs. It refers to the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.DataAccumulator" title="onda.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a> algorithm.</p>
 <ul class="simple">
 <li><strong>num_events_to_accumulate (int):</strong> number of events for which data is accumulated in
 the master node before being broadcasted in a single transmission.  Example: 20</li>
@@ -366,9 +365,8 @@ the master node before being broadcasted in a single transmission.  Example: 20<
 </div>
 <div class="section" id="dataretrievallayer">
 <h3><a class="toc-backref" href="#id14">[DataRetrievalLayer]</a><a class="headerlink" href="#dataretrievallayer" title="Permalink to this headline">¶</a></h3>
-<p>This parameter group contains information used by the the Data Retrieval Layer to
-extract data from a facility framework.</p>
-<p>#karabo_max_event_age = 1</p>
+<p>This parameter group contains information that determines how the Data Retrieval Layer
+extracts data from a facility framework.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Please exercise caution when changing the parameters in this group: a wrong choice
@@ -382,12 +380,17 @@ Example: 12000</li>
 uses this fallback value when the framework does not provide detector distance
 information. Example: 250</li>
 <li><strong>hidra_base_port (int):</strong> the base port used by the HiDRA framework to send data
-to the worker node. The machine where OnDA is running and the one where HiDRA is
+to the worker nodes. HiDRA will use this port and the following ones (one per node)
+to contact the workers. The machine where OnDA is running and the one where HiDRA is
 running should be able to reach each other at this port and the immediately following
-ones (in a number equal to the number of workers). Example: 52000</li>
+ones. Example: 52000</li>
 <li><strong>hidra_transfer_type (‘data’ or ‘metadata’):</strong> the transfer type used by the HiDRA
-framework for the current monitor. Usually it is automatically determined from the
-detector(s) being used. It can be overridden using this parameter. Example: ‘data’</li>
+framework for the current monitor. If this parameter has a value of ‘data’, OnDA asks
+HiDRA to stream the detector data to the monitor. If instead the value is ‘metadata’,
+OnDA asks HiDRA to just stream information on where in the filesystem the most recent
+data can be found. Usually it is automatically determined from the detector(s) model
+currently used by the monitor, but it can be overridden using this parameter.
+Example: ‘data’</li>
 <li><strong>karabo_detector_label (str):</strong> the label of the main x-ray detector from which
 the Karabo framework retrieves data. Example:
 ‘SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED’</li>
