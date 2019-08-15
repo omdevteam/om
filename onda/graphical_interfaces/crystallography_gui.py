@@ -76,7 +76,10 @@ class CrystallographyGui(gui.OndaGui):
             tag="ondadata",
         )
         pixel_maps = cfel_geometry.compute_pix_maps(geometry)
-        self._img_shape = cfel_geometry.compute_min_array_size(pixel_maps)
+        x_map, y_map = pixel_maps.x, pixel_maps.y
+        y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
+        x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
+        self._img_shape = (y_minimum, x_minimum)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
         visual_pixel_map = cfel_geometry.compute_visualization_pix_maps(geometry)
