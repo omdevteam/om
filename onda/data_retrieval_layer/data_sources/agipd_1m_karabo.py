@@ -75,13 +75,13 @@ def get_num_frames_in_event(event):
 
         int: the number of frames in the event.
     """
-    # return event.data[event.framework_info["detector_label"]]["image.data"].shape[0]
-    return (
-        event.data[event.framework_info["detector_label"]]["image.data"]
-        .transpose(3, 0, 2, 1)
-        .shape[0]
-    )
+    # return (
+    #    event.data[event.framework_info["detector_label"]]["image.data"]
+    #    .transpose(3, 0, 2, 1)
+    #    .shape[0]
+    #)
 
+    return event.data[event.framework_info["detector_label"]]["image.data"].shape[0]
 
 #############################
 #                           #
@@ -109,12 +109,15 @@ def detector_data(event):
         numpy.ndarray: one frame of detector data.
     """
     # Rearranges the data into 'slab' format.
-    return (
-        event.data[event.framework_info["detector_label"]]["image.data"]
-        .transpose(3, 0, 2, 1)[
-            # return event.data[event.framework_info["detector_label"]]["image.data"][
-            event.current_frame,
-            ...,
-        ]
-        .reshape(16 * 512, 128)
-    )
+    # return (
+    #    event.data[event.framework_info["detector_label"]]["image.data"]
+    #    .transpose(3, 0, 2, 1)[
+    #        event.current_frame,
+    #        ...,
+    #    ]
+    #    .reshape(16 * 512, 128)
+    # )
+
+    return event.data[event.framework_info["detector_label"]]["image.data"][
+        event.current_frame, ...
+    ].reshape(16 * 512, 128)
