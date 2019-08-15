@@ -248,7 +248,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=int,
             )
             self._non_hit_frame_sending_interval = monitor_parameters.get_param(
-                group="General",
+                group="Crystallography",
                 parameter="non_hit_frame_sending_interval",
                 type_=int,
             )
