@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The crystallography Module &#8212; OnDA 2019.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The utils Package" href="onda.utils.html" />
+    <link rel="prev" title="The processing_layer Package" href="onda.processing_layer.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OnDA</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_getting_onda.html">Getting OnDA</a></li>
+                <li><a href="documentation_running_onda.html">Running OnDA</a></li>
+                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <p>[<a class="reference internal" href="onda.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-onda.processing_layer.crystallography">
+<span id="the-crystallography-module"></span><h1>The crystallography Module<a class="headerlink" href="#module-onda.processing_layer.crystallography" title="Permalink to this headline">¶</a></h1>
+<p>OnDA monitor for crystallography.</p>
+<p>This module contains an OnDA monitor for serial x-ray crystallography experiments.</p>
+<dl class="class">
+<dt id="onda.processing_layer.crystallography.OndaMonitor">
+<em class="property">class </em><code class="descname">OndaMonitor</code><span class="sig-paren">(</span><em>source</em>, <em>monitor_parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/processing_layer/crystallography.html#OndaMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.processing_layer.crystallography.OndaMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="onda.parallelization_layer.mpi.html#onda.parallelization_layer.mpi.ParallelizationEngine" title="onda.parallelization_layer.mpi.ParallelizationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">onda.parallelization_layer.mpi.ParallelizationEngine</span></code></a></p>
+<p>An OnDA real-time monitor for serial x-ray crystallography experiments.</p>
+<p>This monitor processes detector data frames, optionally applying detector
+calibration, dark correction and gain correction. It detects Bragg peaks in
+each detector frame using the peakfinder8 algorithm from Cheetah. It provides
+information about the location and integrated intensity of each peak.
+Additionally, it calculates the evolution of the hit and saturation rates over
+time. It broadcasts all this information over a network socket for
+visualization by other programs. Optionally, it can also broadcast calibrated
+and corrected detector data frames.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>source</strong> (<em>str</em>) – a string describing the data source. The exact format of the
+string depends on the specific Data Recovery Layer currently being
+used. See the documentation of the relevant ‘initialize_event_source’
+function.</li>
+<li><strong>monitor_params</strong> (<a class="reference internal" href="onda.utils.parameters.html#onda.utils.parameters.MonitorParams" title="onda.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OnDA monitor parameters from the configuration file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="onda.processing_layer.crystallography.OndaMonitor.process_data">
+<code class="descname">process_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/processing_layer/crystallography.html#OndaMonitor.process_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.processing_layer.crystallography.OndaMonitor.process_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a detector data frame.</p>
+<p>This function performs calibration and correction of a detector data frame and
+extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
+optionally, the detector frame data) for transmission to to the master node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – <p>a dictionary containing the data retrieved by
+OnDA for the frame being processed.</p>
+<ul class="simple">
+<li>The dictionary keys must match the entries in the ‘required_data’
+list found in the ‘Onda’ configuration parameter group.</li>
+<li>The corresponding dictionary values must store the retrieved data.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a named tuple storing the
+processed data and some information about the node that processed it.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="onda.utils.named_tuples.html#onda.utils.named_tuples.ProcessedData" title="onda.utils.named_tuples.ProcessedData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessedData</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="onda.processing_layer.crystallography.OndaMonitor.collect_data">
+<code class="descname">collect_data</code><span class="sig-paren">(</span><em>processed_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/processing_layer/crystallography.html#OndaMonitor.collect_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.processing_layer.crystallography.OndaMonitor.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes statistics on aggregated data and broadcasts them via a network socket.</p>
+<p>This function computes aggregated statistics on data received from the worker
+nodes. It then broadcasts the results via a network socket (for visualization
+by other programs) using the MessagePack protocol.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>processed_data</strong> (<a class="reference internal" href="onda.utils.named_tuples.html#onda.utils.named_tuples.ProcessedData" title="onda.utils.named_tuples.ProcessedData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcessedData</span></code></a>) – a named
+tuple storing the processed data and some information about the node
+that processed it.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

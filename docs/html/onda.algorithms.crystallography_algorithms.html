@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The crystallography_algorithms Module &#8212; OnDA 2019.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The generic_algorithms Module" href="onda.algorithms.generic_algorithms.html" />
+    <link rel="prev" title="The calibration_algorithms Module" href="onda.algorithms.calibration_algorithms.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OnDA</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_getting_onda.html">Getting OnDA</a></li>
+                <li><a href="documentation_running_onda.html">Running OnDA</a></li>
+                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <p>[<a class="reference internal" href="onda.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-onda.algorithms.crystallography_algorithms">
+<span id="the-crystallography-algorithms-module"></span><h1>The crystallography_algorithms Module<a class="headerlink" href="#module-onda.algorithms.crystallography_algorithms" title="Permalink to this headline">¶</a></h1>
+<p>Algorithms for the processing of crystallography data.</p>
+<p>This module contains algorithms that carry out crystallography-related data processing
+(peak finding, etc.).</p>
+<dl class="class">
+<dt id="onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection">
+<em class="property">class </em><code class="descname">Peakfinder8PeakDetection</code><span class="sig-paren">(</span><em>max_num_peaks</em>, <em>asic_nx</em>, <em>asic_ny</em>, <em>nasics_x</em>, <em>nasics_y</em>, <em>adc_threshold</em>, <em>minimum_snr</em>, <em>min_pixel_count</em>, <em>max_pixel_count</em>, <em>local_bg_radius</em>, <em>min_res</em>, <em>max_res</em>, <em>bad_pixel_map_filename</em>, <em>bad_pixel_map_hdf5_path</em>, <em>radius_pixel_map</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/algorithms/crystallography_algorithms.html#Peakfinder8PeakDetection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Peakfinder8 algorithm for peak detection.</p>
+<p>This class stores the parameters needed by the ‘peakfinder8’ algorithm, and
+performs peak finding on a detector data frame upon request. The ‘peakfinder8’
+algorithm is described in the following publication:</p>
+<p>A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
+and H. N. Chapman, “Cheetah: software for high-throughput reduction and
+analysis of serial femtosecond X-ray diffraction data”, J Appl  Crystallogr,
+vol. 47, pp. 1118-1131 (2014).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>max_num_peaks</strong> (<em>int</em>) – the maximum number of peaks that will be retrieved
+from each data frame. Additional peaks will be ignored.</li>
+<li><strong>asic_nx</strong> (<em>int</em>) – the fs size in pixels of each detector’s ASIC in the data
+frame.</li>
+<li><strong>asic_ny</strong> (<em>int</em>) – the ss size in pxiels of each detector’s ASIC in the data
+frame.</li>
+<li><strong>nasics_x</strong> (<em>int</em>) – the number of ASICs along the fs axis of the data frame.</li>
+<li><strong>nasics_y</strong> (<em>int</em>) – the number of ASICs along the ss axis of the data frame.</li>
+<li><strong>adc_threshold</strong> (<em>float</em>) – the minimum ADC threshold for peak detection.</li>
+<li><strong>minimum_snr</strong> (<em>float</em>) – the minimum signal-to-noise ratio for peak detection.</li>
+<li><strong>min_pixel_count</strong> (<em>int</em>) – the minimum size of a peak in pixels.</li>
+<li><strong>max_pixel_count</strong> (<em>int</em>) – the maximum size of a peak in pixels.</li>
+<li><strong>local_bg_radius</strong> (<em>int</em>) – the radius for the estimation of the
+local background in pixels.</li>
+<li><strong>min_res</strong> (<em>int</em>) – the minimum resolution for a peak in pixels.</li>
+<li><strong>max_res</strong> (<em>int</em>) – the maximum resolution for a peak in pixels.</li>
+<li><strong>bad_pixel_map_filename</strong> (<em>str</em>) – <p>the absolute or relative path to an HDF5 file
+containing a bad pixel map. The map should mark areas of the data frame
+that must be excluded from the peak search. Specifically:</p>
+<ul>
+<li>The map must be a numpy array of the same shape as the data frame on
+which the algorithm will be applied.</li>
+<li>Each pixel in the map must have a value of either 0, meaning that
+the corresponding pixel in the data frame must be ignored, or 1,
+meaning that the corresponding pixel must be included in the search.</li>
+<li>The map is only used to exclude areas from the peak search: the data
+is not modified in any way.</li>
+</ul>
+</li>
+<li><strong>bad_pixel_map_hdf5_path</strong> (<em>str</em>) – the internal HDF5 path to the data block
+where the bad pixel map is stored.</li>
+<li><strong>radius_pixel_map</strong> (<em>numpy.ndarray</em>) – <p>a numpy array with radius information.</p>
+<ul>
+<li>The array must have the same shape as the data frame on which the
+algorithm will be applied.</li>
+<li>Each element of the array must store the distance in pixels from
+the center of the detector of the corresponding pixel in the data
+frame.</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection.find_peaks">
+<code class="descname">find_peaks</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/algorithms/crystallography_algorithms.html#Peakfinder8PeakDetection.find_peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection.find_peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds peaks in a detector data frame.</p>
+<p>This function not only retrieves information about the position of the peaks in
+the data frame but also about their integrated intensity.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>numpy.ndarray</em>) – the detector data frame on which the peak finding
+must be performed.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a named tuple with the
+information about the detected peaks.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="onda.utils.named_tuples.html#onda.utils.named_tuples.PeakList" title="onda.utils.named_tuples.PeakList"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeakList</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

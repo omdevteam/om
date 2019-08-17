@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Running OnDA &#8212; OnDA 2019.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Advanced Documentation" href="documentation_advanced_topics.html" />
+    <link rel="prev" title="Getting OnDA" href="documentation_getting_onda.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OnDA</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_getting_onda.html">Getting OnDA</a></li>
+                <li><a href="#">Running OnDA</a></li>
+                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="running-onda">
+<h1>Running OnDA<a class="headerlink" href="#running-onda" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#what-is-an-onda-monitor" id="id2">What Is An OnDA Monitor?</a><ul>
+<li><a class="reference internal" href="#real-time-monitoring" id="id3">Real-time Monitoring</a></li>
+<li><a class="reference internal" href="#the-three-layers" id="id4">The Three Layers</a></li>
+<li><a class="reference internal" href="#how-to-start-an-onda-monitor" id="id5">How To Start An OnDA Monitor</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-source-string" id="id6">The Source String</a><ul>
+<li><a class="reference internal" href="#filesystem" id="id7">Filesystem</a></li>
+<li><a class="reference internal" href="#lcls" id="id8">LCLS</a></li>
+<li><a class="reference internal" href="#petra-iii" id="id9">Petra III</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-configuration-file" id="id10">The Configuration File</a><ul>
+<li><a class="reference internal" href="#correction" id="id11">[Correction]</a></li>
+<li><a class="reference internal" href="#crystallography" id="id12">[Crystallography]</a></li>
+<li><a class="reference internal" href="#dataaccumulator" id="id13">[DataAccumulator]</a></li>
+<li><a class="reference internal" href="#dataretrievallayer" id="id14">[DataRetrievalLayer]</a></li>
+<li><a class="reference internal" href="#detectorcalibration" id="id15">[DetectorCalibration]</a></li>
+<li><a class="reference internal" href="#general" id="id16">[General]</a></li>
+<li><a class="reference internal" href="#onda" id="id17">[Onda]</a></li>
+<li><a class="reference internal" href="#peakfinder8peakdetection" id="id18">[Peakfinder8PeakDetection]</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#errors" id="id19">Errors</a><ul>
+<li><a class="reference internal" href="#ondaconfigurationfilereadingerror" id="id20">OndaConfigurationFileReadingError</a></li>
+<li><a class="reference internal" href="#ondaconfigurationfilesyntaxerror" id="id21">OndaConfigurationFileSyntaxError</a></li>
+<li><a class="reference internal" href="#ondadataextractionerror" id="id22">OndaDataExtractionError</a></li>
+<li><a class="reference internal" href="#ondahdf5filereadingerror" id="id23">OndaHdf5FileReadingError</a></li>
+<li><a class="reference internal" href="#ondahidraapierror" id="id24">OndaHidraAPIError</a></li>
+<li><a class="reference internal" href="#ondainvalidsourceerror" id="id25">OndaInvalidSourceError</a></li>
+<li><a class="reference internal" href="#ondamissingdependencyerror" id="id26">OndaMissingDependencyError</a></li>
+<li><a class="reference internal" href="#ondamissingdataextractionfunctionerror" id="id27">OndaMissingDataExtractionFunctionError</a></li>
+<li><a class="reference internal" href="#ondamissingeventhandlingfunctionerror" id="id28">OndaMissingEventHandlingFunctionError</a></li>
+<li><a class="reference internal" href="#ondamissinghdf5patherror" id="id29">OndaMissingHdf5PathError</a></li>
+<li><a class="reference internal" href="#ondamissingparametererror" id="id30">OndaMissingParameterError</a></li>
+<li><a class="reference internal" href="#ondamissingparametergrouperror" id="id31">OndaMissingParameterGroupError</a></li>
+<li><a class="reference internal" href="#ondamissingpsanainitializationfunctionerror" id="id32">OndaMissingPsanaInitializationFunctionError</a></li>
+<li><a class="reference internal" href="#ondawrongparametertypeerror" id="id33">OndaWrongParameterTypeError</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="what-is-an-onda-monitor">
+<h2><a class="toc-backref" href="#id2">What Is An OnDA Monitor?</a><a class="headerlink" href="#what-is-an-onda-monitor" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="real-time-monitoring">
+<h3><a class="toc-backref" href="#id3">Real-time Monitoring</a><a class="headerlink" href="#real-time-monitoring" title="Permalink to this headline">¶</a></h3>
+<p>OnDA is a framework for the development of programs that can be used to monitor
+experiments in real-time (or quasi-real time, depending on your definition). This kind
+of programs retrieve data from a facility as soon as possible after data is collected,
+and perform some fast, simple analysis on it. The goal is to provide the people running
+the experiment enough information to make quick decisions.</p>
+<p>Usually, it is not strictly necessary to process all the data being collected in order
+to provide enough information for the decision making (for example, the hit rate for a
+Serial Crystallography experiment can be computed with high accuracy by analyzing only
+a portion of the collected data). It is however crucial that the information provided
+is up to date. Because of this, OnDA always prioritizes the processing of recently
+collected data over the processing of all collected data. Completeness is not the main
+priority, low latency in providing the information is. Additionally, the goal of OnDA
+is strictly to provide quick information to the people running the experiment, not any
+long-term analysis of the data: after the information is delivered to the user, the
+data is discarded without being saved to disk, and new data is retrieved from the
+facility.</p>
+<p>In order to achieve its goals of speed and high throughput in data processing, OnDA
+takes advantage of a master / worker parallel architecture. Several processing units
+(‘worker nodes’ in OnDA parlance) retrieve data events (a single frame or a collection
+of frames presented as a single unit by the facility) from a facility source, and
+process them. A ‘master’ node collects information from the workers and performs
+computations over multiple events (averaging, aggregation, etc.). The data is finally
+presented to the users in the console or sent to external programs for visualization.</p>
+<p>OnDA is mostly written using the Python programming language, however, some processing
+routines are implemented in other languages (C, C++) for performance reasons.</p>
+</div>
+<div class="section" id="the-three-layers">
+<h3><a class="toc-backref" href="#id4">The Three Layers</a><a class="headerlink" href="#the-three-layers" title="Permalink to this headline">¶</a></h3>
+<p>In the OnDA framework, a monitoring program is split into four cleanly separate parts
+(or ‘Layers’, in OnDA parlance):</p>
+<ul class="simple">
+<li>A part which deals with the running logic of the program (set up and finalization of
+the worker and master nodes, communication between the nodes, etc.). This is called
+‘Parallelization Layer’.</li>
+<li>A part that deals with the retrieval of data from a facility and with the extraction
+of information from it. This is the ‘Data Retrieval Layer’.</li>
+<li>A part that deals with the scientific processing of the extracted data. This is
+called the ‘Processing Layer’.</li>
+</ul>
+<p>The first two layers are usually different for each facility or beamline. The last
+layer, however, encodes the logic of the scientific processing of the data. When the
+same type of monitor is run at different facilities, the same code is run for the
+Processing Layer. Its interface with the other layers is very clearly defined, so they
+can swapped for different implementations without any change to the the Processing
+Layer itself.</p>
+<p>This clean interface is the reason why a developer who wants to write a monitoring
+program does not need to worry how data is retrieved from each specific facility, or
+passed around the nodes. All he or she needs to learn is how the data can be accessed
+and manipulated in the Processing Layer. No knowledge of the other two layers is
+required. A monitoring program implementation written for a facility can in most
+cases be run at other facilities just by switching to different implementations of the
+Data Retrieval and Parallelization layers.</p>
+</div>
+<div class="section" id="how-to-start-an-onda-monitor">
+<h3><a class="toc-backref" href="#id5">How To Start An OnDA Monitor</a><a class="headerlink" href="#how-to-start-an-onda-monitor" title="Permalink to this headline">¶</a></h3>
+<p>On a local machine, an OnDA monitor is usually started using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>onda_monitor.py --config CONFIGURATION_FILE SOURCE_STRING
+</pre></div>
+</div>
+<p>Or, when the ‘mpi’ implementation of the Paralleization Layer is used:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun -n &lt;NUM NODES&gt; onda_monitor.py --config CONFIGURATION_FILE SOURCE_STRING
+</pre></div>
+</div>
+<p>An OnDA monitor requires two pieces of information to operate: a source of data events,
+and a set of configuration parameters. Information about the data source is usually
+provided as an argument to the monitor’s start up script, in the form of a ‘source
+string’. Configuration parameters, which fully determine the behavior of the monitor,
+are instead stored in a configuration file. Both are discussed in the following
+paragraphs.</p>
+</div>
+</div>
+<div class="section" id="the-source-string">
+<h2><a class="toc-backref" href="#id6">The Source String</a><a class="headerlink" href="#the-source-string" title="Permalink to this headline">¶</a></h2>
+<p>Information about the source of data events is provided to OnDA at start-up, in the
+form of a command line argument to the ‘onda_monitor.py’ script.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>onda_monitor.py SOURCE_STRING
+</pre></div>
+</div>
+<p>It usually consists of a string, the ‘Source String’, which encodes the information in
+a way that depends on the specific Data Retrieval Layer implementation used by the
+monitor. This information is usually provided by the developer that configured the
+Data Retrieval Layer, and is often specific to the facility where the experiment is
+taking place. The following is a list of the facilities currently officially supported
+by OnDA, with a description of the typical format of the source string at each of
+them.</p>
+<div class="section" id="filesystem">
+<h3><a class="toc-backref" href="#id7">Filesystem</a><a class="headerlink" href="#filesystem" title="Permalink to this headline">¶</a></h3>
+<p>When the source of data for the monitor is the filesystem, the source string is the
+relative or absolute path to a file containing a list of files that the monitor must
+process. The files that must be process must be listed one per line, each with their
+full relative or absolute path. Example: files.lst</p>
+</div>
+<div class="section" id="lcls">
+<h3><a class="toc-backref" href="#id8">LCLS</a><a class="headerlink" href="#lcls" title="Permalink to this headline">¶</a></h3>
+<p>When OnDA runs at the LCLS facility, the source string is a psana-style DataSource
+string. Example: shmem=psana.0:stop=no</p>
+</div>
+<div class="section" id="petra-iii">
+<h3><a class="toc-backref" href="#id9">Petra III</a><a class="headerlink" href="#petra-iii" title="Permalink to this headline">¶</a></h3>
+<p>When the monitor runs at the Petra III facility, the source string is the ip or
+the hostname of the machine where HiDRA is running. Example: eval01.desy.de</p>
+</div>
+</div>
+<div class="section" id="the-configuration-file">
+<h2><a class="toc-backref" href="#id10">The Configuration File</a><a class="headerlink" href="#the-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>The behaviour of an OnDA monitor is completely determined by the content of its
+configuration file. By default, OnDA looks for a file called ‘monitor.toml’ in the
+current working directory. However, the ‘–config’ command line option to the
+‘onda_monitor.py’ script allows a custom location for the configuration file to be
+specified.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>onda_monitor.py --config PATH_TO_CONFIG_FILE SOURCE_STRING
+</pre></div>
+</div>
+<p>The content of the configuration file must formatted according to the rules of the
+<a class="reference external" href="https://github.com/toml-lang/toml">TOML</a> language. This language is not very
+different from the one traditionally used by Python ‘ini’ files. The main differences
+are:</p>
+<ul class="simple">
+<li>Strings (including file and directory paths) must be always enclosed within single or
+double quotes (‘ or “).</li>
+<li>The ‘True’ and ‘False’ keywords are spelled without a capital first letter (‘true’
+and ‘false’ respectively)</li>
+<li>There is no ‘None’ value. To set a parameter value to ‘None’, the parameter must
+be commented out or completely omitted from the configuration file.</li>
+</ul>
+<p>The parameters in the configuration file are divided into groups (‘Tables’ in TOML
+parlance). Each group contains a set of parameters that are related to each other
+(for example, because they apply to the same OnDA algorithm, or because they control
+the same feature of the monitor).</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[General]</span>
+<span class="na">broadcast_ip</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
+<span class="na">broadcast_port</span> <span class="o">=</span> <span class="s">12321</span>
+<span class="na">speed_report_interval</span> <span class="o">=</span> <span class="s">1000</span>
+</pre></div>
+</div>
+<p>The following is an alphabetical list of the parameter groups that can be found in the
+configuration file. Depending on which OnDA monitor is being run, not all the groups
+need to be present in the file at the same time. Conversely, custom OnDA monitors might
+introduce additional groups not described here. For each group, a list of the available
+parameters is provided. While some parameter are strictly required (again depending on
+the type of OnDA monitor), others are optional. If a parameter that is not strictly
+required is not found in the configuration file, its default value is considered to be
+‘None’.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When a parameter is a physical constant, it is assumed to be expressed in SI units
+unless the parameter name says otherwise!!</p>
+</div>
+<div class="section" id="correction">
+<h3><a class="toc-backref" href="#id11">[Correction]</a><a class="headerlink" href="#correction" title="Permalink to this headline">¶</a></h3>
+<p>This parameter group contains information used by OnDA for the correction of detector
+frames (using the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.Correction" title="onda.algorithms.generic_algorithms.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a> algorithm).</p>
+<ul class="simple">
+<li><strong>dark_filename (str or None):</strong> the relative or absolute path to an HDF5 file
+containing a dark data frame. Defaults to None. If this and the ‘dark_hdf5_path’
+arguments are not None, the dark data is loaded applied to the detector frame.
+Example: ‘run21_dark.h5’</li>
+<li><strong>dark_hdf5_path (str or None):</strong> the internal HDF5 path to the data block where the
+dark data frame is located. If the ‘dark_filename’ argument is not None, this
+argument must also be provided, and cannot be None. Otherwise it is ignored. Example:
+‘/data/data’</li>
+<li><strong>gain_filename (str or None):</strong> the relative or absolute path to an HDF5 file
+containing a gain map. If this and the ‘gain_hdf5_path’ arguments are not None, the
+gain map is loaded applied to the detector frame. Each pixel in the gain map must
+store the gain factor that will be applied to the corresponing pixel in the detector
+frame. Example: ‘cspad_gain_map.h5’</li>
+<li><strong>gain_hdf5_path (str or None)</strong> the internal HDF5 path to the data block where the
+gain map data is located. If the ‘gain_filename’ argument is not None, this argument
+must also be provided, and cannot be None. Otherwise it is ignored. Example:
+‘/data/data’</li>
+<li><strong>mask_filename (str or None):</strong> the relative or absolute path to an HDF5 file
+containing a mask. If this and the ‘mask_hdf5_path’ arguments are not None, the mask
+is loaded applied to the detector frame. The pixels in the mask must have a value of
+either 0, meaning that the corresponfing pixel in the detector frame must be set to
+0, or 1, meaning that the value of the corresponding pixel must be left alone.
+Example: ‘run18_mask.h5’</li>
+<li><strong>mask_hdf5_path (str or None):</strong> the internal HDF5 path to the data block where the
+mask data is located. If the ‘mask_filename’ argument is not None, this argument must
+also be provided, and cannot be None. Otherwise it is ignored. Example: ‘/data/data’</li>
+</ul>
+</div>
+<div class="section" id="crystallography">
+<h3><a class="toc-backref" href="#id12">[Crystallography]</a><a class="headerlink" href="#crystallography" title="Permalink to this headline">¶</a></h3>
+<p>This group contains parameters used by the OnDA monitor for crystallography.</p>
+<ul class="simple">
+<li><strong>geometry_file (str):</strong> the absolute or relative path to a geometry file in
+<a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a>
+format. Example: ‘pilatus.geom’.</li>
+<li><strong>geometry_is_optimized (bool):</strong> whether the geometry is optimized. This information
+is broadcasted by the monitor and used by external programs. For example, the OnDA
+GUI for crystallography uses this information to decide if the drawing of
+resolution rings should be allowed or not (if the geometry is not optimized, the
+rings are not reliable). Example: false.</li>
+<li><strong>hit_frame_sending_interval (int or None):</strong> this parameter determines how often the
+monitor sends <em>full detector frames</em> to external programs (as opposed to reduced
+data). It applies only to frames labelled as hits. If the value of this parameter is
+None, no hit frames are ever sent. If the value is a number, it is the number of hit
+frames that <em>each worker</em> skips before sending the next frame to the master node to
+be broadcasted. If, for example, the value of this parameter is 5, each worker sends
+every 5th hit frame to the master for broadcasting. Example: 10</li>
+<li><strong>max_num_peaks_for_hit (int):</strong> the maximum number of Bragg peaks that can be found
+in a detector frame for the frame to be labelled as a hit. Example: 500.</li>
+<li><strong>max_saturated_peaks (int):</strong> the maximum number of saturated Bragg peaks that can
+be found in a detector before the frame itself is labelled as saturated. A saturated
+Bragg peak is a peak whose integrated intensity (in ADUs) goes beyond the value
+specified by the ‘saturation_value’ parameter in this same group.</li>
+<li><strong>min_num_peaks_for_hit (int):</strong> the minimum number of Bragg peaks that need to be
+found in a detector frame for the frame to be labelled as a hit. Example: 10</li>
+<li><strong>non_hit_frame_sending_interval (int or None):</strong> this parameter determines how often
+the monitor sends <em>full detector frames</em> to external programs (as opposed to reduced
+data). It applies only to frames that have not been labelled as hits. If the value of
+this parameter is None, no non-hit frames are ever sent. If value is a number, it is
+the number of non-hit frames that <em>each worker</em> skips before sending the next frame
+to the master node to be broadcasted. If, for example, the value of this parameter is
+100, each worker sends every 100th non-hit frame to the master for broadcasting.
+Example: 1000</li>
+<li><strong>running_average_window_size (int):</strong> the size of the running window used by the
+monitor to compute the average hit and saturation rates. The rates are computed
+over the number of most recent events specified by this parameter. Example: 100.</li>
+<li><strong>saturation_value (float):</strong> the minimum value (in ADUs) of the integrated intensity
+of a Bragg peak for the peak to be labelled as saturated. The value of this parameter
+usually depends on the specific detector being used. Example: 5000.5.</li>
+</ul>
+</div>
+<div class="section" id="dataaccumulator">
+<h3><a class="toc-backref" href="#id13">[DataAccumulator]</a><a class="headerlink" href="#dataaccumulator" title="Permalink to this headline">¶</a></h3>
+<p>This group contains a parameter that dictates how OnDA aggregates events in the master
+node before sending them to external programs. It refers to the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.DataAccumulator" title="onda.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a> algorithm.</p>
+<ul class="simple">
+<li><strong>num_events_to_accumulate (int):</strong> number of events for which data is accumulated in
+the master node before being broadcasted in a single transmission.  Example: 20</li>
+</ul>
+</div>
+<div class="section" id="dataretrievallayer">
+<h3><a class="toc-backref" href="#id14">[DataRetrievalLayer]</a><a class="headerlink" href="#dataretrievallayer" title="Permalink to this headline">¶</a></h3>
+<p>This parameter group contains information that determines how the Data Retrieval Layer
+extracts data from a facility framework.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Please exercise caution when changing the parameters in this group: a wrong choice
+can severly interfere with data retrieval and extraction.</p>
+</div>
+<ul class="simple">
+<li><strong>fallback_beam_energy_in_eV (float)</strong> the beam energy <em>in eV</em>. OnDA uses this
+fallback value when the framework does not provide beam energy information.
+Example: 12000</li>
+<li><strong>fallback_detector_distance_in_mm (float)</strong> the detector distance <em>in mm</em>. OnDA
+uses this fallback value when the framework does not provide detector distance
+information. Example: 250</li>
+<li><strong>hidra_base_port (int):</strong> the base port used by the HiDRA framework to send data
+to the worker nodes. HiDRA will use this port and the following ones (one per node)
+to contact the workers. The machine where OnDA is running and the one where HiDRA is
+running should be able to reach each other at this port and the immediately following
+ones. Example: 52000</li>
+<li><strong>hidra_transfer_type (‘data’ or ‘metadata’):</strong> the transfer type used by the HiDRA
+framework for the current monitor. If this parameter has a value of ‘data’, OnDA asks
+HiDRA to stream the detector data to the monitor. If instead the value is ‘metadata’,
+OnDA asks HiDRA to just stream information on where in the filesystem the most recent
+data can be found. Usually it is automatically determined from the detector(s) model
+currently used by the monitor, but it can be overridden using this parameter.
+Example: ‘data’</li>
+<li><strong>karabo_detector_label (str):</strong> the label of the main x-ray detector from which
+the Karabo framework retrieves data. Example:
+‘SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED’</li>
+<li><strong>karabo_max_event_age (float or None):</strong> the maximum age (in seconds) that a data
+event retrieved from Karabo must have in order to be processed. If the age of the
+event, defined as the time between data collection and the retrieval of the event by
+OnDA, is higher than this threshold, the event is not processed and a new event is
+retrieved. If the value of this parameter is None, all events are processed. Example:
+0.5</li>
+<li><strong>num_of_most_recent_frames_in_event_to_process (int or None):</strong> number of frames for
+each event to process. Please notice that this are the <em>most recent</em> events: if the
+value of this paramerer is, for example, 100, only the <em>last</em> 100 frames in the event
+are processed. If the value of this parameter is None, all events are processed.
+Example: 0.5</li>
+<li><strong>psana_detector_name (str):</strong> * <strong>karabo_detector_label (str):</strong> the name of the
+main x-ray detector from which the psana framework retrieves data. Example:
+‘DscCsPad’</li>
+<li><strong>psana_detector_distance_epics_name (str):</strong> the name of the Epics device from which
+the psana framework retrieves detector distance information for the main x-ray
+detector. Example: ‘CXI:DS1:MMS:06.RBV’</li>
+<li><strong>psana_digitizers_name (str):</strong> the name of the main digitizer device from which
+the psana framework retrieves information.</li>
+<li><strong>psana_evr_source (str):</strong> name of the EVR source from which the psana framework
+retrieves information.</li>
+<li><strong>psana_opal_name (str):</strong> the name of the Opal camera from which the psana framework
+retrieves information.</li>
+<li><strong>psana_timetool_epics_name (str):</strong> the name of the Epics device from which
+the psana framework retrieves timetool information.</li>
+<li><strong>psana_max_event_age (float or None):</strong> the maximum age (in seconds) that a data
+event retrieved from psana must have in order to be processed. If the age of the
+event, defined as the time between data collection and the retrieval of the event by
+OnDA, is higher than this threshold, the event is not processed and a new event is
+retrieved. Example: 0.5</li>
+</ul>
+</div>
+<div class="section" id="detectorcalibration">
+<h3><a class="toc-backref" href="#id15">[DetectorCalibration]</a><a class="headerlink" href="#detectorcalibration" title="Permalink to this headline">¶</a></h3>
+<p>This parameter group contains information used by OnDA for the calibration of
+detector frames, using one of the calibration algorithms defined
+<a class="reference internal" href="onda.algorithms.calibration_algorithms.html"><span class="doc">here</span></a>.</p>
+<ul class="simple">
+<li><strong>calibration_algorithm (str or None):</strong> name of the calibration algorithm that the
+current monitor uses to calibrate the detector frame. The value of this parameter
+must be None or match one of the names of the calibration algorithms. If the value is
+None, no calibration will be performed. Example: ‘Agipd1MCalibration’</li>
+<li><strong>calibration_filename (str or None):</strong> absolute or relative path to an HDF5 file
+containing the calibration parameters. The exact format of this file depends on the
+calibration algorithm being used. Please consult the documentation for the specific
+algorithm. If no calibration is performed, this parameter is ignored. Example:
+‘agipd_calibration_params.h5’</li>
+</ul>
+</div>
+<div class="section" id="general">
+<h3><a class="toc-backref" href="#id16">[General]</a><a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<p>This parameter group is a generic catch-all category for parameters that don’t fit in
+any other group. Many of the parameters in this group are related to the way the OnDA
+monitor broadcasts the data to external programs for visualization.</p>
+<ul class="simple">
+<li><strong>broadcast_ip (str or None):</strong> the hostname or ip address where the monitor
+broadcasts data to external programs. If the value of this parameter is None, the ip
+is autodetected. This is usually fine. An ip or hostname must be usually manually
+specified in exceptional cases (e.g: multiple network interfaces on the same
+machine). Example: ‘127.0.0.1’</li>
+<li><strong>broadcast_port (int or None):</strong> the port where the monitor broadcasts data to
+external programs. If the value of this parameter is None, port 12321 is used.
+Example: 12322</li>
+<li><strong>speed_report_interval (int):</strong> the number of events that must pass between
+consecutive speed reports from OnDA. This parameter determines how often OnDA prints
+the ‘Processed: ..’ message that provides information for about the processing speed.
+Exaple: 100</li>
+</ul>
+</div>
+<div class="section" id="onda">
+<h3><a class="toc-backref" href="#id17">[Onda]</a><a class="headerlink" href="#onda" title="Permalink to this headline">¶</a></h3>
+<div class="admonition danger">
+<p class="first admonition-title">Danger</p>
+<p class="last">!! This section determines the core behavior of the OnDA monitor. Do not modify it
+unless you know what your are doing !!</p>
+</div>
+<ul class="simple">
+<li><strong>data_retrieval_layer (str):</strong> name of the python module with the implementation of
+the Data Retreival Layer for the current monitor. Example: ‘lcls_spb’</li>
+<li><strong>paralelization_layer (str):</strong> name of the python module with the implementation of
+the Parallelization Layer for the current monitor. Example: ‘mpi’</li>
+<li><strong>processing_layer (str):</strong> name of the python module with the implementation of the
+Processing Layer for the current monitor. Example: ‘crystallography’</li>
+<li><strong>required_data (List[str]):</strong> data that the current monitor should retrieve for
+each event. For each type of data, a corresponding Data Extraction Function must be
+defined in the Data Retrieval Layer. If this condition is met, the extracted data
+will be available in the ‘data’ object in the Processing layer.
+Example: [‘detector_data’, ‘detector_distance’, ‘beam_energy’,’timestamp’]</li>
+</ul>
+</div>
+<div class="section" id="peakfinder8peakdetection">
+<h3><a class="toc-backref" href="#id18">[Peakfinder8PeakDetection]</a><a class="headerlink" href="#peakfinder8peakdetection" title="Permalink to this headline">¶</a></h3>
+<p>This parameter group contains parameter used by the OnDA monitor to perform Bragg peak
+finding on a detector frame, using the (using the <a class="reference internal" href="onda.algorithms.crystallography_algorithms.html#onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Peakfinder8PeakDetection</span></code></a> algorithm).</p>
+<ul class="simple">
+<li><strong>adc_threshold (float):</strong> minimum ADC threshold for peak detection. Example: 200</li>
+<li><strong>bad_pixel_map_filename (str):</strong> absolute or relative path to an HDF5 file
+containing a bad pixel map. The map is used mark areas of the data frame that must be
+excluded from the peak search. Each pixel in the map must have a value of either 0,
+meaning that the corresponding pixel in the data frame must be ignored, or 1, meaning
+that the corresponding pixel must be included in the search. The map is only used to
+exclude areas from the peak search: the data is not modified in any way. Example:
+‘bad_pixel_mask.h5’</li>
+<li><strong>bad_pixel_map_hdf5_path (str):</strong> internal HDF5 path to the data block where the
+a bad pixel map is stored. See the ‘bad_pixel_map_filename’ parameter. Example:
+‘/data/data’</li>
+<li><strong>max_num_peaks (int):</strong> maximum number of peaks that will be retrieved from each
+data frame. Additional peaks will be ignored. Example: 2048</li>
+<li><strong>local_bg_radius (int):</strong> radius for the estimation of the local background in
+pixels. Example: 3</li>
+<li><strong>max_pixel_count (int):</strong> maximum size of a peak in pixels. Example: 10</li>
+<li><strong>max_res (int):</strong> maximum resolution for a peak in pixels. Example: 800</li>
+<li><strong>min_pixel_count (int):</strong> minimum size of a peak in pixels. Example: 1</li>
+<li><strong>minimum_snr (float):</strong> minimum signal-to-noise ratio for peak detection. Example:
+5.0</li>
+<li><strong>min_res (int):</strong> minimum resolution for a peak in pixels. Example: 20</li>
+</ul>
+</div>
+</div>
+<div class="section" id="errors">
+<h2><a class="toc-backref" href="#id19">Errors</a><a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h2>
+<p>When something does not work as expected, an OnDA monitor can report an error. Errors
+can be fatal, in which case the monitor simply exits, or not, and the monitor simply
+reports the error and continues processing data.</p>
+<p>OnDA errors are not reported as normal python errors. They are clearly labelled as
+coming from the monitor, and their traceback information is removed. The ‘–debug’
+options of the ‘onda_monitor.py’ script disables this behavior and forces OnDa to
+report all errors as normal python errors.</p>
+<p>When the mpi Parallelization layer is used, OnDA fatal errors are often reported
+multiple times before the monitor stops This is normal: it can happen that multiple
+nodes report the same error before the MPI engine has time to stop.</p>
+<p>A list of the most common errors reported by OnDA follows, with a brief discussion of
+each.</p>
+<div class="section" id="ondaconfigurationfilereadingerror">
+<h3><a class="toc-backref" href="#id20">OndaConfigurationFileReadingError</a><a class="headerlink" href="#ondaconfigurationfilereadingerror" title="Permalink to this headline">¶</a></h3>
+<p>There was a problem finding or reading the configuration file. Please check that the
+file exists and is readable. Remember that OnDA looks by default for a file called
+‘monitor.toml’ in the current working directory.</p>
+</div>
+<div class="section" id="ondaconfigurationfilesyntaxerror">
+<h3><a class="toc-backref" href="#id21">OndaConfigurationFileSyntaxError</a><a class="headerlink" href="#ondaconfigurationfilesyntaxerror" title="Permalink to this headline">¶</a></h3>
+<p>There is a syntax error in the configuration file, where specified by the error. Make
+sure that the file follows the  <a class="reference external" href="https://github.com/toml-lang/toml">TOML</a> syntax.</p>
+</div>
+<div class="section" id="ondadataextractionerror">
+<h3><a class="toc-backref" href="#id22">OndaDataExtractionError</a><a class="headerlink" href="#ondadataextractionerror" title="Permalink to this headline">¶</a></h3>
+<p>An error has happned during the extraction of data from an event. This error is usualy
+not fatal and can happen often if the data stream is corrupted. Usually OnDA skips
+processing the event and retrieves a new one.</p>
+</div>
+<div class="section" id="ondahdf5filereadingerror">
+<h3><a class="toc-backref" href="#id23">OndaHdf5FileReadingError</a><a class="headerlink" href="#ondahdf5filereadingerror" title="Permalink to this headline">¶</a></h3>
+<p>An error has happened while reading an HDF5 file. Please check that the file exists and
+is readable.</p>
+</div>
+<div class="section" id="ondahidraapierror">
+<h3><a class="toc-backref" href="#id24">OndaHidraAPIError</a><a class="headerlink" href="#ondahidraapierror" title="Permalink to this headline">¶</a></h3>
+<p>An error has happened during the connection with the HiDRA framework. Check that HiDRA
+is running at that the source string specifies the correct machine.</p>
+</div>
+<div class="section" id="ondainvalidsourceerror">
+<h3><a class="toc-backref" href="#id25">OndaInvalidSourceError</a><a class="headerlink" href="#ondainvalidsourceerror" title="Permalink to this headline">¶</a></h3>
+<p>The format of the source string is not valid. Check that there are no typos in the
+string and that you are not using a string for a different facility.</p>
+</div>
+<div class="section" id="ondamissingdependencyerror">
+<h3><a class="toc-backref" href="#id26">OndaMissingDependencyError</a><a class="headerlink" href="#ondamissingdependencyerror" title="Permalink to this headline">¶</a></h3>
+<p>One of the optional python module needed by OnDA at some facilities is not installed.
+This error often happens with python modules from facility frameworks (for example,
+the psana module). Please contact one of the developers.</p>
+</div>
+<div class="section" id="ondamissingdataextractionfunctionerror">
+<h3><a class="toc-backref" href="#id27">OndaMissingDataExtractionFunctionError</a><a class="headerlink" href="#ondamissingdataextractionfunctionerror" title="Permalink to this headline">¶</a></h3>
+<p>One of the Data Extraction Functions is not defined in the Data Retrieval Layer. Please
+contact one of the developers.</p>
+</div>
+<div class="section" id="ondamissingeventhandlingfunctionerror">
+<h3><a class="toc-backref" href="#id28">OndaMissingEventHandlingFunctionError</a><a class="headerlink" href="#ondamissingeventhandlingfunctionerror" title="Permalink to this headline">¶</a></h3>
+<p>One of the Event Handling Functions is not defined in the Data Retrieval Layer. Please
+contact one of the developers.</p>
+</div>
+<div class="section" id="ondamissinghdf5patherror">
+<h3><a class="toc-backref" href="#id29">OndaMissingHdf5PathError</a><a class="headerlink" href="#ondamissinghdf5patherror" title="Permalink to this headline">¶</a></h3>
+<p>An internal path in the HDF5 file is not found. The file exists and can be read, but
+the iternal path cannot be found. Please check that the HDF5 path is correct.</p>
+</div>
+<div class="section" id="ondamissingparametererror">
+<h3><a class="toc-backref" href="#id30">OndaMissingParameterError</a><a class="headerlink" href="#ondamissingparametererror" title="Permalink to this headline">¶</a></h3>
+<p>A required parameter is missing from the configuration file.</p>
+</div>
+<div class="section" id="ondamissingparametergrouperror">
+<h3><a class="toc-backref" href="#id31">OndaMissingParameterGroupError</a><a class="headerlink" href="#ondamissingparametergrouperror" title="Permalink to this headline">¶</a></h3>
+<p>A parameter group (a section beginning with a string between square brackets - for
+example, ‘[Onda]’) is missing from the configuration file.</p>
+</div>
+<div class="section" id="ondamissingpsanainitializationfunctionerror">
+<h3><a class="toc-backref" href="#id32">OndaMissingPsanaInitializationFunctionError</a><a class="headerlink" href="#ondamissingpsanainitializationfunctionerror" title="Permalink to this headline">¶</a></h3>
+<p>One of the psana Detector Interface Initialization Functions is not defined in the Data
+Retrieval Layer. Please contact one of the developers.</p>
+</div>
+<div class="section" id="ondawrongparametertypeerror">
+<h3><a class="toc-backref" href="#id33">OndaWrongParameterTypeError</a><a class="headerlink" href="#ondawrongparametertypeerror" title="Permalink to this headline">¶</a></h3>
+<p>The type of the parameter in the configuration file does not match the requested one.
+Check if the type (string, float, int) of the parameter in the configuration file is
+correct.</p>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The named_tuples Module &#8212; OnDA 2019.8.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The parameters Module" href="onda.utils.parameters.html" />
+    <link rel="prev" title="The hdf5 Module" href="onda.utils.hdf5.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OnDA</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.8.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_getting_onda.html">Getting OnDA</a></li>
+                <li><a href="documentation_running_onda.html">Running OnDA</a></li>
+                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <p>[<a class="reference internal" href="onda.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-onda.utils.named_tuples">
+<span id="the-named-tuples-module"></span><h1>The named_tuples Module<a class="headerlink" href="#module-onda.utils.named_tuples" title="Permalink to this headline">¶</a></h1>
+<p>OnDA named tuples.</p>
+<p>This module contains a collection of named tuples used throughout the OnDA framework.</p>
+<dl class="class">
+<dt id="onda.utils.named_tuples.PeakList">
+<em class="property">class </em><code class="descname">PeakList</code><a class="headerlink" href="#onda.utils.named_tuples.PeakList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Information about Bragg peaks found in a detector data frame (list of peaks).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fs</strong> (<em>List</em><em>[</em><em>float</em><em>]</em>) – a list of fractional fs indexes locating the detected peaks
+in the detector data frame.</li>
+<li><strong>ss</strong> (<em>List</em><em>[</em><em>float</em><em>]</em>) – a list of fractional ss indexes locating the detected peaks
+in the detector data frame.</li>
+<li><strong>intensity</strong> (<em>List</em><em>[</em><em>float</em><em>]</em>) – a list of integrated intensities for the detected
+peaks.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.PeakList.fs">
+<code class="descname">fs</code><a class="headerlink" href="#onda.utils.named_tuples.PeakList.fs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.PeakList.intensity">
+<code class="descname">intensity</code><a class="headerlink" href="#onda.utils.named_tuples.PeakList.intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.PeakList.ss">
+<code class="descname">ss</code><a class="headerlink" href="#onda.utils.named_tuples.PeakList.ss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="onda.utils.named_tuples.Peakfinder8Info">
+<em class="property">class </em><code class="descname">Peakfinder8Info</code><a class="headerlink" href="#onda.utils.named_tuples.Peakfinder8Info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Peakfinder8 information for a detector.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>asic_nx</strong> (<em>int</em>) – the fs size in pixels of each detector’s ASIC in the detector data
+frame.</li>
+<li><strong>asic_ny</strong> (<em>int</em>) – the ss size in pixels of each detector’s ASIC in the detector data
+frame.</li>
+<li><strong>nasics_x</strong> (<em>int</em>) – the number of ASICs along the fs axis of the detector data frame.</li>
+<li><strong>nasics_y</strong> (<em>int</em>) – the number of ASICs along the ss axis of the detector data frame.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.Peakfinder8Info.asic_nx">
+<code class="descname">asic_nx</code><a class="headerlink" href="#onda.utils.named_tuples.Peakfinder8Info.asic_nx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.Peakfinder8Info.asic_ny">
+<code class="descname">asic_ny</code><a class="headerlink" href="#onda.utils.named_tuples.Peakfinder8Info.asic_ny" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.Peakfinder8Info.nasics_x">
+<code class="descname">nasics_x</code><a class="headerlink" href="#onda.utils.named_tuples.Peakfinder8Info.nasics_x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.Peakfinder8Info.nasics_y">
+<code class="descname">nasics_y</code><a class="headerlink" href="#onda.utils.named_tuples.Peakfinder8Info.nasics_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="onda.utils.named_tuples.HidraInfo">
+<em class="property">class </em><code class="descname">HidraInfo</code><a class="headerlink" href="#onda.utils.named_tuples.HidraInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>HiDRA initialization information.</p>
+<p>TODO: Determine field types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>query</strong> – an object storing information about the transfer type.</li>
+<li><strong>targets</strong> – a list of objects storing information about the worker nodes that will
+receive data from HiDRA.</li>
+<li><strong>data_base_path</strong> (<em>str</em>) – the absolute or relative base path to be used for locating
+files in the filesystem when HiDRA only provides relative path information.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.HidraInfo.data_base_path">
+<code class="descname">data_base_path</code><a class="headerlink" href="#onda.utils.named_tuples.HidraInfo.data_base_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.HidraInfo.query">
+<code class="descname">query</code><a class="headerlink" href="#onda.utils.named_tuples.HidraInfo.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.HidraInfo.targets">
+<code class="descname">targets</code><a class="headerlink" href="#onda.utils.named_tuples.HidraInfo.targets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="onda.utils.named_tuples.DataAndCalibrationInfo">
+<em class="property">class </em><code class="descname">DataAndCalibrationInfo</code><a class="headerlink" href="#onda.utils.named_tuples.DataAndCalibrationInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Detector frame data and additional information needed for the calibration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<em>numpy.ndarray</em>) – the data frame to calibrate.</li>
+<li><strong>info</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing additional information needed for the
+calibration. The exact content of this dictionary depends on the calibration
+algorithm being used (see the documentation of the relevant algorithm).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.DataAndCalibrationInfo.data">
+<code class="descname">data</code><a class="headerlink" href="#onda.utils.named_tuples.DataAndCalibrationInfo.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.DataAndCalibrationInfo.info">
+<code class="descname">info</code><a class="headerlink" href="#onda.utils.named_tuples.DataAndCalibrationInfo.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="onda.utils.named_tuples.ProcessedData">
+<em class="property">class </em><code class="descname">ProcessedData</code><a class="headerlink" href="#onda.utils.named_tuples.ProcessedData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<p>Processed data transferred from a worker node to the master node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the transferred data.</li>
+<li><strong>node_rank</strong> (<em>int</em>) – the rank, in the OnDA pool, of the worker node from which the data
+is transferred.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.ProcessedData.data">
+<code class="descname">data</code><a class="headerlink" href="#onda.utils.named_tuples.ProcessedData.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="onda.utils.named_tuples.ProcessedData.worker_rank">
+<code class="descname">worker_rank</code><a class="headerlink" href="#onda.utils.named_tuples.ProcessedData.worker_rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
