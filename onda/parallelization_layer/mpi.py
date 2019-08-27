@@ -21,7 +21,7 @@ master/worker architecture.
 """
 from __future__ import absolute_import, division, print_function
 
-import pprint
+import json
 import sys
 from typing import Any, Dict, Callable, Optional, Tuple  # pylint: disable=unused-import
 
@@ -211,7 +211,13 @@ class ParallelizationEngine(object):
 
         if self.role == "master":
             print("Starting OnDA with the following parameters:")
-            pprint.pprint(self._monitor_params.get_all_parameters())
+            print(
+                json.dumps(
+                    self._monitor_params.get_all_parameters(),
+                    indent=4,
+                    sort_keys=True
+                )
+            )
             _ = self._initialize_event_source(  # pylint: disable=unused-variable
                 source=self._source,
                 node_pool_size=self._mpi_size,
