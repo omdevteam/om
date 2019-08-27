@@ -234,7 +234,6 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
     """
     psana_detector_interface_func_list = [x.strip() for x in required_data]
     psana_detector_interface_funcs = {}
-    psana_interface_func_dict = {}
     for func_name in psana_detector_interface_func_list:
         try:
             # Tries to retrieve a function with the name obtained by adding the
@@ -253,7 +252,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
                 cause=exc,
             )
 
-    return psana_interface_func_dict
+    return psana_detector_interface_funcs
 
 
 def get_peakfinder8_info(monitor_params):

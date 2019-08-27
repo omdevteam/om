@@ -72,12 +72,10 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    cspad_psana = event.framework_info["psana_detector_interface"][
-        event.framework_info["detector_label"]
-    ].calib(event.data)
+    cspad_psana = event.framework_info["psana_detector_interface"]["detector_data"].calib(event.data)
     if cspad_psana is None:
         raise exceptions.OndaDataExtractionError(
-            "Could not retrieve detector from psana."
+            "Could not retrieve detector data from psana."
         )
 
     # Rearranges the data into 'slab' format.

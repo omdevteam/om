@@ -247,8 +247,7 @@ class CrystallographyGui(gui.OndaGui):
                 [
                     2.0
                     * self._res
-                    * (self._local_data[-1][b"detector_distance"] + self._coffset)
-                    * 1e-3
+                    * (self._local_data[-1][b"detector_distance"]*1e-3 + self._coffset)
                     * numpy.tan(
                         2.0 * numpy.arcsin(lambda_ / (2.0 * resolution * 1e-10))
                     )

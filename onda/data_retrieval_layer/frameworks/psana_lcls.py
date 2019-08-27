@@ -138,10 +138,10 @@ def event_generator(
             "psana.calib-dir".encode("ascii"), psana_calib_dir.encode("ascii")
         )
     else:
-        print("Calibration directory not provided or not found.")
-    psana_source = psana.DataSource(source)
+        print("OnDA Warning: Calibration directory not provided or not found.")
+    psana_source = psana.DataSource(source.encode('ascii'))
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda", parameter="data_retrieval_layer", type_=list, required=True
+        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
@@ -164,6 +164,7 @@ def event_generator(
     )
     # Calls all the required psana detector interface initialization functions and
     # stores the returned objects in a dictionary.
+    event.framework_info["psana_detector_interface"] = {}
     for f_name, func in iteritems(psana_detector_interface_funcs):
         event.framework_info["psana_detector_interface"][
             f_name.split("_init")[0]
@@ -177,7 +178,7 @@ def event_generator(
     else:
         psana_events = psana_source.events()
     for psana_event in psana_events:
-        event.framework_info["psana_event"] = psana_event
+        event.data = psana_event
 
         # Recovers the timestamp from the psana event (as seconds from the Epoch) and
         # stores it in the event dictionary to be retrieved later.
@@ -509,7 +510,7 @@ def xrays_active_init(monitor_params):
 
 
 def timestamp(event):
-    # type (data_event.DataEvent) -> ? TODO: Determine return type
+    # type (data_event.DataEvent) -> numpy.float64
     """
     Gets the timestamp of an event retrieved from psana at LCLS.
 
@@ -524,7 +525,13 @@ def timestamp(event):
     """
     # Returns the timestamp stored in the event dictionary, without extracting it
     # again.
-    return event["timestamp"]
+    timest = event.framework_info["timestamp"]
+    if timest is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve timestamp information from psana."
+        )
+
+    return timest
 
 
 def detector_distance(event):
@@ -546,7 +553,13 @@ def detector_distance(event):
 
         float: the distance between the detector and the sample in mm.
     """
-    return event["psana_detector_interface"]["detector_distance"]()
+    det_dist = event.framework_info["psana_detector_interface"]["detector_distance"]()
+    if det_dist is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve detector distance information from psana."
+        )
+
+    return det_dist
 
 
 def beam_energy(event):
@@ -563,11 +576,17 @@ def beam_energy(event):
 
         float: the energy of the beam in # TODO: determine units.
     """
-    return (
-        event["psana_detector_interface"]["beam_energy"]
-        .get(event["psana_event"])
+    beam_en = (
+        event.framework_info["psana_detector_interface"]["beam_energy"]
+        .get(event.data)
         .ebeamPhotonEnergy()
     )
+    if beam_en is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve beam energy information from psana."
+        )
+
+    return beam_en
 
 
 def timetool_data(event):
@@ -589,7 +608,13 @@ def timetool_data(event):
 
         float: the readout of the timetool instrument.
     """
-    return event["psana_detector_interface"]["timetool_data"]()
+    time_tl = event.framework_info["psana_detector_interface"]["timetool_data"]()
+    if time_tl is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve time tool data from psana."
+        )
+
+    return time_tl
 
 
 def digitizer_data(event):
@@ -610,9 +635,15 @@ def digitizer_data(event):
 
         numpy.array: the waveform from the digitizer.
     """
-    return event["psana_detector_interface"]["digitizer_data"].waveform(
-        event["psana_event"]
+    digit_data = event["psana_detector_interface"]["digitizer_data"].waveform(
+        event.data
     )
+    if digit_data is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve digitizer data from psana."
+        )
+
+    return digit_data
 
 
 def opal_data(event):
@@ -632,7 +663,13 @@ def opal_data(event):
 
         numpy.ndarray: a 2D array containing the image from the Opal camera.
     """
-    return event["psana_detector_interface"]["opal_data"].calib(event["psana_event"])
+    opal_data = event["psana_detector_interface"]["opal_data"].calib(event.data)
+    if opal_data is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve Opel camera data from psana."
+        )
+
+    return opal_data
 
 
 def optical_laser_active(event):
@@ -665,7 +702,11 @@ def optical_laser_active(event):
     """
     current_evr_codes = event["psana_detector_interface"][
         "optical_laser_active"
-    ].psana_detector_handle.eventCodes(event["psana_event"])
+    ].psana_detector_handle.eventCodes(event.data)
+    if current_evr_codes is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve event codes from psana."
+        )
 
     return (
         event["psana_detector_interface"]["optical_laser_active"].active_laser_evr_code
@@ -702,7 +743,11 @@ def xrays_active(event):
     """
     current_evr_codes = event["psana_detector_interface"][
         "xrays_active"
-    ].psana_detector_handle.eventCodes(event["psana_event"])
+    ].psana_detector_handle.eventCodes(event.data)
+    if current_evr_codes is None:
+        raise exceptions.OndaDataExtractionError(
+            "Could not retrieve event codes from psana."
+        )
 
     return (
         event["psana_detector_interface"]["xrays_active"].active_laser_evr_code
