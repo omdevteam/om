@@ -26,7 +26,7 @@ import copy
 import time
 from typing import Any, Callable, Dict, List  # pylint: disable=unused-import
 
-from onda.utils import data_transmission
+from onda.utils import zmq_gui
 
 try:
     from PyQt5 import QtCore, QtWidgets as qt_widget_module
@@ -88,7 +88,7 @@ class OndaGui(qt_widget_module.QMainWindow):
         self.statusBar().showMessage("")
 
         self._data_listener_thread = QtCore.QThread()
-        self._data_listener = data_transmission.ZmqDataListener(
+        self._data_listener = zmq_gui.ZmqDataListener(
             hostname=hostname, port=port, tag=tag
         )
         self._data_listener.zmqmessage.connect(self._data_received)

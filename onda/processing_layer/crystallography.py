@@ -33,8 +33,8 @@ from onda.algorithms import (
     generic_algorithms as gen_algs,
 )
 from onda.parallelization_layer import mpi
-from onda.utils import (  # pylint: disable=unused-import
-    data_transmission,
+from onda.utils import (
+    zmq_monitor,
     dynamic_import,
     named_tuples,
     parameters,
@@ -257,7 +257,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             sys.stdout.flush()
         if self.role == "master":
             self._speed_report_interval = monitor_parameters.get_param(
-                group="General",
+                group="Crystallography",
                 parameter="speed_report_interval",
                 type_=int,
                 required=True,
@@ -296,12 +296,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._avg_sat_rate = 0
 
             broadcast_socket_ip = monitor_parameters.get_param(
-                group="General", parameter="broadcast_ip", type_=str
+                group="Crystallography", parameter="broadcast_ip", type_=str
             )
             broadcast_socket_port = monitor_parameters.get_param(
-                group="General", parameter="broadcast_port", type_=int
+                group="Crystallography", parameter="broadcast_port", type_=int
             )
-            self._data_broadcast_socket = data_transmission.ZmqDataBroadcaster(
+            self._data_broadcast_socket = zmq_monitor.ZmqDataBroadcaster(
                 hostname=broadcast_socket_ip, port=broadcast_socket_port
             )
 
