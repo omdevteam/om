@@ -132,7 +132,9 @@ class ParallelizationEngine(object):
                 type_=int,
             )
             frames_in_event_to_skip = monitor_params.get_param(
-                group="General", parameter="frame_indexes_to_skip", type_=list
+                group="DataRetrievalLayer",
+                parameter="frame_indexes_to_skip",
+                type_=list,
             )
             if frames_in_event_to_skip:
                 self._frames_in_event_to_skip = tuple(frames_in_event_to_skip)
