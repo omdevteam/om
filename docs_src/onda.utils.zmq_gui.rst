@@ -1,9 +1,9 @@
 [:doc:`Back to top of code documentation <onda>`]
 
-The data\_transmission Module
-=============================
+The zmq\_gui Module
+===================
 
-.. automodule:: onda.utils.data_transmission
+.. automodule:: onda.utils.zmq_gui
     :members:
     :undoc-members:
     :show-inheritance:

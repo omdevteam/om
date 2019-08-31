@@ -118,8 +118,8 @@
     <span class="n">generic_algorithms</span> <span class="k">as</span> <span class="n">gen_algs</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">onda.parallelization_layer</span> <span class="k">import</span> <span class="n">mpi</span>
-<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="p">(</span>  <span class="c1"># pylint: disable=unused-import</span>
-    <span class="n">data_transmission</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">zmq_monitor</span><span class="p">,</span>
     <span class="n">dynamic_import</span><span class="p">,</span>
     <span class="n">named_tuples</span><span class="p">,</span>
     <span class="n">parameters</span><span class="p">,</span>
@@ -342,7 +342,7 @@
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;master&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_speed_report_interval</span> <span class="o">=</span> <span class="n">monitor_parameters</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;General&quot;</span><span class="p">,</span>
+                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Crystallography&quot;</span><span class="p">,</span>
                 <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;speed_report_interval&quot;</span><span class="p">,</span>
                 <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
                 <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -381,12 +381,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_avg_sat_rate</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="n">broadcast_socket_ip</span> <span class="o">=</span> <span class="n">monitor_parameters</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;General&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;broadcast_ip&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span>
+                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Crystallography&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;broadcast_ip&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span>
             <span class="p">)</span>
             <span class="n">broadcast_socket_port</span> <span class="o">=</span> <span class="n">monitor_parameters</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;General&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;broadcast_port&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span>
+                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Crystallography&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;broadcast_port&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span> <span class="o">=</span> <span class="n">data_transmission</span><span class="o">.</span><span class="n">ZmqDataBroadcaster</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span> <span class="o">=</span> <span class="n">zmq_monitor</span><span class="o">.</span><span class="n">ZmqDataBroadcaster</span><span class="p">(</span>
                 <span class="n">hostname</span><span class="o">=</span><span class="n">broadcast_socket_ip</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">broadcast_socket_port</span>
             <span class="p">)</span>
 

@@ -83,8 +83,10 @@ Authors
 -------
 
 OnDA is currently developed in the lab of `Henry Chapman <https://cid.cfel.de/>`_ at
-the Center For Free Electron Laser Science in Hamburg. Many people from different
-institutions worlwide contributed code, testing and support to the project.
+the Center For Free Electron Laser Science in Hamburg. 
+
+Many people from different institutions worlwide contribute code, testing and support
+to the project:
 
 * **Valerio Mariani** (corresponding author: valerio.mariani@desy.de)
 * Anton Barty

@@ -223,10 +223,10 @@
             <span class="s2">&quot;psana.calib-dir&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">),</span> <span class="n">psana_calib_dir</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calibration directory not provided or not found.&quot;</span><span class="p">)</span>
-    <span class="n">psana_source</span> <span class="o">=</span> <span class="n">psana</span><span class="o">.</span><span class="n">DataSource</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;OnDA Warning: Calibration directory not provided or not found.&quot;</span><span class="p">)</span>
+    <span class="n">psana_source</span> <span class="o">=</span> <span class="n">psana</span><span class="o">.</span><span class="n">DataSource</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
     <span class="n">data_retrieval_layer_filename</span> <span class="o">=</span> <span class="n">monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-        <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Onda&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Onda&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
     <span class="n">data_retrieval_layer</span> <span class="o">=</span> <span class="n">dynamic_import</span><span class="o">.</span><span class="n">import_data_retrieval_layer</span><span class="p">(</span>
         <span class="n">data_retrieval_layer_filename</span><span class="o">=</span><span class="n">data_retrieval_layer_filename</span>
@@ -249,6 +249,7 @@
     <span class="p">)</span>
     <span class="c1"># Calls all the required psana detector interface initialization functions and</span>
     <span class="c1"># stores the returned objects in a dictionary.</span>
+    <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">f_name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">psana_detector_interface_funcs</span><span class="p">):</span>
         <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
             <span class="n">f_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_init&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -262,7 +263,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">psana_events</span> <span class="o">=</span> <span class="n">psana_source</span><span class="o">.</span><span class="n">events</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">psana_event</span> <span class="ow">in</span> <span class="n">psana_events</span><span class="p">:</span>
-        <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_event&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">psana_event</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">psana_event</span>
 
         <span class="c1"># Recovers the timestamp from the psana event (as seconds from the Epoch) and</span>
         <span class="c1"># stores it in the event dictionary to be retrieved later.</span>
@@ -594,7 +595,7 @@
 
 
 <div class="viewcode-block" id="timestamp"><a class="viewcode-back" href="../../../../onda.data_retrieval_layer.frameworks.psana_lcls.html#onda.data_retrieval_layer.frameworks.psana_lcls.timestamp">[docs]</a><span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type (data_event.DataEvent) -&gt; ? TODO: Determine return type</span>
+    <span class="c1"># type (data_event.DataEvent) -&gt; numpy.float64</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the timestamp of an event retrieved from psana at LCLS.</span>
 
@@ -609,7 +610,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Returns the timestamp stored in the event dictionary, without extracting it</span>
     <span class="c1"># again.</span>
-    <span class="k">return</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span></div>
+    <span class="n">timest</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">timest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve timestamp information from psana.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">timest</span></div>
 
 
 <div class="viewcode-block" id="detector_distance"><a class="viewcode-back" href="../../../../onda.data_retrieval_layer.frameworks.psana_lcls.html#onda.data_retrieval_layer.frameworks.psana_lcls.detector_distance">[docs]</a><span class="k">def</span> <span class="nf">detector_distance</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -631,7 +638,13 @@
 
 <span class="sd">        float: the distance between the detector and the sample in mm.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]()</span></div>
+    <span class="n">det_dist</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]()</span>
+    <span class="k">if</span> <span class="n">det_dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve detector distance information from psana.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">det_dist</span></div>
 
 
 <div class="viewcode-block" id="beam_energy"><a class="viewcode-back" href="../../../../onda.data_retrieval_layer.frameworks.psana_lcls.html#onda.data_retrieval_layer.frameworks.psana_lcls.beam_energy">[docs]</a><span class="k">def</span> <span class="nf">beam_energy</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -648,11 +661,17 @@
 
 <span class="sd">        float: the energy of the beam in # TODO: determine units.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">]</span>
-        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_event&quot;</span><span class="p">])</span>
+    <span class="n">beam_en</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
         <span class="o">.</span><span class="n">ebeamPhotonEnergy</span><span class="p">()</span>
-    <span class="p">)</span></div>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">beam_en</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve beam energy information from psana.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">beam_en</span></div>
 
 
 <div class="viewcode-block" id="timetool_data"><a class="viewcode-back" href="../../../../onda.data_retrieval_layer.frameworks.psana_lcls.html#onda.data_retrieval_layer.frameworks.psana_lcls.timetool_data">[docs]</a><span class="k">def</span> <span class="nf">timetool_data</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -674,7 +693,13 @@
 
 <span class="sd">        float: the readout of the timetool instrument.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;timetool_data&quot;</span><span class="p">]()</span></div>
+    <span class="n">time_tl</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;timetool_data&quot;</span><span class="p">]()</span>
+    <span class="k">if</span> <span class="n">time_tl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve time tool data from psana.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">time_tl</span></div>
 
 
 <div class="viewcode-block" id="digitizer_data"><a class="viewcode-back" href="../../../../onda.data_retrieval_layer.frameworks.psana_lcls.html#onda.data_retrieval_layer.frameworks.psana_lcls.digitizer_data">[docs]</a><span class="k">def</span> <span class="nf">digitizer_data</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -695,9 +720,15 @@
 
 <span class="sd">        numpy.array: the waveform from the digitizer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;digitizer_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">waveform</span><span class="p">(</span>
-        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_event&quot;</span><span class="p">]</span>
-    <span class="p">)</span></div>
+    <span class="n">digit_data</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;digitizer_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">waveform</span><span class="p">(</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">data</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">digit_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve digitizer data from psana.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">digit_data</span></div>
 
 
 <div class="viewcode-block" id="opal_data"><a class="viewcode-back" href="../../../../onda.data_retrieval_layer.frameworks.psana_lcls.html#onda.data_retrieval_layer.frameworks.psana_lcls.opal_data">[docs]</a><span class="k">def</span> <span class="nf">opal_data</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -717,7 +748,13 @@
 
 <span class="sd">        numpy.ndarray: a 2D array containing the image from the Opal camera.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;opal_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">calib</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_event&quot;</span><span class="p">])</span></div>
+    <span class="n">opal_data</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;opal_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">calib</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">opal_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve Opel camera data from psana.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">opal_data</span></div>
 
 
 <div class="viewcode-block" id="optical_laser_active"><a class="viewcode-back" href="../../../../onda.data_retrieval_layer.frameworks.psana_lcls.html#onda.data_retrieval_layer.frameworks.psana_lcls.optical_laser_active">[docs]</a><span class="k">def</span> <span class="nf">optical_laser_active</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
@@ -750,7 +787,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">current_evr_codes</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
         <span class="s2">&quot;optical_laser_active&quot;</span>
-    <span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_event&quot;</span><span class="p">])</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">current_evr_codes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve event codes from psana.&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;optical_laser_active&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">active_laser_evr_code</span>
@@ -787,7 +828,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">current_evr_codes</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
         <span class="s2">&quot;xrays_active&quot;</span>
-    <span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_event&quot;</span><span class="p">])</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">current_evr_codes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not retrieve event codes from psana.&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">event</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;xrays_active&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">active_laser_evr_code</span>

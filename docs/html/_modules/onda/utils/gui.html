@@ -111,7 +111,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>  <span class="c1"># pylint: disable=unused-import</span>
 
-<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">data_transmission</span>
+<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">zmq_gui</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">PyQt5</span> <span class="k">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtWidgets</span> <span class="k">as</span> <span class="n">qt_widget_module</span>
@@ -173,7 +173,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">statusBar</span><span class="p">()</span><span class="o">.</span><span class="n">showMessage</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_listener_thread</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QThread</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data_listener</span> <span class="o">=</span> <span class="n">data_transmission</span><span class="o">.</span><span class="n">ZmqDataListener</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_listener</span> <span class="o">=</span> <span class="n">zmq_gui</span><span class="o">.</span><span class="n">ZmqDataListener</span><span class="p">(</span>
             <span class="n">hostname</span><span class="o">=</span><span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_listener</span><span class="o">.</span><span class="n">zmqmessage</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_received</span><span class="p">)</span>

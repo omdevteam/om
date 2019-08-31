@@ -332,8 +332,7 @@
                 <span class="p">[</span>
                     <span class="mf">2.0</span>
                     <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_res</span>
-                    <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="sa">b</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coffset</span><span class="p">)</span>
-                    <span class="o">*</span> <span class="mf">1e-3</span>
+                    <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="sa">b</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]</span><span class="o">*</span><span class="mf">1e-3</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coffset</span><span class="p">)</span>
                     <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span>
                         <span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">lambda_</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">resolution</span> <span class="o">*</span> <span class="mf">1e-10</span><span class="p">))</span>
                     <span class="p">)</span>
