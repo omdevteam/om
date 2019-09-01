@@ -24,7 +24,7 @@ from __future__ import absolute_import, division, print_function
 import numpy
 
 from onda.algorithms.peakfinder8_extension import peakfinder_8
-from onda.utils import hdf5, named_tuples
+from onda.utils import exceptions, hdf5, named_tuples
 
 
 class Peakfinder8PeakDetection(object):
@@ -46,8 +46,8 @@ class Peakfinder8PeakDetection(object):
         local_bg_radius,  # type: int
         min_res,  # type: int
         max_res,  # type: int
-        bad_pixel_map_filename,  # type: str
-        bad_pixel_map_hdf5_path,  # type: str
+        bad_pixel_map_filename,  # type: Union[str, None]
+        bad_pixel_map_hdf5_path,  # type: Union[str, None]
         radius_pixel_map,  # type: numpy.ndarray
     ):
         # type: (...) -> None
@@ -93,9 +93,12 @@ class Peakfinder8PeakDetection(object):
 
             max_res (int): the maximum resolution for a peak in pixels.
 
-            bad_pixel_map_filename (str): the absolute or relative path to an HDF5 file
-                containing a bad pixel map. The map should mark areas of the data frame
-                that must be excluded from the peak search. Specifically:
+            bad_pixel_map_filename (Union[str, None): the absolute or relative path to
+                an HDF5 file containing a bad pixel map. The map should mark areas of
+                the data frame that must be excluded from the peak search. If this and
+                the 'bad_pixel_map_hdf5_path' arguments are not None, the map is loaded
+                and will be used by the algorithm. Otherwise no area is excluded from
+                the search. Defaults to None.
 
                 * The map must be a numpy array of the same shape as the data frame on
                   which the algorithm will be applied.
@@ -109,6 +112,9 @@ class Peakfinder8PeakDetection(object):
 
             bad_pixel_map_hdf5_path (str): the internal HDF5 path to the data block
                 where the bad pixel map is stored.
+
+                * If the 'bad_pixel_map_filename' argument is not None, this argument
+                  must also be provided, and cannot be None. Otherwise it is ignored.
 
             radius_pixel_map (numpy.ndarray): a numpy array with radius information.
 
@@ -130,14 +136,16 @@ class Peakfinder8PeakDetection(object):
         self._max_pixel_count = max_pixel_count
         self._local_bg_radius = local_bg_radius
         self._radius_pixel_map = radius_pixel_map
+        self._min_res = min_res
+        self._max_res = max_res
+        self._mask_initialized = False
 
-        loaded_mask = hdf5.load_hdf5_data(
-            hdf5_filename=bad_pixel_map_filename, hdf5_path=bad_pixel_map_hdf5_path
-        )
-        res_mask = numpy.ones(shape=loaded_mask.shape, dtype=numpy.int8)
-        res_mask[numpy.where(self._radius_pixel_map < min_res)] = 0
-        res_mask[numpy.where(self._radius_pixel_map > max_res)] = 0
-        self._mask = loaded_mask * res_mask
+        if bad_pixel_map_filename is not None:
+            self._mask = hdf5.load_hdf5_data(
+                hdf5_filename=bad_pixel_map_filename, hdf5_path=bad_pixel_map_hdf5_path
+            )
+        else:
+            self._mask = None
 
     def find_peaks(self, data):
         # type (numpy.ndarray) -> named_tuples.PeakList
@@ -157,10 +165,21 @@ class Peakfinder8PeakDetection(object):
             :class:`~onda.utils.named_tuples.PeakList`: a named tuple with the
             information about the detected peaks.
         """
+        if not self._mask_initialized:
+            if self._mask is None:
+                self._mask = numpy.ones_like(data, dtype=numpy.int8)
+            else:
+                self._mask = self._mask.astype(numpy.int8)
+
+            res_mask = numpy.ones(shape=self._mask.shape, dtype=numpy.int8)
+            res_mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
+            res_mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
+            self._mask *= res_mask
+
         peak_list = peakfinder_8(
             self._max_num_peaks,
             data.astype(numpy.float32),
-            self._mask.astype(numpy.int8),
+            self._mask,
             self._radius_pixel_map,
             self._asic_nx,
             self._asic_ny,
@@ -172,4 +191,5 @@ class Peakfinder8PeakDetection(object):
             self._max_pixel_count,
             self._local_bg_radius,
         )
+
         return named_tuples.PeakList(*peak_list[0:3])
