@@ -79,9 +79,10 @@ def get_num_frames_in_event(event):
     #    event.data[event.framework_info["detector_label"]]["image.data"]
     #    .transpose(3, 0, 2, 1)
     #    .shape[0]
-    #)
+    # )
 
     return event.data[event.framework_info["detector_label"]]["image.data"].shape[0]
+
 
 #############################
 #                           #

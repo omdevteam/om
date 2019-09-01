@@ -125,7 +125,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
         # Type () -> None
         # Updates the frame image shown by the viewer.
 
-        if self.received_data:
+        if self.received_datai is not None:
             # The received aggregated data is expected to be a list of event entries
             # (each being a dictionary storing the data for an event:
             # List[Dict[str, Any], ...]). The last event in the list is extracted for
@@ -179,7 +179,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        print("Showing frame {} in the buffer".format(self._current_frame_index))
+        print("Showing frame {0} in the buffer".format(self._current_frame_index))
         self._update_image()
 
     def _forward_button_clicked(self):
@@ -188,7 +188,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        print("Showing frame {} in the buffer".format(self._current_frame_index))
+        print("Showing frame {0} in the buffer".format(self._current_frame_index))
         self._update_image()
 
     def _stop_stream(self):

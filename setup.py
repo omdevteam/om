@@ -50,8 +50,8 @@ if ONDA_USE_CYTHON:
 else:
     extensions = [peakfinder8_ext]  # pylint: disable=invalid-name
 
-version_fh = open('onda/__init__.py', 'r')
-version = version_fh.readlines()[-1].split("=")[1].strip().split("\"")[1]
+version_fh = open("onda/__init__.py", "r")
+version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
 version_fh.close()
 setup(
     name="onda",
@@ -108,14 +108,9 @@ setup(
         "toml>=0.10.0",
         "pyzmq>=18.0.2",
     ],
-    extras_require={
-        "monitor": [],
-        "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"],
-    },
+    extras_require={"monitor": [], "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"]},
     entry_points={
-        "console_scripts": [
-            "onda_monitor.py=onda.monitor:main",
-        ],
+        "console_scripts": ["onda_monitor.py=onda.monitor:main"],
         "gui_scripts": [
             "onda_crystallography_gui.py=onda.graphical_interfaces."
             "crystallography_gui:main",

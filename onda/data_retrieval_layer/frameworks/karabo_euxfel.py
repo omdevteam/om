@@ -169,7 +169,7 @@ def event_generator(
     max_event_age = monitor_params.get_param(
         group="DataRetrievalLayer", parameter="karabo_max_event_age", type_=float
     )
-    if not max_event_age:
+    if max_event_age is None:
         max_event_age = 10000000000
 
     source_parts = source.split(":")
@@ -179,13 +179,13 @@ def event_generator(
     except IndexError as exc:
         raise_from(
             exc=exceptions.OndaInvalidSourceError(
-                "Invalid source format: {}.".format(source)
+                "Invalid source format: {0}.".format(source)
             ),
             cause=exc,
         )
-    print("Worker {} listening to {} at port {}".format(node_rank, hostname, port))
+    print("Worker {0} listening to {1} at port {2}".format(node_rank, hostname, port))
     sys.stdout.flush()
-    krb_client = client.Client("tcp://{}".format(source))
+    krb_client = client.Client("tcp://{0}".format(source))
 
     while True:
         event.data, event.metadata = krb_client.next()

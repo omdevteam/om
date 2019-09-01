@@ -138,5 +138,5 @@ class OndaGui(qt_widget_module.QMainWindow):
         timestamp = self.received_data[-1][b"timestamp"]
         timenow = time.time()
         self.statusBar().showMessage(
-            "Estimated delay: {} seconds".format(round(timenow - timestamp, 6))
+            "Estimated delay: {0} seconds".format(round(timenow - timestamp, 6))
         )

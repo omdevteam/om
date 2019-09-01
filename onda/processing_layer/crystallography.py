@@ -33,12 +33,7 @@ from onda.algorithms import (
     generic_algorithms as gen_algs,
 )
 from onda.parallelization_layer import mpi
-from onda.utils import (
-    zmq_monitor,
-    dynamic_import,
-    named_tuples,
-    parameters,
-)
+from onda.utils import zmq_monitor, dynamic_import, named_tuples, parameters
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -192,14 +187,16 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 group="Peakfinder8PeakDetection",
                 parameter="bad_pixel_map_filename",
                 type_=str,
-                required=True,
             )
-            pf8_bad_pixel_map_hdf5_path = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
-                parameter="bad_pixel_map_hdf5_path",
-                type_=str,
-                required=True,
-            )
+            if pf8_bad_pixel_map_fname is not None:
+                pf8_bad_pixel_map_hdf5_path = monitor_parameters.get_param(
+                    group="Peakfinder8PeakDetection",
+                    parameter="bad_pixel_map_hdf5_path",
+                    type_=str,
+                    required=True,
+                )
+            else:
+                pf8_bad_pixel_map_hdf5_path = None
             self._peak_detection = cryst_algs.Peakfinder8PeakDetection(
                 max_num_peaks=pf8_max_num_peaks,
                 asic_nx=pf8_detector_info.asic_nx,
@@ -365,7 +362,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         processed_data["native_data_shape"] = data["detector_data"].shape
         if frame_is_hit:
             processed_data["peak_list"] = peak_list
-            if self._hit_frame_sending_interval:
+            if self._hit_frame_sending_interval is not None:
                 self._hit_frame_sending_counter += 1
                 if self._hit_frame_sending_counter == self._hit_frame_sending_interval:
                     # If the frame is a hit, and if the 'hit_sending_interval'
@@ -379,7 +376,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             processed_data["peak_list"] = named_tuples.PeakList(
                 fs=[], ss=[], intensity=[]
             )
-            if self._non_hit_frame_sending_interval:
+            if self._non_hit_frame_sending_interval is not None:
                 self._non_hit_frame_sending_counter += 1
                 if (
                     self._non_hit_frame_sending_counter
@@ -452,7 +449,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             del received_data["detector_data"]
 
         collected_data = self._data_accumulator.add_data(data=received_data)
-        if collected_data:
+        if collected_data is not None:
             self._data_broadcast_socket.send_data(
                 tag=u"ondadata", message=collected_data
             )

@@ -133,13 +133,13 @@ def event_generator(
     psana_calib_dir = monitor_params.get_param(
         group="DataRetrievalLayer", parameter="psana_calibration_directory", type_=str
     )
-    if psana_calib_dir:
+    if psana_calib_dir is None:
         psana.setOption(
             "psana.calib-dir".encode("ascii"), psana_calib_dir.encode("ascii")
         )
     else:
         print("OnDA Warning: Calibration directory not provided or not found.")
-    psana_source = psana.DataSource(source.encode('ascii'))
+    psana_source = psana.DataSource(source.encode("ascii"))
     data_retrieval_layer_filename = monitor_params.get_param(
         group="Onda", parameter="data_retrieval_layer", type_=str, required=True
     )

@@ -91,7 +91,7 @@ class OndaWrongParameterTypeError(OndaException):
 
 class OndaDataExtractionError(OndaException):
     """
-    Raise if an error happens during data extraction.
+    Raised if an error happens during data extraction.
     """
 
 

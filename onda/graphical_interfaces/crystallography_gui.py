@@ -218,7 +218,7 @@ class CrystallographyGui(gui.OndaGui):
         # type: () -> None
         # Updates the resolution rings.
         # If there is no data, returns without drawing anything.
-        if not self._local_data:
+        if self._local_data is None:
             return
         items = str(self._resolution_rings_lineedit.text()).split(",")
         if items:
@@ -231,7 +231,7 @@ class CrystallographyGui(gui.OndaGui):
         for text_item in self._resolution_rings_textitems:
             self._image_view.getView().removeItem(text_item)
         self._resolution_rings_textitems = [
-            pyqtgraph.TextItem(text="{}A".format(x), anchor=(0.5, 0.8))
+            pyqtgraph.TextItem(text="{0}A".format(x), anchor=(0.5, 0.8))
             for x in self._resolution_rings_in_a
         ]
         for text_item in self._resolution_rings_textitems:
@@ -247,7 +247,10 @@ class CrystallographyGui(gui.OndaGui):
                 [
                     2.0
                     * self._res
-                    * (self._local_data[-1][b"detector_distance"]*1e-3 + self._coffset)
+                    * (
+                        self._local_data[-1][b"detector_distance"] * 1e-3
+                        + self._coffset
+                    )
                     * numpy.tan(
                         2.0 * numpy.arcsin(lambda_ / (2.0 * resolution * 1e-10))
                     )
@@ -278,7 +281,7 @@ class CrystallographyGui(gui.OndaGui):
                 )
 
                 for index, item in enumerate(self._resolution_rings_textitems):
-                    item.setText("{}A".format(self._resolution_rings_in_a[index]))
+                    item.setText("{0}A".format(self._resolution_rings_in_a[index]))
                     item.setPos(
                         (self._img_center_x + resolution_rings_in_pix[index + 1] / 2.0),
                         self._img_center_y,
@@ -291,7 +294,7 @@ class CrystallographyGui(gui.OndaGui):
     def _update_image_and_plots(self):
         # type: () -> None
         # Updates all elements in the GUI.
-        if self.received_data:
+        if self.received_data is not None:
             # Resets the 'received_data' attribute to None. One can then check if
             # data has been received simply by checking wether the attribute is not
             # None.

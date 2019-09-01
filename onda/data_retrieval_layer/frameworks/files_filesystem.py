@@ -144,7 +144,7 @@ def event_generator(
             filelist = fhandle.readlines()
     except (IOError, OSError) as exc:
         raise_from(
-            exc=RuntimeError("Error reading the {} source file.".format(source)),
+            exc=RuntimeError("Error reading the {0} source file.".format(source)),
             cause=exc,
         )
     num_files_curr_node = int(numpy.ceil(len(filelist) / float(node_pool_size - 1)))

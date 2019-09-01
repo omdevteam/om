@@ -241,12 +241,12 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
             # convention OnDA uses for naming the psana detector initialization
             # functions).
             psana_detector_interface_funcs[func_name] = getattr(
-                data_retrieval_layer, "{}_init".format(func_name)
+                data_retrieval_layer, "{0}_init".format(func_name)
             )
         except AttributeError as exc:
             raise_from(
                 exc=exceptions.OndaMissingPsanaInitializationFunctionError(
-                    "Psana Detector interface initialization function {} "
+                    "Psana Detector interface initialization function {0} "
                     "not defined".format(func_name)
                 ),
                 cause=exc,

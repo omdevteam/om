@@ -136,7 +136,7 @@ class ParallelizationEngine(object):
                 parameter="frame_indexes_to_skip",
                 type_=list,
             )
-            if frames_in_event_to_skip:
+            if frames_in_event_to_skip is not None:
                 self._frames_in_event_to_skip = tuple(frames_in_event_to_skip)
             else:
                 self._frames_in_event_to_skip = tuple()
@@ -175,7 +175,7 @@ class ParallelizationEngine(object):
                     self.shutdown("Shutting down RANK: {0}.".format(self.rank))
                 event.open_event()
                 n_frames_in_evt = event.get_num_frames_in_event()
-                if self._num_frames_in_event_to_process:
+                if self._num_frames_in_event_to_process is not None:
                     num_frames_to_process = min(
                         n_frames_in_evt, self._num_frames_in_event_to_process
                     )
@@ -215,9 +215,7 @@ class ParallelizationEngine(object):
             print("Starting OnDA with the following parameters:")
             print(
                 json.dumps(
-                    self._monitor_params.get_all_parameters(),
-                    indent=4,
-                    sort_keys=True
+                    self._monitor_params.get_all_parameters(), indent=4, sort_keys=True
                 )
             )
             _ = self._initialize_event_source(  # pylint: disable=unused-variable
@@ -232,7 +230,7 @@ class ParallelizationEngine(object):
                         # If the received message announces that a worker node has
                         # finished processing data, keeps track of how many worker
                         # nodes have already finished.
-                        print("Finalizing {}".format(received_data[1]))
+                        print("Finalizing {0}".format(received_data[1]))
                         self._num_nomore += 1
                         # When all workers have finished, calls the 'end_processing'
                         # function then shuts down.
@@ -314,7 +312,7 @@ class ParallelizationEngine(object):
         implement custom end-of-processing actions.
         """
         print(
-            "Processing finished. OnDA has processed {} events in total.".format(
+            "Processing finished. OnDA has processed {0} events in total.".format(
                 self._num_collected_events
             )
         )

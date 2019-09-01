@@ -122,21 +122,21 @@ class MonitorParams(object):
         """
         if group not in self._monitor_params:
             raise exceptions.OndaMissingParameterGroupError(
-                "Parameter group [{}] is not in the configuration file".format(group)
+                "Parameter group [{0}] is not in the configuration file".format(group)
             )
         else:
             ret = self._monitor_params[group].get(parameter)
             if ret is None and required is True:
                 raise exceptions.OndaMissingParameterError(
-                    "Parameter {} in group [{}] was not found, but is "
+                    "Parameter {0} in group [{1}] was not found, but is "
                     "required.".format(parameter, group)
                 )
             if ret is not None and type_ is not None:
                 if type_ is str:
                     if not isinstance(ret, basestring):
                         raise exceptions.OndaWrongParameterTypeError(
-                            "Wrong type for parameter {}: should be {}, is "
-                            "{}.".format(
+                            "Wrong type for parameter {0}: should be {1}, is "
+                            "{2}.".format(
                                 parameter,
                                 str(type_).split()[1][1:-2],
                                 str(type(ret)).split()[1][1:-2],
@@ -145,8 +145,8 @@ class MonitorParams(object):
                 elif type_ is float:
                     if not isinstance(ret, float) and not isinstance(ret, int):
                         raise exceptions.OndaWrongParameterTypeError(
-                            "Wrong type for parameter {}: should be {}, is "
-                            "{}.".format(
+                            "Wrong type for parameter {0}: should be {1}, is "
+                            "{2}.".format(
                                 parameter,
                                 str(type_).split()[1][1:-2],
                                 str(type(ret)).split()[1][1:-2],
@@ -154,7 +154,7 @@ class MonitorParams(object):
                         )
                 elif not isinstance(ret, type_):
                     raise exceptions.OndaWrongParameterTypeError(
-                        "Wrong type for parameter {}: should be {}, is {}.".format(
+                        "Wrong type for parameter {0}: should be {1}, is {2}.".format(
                             parameter,
                             str(type_).split()[1][1:-2],
                             str(type(ret)).split()[1][1:-2],
