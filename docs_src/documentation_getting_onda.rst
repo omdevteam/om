@@ -37,7 +37,7 @@ granted, the latest version of OnDA can be reached by activating an `Anaconda
 
 .. code-block:: bash
 
-    # On one of the login nodes, for example, daq-cxi-mon07
+    # On one of the monitoring nodes, for example, daq-cxi-mon07
     source /reg/g/cfel/onda/onda.sh
 
 
