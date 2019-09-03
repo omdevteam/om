@@ -37,6 +37,7 @@ granted, the latest version of OnDA can be reached by activating an `Anaconda
 
 .. code-block:: bash
 
+    # On one of the login nodes, for example, daq-cxi-mon07
     source /reg/g/cfel/onda/onda.sh
 
 
@@ -49,6 +50,7 @@ logged in, the following command can be used to activate the `Anaconda
 
 .. code-block:: bash
 
+    # On eval01.desy.de
     source /home/p11user/CfelSoft/onda/onda.sh
 
 
@@ -73,55 +75,74 @@ This is the preferred installation method. The only requirements are:
 
 * The 'pip' utility for the corresponding version of python.
 
+**Python 3:**
+
 It is recommended to install OnDA in a clean Python virtual environment. The
-environment can be created using the Python 2 `virtualenv
-<https://virtualenv.pypa.io/en/stable/>`_ tool:
-
-.. code-block:: bash
-
-    python2 -m virtualenv onda_env
-
-Or the `venv <https://docs.python.org/3/library/venv.html>`_ module from the
-Python 3 Standard Library:
+environment can be created using  the
+`venv <https://docs.python.org/3/library/venv.html>`_ module from the Python 3
+Standard Library:
 
 .. code-block:: bash
 
     python3 -m venv onda_env
 
-It can be then activated by sourcing a file:
+The environment can be activated by sourcing a file:
 
 .. code-block:: bash
 
     source onda_env/bin/activate
 
 Finally, OnDA can be installed using the 'pip' command.
-
-For Python 2:
-
-.. code-block:: bash
-
-    python2 -m pip install onda
-
-For Python 3:
+In order to install only the monitoring part of OnDA (without the graphical
+interfaces):
 
 .. code-block:: bash
 
     python3 -m pip install onda
 
+In order to install OnDA together with the Qt5-based graphical interfaces:
+
+.. code-block:: bash
+
+    python3 -m pip install onda[GUI]
+
+**Python 2:**
+
+For Python 2, the process, is very similar, except that the `virtualenv
+<https://virtualenv.pypa.io/en/stable/>`_ tool must be used to create the enviroment:
+
+
+.. code-block:: bash
+
+    python2 -m virtualenv onda_env
+
+The rest of the process is then identical:
+
+.. code-block:: bash
+
+    source onda_env/bin/activate
+
+Then:
+
+.. code-block:: bash
+
+    python2 -m pip install onda
+
+Or:
+
+.. code-block:: bash
+
+    python2 -m pip install onda[GUI]
+
 
 Installation in Anaconda
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+**Python 3:**
 
 Packages for OnDA and its dependencies are available from the 'ondateam' channel of
 https://anaconda.org. It is reccomended to install onda in a clean Python enviroment,
-which can be created using the following command for Python 2:
-
-.. code-block:: bash
-
-    conda create -n onda_env python=2
-
-Or the following for Python 3:
+which can be created using the following command:
 
 .. code-block:: bash
 
@@ -135,6 +156,25 @@ The enviroment can then be activated using the following command:
 
 Finally, OnDA can be installed using the 'conda install' command:
 
+.. code-block:: bash
+
+    conda install --channel conda-forge --channel ondateam onda
+
+**Python 2:**
+
+For Python 2 the process is very similar:
+
+.. code-block:: bash
+
+    conda create -n onda_env python=2
+
+Then:
+
+.. code-block:: bash
+
+    conda activate onda_env
+
+And:
 
 .. code-block:: bash
 

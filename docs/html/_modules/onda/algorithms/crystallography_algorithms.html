@@ -109,7 +109,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span>
 
 <span class="kn">from</span> <span class="nn">onda.algorithms.peakfinder8_extension</span> <span class="k">import</span> <span class="n">peakfinder_8</span>
-<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">hdf5</span><span class="p">,</span> <span class="n">named_tuples</span>
+<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">hdf5</span><span class="p">,</span> <span class="n">named_tuples</span>
 
 
 <div class="viewcode-block" id="Peakfinder8PeakDetection"><a class="viewcode-back" href="../../../onda.algorithms.crystallography_algorithms.html#onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection">[docs]</a><span class="k">class</span> <span class="nc">Peakfinder8PeakDetection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -131,8 +131,8 @@
         <span class="n">local_bg_radius</span><span class="p">,</span>  <span class="c1"># type: int</span>
         <span class="n">min_res</span><span class="p">,</span>  <span class="c1"># type: int</span>
         <span class="n">max_res</span><span class="p">,</span>  <span class="c1"># type: int</span>
-        <span class="n">bad_pixel_map_filename</span><span class="p">,</span>  <span class="c1"># type: str</span>
-        <span class="n">bad_pixel_map_hdf5_path</span><span class="p">,</span>  <span class="c1"># type: str</span>
+        <span class="n">bad_pixel_map_filename</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
+        <span class="n">bad_pixel_map_hdf5_path</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
         <span class="n">radius_pixel_map</span><span class="p">,</span>  <span class="c1"># type: numpy.ndarray</span>
     <span class="p">):</span>
         <span class="c1"># type: (...) -&gt; None</span>
@@ -178,9 +178,12 @@
 
 <span class="sd">            max_res (int): the maximum resolution for a peak in pixels.</span>
 
-<span class="sd">            bad_pixel_map_filename (str): the absolute or relative path to an HDF5 file</span>
-<span class="sd">                containing a bad pixel map. The map should mark areas of the data frame</span>
-<span class="sd">                that must be excluded from the peak search. Specifically:</span>
+<span class="sd">            bad_pixel_map_filename (Union[str, None): the absolute or relative path to</span>
+<span class="sd">                an HDF5 file containing a bad pixel map. The map should mark areas of</span>
+<span class="sd">                the data frame that must be excluded from the peak search. If this and</span>
+<span class="sd">                the &#39;bad_pixel_map_hdf5_path&#39; arguments are not None, the map is loaded</span>
+<span class="sd">                and will be used by the algorithm. Otherwise no area is excluded from</span>
+<span class="sd">                the search. Defaults to None.</span>
 
 <span class="sd">                * The map must be a numpy array of the same shape as the data frame on</span>
 <span class="sd">                  which the algorithm will be applied.</span>
@@ -194,6 +197,9 @@
 
 <span class="sd">            bad_pixel_map_hdf5_path (str): the internal HDF5 path to the data block</span>
 <span class="sd">                where the bad pixel map is stored.</span>
+
+<span class="sd">                * If the &#39;bad_pixel_map_filename&#39; argument is not None, this argument</span>
+<span class="sd">                  must also be provided, and cannot be None. Otherwise it is ignored.</span>
 
 <span class="sd">            radius_pixel_map (numpy.ndarray): a numpy array with radius information.</span>
 
@@ -215,14 +221,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_pixel_count</span> <span class="o">=</span> <span class="n">max_pixel_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_local_bg_radius</span> <span class="o">=</span> <span class="n">local_bg_radius</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_radius_pixel_map</span> <span class="o">=</span> <span class="n">radius_pixel_map</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_res</span> <span class="o">=</span> <span class="n">min_res</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_res</span> <span class="o">=</span> <span class="n">max_res</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask_initialized</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="n">loaded_mask</span> <span class="o">=</span> <span class="n">hdf5</span><span class="o">.</span><span class="n">load_hdf5_data</span><span class="p">(</span>
-            <span class="n">hdf5_filename</span><span class="o">=</span><span class="n">bad_pixel_map_filename</span><span class="p">,</span> <span class="n">hdf5_path</span><span class="o">=</span><span class="n">bad_pixel_map_hdf5_path</span>
-        <span class="p">)</span>
-        <span class="n">res_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">loaded_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
-        <span class="n">res_mask</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_radius_pixel_map</span> <span class="o">&lt;</span> <span class="n">min_res</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">res_mask</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_radius_pixel_map</span> <span class="o">&gt;</span> <span class="n">max_res</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">loaded_mask</span> <span class="o">*</span> <span class="n">res_mask</span>
+        <span class="k">if</span> <span class="n">bad_pixel_map_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">hdf5</span><span class="o">.</span><span class="n">load_hdf5_data</span><span class="p">(</span>
+                <span class="n">hdf5_filename</span><span class="o">=</span><span class="n">bad_pixel_map_filename</span><span class="p">,</span> <span class="n">hdf5_path</span><span class="o">=</span><span class="n">bad_pixel_map_hdf5_path</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Peakfinder8PeakDetection.find_peaks"><a class="viewcode-back" href="../../../onda.algorithms.crystallography_algorithms.html#onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection.find_peaks">[docs]</a>    <span class="k">def</span> <span class="nf">find_peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="c1"># type (numpy.ndarray) -&gt; named_tuples.PeakList</span>
@@ -242,10 +250,21 @@
 <span class="sd">            :class:`~onda.utils.named_tuples.PeakList`: a named tuple with the</span>
 <span class="sd">            information about the detected peaks.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask_initialized</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+
+            <span class="n">res_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+            <span class="n">res_mask</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_radius_pixel_map</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_res</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">res_mask</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_radius_pixel_map</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_res</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">*=</span> <span class="n">res_mask</span>
+
         <span class="n">peak_list</span> <span class="o">=</span> <span class="n">peakfinder_8</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_max_num_peaks</span><span class="p">,</span>
             <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">int8</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_radius_pixel_map</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_asic_nx</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_asic_ny</span><span class="p">,</span>
@@ -257,6 +276,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_max_pixel_count</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_local_bg_radius</span><span class="p">,</span>
         <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">named_tuples</span><span class="o">.</span><span class="n">PeakList</span><span class="p">(</span><span class="o">*</span><span class="n">peak_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span></div></div>
 </pre></div>
 

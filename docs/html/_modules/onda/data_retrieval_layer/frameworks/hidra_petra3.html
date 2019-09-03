@@ -137,7 +137,7 @@
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">transfer_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">transfer_type</span> <span class="o">=</span> <span class="n">dynamic_import</span><span class="o">.</span><span class="n">get_hidra_transfer_type</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">transfer_type</span> <span class="o">==</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">transfer_type</span> <span class="o">==</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span>
         <span class="c1"># If the transfer type is data-based, requests the latest event with full</span>
         <span class="c1"># data, and sets the data base path to an empty path, because HiDRA will</span>
         <span class="c1"># provide the data directly, and there will be no need to look for the file.</span>

@@ -326,12 +326,12 @@
             <span class="c1"># convention OnDA uses for naming the psana detector initialization</span>
             <span class="c1"># functions).</span>
             <span class="n">psana_detector_interface_funcs</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span>
-                <span class="n">data_retrieval_layer</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_init&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func_name</span><span class="p">)</span>
+                <span class="n">data_retrieval_layer</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">_init&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func_name</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="n">raise_from</span><span class="p">(</span>
                 <span class="n">exc</span><span class="o">=</span><span class="n">exceptions</span><span class="o">.</span><span class="n">OndaMissingPsanaInitializationFunctionError</span><span class="p">(</span>
-                    <span class="s2">&quot;Psana Detector interface initialization function </span><span class="si">{}</span><span class="s2"> &quot;</span>
+                    <span class="s2">&quot;Psana Detector interface initialization function </span><span class="si">{0}</span><span class="s2"> &quot;</span>
                     <span class="s2">&quot;not defined&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func_name</span><span class="p">)</span>
                 <span class="p">),</span>
                 <span class="n">cause</span><span class="o">=</span><span class="n">exc</span><span class="p">,</span>

@@ -23,12 +23,7 @@ OnDA: Online Data Analysis for x-ray imaging
 
 
 .. thumbnail:: _images/OndaScreenshot1.jpg
-    :group: index
-    :width: 30%
-
-.. thumbnail:: _images/OndaScreenshot2.jpg
-    :group: index
-    :width: 30%
+    :width: 60%
 
 
 

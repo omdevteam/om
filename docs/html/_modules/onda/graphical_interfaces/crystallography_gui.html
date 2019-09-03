@@ -303,7 +303,7 @@
         <span class="c1"># type: () -&gt; None</span>
         <span class="c1"># Updates the resolution rings.</span>
         <span class="c1"># If there is no data, returns without drawing anything.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="n">items</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_lineedit</span><span class="o">.</span><span class="n">text</span><span class="p">())</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">items</span><span class="p">:</span>
@@ -316,7 +316,7 @@
         <span class="k">for</span> <span class="n">text_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_textitems</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_image_view</span><span class="o">.</span><span class="n">getView</span><span class="p">()</span><span class="o">.</span><span class="n">removeItem</span><span class="p">(</span><span class="n">text_item</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_textitems</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">pyqtgraph</span><span class="o">.</span><span class="n">TextItem</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">A&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">))</span>
+            <span class="n">pyqtgraph</span><span class="o">.</span><span class="n">TextItem</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">A&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_in_a</span>
         <span class="p">]</span>
         <span class="k">for</span> <span class="n">text_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_textitems</span><span class="p">:</span>
@@ -332,7 +332,10 @@
                 <span class="p">[</span>
                     <span class="mf">2.0</span>
                     <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_res</span>
-                    <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="sa">b</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]</span><span class="o">*</span><span class="mf">1e-3</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coffset</span><span class="p">)</span>
+                    <span class="o">*</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_local_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="sa">b</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e-3</span>
+                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coffset</span>
+                    <span class="p">)</span>
                     <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span>
                         <span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">lambda_</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">resolution</span> <span class="o">*</span> <span class="mf">1e-10</span><span class="p">))</span>
                     <span class="p">)</span>
@@ -363,7 +366,7 @@
                 <span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_textitems</span><span class="p">):</span>
-                    <span class="n">item</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">A&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_in_a</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
+                    <span class="n">item</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">A&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_resolution_rings_in_a</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
                     <span class="n">item</span><span class="o">.</span><span class="n">setPos</span><span class="p">(</span>
                         <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_img_center_x</span> <span class="o">+</span> <span class="n">resolution_rings_in_pix</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">),</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_img_center_y</span><span class="p">,</span>
@@ -376,7 +379,7 @@
     <span class="k">def</span> <span class="nf">_update_image_and_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># type: () -&gt; None</span>
         <span class="c1"># Updates all elements in the GUI.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">received_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">received_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Resets the &#39;received_data&#39; attribute to None. One can then check if</span>
             <span class="c1"># data has been received simply by checking wether the attribute is not</span>
             <span class="c1"># None.</span>

@@ -218,13 +218,13 @@
     <span class="n">psana_calib_dir</span> <span class="o">=</span> <span class="n">monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
         <span class="n">group</span><span class="o">=</span><span class="s2">&quot;DataRetrievalLayer&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;psana_calibration_directory&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">psana_calib_dir</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">psana_calib_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">psana</span><span class="o">.</span><span class="n">setOption</span><span class="p">(</span>
             <span class="s2">&quot;psana.calib-dir&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">),</span> <span class="n">psana_calib_dir</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;OnDA Warning: Calibration directory not provided or not found.&quot;</span><span class="p">)</span>
-    <span class="n">psana_source</span> <span class="o">=</span> <span class="n">psana</span><span class="o">.</span><span class="n">DataSource</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
+    <span class="n">psana_source</span> <span class="o">=</span> <span class="n">psana</span><span class="o">.</span><span class="n">DataSource</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
     <span class="n">data_retrieval_layer_filename</span> <span class="o">=</span> <span class="n">monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
         <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Onda&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>

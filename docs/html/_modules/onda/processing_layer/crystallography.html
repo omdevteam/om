@@ -118,12 +118,7 @@
     <span class="n">generic_algorithms</span> <span class="k">as</span> <span class="n">gen_algs</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">onda.parallelization_layer</span> <span class="k">import</span> <span class="n">mpi</span>
-<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="p">(</span>
-    <span class="n">zmq_monitor</span><span class="p">,</span>
-    <span class="n">dynamic_import</span><span class="p">,</span>
-    <span class="n">named_tuples</span><span class="p">,</span>
-    <span class="n">parameters</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">zmq_monitor</span><span class="p">,</span> <span class="n">dynamic_import</span><span class="p">,</span> <span class="n">named_tuples</span><span class="p">,</span> <span class="n">parameters</span>
 
 
 <div class="viewcode-block" id="OndaMonitor"><a class="viewcode-back" href="../../../onda.processing_layer.crystallography.html#onda.processing_layer.crystallography.OndaMonitor">[docs]</a><span class="k">class</span> <span class="nc">OndaMonitor</span><span class="p">(</span><span class="n">mpi</span><span class="o">.</span><span class="n">ParallelizationEngine</span><span class="p">):</span>
@@ -277,14 +272,16 @@
                 <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Peakfinder8PeakDetection&quot;</span><span class="p">,</span>
                 <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;bad_pixel_map_filename&quot;</span><span class="p">,</span>
                 <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">pf8_bad_pixel_map_hdf5_path</span> <span class="o">=</span> <span class="n">monitor_parameters</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Peakfinder8PeakDetection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;bad_pixel_map_hdf5_path&quot;</span><span class="p">,</span>
-                <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">pf8_bad_pixel_map_fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pf8_bad_pixel_map_hdf5_path</span> <span class="o">=</span> <span class="n">monitor_parameters</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+                    <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Peakfinder8PeakDetection&quot;</span><span class="p">,</span>
+                    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;bad_pixel_map_hdf5_path&quot;</span><span class="p">,</span>
+                    <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pf8_bad_pixel_map_hdf5_path</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_peak_detection</span> <span class="o">=</span> <span class="n">cryst_algs</span><span class="o">.</span><span class="n">Peakfinder8PeakDetection</span><span class="p">(</span>
                 <span class="n">max_num_peaks</span><span class="o">=</span><span class="n">pf8_max_num_peaks</span><span class="p">,</span>
                 <span class="n">asic_nx</span><span class="o">=</span><span class="n">pf8_detector_info</span><span class="o">.</span><span class="n">asic_nx</span><span class="p">,</span>
@@ -450,7 +447,7 @@
         <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;native_data_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="n">frame_is_hit</span><span class="p">:</span>
             <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">peak_list</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_interval</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_interval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_counter</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_counter</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_interval</span><span class="p">:</span>
                     <span class="c1"># If the frame is a hit, and if the &#39;hit_sending_interval&#39;</span>
@@ -464,7 +461,7 @@
             <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">named_tuples</span><span class="o">.</span><span class="n">PeakList</span><span class="p">(</span>
                 <span class="n">fs</span><span class="o">=</span><span class="p">[],</span> <span class="n">ss</span><span class="o">=</span><span class="p">[],</span> <span class="n">intensity</span><span class="o">=</span><span class="p">[]</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_interval</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_interval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_counter</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_counter</span>
@@ -537,7 +534,7 @@
             <span class="k">del</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span>
 
         <span class="n">collected_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_accumulator</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">received_data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">collected_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">collected_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span><span class="o">.</span><span class="n">send_data</span><span class="p">(</span>
                 <span class="n">tag</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;ondadata&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">collected_data</span>
             <span class="p">)</span>

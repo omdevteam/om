@@ -157,7 +157,9 @@
 
 <span class="sd">        numpy.ndarray: one frame of detector data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cspad_psana</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">calib</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">cspad_psana</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">framework_info</span><span class="p">[</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;detector_data&quot;</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">calib</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cspad_psana</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OndaDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve detector data from psana.&quot;</span>

@@ -123,9 +123,12 @@ frame.</li>
 local background in pixels.</li>
 <li><strong>min_res</strong> (<em>int</em>) – the minimum resolution for a peak in pixels.</li>
 <li><strong>max_res</strong> (<em>int</em>) – the maximum resolution for a peak in pixels.</li>
-<li><strong>bad_pixel_map_filename</strong> (<em>str</em>) – <p>the absolute or relative path to an HDF5 file
-containing a bad pixel map. The map should mark areas of the data frame
-that must be excluded from the peak search. Specifically:</p>
+<li><strong>bad_pixel_map_filename</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em>) – <p>the absolute or relative path to
+an HDF5 file containing a bad pixel map. The map should mark areas of
+the data frame that must be excluded from the peak search. If this and
+the ‘bad_pixel_map_hdf5_path’ arguments are not None, the map is loaded
+and will be used by the algorithm. Otherwise no area is excluded from
+the search. Defaults to None.</p>
 <ul>
 <li>The map must be a numpy array of the same shape as the data frame on
 which the algorithm will be applied.</li>
@@ -136,8 +139,13 @@ meaning that the corresponding pixel must be included in the search.</li>
 is not modified in any way.</li>
 </ul>
 </li>
-<li><strong>bad_pixel_map_hdf5_path</strong> (<em>str</em>) – the internal HDF5 path to the data block
-where the bad pixel map is stored.</li>
+<li><strong>bad_pixel_map_hdf5_path</strong> (<em>str</em>) – <p>the internal HDF5 path to the data block
+where the bad pixel map is stored.</p>
+<ul>
+<li>If the ‘bad_pixel_map_filename’ argument is not None, this argument
+must also be provided, and cannot be None. Otherwise it is ignored.</li>
+</ul>
+</li>
 <li><strong>radius_pixel_map</strong> (<em>numpy.ndarray</em>) – <p>a numpy array with radius information.</p>
 <ul>
 <li>The array must have the same shape as the data frame on which the

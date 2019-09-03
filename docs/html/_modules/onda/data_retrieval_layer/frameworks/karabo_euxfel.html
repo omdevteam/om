@@ -254,7 +254,7 @@
     <span class="n">max_event_age</span> <span class="o">=</span> <span class="n">monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
         <span class="n">group</span><span class="o">=</span><span class="s2">&quot;DataRetrievalLayer&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;karabo_max_event_age&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">float</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">max_event_age</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">max_event_age</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">max_event_age</span> <span class="o">=</span> <span class="mi">10000000000</span>
 
     <span class="n">source_parts</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
@@ -264,13 +264,13 @@
     <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="n">raise_from</span><span class="p">(</span>
             <span class="n">exc</span><span class="o">=</span><span class="n">exceptions</span><span class="o">.</span><span class="n">OndaInvalidSourceError</span><span class="p">(</span>
-                <span class="s2">&quot;Invalid source format: </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                <span class="s2">&quot;Invalid source format: </span><span class="si">{0}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
             <span class="p">),</span>
             <span class="n">cause</span><span class="o">=</span><span class="n">exc</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">{}</span><span class="s2"> listening to </span><span class="si">{}</span><span class="s2"> at port </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node_rank</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Worker </span><span class="si">{0}</span><span class="s2"> listening to </span><span class="si">{1}</span><span class="s2"> at port </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node_rank</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-    <span class="n">krb_client</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">&quot;tcp://</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+    <span class="n">krb_client</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">&quot;tcp://</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
 
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">event</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">krb_client</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>

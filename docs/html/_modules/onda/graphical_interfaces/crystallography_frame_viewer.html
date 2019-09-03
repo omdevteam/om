@@ -210,7 +210,7 @@
         <span class="c1"># Type () -&gt; None</span>
         <span class="c1"># Updates the frame image shown by the viewer.</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">received_data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">received_datai</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># The received aggregated data is expected to be a list of event entries</span>
             <span class="c1"># (each being a dictionary storing the data for an event:</span>
             <span class="c1"># List[Dict[str, Any], ...]). The last event in the list is extracted for</span>
@@ -264,7 +264,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_stop_stream</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">-=</span> <span class="mi">1</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing frame </span><span class="si">{}</span><span class="s2"> in the buffer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing frame </span><span class="si">{0}</span><span class="s2"> in the buffer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_image</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_forward_button_clicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -273,7 +273,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_stop_stream</span><span class="p">()</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_list</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing frame </span><span class="si">{}</span><span class="s2"> in the buffer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing frame </span><span class="si">{0}</span><span class="s2"> in the buffer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_frame_index</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_image</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_stop_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
