@@ -201,9 +201,7 @@ epub_exclude_files = ["search.html"]
 add_module_names = False
 autodoc_mock_imports = [
     "psana",
-    "ondacython.lib.peakfinder8_extension",
-    "hidra_api",
-    "karabo_api",
+    "onda.algorithms.peakfinder8_extension.peakfinder8_extension",
 ]
 autodoc_member_order = "bysource"
 autoclass_content = "init"
