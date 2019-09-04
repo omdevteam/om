@@ -39,7 +39,7 @@ def import_processing_layer(processing_layer_filename):
     """
     Imports the specified Processing Layer.
 
-    This function searches for the python file with the implementation of the 
+    This function searches for the python file with the implementation of the
     Processing Layer in the working directory first. If the file is not found there,
     this function looks for it in the standard OnDA folder structure.
 
@@ -67,7 +67,7 @@ def import_data_retrieval_layer(data_retrieval_layer_filename):
     """
     Imports the specified Data Retrieval Layer.
 
-    This function searches for the python file with the implementation of the 
+    This function searches for the python file with the implementation of the
     Data Retrieval Layer in the working directory first. If the file is not found
     there, this function looks for it in the standard OnDA folder structure.
 
@@ -97,7 +97,7 @@ def import_parallelization_layer(parallelization_layer_filename):
     """
     Imports the specified Parallelization Layer.
 
-    This function searches for the python file with the implementation of the 
+    This function searches for the python file with the implementation of the
     Parallelization Layer in the working directory first. If the file is not found
     there, this function looks for it in the standard OnDA folder structure.
 
@@ -124,9 +124,9 @@ def get_event_handling_funcs(data_retrieval_layer):
     # type: (ModuleType) -> Dict[str, Callable]
     """
     Retrieves Event Handling Functions from the Data Retrieval Layer.
-    
-    This function retrieves the following Event Handling functions: 
-        
+
+    This function retrieves the following Event Handling functions:
+
     - 'initalize_event_source'
     - 'event_generator'
     - 'open_even'

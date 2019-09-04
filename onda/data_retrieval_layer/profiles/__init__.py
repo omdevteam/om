@@ -18,5 +18,5 @@ Data Retrieval Layer profiles.
 
 This package contains collections of classes and functions (from other parts of the
 Data Retrieval layer) that can be used to retrieve and process data at specific
-beamlines or for specific experiments.  
+beamlines or for specific experiments.
 """

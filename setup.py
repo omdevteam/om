@@ -13,6 +13,7 @@
 #
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+# pylint: disable=invalid-name
 """
 setup.py file for OnDA
 """

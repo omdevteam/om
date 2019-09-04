@@ -23,7 +23,6 @@ from __future__ import absolute_import, division, print_function
 
 import socket
 import sys
-from builtins import str as unicode_str
 
 from typing import Optional  # pylint: disable=unused-import
 

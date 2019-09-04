@@ -23,17 +23,15 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import time
-from typing import Generator
+from typing import Generator  # pylint: disable=unused-import
 
 import numpy
 from future.utils import raise_from
 
-from onda.utils import (  # pylint: disable=unused-import
+from onda.utils import (
     data_event,
     dynamic_import,
     exceptions,
-    named_tuples,
-    parameters,
 )
 from .karabo_api import client
 

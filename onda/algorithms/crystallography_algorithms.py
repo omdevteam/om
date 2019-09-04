@@ -24,7 +24,7 @@ from __future__ import absolute_import, division, print_function
 import numpy
 
 from onda.algorithms.peakfinder8_extension import peakfinder_8
-from onda.utils import exceptions, hdf5, named_tuples
+from onda.utils import hdf5, named_tuples
 
 
 class Peakfinder8PeakDetection(object):
@@ -57,7 +57,7 @@ class Peakfinder8PeakDetection(object):
         This class stores the parameters needed by the 'peakfinder8' algorithm, and
         performs peak finding on a detector data frame upon request. The 'peakfinder8'
         algorithm is described in the following publication:
-        
+
         A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
         and H. N. Chapman, "Cheetah: software for high-throughput reduction and
         analysis of serial femtosecond X-ray diffraction data", J Appl  Crystallogr,

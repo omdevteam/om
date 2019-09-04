@@ -18,7 +18,7 @@ Base OnDA graphical user interface object.
 
 This module contains a class that implements the common infrastructure of all OnDA
 python GUIs (e.g.: management of the data transimission, reporting of the estimated
-delay, etc.) 
+delay, etc.)
 """
 from __future__ import absolute_import, division, print_function
 
@@ -56,7 +56,7 @@ class OndaGui(qt_widget_module.QMainWindow):
         sure that the 'gui_update_func' function, attached when an instance is created,
         is invoked at regular intervals to update the GUI.
 
-        NOTE: This class is designed to be subclassed to implement specific OnDA GUIs. 
+        NOTE: This class is designed to be subclassed to implement specific OnDA GUIs.
 
         Arguments:
 

@@ -26,7 +26,7 @@ from typing import Generator, List  # pylint: disable=unused-import
 import numpy
 from future.utils import iteritems, raise_from
 
-from onda.utils import dynamic_import, data_event, exceptions, parameters
+from onda.utils import dynamic_import, data_event, exceptions
 
 try:
     import psana  # pylint: disable=import-error
@@ -363,7 +363,7 @@ def timetool_data_init(monitor_params):
     initializes the Detector interface for the Epics controller identified by the
     'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' configuration
     parameter group.
-    
+
     Arguments:
 
         monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
@@ -574,7 +574,7 @@ def beam_energy(event):
 
     Returns:
 
-        float: the energy of the beam in # TODO: determine units.
+        float: the energy of the beam in eV.
     """
     beam_en = (
         event.framework_info["psana_detector_interface"]["beam_energy"]
@@ -647,7 +647,7 @@ def digitizer_data(event):
 
 
 def opal_data(event):
-    # type (data_event.DataEvent) -> ? TODO: Determine return type
+    # type (data_event.DataEvent) -> numpy.ndarray
     """
     Gets Opal camera data for an event retrieved from psana at LCLS.
 
@@ -663,13 +663,13 @@ def opal_data(event):
 
         numpy.ndarray: a 2D array containing the image from the Opal camera.
     """
-    opal_data = event["psana_detector_interface"]["opal_data"].calib(event.data)
-    if opal_data is None:
+    op_data = event["psana_detector_interface"]["opal_data"].calib(event.data)
+    if op_data is None:
         raise exceptions.OndaDataExtractionError(
             "Could not retrieve Opel camera data from psana."
         )
 
-    return opal_data
+    return op_data
 
 
 def optical_laser_active(event):

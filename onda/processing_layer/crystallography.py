@@ -33,7 +33,7 @@ from onda.algorithms import (
     generic_algorithms as gen_algs,
 )
 from onda.parallelization_layer import mpi
-from onda.utils import zmq_monitor, dynamic_import, named_tuples, parameters
+from onda.utils import dynamic_import, named_tuples, zmq_monitor
 
 
 class OndaMonitor(mpi.ParallelizationEngine):

@@ -70,7 +70,7 @@ class MonitorParams(object):
             )
 
     def get_param(self, group, parameter, type_=None, required=False):
-        # type (str, str, type, bool) -> Union[Any, None]
+        # type: (str, str, type, bool) -> Union[Any, None]
         """
         Retrieves an OnDA monitor configuration parameter.
 
@@ -173,7 +173,7 @@ class MonitorParams(object):
 
         Returns:
 
-            MutableMapping[str, Any]: a dictionary containing the parameters read from 
+            MutableMapping[str, Any]: a dictionary containing the parameters read from
             the configuration file.
         """
         return self._monitor_params

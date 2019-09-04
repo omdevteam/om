@@ -43,7 +43,7 @@ class DataEvent(object):
         This class stores all the information related to a data event. Methods to
         open, close and manipulate the event are attached to each instance of this
         class at creation time, along with functions to extract data from it.
-        
+
         Arguments:
 
             event_handling_funcs (Dict[str, Callable]): a dictionary containing
@@ -100,7 +100,7 @@ class DataEvent(object):
             Extraction functions.
 
             * Each dictionary key identifies a function attached to the event.
-            
+
             * The corresponding dictionary value stores the data returned by the
               function.
         """

@@ -5,7 +5,7 @@
 # This file does only contain a selection of the most common options. For a
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
-# pylint: disable=invalid-name, redefined-builtin
+# pylint: disable=invalid-name, missing-docstring, redefined-builtin
 
 # -- Path setup --------------------------------------------------------------
 
