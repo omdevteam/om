@@ -125,7 +125,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
         # Type () -> None
         # Updates the frame image shown by the viewer.
 
-        if self.received_datai is not None:
+        if self.received_data is not None:
             # The received aggregated data is expected to be a list of event entries
             # (each being a dictionary storing the data for an event:
             # List[Dict[str, Any], ...]). The last event in the list is extracted for
