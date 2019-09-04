@@ -96,7 +96,7 @@ setup(
         """
     ),
     install_requires=[
-        "cfelpyutils>=0.9",
+        "cfelpyutils>=1.0.0",
         "click>=7.0",
         "fabio>=0.9.0",
         "future>=0.17.1",
@@ -104,9 +104,10 @@ setup(
         "msgpack>=0.6.1",
         "msgpack-numpy>=0.4.4.3",
         "numpy>=1.16.4",
+        "pyzmq>=18.0.2",
         "scipy>=1.2.2",
         "toml>=0.10.0",
-        "pyzmq>=18.0.2",
+        "typing>=3.7.4",
     ],
     extras_require={"monitor": [], "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"]},
     entry_points={
