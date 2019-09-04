@@ -32,11 +32,6 @@ import msgpack_numpy
 import numpy
 import zmq
 
-try:
-    from PyQt5 import QtCore
-except ImportError:
-    from PyQt4 import QtCore
-
 
 class ZmqDataBroadcaster(object):
     """
