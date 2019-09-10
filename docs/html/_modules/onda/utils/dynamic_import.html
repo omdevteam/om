@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>onda.utils.dynamic_import &#8212; OnDA 2019.8.0 documentation</title>
+    <title>onda.utils.dynamic_import &#8212; OnDA 2019.9.0 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
@@ -41,12 +41,13 @@
         </button>
         <a class="navbar-brand" href="../../../index.html">
           OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>2019.8.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2019.9.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
             
+                <li><a href="../../../documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
                 <li><a href="../../../documentation_getting_onda.html">Getting OnDA</a></li>
                 <li><a href="../../../documentation_running_onda.html">Running OnDA</a></li>
                 <li><a href="../../../documentation_advanced_topics.html">Advanced Topics</a></li>
@@ -124,7 +125,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Imports the specified Processing Layer.</span>
 
-<span class="sd">    This function searches for the python file with the implementation of the </span>
+<span class="sd">    This function searches for the python file with the implementation of the</span>
 <span class="sd">    Processing Layer in the working directory first. If the file is not found there,</span>
 <span class="sd">    this function looks for it in the standard OnDA folder structure.</span>
 
@@ -152,7 +153,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Imports the specified Data Retrieval Layer.</span>
 
-<span class="sd">    This function searches for the python file with the implementation of the </span>
+<span class="sd">    This function searches for the python file with the implementation of the</span>
 <span class="sd">    Data Retrieval Layer in the working directory first. If the file is not found</span>
 <span class="sd">    there, this function looks for it in the standard OnDA folder structure.</span>
 
@@ -182,7 +183,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Imports the specified Parallelization Layer.</span>
 
-<span class="sd">    This function searches for the python file with the implementation of the </span>
+<span class="sd">    This function searches for the python file with the implementation of the</span>
 <span class="sd">    Parallelization Layer in the working directory first. If the file is not found</span>
 <span class="sd">    there, this function looks for it in the standard OnDA folder structure.</span>
 
@@ -209,9 +210,9 @@
     <span class="c1"># type: (ModuleType) -&gt; Dict[str, Callable]</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves Event Handling Functions from the Data Retrieval Layer.</span>
-<span class="sd">    </span>
-<span class="sd">    This function retrieves the following Event Handling functions: </span>
-<span class="sd">        </span>
+
+<span class="sd">    This function retrieves the following Event Handling functions:</span>
+
 <span class="sd">    - &#39;initalize_event_source&#39;</span>
 <span class="sd">    - &#39;event_generator&#39;</span>
 <span class="sd">    - &#39;open_even&#39;</span>

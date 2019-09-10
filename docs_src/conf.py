@@ -28,9 +28,9 @@ copyright = """
 author = "Valerio Mariani"
 
 # The short X.Y version
-version = "2019.8.0"
+version = "2019.9.0"
 # The full version, including alpha/beta/rc tags
-release = "2019.8.0"
+release = "2019.9.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -94,6 +94,7 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "bootswatch_theme": "lumen",
     "navbar_links": [
+        ("What is an OnDA Monitor?", "documentation_what_is_an_onda_monitor"),
         ("Getting OnDA", "documentation_getting_onda"),
         ("Running OnDA", "documentation_running_onda"),
         ("Advanced Topics", "documentation_advanced_topics"),

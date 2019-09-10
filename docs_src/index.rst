@@ -10,6 +10,7 @@ OnDA: Online Data Analysis for x-ray imaging
 .. toctree::
    :hidden:
 
+   documentation_what_is_an_onda_monitor
    documentation_getting_onda
    documentation_running_onda
    documentation_advanced_topics

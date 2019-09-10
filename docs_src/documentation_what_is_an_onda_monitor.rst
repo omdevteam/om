@@ -1,0 +1,72 @@
+What Is An OnDA Monitor?
+========================
+
+
+.. contents::
+   :local:
+   
+
+Real-time Monitoring
+--------------------
+
+OnDA is a framework for the development of programs that can be used to monitor
+experiments in real-time (or quasi-real time, depending on your definition). This kind
+of programs retrieve data from a facility as soon as possible after data is collected,
+and perform some fast, simple analysis on it. The goal is to provide the people running
+the experiment enough information to make quick decisions.
+
+Usually, it is not strictly necessary to process all the data being collected in order
+to provide enough information for the decision making (for example, the hit rate for a
+Serial Crystallography experiment can be computed with high accuracy by analyzing only
+a portion of the collected data). It is however crucial that the information provided
+is up to date. Because of this, OnDA always prioritizes the processing of recently
+collected data over the processing of all collected data. Completeness is not the main
+priority, low latency in providing the information is. Additionally, the goal of OnDA
+is strictly to provide quick information to the people running the experiment, not any
+long-term analysis of the data: after the information is delivered to the user, the
+data is discarded without being saved to disk, and new data is retrieved from the
+facility.
+
+In order to achieve its goals of speed and high throughput in data processing, OnDA
+takes advantage of a master / worker parallel architecture. Several processing units
+(**worker nodes** in OnDA parlance) retrieve data events (a single frame or a
+collection of frames presented as a single unit by the facility) from a facility
+source, and process them. A **master node** collects information from the workers and
+performs computations over multiple events (averaging, aggregation, etc.). The reduced
+data is finally presented to the users in the console or sent to external programs for
+visualization.
+
+OnDA is mostly written using the Python programming language, however, some processing
+routines are implemented in other languages (C, C++) for performance reasons.
+
+
+The Three Layers
+----------------
+
+In the OnDA framework, a monitoring program is split into three cleanly separate parts
+(or **Layers**, in OnDA parlance):
+
+* A part which deals with the running logic of the program (set up and finalization of
+  the worker and master nodes, communication between the nodes, etc.). This is called
+  **Parallelization Layer**.
+
+* A part that deals with the retrieval of data from a facility and with the extraction
+  of information from it. This is the **Data Retrieval Layer**.
+
+* A part that deals with the scientific processing of the extracted data. This is
+  called the **Processing Layer**.
+
+The first two layers are usually different for each facility or beamline. The last
+layer, however, encodes the logic of the scientific processing of the data. When the
+same type of monitor is run at different facilities, the same code is run for the
+Processing Layer. Its interface with the other layers is very clearly defined, so those
+layers can swapped for different implementations without any change to the the
+Processing Layer itself.
+
+This clean interface is the reason why a developer who wants to write a monitoring
+program does not need to worry how data is retrieved from each specific facility, or 
+passed around the nodes. All he or she needs to learn is how the data can be accessed
+and manipulated in the Processing Layer. No knowledge of the other two layers is
+required. A monitoring program implementation written for a facility can in most
+cases be run at other facilities just by switching to different implementations of the
+Data Retrieval and Parallelization layers.

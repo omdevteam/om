@@ -9,8 +9,8 @@ Getting OnDA
 
 
 
-OnDA at the LCLS and Petra III Facilities
------------------------------------------
+Accessing OnDA at the LCLS and Petra III Facilities
+---------------------------------------------------
 
 OnDA comes pre-installed at some beamlines of the Petra III and LCLS facilities:
 
@@ -57,8 +57,8 @@ logged in, the following command can be used to activate the `Anaconda
 
 
 
-OnDA on a Local Machine
------------------------
+Installing OnDA on a Local Machine
+----------------------------------
 
 OnDA can easily be installed on a local machine from the `Python Package Index
 <https://pypi.org/>`_. It is also available as a package for the `Anaconda
