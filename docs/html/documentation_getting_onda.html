@@ -90,7 +90,7 @@
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><a class="reference internal" href="#accessing-onda-at-the-lcls-and-petra-iii-facilities" id="id3">Accessing OnDA at the LCLS and Petra III Facilities</a><ul>
-<li><a class="reference internal" href="#lcls-amo-and-cxi" id="id4">LCLS - AMO and CXI</a></li>
+<li><a class="reference internal" href="#lcls-facility-amo-and-cxi-beamlines" id="id4">LCLS Facility - AMO and CXI Beamlines</a></li>
 <li><a class="reference internal" href="#petra-iii-p11" id="id5">Petra III - P11</a></li>
 </ul>
 </li>
@@ -105,20 +105,20 @@
 <h2><a class="toc-backref" href="#id3">Accessing OnDA at the LCLS and Petra III Facilities</a><a class="headerlink" href="#accessing-onda-at-the-lcls-and-petra-iii-facilities" title="Permalink to this headline">¶</a></h2>
 <p>OnDA comes pre-installed at some beamlines of the Petra III and LCLS facilities:</p>
 <ul class="simple">
-<li>LCLS:<ul>
-<li>AMO</li>
-<li>CXI</li>
+<li>LCLS Facility:<ul>
+<li>AMO Beamline</li>
+<li>CXI Beamline</li>
 </ul>
 </li>
-<li>Petra III<ul>
-<li>P11</li>
+<li>Petra III Facility<ul>
+<li>P11 Beamline</li>
 </ul>
 </li>
 </ul>
 <p>Beamline scientists can provide information on how to access and use OnDA. However, for
 reference, instructions can also be found in the following paragraphs.</p>
-<div class="section" id="lcls-amo-and-cxi">
-<h3><a class="toc-backref" href="#id4">LCLS - AMO and CXI</a><a class="headerlink" href="#lcls-amo-and-cxi" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="lcls-facility-amo-and-cxi-beamlines">
+<h3><a class="toc-backref" href="#id4">LCLS Facility - AMO and CXI Beamlines</a><a class="headerlink" href="#lcls-facility-amo-and-cxi-beamlines" title="Permalink to this headline">¶</a></h3>
 <p>In order to run OnDA at these beamlines, access to the monitoring nodes is needed. They
 are the only machines which can access the real-time data stream. Once access has been
 granted, the latest version of OnDA can be reached by activating an <a class="reference external" href="https://anaconda.org/">Anaconda</a> python environment:</p>
@@ -170,6 +170,12 @@ interfaces):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install onda<span class="o">[</span>GUI<span class="o">]</span>
 </pre></div>
 </div>
+<p>When the <strong>mpi</strong> Parallelization Layer is used (It is currently used by default), the
+<em>mpi4py</em> module needs to be installed. This requires a version of the MPI libraries and
+headers to be installed on the machine.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install mpi4py
+</pre></div>
+</div>
 <p><strong>Python 2:</strong></p>
 <p>For Python 2, the process, is very similar, except that the <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">virtualenv</a> tool must be used to create the enviroment:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python2 -m virtualenv onda_env
@@ -185,6 +191,11 @@ interfaces):</p>
 </div>
 <p>Or:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python2 -m pip install onda<span class="o">[</span>GUI<span class="o">]</span>
+</pre></div>
+</div>
+<p>When the <em>mpi</em> Parallelization Layer is used, the <em>mpi4py</em> module must also be
+installed.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python2 -m pip install mpi4py
 </pre></div>
 </div>
 </div>
@@ -218,6 +229,9 @@ which can be created using the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install --channel conda-forge --channel ondateam onda
 </pre></div>
 </div>
+<p>Once access to OnDA has been obtained at one of the supported facilities, or OnDA has
+been installed on a local machine, information on how to run it can be found
+<a class="reference internal" href="documentation_running_onda.html"><span class="doc">here</span></a>.</p>
 </div>
 </div>
 </div>

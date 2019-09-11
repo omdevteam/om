@@ -13,6 +13,7 @@ Running OnDA
    example_pilatus_geom
    documentation_source_string
    documentation_configuration_file
+   documentation_errors
 
 
 .. contents::

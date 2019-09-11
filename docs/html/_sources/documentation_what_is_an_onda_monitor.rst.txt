@@ -70,3 +70,20 @@ and manipulated in the Processing Layer. No knowledge of the other two layers is
 required. A monitoring program implementation written for a facility can in most
 cases be run at other facilities just by switching to different implementations of the
 Data Retrieval and Parallelization layers.
+
+
+The OnDA Project
+----------------
+
+The goal of the OnDA project is to provide users with a collection of modules that can
+can be used to easily build real-time monitoring programs. However, the project also
+aims at providing a set of stable and efficient real-time monitors for the most common
+types of x-ray imaging experiments. These programs can be used immediately without
+modifications or can be easily adapted to meet the users’ requirements. Currently, only
+one of these monitoring programs is distributed with OnDA: the OnDA Monitor for Serial
+Crystallography. Several others are currently under development and will be added to
+OnDA as soon as they are ready.
+
+
+Information on how to access or install OnDA at several facilities or on your local
+can be found :doc:`here <documentation_getting_onda>`.

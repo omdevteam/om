@@ -14,21 +14,21 @@ Accessing OnDA at the LCLS and Petra III Facilities
 
 OnDA comes pre-installed at some beamlines of the Petra III and LCLS facilities:
 
-* LCLS:
+* LCLS Facility:
 
-  - AMO
-  - CXI
+  - AMO Beamline
+  - CXI Beamline
 
-* Petra III
+* Petra III Facility
 
-  - P11
+  - P11 Beamline
 
 Beamline scientists can provide information on how to access and use OnDA. However, for
 reference, instructions can also be found in the following paragraphs.
 
 
-LCLS - AMO and CXI
-^^^^^^^^^^^^^^^^^^
+LCLS Facility - AMO and CXI Beamlines
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to run OnDA at these beamlines, access to the monitoring nodes is needed. They
 are the only machines which can access the real-time data stream. Once access has been
@@ -106,6 +106,15 @@ In order to install OnDA together with the Qt5-based graphical interfaces:
 
     python3 -m pip install onda[GUI]
 
+When the **mpi** Parallelization Layer is used (It is currently used by default), the
+*mpi4py* module needs to be installed. This requires a version of the MPI libraries and
+headers to be installed on the machine.
+
+.. code-block:: bash
+
+    python3 -m pip install mpi4py
+
+
 **Python 2:**
 
 For Python 2, the process, is very similar, except that the `virtualenv
@@ -133,6 +142,13 @@ Or:
 .. code-block:: bash
 
     python2 -m pip install onda[GUI]
+
+When the *mpi* Parallelization Layer is used, the *mpi4py* module must also be
+installed.
+
+.. code-block:: bash
+
+    python2 -m pip install mpi4py
 
 
 Installation in Anaconda
@@ -179,3 +195,8 @@ And:
 .. code-block:: bash
 
     conda install --channel conda-forge --channel ondateam onda
+
+
+Once access to OnDA has been obtained at one of the supported facilities, or OnDA has
+been installed on a local machine, information on how to run it can be found
+:doc:`here <documentation_running_onda>`.

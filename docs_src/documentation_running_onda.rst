@@ -13,6 +13,7 @@ Running OnDA
    example_pilatus_geom
    documentation_source_string
    documentation_configuration_file
+   documentation_errors
 
 
 .. contents::
@@ -43,29 +44,28 @@ OnDA comes pre-installed at some beamlines of the Petra III and LCLS facilities:
 
   - P11 Beamline
 
-Instructions to acess OnDA at these facilities can be found :doc:`here
-<documentation_getting_onda>`. The following documentation focuses on running OnDA
-at the supported beamlines. 
+Instructions on how to access OnDA at these beamlines can be found :doc:`here
+<documentation_getting_onda>`. The following documentation focuses on running the OnDA
+monitor for Serial Crystallography at the supported facilities. 
 
 
 LCLS Facility - AMO and CXI Beamlines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-At these beamlines, OnDA must be run on some machines known as *monitoring nodes*. Only
-on these machines the data stream can be accessed in real time. The monitoring nodes
-have hostnames that match the following scheme:
+At these beamlines, OnDA must be run on the group of machines known as *monitoring
+nodes*. Only these computers can access the data stream in real time. The monitoring
+nodes have hostnames that match the following scheme:
 
 * **Monitoring nodes at CXI**: daq-cxi-monXX
 * **Monitoring nodes at AMO**: daq-amo-monXX
 
-where XX is a zero-padded number. The specific monitoring nodes available for OnDA can
-change for every experiment and sometimes even during an experiment. The beamline
-scientists can usually provide information about the monitoring nodes that should be
-used at any given time.
+where XX is a zero-padded number. The set of specific monitoring nodes available to run
+OnDA can be different for every experiment (Sometimes it can change even during the
+course of a single experiment). The beamline scientists can provide information about
+which monitoring nodes should be used at any given time.
 
-In order to run OnDA, after logging into the first monitoring node (following
-instructions provided by the beamline scientists), a file called
-'**run_onda_crystallography_lcls.sh**' should be created with the following content:
+In order to run OnDA, after logging into one of the monitoring nodes, a file called
+'**run_onda_crystallography_lcls.sh**' must be created with the following content:
 
 .. code-block:: bash
 
@@ -83,10 +83,10 @@ instructions provided by the beamline scientists), a file called
     $(which mpirun) --oversubscribe --map-by ppr:X:node \
                     --host Y $(pwd)/monitor_wrapper.sh
 
-In the last line, *X* must be replaced with the number of OnDA nodes that should be
+In the last line, *X* should be replaced with the number of OnDA nodes that should be
 instantiated each machine, while *Y* with a comma-separated list of hostnames
-corresponding to the monitoring nodes to be used (As already mentioned, the beamline
-scientists can provide this information).
+corresponding to the monitoring nodes to be used by OnDA (As already mentioned, the
+beamline scientists can provide this information).
 
 In the same folder, a *monitor.toml* configuration file should be created (See
 :doc:`here <documentation_configuration_file>` for a discussion of the format and
@@ -95,12 +95,12 @@ content of the configuration file).
 * **Example monitor.toml for CXI**: :doc:`monitor.toml <example_cxi_monitor_toml>`
 * **Example monitor.toml for AMO**: :doc:`monitor.toml <example_amo_monitor_toml>`
 
-All the files mentioned in the configuration file (masks, bad_pixel_masks, etc.) must
-be reachable and readable from all the monitoring nodes.
+All the additional files mentioned in the configuration file (masks, bad_pixel_maps,
+etc.) should also obviously be reachable and readable from all the monitoring nodes.
 
 * **Example cspad.geom for the cspad detector**: :doc:`cspad.geom <example_cspad_geom>`
 
-The OnDA monitor can be then be started by running the
+The OnDA Monitor for Serial Crystallography can be then be started by running the
 *run_onda_crystallography_lcls.sh* script on the first monitoring node:
 
 .. code-block:: bash
@@ -108,10 +108,10 @@ The OnDA monitor can be then be started by running the
     # On one of the first monitoring node, for example, daq-cxi-mon07
     ./run_onda_crystallography_lcls.sh
 
-As the monitor starts, it prints on the console a line that contains the following
-string: "Broadcasting data at <ip>:<port>" (where <ip> is an IP address string of the
-form XXX.XXX.XXX.XXX, and <port> is a number). These values are needed to start the
-graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started using
+As the monitor starts, it prints on the console the following line: "Broadcasting data
+at <ip>:<port>", where <ip> is an IP address (a string with the following format:
+XXX.XXX.XXX.XXX) and <port> is a port number. These values are needed to start the
+graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started with
 the following command:
 
 .. code-block:: bash
@@ -120,8 +120,8 @@ the following command:
     onda_crystallography_gui.py <geometry_file> <ip> <port>
 
 In this command line, *geometry_file* should be replaced with the name of the geometry
-file to be used for the visualization, and *ip* and *port* with the information
-provided by the starting monitor.
+file to be used for visualization, and *ip* and *port* with the information provided by
+the starting monitor.
 
 The OnDA Frame Viewer for Crystallography can instead be started using the following
 similar command:
@@ -136,18 +136,18 @@ similar command:
 PETRA III Facility - P11 Beamtime
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-At the P11 beamline, OnDA must be run on the *eval01.desy.de* machine as the *p11user*
+At the P11 beamline, OnDA must run on the *eval01.desy.de* machine as the *p11user*
 user. The P11 beamline scientists can provide information on how to access this
 machine.
 
-In order to run OnDA, a *monitor.toml* must be created (See :doc:`here
-<documentation_configuration_file>` for a discussion of the format and content of the
-configuration file).
+In order to run the OnDA Monitor for Serial Crystallography, a *monitor.toml* file
+must be created (See :doc:`here <documentation_configuration_file>` for a discussion
+of the format and content of the configuration file).
 
 * **Example monitor.toml for P11**: :doc:`monitor.toml <example_p11_monitor_toml>`
 
-All the files mentioned in the configuration file (masks, bad_pixel_masks, etc.) must
-be reachable and readable from the *p11user* user on *eval01.desy.de*.
+All the files mentioned in the configuration file (masks, bad_pixel_maps, etc.) must
+obviously be reachable and readable from the *p11user*.
 
 * **Example pilatus.geom for the Pilatus detector**: :doc:`pilatus.geom
   <example_pilatus_geom>`
@@ -163,10 +163,10 @@ In the command line, *num_nodes* should be replaced with the total number of OnD
 nodes that the monitor should use (all workers plus a master). Usually a value of 9
 (8 workers + 1 master) is fully sufficient to process the full data stream at P11.
 
-As the monitor starts, it prints on the console a line that contains the following
-string: "Broadcasting data at <ip>:<port>" (where <ip> is an IP address string of the
-form XXX.XXX.XXX.XXX, and <port> is a number). These values are needed to start the
-graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started using
+As the monitor starts, it prints on the console the following line: "Broadcasting data
+at <ip>:<port>", where <ip> is an IP address (a string with the following format:
+XXX.XXX.XXX.XXX) and <port> is a port number. These values are needed to start the
+graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started with
 the following command:
 
 .. code-block:: bash
@@ -175,8 +175,8 @@ the following command:
     onda_crystallography_gui.py <geometry_file> <ip> <port>
 
 In this command line, *geometry_file* should be replaced with the name of the geometry
-file to be used for the visualization, and *ip* and *port* with the information
-provided by the starting monitor.
+file to be used for visualization, and *ip* and *port* with the information provided by
+the starting monitor.
 
 The OnDA Frame Viewer for Crystallography can instead be started using the following
 similar command:
@@ -199,50 +199,51 @@ Running OnDA on a Local Machine
 
 Although it is possible to run OnDA on a local machine, it should be noted that OnDA is
 not designed or optimized for the limited resources of a laptop or a small desktop
-machine. Furthermore, when running OnDA locally, it is often very hard or impossible
+computer. Furthermore, when running OnDA locally, it is often very hard or impossible
 to connect to the facility frameworks to retrieve data. Therefore, the following
 paragraphs contain instructions aimed at running OnDA to process files written by the
 Pilatus detector (relatively small in size), stored in a folder on the local machine. 
 This is a good choice for debugging or demonstration purposes.
 
-This example will use data files from an experiment performed at the APS facility, part
-of the Argonne National Laboratory in the USA. These files have been deposited in the
-`Coherent X-ray Imaging Data Bank <http://cxidb.org/id-82.html>`_, an online database
-of data from Serial Crystallography experiments.
-
 Instructions on how to install OnDA on a local machine can be found :doc:`here
 <documentation_getting_onda>`.
 
-The following paragraphs additionally assume that the file *data8.tar.gz* has been
-downloaded from `here <http://cxidb.org/data/82/raw-data/>`_ and unpacked (Beware, the
-data, even compressed, is 24Gb).
+This example will use data files from an experiment performed at the APS facility, part
+of the Argonne National Laboratory in the USA. The files have been deposited in the
+`Coherent X-ray Imaging Data Bank <http://cxidb.org/id-82.html>`_, an online database
+of data from Serial Crystallography experiments. The following paragraphs assume that
+the file *data8.tar.gz* has been downloaded from
+`here <http://cxidb.org/data/82/raw-data/>`_ and unpacked (Beware, the data, even
+compressed, is 24Gb).
 
-In order to run OnDA on your machine, create a *monitor.toml* configuration file.
-(See :doc:`here <documentation_configuration_file>` for a discussion of the format
-and content of the configuration file).
+In order to run the OnDA Monitor for Serial Crystallography on a local machine, a
+*monitor.toml* configuration file should be created. (See :doc:`here
+<documentation_configuration_file>` for a discussion of the format and content of the
+configuration file).
 
 * **Example monitor.toml for the Ti-Yen Lan dataset from the CXIDB website**:
   :doc:`monitor.toml <example_files_monitor_toml>`
 
-Make sure that all the files mentioned in the configuration file (masks,
-bad_pixel_masks, etc.) are present on your machine.
+All the files mentioned in the configuration file (masks, bad_pixel_maps, etc.) should
+also obviously be present on the local machine.
 
 * **Example pilatus.geom for the Pilatus detector**: :doc:`pilatus.geom
   <example_pilatus_geom>`
 
-Then create a file with the list of files that onda will process, with their full
-absolute or relative path, one file per line. This can easily be obtained using the
-*find* command from bash:
+OnDA needs then a file containing a list of files that the monitor should process. The
+list should contain one file per line, each with its full absolute or relative path.
+This file can easily be generated using the Unix *find* command (the following example
+creates a file named *files.lst*):
 
 .. code-block:: bash
     
     # Substitute <path> with the path to the downloaded files
     find <path> -name "*cbf" > files.lst
 
-In the command line, *path* should be replaced with the absolute or relative path to
-the directory where the files have been unpacked. For example, assuming that the files
-had been unpacked in the *data8* subdirectory in the current folder, the first lines
-of the *files.lst* file should read:
+In this command line, *path* should be replaced with the absolute or relative path to
+the directory where the data files have been unpacked. For example, assuming that the
+files have been unpacked in the *data8* subdirectory of the current folder, the first
+lines of the list should read:
 
 .. code-block:: text
     
@@ -254,7 +255,7 @@ of the *files.lst* file should read:
     ...
 
 From the folder where the *monitor.toml* and *files.lst* files are, the OnDA monitor
-can be started using the following command:
+can be finally be started using the following command:
 
 .. code-block:: bash
     
@@ -265,10 +266,10 @@ In the command line, *num_nodes* should be replaced with the total number of OnD
 that the monitor should use (all workers plus a master). For a local machine and for
 testing purposes, a value of 3 (just 2 workers + 1 master) is advised.
 
-As the monitor starts, it prints on the console a line that contains the following
-string: "Broadcasting data at <ip>:<port>" (where <ip> is an IP address string of the
-form XXX.XXX.XXX.XXX, and <port> is a number). These values are needed to start the
-graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started using
+As the monitor starts, it prints on the console the following line: "Broadcasting data
+at <ip>:<port>", where <ip> is an IP address (a string with the following format:
+XXX.XXX.XXX.XXX) and <port> is a port number. These values are needed to start the
+graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started with
 the following command:
 
 .. code-block:: bash
@@ -277,8 +278,8 @@ the following command:
     onda_crystallography_gui.py <geometry_file> <ip> <port>
 
 In this command line, *geometry_file* should be replaced with the name of the geometry
-file to be used for the visualization, and *ip* and *port* with the information
-provided by the starting monitor.
+file to be used for visualization, and *ip* and *port* with the information provided by
+the starting monitor.
 
 The OnDA Frame Viewer for Crystallography can instead be started using the following
 similar command:
