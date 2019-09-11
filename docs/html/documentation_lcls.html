@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Running OnDA at the LCLS Facility - AMO and CXI Beamlines &#8212; OnDA 2019.9.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Example monitor.toml for the AMO beamline at the LCLS facility" href="example_amo_monitor_toml.html" />
+    <link rel="prev" title="Running OnDA" href="documentation_running_onda.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OnDA</a>
+        <span class="navbar-text navbar-version pull-left"><b>2019.9.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
+                <li><a href="documentation_running_onda.html">Running OnDA</a></li>
+                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="running-onda-at-the-lcls-facility-amo-and-cxi-beamlines">
+<h1>Running OnDA at the LCLS Facility - AMO and CXI Beamlines<a class="headerlink" href="#running-onda-at-the-lcls-facility-amo-and-cxi-beamlines" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="accessing-onda">
+<h2>Accessing OnDA<a class="headerlink" href="#accessing-onda" title="Permalink to this headline">¶</a></h2>
+<p>At these beamlines, OnDA must be run on some machines known as <em>monitoring nodes</em>. Only
+on these machines the data stream can be accessed in real time. The monitoring nodes
+have hostnames that match the following scheme:</p>
+<ul class="simple">
+<li><strong>Monitoring nodes at CXI</strong>: daq-cxi-monXX</li>
+<li><strong>Monitoring nodes at AMO</strong>: daq-amo-monXX</li>
+</ul>
+<p>where XX is a zero-padded number. The specific monitoring nodes available for OnDA can
+change for every experiment and sometimes even during an experiment. The beamline
+scientists can usually provide information about the monitoring nodes that should be
+used at any given time.</p>
+<p>Once access has to the monitoring nodes have been obtained, the latest version of OnDA
+can be accessed by activating an <a class="reference external" href="https://anaconda.org/">Anaconda python
+environment</a> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On one of the monitoring nodes, for example, daq-cxi-mon07</span>
+<span class="nb">source</span> /reg/g/cfel/onda/onda.sh
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-onda">
+<h2>Running OnDA<a class="headerlink" href="#running-onda" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Please notice that all the <em>monitor.toml</em> configuration files and all the geometry
+files provided in this page are just examples. They might need to be modified to
+fit specific experiments.</p>
+</div>
+<p>In order to run OnDA, after logging into the first monitoring node (following
+instructions provided by the beamline scientists), a file called
+‘<strong>run_onda_crystallography_lcls.sh</strong>’ should be created with the following content:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># In the last line, replace **X** with the number of OnDA nodes to run on each</span>
+<span class="c1"># machine and **Y** with a comma-separated list of hostnames corresponding to the</span>
+<span class="c1"># machines on which OnDA should run.</span>
+<span class="nb">source</span> /reg/g/cfel/onda/onda.sh
+<span class="nb">echo</span> Creating and Running <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+<span class="nb">echo</span> <span class="s1">&#39;#!/bin/bash&#39;</span> &gt; <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+<span class="nb">echo</span> <span class="s1">&#39;# File automatically created by the&#39;</span>  &gt;&gt; <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+<span class="nb">echo</span> <span class="s1">&#39;# run_onda_crystallography_lcls.sh script&#39;</span> &gt;&gt; <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+<span class="nb">echo</span> <span class="s1">&#39;source /reg/g/cfel/onda/onda.sh&#39;</span> &gt;&gt; <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+<span class="nb">echo</span> <span class="s2">&quot;onda_monitor.py &#39;shmem=psana.0:stop=no&#39;&quot;</span> &gt;&gt; <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+chmod +x <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+<span class="k">$(</span>which mpirun<span class="k">)</span> --oversubscribe --map-by ppr:X:node <span class="se">\</span>
+                --host Y <span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/monitor_wrapper.sh
+</pre></div>
+</div>
+<p>In the last line, <em>X</em> must be replaced with the number of OnDA nodes that should be
+instantiated each machine, while <em>Y</em> with a comma-separated list of hostnames
+corresponding to the monitoring nodes to be used (As already mentioned, the beamline
+scientists can provide this information).</p>
+<p>In the same folder as the previous script, a <em>monitor.toml</em> configuration file should
+be created (See <a class="reference internal" href="documentation_configuration_file.html"><span class="doc">here</span></a> for a discussion of the
+format and content of the configuration file).</p>
+<ul class="simple">
+<li><strong>Example monitor.toml for CXI</strong>: <a class="reference internal" href="example_cxi_monitor_toml.html"><span class="doc">monitor.toml</span></a></li>
+<li><strong>Example monitor.toml for AMO</strong>: <a class="reference internal" href="example_amo_monitor_toml.html"><span class="doc">monitor.toml</span></a></li>
+</ul>
+<p>All the files mentioned in the configuration file (masks, bad_pixel_masks, etc.) must
+be reachable and readable from all the monitoring nodes.</p>
+<ul class="simple">
+<li><strong>Example cspad.geom for the cspad detector</strong>: <a class="reference internal" href="example_cspad_geom.html"><span class="doc">cspad.geom</span></a></li>
+</ul>
+<p>The OnDA monitor can be then be started by running the
+<em>run_onda_crystallography_lcls.sh</em> script on the first monitoring node:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On one of the first monitoring node, for example, daq-cxi-mon07</span>
+./run_onda_crystallography_lcls.sh
+</pre></div>
+</div>
+<p>As the monitor starts, it prints on the console a line that contains the following
+string: “Broadcasting data at &lt;ip&gt;:&lt;port&gt;” (where &lt;ip&gt; is an IP address string of the
+form XXX.XXX.XXX.XXX, and &lt;port&gt; is a number). These values are needed to start the
+graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started using
+the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Replace &lt;geometry_file&gt;,&lt;ip&gt; and &lt;port&gt; with appropriate values</span>
+onda_crystallography_gui.py &lt;geometry_file&gt; &lt;ip&gt; &lt;port&gt;
+</pre></div>
+</div>
+<p>In this command line, <em>geometry_file</em> should be replaced with the name of the geometry
+file to be used for the visualization, and <em>ip</em> and <em>port</em> with the information
+provided by the starting monitor.</p>
+<p>The OnDA Frame Viewer for Crystallography can instead be started using the following
+similar command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Replace &lt;geometry_file&gt;,&lt;ip&gt; and &lt;port&gt; with appropriate values</span>
+onda_crystallography_frame_viewer.py &lt;geometry_file&gt; &lt;ip&gt; &lt;port&gt;
+</pre></div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
+    the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

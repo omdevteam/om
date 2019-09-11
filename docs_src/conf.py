@@ -95,7 +95,6 @@ html_theme_options = {
     "bootswatch_theme": "lumen",
     "navbar_links": [
         ("What is an OnDA Monitor?", "documentation_what_is_an_onda_monitor"),
-        ("Getting OnDA", "documentation_getting_onda"),
         ("Running OnDA", "documentation_running_onda"),
         ("Advanced Topics", "documentation_advanced_topics"),
         ("Source Code", "https://github.com/ondateam/onda", True),

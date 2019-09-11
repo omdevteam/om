@@ -50,7 +50,6 @@
           <ul class="nav navbar-nav">
             
                 <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
-                <li><a href="documentation_getting_onda.html">Getting OnDA</a></li>
                 <li><a href="documentation_running_onda.html">Running OnDA</a></li>
                 <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
                 <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
@@ -106,15 +105,15 @@
 </ul>
 </div>
 <p>When something does not work as expected, an OnDA monitor can report an error. Errors
-can be fatal, in which case the monitor simply exits, or not, and the monitor simply
-reports the error and continues processing data.</p>
+can be fatal, in which case the monitor simply exits, or not, in whcih case the monitor
+simply reports the error and continues processing data.</p>
 <p>OnDA errors are not reported as normal python errors. They are clearly labelled as
 coming from the monitor, and their traceback information is removed. The ‘–debug’
 options of the ‘onda_monitor.py’ script disables this behavior and forces OnDa to
 report all errors as normal python errors.</p>
-<p>When the mpi Parallelization layer is used, OnDA fatal errors are often reported
-multiple times before the monitor stops This is normal: it can happen that multiple
-nodes report the same error before the MPI engine has time to stop.</p>
+<p>When the <em>mpi</em> Parallelization layer is used, OnDA fatal errors are often reported
+multiple times before the monitor stops: it can happen that multiple nodes report the
+same error before the MPI engine can stop.</p>
 <p>A list of the most common errors reported by OnDA follows, with a brief discussion of
 each.</p>
 <div class="section" id="ondaconfigurationfilereadingerror">

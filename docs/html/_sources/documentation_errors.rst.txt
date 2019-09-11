@@ -10,17 +10,17 @@ OnDA Errors and Warnings
 
 
 When something does not work as expected, an OnDA monitor can report an error. Errors
-can be fatal, in which case the monitor simply exits, or not, and the monitor simply
-reports the error and continues processing data.
+can be fatal, in which case the monitor simply exits, or not, in whcih case the monitor
+simply reports the error and continues processing data.
 
 OnDA errors are not reported as normal python errors. They are clearly labelled as
 coming from the monitor, and their traceback information is removed. The '--debug'
 options of the 'onda_monitor.py' script disables this behavior and forces OnDa to
 report all errors as normal python errors.
 
-When the mpi Parallelization layer is used, OnDA fatal errors are often reported
-multiple times before the monitor stops This is normal: it can happen that multiple
-nodes report the same error before the MPI engine has time to stop.
+When the *mpi* Parallelization layer is used, OnDA fatal errors are often reported
+multiple times before the monitor stops: it can happen that multiple nodes report the
+same error before the MPI engine can stop.
 
 A list of the most common errors reported by OnDA follows, with a brief discussion of
 each.

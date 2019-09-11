@@ -9,32 +9,31 @@ What Is An OnDA Monitor?
 Real-time Monitoring
 --------------------
 
-OnDA is a framework for the development of programs that can be used to monitor
-experiments in real-time (or quasi-real time, depending on your definition). This kind
-of programs retrieve data from a facility as soon as possible after data is collected,
-and perform some fast, simple analysis on it. The goal is to provide the people running
-the experiment enough information to make quick decisions.
+OnDA is a tool for the development of programs that can monitor experiments in
+real-time (or quasi-real time). This kind of programs retrieve data from a facility as
+soon as possible after data is collected, and perform some fast, simple analysis on it.
+The goal is to provide the people running the experiment with enough information to
+take quick decisions. These can often change the direction of the experiment while it
+is still running, adapting it to new conditions and circumstances.
 
-Usually, it is not strictly necessary to process all the data being collected in order
-to provide enough information for the decision making (for example, the hit rate for a
+Usually, it is not necessary to process all the data being collected in order to
+provide enough information for the decision making. For example, the hit rate for a
 Serial Crystallography experiment can be computed with high accuracy by analyzing only
-a portion of the collected data). It is however crucial that the information provided
-is up to date. Because of this, OnDA always prioritizes the processing of recently
-collected data over the processing of all collected data. Completeness is not the main
-priority, low latency in providing the information is. Additionally, the goal of OnDA
-is strictly to provide quick information to the people running the experiment, not any
-long-term analysis of the data: after the information is delivered to the user, the
-data is discarded without being saved to disk, and new data is retrieved from the
-facility.
+a portion of the collected data. It is however crucial that the information provided
+is up to date. Because of this, OnDA always prioritizes the processing of *recently
+collected data* over the processing of *all* collected data. Completeness is not the
+main priority, low latency in providing the information is. Additionally, the goal of
+OnDA is strictly to provide quick information to the people running the experiment, not
+any long-term analysis of the data: after the information is delivered, the data is
+discarded without being saved to disk, and new data is retrieved.
 
-In order to achieve its goals of speed and high throughput in data processing, OnDA
-takes advantage of a master / worker parallel architecture. Several processing units
+In order to achieve its goals of speed and high throughput data processing, OnDA takes
+advantage of a master / worker parallel architecture. Several processing units
 (**worker nodes** in OnDA parlance) retrieve data events (a single frame or a
-collection of frames presented as a single unit by the facility) from a facility
-source, and process them. A **master node** collects information from the workers and
-performs computations over multiple events (averaging, aggregation, etc.). The reduced
-data is finally presented to the users in the console or sent to external programs for
-visualization.
+collection of frames presented as a single unit) from a facility, and process them.
+A **master node** collects information from the workers and performs computations over
+multiple events (averaging, aggregation, etc.). The reduced data is finally presented
+to the users in the console or sent to external programs for visualization.
 
 OnDA is mostly written using the Python programming language, however, some processing
 routines are implemented in other languages (C, C++) for performance reasons.
@@ -58,18 +57,19 @@ In the OnDA framework, a monitoring program is split into three cleanly separate
 
 The first two layers are usually different for each facility or beamline. The last
 layer, however, encodes the logic of the scientific processing of the data. When the
-same type of monitor is run at different facilities, the same code is run for the
-Processing Layer. Its interface with the other layers is very clearly defined, so those
-layers can swapped for different implementations without any change to the the
-Processing Layer itself.
+same type of monitor is run at different facilities, the same Processing Layer code is
+run. The interface between the Processing Layer and the other layers is very clearly
+defined, and those layers can swapped for different implementations without affecting
+the Processing Layer.
 
-This clean interface is the reason why a developer who wants to write a monitoring
-program does not need to worry how data is retrieved from each specific facility, or 
-passed around the nodes. All he or she needs to learn is how the data can be accessed
-and manipulated in the Processing Layer. No knowledge of the other two layers is
-required. A monitoring program implementation written for a facility can in most
-cases be run at other facilities just by switching to different implementations of the
-Data Retrieval and Parallelization layers.
+This clean separation is the reason why a developer who wants to write an OnDA
+monitoring program for a supported facility does not need to worry how data is
+retrieved, or passed around the nodes. All he or she needs to learn is how the data
+can be accessed and manipulated in the Processing Layer. No knowledge of the other two
+layers is required. Furthermore, a monitoring program implementation written for a
+facility can in most cases be run at other facilities just by switching to different
+implementations of the Data Retrieval and Parallelization layers, keeping the same
+Processing Layer.
 
 
 The OnDA Project
@@ -81,9 +81,6 @@ aims at providing a set of stable and efficient real-time monitors for the most 
 types of x-ray imaging experiments. These programs can be used immediately without
 modifications or can be easily adapted to meet the users’ requirements. Currently, only
 one of these monitoring programs is distributed with OnDA: the OnDA Monitor for Serial
-Crystallography. Several others are currently under development and will be added to
-OnDA as soon as they are ready.
+Crystallography. Several others are currently under development and will be added as
+soon as they are ready.
 
-
-Information on how to access or install OnDA at several facilities or on your local
-can be found :doc:`here <documentation_getting_onda>`.

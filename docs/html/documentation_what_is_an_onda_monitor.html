@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Getting OnDA" href="documentation_getting_onda.html" />
+    <link rel="next" title="Running OnDA" href="documentation_running_onda.html" />
     <link rel="prev" title="OnDA: Online Data Analysis for x-ray imaging" href="index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
@@ -50,7 +50,6 @@
           <ul class="nav navbar-nav">
             
                 <li><a href="#">What is an OnDA Monitor?</a></li>
-                <li><a href="documentation_getting_onda.html">Getting OnDA</a></li>
                 <li><a href="documentation_running_onda.html">Running OnDA</a></li>
                 <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
                 <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
@@ -96,30 +95,29 @@
 </div>
 <div class="section" id="real-time-monitoring">
 <h2><a class="toc-backref" href="#id1">Real-time Monitoring</a><a class="headerlink" href="#real-time-monitoring" title="Permalink to this headline">¶</a></h2>
-<p>OnDA is a framework for the development of programs that can be used to monitor
-experiments in real-time (or quasi-real time, depending on your definition). This kind
-of programs retrieve data from a facility as soon as possible after data is collected,
-and perform some fast, simple analysis on it. The goal is to provide the people running
-the experiment enough information to make quick decisions.</p>
-<p>Usually, it is not strictly necessary to process all the data being collected in order
-to provide enough information for the decision making (for example, the hit rate for a
+<p>OnDA is a tool for the development of programs that can monitor experiments in
+real-time (or quasi-real time). This kind of programs retrieve data from a facility as
+soon as possible after data is collected, and perform some fast, simple analysis on it.
+The goal is to provide the people running the experiment with enough information to
+take quick decisions. These can often change the direction of the experiment while it
+is still running, adapting it to new conditions and circumstances.</p>
+<p>Usually, it is not necessary to process all the data being collected in order to
+provide enough information for the decision making. For example, the hit rate for a
 Serial Crystallography experiment can be computed with high accuracy by analyzing only
-a portion of the collected data). It is however crucial that the information provided
-is up to date. Because of this, OnDA always prioritizes the processing of recently
-collected data over the processing of all collected data. Completeness is not the main
-priority, low latency in providing the information is. Additionally, the goal of OnDA
-is strictly to provide quick information to the people running the experiment, not any
-long-term analysis of the data: after the information is delivered to the user, the
-data is discarded without being saved to disk, and new data is retrieved from the
-facility.</p>
-<p>In order to achieve its goals of speed and high throughput in data processing, OnDA
-takes advantage of a master / worker parallel architecture. Several processing units
+a portion of the collected data. It is however crucial that the information provided
+is up to date. Because of this, OnDA always prioritizes the processing of <em>recently
+collected data</em> over the processing of <em>all</em> collected data. Completeness is not the
+main priority, low latency in providing the information is. Additionally, the goal of
+OnDA is strictly to provide quick information to the people running the experiment, not
+any long-term analysis of the data: after the information is delivered, the data is
+discarded without being saved to disk, and new data is retrieved.</p>
+<p>In order to achieve its goals of speed and high throughput data processing, OnDA takes
+advantage of a master / worker parallel architecture. Several processing units
 (<strong>worker nodes</strong> in OnDA parlance) retrieve data events (a single frame or a
-collection of frames presented as a single unit by the facility) from a facility
-source, and process them. A <strong>master node</strong> collects information from the workers and
-performs computations over multiple events (averaging, aggregation, etc.). The reduced
-data is finally presented to the users in the console or sent to external programs for
-visualization.</p>
+collection of frames presented as a single unit) from a facility, and process them.
+A <strong>master node</strong> collects information from the workers and performs computations over
+multiple events (averaging, aggregation, etc.). The reduced data is finally presented
+to the users in the console or sent to external programs for visualization.</p>
 <p>OnDA is mostly written using the Python programming language, however, some processing
 routines are implemented in other languages (C, C++) for performance reasons.</p>
 </div>
@@ -138,17 +136,18 @@ called the <strong>Processing Layer</strong>.</li>
 </ul>
 <p>The first two layers are usually different for each facility or beamline. The last
 layer, however, encodes the logic of the scientific processing of the data. When the
-same type of monitor is run at different facilities, the same code is run for the
-Processing Layer. Its interface with the other layers is very clearly defined, so those
-layers can swapped for different implementations without any change to the the
-Processing Layer itself.</p>
-<p>This clean interface is the reason why a developer who wants to write a monitoring
-program does not need to worry how data is retrieved from each specific facility, or
-passed around the nodes. All he or she needs to learn is how the data can be accessed
-and manipulated in the Processing Layer. No knowledge of the other two layers is
-required. A monitoring program implementation written for a facility can in most
-cases be run at other facilities just by switching to different implementations of the
-Data Retrieval and Parallelization layers.</p>
+same type of monitor is run at different facilities, the same Processing Layer code is
+run. The interface between the Processing Layer and the other layers is very clearly
+defined, and those layers can swapped for different implementations without affecting
+the Processing Layer.</p>
+<p>This clean separation is the reason why a developer who wants to write an OnDA
+monitoring program for a supported facility does not need to worry how data is
+retrieved, or passed around the nodes. All he or she needs to learn is how the data
+can be accessed and manipulated in the Processing Layer. No knowledge of the other two
+layers is required. Furthermore, a monitoring program implementation written for a
+facility can in most cases be run at other facilities just by switching to different
+implementations of the Data Retrieval and Parallelization layers, keeping the same
+Processing Layer.</p>
 </div>
 <div class="section" id="the-onda-project">
 <h2><a class="toc-backref" href="#id3">The OnDA Project</a><a class="headerlink" href="#the-onda-project" title="Permalink to this headline">¶</a></h2>
@@ -158,10 +157,8 @@ aims at providing a set of stable and efficient real-time monitors for the most 
 types of x-ray imaging experiments. These programs can be used immediately without
 modifications or can be easily adapted to meet the users’ requirements. Currently, only
 one of these monitoring programs is distributed with OnDA: the OnDA Monitor for Serial
-Crystallography. Several others are currently under development and will be added to
-OnDA as soon as they are ready.</p>
-<p>Information on how to access or install OnDA at several facilities or on your local
-can be found <a class="reference internal" href="documentation_getting_onda.html"><span class="doc">here</span></a>.</p>
+Crystallography. Several others are currently under development and will be added as
+soon as they are ready.</p>
 </div>
 </div>
 

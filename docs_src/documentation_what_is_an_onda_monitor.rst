@@ -9,22 +9,22 @@ What Is An OnDA Monitor?
 Real-time Monitoring
 --------------------
 
-OnDA is a framework for the development of programs that can monitor experiments in
+OnDA is a tool for the development of programs that can monitor experiments in
 real-time (or quasi-real time). This kind of programs retrieve data from a facility as
 soon as possible after data is collected, and perform some fast, simple analysis on it.
 The goal is to provide the people running the experiment with enough information to
 take quick decisions. These can often change the direction of the experiment while it
 is still running, adapting it to new conditions and circumstances.
 
-Usually, it is not strictly necessary to process all the data being collected in order
-to provide enough information for the decision makng (for example, the hit rate for a
+Usually, it is not necessary to process all the data being collected in order to
+provide enough information for the decision making. For example, the hit rate for a
 Serial Crystallography experiment can be computed with high accuracy by analyzing only
-a portion of the collected data). It is however crucial that the information provided
-is up to date. Because of this, OnDA always prioritizes the processing of recently
-collected data over the processing of all collected data. Completeness is not the main
-priority, low latency in providing the information is. Additionally, the goal of OnDA
-is strictly to provide quick information to the people running the experiment, not any
-long-term analysis of the data: after the information is delivered, the data is
+a portion of the collected data. It is however crucial that the information provided
+is up to date. Because of this, OnDA always prioritizes the processing of *recently
+collected data* over the processing of *all* collected data. Completeness is not the
+main priority, low latency in providing the information is. Additionally, the goal of
+OnDA is strictly to provide quick information to the people running the experiment, not
+any long-term analysis of the data: after the information is delivered, the data is
 discarded without being saved to disk, and new data is retrieved.
 
 In order to achieve its goals of speed and high throughput data processing, OnDA takes
