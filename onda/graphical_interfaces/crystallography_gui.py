@@ -175,6 +175,12 @@ class CrystallographyGui(gui.OndaGui):
             "You are using an <b>OnDA</b> real-time monitor. Please cite: "
             "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
         )
+        self._citation_label.setSizePolicy(
+            QtGui.QSizePolicy(
+                QtGui.QSizePolicy.Expanding,
+                QtGui.QSizePolicy.Fixed,
+            )
+        )
 
         # Initializes and fills the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
