@@ -182,7 +182,6 @@ class CrystallographyGui(gui.OndaGui):
             )
         )
 
-        # Initializes and fills the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
         horizontal_layout.addWidget(self._reset_peaks_button)
         horizontal_layout.addWidget(self._reset_plots_button)
@@ -197,9 +196,9 @@ class CrystallographyGui(gui.OndaGui):
         splitter_1.addWidget(self._saturation_plot_widget)
         splitter_0.addWidget(splitter_1)
         vertical_layout = QtGui.QVBoxLayout()
+        vertical_layout.addWidget(self._citation_label)
         vertical_layout.addWidget(splitter_0)
         vertical_layout.addLayout(horizontal_layout)
-        vertical_layout.addWidget(self._citation_label)
         self._central_widget = QtGui.QWidget()
         self._central_widget.setLayout(vertical_layout)
         self.setCentralWidget(self._central_widget)
