@@ -218,6 +218,10 @@ class ParallelizationEngine(object):
                     self._monitor_params.get_all_parameters(), indent=4, sort_keys=True
                 )
             )
+            print(
+                "You are using an OnDA real-time monitor. Please cite: "
+                "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
+            )
             _ = self._initialize_event_source(  # pylint: disable=unused-variable
                 source=self._source,
                 node_pool_size=self._mpi_size,

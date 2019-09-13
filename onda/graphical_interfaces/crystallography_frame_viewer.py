@@ -108,6 +108,11 @@ class CrystallographyFrameViewer(gui.OndaGui):
         self._play_pause_button = QtGui.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
+        self._citation_label = QtGui.QLabel(
+            "You are using an <b>OnDA</b> real-time monitor. Please cite: "
+            "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
+        )
+
         self._horizontal_layout = QtGui.QHBoxLayout()
         self._horizontal_layout.addWidget(self._back_button)
         self._horizontal_layout.addWidget(self._forward_button)
@@ -115,6 +120,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
         self._vertical_layout = QtGui.QVBoxLayout()
         self._vertical_layout.addWidget(self._image_view)
         self._vertical_layout.addLayout(self._horizontal_layout)
+        self._vertical_layout.addWidget(self._citation_label)
         self._central_widget = QtGui.QWidget()
         self._central_widget.setLayout(self._vertical_layout)
         self.setCentralWidget(self._central_widget)

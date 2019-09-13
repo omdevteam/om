@@ -171,6 +171,11 @@ class CrystallographyGui(gui.OndaGui):
         self._reset_plots_button = QtGui.QPushButton(text="Reset Plots")
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
+        self._citation_label = QtGui.QLabel(
+            "You are using an <b>OnDA</b> real-time monitor. Please cite: "
+            "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
+        )
+
         # Initializes and fills the layouts.
         horizontal_layout = QtGui.QHBoxLayout()
         horizontal_layout.addWidget(self._reset_peaks_button)
@@ -188,6 +193,7 @@ class CrystallographyGui(gui.OndaGui):
         vertical_layout = QtGui.QVBoxLayout()
         vertical_layout.addWidget(splitter_0)
         vertical_layout.addLayout(horizontal_layout)
+        vertical_layout.addWidget(self._citation_label)
         self._central_widget = QtGui.QWidget()
         self._central_widget.setLayout(vertical_layout)
         self.setCentralWidget(self._central_widget)
