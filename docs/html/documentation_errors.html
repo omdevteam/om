@@ -86,26 +86,8 @@
       
   <div class="section" id="onda-errors-and-warnings">
 <h1>OnDA Errors and Warnings<a class="headerlink" href="#onda-errors-and-warnings" title="Permalink to this headline">¶</a></h1>
-<div class="contents local topic" id="contents">
-<ul class="simple">
-<li><a class="reference internal" href="#ondaconfigurationfilereadingerror" id="id1">OndaConfigurationFileReadingError</a></li>
-<li><a class="reference internal" href="#ondaconfigurationfilesyntaxerror" id="id2">OndaConfigurationFileSyntaxError</a></li>
-<li><a class="reference internal" href="#ondadataextractionerror" id="id3">OndaDataExtractionError</a></li>
-<li><a class="reference internal" href="#ondahdf5filereadingerror" id="id4">OndaHdf5FileReadingError</a></li>
-<li><a class="reference internal" href="#ondahidraapierror" id="id5">OndaHidraAPIError</a></li>
-<li><a class="reference internal" href="#ondainvalidsourceerror" id="id6">OndaInvalidSourceError</a></li>
-<li><a class="reference internal" href="#ondamissingdependencyerror" id="id7">OndaMissingDependencyError</a></li>
-<li><a class="reference internal" href="#ondamissingdataextractionfunctionerror" id="id8">OndaMissingDataExtractionFunctionError</a></li>
-<li><a class="reference internal" href="#ondamissingeventhandlingfunctionerror" id="id9">OndaMissingEventHandlingFunctionError</a></li>
-<li><a class="reference internal" href="#ondamissinghdf5patherror" id="id10">OndaMissingHdf5PathError</a></li>
-<li><a class="reference internal" href="#ondamissingparametererror" id="id11">OndaMissingParameterError</a></li>
-<li><a class="reference internal" href="#ondamissingparametergrouperror" id="id12">OndaMissingParameterGroupError</a></li>
-<li><a class="reference internal" href="#ondamissingpsanainitializationfunctionerror" id="id13">OndaMissingPsanaInitializationFunctionError</a></li>
-<li><a class="reference internal" href="#ondawrongparametertypeerror" id="id14">OndaWrongParameterTypeError</a></li>
-</ul>
-</div>
 <p>When something does not work as expected, an OnDA monitor can report an error. Errors
-can be fatal, in which case the monitor simply exits, or not, in whcih case the monitor
+can be fatal, in which case the monitor simply exits, or not, in which case the monitor
 simply reports the error and continues processing data.</p>
 <p>OnDA errors are not reported as normal python errors. They are clearly labelled as
 coming from the monitor, and their traceback information is removed. The ‘–debug’
@@ -117,77 +99,80 @@ same error before the MPI engine can stop.</p>
 <p>A list of the most common errors reported by OnDA follows, with a brief discussion of
 each.</p>
 <div class="section" id="ondaconfigurationfilereadingerror">
-<h2><a class="toc-backref" href="#id1">OndaConfigurationFileReadingError</a><a class="headerlink" href="#ondaconfigurationfilereadingerror" title="Permalink to this headline">¶</a></h2>
-<p>There was a problem finding or reading the configuration file. Please check that the
-file exists and is readable. Remember that OnDA looks by default for a file called
-‘monitor.toml’ in the current working directory.</p>
+<h2>OndaConfigurationFileReadingError<a class="headerlink" href="#ondaconfigurationfilereadingerror" title="Permalink to this headline">¶</a></h2>
+<p>There was a problem finding or reading the configuration file. The file should exist
+and be readable. OnDA looks by default for a file called ‘monitor.toml’ in the current
+working directory.</p>
 </div>
 <div class="section" id="ondaconfigurationfilesyntaxerror">
-<h2><a class="toc-backref" href="#id2">OndaConfigurationFileSyntaxError</a><a class="headerlink" href="#ondaconfigurationfilesyntaxerror" title="Permalink to this headline">¶</a></h2>
-<p>There is a syntax error in the configuration file, where specified by the error. Make
-sure that the file follows the  <a class="reference external" href="https://github.com/toml-lang/toml">TOML</a> syntax.</p>
+<h2>OndaConfigurationFileSyntaxError<a class="headerlink" href="#ondaconfigurationfilesyntaxerror" title="Permalink to this headline">¶</a></h2>
+<p>There is a syntax error in the configuration file, at the location specified by the
+error. The file must follow the  <a class="reference external" href="https://github.com/toml-lang/toml">TOML</a> syntax.</p>
 </div>
 <div class="section" id="ondadataextractionerror">
-<h2><a class="toc-backref" href="#id3">OndaDataExtractionError</a><a class="headerlink" href="#ondadataextractionerror" title="Permalink to this headline">¶</a></h2>
-<p>An error has happned during the extraction of data from an event. This error is usualy
-not fatal and can happen often if the data stream is corrupted. Usually OnDA skips
-processing the event and retrieves a new one.</p>
+<h2>OndaDataExtractionError<a class="headerlink" href="#ondadataextractionerror" title="Permalink to this headline">¶</a></h2>
+<p>An error has happened during the extraction of data from an event. This error is
+usually not fatal and can happen often if the data stream is corrupted. Usually OnDA
+skips processing the event and retrieves a new one.</p>
 </div>
 <div class="section" id="ondahdf5filereadingerror">
-<h2><a class="toc-backref" href="#id4">OndaHdf5FileReadingError</a><a class="headerlink" href="#ondahdf5filereadingerror" title="Permalink to this headline">¶</a></h2>
-<p>An error has happened while reading an HDF5 file. Please check that the file exists and
-is readable.</p>
+<h2>OndaHdf5FileReadingError<a class="headerlink" href="#ondahdf5filereadingerror" title="Permalink to this headline">¶</a></h2>
+<p>An error has happened while reading an HDF5 file. The file should exists and be
+readable.</p>
 </div>
 <div class="section" id="ondahidraapierror">
-<h2><a class="toc-backref" href="#id5">OndaHidraAPIError</a><a class="headerlink" href="#ondahidraapierror" title="Permalink to this headline">¶</a></h2>
-<p>An error has happened during the connection with the HiDRA framework. Check that HiDRA
-is running at that the source string specifies the correct machine.</p>
+<h2>OndaHidraAPIError<a class="headerlink" href="#ondahidraapierror" title="Permalink to this headline">¶</a></h2>
+<p>An error has happened during the connection with the HiDRA framework. It is possible
+that HiDRA is not running or that the source string provided to OnDA points to the
+wrong machine.</p>
 </div>
 <div class="section" id="ondainvalidsourceerror">
-<h2><a class="toc-backref" href="#id6">OndaInvalidSourceError</a><a class="headerlink" href="#ondainvalidsourceerror" title="Permalink to this headline">¶</a></h2>
-<p>The format of the source string is not valid. Check that there are no typos in the
-string and that you are not using a string for a different facility.</p>
+<h2>OndaInvalidSourceError<a class="headerlink" href="#ondainvalidsourceerror" title="Permalink to this headline">¶</a></h2>
+<p>The format of the source string is not valid. There could be typos in the string or
+the format of the string might not match the facility where OnDA is running.</p>
 </div>
 <div class="section" id="ondamissingdependencyerror">
-<h2><a class="toc-backref" href="#id7">OndaMissingDependencyError</a><a class="headerlink" href="#ondamissingdependencyerror" title="Permalink to this headline">¶</a></h2>
-<p>One of the optional python module needed by OnDA at some facilities is not installed.
-This error often happens with python modules from facility frameworks (for example,
-the psana module). Please contact one of the developers.</p>
+<h2>OndaMissingDependencyError<a class="headerlink" href="#ondamissingdependencyerror" title="Permalink to this headline">¶</a></h2>
+<p>One of the optional python module needed by OnDA is not installed. This error often
+happens with python modules that are specific to facility frameworks (for example, the
+psana module). One of the core developers should be contacted.</p>
 </div>
 <div class="section" id="ondamissingdataextractionfunctionerror">
-<h2><a class="toc-backref" href="#id8">OndaMissingDataExtractionFunctionError</a><a class="headerlink" href="#ondamissingdataextractionfunctionerror" title="Permalink to this headline">¶</a></h2>
-<p>One of the Data Extraction Functions is not defined in the Data Retrieval Layer. Please
-contact one of the developers.</p>
+<h2>OndaMissingDataExtractionFunctionError<a class="headerlink" href="#ondamissingdataextractionfunctionerror" title="Permalink to this headline">¶</a></h2>
+<p>One of the Data Extraction Functions is not defined in the Data Retrieval Layer. One
+of the core developers should be contacted.</p>
 </div>
 <div class="section" id="ondamissingeventhandlingfunctionerror">
-<h2><a class="toc-backref" href="#id9">OndaMissingEventHandlingFunctionError</a><a class="headerlink" href="#ondamissingeventhandlingfunctionerror" title="Permalink to this headline">¶</a></h2>
-<p>One of the Event Handling Functions is not defined in the Data Retrieval Layer. Please
-contact one of the developers.</p>
+<h2>OndaMissingEventHandlingFunctionError<a class="headerlink" href="#ondamissingeventhandlingfunctionerror" title="Permalink to this headline">¶</a></h2>
+<p>One of the Event Handling Functions is not defined in the Data Retrieval Layer. One
+of the core developers should be contacted.</p>
 </div>
 <div class="section" id="ondamissinghdf5patherror">
-<h2><a class="toc-backref" href="#id10">OndaMissingHdf5PathError</a><a class="headerlink" href="#ondamissinghdf5patherror" title="Permalink to this headline">¶</a></h2>
+<h2>OndaMissingHdf5PathError<a class="headerlink" href="#ondamissinghdf5patherror" title="Permalink to this headline">¶</a></h2>
 <p>An internal path in the HDF5 file is not found. The file exists and can be read, but
-the iternal path cannot be found. Please check that the HDF5 path is correct.</p>
+the iternal path cannot be found. The internal HDF5 path is probably incorrect, or the
+file is corrupted.</p>
 </div>
 <div class="section" id="ondamissingparametererror">
-<h2><a class="toc-backref" href="#id11">OndaMissingParameterError</a><a class="headerlink" href="#ondamissingparametererror" title="Permalink to this headline">¶</a></h2>
+<h2>OndaMissingParameterError<a class="headerlink" href="#ondamissingparametererror" title="Permalink to this headline">¶</a></h2>
 <p>A required parameter is missing from the configuration file.</p>
 </div>
 <div class="section" id="ondamissingparametergrouperror">
-<h2><a class="toc-backref" href="#id12">OndaMissingParameterGroupError</a><a class="headerlink" href="#ondamissingparametergrouperror" title="Permalink to this headline">¶</a></h2>
+<h2>OndaMissingParameterGroupError<a class="headerlink" href="#ondamissingparametergrouperror" title="Permalink to this headline">¶</a></h2>
 <p>A parameter group (a section beginning with a string between square brackets - for
 example, ‘[Onda]’) is missing from the configuration file.</p>
 </div>
 <div class="section" id="ondamissingpsanainitializationfunctionerror">
-<h2><a class="toc-backref" href="#id13">OndaMissingPsanaInitializationFunctionError</a><a class="headerlink" href="#ondamissingpsanainitializationfunctionerror" title="Permalink to this headline">¶</a></h2>
+<h2>OndaMissingPsanaInitializationFunctionError<a class="headerlink" href="#ondamissingpsanainitializationfunctionerror" title="Permalink to this headline">¶</a></h2>
 <p>One of the psana Detector Interface Initialization Functions is not defined in the Data
-Retrieval Layer. Please contact one of the developers.</p>
+Retrieval Layer. One of the core developers should be contacted.</p>
 </div>
 <div class="section" id="ondawrongparametertypeerror">
-<h2><a class="toc-backref" href="#id14">OndaWrongParameterTypeError</a><a class="headerlink" href="#ondawrongparametertypeerror" title="Permalink to this headline">¶</a></h2>
+<h2>OndaWrongParameterTypeError<a class="headerlink" href="#ondawrongparametertypeerror" title="Permalink to this headline">¶</a></h2>
 <p>The type of the parameter in the configuration file does not match the requested one.
-Check if the type (string, float, int) of the parameter in the configuration file is
-correct.</p>
+The type (string, float, int) of the parameter in the configuration file is probably
+incorrect. The configuration file should stricly follow the TOML language
+specification.</p>
 </div>
 </div>
 

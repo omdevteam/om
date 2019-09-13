@@ -88,27 +88,74 @@
 <h1>Advanced Documentation<a class="headerlink" href="#advanced-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<div class="contents local topic" id="contents">
+<div class="section" id="code-documentation">
+<h2>Code Documentation<a class="headerlink" href="#code-documentation" title="Permalink to this headline">¶</a></h2>
+<p>Documentation from the code of OnDA can be found <a class="reference internal" href="onda.html"><span class="doc">here</span></a>.</p>
+</div>
+<div class="section" id="guidelines-for-contributors">
+<h2>Guidelines for Contributors<a class="headerlink" href="#guidelines-for-contributors" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="version-control">
+<h3>Version Control<a class="headerlink" href="#version-control" title="Permalink to this headline">¶</a></h3>
+<p>OnDA is developed using the <cite>Git &lt;https://git-scm.com&gt;</cite> version control system.</p>
+<p>OnDA uses the branching strategy proposed by Vincent Driessen and commonly known as
+<cite>Gitflow &lt;https://nvie.com/posts/a-successful-git-branching-model&gt;</cite>.</p>
+</div>
+<div class="section" id="python">
+<h3>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
+<p>OnDA is mainly developed in <cite>Python  &lt;https://www.python.org&gt;</cite>.</p>
 <ul class="simple">
-<li><a class="reference internal" href="#advanced-topics" id="id2">Advanced Topics</a><ul>
-<li><a class="reference internal" href="#the-processing-layer" id="id3">The Processing Layer</a></li>
-<li><a class="reference internal" href="#algorithms" id="id4">Algorithms</a></li>
-<li><a class="reference internal" href="#the-onda-monitor-workflow" id="id5">The OnDA Monitor Workflow</a></li>
+<li>All code in OnDA must run with both version 2 and 3 of Python, except for
+facility-specific code that specifically requires one of the two versions (for example,
+Python 2 for the LCSL facility). The code must specifically support all the currently
+active versions of python:<ul>
+<li>Python 2<ul>
+<li>2.7</li>
 </ul>
 </li>
-<li><a class="reference internal" href="#guidelines-for-contributors" id="id6">Guidelines for Contributors</a><ul>
-<li><a class="reference internal" href="#version-control" id="id7">Version Control</a></li>
-<li><a class="reference internal" href="#python" id="id8">Python</a></li>
-<li><a class="reference internal" href="#c-c" id="id9">C/C++</a></li>
+<li>Python 3<ul>
+<li>3.5</li>
+<li>3.6</li>
+<li>3.7</li>
 </ul>
 </li>
-<li><a class="reference internal" href="#code-documentation" id="id10">Code Documentation</a></li>
+</ul>
+</li>
+<li>The <a class="reference external" href="https://python-future.org">python-future</a> project should be used to ensure that
+code contributed to the OnDA project is compatible with all the supported versions of
+Python.</li>
+<li>The Python coding style should follow for the most part the <a class="reference external" href="https://github.com/google/styleguide/blob/gh-pages/pyguide.md">Google Python Coding Style</a>.</li>
+<li>All docstrings should be written following the <a class="reference external" href="https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html">Google Style </a>.</li>
+<li><a class="reference external" href="https://www.pylint.org">Pylint</a> should be run on the code before
+submission, as stated in the Google Python Coding Style Guide. In the root
+folder of the OnDA repository, contributors can find  a ‘pylintrc’ file with
+the settings that should be applied when linting OnDA’s code. Please see <a class="reference external" href="http://pylint.pycqa.org/en/latest/user_guide/run.html?highlight=pylintrc">here</a> how to
+use the pylintrc file.</li>
 </ul>
 </div>
-<div class="section" id="advanced-topics">
-<h2><a class="toc-backref" href="#id2">Advanced Topics</a><a class="headerlink" href="#advanced-topics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="c-c">
+<h3>C/C++<a class="headerlink" href="#c-c" title="Permalink to this headline">¶</a></h3>
+<p>Some extension to OnDA can, for performance reason, be written using the
+<a class="reference external" href="https://en.wikipedia.org/wiki/C%2B%2B">C++</a> or
+<a class="reference external" href="https://en.wikipedia.org/wiki/C_(programming_language)">C</a> programming languages.</p>
+<ul class="simple">
+<li>All C++ code in OnDA should follow at most the C++98 ISO standard, and the code should
+be able to compile on a Linux RHEL7/CentOS7 platform using the development stack that
+comes with a standard installation of these systems.</li>
+<li>Part of the C++11 standard can be used when writing extensions. However, it must be
+possible to compile the code using version 4.8 of the ‘gcc’ compiler (in order to
+create the Linux binary Python wheel).</li>
+<li>All C code in OnDA should follow at most the C99 ISO standard, and should the same
+and the code should be able to compile on a Linux RHEL7/CentOS7 platform using the
+development stack that comes with a standard installation of these systems.</li>
+<li>The <a class="reference external" href="http://cython.org">Cython</a> project should be used to interface C/C++ code with
+Python.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="other-advanced-topics">
+<h2>Other Advanced Topics<a class="headerlink" href="#other-advanced-topics" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="the-processing-layer">
-<h3><a class="toc-backref" href="#id3">The Processing Layer</a><a class="headerlink" href="#the-processing-layer" title="Permalink to this headline">¶</a></h3>
+<h3>The Processing Layer<a class="headerlink" href="#the-processing-layer" title="Permalink to this headline">¶</a></h3>
 <p>Writing a monitoring program OnDA consists mainly in writing a Processing Layer Python
 module that implements a data analysis pipeline. The Processing Layer module should
 contain, apart from some helper functions, just one class: the ‘OndaMonitor’ class. The
@@ -199,7 +246,7 @@ methods clutters the namespace of the class, and can result</li>
 </ul>
 </div>
 <div class="section" id="algorithms">
-<h3><a class="toc-backref" href="#id4">Algorithms</a><a class="headerlink" href="#algorithms" title="Permalink to this headline">¶</a></h3>
+<h3>Algorithms<a class="headerlink" href="#algorithms" title="Permalink to this headline">¶</a></h3>
 <p>In order to process retrieved data, the OnDA framework allows developers to write
 algorithms, and even comes a small algorithm library. Algorithms are essentially
 entities which implement one single data processing step. An algorithm can be applied
@@ -233,7 +280,7 @@ remain implemented as functions and not turned into an algorithm.</li>
 </ul>
 </div>
 <div class="section" id="the-onda-monitor-workflow">
-<h3><a class="toc-backref" href="#id5">The OnDA Monitor Workflow</a><a class="headerlink" href="#the-onda-monitor-workflow" title="Permalink to this headline">¶</a></h3>
+<h3>The OnDA Monitor Workflow<a class="headerlink" href="#the-onda-monitor-workflow" title="Permalink to this headline">¶</a></h3>
 <p>When an OnDA monitor starts, it first initializes all the worker and master nodes, on a
 single or multiple machines, according to the user’s wishes. The first process to
 start on the first machine usually takes the role of the master node, while all the
@@ -260,70 +307,6 @@ if the ‘end_processing’ function has been redefined in the Processing Layer,
 called. Otherwise its default implementation is run. All nodes then exit and the
 monitor stops.</p>
 </div>
-</div>
-<div class="section" id="guidelines-for-contributors">
-<h2><a class="toc-backref" href="#id6">Guidelines for Contributors</a><a class="headerlink" href="#guidelines-for-contributors" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="version-control">
-<h3><a class="toc-backref" href="#id7">Version Control</a><a class="headerlink" href="#version-control" title="Permalink to this headline">¶</a></h3>
-<p>OnDA is developed using the <cite>Git &lt;https://git-scm.com&gt;</cite> version control system.</p>
-<p>OnDA uses the branching strategy proposed by Vincent Driessen and commonly known as
-<cite>Gitflow &lt;https://nvie.com/posts/a-successful-git-branching-model&gt;</cite>.</p>
-</div>
-<div class="section" id="python">
-<h3><a class="toc-backref" href="#id8">Python</a><a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
-<p>OnDA is mainly developed in <cite>Python  &lt;https://www.python.org&gt;</cite>.</p>
-<ul class="simple">
-<li>All code in OnDA must run with both version 2 and 3 of Python, except for
-facility-specific code that specifically requires one of the two versions (for example,
-Python 2 for the LCSL facility). The code must specifically support all the currently
-active versions of python:<ul>
-<li>Python 2<ul>
-<li>2.7</li>
-</ul>
-</li>
-<li>Python 3<ul>
-<li>3.5</li>
-<li>3.6</li>
-<li>3.7</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>The <a class="reference external" href="https://python-future.org">python-future</a> project should be used to ensure that
-code contributed to the OnDA project is compatible with all the supported versions of
-Python.</li>
-<li>The Python coding style should follow for the most part the <a class="reference external" href="https://github.com/google/styleguide/blob/gh-pages/pyguide.md">Google Python Coding Style</a>.</li>
-<li>All docstrings should be written following the <a class="reference external" href="https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html">Google Style </a>.</li>
-<li><a class="reference external" href="https://www.pylint.org">Pylint</a> should be run on the code before
-submission, as stated in the Google Python Coding Style Guide. In the root
-folder of the OnDA repository, contributors can find  a ‘pylintrc’ file with
-the settings that should be applied when linting OnDA’s code. Please see <a class="reference external" href="http://pylint.pycqa.org/en/latest/user_guide/run.html?highlight=pylintrc">here</a> how to
-use the pylintrc file.</li>
-</ul>
-</div>
-<div class="section" id="c-c">
-<h3><a class="toc-backref" href="#id9">C/C++</a><a class="headerlink" href="#c-c" title="Permalink to this headline">¶</a></h3>
-<p>Some extension to OnDA can, for performance reason, be written using the
-<a class="reference external" href="https://en.wikipedia.org/wiki/C%2B%2B">C++</a> or
-<a class="reference external" href="https://en.wikipedia.org/wiki/C_(programming_language)">C</a> programming languages.</p>
-<ul class="simple">
-<li>All C++ code in OnDA should follow at most the C++98 ISO standard, and the code should
-be able to compile on a Linux RHEL7/CentOS7 platform using the development stack that
-comes with a standard installation of these systems.</li>
-<li>Part of the C++11 standard can be used when writing extensions. However, it must be
-possible to compile the code using version 4.8 of the ‘gcc’ compiler (in order to
-create the Linux binary Python wheel).</li>
-<li>All C code in OnDA should follow at most the C99 ISO standard, and should the same
-and the code should be able to compile on a Linux RHEL7/CentOS7 platform using the
-development stack that comes with a standard installation of these systems.</li>
-<li>The <a class="reference external" href="http://cython.org">Cython</a> project should be used to interface C/C++ code with
-Python.</li>
-</ul>
-</div>
-</div>
-<div class="section" id="code-documentation">
-<h2><a class="toc-backref" href="#id10">Code Documentation</a><a class="headerlink" href="#code-documentation" title="Permalink to this headline">¶</a></h2>
-<p>Documentation from the code of OnDA can be found <a class="reference internal" href="onda.html"><span class="doc">here</span></a>.</p>
 </div>
 </div>
 

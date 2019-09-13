@@ -28,7 +28,7 @@ are:
 The parameters in the configuration file are divided into groups ('Tables' in TOML
 parlance). Each group contains a set of parameters that are related to each other
 (for example, because they apply to the same OnDA algorithm, or because they control
-the same feature of the monitor).
+the same feature of the monitor). For example:
 
 .. code-block:: ini
 
@@ -47,6 +47,7 @@ required is not found in the configuration file, its default value is considered
 'None'.
 
 .. warning::
+
    When a parameter is a physical constant, it is assumed to be expressed in SI units
    unless the parameter name says otherwise!!
 
