@@ -1,4 +1,4 @@
-Example *pilatus.geom* for the Pilatus detector
+Example *pilatus.geom* for the Pilatus Detector
 -----------------------------------------------
 
 .. code-block:: ini

@@ -1,4 +1,4 @@
-Example *monitor.toml* for the AMO beamline at the LCLS facility
+Example *monitor.toml* for the AMO Beamline at the LCLS Facility
 ----------------------------------------------------------------
 
 .. code-block:: ini

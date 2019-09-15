@@ -1,11 +1,11 @@
 The Configuration File
 ----------------------
 
-The behaviour of an OnDA monitor is completely determined by the content of its
+The behavior of an OnDA monitor is completely determined by the content of its
 configuration file. By default, OnDA looks for a file called **monitor.toml** in the
 current working directory. However, the *--config* command line option to the
 *onda_monitor.py* script allows a custom location for the configuration file to be
-specified.
+specified:
 
 .. code-block:: bash
 
@@ -27,7 +27,7 @@ differences are:
 
 The parameters in the configuration file are divided into groups (*Tables* in TOML
 parlance). Each group contains a set of parameters that are related to each other
-(maybe because they apply to the same OnDA algorithm, or because they control the same
+(because they apply to the same OnDA algorithm, or because they control the same
 feature of the monitor). For example:
 
 .. code-block:: ini
@@ -42,9 +42,9 @@ configuration file. Depending on which OnDA monitor is being run, not all the gr
 need to be present in the file at the same time. Conversely, custom OnDA monitors might
 introduce additional groups not described here. For each group, a list of the available
 parameters is provided. While some parameters are strictly required and must be
-explicitely set (again depending on the type of OnDA monitor), others are optional, and
+explicitly set (again depending on the type of OnDA monitor), others are optional, and
 OnDA chooses a value for them if they cannot be found in the file. In general the
-default value of an unspecified optional paramerer is considered to be *None*.
+default value of an unspecified optional parameter is considered to be *None*.
 
 
 .. warning::
@@ -61,9 +61,9 @@ frames (using the :class:`Correction <onda.algorithms.generic_algorithms.Correct
 algorithm).
 
 * **dark_filename (str or None):** the relative or absolute path to an HDF5 file
-  containing a dark data frame. Defaults to *None*. If this and the *dark_hdf5_path*
-  parameters are not *None*, the dark data is loaded and later applied to the detector 
-  frame. Example: 'run21_dark.h5'
+  containing a dark data frame. If this and the *dark_hdf5_path* parameters are not
+  *None*, the dark data is loaded and later applied to the detector frame.
+  Example: 'run21_dark.h5'
 
 * **dark_hdf5_path (str or None):** the internal HDF5 path to the data block where the
   dark data frame is located. If the *dark_filename* parameter is not *None*, this
@@ -73,7 +73,7 @@ algorithm).
 * **gain_filename (str or None):** the relative or absolute path to an HDF5 file
   containing a gain map. If this and the *gain_hdf5_path* parameters are not *None*,
   the gain map is loaded and later applied to the detector frame. Each pixel in the
-  gain map must store the gain factor that will be applied to the corresponing pixel in
+  gain map must store the gain factor that will be applied to the corresponding pixel in
   the detector frame. Example: 'cspad_gain_map.h5'
 
 * **gain_hdf5_path (str or None)** the internal HDF5 path to the data block where the
@@ -84,7 +84,7 @@ algorithm).
 * **mask_filename (str or None):** the relative or absolute path to an HDF5 file
   containing a mask. If this and the *mask_hdf5_path* arguments are not *None*, the
   mask is loaded and later applied to the detector frame. The pixels in the mask must
-  have a value of either 0, meaning that the corresponfing pixel in the detector frame
+  have a value of either 0, meaning that the corresponding pixel in the detector frame
   must be set to 0, or 1, meaning that the value of the corresponding pixel must be
   left alone. Example: 'run18_mask.h5'
 
@@ -101,7 +101,7 @@ This group contains parameters used by the OnDA Monitor for Crystallography.
 
 * **broadcast_ip (str or None):** the hostname or ip address where the monitor
   broadcasts data to external programs. If the value of this parameter is *None*, the
-  ip address is autodetected. This is usually fine. An ip address or ahostname needs
+  ip address is auto-detected. This is usually fine. An ip address or a hostname needs
   usually to be manually specified only in exceptional cases (e.g: multiple network
   interfaces on the same machine). Example: '127.0.0.1'
 
@@ -157,8 +157,8 @@ This group contains parameters used by the OnDA Monitor for Crystallography.
 
 * **speed_report_interval (int):** the number of events that must pass between
   consecutive speed reports from OnDA. This parameter determines how often OnDA prints
-  the "Processed: ..: message that provides information for about the processing speed.
-  Exaple: 100
+  the "Processed: ..." message that provides information for about the processing speed.
+  Example: 100
 
 
 [DataAccumulator]
@@ -182,8 +182,8 @@ extracts data from a facility framework.
 
 .. warning::
 
-   Please exercise caution when changing the parameters in this group: a wrong choice
-   can severly interfere with data retrieval and extraction.
+   Please exercise caution when changing the values of the parameters in this group: a
+   wrong choice can severely interfere with data retrieval and extraction.
 
 
 * **fallback_beam_energy_in_eV (float)** the beam energy *in eV*. OnDA uses this
@@ -225,9 +225,8 @@ extracts data from a facility framework.
   event are processed. If the value of this parameter is *None*, all frames in the
   event are processed. Example: 0.5
 
-* **psana_detector_name (str):** * **karabo_detector_label (str):** the name of the
-  main x-ray detector from which the psana framework retrieves data. Example:
-  'DscCsPad'
+* **psana_detector_name (str):**  the name of the main x-ray detector from which the
+  psana framework retrieves data. Example: 'DscCsPad'
 
 * **psana_detector_distance_epics_name (str):** the name of the Epics device from which
   the psana framework retrieves detector distance information for the main x-ray
@@ -236,7 +235,7 @@ extracts data from a facility framework.
 * **psana_digitizers_name (str):** the name of the main digitizer device from which
   the psana framework retrieves information.
 
-* **psana_evr_source (str):** name of the EVR source from which the psana framework
+* **psana_evr_source (str):** the name of the EVR source from which the psana framework
   retrieves information.
 
 * **psana_opal_name (str):** the name of the Opal camera from which the psana framework
@@ -258,7 +257,8 @@ extracts data from a facility framework.
 
 This parameter group contains information used by OnDA for the calibration of
 detector frames, using one of the calibration algorithms defined
-:doc:`here <onda.algorithms.calibration_algorithms>`.
+:doc:`onda.algorithms.calibration_algorithms <onda.algorithms.calibration_algorithms>`
+module.
 
 * **calibration_algorithm (str or None):** the name of the calibration algorithm that
   the current monitor should use to calibrate the detector frames. The value of this
@@ -266,7 +266,7 @@ detector frames, using one of the calibration algorithms defined
   If the value is *None*, no calibration will be performed.
   Example: 'Agipd1MCalibration'
 
-* **calibration_filename (str or None):** absolute or relative path to an HDF5 file
+* **calibration_filename (str or None):** the absolute or relative path to an HDF5 file
   containing the calibration parameters. The exact format of this file depends on the
   calibration algorithm being used. Please consult the documentation for the specific
   algorithm. If no calibration is performed, this parameter is ignored. Example:
@@ -281,20 +281,20 @@ detector frames, using one of the calibration algorithms defined
    !! This section determines the core behavior of the OnDA monitor. The value of
    these parameters should be changed only by an expert !!
 
-* **data_retrieval_layer (str):** name of the python module with the implementation of
-  the Data Retreival Layer for the current monitor. Example: 'lcls_spb'
+* **data_retrieval_layer (str):** the name of the python module with the implementation
+  of the Data Retrieval Layer for the current monitor. Example: 'lcls_spb'
 
-* **paralelization_layer (str):** name of the python module with the implementation of
-  the Parallelization Layer for the current monitor. Example: 'mpi'
+* **parallelization_layer (str):** the name of the python module with the
+  implementation of the Parallelization Layer for the current monitor. Example: 'mpi'
 
-* **processing_layer (str):** name of the python module with the implementation of the
-  Processing Layer for the current monitor. Example: 'crystallography'
+* **processing_layer (str):** the name of the python module with the implementation of
+  the Processing Layer for the current monitor. Example: 'crystallography'
 
-* **required_data (List[str]):** data that the current monitor should retrieve for
+* **required_data (List[str]):** the data that the current monitor should retrieve for
   each event. For each type of data, a corresponding Data Extraction Function must be
-  defined in the Data Retrieval Layer. If this condition is met, the extracted data
-  will be available in the 'data' object in the Processing layer.
-  Example: ['detector_data', 'detector_distance', 'beam_energy','timestamp']
+  defined in the Data Retrieval Layer. If this condition is met, the data will be
+  retrieved by the monitor and made available for processing. Example:
+  ['detector_data', 'detector_distance', 'beam_energy','timestamp']
 
 
 [Peakfinder8PeakDetection]
@@ -312,7 +312,7 @@ finding on a detector frame, using the (using the :class:`Peakfinder8PeakDetecti
   either 0, meaning that the corresponding pixel in the data frame must be ignored, or
   1, meaning that the corresponding pixel must be included in the search. The map is
   only used to exclude areas from the peak search: the data is not modified in any way.
-  if the value of these parameter is *None*, no area is excluded from the peak search.
+  If the value of these parameter is *None*, no area is excluded from the peak search.
   Example: 'bad_pixel_mask.h5'
   
 * **bad_pixel_map_hdf5_path (str or None):** the internal HDF5 path to the data block

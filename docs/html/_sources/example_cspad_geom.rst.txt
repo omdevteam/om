@@ -1,4 +1,4 @@
-Example *cspad.geom* for the CSPAD detector
+Example *cspad.geom* for the CSPAD Detector
 -------------------------------------------
 
 .. code-block:: ini

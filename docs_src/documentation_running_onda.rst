@@ -26,14 +26,14 @@ OnDA comes pre-installed at some beamlines of the Petra III and LCLS facilities:
 
   - See :doc:`here <documentation_p11>` for information on the **P11** Beamline
 
-OnDA can also be run on a **local** desktop or laptop machine.
+OnDA can also be run on a local desktop or laptop machine.
 
-* On a local machine:
+* On a **local machine**:
 
   - See :doc:`here <documentation_local>` for instructions
 
     
-Configuring OnDA: The Source String and the Configuration File
+Configuring OnDA: the Source String and the Configuration File
 --------------------------------------------------------------
 
 An OnDA monitor requires two pieces of information to operate: a source of data events,
@@ -61,5 +61,5 @@ Warnings And Errors
 -------------------
 
 When something does not work as expected, OnDA prints warning and error messages to the
-console. A list of the most common errors and their mitigation strategies can be found
-:doc:`here <documentation_errors>`.
+console. A list of the most common errors and a brief discussion of each of them can be
+found :doc:`here <documentation_errors>`.

@@ -26,9 +26,8 @@ change for every experiment and sometimes even during an experiment. The beamlin
 scientists can usually provide information about the monitoring nodes that should be
 used at any given time.
 
-Once access has to the monitoring nodes have been obtained, the latest version of OnDA
-can be accessed by activating an `Anaconda python
-environment <https://anaconda.org/>`_ :
+Once access to the monitoring nodes has been obtained, the latest version of OnDA can
+be accessed by activating an `Anaconda <https://anaconda.org/>`_ Python environment:
 
 .. code-block:: bash
 

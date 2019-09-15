@@ -1,10 +1,4 @@
-
-.. onda documentation master file, created by
-   sphinx-quickstart on Thu Jun 27 11:29:47 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-OnDA: Online Data Analysis for x-ray imaging
+OnDA: Online Data Analysis for X-Ray Imaging
 ============================================
 
 .. toctree::
@@ -12,33 +6,23 @@ OnDA: Online Data Analysis for x-ray imaging
 
    documentation_what_is_an_onda_monitor
    documentation_running_onda
-   documentation_advanced_topics
-
-
-.. warning::
-
-    Work in progress!
-    
-    This site is under construction!
+   documentation_advanced_documentation
 
 
 .. thumbnail:: _images/OndaScreenshot1.jpg
     :width: 60%
 
 
-
-
-
 What is OnDA?
 -------------
 
 **OnDA** (\ **On**\ line \ **D**\ ata \ **A**\ nalysis) is a software tool for the
-the development of programs that can monitor of X-ray imaging experiments in
-**real-time**, and also a set of **monitoring programs ready for use**.
+the **development** of programs that can monitor of X-ray imaging experiments in
+**real-time**, and also a set of **monitoring programs** ready for use.
 
 OnDA provides users with a set of stable and efficient real-time monitors for the most
 common types of x-ray imaging experiments. These **can be used immediately** without
-modifications or can be **easily adapted** to meet the users’ requirements. In
+modifications or **can be easily adapted** to meet the users’ requirements. In
 addition, the project provides a set of modules that can be used to easily develop
 other monitoring programs tailored to the characteristics of specific experiments.
 
@@ -104,7 +88,8 @@ Guidelines on how to install, configure and run OnDA at several facilities all o
 the world or on your local computer can be found :doc:`here
 <documentation_running_onda>`.
 
-For advanced documentation, see :doc:`this page <documentation_advanced_topics>`.
+For advanced documentation, see :doc:`this page
+<documentation_advanced_documentation>`.
 
 
 Source Code

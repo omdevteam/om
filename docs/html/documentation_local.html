@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Running OnDA on a Local Machine &#8212; OnDA 2019.9.0 documentation</title>
+    <title>Running OnDA on a Local Machine &#8212; OnDA 2019.09.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Example monitor.toml for Pilatus files from the filesystem" href="example_files_monitor_toml.html" />
-    <link rel="prev" title="Example pilatus.geom for the Pilatus detector" href="example_pilatus_geom.html" />
+    <link rel="next" title="Example monitor.toml for Pilatus Files from the Filesystem" href="example_files_monitor_toml.html" />
+    <link rel="prev" title="Example pilatus.geom for the Pilatus Detector" href="example_pilatus_geom.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -43,7 +43,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>2019.9.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2019.09.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -51,7 +51,7 @@
             
                 <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
                 <li><a href="documentation_running_onda.html">Running OnDA</a></li>
-                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
                 <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
             
             
@@ -121,18 +121,18 @@ interfaces):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install onda
 </pre></div>
 </div>
-<p>In order to install OnDA together with the Qt5-based graphical interfaces:</p>
+<p>To instead install OnDA together with the Qt5-based graphical interfaces:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install onda<span class="o">[</span>GUI<span class="o">]</span>
 </pre></div>
 </div>
-<p>When the <strong>mpi</strong> Parallelization Layer is used (It is currently used by default), the
-<em>mpi4py</em> module needs to be installed. This requires a version of the MPI libraries and
-headers to be installed on the machine.</p>
+<p>When the <em>mpi</em> Parallelization Layer is used (It is currently used by default), the
+<em>mpi4py</em> module also needs to be installed. This requires a version of the MPI
+libraries and headers to be installed on the machine.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install mpi4py
 </pre></div>
 </div>
 <p><strong>Python 2:</strong></p>
-<p>For Python 2, the process, is very similar, except that the <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">virtualenv</a> tool must be used to create the enviroment:</p>
+<p>For Python 2, the process, is very similar, except that the <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">virtualenv</a> tool must be used to create the environment:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python2 -m virtualenv onda_env
 </pre></div>
 </div>
@@ -157,9 +157,9 @@ installed.</p>
 <div class="section" id="installation-in-anaconda">
 <h3>Installation in Anaconda<a class="headerlink" href="#installation-in-anaconda" title="Permalink to this headline">¶</a></h3>
 <p><strong>Python 3:</strong></p>
-<p>Packages for OnDA and its dependencies are available from the ‘ondateam’ channel of
-<a class="reference external" href="https://anaconda.org">https://anaconda.org</a>. It is reccomended to install onda in a clean Python enviroment,
-which can be created using the following command:</p>
+<p>Packages for OnDA and its dependencies are available from the <em>ondateam</em> channel of
+<a class="reference external" href="https://anaconda.org">https://anaconda.org</a>. It is recommended to install OnDA in a clean Anaconda Python
+environment, which can be created using the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n onda_env <span class="nv">python</span><span class="o">=</span><span class="m">3</span>
 </pre></div>
 </div>
@@ -167,11 +167,11 @@ which can be created using the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n onda_env <span class="nv">python</span><span class="o">=</span><span class="m">2</span>
 </pre></div>
 </div>
-<p>The enviroment can then be activated using the following command:</p>
+<p>The environment can then be activated using <em>conda activate</em> command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate onda_env
 </pre></div>
 </div>
-<p>Finally, OnDA can be installed using the ‘conda install’ command:</p>
+<p>Finally, OnDA can be installed using the <em>conda install</em> command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install --channel conda-forge --channel ondateam onda
 </pre></div>
 </div>
@@ -189,7 +189,7 @@ fit specific experiments.</p>
 not designed or optimized for the limited resources of a laptop or a small desktop
 machine. Furthermore, when running OnDA locally, it is often very hard or impossible
 to connect to the facility frameworks to retrieve data. Therefore, the following
-paragraphs contain instructions aimed at running OnDA to process files written by the
+paragraphs contain instructions aimed at getting OnDA to process files written by the
 Pilatus detector (relatively small in size), stored in a folder on the local machine.
 This is a good choice for debugging or demonstration purposes.</p>
 <p>This example will use data files from an experiment performed at the APS facility, part
@@ -199,29 +199,29 @@ of data from Serial Crystallography experiments.</p>
 <p>The following paragraphs assume that the file <em>data8.tar.gz</em> has been downloaded from
 <a class="reference external" href="http://cxidb.org/data/82/raw-data/">here</a> and unpacked (Beware, the data, even
 compressed, is 24Gb).</p>
-<p>In order to run OnDA on your machine, create a <em>monitor.toml</em> configuration file.
-(See <a class="reference internal" href="documentation_configuration_file.html"><span class="doc">here</span></a> for a discussion of the format
-and content of the configuration file).</p>
+<p>In order to run OnDA on a local machine, a <em>monitor.toml</em> configuration file should be
+created (See <a class="reference internal" href="documentation_configuration_file.html"><span class="doc">here</span></a> for a discussion of the
+format and content of the configuration file).</p>
 <ul class="simple">
 <li><strong>Example monitor.toml for the Ti-Yen Lan dataset from the CXIDB website</strong>:
 <a class="reference internal" href="example_files_monitor_toml.html"><span class="doc">monitor.toml</span></a></li>
 </ul>
-<p>Make sure that all the files mentioned in the configuration file (masks,
-bad_pixel_masks, etc.) are present on your machine.</p>
+<p>All the files mentioned in the configuration file (masks, bad_pixel_masks, etc.) must
+be present and readable on the local machine.</p>
 <ul class="simple">
 <li><strong>Example pilatus.geom for the Pilatus detector</strong>: <a class="reference internal" href="example_pilatus_geom.html"><span class="doc">pilatus.geom</span></a></li>
 </ul>
-<p>Then create a file with the list of files that onda will process, with their full
-absolute or relative path, one file per line. This can easily be obtained using the
-<em>find</em> command from bash:</p>
+<p>A file must finally be generated with the list of files that onda will process, each
+with its own full absolute or relative path, one file per line. This file can easily be
+created using the Unix <em>find</em> command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Substitute &lt;path&gt; with the path to the downloaded files</span>
 find &lt;path&gt; -name <span class="s2">&quot;*cbf&quot;</span> &gt; files.lst
 </pre></div>
 </div>
-<p>In the command line, <em>path</em> should be replaced with the absolute or relative path to
-the directory where the files have been unpacked. For example, assuming that the files
-had been unpacked in the <em>data8</em> subdirectory in the current folder, the first lines
-of the <em>files.lst</em> file should read:</p>
+<p>In this command line, <em>path</em> should be replaced with the absolute or relative path to
+the directory where the data files have been unpacked. For example, assuming that the
+files are in the <em>data8</em> subdirectory in the current folder, the first lines of the
+<em>files.lst</em> file should read:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>data8/lysozyme2_test_000437.cbf
 data8/lysozyme2_test_005699.cbf
 data8/lysozyme2_test_001000.cbf

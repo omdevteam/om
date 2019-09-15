@@ -56,15 +56,15 @@ interfaces):
 
     python3 -m pip install onda
 
-In order to install OnDA together with the Qt5-based graphical interfaces:
+To instead install OnDA together with the Qt5-based graphical interfaces:
 
 .. code-block:: bash
 
     python3 -m pip install onda[GUI]
 
-When the **mpi** Parallelization Layer is used (It is currently used by default), the
-*mpi4py* module needs to be installed. This requires a version of the MPI libraries and
-headers to be installed on the machine.
+When the *mpi* Parallelization Layer is used (It is currently used by default), the
+*mpi4py* module also needs to be installed. This requires a version of the MPI
+libraries and headers to be installed on the machine.
 
 .. code-block:: bash
 
@@ -74,7 +74,7 @@ headers to be installed on the machine.
 **Python 2:**
 
 For Python 2, the process, is very similar, except that the `virtualenv
-<https://virtualenv.pypa.io/en/stable/>`_ tool must be used to create the enviroment:
+<https://virtualenv.pypa.io/en/stable/>`_ tool must be used to create the environment:
 
 
 .. code-block:: bash
@@ -112,9 +112,9 @@ Installation in Anaconda
 
 **Python 3:**
 
-Packages for OnDA and its dependencies are available from the 'ondateam' channel of
-https://anaconda.org. It is reccomended to install onda in a clean Python enviroment,
-which can be created using the following command:
+Packages for OnDA and its dependencies are available from the *ondateam* channel of
+https://anaconda.org. It is recommended to install OnDA in a clean Anaconda Python
+environment, which can be created using the following command:
 
 .. code-block:: bash
 
@@ -126,13 +126,13 @@ Or, for Python 2:
 
     conda create -n onda_env python=2
 
-The enviroment can then be activated using the following command:
+The environment can then be activated using *conda activate* command:
 
 .. code-block:: bash
 
     conda activate onda_env
 
-Finally, OnDA can be installed using the 'conda install' command:
+Finally, OnDA can be installed using the *conda install* command:
 
 .. code-block:: bash
 
@@ -154,7 +154,7 @@ Although it is possible to run OnDA on a local machine, it should be noted that 
 not designed or optimized for the limited resources of a laptop or a small desktop
 machine. Furthermore, when running OnDA locally, it is often very hard or impossible
 to connect to the facility frameworks to retrieve data. Therefore, the following
-paragraphs contain instructions aimed at running OnDA to process files written by the
+paragraphs contain instructions aimed at getting OnDA to process files written by the
 Pilatus detector (relatively small in size), stored in a folder on the local machine. 
 This is a good choice for debugging or demonstration purposes.
 
@@ -167,32 +167,32 @@ The following paragraphs assume that the file *data8.tar.gz* has been downloaded
 `here <http://cxidb.org/data/82/raw-data/>`_ and unpacked (Beware, the data, even
 compressed, is 24Gb).
 
-In order to run OnDA on your machine, create a *monitor.toml* configuration file.
-(See :doc:`here <documentation_configuration_file>` for a discussion of the format
-and content of the configuration file).
+In order to run OnDA on a local machine, a *monitor.toml* configuration file should be
+created (See :doc:`here <documentation_configuration_file>` for a discussion of the
+format and content of the configuration file).
 
 * **Example monitor.toml for the Ti-Yen Lan dataset from the CXIDB website**:
   :doc:`monitor.toml <example_files_monitor_toml>`
 
-Make sure that all the files mentioned in the configuration file (masks,
-bad_pixel_masks, etc.) are present on your machine.
+All the files mentioned in the configuration file (masks, bad_pixel_masks, etc.) must
+be present and readable on the local machine.
 
 * **Example pilatus.geom for the Pilatus detector**: :doc:`pilatus.geom
   <example_pilatus_geom>`
 
-Then create a file with the list of files that onda will process, with their full
-absolute or relative path, one file per line. This can easily be obtained using the
-*find* command from bash:
+A file must finally be generated with the list of files that onda will process, each
+with its own full absolute or relative path, one file per line. This file can easily be
+created using the Unix *find* command:
 
 .. code-block:: bash
     
     # Substitute <path> with the path to the downloaded files
     find <path> -name "*cbf" > files.lst
 
-In the command line, *path* should be replaced with the absolute or relative path to
-the directory where the files have been unpacked. For example, assuming that the files
-had been unpacked in the *data8* subdirectory in the current folder, the first lines
-of the *files.lst* file should read:
+In this command line, *path* should be replaced with the absolute or relative path to
+the directory where the data files have been unpacked. For example, assuming that the
+files are in the *data8* subdirectory in the current folder, the first lines of the
+*files.lst* file should read:
 
 .. code-block:: text
     

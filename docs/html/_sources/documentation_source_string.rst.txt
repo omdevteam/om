@@ -2,19 +2,18 @@ The Source String
 -----------------
 
 Information about the source of data events is provided to OnDA at start-up, in the
-form of a command line argument to the 'onda_monitor.py' script.
+form of the *Source String*, a command line argument to the *onda_monitor.py* script:
 
 .. code-block:: bash
 
     onda_monitor.py SOURCE_STRING
 
-It usually consists of a string, the 'Source String', which encodes the information in
-a way that depends on the specific Data Retrieval Layer implementation used by the
-monitor. This information is usually provided by the developer that configured the
-Data Retrieval Layer, and is often specific to the facility where the experiment is
-taking place. The following is a list of the facilities currently officially supported
-by OnDA, with a description of the typical format of the source string at each of
-them.
+The exact format of the string depends on the Data Retrieval Layer implementation used
+by the monitor, and is usually part of the information provided to the user by the
+developer that configured the OnDA monitor. The format is often tied to the facility
+where the experiment is taking place: the following is a list of facilities that are
+currently officially supported by OnDA, with a description of the typical format of the
+source string at each of them.
 
 
 Filesystem
@@ -22,19 +21,20 @@ Filesystem
 
 When the source of data for the monitor is the filesystem, the source string is the
 relative or absolute path to a file containing a list of files that the monitor must
-process. The files that must be process must be listed one per line, each with their
-full relative or absolute path. Example: files.lst
+process. The files should be listed one per line, each with their
+full relative or absolute path. Example source string: files.lst
 
 
 LCLS
 ^^^^
 
-When OnDA runs at the LCLS facility, the source string is a psana-style DataSource
-string. Example: shmem=psana.0:stop=no
+When OnDA is run at the LCLS facility, the source string is a psana-style DataSource
+string. Example source string: shmem=psana.0:stop=no
 
 
 Petra III
 ^^^^^^^^^
 
-When the monitor runs at the Petra III facility, the source string is the ip or
-the hostname of the machine where HiDRA is running. Example: eval01.desy.de
+When a monitor is used at the Petra III facility, the source string is the ip or the
+hostname of the machine where HiDRA is running. Example source
+string: haspp11eval01.desy.de

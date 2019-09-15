@@ -28,9 +28,9 @@ copyright = """
 author = "Valerio Mariani"
 
 # The short X.Y version
-version = "2019.9.0"
+version = "2019.09.0"
 # The full version, including alpha/beta/rc tags
-release = "2019.9.0"
+release = "2019.09.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -96,7 +96,7 @@ html_theme_options = {
     "navbar_links": [
         ("What is an OnDA Monitor?", "documentation_what_is_an_onda_monitor"),
         ("Running OnDA", "documentation_running_onda"),
-        ("Advanced Topics", "documentation_advanced_topics"),
+        ("Advanced Documentation", "documentation_advanced_documentation"),
         ("Source Code", "https://github.com/ondateam/onda", True),
     ],
     "navbar_sidebarrel": False,

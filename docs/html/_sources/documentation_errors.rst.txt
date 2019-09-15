@@ -1,18 +1,18 @@
 OnDA Errors and Warnings
 ========================
 
-When something does not work as expected, an OnDA monitor can report an error. Errors
-can be fatal, in which case the monitor simply exits, or not, in which case the monitor
-simply reports the error and continues processing data.
+When something does not work as expected, an OnDA monitor usually reports an error.
+Errors can be fatal, in which case the monitor stops, or not, in which case the monitor
+just reports the error and continues processing data.
 
 OnDA errors are not reported as normal python errors. They are clearly labelled as
-coming from the monitor, and their traceback information is removed. The '--debug'
-options of the 'onda_monitor.py' script disables this behavior and forces OnDa to
+coming from the monitor, and their traceback information is removed. The *--debug*
+option to  the *onda_monitor.py* script disables this behavior and forces OnDA to
 report all errors as normal python errors.
 
 When the *mpi* Parallelization layer is used, OnDA fatal errors are often reported
-multiple times before the monitor stops: it can happen that multiple nodes report the
-same error before the MPI engine can stop.
+multiple times before the monitor finishes operating: it can happen that multiple nodes
+report the same error before the MPI engine can stop.
 
 A list of the most common errors reported by OnDA follows, with a brief discussion of
 each.
@@ -22,7 +22,7 @@ OndaConfigurationFileReadingError
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There was a problem finding or reading the configuration file. The file should exist
-and be readable. OnDA looks by default for a file called 'monitor.toml' in the current
+and be readable. OnDA looks by default for a file called *monitor.toml* in the current
 working directory.
 
 
@@ -89,7 +89,7 @@ OndaMissingHdf5PathError
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 An internal path in the HDF5 file is not found. The file exists and can be read, but
-the iternal path cannot be found. The internal HDF5 path is probably incorrect, or the
+the imternal path cannot be found. The internal HDF5 path is probably incorrect, or the
 file is corrupted.
 
 
@@ -118,5 +118,5 @@ OndaWrongParameterTypeError
 
 The type of the parameter in the configuration file does not match the requested one.
 The type (string, float, int) of the parameter in the configuration file is probably
-incorrect. The configuration file should stricly follow the TOML language
-specification. 
+incorrect. The configuration file ,ust strictly follow the `TOML
+<https://github.com/toml-lang/toml>`_ language specification. 

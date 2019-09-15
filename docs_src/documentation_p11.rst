@@ -12,13 +12,13 @@ Running OnDA at the PETRA III Facility - P11 Beamline
 Accessing OnDA
 --------------
 
-OnDA is available at this beamline on the *haspp11eval01* machine as the *p11user*.
-Once logged in, the following command can be used to activate the `Anaconda
-<https://anaconda.org/>`_ python environment in which OnDA is installed:
+OnDA must be run at this beamline on the *haspp11eval01* machine as the *p11user*.
+Once logged in, the following command can be used to activate the Python environment
+in which OnDA is installed:
 
 .. code-block:: bash
 
-    # On eval01.desy.de
+    # On haspp11eval01.desy.de:
     source /home/p11user/CfelSoft/onda/onda.sh
 
 
@@ -34,7 +34,7 @@ Running OnDA
 
 
 In order to run OnDA on the *haspp11eval01* machine, a *monitor.toml* must be created
-(See:doc:`here <documentation_configuration_file>` for a discussion of the format and
+(See :doc:`here <documentation_configuration_file>` for a discussion of the format and
 content of the configuration file).
 
 * **Example monitor.toml for P11**: :doc:`monitor.toml <example_p11_monitor_toml>`
@@ -52,9 +52,9 @@ The OnDA monitor can then be started using the following command:
     # On eval01.desy.de
     mpirun -n <num_nodes> onda_monitor.py eval01.desy.de
 
-In the command line, *num_nodes* should be replaced with the total number of OnDA 
-nodes that the monitor should use (all workers plus a master). Usually a value of 9
-(8 workers + 1 master) is fully sufficient to process the full data stream at P11.
+In this command line, *num_nodes* should be replaced with the total number of OnDA 
+nodes that the monitor should use (all workers plus a master). Usually a value of 17
+(16 workers + 1 master) is fully sufficient to process the full data stream at P11.
 
 As the monitor starts, it prints on the console a line that contains the following
 string: "Broadcasting data at <ip>:<port>" (where <ip> is an IP address string of the

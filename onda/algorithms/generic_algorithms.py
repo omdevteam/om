@@ -78,7 +78,7 @@ class Correction(object):
                   frame that will be corrected.
 
                 * The pixels in the mask must have a value of either 0, meaning that
-                  the corresponfing pixel in the data frame must be set to 0, or 1,
+                  the corresponding pixel in the data frame must be set to 0, or 1,
                   meaning that the value of the corresponding pixel must be left alone.
 
             mask_hdf5_path (Optional[str]): the internal HDF5 path to the data block

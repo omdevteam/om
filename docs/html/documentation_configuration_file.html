@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>The Configuration File &#8212; OnDA 2019.9.0 documentation</title>
+    <title>The Configuration File &#8212; OnDA 2019.09.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -43,7 +43,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>2019.9.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2019.09.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -51,7 +51,7 @@
             
                 <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
                 <li><a href="documentation_running_onda.html">Running OnDA</a></li>
-                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
                 <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
             
             
@@ -86,30 +86,30 @@
       
   <div class="section" id="the-configuration-file">
 <h1>The Configuration File<a class="headerlink" href="#the-configuration-file" title="Permalink to this headline">¶</a></h1>
-<p>The behaviour of an OnDA monitor is completely determined by the content of its
-configuration file. By default, OnDA looks for a file called ‘monitor.toml’ in the
-current working directory. However, the ‘–config’ command line option to the
-‘onda_monitor.py’ script allows a custom location for the configuration file to be
-specified.</p>
+<p>The behavior of an OnDA monitor is completely determined by the content of its
+configuration file. By default, OnDA looks for a file called <strong>monitor.toml</strong> in the
+current working directory. However, the <em>–config</em> command line option to the
+<em>onda_monitor.py</em> script allows a custom location for the configuration file to be
+specified:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>onda_monitor.py --config PATH_TO_CONFIG_FILE SOURCE_STRING
 </pre></div>
 </div>
 <p>The content of the configuration file must formatted according to the rules of the
 <a class="reference external" href="https://github.com/toml-lang/toml">TOML</a> language. This language is not very
-different from the one traditionally used by Python ‘ini’ files. The main differences
-are:</p>
+different from the one traditionally used by Python’s  <em>ini</em> files. The main
+differences are:</p>
 <ul class="simple">
 <li>Strings (including file and directory paths) must be always enclosed within single or
 double quotes (‘ or “).</li>
-<li>The ‘True’ and ‘False’ keywords are spelled without a capital first letter (‘true’
-and ‘false’ respectively)</li>
-<li>There is no ‘None’ value. To set a parameter value to ‘None’, the parameter must
+<li>The <em>True</em> and <em>False</em> keywords are spelled without a capital first letter (<em>true</em>
+and <em>false</em> respectively)</li>
+<li>There is no <em>None</em> value. To set a parameter value to <em>None</em>, the parameter must
 be commented out or completely omitted from the configuration file.</li>
 </ul>
-<p>The parameters in the configuration file are divided into groups (‘Tables’ in TOML
+<p>The parameters in the configuration file are divided into groups (<em>Tables</em> in TOML
 parlance). Each group contains a set of parameters that are related to each other
-(for example, because they apply to the same OnDA algorithm, or because they control
-the same feature of the monitor). For example:</p>
+(because they apply to the same OnDA algorithm, or because they control the same
+feature of the monitor). For example:</p>
 <div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[General]</span>
 <span class="na">broadcast_ip</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
 <span class="na">broadcast_port</span> <span class="o">=</span> <span class="s">12321</span>
@@ -120,10 +120,10 @@ the same feature of the monitor). For example:</p>
 configuration file. Depending on which OnDA monitor is being run, not all the groups
 need to be present in the file at the same time. Conversely, custom OnDA monitors might
 introduce additional groups not described here. For each group, a list of the available
-parameters is provided. While some parameter are strictly required (again depending on
-the type of OnDA monitor), others are optional. If a parameter that is not strictly
-required is not found in the configuration file, its default value is considered to be
-‘None’.</p>
+parameters is provided. While some parameters are strictly required and must be
+explicitly set (again depending on the type of OnDA monitor), others are optional, and
+OnDA chooses a value for them if they cannot be found in the file. In general the
+default value of an unspecified optional parameter is considered to be <em>None</em>.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">When a parameter is a physical constant, it is assumed to be expressed in SI units
@@ -132,79 +132,81 @@ unless the parameter name says otherwise!!</p>
 <div class="section" id="correction">
 <h2>[Correction]<a class="headerlink" href="#correction" title="Permalink to this headline">¶</a></h2>
 <p>This parameter group contains information used by OnDA for the correction of detector
-frames (using the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.Correction" title="onda.algorithms.generic_algorithms.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a> algorithm).</p>
+frames (using the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.Correction" title="onda.algorithms.generic_algorithms.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a>
+algorithm).</p>
 <ul class="simple">
 <li><strong>dark_filename (str or None):</strong> the relative or absolute path to an HDF5 file
-containing a dark data frame. Defaults to None. If this and the ‘dark_hdf5_path’
-arguments are not None, the dark data is loaded applied to the detector frame.
+containing a dark data frame. If this and the <em>dark_hdf5_path</em> parameters are not
+<em>None</em>, the dark data is loaded and later applied to the detector frame.
 Example: ‘run21_dark.h5’</li>
 <li><strong>dark_hdf5_path (str or None):</strong> the internal HDF5 path to the data block where the
-dark data frame is located. If the ‘dark_filename’ argument is not None, this
-argument must also be provided, and cannot be None. Otherwise it is ignored. Example:
-‘/data/data’</li>
+dark data frame is located. If the <em>dark_filename</em> parameter is not <em>None</em>, this
+parameter must also be provided, and cannot be <em>None</em>. Otherwise it is ignored.
+Example: ‘/data/data’</li>
 <li><strong>gain_filename (str or None):</strong> the relative or absolute path to an HDF5 file
-containing a gain map. If this and the ‘gain_hdf5_path’ arguments are not None, the
-gain map is loaded applied to the detector frame. Each pixel in the gain map must
-store the gain factor that will be applied to the corresponing pixel in the detector
-frame. Example: ‘cspad_gain_map.h5’</li>
+containing a gain map. If this and the <em>gain_hdf5_path</em> parameters are not <em>None</em>,
+the gain map is loaded and later applied to the detector frame. Each pixel in the
+gain map must store the gain factor that will be applied to the corresponding pixel in
+the detector frame. Example: ‘cspad_gain_map.h5’</li>
 <li><strong>gain_hdf5_path (str or None)</strong> the internal HDF5 path to the data block where the
-gain map data is located. If the ‘gain_filename’ argument is not None, this argument
-must also be provided, and cannot be None. Otherwise it is ignored. Example:
-‘/data/data’</li>
+gain map data is located. If the <em>gain_filename</em> parameter is not <em>None</em>, this
+parameter must also be provided, and cannot be <em>None</em>. Otherwise it is ignored.
+Example: ‘/data/data’</li>
 <li><strong>mask_filename (str or None):</strong> the relative or absolute path to an HDF5 file
-containing a mask. If this and the ‘mask_hdf5_path’ arguments are not None, the mask
-is loaded applied to the detector frame. The pixels in the mask must have a value of
-either 0, meaning that the corresponfing pixel in the detector frame must be set to
-0, or 1, meaning that the value of the corresponding pixel must be left alone.
-Example: ‘run18_mask.h5’</li>
+containing a mask. If this and the <em>mask_hdf5_path</em> arguments are not <em>None</em>, the
+mask is loaded and later applied to the detector frame. The pixels in the mask must
+have a value of either 0, meaning that the corresponding pixel in the detector frame
+must be set to 0, or 1, meaning that the value of the corresponding pixel must be
+left alone. Example: ‘run18_mask.h5’</li>
 <li><strong>mask_hdf5_path (str or None):</strong> the internal HDF5 path to the data block where the
-mask data is located. If the ‘mask_filename’ argument is not None, this argument must
-also be provided, and cannot be None. Otherwise it is ignored. Example: ‘/data/data’</li>
+mask data is located. If the <em>mask_filename</em> parameter is not <em>None</em>, this parameter
+must also be provided, and cannot be <em>None</em>. Otherwise it is ignored.
+Example: ‘/data/data’</li>
 </ul>
 </div>
 <div class="section" id="crystallography">
 <h2>[Crystallography]<a class="headerlink" href="#crystallography" title="Permalink to this headline">¶</a></h2>
-<p>This group contains parameters used by the OnDA monitor for crystallography.</p>
+<p>This group contains parameters used by the OnDA Monitor for Crystallography.</p>
 <ul class="simple">
 <li><strong>broadcast_ip (str or None):</strong> the hostname or ip address where the monitor
-broadcasts data to external programs. If the value of this parameter is None, the ip
-is autodetected. This is usually fine. An ip or hostname must be usually manually
-specified in exceptional cases (e.g: multiple network interfaces on the same
-machine). Example: ‘127.0.0.1’</li>
+broadcasts data to external programs. If the value of this parameter is <em>None</em>, the
+ip address is auto-detected. This is usually fine. An ip address or a hostname needs
+usually to be manually specified only in exceptional cases (e.g: multiple network
+interfaces on the same machine). Example: ‘127.0.0.1’</li>
 <li><strong>broadcast_port (int or None):</strong> the port where the monitor broadcasts data to
-external programs. If the value of this parameter is None, port 12321 is used.
+external programs. If the value of this parameter is <em>None</em>, port 12321 is used.
 Example: 12322</li>
 <li><strong>geometry_file (str):</strong> the absolute or relative path to a geometry file in
 <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a>
 format. Example: ‘pilatus.geom’.</li>
 <li><strong>geometry_is_optimized (bool):</strong> whether the geometry is optimized. This information
 is broadcasted by the monitor and used by external programs. For example, the OnDA
-GUI for crystallography uses this information to decide if the drawing of
+GUI for Crystallography uses this information to decide if the drawing of
 resolution rings should be allowed or not (if the geometry is not optimized, the
 rings are not reliable). Example: false.</li>
 <li><strong>hit_frame_sending_interval (int or None):</strong> this parameter determines how often the
 monitor sends <em>full detector frames</em> to external programs (as opposed to reduced
 data). It applies only to frames labelled as hits. If the value of this parameter is
-None, no hit frames are ever sent. If the value is a number, it is the number of hit
-frames that <em>each worker</em> skips before sending the next frame to the master node to
-be broadcasted. If, for example, the value of this parameter is 5, each worker sends
-every 5th hit frame to the master for broadcasting. Example: 10</li>
+<em>None</em>, no hit frames are ever sent. If the value is a number, it is the number of
+hit frames that <em>each worker</em> skips before sending the next frame to the master node
+to be broadcasted. If, for example, the value of this parameter is 5, each worker
+sends every 5th hit frame to the master for broadcasting. Example: 10</li>
 <li><strong>max_num_peaks_for_hit (int):</strong> the maximum number of Bragg peaks that can be found
 in a detector frame for the frame to be labelled as a hit. Example: 500.</li>
 <li><strong>max_saturated_peaks (int):</strong> the maximum number of saturated Bragg peaks that can
-be found in a detector before the frame itself is labelled as saturated. A saturated
-Bragg peak is a peak whose integrated intensity (in ADUs) goes beyond the value
-specified by the ‘saturation_value’ parameter in this same group.</li>
+be found in a detector frame before the frame itself is labelled as saturated. A
+saturated Bragg peak is a peak whose integrated intensity (in ADUs) goes beyond the
+value specified by the <em>saturation_value</em> parameter in this same group.</li>
 <li><strong>min_num_peaks_for_hit (int):</strong> the minimum number of Bragg peaks that need to be
 found in a detector frame for the frame to be labelled as a hit. Example: 10</li>
 <li><strong>non_hit_frame_sending_interval (int or None):</strong> this parameter determines how often
 the monitor sends <em>full detector frames</em> to external programs (as opposed to reduced
 data). It applies only to frames that have not been labelled as hits. If the value of
-this parameter is None, no non-hit frames are ever sent. If value is a number, it is
-the number of non-hit frames that <em>each worker</em> skips before sending the next frame
-to the master node to be broadcasted. If, for example, the value of this parameter is
-100, each worker sends every 100th non-hit frame to the master for broadcasting.
-Example: 1000</li>
+this parameter is <em>None</em>, no non-hit frames are ever sent. If value is a number, it
+is the number of non-hit frames that <em>each worker</em> skips before sending the next
+frame to the master node to be broadcasted. If, for example, the value of this
+parameter is 100, each worker sends every 100th non-hit frame to the master for
+broadcasting. Example: 1000</li>
 <li><strong>running_average_window_size (int):</strong> the size of the running window used by the
 monitor to compute the average hit and saturation rates. The rates are computed
 over the number of most recent events specified by this parameter. Example: 100.</li>
@@ -213,8 +215,8 @@ of a Bragg peak for the peak to be labelled as saturated. The value of this para
 usually depends on the specific detector being used. Example: 5000.5.</li>
 <li><strong>speed_report_interval (int):</strong> the number of events that must pass between
 consecutive speed reports from OnDA. This parameter determines how often OnDA prints
-the ‘Processed: ..’ message that provides information for about the processing speed.
-Exaple: 100</li>
+the “Processed: …” message that provides information for about the processing speed.
+Example: 100</li>
 </ul>
 </div>
 <div class="section" id="dataaccumulator">
@@ -223,7 +225,8 @@ Exaple: 100</li>
 node before sending them to external programs. It refers to the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.DataAccumulator" title="onda.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a> algorithm.</p>
 <ul class="simple">
 <li><strong>num_events_to_accumulate (int):</strong> number of events for which data is accumulated in
-the master node before being broadcasted in a single transmission.  Example: 20</li>
+the master node. The master node broadcasts the accumulated data in a single
+transmission, then starts accumulating data again.  Example: 20</li>
 </ul>
 </div>
 <div class="section" id="dataretrievallayer">
@@ -232,8 +235,8 @@ the master node before being broadcasted in a single transmission.  Example: 20<
 extracts data from a facility framework.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Please exercise caution when changing the parameters in this group: a wrong choice
-can severly interfere with data retrieval and extraction.</p>
+<p class="last">Please exercise caution when changing the values of the parameters in this group: a
+wrong choice can severely interfere with data retrieval and extraction.</p>
 </div>
 <ul class="simple">
 <li><strong>fallback_beam_energy_in_eV (float)</strong> the beam energy <em>in eV</em>. OnDA uses this
@@ -248,12 +251,12 @@ to contact the workers. The machine where OnDA is running and the one where HiDR
 running should be able to reach each other at this port and the immediately following
 ones. Example: 52000</li>
 <li><strong>hidra_transfer_type (‘data’ or ‘metadata’):</strong> the transfer type used by the HiDRA
-framework for the current monitor. If this parameter has a value of ‘data’, OnDA asks
-HiDRA to stream the detector data to the monitor. If instead the value is ‘metadata’,
-OnDA asks HiDRA to just stream information on where in the filesystem the most recent
-data can be found. Usually it is automatically determined from the detector(s) model
-currently used by the monitor, but it can be overridden using this parameter.
-Example: ‘data’</li>
+framework for the current monitor. If this parameter has a value of <em>‘data’</em>, OnDA
+asks HiDRA to stream the detector data to the monitor. If instead the value is
+<em>‘metadata’</em>, OnDA asks HiDRA to just stream information on where in the filesystem
+the most recent data can be found. Usually it is automatically determined from the
+detector(s) model currently used by the monitor, but it can be overridden using
+this parameter. Example: ‘data’</li>
 <li><strong>karabo_detector_label (str):</strong> the label of the main x-ray detector from which
 the Karabo framework retrieves data. Example:
 ‘SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED’</li>
@@ -261,22 +264,21 @@ the Karabo framework retrieves data. Example:
 event retrieved from Karabo must have in order to be processed. If the age of the
 event, defined as the time between data collection and the retrieval of the event by
 OnDA, is higher than this threshold, the event is not processed and a new event is
-retrieved. If the value of this parameter is None, all events are processed. Example:
-0.5</li>
-<li><strong>num_of_most_recent_frames_in_event_to_process (int or None):</strong> number of frames for
-each event to process. Please notice that this are the <em>most recent</em> events: if the
-value of this paramerer is, for example, 100, only the <em>last</em> 100 frames in the event
-are processed. If the value of this parameter is None, all events are processed.
+retrieved. If the value of this parameter is <em>None</em>, all events are processed.
 Example: 0.5</li>
-<li><strong>psana_detector_name (str):</strong> * <strong>karabo_detector_label (str):</strong> the name of the
-main x-ray detector from which the psana framework retrieves data. Example:
-‘DscCsPad’</li>
+<li><strong>num_of_most_recent_frames_in_event_to_process (int or None):</strong> number of frames for
+each event to process. It should be noted that these are the <em>most recent</em> events: if
+the value of this paramerer is, for example, <em>100</em>, only the <em>last</em> 100 frames in the
+event are processed. If the value of this parameter is <em>None</em>, all frames in the
+event are processed. Example: 0.5</li>
+<li><strong>psana_detector_name (str):</strong>  the name of the main x-ray detector from which the
+psana framework retrieves data. Example: ‘DscCsPad’</li>
 <li><strong>psana_detector_distance_epics_name (str):</strong> the name of the Epics device from which
 the psana framework retrieves detector distance information for the main x-ray
 detector. Example: ‘CXI:DS1:MMS:06.RBV’</li>
 <li><strong>psana_digitizers_name (str):</strong> the name of the main digitizer device from which
 the psana framework retrieves information.</li>
-<li><strong>psana_evr_source (str):</strong> name of the EVR source from which the psana framework
+<li><strong>psana_evr_source (str):</strong> the name of the EVR source from which the psana framework
 retrieves information.</li>
 <li><strong>psana_opal_name (str):</strong> the name of the Opal camera from which the psana framework
 retrieves information.</li>
@@ -286,79 +288,79 @@ the psana framework retrieves timetool information.</li>
 event retrieved from psana must have in order to be processed. If the age of the
 event, defined as the time between data collection and the retrieval of the event by
 OnDA, is higher than this threshold, the event is not processed and a new event is
-retrieved. Example: 0.5</li>
+retrieved. If the value of this parameter is <em>None</em>, all events are processed.
+Example: 0.5</li>
 </ul>
 </div>
 <div class="section" id="detectorcalibration">
 <h2>[DetectorCalibration]<a class="headerlink" href="#detectorcalibration" title="Permalink to this headline">¶</a></h2>
 <p>This parameter group contains information used by OnDA for the calibration of
 detector frames, using one of the calibration algorithms defined
-<a class="reference internal" href="onda.algorithms.calibration_algorithms.html"><span class="doc">here</span></a>.</p>
+<a class="reference internal" href="onda.algorithms.calibration_algorithms.html"><span class="doc">onda.algorithms.calibration_algorithms</span></a>
+module.</p>
 <ul class="simple">
-<li><strong>calibration_algorithm (str or None):</strong> name of the calibration algorithm that the
-current monitor uses to calibrate the detector frame. The value of this parameter
-must be None or match one of the names of the calibration algorithms. If the value is
-None, no calibration will be performed. Example: ‘Agipd1MCalibration’</li>
-<li><strong>calibration_filename (str or None):</strong> absolute or relative path to an HDF5 file
+<li><strong>calibration_algorithm (str or None):</strong> the name of the calibration algorithm that
+the current monitor should use to calibrate the detector frames. The value of this
+parameter  must match one of the names of the calibration algorithms (or be <em>None</em>).
+If the value is <em>None</em>, no calibration will be performed.
+Example: ‘Agipd1MCalibration’</li>
+<li><strong>calibration_filename (str or None):</strong> the absolute or relative path to an HDF5 file
 containing the calibration parameters. The exact format of this file depends on the
 calibration algorithm being used. Please consult the documentation for the specific
 algorithm. If no calibration is performed, this parameter is ignored. Example:
 ‘agipd_calibration_params.h5’</li>
 </ul>
 </div>
-<div class="section" id="general">
-<h2>[General]<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h2>
-<p>This parameter group is a generic catch-all category for parameters that don’t fit in
-any other group. Many of the parameters in this group are related to the way the OnDA
-monitor broadcasts the data to external programs for visualization.</p>
-</div>
 <div class="section" id="onda">
 <h2>[Onda]<a class="headerlink" href="#onda" title="Permalink to this headline">¶</a></h2>
 <div class="admonition danger">
 <p class="first admonition-title">Danger</p>
-<p class="last">!! This section determines the core behavior of the OnDA monitor. Do not modify it
-unless you know what your are doing !!</p>
+<p class="last">!! This section determines the core behavior of the OnDA monitor. The value of
+these parameters should be changed only by an expert !!</p>
 </div>
 <ul class="simple">
-<li><strong>data_retrieval_layer (str):</strong> name of the python module with the implementation of
-the Data Retreival Layer for the current monitor. Example: ‘lcls_spb’</li>
-<li><strong>paralelization_layer (str):</strong> name of the python module with the implementation of
-the Parallelization Layer for the current monitor. Example: ‘mpi’</li>
-<li><strong>processing_layer (str):</strong> name of the python module with the implementation of the
-Processing Layer for the current monitor. Example: ‘crystallography’</li>
-<li><strong>required_data (List[str]):</strong> data that the current monitor should retrieve for
+<li><strong>data_retrieval_layer (str):</strong> the name of the python module with the implementation
+of the Data Retrieval Layer for the current monitor. Example: ‘lcls_spb’</li>
+<li><strong>parallelization_layer (str):</strong> the name of the python module with the
+implementation of the Parallelization Layer for the current monitor. Example: ‘mpi’</li>
+<li><strong>processing_layer (str):</strong> the name of the python module with the implementation of
+the Processing Layer for the current monitor. Example: ‘crystallography’</li>
+<li><strong>required_data (List[str]):</strong> the data that the current monitor should retrieve for
 each event. For each type of data, a corresponding Data Extraction Function must be
-defined in the Data Retrieval Layer. If this condition is met, the extracted data
-will be available in the ‘data’ object in the Processing layer.
-Example: [‘detector_data’, ‘detector_distance’, ‘beam_energy’,’timestamp’]</li>
+defined in the Data Retrieval Layer. If this condition is met, the data will be
+retrieved by the monitor and made available for processing. Example:
+[‘detector_data’, ‘detector_distance’, ‘beam_energy’,’timestamp’]</li>
 </ul>
 </div>
 <div class="section" id="peakfinder8peakdetection">
 <h2>[Peakfinder8PeakDetection]<a class="headerlink" href="#peakfinder8peakdetection" title="Permalink to this headline">¶</a></h2>
-<p>This parameter group contains parameter used by the OnDA monitor to perform Bragg peak
+<p>This parameter group contains parameters used by the OnDA monitor to perform Bragg peak
 finding on a detector frame, using the (using the <a class="reference internal" href="onda.algorithms.crystallography_algorithms.html#onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Peakfinder8PeakDetection</span></code></a> algorithm).</p>
 <ul class="simple">
-<li><strong>adc_threshold (float):</strong> minimum ADC threshold for peak detection. Example: 200</li>
-<li><strong>bad_pixel_map_filename (str or None):</strong> absolute or relative path to an HDF5 file
-containing a bad pixel map. The map is used mark areas of the data frame that must be
-excluded from the peak search. Each pixel in the map must have a value of either 0,
-meaning that the corresponding pixel in the data frame must be ignored, or 1, meaning
-that the corresponding pixel must be included in the search. The map is only used to
-exclude areas from the peak search: the data is not modified in any way. Example:
-‘bad_pixel_mask.h5’</li>
-<li><strong>bad_pixel_map_hdf5_path (str or None):</strong> internal HDF5 path to the data block where the
-a bad pixel map is stored. See the ‘bad_pixel_map_filename’ parameter. Example:
-‘/data/data’</li>
-<li><strong>max_num_peaks (int):</strong> maximum number of peaks that will be retrieved from each
-data frame. Additional peaks will be ignored. Example: 2048</li>
-<li><strong>local_bg_radius (int):</strong> radius for the estimation of the local background in
-pixels. Example: 3</li>
-<li><strong>max_pixel_count (int):</strong> maximum size of a peak in pixels. Example: 10</li>
-<li><strong>max_res (int):</strong> maximum resolution for a peak in pixels. Example: 800</li>
-<li><strong>min_pixel_count (int):</strong> minimum size of a peak in pixels. Example: 1</li>
-<li><strong>minimum_snr (float):</strong> minimum signal-to-noise ratio for peak detection. Example:
-5.0</li>
-<li><strong>min_res (int):</strong> minimum resolution for a peak in pixels. Example: 20</li>
+<li><strong>adc_threshold (float):</strong> the minimum ADC threshold for peak detection. Example: 200</li>
+<li><strong>bad_pixel_map_filename (str or None):</strong> the absolute or relative path to an HDF5
+file containing a bad pixel map. The map is used mark areas of the data frame that
+must be excluded from the peak search. Each pixel in the map must have a value of
+either 0, meaning that the corresponding pixel in the data frame must be ignored, or
+1, meaning that the corresponding pixel must be included in the search. The map is
+only used to exclude areas from the peak search: the data is not modified in any way.
+If the value of these parameter is <em>None</em>, no area is excluded from the peak search.
+Example: ‘bad_pixel_mask.h5’</li>
+<li><strong>bad_pixel_map_hdf5_path (str or None):</strong> the internal HDF5 path to the data block
+where the bad pixel map is stored. If the value of the <em>bad_pixel_map_filename</em>
+parameter is not <em>None</em>, this parameter must also be provided, and cannot be <em>None</em>.
+Example: ‘/data/data’</li>
+<li><strong>max_num_peaks (int):</strong> the maximum number of peaks that will be retrieved from each
+detector data frame. Additional peaks will be ignored. Example: 2048</li>
+<li><strong>local_bg_radius (int):</strong> the radius (in pixels) for the estimation of the local
+background. Example: 3</li>
+<li><strong>max_pixel_count (int):</strong> the maximum size of a peak in pixels. Example: 10</li>
+<li><strong>max_res (int):</strong> the maximum resolution (in pixels) at which a peak will be found.
+Example: 800</li>
+<li><strong>min_pixel_count (int):</strong> the minimum size of a peak in pixels. Example: 1</li>
+<li><strong>minimum_snr (float):</strong> the minimum signal-to-noise ratio for peak detection.
+Example: 5.0</li>
+<li><strong>min_res (int):</strong> the minimum resolution for a peak in pixels. Example: 20</li>
 </ul>
 </div>
 </div>

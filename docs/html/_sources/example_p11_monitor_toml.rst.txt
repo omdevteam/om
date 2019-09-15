@@ -1,4 +1,4 @@
-Example *monitor.toml* for the P11 beamline at the Petra III facility
+Example *monitor.toml* for the P11 Beamline at the Petra III Facility
 ---------------------------------------------------------------------
 
 .. code-block:: ini

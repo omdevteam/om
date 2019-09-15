@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>The Source String &#8212; OnDA 2019.9.0 documentation</title>
+    <title>The Source String &#8212; OnDA 2019.09.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="The Configuration File" href="documentation_configuration_file.html" />
-    <link rel="prev" title="Example monitor.toml for Pilatus files from the filesystem" href="example_files_monitor_toml.html" />
+    <link rel="prev" title="Example monitor.toml for Pilatus Files from the Filesystem" href="example_files_monitor_toml.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -43,7 +43,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>2019.9.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2019.09.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -51,7 +51,7 @@
             
                 <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
                 <li><a href="documentation_running_onda.html">Running OnDA</a></li>
-                <li><a href="documentation_advanced_topics.html">Advanced Topics</a></li>
+                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
                 <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
             
             
@@ -87,33 +87,33 @@
   <div class="section" id="the-source-string">
 <h1>The Source String<a class="headerlink" href="#the-source-string" title="Permalink to this headline">¶</a></h1>
 <p>Information about the source of data events is provided to OnDA at start-up, in the
-form of a command line argument to the ‘onda_monitor.py’ script.</p>
+form of the <em>Source String</em>, a command line argument to the <em>onda_monitor.py</em> script:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>onda_monitor.py SOURCE_STRING
 </pre></div>
 </div>
-<p>It usually consists of a string, the ‘Source String’, which encodes the information in
-a way that depends on the specific Data Retrieval Layer implementation used by the
-monitor. This information is usually provided by the developer that configured the
-Data Retrieval Layer, and is often specific to the facility where the experiment is
-taking place. The following is a list of the facilities currently officially supported
-by OnDA, with a description of the typical format of the source string at each of
-them.</p>
+<p>The exact format of the string depends on the Data Retrieval Layer implementation used
+by the monitor, and is usually part of the information provided to the user by the
+developer that configured the OnDA monitor. The format is often tied to the facility
+where the experiment is taking place: the following is a list of facilities that are
+currently officially supported by OnDA, with a description of the typical format of the
+source string at each of them.</p>
 <div class="section" id="filesystem">
 <h2>Filesystem<a class="headerlink" href="#filesystem" title="Permalink to this headline">¶</a></h2>
 <p>When the source of data for the monitor is the filesystem, the source string is the
 relative or absolute path to a file containing a list of files that the monitor must
-process. The files that must be process must be listed one per line, each with their
-full relative or absolute path. Example: files.lst</p>
+process. The files should be listed one per line, each with their
+full relative or absolute path. Example source string: files.lst</p>
 </div>
 <div class="section" id="lcls">
 <h2>LCLS<a class="headerlink" href="#lcls" title="Permalink to this headline">¶</a></h2>
-<p>When OnDA runs at the LCLS facility, the source string is a psana-style DataSource
-string. Example: shmem=psana.0:stop=no</p>
+<p>When OnDA is run at the LCLS facility, the source string is a psana-style DataSource
+string. Example source string: shmem=psana.0:stop=no</p>
 </div>
 <div class="section" id="petra-iii">
 <h2>Petra III<a class="headerlink" href="#petra-iii" title="Permalink to this headline">¶</a></h2>
-<p>When the monitor runs at the Petra III facility, the source string is the ip or
-the hostname of the machine where HiDRA is running. Example: eval01.desy.de</p>
+<p>When a monitor is used at the Petra III facility, the source string is the ip or the
+hostname of the machine where HiDRA is running. Example source
+string: haspp11eval01.desy.de</p>
 </div>
 </div>
 

@@ -2,10 +2,6 @@ What Is An OnDA Monitor?
 ========================
 
 
-.. contents::
-   :local:
-   
-
 Real-time Monitoring
 --------------------
 
@@ -59,8 +55,8 @@ The first two layers are usually different for each facility or beamline. The la
 layer, however, encodes the logic of the scientific processing of the data. When the
 same type of monitor is run at different facilities, the same Processing Layer code is
 run. The interface between the Processing Layer and the other layers is very clearly
-defined, and those layers can swapped for different implementations without affecting
-the Processing Layer.
+defined, and the latter can be swapped for different implementations without affecting
+the former.
 
 This clean separation is the reason why a developer who wants to write an OnDA
 monitoring program for a supported facility does not need to worry how data is

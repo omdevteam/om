@@ -1,4 +1,4 @@
-Example *monitor.toml* for Pilatus files from the filesystem
+Example *monitor.toml* for Pilatus Files from the Filesystem
 ------------------------------------------------------------
 
 .. code-block:: ini
