@@ -6,9 +6,9 @@ Real-time monitoring of x-ray imaging experiments
 Copyright 2018 Deutsches Elektronen-Synchrotron DESY,
                a research centre of the Helmholtz Association.
 
-<http://www.cfel.de>
+<https://www.ondamonitor.com>
 
-**OnDA** (**On**line **D**ata **A**nalysis) is a software framework for the
+**OnDA** (**On**line **D**ata **A**nalysis) is a software tool for the
 development of programs that can monitor of X-ray imaging experiments in real-time.
 
 OnDA provides users with a set of stable and efficient real-time monitors for the most
@@ -40,14 +40,22 @@ algorithms.
 Requirements
 ------------
 
+  * Python: 2.7, 3.5, 3.6 or 3.7
+
   **Python Modules: Backend**
 
   * CfelPyUtils
-  * h5py
-  * NumPy
-  * SciPy
-  * mpi4py
   * click
+  * future
+  * h5py
+  * mpi4py
+  * msgpack-numpy
+  * msgpack-python
+  * NumPy
+  * PyZMQ
+  * SciPy
+  * toml
+  * typing
   * FabIO (optional, depending on the facility where OnDA is running)
   * psana (optional, depending on the facility where OnDA is running)
 

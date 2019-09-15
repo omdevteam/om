@@ -57,7 +57,7 @@ version_fh.close()
 setup(
     name="onda",
     version=version,
-    url="https://github.com/ondateam/cfelpyutils",
+    url="https://www.ondamonitor.com",
     license="GNU General Public License v3.0",
     author="OnDA Team",
     author_email="valerio.mariani@desy.de",
@@ -140,7 +140,6 @@ setup(
     platforms="any",
     classifiers=[
         "Programming Language :: Python",
-        "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 2",
         "Operating System :: OS Independent",
