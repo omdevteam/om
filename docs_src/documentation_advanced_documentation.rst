@@ -26,7 +26,7 @@ OnDA uses the branching strategy proposed by Vincent Driessen and commonly known
 `Gitflow <https://nvie.com/posts/a-successful-git-branching-model>`_.
 
 OnDA follows the `CalVer <http://www.calver.org>`_ versioning system. Specifically, it
-follows the scheme: *YYYY.MM.MINOR.[MICRO]*
+follows the scheme: *YY.MM.MINOR.[MICRO]*
 
 Python
 ^^^^^^
