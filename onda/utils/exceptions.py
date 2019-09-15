@@ -136,9 +136,7 @@ def onda_exception_handler(type_, value, traceback_):
     """
     # TODO: Fix types.
     if issubclass(type_, OndaException):
-        print("")
         print("OnDA ERROR: {0}".format(value))
-        print("")
         sys.stdout.flush()
         sys.stderr.flush()
         sys.exit(0)
