@@ -24,8 +24,6 @@ from __future__ import absolute_import, division, print_function
 import sys
 import traceback  # pylint: disable=unused-import
 
-from mpi4py import MPI
-
 
 class OndaException(Exception):
     """
@@ -143,11 +141,9 @@ def onda_exception_handler(type_, value, traceback_):
         print("")
         sys.stdout.flush()
         sys.stderr.flush()
-        MPI.COMM_WORLD.Abort(0)
-        exit(0)
+        sys.exit(0)
     else:
         traceback.print_exception(type_, value, traceback_)
         sys.stdout.flush()
         sys.stderr.flush()
-        MPI.COMM_WORLD.Abort(0)
-        exit(0)
+        sys.exit(0)
