@@ -16,4 +16,4 @@
 """
 The main OnDA package, which contains the whole framework.
 """
-__version__ = "19.09.0"
+__version__ = "19.09.0.1"
