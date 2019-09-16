@@ -108,7 +108,7 @@ setup(
         "pyzmq>=18.0.2",
         "scipy>=1.2.2",
         "toml>=0.10.0",
-        "typing>=3.7.4",
+        "typing>=3.6.4",
     ],
     extras_require={"monitor": [], "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"]},
     entry_points={
