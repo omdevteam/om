@@ -157,9 +157,26 @@ installed.</p>
 <div class="section" id="installation-in-anaconda">
 <h3>Installation in Anaconda<a class="headerlink" href="#installation-in-anaconda" title="Permalink to this headline">¶</a></h3>
 <p><strong>Python 3:</strong></p>
-<p>Packages for OnDA and its dependencies are available from the <em>ondateam</em> channel of
-<a class="reference external" href="https://anaconda.org">https://anaconda.org</a>. It is recommended to install OnDA in a clean Anaconda Python
-environment, which can be created using the following command:</p>
+<p>Packages for OnDA and its dependencies are available in the <em>ondateam</em> channel of
+<a class="reference external" href="https://anaconda.org/ondateam">Anaconda Cloud</a>.</p>
+<p>Some of OnDA’s dependencies are only available in the <a class="reference external" href="https://conda-forge.org">conda-forge</a> community repository. The repository needs to be activated
+on the system before OnDA is installed. This can be achieved in two ways. The first is
+to add the repository using the <em>conda config</em> command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --append channels conda-forge
+</pre></div>
+</div>
+<p>Alternatively, one can directly add the repository to the <em>condarc</em> file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span>
+<span class="nt">channels</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">defaults</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">conda-forge</span>
+<span class="nn">...</span>
+</pre></div>
+</div>
+<p>After the activation of the <em>conda-forge</em> repository, it is possible to proceed with
+the installation of OnDA.</p>
+<p>It is recommended to install OnDA in a clean Anaconda Python environment, which can be
+created using the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n onda_env <span class="nv">python</span><span class="o">=</span><span class="m">3</span>
 </pre></div>
 </div>

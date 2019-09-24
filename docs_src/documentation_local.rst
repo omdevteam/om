@@ -76,7 +76,6 @@ libraries and headers to be installed on the machine.
 For Python 2, the process, is very similar, except that the `virtualenv
 <https://virtualenv.pypa.io/en/stable/>`_ tool must be used to create the environment:
 
-
 .. code-block:: bash
 
     python2 -m virtualenv onda_env
@@ -112,9 +111,33 @@ Installation in Anaconda
 
 **Python 3:**
 
-Packages for OnDA and its dependencies are available from the *ondateam* channel of
-https://anaconda.org. It is recommended to install OnDA in a clean Anaconda Python
-environment, which can be created using the following command:
+Packages for OnDA and its dependencies are available in the *ondateam* channel of
+`Anaconda Cloud <https://anaconda.org/ondateam>`_. 
+
+Some of OnDA's dependencies are only available in the `conda-forge
+<https://conda-forge.org>`_ community repository. The repository needs to be activated
+on the system before OnDA is installed. This can be achieved in two ways. The first is
+to add the repository using the *conda config* command:
+
+.. code-block:: bash
+
+    conda config --append channels conda-forge 
+
+Alternatively, one can directly add the repository to the *condarc* file:
+
+.. code-block:: yaml
+
+    ...
+    channels:
+        - defaults
+        - conda-forge
+    ...
+
+After the activation of the *conda-forge* repository, it is possible to proceed with
+the installation of OnDA.
+
+It is recommended to install OnDA in a clean Anaconda Python environment, which can be
+created using the following command:
 
 .. code-block:: bash
 
