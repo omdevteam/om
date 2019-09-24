@@ -106,11 +106,15 @@ setup(
         "msgpack-numpy>=0.4.4.3",
         "numpy>=1.16.4",
         "pyzmq>=18.0.2",
-        "scipy>=1.2.2",
+        "scipy>=1.2.1",
         "toml>=0.10.0",
         "typing>=3.6.4",
     ],
-    extras_require={"monitor": [], "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"]},
+    extras_require={
+        "monitor": [],
+        ":python_version < '3.4'": ["pathlib>=1.0.1"],
+        "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"],
+    },
     entry_points={
         "console_scripts": ["onda_monitor.py=onda.monitor:main"],
         "gui_scripts": [
