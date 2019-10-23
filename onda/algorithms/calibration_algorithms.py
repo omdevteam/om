@@ -31,13 +31,17 @@ class Agipd1MCalibration(object):
     See documentation of the '__init__' function.
     """
 
-    def __init__(self, calibration_filename):
-        # type: (str) -> None
+    def __init__(self, calibration_filename, cellid_list):
+        # type: (str, List[int]) -> None
         """
         Calibration of the AGIPD 1M detector.
 
         This algorithm stores the calibration parameters for an AGIPD 1M detector and
-        applies the calibration to a detector data frame upon request.
+        applies the calibration to a detector data frame upon request. Since the the
+        full set of correction parameters for the AGIPD 1M detector takes up a lot of
+        memory, only the parameters needed to correct frames originating from a subset
+        of cells care loaded. This algorithm will be able to correct only frames that
+        originate from the cells specified in the cellid_list parameter.
 
         Arguments:
 
@@ -50,16 +54,64 @@ class Agipd1MCalibration(object):
                 * /RelativeGain
 
                 TODO: describe file structure.
+
+            cellid_list (Tuple[int]): list of cells for which the correction parameters
+                should be loaded.
         """
-        self._offset = hdf5.load_hdf5_data(
-            hdf5_filename=calibration_filename, hdf5_path="/AnalogOffset"
+        self._offset = numpy.ndarray(
+            (3, len(cellid_list), 8192, 128), dtype=numpy.int16
         )
-        self._digital_gain = hdf5.load_hdf5_data(
-            hdf5_filename=calibration_filename, hdf5_path="/DigitalGainLevel"
+        self._digital_gain = numpy.ndarray(
+            (3, len(cellid_list), 8192, 128), dtype=numpy.int16
         )
-        self._relative_gain = hdf5.load_hdf5_data(
-            hdf5_filename=calibration_filename, hdf5_path="/RelativeGain"
+        self._relative_gain = numpy.ndarray(
+            (3, len(cellid_list), 8192, 128), dtype=numpy.float32
         )
+
+        for index, cell in enumerate(cellid_list):
+            self._offset[:, index, ...] = numpy.squeeze(
+                hdf5.load_hdf5_data(
+                    hdf5_filename=calibration_filename,
+                    hdf5_path="/AnalogOffset",
+                    selection=(
+                        slice(0, 3),
+                        slice(cell, cell + 1),
+                        slice(0, 16),
+                        slice(0, 512),
+                        slice(0, 128),
+                    ),
+                )
+            ).reshape(3, 8192, 128)
+            self._digital_gain[:, index, ...] = numpy.squeeze(
+                hdf5.load_hdf5_data(
+                    hdf5_filename=calibration_filename,
+                    hdf5_path="/DigitalGainLevel",
+                    selection=(
+                        slice(0, 3),
+                        slice(cell, cell + 1),
+                        slice(0, 16),
+                        slice(0, 512),
+                        slice(0, 128),
+                    ),
+                )
+            ).reshape(3, 8192, 128)
+            self._relative_gain[:, index, ...] = numpy.squeeze(
+                hdf5.load_hdf5_data(
+                    hdf5_filename=calibration_filename,
+                    hdf5_path="/RelativeGain",
+                    selection=(
+                        slice(0, 3),
+                        slice(cell, cell + 1),
+                        slice(0, 16),
+                        slice(0, 512),
+                        slice(0, 128),
+                    ),
+                )
+            ).reshape(3, 8192, 128)
+            self._detector_mask = hdf5.load_hdf5_data(
+                hdf5_filename=calibration_filename, hdf5_path="/DetectorMask"
+            ).reshape(16, 512, 128)
+        self._cellid_list = cellid_list
 
     def apply_calibration(self, data_and_calib_info):
         # type: (named_tuples.DataAndCalibrationInfo) -> numpy.ndarray
@@ -85,8 +137,8 @@ class Agipd1MCalibration(object):
                     contain the information needed to determine the gain stage of the
                     corresponding pixel in the data frame.
 
-                  - A key  called 'num_frame', whose value is the index, within an
-                    event, of the detector frame to calibrate.
+                  - A key  called 'cell', whose value is the cell, within an event,
+                    from which the frame to calibrate originates.
 
         Returns:
 
@@ -94,7 +146,15 @@ class Agipd1MCalibration(object):
         """
         gain_state = numpy.zeros_like(data_and_calib_info.data, dtype=int)
         gain = data_and_calib_info.info["gain"]
-        num_frame = data_and_calib_info.info["num_frame"]
+        try:
+            num_frame = self._cellid_list.index(data_and_calib_info.info["cell"])
+        except ValueError:
+            raise exceptions.OndaDetectorCalibrationError(
+                "Cannot find calibration parameters for cell {0}".format(
+                    data_and_calib_info.info["cell"]
+                )
+            )
+
         gain_state[
             numpy.where(gain > numpy.squeeze(self._digital_gain[1, num_frame, ...]))
         ] = 1
@@ -102,21 +162,38 @@ class Agipd1MCalibration(object):
             numpy.where(gain > numpy.squeeze(self._digital_gain[2, num_frame, ...]))
         ] = 2
 
-        return (
-            data_and_calib_info.data
-            - numpy.choose(
+        _value, _count = numpy.unique(gain_state, return_counts=True)
+        print("number of pixels in gain 1/0 is {}/{}...".format(_count[1], _count[0]))
+
+        gain_states, gain_pixel_counts = numpy.unique(gain_state)
+
+        gain_offset_correction = (
+            (
+                data_and_calib_info.data
+                - numpy.choose(
+                    gain_state,
+                    (
+                        numpy.squeeze(self._offset[0, num_frame, ...]),
+                        numpy.squeeze(self._offset[1, num_frame, ...]),
+                        numpy.squeeze(self._offset[2, num_frame, ...]),
+                    ),
+                )
+            )
+            * numpy.choose(
                 gain_state,
                 (
-                    numpy.squeeze(self._offset[0, num_frame, ...]),
-                    numpy.squeeze(self._offset[1, num_frame, ...]),
-                    numpy.squeeze(self._offset[2, num_frame, ...]),
+                    numpy.squeeze(self._relative_gain[0, num_frame, ...]),
+                    numpy.squeeze(self._relative_gain[1, num_frame, ...]),
+                    numpy.squeeze(self._relative_gain[2, num_frame, ...]),
                 ),
             )
-        ) * numpy.choose(
-            gain_state,
-            (
-                numpy.squeeze(self._relative_gain[0, num_frame, ...]),
-                numpy.squeeze(self._relative_gain[1, num_frame, ...]),
-                numpy.squeeze(self._relative_gain[2, num_frame, ...]),
+        ).reshape(16, 512, 128)
+
+        masked_image = gain_offset_correction * self._detector_mask
+        median_mask = numpy.median(masked_image, axis=(1, 2))
+        return (
+            (gain_offset_correction[:, :, :] - median_mask[:, None, None]).reshape(
+                8192, 128
             ),
+            (gain_states, gain_pixel_counts),
         )

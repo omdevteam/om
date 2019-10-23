@@ -30,13 +30,14 @@ from future.utils import raise_from
 from onda.utils import exceptions
 
 
-def load_hdf5_data(hdf5_filename, hdf5_path):
-    # type: (str, str) -> Any
+def load_hdf5_data(hdf5_filename, hdf5_path, selection = None):
+    # type: (str, str, Opional[Tuple[slice]]) -> Any
     """
     Loads a data block from an HDF5 file.
 
-    This function loads into memory the whole content of a data block located in an
-    HDF5 file.
+    This function loads into memory the content of a data block located in an HDF5
+    file. If the selection argument is provided, it defines the portion of the data
+    block that will be read from the file, otherwise the whole block will be read.
 
     Arguments:
 
@@ -44,6 +45,11 @@ def load_hdf5_data(hdf5_filename, hdf5_path):
             the data to load.
 
         hdf5_path (str): the internal HDF5 path to the data block to load.
+
+        selection (Tuple[slice]): the portion of content of the data block to load,
+            expressed as a list of slices along the axes of the block. If this
+            argument is None, the whole content of the data block will be loaded.
+            Defaults to None.
 
     Returns:
 
@@ -56,7 +62,11 @@ def load_hdf5_data(hdf5_filename, hdf5_path):
     """
     try:
         with h5py.File(name=hdf5_filename, mode="r") as fhandle:
-            data = fhandle[hdf5_path][:]
+            if selection is None:
+                data = fhandle[hdf5_path][:]
+            else:
+                # TODO: Add boundary checks.
+                data = fhandle[hdf5_path][selection]
             return data
     except (IOError, OSError, KeyError) as exc:
         exc_type, exc_value = sys.exc_info()[:2]
