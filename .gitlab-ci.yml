@@ -1,0 +1,23 @@
+# Defines stages which are to be executed
+image: quay.io/pypa/manylinux2010_x86_64
+
+stages:  
+  - build_wheel
+  - audit_wheel
+
+build_wheel:  
+  stage: build_wheel
+  script:
+    - mkdir /output
+    - /opt/python/cp37-37mu/pip wheel .[GUI] -w /output
+
+audit_wheel:
+  stage: audit_wheel
+  script:
+    - auditwheel repair /output/onda*whl -w /output/audited
+
+  # The files which are to be made available in GitLab
+  artifacts:
+    paths:
+      - /output/audited/*
+
