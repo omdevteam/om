@@ -9,7 +9,7 @@ build_wheel:
   stage: build_wheel
   script:
     - mkdir /output
-    - /opt/python/cp37-37mu/pip wheel .[GUI] -w /output
+    - /opt/python/cp37-cp37m/bin/pip wheel .[GUI] -w /output
 
 audit_wheel:
   stage: audit_wheel
