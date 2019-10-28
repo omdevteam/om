@@ -8,7 +8,7 @@ stages:
 build_wheel:  
   stage: build_wheel
   script:
-    - /opt/python/cp37-cp37m/bin/pip wheel .[GUI] -w output/onda*whl
+    - /opt/python/cp37-cp37m/bin/pip wheel .[GUI] -w output
   artifacts:
     paths:
       - output/onda*whl
