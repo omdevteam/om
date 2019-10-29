@@ -3,26 +3,54 @@ image: quay.io/pypa/manylinux2010_x86_64
 
 stages:  
   - build_wheel
-  - audit_wheel
 
-build_wheel:  
+build_wheel_27m:  
   stage: build_wheel
   script:
-    - /opt/python/cp37-cp37m/bin/pip wheel .[GUI] -w output
+    - /opt/python/cp27-cp27m/bin/pip wheel .[GUI] -w output
+    - auditwheel repair output/onda*whl -w output/repaired
   artifacts:
     paths:
-      - output/onda*whl
+      - output/repaired/onda*whl
+  only:
+    - tags      
 
-audit_wheel:
-  stage: audit_wheel
+build_wheel_27mu:  
+  stage: build_wheel
   script:
+    - /opt/python/cp27-cp27mu/bin/pip wheel .[GUI] -w output
     - auditwheel repair output/onda*whl -w output/repaired
   artifacts:
     paths:
       - output/repaired/onda*whl
 
-  # The files which are to be made available in GitLab
+build_wheel_35m:  
+  stage: build_wheel
+  script:
+    - /opt/python/cp35-cp35m/bin/pip wheel .[GUI] -w output
+    - auditwheel repair output/onda*whl -w output/repaired
   artifacts:
     paths:
       - output/repaired/onda*whl
+  only:
+    - tags      
 
+build_wheel_36m:  
+  stage: build_wheel
+  script:
+    - /opt/python/cp36-cp36m/bin/pip wheel .[GUI] -w output
+    - auditwheel repair output/onda*whl -w output/repaired
+  artifacts:
+    paths:
+      - output/repaired/onda*whl
+  only:
+    - tags      
+
+build_wheel_37m:  
+  stage: build_wheel
+  script:
+    - /opt/python/cp37-cp37m/bin/pip wheel .[GUI] -w output
+    - auditwheel repair output/onda*whl -w output/repaired
+  artifacts:
+    paths:
+      - output/repaired/onda*whl
