@@ -7,7 +7,7 @@ stages:
 build_wheel_27m:  
   stage: build_wheel
   script:
-    - /opt/python/cp27-cp27m/bin/pip wheel .[GUI] -w output
+    - /opt/python/cp27-cp27m/bin/pip wheel . -w output
     - auditwheel repair output/onda*whl -w output/repaired
   artifacts:
     paths:
@@ -18,7 +18,7 @@ build_wheel_27m:
 build_wheel_27mu:  
   stage: build_wheel
   script:
-    - /opt/python/cp27-cp27mu/bin/pip wheel .[GUI] -w output
+    - /opt/python/cp27-cp27mu/bin/pip wheel . -w output
     - auditwheel repair output/onda*whl -w output/repaired
   artifacts:
     paths:
