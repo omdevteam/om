@@ -28,6 +28,7 @@ import fabio
 from .pilatus_files import (  # pylint: disable=unused-import
     # Utility functions.
     get_file_extensions,
+    get_hidra_transport_type,
     get_peakfinder8_info,
     # Event_handing_functions.
     get_num_frames_in_event,

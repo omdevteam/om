@@ -61,6 +61,18 @@ def get_peakfinder8_info():
         asic_nx=2463, asic_ny=2527, nasics_x=1, nasics_y=1
     )
 
+def get_hidra_transport_type():
+    # type () -> named_tuples.Peakfinder8Info
+    """
+    Retrieves the HiDRA transport type information for the Pilatus detector.
+
+    Returns:
+
+        str: a string with the data transpor type
+    """
+    return "data"
+
+
 
 ############################
 #                          #

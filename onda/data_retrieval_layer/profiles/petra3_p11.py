@@ -21,6 +21,7 @@ from __future__ import absolute_import, division, print_function
 from ..data_sources.pilatus_hidra import (  # pylint: disable=unused-import
     # Utility functions.
     get_file_extensions,
+    get_hidra_transport_type,
     get_peakfinder8_info,
     # Event handling functions.
     close_event,
