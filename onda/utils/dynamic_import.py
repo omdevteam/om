@@ -324,7 +324,10 @@ def get_hidra_transfer_type(monitor_params):
 
         str: the HiDRA trasport type for the x-ray detector ('data' or 'metadata').
     """
-    data_retrieval_layer = import_data_retrieval_layer(monitor_params)
+    data_retrieval_layer_filename = monitor_params.get_param(
+        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+    )
+    data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
     hidra_transport_type_func = getattr(
         data_retrieval_layer, "get_hidra_transport_type"
     )
