@@ -133,6 +133,7 @@ setup(
         "onda.data_retrieval_layer.data_sources",
         "onda.data_retrieval_layer.frameworks",
         "onda.data_retrieval_layer.frameworks.hidra_api",
+        "onda.data_retrieval_layer.frameworks.hidra_api.utils",
         "onda.data_retrieval_layer.frameworks.karabo_api",
         "onda.data_retrieval_layer.profiles",
         "onda.graphical_interfaces",
