@@ -133,7 +133,7 @@ def event_generator(
     psana_calib_dir = monitor_params.get_param(
         group="DataRetrievalLayer", parameter="psana_calibration_directory", type_=str
     )
-    if psana_calib_dir is None:
+    if psana_calib_dir is not None:
         psana.setOption(
             "psana.calib-dir".encode("ascii"), psana_calib_dir.encode("ascii")
         )
