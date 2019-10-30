@@ -44,7 +44,7 @@ def get_file_extensions():
 
         Tuple[str, ...]: the list of file extensions.
     """
-    return (".cbf",)
+    return ("*.cbf",)
 
 
 def get_peakfinder8_info():
