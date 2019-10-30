@@ -105,7 +105,7 @@ setup(
         "msgpack>=0.6.1",
         "msgpack-numpy>=0.4.4.3",
         "numpy>=1.16.4",
-        "pyyaml>=5.1.2"
+        "pyyaml>=5.1.2",
         "pyzmq>=18.0.2",
         "scipy>=1.2.1",
         "toml>=0.10.0",
