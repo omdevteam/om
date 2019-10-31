@@ -88,7 +88,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
     hidra_selection_string = monitor_params.get_param(
         group="DataRetrievalLayer", parameter="hidra_selection_string", type_=str
     )
-    if hidra_selection_string is None:  
+    if hidra_selection_string is None:
         hidra_selection_string = dynamic_import.get_file_extensions(monitor_params)
 
     # Add an empty target at the beginning to cover the master node. In this way, the

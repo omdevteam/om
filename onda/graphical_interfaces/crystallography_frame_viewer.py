@@ -113,10 +113,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
             "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
         )
         self._citation_label.setSizePolicy(
-            QtGui.QSizePolicy(
-                QtGui.QSizePolicy.Expanding,
-                QtGui.QSizePolicy.Fixed,
-            )
+            QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         )
 
         self._horizontal_layout = QtGui.QHBoxLayout()

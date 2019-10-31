@@ -30,7 +30,7 @@ from future.utils import raise_from
 from onda.utils import exceptions
 
 
-def load_hdf5_data(hdf5_filename, hdf5_path, selection = None):
+def load_hdf5_data(hdf5_filename, hdf5_path, selection=None):
     # type: (str, str, Opional[Tuple[slice]]) -> Any
     """
     Loads a data block from an HDF5 file.

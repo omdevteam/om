@@ -28,11 +28,7 @@ from typing import Generator  # pylint: disable=unused-import
 import numpy
 from future.utils import raise_from
 
-from onda.utils import (
-    data_event,
-    dynamic_import,
-    exceptions,
-)
+from onda.utils import data_event, dynamic_import, exceptions
 from .karabo_api import client
 
 
