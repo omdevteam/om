@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>The hdf5 Module &#8212; OnDA 19.09.0.2 documentation</title>
+    <title>The hdf5 Module &#8212; OnDA 19.09.0.3 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -43,7 +43,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>19.09.0.2</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>19.09.0.3</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -92,10 +92,11 @@
 partial data blocks, write to normal or VDS files, etc.).</p>
 <dl class="function">
 <dt id="onda.utils.hdf5.load_hdf5_data">
-<code class="descname">load_hdf5_data</code><span class="sig-paren">(</span><em>hdf5_filename</em>, <em>hdf5_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/utils/hdf5.html#load_hdf5_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.utils.hdf5.load_hdf5_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load_hdf5_data</code><span class="sig-paren">(</span><em>hdf5_filename</em>, <em>hdf5_path</em>, <em>selection=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/utils/hdf5.html#load_hdf5_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.utils.hdf5.load_hdf5_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads a data block from an HDF5 file.</p>
-<p>This function loads into memory the whole content of a data block located in an
-HDF5 file.</p>
+<p>This function loads into memory the content of a data block located in an HDF5
+file. If the selection argument is provided, it defines the portion of the data
+block that will be read from the file, otherwise the whole block will be read.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -104,6 +105,10 @@ HDF5 file.</p>
 <li><strong>hdf_filename</strong> (<em>str</em>) – the relative or absolute path to an HDF5 file containing
 the data to load.</li>
 <li><strong>hdf5_path</strong> (<em>str</em>) – the internal HDF5 path to the data block to load.</li>
+<li><strong>selection</strong> (<em>Tuple</em><em>[</em><em>slice</em><em>]</em>) – the portion of content of the data block to load,
+expressed as a list of slices along the axes of the block. If this
+argument is None, the whole content of the data block will be loaded.
+Defaults to None.</li>
 </ul>
 </td>
 </tr>

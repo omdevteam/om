@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>The calibration_algorithms Module &#8212; OnDA 19.09.0.2 documentation</title>
+    <title>The calibration_algorithms Module &#8212; OnDA 19.09.0.3 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -43,7 +43,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>19.09.0.2</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>19.09.0.3</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -92,24 +92,33 @@
 design or operation (i.e., not sample- or experiment-related).</p>
 <dl class="class">
 <dt id="onda.algorithms.calibration_algorithms.Agipd1MCalibration">
-<em class="property">class </em><code class="descname">Agipd1MCalibration</code><span class="sig-paren">(</span><em>calibration_filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/algorithms/calibration_algorithms.html#Agipd1MCalibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.algorithms.calibration_algorithms.Agipd1MCalibration" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descname">Agipd1MCalibration</code><span class="sig-paren">(</span><em>calibration_filename</em>, <em>cellid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/onda/algorithms/calibration_algorithms.html#Agipd1MCalibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#onda.algorithms.calibration_algorithms.Agipd1MCalibration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Calibration of the AGIPD 1M detector.</p>
 <p>This algorithm stores the calibration parameters for an AGIPD 1M detector and
-applies the calibration to a detector data frame upon request.</p>
+applies the calibration to a detector data frame upon request. Since the the
+full set of correction parameters for the AGIPD 1M detector takes up a lot of
+memory, only the parameters needed to correct frames originating from a subset
+of cells care loaded. This algorithm will be able to correct only frames that
+originate from the cells specified in the cellid_list parameter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>calibration_filename</strong> (<em>str</em>) – <p>the absolute or relative path to an HDF5 file
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>calibration_filename</strong> (<em>str</em>) – <p>the absolute or relative path to an HDF5 file
 with the calibration parameters. The HDF5 file must have the
 following internal structure:</p>
-<ul class="simple">
+<ul>
 <li>/AnalogOffset</li>
 <li>/DigitalGainLevel</li>
 <li>/RelativeGain</li>
 </ul>
 <p>TODO: describe file structure.</p>
+</li>
+<li><strong>cellid_list</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>) – list of cells for which the correction parameters
+should be loaded.</li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -135,8 +144,8 @@ frame to calibrate.</li>
 as the data frame to calibrate. Each pixel in this array must
 contain the information needed to determine the gain stage of the
 corresponding pixel in the data frame.</li>
-<li>A key  called ‘num_frame’, whose value is the index, within an
-event, of the detector frame to calibrate.</li>
+<li>A key  called ‘cell’, whose value is the cell, within an event,
+from which the frame to calibrate originates.</li>
 </ul>
 </li>
 </ul>

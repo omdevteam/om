@@ -32,7 +32,7 @@ feature of the monitor). For example:
 
 .. code-block:: ini
 
-    [General]
+    [Crystallography]
     broadcast_ip = '127.0.0.1'
     broadcast_port = 12321
     speed_report_interval = 1000
