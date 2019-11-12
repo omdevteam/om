@@ -14,7 +14,7 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Data retrieval at the SPB beamline of the European XFEL.
+Data retrieval at the MID beamline of the European XFEL.
 """
 from __future__ import absolute_import, division, print_function
 

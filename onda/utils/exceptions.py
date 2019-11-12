@@ -117,6 +117,12 @@ class OndaMissingHdf5PathError(OndaException):
     """
 
 
+class OndaDetectorCalibrationError(OndaException):
+    """
+    Raised if an error occurs while calling a calibration algorithm.
+    """
+
+
 def onda_exception_handler(type_, value, traceback_):
     """
     Custom OnDA exception handler.

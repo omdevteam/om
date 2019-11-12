@@ -34,7 +34,6 @@ from onda.utils import (  # pylint: disable=unused-import
     parameters,
 )
 
-
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _NOMORE = 998
 _DIETAG = 999

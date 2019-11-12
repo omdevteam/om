@@ -566,6 +566,7 @@ def start_socket(name,
 
         elif sock_con == "bind":
             if random_port is None or random_port is False:
+                print("ENDPOINT:", endpoint)
                 socket.bind(endpoint)
             else:
                 log.debug("Enabling random port usage for %s", name)

@@ -52,6 +52,7 @@ class Agipd1MCalibration(object):
                 * /AnalogOffset
                 * /DigitalGainLevel
                 * /RelativeGain
+                * /DetectorMask
 
                 TODO: describe file structure.
 
@@ -165,8 +166,6 @@ class Agipd1MCalibration(object):
         _value, _count = numpy.unique(gain_state, return_counts=True)
         print("number of pixels in gain 1/0 is {}/{}...".format(_count[1], _count[0]))
 
-        gain_states, gain_pixel_counts = numpy.unique(gain_state)
-
         gain_offset_correction = (
             (
                 data_and_calib_info.data
@@ -195,5 +194,4 @@ class Agipd1MCalibration(object):
             (gain_offset_correction[:, :, :] - median_mask[:, None, None]).reshape(
                 8192, 128
             ),
-            (gain_states, gain_pixel_counts),
         )

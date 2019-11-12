@@ -83,11 +83,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 self._calibration = calibration_alg(
                     calibration_file=monitor_parameters.get_param(
                         group="DetectorCalibration",
-                        parameter="calibration_file",
+                        parameter="calibration_filename",
                         type_=str,
+                        required=True,
+                    ),
+                    cellid_list=monitor_parameters.get_param(
+                        group="Crystallography",
+                        parameter="agipd_cellids_for_which_to_load_calibration_"
+                                  "parameters",
+                        type_=list,
                         required=True,
                     )
                 )
+
             else:
                 # If no calibration is required, stores None in the 'calibration_alg'
                 # attribute.
@@ -335,8 +343,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
         """
         processed_data = {}
         if self._calibration is not None:
-            calibrated_detector_data = self._calibration.apply_calibration(
-                calibration_file_name=data["detector_data"]
+            calibrated_detector_data = (
+                self._calibration.apply_calibration(
+                    named_tuples.DataAndCalibrationInfo(
+                        data=data["detector_data"],
+                        info={"gain": data["detector_gain"], "cell": int(data["frame_id"])},
+                    )
+                )
             )
         else:
             calibrated_detector_data = data["detector_data"]

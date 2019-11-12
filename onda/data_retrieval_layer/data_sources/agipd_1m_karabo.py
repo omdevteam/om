@@ -75,13 +75,7 @@ def get_num_frames_in_event(event):
 
         int: the number of frames in the event.
     """
-    # return (
-    #    event.data[event.framework_info["detector_label"]]["image.data"]
-    #    .transpose(3, 0, 2, 1)
-    #    .shape[0]
-    # )
-
-    return event.data[event.framework_info["detector_label"]]["image.data"].shape[0]
+    return event.data[event.framework_info["detector_label"]]["image.data"].shape[3]
 
 
 #############################
@@ -109,16 +103,35 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    # Rearranges the data into 'slab' format.
-    # return (
-    #    event.data[event.framework_info["detector_label"]]["image.data"]
-    #    .transpose(3, 0, 2, 1)[
-    #        event.current_frame,
-    #        ...,
-    #    ]
-    #    .reshape(16 * 512, 128)
-    # )
+    return (
+        event.data[event.framework_info["detector_label"]]["image.data"]
+        .transpose(3, 0, 2, 1)[event.current_frame, ...]
+        .reshape(16 * 512, 128)
+    )
 
-    return event.data[event.framework_info["detector_label"]]["image.data"][
-        event.current_frame, ...
-    ].reshape(16 * 512, 128)
+
+def detector_gain(event):
+    # type: (data_event.DataEvent) -> numpy.ndarray
+    """
+    Retrieves from Karabo gain status data for one frame of AGIPD 1M.
+
+    This function retrieves the gain status information for a data frame from the
+    detector identified by the 'karabo_detector_label' entry in the 'DataRetrievalLayer'
+    configuration parameter group.
+
+    Arguments:
+
+        event (:class:`~onda.utils.data_event.DataEvent`): an object storing
+            the event data.
+
+    Returns:
+
+        numpy.ndarray: one frame of detector data.
+    """
+    return (
+        event.data["{0}_GAIN".format(event.framework_info["detector_label"])][
+            "image.gain"
+        ]
+        .transpose(3, 0, 2, 1)[event.current_frame, ...]
+        .reshape(16 * 512, 128)
+    )

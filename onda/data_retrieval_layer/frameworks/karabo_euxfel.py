@@ -130,6 +130,20 @@ def event_generator(
         type_=str,
         required=True,
     )
+    if "detector2_label" in data_extraction_functions:
+        event.framework_info["detector2_label"] = monitor_params.get_param(
+            group="DataRetrievalLayer",
+            parameter="karabo_detector2_label",
+            type_=str,
+            required=True,
+        )
+    if "detector3_label" in data_extraction_functions:
+        event.framework_info["detector3_label"] = monitor_params.get_param(
+            group="DataRetrievalLayer",
+            parameter="karabo_detector3_label",
+            type_=str,
+            required=True,
+        )
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
             group="DataRetrievalLayer",
@@ -347,7 +361,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    return str(event.data[event.framework_info["data_label"]]["timestamp.trainId"])
+    return str(event.metadata[event.framework_info["detector_label"]]["timestamp.tid"])
 
 
 def frame_id(event):
@@ -356,8 +370,8 @@ def frame_id(event):
     Gets a unique identifier for a data frame retrieved from Karabo at XFEL.
 
     Returns a label that unambiguosly identifies, within an event, the frame currently
-    being processed. At the European XFEL facility, the index of the frame within its
-    train is used as identifier.
+    being processed. At the European XFEL facility, the cellId property of the frame
+    within its train is used as identifier.
 
     Arguments:
 
@@ -368,7 +382,11 @@ def frame_id(event):
 
         str: a unique frame identifier (within an event).
     """
-    return str(event.current_frame)
+    return str(
+        event.data[event.framework_info["detector_label"]]["image.cellId"][
+            event.current_frame
+        ]
+    )
 
 
 def beam_energy(event):
