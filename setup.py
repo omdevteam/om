@@ -22,24 +22,24 @@ from __future__ import absolute_import, division, print_function
 import os
 
 import numpy
-from setuptools import Extension, setup
+from setuptools import Extension, find_packages, setup
 
 ONDA_USE_CYTHON = os.getenv("ONDA_USE_CYTHON")
 
 ext = ".pyx" if ONDA_USE_CYTHON else ".c"  # pylint: disable=invalid-name
 
 peakfinder8_ext = Extension(  # pylint: disable=invalid-name
-    name="onda.algorithms.peakfinder8_extension.peakfinder8_extension",
+    name="onda.lib.peakfinder8_extension.peakfinder8_extension",
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
     sources=[
-        "src/peakfinder8_extension/peakfinder8.cpp",
-        "src/peakfinder8_extension/peakfinder8_extension.pyx",
+        "lib_src/peakfinder8_extension/peakfinder8.cpp",
+        "lib_src/peakfinder8_extension/peakfinder8_extension.pyx",
     ]
     if ONDA_USE_CYTHON
     else [
-        "src/peakfinder8_extension/peakfinder8_extension.cpp",
-        "src/peakfinder8_extension/peakfinder8.cpp",
+        "lib_src/peakfinder8_extension/peakfinder8_extension.cpp",
+        "lib_src/peakfinder8_extension/peakfinder8.cpp",
     ],
     language="c++",
 )
@@ -51,7 +51,7 @@ if ONDA_USE_CYTHON:
 else:
     extensions = [peakfinder8_ext]  # pylint: disable=invalid-name
 
-version_fh = open("onda/__init__.py", "r")
+version_fh = open("src/onda/__init__.py", "r")
 version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
 version_fh.close()
 setup(
@@ -93,7 +93,7 @@ setup(
         OnDA also aims to keep the code base simple and as small as possible. The
         focus is on providing a core set of functions, while allowing the framework to
         be expanded with external software when possible, avoiding the need to
-        reimplementalready optimized algorithms.
+        reimplement already optimized algorithms.
         """
     ),
     install_requires=[
@@ -126,22 +126,8 @@ setup(
         ],
     },
     ext_modules=extensions,
-    packages=[
-        "onda",
-        "onda.algorithms",
-        "onda.algorithms.peakfinder8_extension",
-        "onda.data_retrieval_layer",
-        "onda.data_retrieval_layer.data_sources",
-        "onda.data_retrieval_layer.frameworks",
-        "onda.data_retrieval_layer.frameworks.hidra_api",
-        "onda.data_retrieval_layer.frameworks.hidra_api.utils",
-        "onda.data_retrieval_layer.frameworks.karabo_api",
-        "onda.data_retrieval_layer.profiles",
-        "onda.graphical_interfaces",
-        "onda.parallelization_layer",
-        "onda.processing_layer",
-        "onda.utils",
-    ],
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     include_package_data=True,
     platforms="any",
     classifiers=[

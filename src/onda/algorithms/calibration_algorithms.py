@@ -26,7 +26,7 @@ import numpy
 from onda.utils import exceptions, named_tuples, hdf5  # pylint: disable=unused-import
 
 
-class Agipd1MCalibration(object):
+class Agipd1MCalibration(object):  # pylint: disable=useless-object-inheritance
     """
     See documentation of the '__init__' function.
     """

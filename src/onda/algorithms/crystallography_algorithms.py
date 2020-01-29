@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy
 
-from onda.algorithms.peakfinder8_extension import peakfinder_8
+from onda.lib.peakfinder8_extension import peakfinder_8
 from onda.utils import hdf5, named_tuples
 
 
