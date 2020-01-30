@@ -25,7 +25,7 @@ from typing import Tuple  # pylint: disable=unused-import
 
 import fabio
 
-from onda.utils import data_event, named_tuples  # pylint: disable=unused-import
+from onda.utils import data_event  # pylint: disable=unused-import
 
 
 #####################
@@ -48,28 +48,31 @@ def get_file_extensions():
 
 
 def get_peakfinder8_info():
-    # type () -> named_tuples.Peakfinder8Info
+    # type () -> Dict[str, Union[int, float]]
     """
     Retrieves the peakfinder8 information for the Pilatus detector.
 
     Returns:
 
-        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
-        peakfinder8 information.
+        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
+        information.
     """
-    return named_tuples.Peakfinder8Info(
-        asic_nx=2463, asic_ny=2527, nasics_x=1, nasics_y=1
-    )
+    return {
+        "asic_nx": 2463,
+        "asic_ny": 2527,
+        "nasics_x": 1,
+        "nasics_y": 1,
+    }
 
 
 def get_hidra_transport_type():
-    # type () -> named_tuples.Peakfinder8Info
+    # type () -> str
     """
     Retrieves the HiDRA transport type information for the Pilatus detector.
 
     Returns:
 
-        str: a string with the data transpor type
+        str: a string with the data transport type
     """
     return "data"
 
@@ -176,7 +179,7 @@ def event_id(event):
     """
     Gets a unique identifier for an event retrieved from Pilatus files (or HiDRA).
 
-    Returns a label that unambiguosly identifies, within an experiment, the event
+    Returns a label that unambiguously identifies, within an experiment, the event
     currently being processed. For the Pilatus detector, an event corresponds to a
     single CBF file, and the full path to the file is used as identifier.
 
@@ -197,7 +200,7 @@ def frame_id(event):
     """
     Gets a unique identifier for a Pilatus data frame retrieved from files (or HiDRA).
 
-    Returns a label that unambiguosly identifies, within an event, the frame currently
+    Returns a label that unambiguously identifies, within an event, the frame currently
     being processed. For the Pilatus detector, the index of the frame within the event
     is used as identifier. However, each Pilatus event only contains one frame, so this
     function always returns the string "0".

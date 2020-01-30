@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy
 
-from onda.utils import exceptions, named_tuples, hdf5  # pylint: disable=unused-import
+from onda.utils import exceptions, hdf5  # pylint: disable=unused-import
 
 
 class Agipd1MCalibration(object):  # pylint: disable=useless-object-inheritance
@@ -115,7 +115,7 @@ class Agipd1MCalibration(object):  # pylint: disable=useless-object-inheritance
         self._cellid_list = cellid_list
 
     def apply_calibration(self, data_and_calib_info):
-        # type: (named_tuples.DataAndCalibrationInfo) -> numpy.ndarray
+        # type: (Dict[str, Any] -> numpy.ndarray
         """
         Applies the calibration to a detector data frame.
 
@@ -124,14 +124,14 @@ class Agipd1MCalibration(object):  # pylint: disable=useless-object-inheritance
 
         Arguments:
 
-            data (:class:`~onda.utils.named_tuples.DataAndCalibrationInfo`): a named
-                tuple containing the data frame to calibrate, and some additional
-                necessary information. In detail:
+            data (Dict[str, Any]): a dictionary containing the data frame to calibrate,
+                and some additional necessary information. In detail:
 
-                * The 'data' field of the named tuple must contain the detector data
-                  frame to calibrate.
+                * The value corresponding to the 'data' dictionary key must contain the
+                  detector data frame to calibrate.
 
-                * The 'info' field must be a dictionary containing two keys:
+                * The value corresponding to the 'info' dictionary key must be a
+                  dictionary containing at least the following two keys:
 
                   - A key called 'gain' whose value is a numpy array of the same shape
                     as the data frame to calibrate. Each pixel in this array must

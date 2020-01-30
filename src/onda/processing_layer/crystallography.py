@@ -33,7 +33,7 @@ from onda.algorithms import (
     generic_algorithms as gen_algs,
 )
 from onda.parallelization_layer import mpi
-from onda.utils import dynamic_import, named_tuples, zmq_monitor
+from onda.utils import dynamic_import, zmq_monitor
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -90,10 +90,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     cellid_list=monitor_parameters.get_param(
                         group="Crystallography",
                         parameter="agipd_cellids_for_which_to_load_calibration_"
-                                  "parameters",
+                        "parameters",
                         type_=list,
                         required=True,
-                    )
+                    ),
                 )
 
             else:
@@ -207,10 +207,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 pf8_bad_pixel_map_hdf5_path = None
             self._peak_detection = cryst_algs.Peakfinder8PeakDetection(
                 max_num_peaks=pf8_max_num_peaks,
-                asic_nx=pf8_detector_info.asic_nx,
-                asic_ny=pf8_detector_info.asic_ny,
-                nasics_x=pf8_detector_info.nasics_x,
-                nasics_y=pf8_detector_info.nasics_y,
+                asic_nx=pf8_detector_info["asic_nx"],
+                asic_ny=pf8_detector_info["asic_ny"],
+                nasics_x=pf8_detector_info["nasics_x"],
+                nasics_y=pf8_detector_info["nasics_y"],
                 adc_threshold=pf8_adc_threshold,
                 minimum_snr=pf8_minimum_snr,
                 min_pixel_count=pf8_min_pixel_count,
@@ -318,7 +318,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             sys.stdout.flush()
 
     def process_data(self, data):
-        # type: (Dict[str, Any]) -> named_tuples.ProcessedData
+        # type: (Dict[str, Any]) -> Dict[str, Any]
         """
         Processes a detector data frame.
 
@@ -338,18 +338,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Returns:
 
-            :class:`~onda.utils.named_tuples.ProcessedData`: a named tuple storing the
-            processed data and some information about the node that processed it.
+            Dict[str, Any]: a named tuple storing the processed data and some
+            information about the node that processed it.
         """
         processed_data = {}
         if self._calibration is not None:
-            calibrated_detector_data = (
-                self._calibration.apply_calibration(
-                    named_tuples.DataAndCalibrationInfo(
-                        data=data["detector_data"],
-                        info={"gain": data["detector_gain"], "cell": int(data["frame_id"])},
-                    )
-                )
+            calibrated_detector_data = self._calibration.apply_calibration(
+                {
+                    "data": data["detector_data"],
+                    "info": {
+                        "gain": data["detector_gain"],
+                        "cell": int(data["frame_id"]),
+                    },
+                }
             )
         else:
             calibrated_detector_data = data["detector_data"]
@@ -358,12 +359,12 @@ class OndaMonitor(mpi.ParallelizationEngine):
         )
         peak_list = self._peak_detection.find_peaks(corrected_detector_data)
         frame_is_saturated = (
-            len([x for x in peak_list.intensity if x > self._saturation_value])
+            len([x for x in peak_list["intensity"] if x > self._saturation_value])
             > self._max_saturated_peaks
         )
         frame_is_hit = (
             self._min_num_peaks_for_hit
-            < len(peak_list.intensity)
+            < len(peak_list["intensity"])
             < self._max_num_peaks_for_hit
         )
 
@@ -386,9 +387,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     self._hit_frame_sending_counter = 0
         else:
             # If the frame is not a hit, sends an empty peak list.
-            processed_data["peak_list"] = named_tuples.PeakList(
-                fs=[], ss=[], intensity=[]
-            )
+            processed_data["peak_list"] = {"fs": [], "ss": [], "intensity": []}
             if self._non_hit_frame_sending_interval is not None:
                 self._non_hit_frame_sending_counter += 1
                 if (
@@ -402,10 +401,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
                     processed_data["detector_data"] = corrected_detector_data
                     self._non_hit_frame_sending_counter = 0
 
-        return named_tuples.ProcessedData(data=processed_data, worker_rank=self.rank)
+        return {"data": processed_data, "worker_rank": self.rank}
 
     def collect_data(self, processed_data):
-        # type: (named_tuples.ProcessedData) -> None
+        # type: (Dict[str, Any]) -> None
         """
         Computes statistics on aggregated data and broadcasts them via a network socket.
 
@@ -415,11 +414,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Arguments:
 
-            processed_data(:class:`~onda.utils.named_tuples.ProcessedData`): a named
-                tuple storing the processed data and some information about the node
-                that processed it.
+            processed_data(Dict[str, Any]): a named tuple storing the processed data
+                and some information about the node that processed it.
         """
-        received_data = processed_data.data
+        received_data = processed_data["data"]
         self._num_events += 1
 
         self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
@@ -442,9 +440,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
         # dictionary, which suvives the msgpack conversion and allows introspection on
         # the receiver side.
         received_data["peak_list"] = {
-            "fs": received_data["peak_list"].fs,
-            "ss": received_data["peak_list"].ss,
-            "intensity": received_data["peak_list"].intensity,
+            "fs": received_data["peak_list"]["fs"],
+            "ss": received_data["peak_list"]["ss"],
+            "intensity": received_data["peak_list"]["intensity"],
         }
 
         if "detector_data" in received_data:

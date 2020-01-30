@@ -24,7 +24,7 @@ from __future__ import absolute_import, division, print_function
 import numpy
 
 from onda.lib.peakfinder8_extension import peakfinder_8
-from onda.utils import hdf5, named_tuples
+from onda.utils import hdf5
 
 
 class Peakfinder8PeakDetection(object):
@@ -71,7 +71,7 @@ class Peakfinder8PeakDetection(object):
             asic_nx (int): the fs size in pixels of each detector's ASIC in the data
                 frame.
 
-            asic_ny (int): the ss size in pxiels of each detector's ASIC in the data
+            asic_ny (int): the ss size in pixels of each detector's ASIC in the data
                 frame.
 
             nasics_x (int): the number of ASICs along the fs axis of the data frame.
@@ -148,7 +148,7 @@ class Peakfinder8PeakDetection(object):
             self._mask = None
 
     def find_peaks(self, data):
-        # type (numpy.ndarray) -> named_tuples.PeakList
+        # type (numpy.ndarray) -> Dict[str, Any]
         """
         Finds peaks in a detector data frame.
 
@@ -162,8 +162,7 @@ class Peakfinder8PeakDetection(object):
 
         Returns:
 
-            :class:`~onda.utils.named_tuples.PeakList`: a named tuple with the
-            information about the detected peaks.
+            Dict: a dictionary containing information about the detected peaks.
         """
         if not self._mask_initialized:
             if self._mask is None:
@@ -192,4 +191,4 @@ class Peakfinder8PeakDetection(object):
             self._local_bg_radius,
         )
 
-        return named_tuples.PeakList(*peak_list[0:3])
+        return {"fs": peak_list[0], "ss": peak_list[1], "intensity": peak_list[2]}

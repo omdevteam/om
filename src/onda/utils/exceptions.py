@@ -128,7 +128,7 @@ def onda_exception_handler(type_, value, traceback_):
     Custom OnDA exception handler.
 
     This function should never be called directly. Instead it should be used as a
-    replacement for the standard exception handler. For all OnDA excceptions, this
+    replacement for the standard exception handler. For all OnDA exceptions, this
     handler adds a label to the Exception and hides the stacktrace. All non-OnDA
     exceptions are instead reported normally.
 

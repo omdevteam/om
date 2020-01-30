@@ -389,7 +389,7 @@ def digitizer_data_init(monitor_params):
     """
     Initializes the psana Detector interface for digitizer data at LCLS.
 
-    This function initializes the Detector interface for the digitizer indentified by
+    This function initializes the Detector interface for the digitizer identified by
     the 'psana_digitizer_name' entry in the 'DataRetrievalLayer' configuration
     parameter group.
 
@@ -477,7 +477,7 @@ def xrays_active_init(monitor_params):
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
-    The status of the x-ray beam is determinedby monitoring an EVR event source at
+    The status of the x-ray beam is determined by monitoring an EVR event source at
     LCLS. This function initializes the Detector interface for the EVR event source
     identified by the 'psana_evr_source_name' entry of the 'DataRetrievalLayer'
     configuration parameter group.

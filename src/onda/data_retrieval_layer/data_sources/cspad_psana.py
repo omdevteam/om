@@ -23,11 +23,8 @@ from __future__ import absolute_import, division, print_function
 
 import numpy
 
-from onda.utils import (  # pylint: disable=unused-import
-    data_event,
-    exceptions,
-    named_tuples,
-)
+from onda.utils import data_event, exceptions  # pylint: disable=unused-import
+
 
 #####################
 #                   #
@@ -37,18 +34,21 @@ from onda.utils import (  # pylint: disable=unused-import
 
 
 def get_peakfinder8_info():
-    # type () -> named_tuples.Peakfinder8Info
+    # type () -> Dict[str, Union[int, float]]
     """
     Retrieves the peakfinder8 information for the CSPAD detector.
 
     Returns:
 
-        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
-        peakfinder8 information.
+        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
+        information.
     """
-    return named_tuples.Peakfinder8Info(
-        asic_nx=194, asic_ny=185, nasics_x=8, nasics_y=8
-    )
+    return {
+        "asic_nx": 194,
+        "asic_ny": 185,
+        "nasics_x": 8,
+        "nasics_y": 8,
+    }
 
 
 #############################

@@ -27,11 +27,7 @@ from typing import Any, Callable, Dict, List, Tuple  # pylint: disable=unused-im
 
 from future.utils import raise_from
 
-from onda.utils import (  # pylint: disable=unused-import
-    exceptions,
-    named_tuples,
-    parameters,
-)
+from onda.utils import exceptions, parameters  # pylint: disable=unused-import
 
 
 def import_processing_layer(processing_layer_filename):
@@ -127,7 +123,7 @@ def get_event_handling_funcs(data_retrieval_layer):
 
     This function retrieves the following Event Handling functions:
 
-    - 'initalize_event_source'
+    - 'initialize_event_source'
     - 'event_generator'
     - 'open_even'
     - 'close_event'
@@ -256,7 +252,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
 
 
 def get_peakfinder8_info(monitor_params):
-    # type: (parameters.MonitorParams) -> named_tuples.Peakfinder8Info
+    # type: (parameters.MonitorParams) -> Dict[str, Union[int, float]]
     """
     Gets the peakfinder8 information for the main x-ray detector.
 
@@ -270,8 +266,8 @@ def get_peakfinder8_info(monitor_params):
 
     Returns:
 
-        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
-        peakfinder8 information.
+        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
+        information.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
         group="Onda", parameter="data_retrieval_layer", type_=str, required=True
@@ -322,7 +318,7 @@ def get_hidra_transfer_type(monitor_params):
 
     Returns:
 
-        str: the HiDRA trasport type for the x-ray detector ('data' or 'metadata').
+        str: the HiDRA transport type for the x-ray detector ('data' or 'metadata').
     """
     data_retrieval_layer_filename = monitor_params.get_param(
         group="Onda", parameter="data_retrieval_layer", type_=str, required=True

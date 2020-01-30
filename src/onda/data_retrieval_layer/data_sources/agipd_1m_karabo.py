@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy  # pylint: disable=unused-import
 
-from onda.utils import data_event, named_tuples  # pylint: disable=unused-import
+from onda.utils import data_event  # pylint: disable=unused-import
 
 #####################
 #                   #
@@ -33,18 +33,21 @@ from onda.utils import data_event, named_tuples  # pylint: disable=unused-import
 
 
 def get_peakfinder8_info():
-    # type () -> named_tuples.Peakfinder8Info
+    # type () -> Dict[str, Union[int, float]]
     """
     Retrieves the peakfinder8 information for the AGIPD 1M detector.
 
     Returns:
 
-        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
-        peakfinder8 information.
+        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
+        information.
     """
-    return named_tuples.Peakfinder8Info(
-        asic_nx=128, asic_ny=512, nasics_x=1, nasics_y=16
-    )
+    return {
+        "asic_nx": 128,
+        "asic_ny": 512,
+        "nasics_x": 1,
+        "nasics_y": 16,
+    }
 
 
 ############################

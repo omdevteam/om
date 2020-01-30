@@ -33,14 +33,13 @@ from onda.utils import (  # pylint: disable=unused-import
     data_event,
     dynamic_import,
     exceptions,
-    named_tuples,
     parameters,
 )
 from .hidra_api import Transfer, transfer
 
 
 def _create_hidra_info(source, node_pool_size, monitor_params):
-    # type: (str, int, parameters.MonitorParams) -> named_tuples.HidraInfo
+    # type: (str, int, parameters.MonitorParams) -> Dict[str, Any]
 
     # Creates the HidraInfo object needed to initialize the HiDRA event source.
 
@@ -107,9 +106,11 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
 
     query = Transfer(connection_type=query_text, signal_host=source, use_log=False)
 
-    return named_tuples.HidraInfo(
-        query=query, targets=targets, data_base_path=data_base_path
-    )
+    return {
+        "query": query,
+        "targets": targets,
+        "data_base_path": data_base_path,
+    }
 
 
 ############################
@@ -120,7 +121,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
 
 
 def initialize_event_source(source, node_pool_size, monitor_params):
-    # type: (str, int, parameters.MonitorParams) -> named_tuples.HidraInfo
+    # type: (str, int, parameters.MonitorParams) -> Dict[str, Any]
     """
     Initializes the HiDRA event source at Petra III.
 
@@ -139,8 +140,7 @@ def initialize_event_source(source, node_pool_size, monitor_params):
 
     Returns:
 
-        :class:`~onda.utils.named_tuples.HidraInfo`: a named tuple storing the HiDRA
-        initialization information.
+        Dict[str, Any] a dictionary storing the HiDRA initialization information.
 
     Raises:
 
@@ -154,7 +154,7 @@ def initialize_event_source(source, node_pool_size, monitor_params):
     )
 
     try:
-        hidra_info.query.initiate(hidra_info.targets[1:])
+        hidra_info["query"].initiate(hidra_info["targets"][1:])
     except transfer.CommunicationFailed as exc:
         raise_from(
             exc=exceptions.OndaHidraAPIError(
@@ -246,12 +246,12 @@ def event_generator(
     )
     print(
         "Worker {0} listening at port {1}".format(
-            node_rank, hidra_info.targets[node_rank][1]
+            node_rank, hidra_info["targets"][node_rank][1]
         )
     )
     sys.stdout.flush()
     try:
-        hidra_info.query.start(hidra_info.targets[node_rank][1])
+        hidra_info["query"].start(hidra_info["targets"][node_rank][1])
     except transfer.CommunicationFailed as exc:
         raise_from(
             exc=exceptions.OndaHidraAPIError(
@@ -261,11 +261,11 @@ def event_generator(
         )
 
     while True:
-        recovered_metadata, recovered_data = hidra_info.query.get()
+        recovered_metadata, recovered_data = hidra_info["query"].get()
         event.data = recovered_data
         event.metadata = recovered_metadata
         event.framework_info["full_path"] = os.path.join(
-            hidra_info.data_base_path,
+            hidra_info["data_base_path"],
             recovered_metadata["relative_path"],
             recovered_metadata["filename"],
         )

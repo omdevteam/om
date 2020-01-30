@@ -32,7 +32,7 @@ from onda.utils import exceptions
 
 class DataEvent(object):
     """
-    See documentaion of the '__init__' function.
+    See documentation of the '__init__' function.
     """
 
     def __init__(self, event_handling_funcs, data_extraction_funcs):
@@ -52,7 +52,7 @@ class DataEvent(object):
 
                 * Five event handling functions must be defined:
 
-                  - 'initalize_event_source'
+                  - 'initialize_event_source'
                   - 'event_generator'
                   - 'open_even'
                   - 'close_event'

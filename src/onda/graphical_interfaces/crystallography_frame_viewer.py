@@ -138,7 +138,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
             # The received aggregated data is expected to be a list of event entries
             # (each being a dictionary storing the data for an event:
             # List[Dict[str, Any], ...]). The last event in the list is extracted for
-            # visualizaton.
+            # visualization.
             self._frame_list.append(copy.deepcopy(self.received_data[-1]))
             self._current_frame_index = len(self._frame_list) - 1
             # Resets the 'received_data' attribute to None. One can then check if

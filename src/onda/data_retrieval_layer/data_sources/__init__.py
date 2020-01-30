@@ -16,6 +16,6 @@
 """
 Retrieval of data from detectors and other sensors.
 
-This pacakge contains functions that retrieve data from x-ray detectors and other
+This package contains functions that retrieve data from x-ray detectors and other
 sensors using several facility frameworks.
 """

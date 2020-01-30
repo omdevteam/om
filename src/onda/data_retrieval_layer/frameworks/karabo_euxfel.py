@@ -348,7 +348,7 @@ def event_id(event):
     """
     Retrieves a unique identifier for an event retrieved from Karabo at XFEL.
 
-    Returns a label that unambiguosly identifies, within an experiment, the event
+    Returns a label that unambiguously identifies, within an experiment, the event
     currently being processed. At the European XFEL facility, an event corresponds to a
     pulse train and the train id is used as identifier.
 
@@ -369,7 +369,7 @@ def frame_id(event):
     """
     Gets a unique identifier for a data frame retrieved from Karabo at XFEL.
 
-    Returns a label that unambiguosly identifies, within an event, the frame currently
+    Returns a label that unambiguously identifies, within an event, the frame currently
     being processed. At the European XFEL facility, the cellId property of the frame
     within its train is used as identifier.
 

@@ -23,11 +23,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy
 
-from onda.utils import (  # pylint: disable=unused-import
-    exceptions,
-    named_tuples,
-    data_event,
-)
+from onda.utils import exceptions, data_event  # pylint: disable=unused-import
 
 
 #####################
@@ -38,19 +34,21 @@ from onda.utils import (  # pylint: disable=unused-import
 
 
 def get_peakfinder8_info():
-    # type () -> named_tuples.Peakfinder8Info
+    # type () -> Dict[str, Union[int, float]]
     """
     Retrieves the peakfinder8 information for the pnCCD detector.
 
     Returns:
 
-        :class:`~onda.utils.named_tuples.Peakfinder8Info`: a named tuple storing the
-        peakfinder8 information.
+        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
+        information.
     """
-
-    return named_tuples.Peakfinder8Info(
-        asic_nx=1024, asic_ny=512, nasics_x=1, nasics_y=2
-    )
+    return {
+        "asic_nx": 1024,
+        "asic_ny": 512,
+        "nasics_x": 1,
+        "nasics_y": 2,
+    }
 
 
 #############################

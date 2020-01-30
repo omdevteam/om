@@ -97,7 +97,7 @@ class Correction(object):
                   that will be corrected.
 
                 * Each pixel in the gain map must store the gain factor that will be
-                  applied to the corresponing pixel in the data frame.
+                  applied to the corresponding pixel in the data frame.
 
             gain_hdf5_path (Optional[str]): the internal HDF5 path to the data block
                 where the gain map data is located. Defaults to None.

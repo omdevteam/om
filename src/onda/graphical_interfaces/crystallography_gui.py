@@ -360,7 +360,7 @@ class CrystallographyGui(gui.OndaGui):
 def main(geometry_file, hostname, port):
     """
     OnDA graphical user interface for crystallography. This program must connect to a
-    running OnDA monitor for crystallography. If the monitor broacasts information on
+    running OnDA monitor for crystallography. If the monitor broadcasts information on
     Bragg peaks and hit and saturation rates, this GUI will display their evolution
     over time, plus a real-time virtual powder pattern created using the
     detected peaks.

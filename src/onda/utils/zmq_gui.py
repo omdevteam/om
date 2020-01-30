@@ -14,7 +14,7 @@
 # Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-ZMQ utilties for receiving data from OnDA monitors.
+ZMQ utilities for receiving data from OnDA monitors.
 
 This module contains classes and functions that allow external programs to receive
 data broadcasted by an OnDA monitor over a network connection.

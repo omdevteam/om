@@ -31,7 +31,7 @@ from onda.utils import exceptions
 
 
 def load_hdf5_data(hdf5_filename, hdf5_path, selection=None):
-    # type: (str, str, Opional[Tuple[slice]]) -> Any
+    # type: (str, str, Optional[Tuple[slice]]) -> Any
     """
     Loads a data block from an HDF5 file.
 

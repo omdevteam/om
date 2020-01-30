@@ -30,9 +30,9 @@ from mpi4py import MPI
 from onda.utils import (  # pylint: disable=unused-import
     dynamic_import,
     exceptions,
-    named_tuples,
     parameters,
 )
+
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _NOMORE = 998
@@ -47,8 +47,8 @@ class ParallelizationEngine(object):
 
     def __init__(
         self,
-        process_func,  # type: Callable[[Dict[str, Any]], named_tuples.ProcessedData]
-        collect_func,  # type: Callable[[named_tuples.ProcessedData], None]
+        process_func,  # type: Callable[[Dict[str, Any]], Dict[str, Any]]
+        collect_func,  # type: Callable[[Dict[str, Any]], None]
         source,  # type: str
         monitor_params,  # type:  parameters.MonitorParams
     ):
@@ -77,15 +77,14 @@ class ParallelizationEngine(object):
 
         Arguments:
 
-            process_func (Callable[[Dict[str, Any]], \
-                :class:`~onda.utils.named_tuples.ProcessedData`]): the function that
-                will be called on each worker node for every frame in a data event. The
-                'ProcessedData' named tuple returned by this function will be
-                transferred to the master node.
+            process_func (Callable[[Dict[str, Any]], Dict[str, Any]]): the function
+                that will be called on each worker node for every frame in a data
+                event. The 'ProcessedData' named tuple returned by this function will
+                be transferred to the master node.
 
-            collect_func ( Callable[[:class:`~onda.utils.named_tuples.ProcessedData`], \
-                None]): the function that will run on the master node every time a
-                'ProcessedData' named tuple is transferred from a worker node.
+            collect_func (Callable[[Dict[str, Any], None]): the function that will run
+                on the master node every time a 'ProcessedData' named tuple is
+                transferred from a worker node.
 
             source (str): a string describing a source of event data. The exact format
                 of the string depends on the specific Data Recovery Layer currently
@@ -229,7 +228,7 @@ class ParallelizationEngine(object):
             while True:
                 try:
                     received_data = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
-                    if "end" in received_data[0].keys():
+                    if "end" in received_data["data"].keys():
                         # If the received message announces that a worker node has
                         # finished processing data, keeps track of how many worker
                         # nodes have already finished.
@@ -249,13 +248,13 @@ class ParallelizationEngine(object):
                     self._reduce(received_data)
                     self._num_collected_events += 1
                 except KeyboardInterrupt as exc:
-                    print("Recieved keyboard sigterm...")
+                    print("Received keyboard sigterm...")
                     print(str(exc))
                     print("shutting down MPI.")
                     self.shutdown()
                     print("---> execution finished.")
                     sys.stdout.flush()
-                    exit(0)
+                    sys.exit(0)
 
     def shutdown(self, msg="Reason not provided."):
         # type (Optional[str]) -> None
