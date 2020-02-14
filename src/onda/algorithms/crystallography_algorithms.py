@@ -21,13 +21,27 @@ This module contains algorithms that carry out crystallography-related data proc
 """
 from __future__ import absolute_import, division, print_function
 
-import numpy
+import sys
+from typing import List, Optional, Type, Union  # pylint: disable=unused-import
+
+import h5py  # type: ignore
+import numpy  # type: ignore
+from future.utils import raise_from  # type: ignore
+from mypy_extensions import TypedDict
 
 from onda.lib.peakfinder8_extension import peakfinder_8
-from onda.utils import hdf5
 
 
-class Peakfinder8PeakDetection(object):
+TypePeakList = TypedDict(  # pylint: disable=invalid-name
+    "TypePeakList",
+    {"num_peaks": int, "fs": List[float], "ss": List[float], "intensity": List[float]},
+    total=True,
+)
+
+
+class Peakfinder8PeakDetection(
+    object
+):  # pylint: disable=useless-object-inheritance, too-few-public-methods
     """
     See documentation of the '__init__' function.
     """
@@ -55,8 +69,8 @@ class Peakfinder8PeakDetection(object):
         Peakfinder8 algorithm for peak detection.
 
         This class stores the parameters needed by the 'peakfinder8' algorithm, and
-        performs peak finding on a detector data frame upon request. The 'peakfinder8'
-        algorithm is described in the following publication:
+        detect peaks in a detector data frame upon request. The 'peakfinder8' algorithm
+        is described in the following publication:
 
         A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
         and H. N. Chapman, "Cheetah: software for high-throughput reduction and
@@ -125,30 +139,50 @@ class Peakfinder8PeakDetection(object):
                   the center of the detector of the corresponding pixel in the data
                   frame.
         """
-        self._max_num_peaks = max_num_peaks
-        self._asic_nx = asic_nx
-        self._asic_ny = asic_ny
-        self._nasics_x = nasics_x
-        self._nasics_y = nasics_y
-        self._adc_thresh = adc_threshold
-        self._minimum_snr = minimum_snr
-        self._min_pixel_count = min_pixel_count
-        self._max_pixel_count = max_pixel_count
-        self._local_bg_radius = local_bg_radius
-        self._radius_pixel_map = radius_pixel_map
-        self._min_res = min_res
-        self._max_res = max_res
-        self._mask_initialized = False
+        self._max_num_peaks = max_num_peaks  # type: int
+        self._asic_nx = asic_nx  # type: int
+        self._asic_ny = asic_ny  # type: int
+        self._nasics_x = nasics_x  # type: int
+        self._nasics_y = nasics_y  # type: int
+        self._adc_thresh = adc_threshold  # type: float
+        self._minimum_snr = minimum_snr  # type: float
+        self._min_pixel_count = min_pixel_count  # type: int
+        self._max_pixel_count = max_pixel_count  # type: int
+        self._local_bg_radius = local_bg_radius  # type: int
+        self._radius_pixel_map = radius_pixel_map  # type: numpy.ndarray
+        self._min_res = min_res  # type: int
+        self._max_res = max_res  # type: int
+        self._mask_initialized = False  # type: bool
 
         if bad_pixel_map_filename is not None:
-            self._mask = hdf5.load_hdf5_data(
-                hdf5_filename=bad_pixel_map_filename, hdf5_path=bad_pixel_map_hdf5_path
-            )
+            try:
+                with h5py.File(bad_pixel_map_filename, "r") as hdf5_file_handle:
+                    self._mask = hdf5_file_handle[bad_pixel_map_hdf5_path][
+                        :
+                    ]  # type: Union[numpy.ndarray, None]
+            except (IOError, OSError, KeyError) as exc:
+                exc_type, exc_value = sys.exc_info()[
+                    :2
+                ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                raise_from(
+                    # TODO: Fix type check
+                    exc=RuntimeError(
+                        "The following error occurred while reading the {0} field"
+                        "from the {1} bad pixel map HDF5 file:"
+                        "{2}: {3}".format(
+                            bad_pixel_map_filename,
+                            bad_pixel_map_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ),
+                    cause=exc,
+                )
         else:
             self._mask = None
 
     def find_peaks(self, data):
-        # type (numpy.ndarray) -> Dict[str, Any]
+        # type: (numpy.ndarray) -> TypePeakList
         """
         Finds peaks in a detector data frame.
 
@@ -162,7 +196,20 @@ class Peakfinder8PeakDetection(object):
 
         Returns:
 
-            Dict: a dictionary containing information about the detected peaks.
+            TypePeakList: a dictionary with information about the Bragg peaks
+            detected in a data frame. The dictionary has the following keys:
+
+            - A key named "num_peaks" whose value is the number of peaks that were
+              detected in the data frame.
+
+            - A key named 'fs' whose value is a list of fractional fs indexes locating
+              the detected peaks in the data frame.
+
+            - A key named 'ss' whose value is a list of fractional ss indexes locating
+              the detected peaks in the data frame.
+
+            - A key named 'intensity' whose value is a list of integrated intensities
+              for the detected peaks.
         """
         if not self._mask_initialized:
             if self._mask is None:
@@ -191,4 +238,9 @@ class Peakfinder8PeakDetection(object):
             self._local_bg_radius,
         )
 
-        return {"fs": peak_list[0], "ss": peak_list[1], "intensity": peak_list[2]}
+        return {
+            "num_peaks": len(peak_list[0]),
+            "fs": peak_list[0],
+            "ss": peak_list[1],
+            "intensity": peak_list[2],
+        }

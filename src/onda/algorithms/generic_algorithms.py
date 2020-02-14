@@ -22,11 +22,14 @@ etc.).
 """
 from __future__ import absolute_import, division, print_function
 
+import sys
 from typing import Any, Dict, List, Optional, Union  # pylint: disable=unused-import
 
+import h5py  # type:ignore
 import numpy  # pylint: disable=unused-import
+from future.utils import raise_from  # type: ignore
 
-from onda.utils import exceptions, hdf5
+from onda.utils import exceptions
 
 
 class Correction(object):
@@ -107,9 +110,29 @@ class Correction(object):
         """
         if mask_filename is not None:
             if mask_hdf5_path is not None:
-                self._mask = hdf5.load_hdf5_data(
-                    hdf5_filename=mask_filename, hdf5_path=mask_hdf5_path
-                )
+                try:
+                    with h5py.File(mask_filename, "r") as hdf5_file_handle:
+                        self._mask = hdf5_file_handle[mask_hdf5_path][
+                            :
+                        ]  # type: Union[numpy.ndarray, None]
+                except (IOError, OSError, KeyError) as exc:
+                    exc_type, exc_value = sys.exc_info()[
+                        :2
+                    ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                    raise_from(
+                        # TODO: Fix type check
+                        exc=RuntimeError(
+                            "The following error occurred while reading the {0} field"
+                            "from the {1} gain map HDF5 file:"
+                            "{2}: {3}".format(
+                                mask_filename,
+                                mask_hdf5_path,
+                                exc_type.__name__,  # type: ignore
+                                exc_value,
+                            )
+                        ),
+                        cause=exc,
+                    )
             else:
                 raise exceptions.OndaMissingHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for mask."
@@ -120,12 +143,29 @@ class Correction(object):
 
         if dark_filename is not None:
             if dark_hdf5_path is not None:
-                self._dark = (
-                    hdf5.load_hdf5_data(
-                        hdf5_filename=dark_filename, hdf5_path=dark_hdf5_path
+                try:
+                    with h5py.File(dark_filename, "r") as hdf5_file_handle:
+                        self._dark = (
+                            hdf5_file_handle[dark_hdf5_path][:] * self._mask
+                        )  # type: Union[numpy.ndarray, None]
+                except (IOError, OSError, KeyError) as exc:
+                    exc_type, exc_value = sys.exc_info()[
+                        :2
+                    ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                    raise_from(
+                        # TODO: Fix type check
+                        exc=RuntimeError(
+                            "The following error occurred while reading the {0} field"
+                            "from the {1} dark data HDF5 file:"
+                            "{2}: {3}".format(
+                                dark_filename,
+                                dark_hdf5_path,
+                                exc_type.__name__,  # type: ignore
+                                exc_value,
+                            )
+                        ),
+                        cause=exc,
                     )
-                    * self._mask
-                )
             else:
                 raise exceptions.OndaMissingHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for dark frame data."
@@ -136,12 +176,29 @@ class Correction(object):
 
         if gain_filename is not None:
             if gain_hdf5_path is not None:
-                self._gain = (
-                    hdf5.load_hdf5_data(
-                        hdf5_filename=gain_filename, hdf5_path=gain_hdf5_path
+                try:
+                    with h5py.File(gain_filename, "r") as hdf5_file_handle:
+                        self._gain = (
+                            hdf5_file_handle[gain_hdf5_path][:] * self._mask
+                        )  # type: Union[numpy.ndarray, None]
+                except (IOError, OSError, KeyError) as exc:
+                    exc_type, exc_value = sys.exc_info()[
+                        :2
+                    ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                    raise_from(
+                        # TODO: Fix type check
+                        exc=RuntimeError(
+                            "The following error occurred while reading the {0} field"
+                            "from the {1} dark data HDF5 file:"
+                            "{2}: {3}".format(
+                                gain_filename,
+                                gain_hdf5_path,
+                                exc_type.__name__,  # type: ignore
+                                exc_value,
+                            )
+                        ),
+                        cause=exc,
                     )
-                    * self._mask
-                )
             else:
                 raise exceptions.OndaMissingHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for gain map."

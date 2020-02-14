@@ -49,6 +49,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinxcontrib.images",
+    "sphinx_autodoc_typehints",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -204,6 +205,7 @@ autodoc_mock_imports = [
     "onda.algorithms.peakfinder8_extension.peakfinder8_extension",
 ]
 autodoc_member_order = "bysource"
+autodoc_typehints = "none"
 autoclass_content = "init"
 
 # -- Options for todo extension ----------------------------------------------

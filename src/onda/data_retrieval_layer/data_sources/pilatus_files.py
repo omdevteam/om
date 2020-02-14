@@ -24,6 +24,7 @@ from __future__ import absolute_import, division, print_function
 from typing import Tuple  # pylint: disable=unused-import
 
 import fabio
+import numpy  # pylint: disable=unused-import
 
 from onda.utils import data_event  # pylint: disable=unused-import
 

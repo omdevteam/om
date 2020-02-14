@@ -22,7 +22,13 @@ validated.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Any, List, MutableMapping, Union  # pylint: disable=unused-import
+from typing import (  # pylint: disable=unused-import
+    Any,
+    List,
+    MutableMapping,
+    Union,
+    Type,
+)
 
 import toml
 from future.utils import raise_from
@@ -70,7 +76,7 @@ class MonitorParams(object):
             )
 
     def get_param(self, group, parameter, type_=None, required=False):
-        # type: (str, str, type, bool) -> Union[Any, None]
+        # type: (str, str, Type, bool) -> Union[Any, None]
         """
         Retrieves an OnDA monitor configuration parameter.
 
@@ -84,7 +90,7 @@ class MonitorParams(object):
         * If the 'required' argument is False and the parameter cannot be found in the
           configuration file, this function will return None.
 
-        * If a type is specified in the function call (the 'type_' argument is not
+        * If a type is specified in the function call (the 'type\_' argument is not
           None), this function will raise an exception if the type of the retrieved
           parameter does not match the specified one.
 
@@ -95,7 +101,7 @@ class MonitorParams(object):
 
             parameter (str): the name of the parameter to retrieve.
 
-            type_ (Optional[type]): the type of the parameter. If a type is specified
+            type_ (Optional[Type]): the type of the parameter. If a type is specified
                 here, the type of the retrieved parameter will be validated. Defaults
                 to None.
 

@@ -2,25 +2,20 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Advanced Documentation &#8212; OnDA 19.09.0.3 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-    <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="The onda Package" href="onda.html" />
@@ -29,6 +24,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
 
@@ -82,7 +81,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <div class="section" id="advanced-documentation">
 <h1>Advanced Documentation<a class="headerlink" href="#advanced-documentation" title="Permalink to this headline">¶</a></h1>
@@ -107,33 +106,36 @@ follows the scheme: <em>YY.MM.MINOR.[MICRO]</em></p>
 <h3>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
 <p>OnDA is mainly developed in <a class="reference external" href="https://www.python.org">Python</a>.</p>
 <ul class="simple">
-<li>All code in OnDA must run with both version 2 and 3 of Python, except for
+<li><p>All code in OnDA must run with both version 2 and 3 of Python, except for
 facility-specific code that specifically requires one of the two versions (for example,
 Python 2 for the LCSL facility). The code must specifically support all the currently
-active versions of python:<ul>
-<li>Python 2<ul>
-<li>2.7</li>
+active versions of python:</p>
+<ul>
+<li><p>Python 2</p>
+<ul>
+<li><p>2.7</p></li>
 </ul>
 </li>
-<li>Python 3<ul>
-<li>3.5</li>
-<li>3.6</li>
-<li>3.7</li>
+<li><p>Python 3</p>
+<ul>
+<li><p>3.5</p></li>
+<li><p>3.6</p></li>
+<li><p>3.7</p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li>The <a class="reference external" href="https://python-future.org">python-future</a> project should be used to ensure that
+<li><p>The <a class="reference external" href="https://python-future.org">python-future</a> project should be used to ensure that
 code contributed to the OnDA project is compatible with all the supported versions of
-Python.</li>
-<li>The Python coding style should follow for the most part the <a class="reference external" href="https://github.com/google/styleguide/blob/gh-pages/pyguide.md">Google Python
-Coding Style</a>.</li>
-<li>All docstrings should be written following the <a class="reference external" href="https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html">Google Style</a>.</li>
-<li><a class="reference external" href="https://www.pylint.org">Pylint</a> should be run on the code before submission. In
+Python.</p></li>
+<li><p>The Python coding style should follow for the most part the <a class="reference external" href="https://github.com/google/styleguide/blob/gh-pages/pyguide.md">Google Python
+Coding Style</a>.</p></li>
+<li><p>All docstrings should be written following the <a class="reference external" href="https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html">Google Style</a>.</p></li>
+<li><p><a class="reference external" href="https://www.pylint.org">Pylint</a> should be run on the code before submission. In
 the root folder of the OnDA repository, contributors can find a <em>pylintrc</em> file with
 the settings that should be applied when linting OnDA’s code. Please see <a class="reference external" href="http://pylint.pycqa.org/en/latest/user_guide/run.html?highlight=pylintrc">here</a> for
-instructions on how to use the pylintrc file.</li>
-<li>All submitted code should be formatted using the <a class="reference external" href="https://github.com/psf/black">Black</a> code formatter.</li>
+instructions on how to use the pylintrc file.</p></li>
+<li><p>All submitted code should be formatted using the <a class="reference external" href="https://github.com/psf/black">Black</a> code formatter.</p></li>
 </ul>
 </div>
 <div class="section" id="c-c">
@@ -141,17 +143,17 @@ instructions on how to use the pylintrc file.</li>
 <p>Some extension to OnDA can, for performance reason, be written using the
 <a class="reference external" href="https://en.wikipedia.org/wiki/C%2B%2B">C++</a> or <a class="reference external" href="https://en.wikipedia.org/wiki/C_(programming_language)">C</a> programming languages.</p>
 <ul class="simple">
-<li>All C++ code in OnDA should follow at most the C++98 ISO standard, and the code
+<li><p>All C++ code in OnDA should follow at most the C++98 ISO standard, and the code
 should compile on a Linux RHEL7/CentOS7 platform using the development stack that
-comes with a standard installation of the system.</li>
-<li>Part of the C++11 standard can be used when writing extensions. However, it must be
+comes with a standard installation of the system.</p></li>
+<li><p>Part of the C++11 standard can be used when writing extensions. However, it must be
 possible to compile the code using version 4.8 of the <em>gcc</em> compiler (in order to
-create the Linux binary Python wheel).</li>
-<li>All C code in OnDA should follow at most the C99 ISO standard, and the code should
+create the Linux binary Python wheel).</p></li>
+<li><p>All C code in OnDA should follow at most the C99 ISO standard, and the code should
 compile on a Linux RHEL7/CentOS7 platform using the development stack that comes with
-a standard installation of the system.</li>
-<li>The <a class="reference external" href="http://cython.org">Cython</a> project should be used to interface C/C++ code with
-Python.</li>
+a standard installation of the system.</p></li>
+<li><p>The <a class="reference external" href="http://cython.org">Cython</a> project should be used to interface C/C++ code with
+Python.</p></li>
 </ul>
 </div>
 </div>
@@ -198,7 +200,7 @@ When the monitoring program runs, the methods are automatically called when
 appropriate.</p>
 <p>The methods are:</p>
 <ol class="arabic">
-<li><p class="first"><strong>__init__</strong>: the constructor. This function is executed on both the master and the
+<li><p><strong>__init__</strong>: the constructor. This function is executed on both the master and the
 worker nodes when the monitor starts. All the monitor initialization code should go
 in it. All the class properties needed by the monitor should also be initialized
 in this function. Additionally, code that loads external files (for example, a
@@ -211,7 +213,7 @@ The second and the third, introduced respectively by the code statements
 “if role == master” and “if role == worker”, should contain initialization code
 specific to one type of node.</p>
 </li>
-<li><p class="first"><strong>process_data</strong>: this function is executed on each worker node when data is
+<li><p><strong>process_data</strong>: this function is executed on each worker node when data is
 retrieved from the data source. The function should take only one argument: <em>data</em>.
 The retrieved data gets passed to this function via this argument, which is a
 dictionary whose keys are the data entries specified in the configuration file under
@@ -225,7 +227,7 @@ second entry is the rank of the worker node sending the data.</p>
 <p>The developer show not concern himself with how the data is transferred to the
 master node: the Parallelization Layer takes care of the transmission.</p>
 </li>
-<li><p class="first"><strong>collect_data</strong>: this function is executed on the master node every time
+<li><p><strong>collect_data</strong>: this function is executed on the master node every time
 data is received from a worker node. This function should implement all the
 processing logic that involves more than one event (for example: averaging over many
 events, accumulation of events, etc.).</p>
@@ -243,7 +245,7 @@ in the <em>onda.utils.zmq_monitor</em> module.</p>
 if the developer does not implement this method in the Processing Layer, OnDA uses the
 default implementation from the Processing Layer:</p>
 <ol class="arabic" start="4">
-<li><p class="first"><strong>end_processing</strong>: this function is executed when the monitoring program finishes
+<li><p><strong>end_processing</strong>: this function is executed when the monitoring program finishes
 processing the input data, if the input data stream has an end. When the monitor
 processes an endless stream of data (for example, most live data streams provided by
 the facilities)  this function is never called.</p>
@@ -256,25 +258,26 @@ code that closes files, brings down network sockets, etc.</p>
 </ol>
 <p><strong>Notes:</strong></p>
 <ul class="simple">
-<li>Attention should be paid to where the initialization code is placed. The developer
+<li><p>Attention should be paid to where the initialization code is placed. The developer
 should carefully place the  initialization code in the relevant section (master,
 worker or common) of the <em>__init__</em> function. Variables that are initialized, or
 operations that are carried out, on node where they are not needed waste resources,
-especially memory, and might result in sub-optimal code.</li>
-<li>The data being processed should ideally be reduced in the <em>process_data</em> function on
+especially memory, and might result in sub-optimal code.</p></li>
+<li><p>The data being processed should ideally be reduced in the <em>process_data</em> function on
 each worker node. Transferring large amount of data between the nodes is not
 efficient and should be avoided whenever possible. For example, when crystallography
 data is processed and Bragg peaks are extracted from the detector frame data, only
 the list of peaks should be sent to the master node, while the frame data should be
 dropped. Obviously, this strategy cannot be applied to all cases (a frame viewer,
 for example, would need the full frame data), but developers should strive to perform
-as much data reduction as possible on the worker nodes.</li>
-<li>The <em>OndaMonitor</em> class should be carefully designed and code should be optimized.
-For example:<ul>
-<li>Only variables that need to be accessed from more than one method should become
+as much data reduction as possible on the worker nodes.</p></li>
+<li><p>The <em>OndaMonitor</em> class should be carefully designed and code should be optimized.
+For example:</p>
+<ul>
+<li><p>Only variables that need to be accessed from more than one method should become
 class properties. All others can remain simple local variables. Creating class
 properties that are not accessed by other methods will clutter the namespace of the
-class, and can result in performance degradation.</li>
+class, and can result in performance degradation.</p></li>
 </ul>
 </li>
 </ul>
@@ -290,28 +293,28 @@ algorithm. The algorithm would keep track of the internal intermediate average, 
 update it each time it is applied to new frame data.</p>
 <p>Algorithms should be used mainly for two types of data processing operations:</p>
 <ol class="arabic simple">
-<li>Operations where an action defined by the same set of parameters is applied to each
+<li><p>Operations where an action defined by the same set of parameters is applied to each
 data item retrieved by the monitor. In this case, the internal state is the set of
 parameter with which the algorithm is initialized. A good example of this case is a
 peak finding algorithm, which is initialized with a set of parameters and then
 applied to each frame data retrieved by the monitor. Another good example is a dark
 calibration correction algorithm, where the same dark calibration data (with which
-the algorithm is initialized) is applied to each retrieved detector data frame.</li>
-<li>Operations where an action applied to each retrieved data item updates the internal
+the algorithm is initialized) is applied to each retrieved detector data frame.</p></li>
+<li><p>Operations where an action applied to each retrieved data item updates the internal
 state. An good example of this case is an algorithm that computes a running average:
 every time the algorithm is applied to retrieved data, the internal current average
-is updated.</li>
+is updated.</p></li>
 </ol>
 <p>OnDA provides some pre-packaged algorithms for common data processing operations (peak
 finding, data accumulation, etc.) in the <em>onda.algorithms</em> Python sub-package.</p>
 <p><strong>Notes:</strong></p>
 <ul class="simple">
-<li>For data processing actions that don’t fall in the two cases described above,
+<li><p>For data processing actions that don’t fall in the two cases described above,
 and do not need to keep track of an internal state, functions can often be used in
 place of algorithms. For example, the computation of an autocorrelation, the sum of
 the intensity observed in a detector frame, are operations that do not store to store
 any persisent information when applied multiple times. They can be implemented as
-simple functions instead of algorithms.</li>
+simple functions instead of algorithms.</p></li>
 </ul>
 </div>
 </div>
@@ -333,7 +336,7 @@ simple functions instead of algorithms.</li>
     2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
     the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.1.<br/>
     </p>
   </div>
 </footer>

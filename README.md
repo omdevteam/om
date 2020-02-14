@@ -44,7 +44,6 @@ Requirements
 
   **Python Modules: Backend**
 
-  * CfelPyUtils
   * click
   * future
   * h5py

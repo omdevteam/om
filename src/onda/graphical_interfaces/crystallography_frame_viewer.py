@@ -26,13 +26,11 @@ import copy
 import sys
 from typing import Any, Dict  # pylint: disable=unused-import
 
-import cfelpyutils.crystfel_utils as cfel_crystfel
-import cfelpyutils.geometry_utils as cfel_geometry
 import click
 import numpy
 import pyqtgraph
 
-from onda.utils import gui
+from onda.utils import crystfel_geometry, gui
 
 try:
     import PyQt5.QtGui as QtGui
@@ -59,8 +57,8 @@ class CrystallographyFrameViewer(gui.OndaGui):
         Arguments:
 
             geometry (Dict[str, Any]): a dictionary containing CrystFEL detector
-                geometry information (as returned by the 'load_crystfel_geometry`
-                function in the 'cfelpyutils' module).
+                geometry information (as returned by the
+                :func:`~onda.utils.crystfel_geometry.load_crystfel_geometry` function).
 
             hostname (str): the hostname or IP address where the viewer will listen for
                 data.
@@ -74,16 +72,16 @@ class CrystallographyFrameViewer(gui.OndaGui):
             tag=u"ondaframedata",
         )
 
-        pixel_maps = cfel_geometry.compute_pix_maps(geometry)
-        x_map, y_map = pixel_maps.x, pixel_maps.y
+        pixel_maps = crystfel_geometry.compute_pix_maps(geometry)
+        x_map, y_map = pixel_maps["x"], pixel_maps["y"]
         y_minimum = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
         x_minimum = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
         self._img_shape = (y_minimum, x_minimum)
         self._img_center_x = int(self._img_shape[1] / 2)
         self._img_center_y = int(self._img_shape[0] / 2)
-        visual_pixel_map = cfel_geometry.compute_visualization_pix_maps(geometry)
-        self._visual_pixel_map_x = visual_pixel_map.x.flatten()
-        self._visual_pixel_map_y = visual_pixel_map.y.flatten()
+        visual_pixel_map = crystfel_geometry.compute_visualization_pix_maps(geometry)
+        self._visual_pixel_map_x = visual_pixel_map["x"].flatten()
+        self._visual_pixel_map_y = visual_pixel_map["y"].flatten()
         self._img = numpy.zeros(shape=self._img_shape, dtype=numpy.float)
 
         self._frame_list = collections.deque(maxlen=20)
@@ -250,7 +248,7 @@ def main(geometry_file, hostname, port):
         hostname = "127.0.0.1"
     if port is None:
         port = 12321
-    geometry = cfel_crystfel.load_crystfel_geometry(geometry_file)
+    geometry, _, _ = crystfel_geometry.load_crystfel_geometry(geometry_file)
     app = QtGui.QApplication(sys.argv)
     _ = CrystallographyFrameViewer(geometry, hostname, port)
     sys.exit(app.exec_())

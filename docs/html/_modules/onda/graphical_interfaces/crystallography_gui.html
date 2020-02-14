@@ -2,31 +2,30 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>onda.graphical_interfaces.crystallography_gui &#8212; OnDA 19.09.0.3 documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../_static/language_data.js"></script>
-    <script type="text/javascript" src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-    <script type="text/javascript" src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js"></script>
-    <script type="text/javascript" src="../../../_static/js/jquery-fix.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js"></script>
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
 
@@ -80,7 +79,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-md-12 content">
+    <div class="body col-md-12 content" role="main">
       
   <h1>Source code for onda.graphical_interfaces.crystallography_gui</h1><div class="highlight"><pre>
 <span></span><span class="c1"># This file is part of OnDA.</span>
@@ -110,14 +109,12 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>  <span class="c1"># pylint: disable=unused-import</span>
 
-<span class="kn">import</span> <span class="nn">cfelpyutils.crystfel_utils</span> <span class="k">as</span> <span class="nn">cfel_crystfel</span>
-<span class="kn">import</span> <span class="nn">cfelpyutils.geometry_utils</span> <span class="k">as</span> <span class="nn">cfel_geometry</span>
 <span class="kn">import</span> <span class="nn">click</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">pyqtgraph</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">constants</span>
 
-<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">gui</span>
+<span class="kn">from</span> <span class="nn">onda.utils</span> <span class="k">import</span> <span class="n">gui</span><span class="p">,</span> <span class="n">crystfel_geometry</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">PyQt5.QtCore</span> <span class="k">as</span> <span class="nn">QtCore</span>
@@ -146,8 +143,8 @@
 <span class="sd">        Arguments:</span>
 
 <span class="sd">            geometry (Dict[str, Any]): a dictionary containing CrystFEL detector</span>
-<span class="sd">                geometry information (as returned by the &#39;load_crystfel_geometry`</span>
-<span class="sd">                function in the &#39;cfelpyutils&#39; module).</span>
+<span class="sd">                geometry information (as returned by the</span>
+<span class="sd">                :func:`~onda.utils.crystfel_geometry.load_crystfel_geometry` function).</span>
 
 <span class="sd">            hostname (str): the hostname or IP address where the GUI will listen for</span>
 <span class="sd">                data.</span>
@@ -160,16 +157,16 @@
             <span class="n">gui_update_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_image_and_plots</span><span class="p">,</span>
             <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;ondadata&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">pixel_maps</span> <span class="o">=</span> <span class="n">cfel_geometry</span><span class="o">.</span><span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
-        <span class="n">x_map</span><span class="p">,</span> <span class="n">y_map</span> <span class="o">=</span> <span class="n">pixel_maps</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pixel_maps</span><span class="o">.</span><span class="n">y</span>
+        <span class="n">pixel_maps</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="n">x_map</span><span class="p">,</span> <span class="n">y_map</span> <span class="o">=</span> <span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pixel_maps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
         <span class="n">y_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>
         <span class="n">x_minimum</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_map</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span> <span class="o">+</span> <span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_minimum</span><span class="p">,</span> <span class="n">x_minimum</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_img_center_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_img_center_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">visual_pixel_map</span> <span class="o">=</span> <span class="n">cfel_geometry</span><span class="o">.</span><span class="n">compute_visualization_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_x</span> <span class="o">=</span> <span class="n">visual_pixel_map</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_y</span> <span class="o">=</span> <span class="n">visual_pixel_map</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">visual_pixel_map</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">compute_visualization_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_x</span> <span class="o">=</span> <span class="n">visual_pixel_map</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixel_map_y</span> <span class="o">=</span> <span class="n">visual_pixel_map</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_img_virt_powder_plot</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
             <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_img_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span>
         <span class="p">)</span>
@@ -445,7 +442,7 @@
 <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">geometry_file</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    OnDA graphical user interface for crystallography. This program must connect to a</span>
-<span class="sd">    running OnDA monitor for crystallography. If the monitor broacasts information on</span>
+<span class="sd">    running OnDA monitor for crystallography. If the monitor broadcasts information on</span>
 <span class="sd">    Bragg peaks and hit and saturation rates, this GUI will display their evolution</span>
 <span class="sd">    over time, plus a real-time virtual powder pattern created using the</span>
 <span class="sd">    detected peaks.</span>
@@ -463,7 +460,7 @@
         <span class="n">hostname</span> <span class="o">=</span> <span class="s2">&quot;127.0.0.1&quot;</span>
     <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">port</span> <span class="o">=</span> <span class="mi">12321</span>
-    <span class="n">geometry</span> <span class="o">=</span> <span class="n">cfel_crystfel</span><span class="o">.</span><span class="n">load_crystfel_geometry</span><span class="p">(</span><span class="n">geometry_file</span><span class="p">)</span>
+    <span class="n">geometry</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">load_crystfel_geometry</span><span class="p">(</span><span class="n">geometry_file</span><span class="p">)</span>
     <span class="n">app</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
     <span class="n">_</span> <span class="o">=</span> <span class="n">CrystallographyGui</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec_</span><span class="p">())</span>
@@ -484,7 +481,7 @@
     2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
     the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.1.<br/>
     </p>
   </div>
 </footer>

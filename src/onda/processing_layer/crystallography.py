@@ -25,15 +25,16 @@ import sys
 import time
 from typing import Any, Dict, Tuple  # pylint: disable=unused-import
 
-from cfelpyutils import crystfel_utils, geometry_utils
-
-from onda.algorithms import (
-    calibration_algorithms as calib_algs,
-    crystallography_algorithms as cryst_algs,
-    generic_algorithms as gen_algs,
-)
+from onda.algorithms import calibration_algorithms as calib_algs
+from onda.algorithms import crystallography_algorithms as cryst_algs
+from onda.algorithms import generic_algorithms as gen_algs
 from onda.parallelization_layer import mpi
-from onda.utils import dynamic_import, zmq_monitor
+from onda.utils import (  # pylint: disable=unused-import
+    crystfel_geometry,
+    dynamic_import,
+    zmq_monitor,
+    parameters,
+)
 
 
 class OndaMonitor(mpi.ParallelizationEngine):
@@ -137,9 +138,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 type_=str,
                 required=True,
             )
-            geometry = crystfel_utils.load_crystfel_geometry(geometry_filename)
-            pixelmaps = geometry_utils.compute_pix_maps(geometry)
-            radius_pixel_map = pixelmaps.r
+            geometry, _, _ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
+            pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
+            radius_pixel_map = pixelmaps["radius"]
             pf8_detector_info = dynamic_import.get_peakfinder8_info(
                 monitor_params=monitor_parameters
             )

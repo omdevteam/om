@@ -24,7 +24,7 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import socket
 import sys
-from typing import Generator  # pylint: disable=unused-import
+from typing import Any, Dict, Generator  # pylint: disable=unused-import
 
 import numpy  # pylint: disable=unused-import
 from future.utils import raise_from

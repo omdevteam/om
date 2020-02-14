@@ -26,7 +26,12 @@ from typing import Generator, List  # pylint: disable=unused-import
 import numpy
 from future.utils import iteritems, raise_from
 
-from onda.utils import dynamic_import, data_event, exceptions
+from onda.utils import (  # pylint: disable=unused-import
+    data_event,
+    dynamic_import,
+    exceptions,
+    parameters,
+)
 
 try:
     import psana  # pylint: disable=import-error
