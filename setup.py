@@ -1,42 +1,43 @@
-# This file is part of OnDA.
+# This file is part of OM.
 #
-# OnDA is free software: you can redistribute it and/or modify it under the terms of
+# OM is free software: you can redistribute it and/or modify it under the terms of
 # the GNU General Public License as published by the Free Software Foundation, either
 # version 3 of the License, or (at your option) any later version.
 #
-# OnDA is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# OM is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 # without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 # PURPOSE.  See the GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License along with OnDA.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+# Copyright 2020 SLAC National Accelerator Laboratory
+#
+# Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
-# pylint: disable=invalid-name
 """
-setup.py file for OnDA
+setup.py file for OM
 """
 from __future__ import absolute_import, division, print_function
 
 import os
 
-import numpy
-from setuptools import Extension, find_packages, setup
+import numpy  # type: ignore
+from setuptools import Extension, find_packages, setup  # type: ignore
 
-ONDA_USE_CYTHON = os.getenv("ONDA_USE_CYTHON")
+OM_USE_CYTHON = os.getenv("OM_USE_CYTHON")
 
-ext = ".pyx" if ONDA_USE_CYTHON else ".c"  # pylint: disable=invalid-name
+ext = ".pyx" if OM_USE_CYTHON else ".c"
 
-peakfinder8_ext = Extension(  # pylint: disable=invalid-name
-    name="onda.lib.peakfinder8_extension.peakfinder8_extension",
+peakfinder8_ext = Extension(
+    name="om.lib.peakfinder8_extension.peakfinder8_extension",
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
     sources=[
         "lib_src/peakfinder8_extension/peakfinder8.cpp",
         "lib_src/peakfinder8_extension/peakfinder8_extension.pyx",
     ]
-    if ONDA_USE_CYTHON
+    if OM_USE_CYTHON
     else [
         "lib_src/peakfinder8_extension/peakfinder8_extension.cpp",
         "lib_src/peakfinder8_extension/peakfinder8.cpp",
@@ -120,11 +121,11 @@ setup(
         "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"],
     },
     entry_points={
-        "console_scripts": ["onda_monitor.py=onda.monitor:main"],
+        "console_scripts": ["om_monitor.py=monitor:main"],
         "gui_scripts": [
-            "onda_crystallography_gui.py=onda.graphical_interfaces."
+            "om_crystallography_gui.py=om.graphical_interfaces."
             "crystallography_gui:main",
-            "onda_crystallography_frame_viewer.py=onda.graphical_interfaces."
+            "om_crystallography_frame_viewer.py=om.graphical_interfaces."
             "crystallography_frame_viewer:main",
         ],
     },
