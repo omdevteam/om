@@ -23,6 +23,7 @@
 
 #include "peakfinder8.hh"
 
+
 void allocatePeakList(tPeakList *peak, long NpeaksMax)
 {
 	peak->nPeaks = 0;
@@ -293,7 +294,7 @@ static struct radial_stats *compute_radial_bins(float *data,
 	for ( i=0; i<num_rad_bins; i++ ) {
 		rstats->rthreshold[i] = 1e9;
 		rstats->lthreshold[i] = -1e9;
-  	}
+	}
 
 	// Compute sigma and average of data values at each radius
 	// From this, compute the ADC threshold to be applied at each radius
@@ -483,7 +484,7 @@ static void free_peakfinder_intern_data(struct peakfinder_intern_data *pfid)
 {
 	free(pfid->peak_pixels);
 	free(pfid->pix_in_peak_map);
- 	free(pfid->infs);
+	free(pfid->infs);
 	free(pfid->inss);
 	free(pfid);
 }
@@ -622,7 +623,7 @@ static void search_in_ring(int ring_width, int com_fs_int, int com_ss_int,
 	}
 
 	// Calculate local background and standard deviation
- 	if ( np_sigma != 0 ) {
+	if ( np_sigma != 0 ) {
 		*local_offset = sum_i / np_sigma;
 		*local_sigma = sum_i_squared / np_sigma - (*local_offset * *local_offset);
 		if (*local_sigma >= 0) {
@@ -630,7 +631,7 @@ static void search_in_ring(int ring_width, int com_fs_int, int com_ss_int,
 		} else {
 			*local_sigma = 0.01;
 		}
- 	} else {
+	} else {
 		local_radius = (int)rint(r_map[(int)rint(com_idx)]);
 		*local_offset = roffset[local_radius];
 		*local_sigma = 0.01;
@@ -891,7 +892,7 @@ static int peakfinder8_base(float *roffset, float *rthreshold,
 	for ( aiss=0 ; aiss<num_asics_ss ; aiss++ ) {
 		for ( aifs=0 ; aifs<num_asics_fs ; aifs++ ) {                 // ??? to change to proper panels need
 			process_panel(asic_size_fs, asic_size_ss, num_pix_fs, // change copy, mask, r_map
-  			              aiss, aifs, rthreshold, roffset,
+			              aiss, aifs, rthreshold, roffset,
 			              &peak_count, data, pfinter, r_map, mask,
 			              npix, com_fs, com_ss, com_index, tot_i,
 			              max_i, sigma, snr, min_pix_count,
