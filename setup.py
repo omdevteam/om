@@ -27,7 +27,10 @@ from setuptools import Extension, find_packages, setup  # type: ignore
 
 OM_USE_CYTHON = os.getenv("OM_USE_CYTHON")
 
-ext = ".pyx" if OM_USE_CYTHON else ".c"
+if OM_USE_CYTHON:
+    ext = ".pyx" 
+else:
+    ext = ".c"
 
 peakfinder8_ext = Extension(
     name="om.lib.peakfinder8_extension.peakfinder8_extension",
@@ -104,30 +107,20 @@ setup(
         "click>=7.0",
         "fabio>=0.9.0",
         "future>=0.17.1",
-        "h5py>=2.9.0",
-        "mypy_extensions>=0.4.3",
-        "msgpack>=0.6.1",
-        "msgpack-numpy>=0.4.4.3",
-        "numpy>=1.16.4",
+        "h5py>=2.7.0",
+        "msgpack-python>=0.4.8",
+        "msgpack-numpy>=0.4.1",
+        "numpy>=1.11.3",
         "pyyaml>=5.1.2",
         "pyzmq>=18.0.2",
         "scipy>=1.2.1",
-        "toml>=0.10.0",
         "typing>=3.6.4",
     ],
     extras_require={
-        "monitor": [],
         ":python_version < '3.4'": ["pathlib>=1.0.1"],
-        "gui": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"],
     },
     entry_points={
         "console_scripts": ["om_monitor.py=monitor:main"],
-        "gui_scripts": [
-            "om_crystallography_gui.py=om.graphical_interfaces."
-            "crystallography_gui:main",
-            "om_crystallography_frame_viewer.py=om.graphical_interfaces."
-            "crystallography_frame_viewer:main",
-        ],
     },
     ext_modules=extensions,
     package_dir={"": "src"},
