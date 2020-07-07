@@ -16,140 +16,140 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA-specific exceptions and exception handling.
+OM-specific exceptions and exception handling.
 
-This module contains a set of python exceptions that are specific to OnDA, and a
-custom exception handler that reports the OnDA exceptions in a simplified way.
+This module contains a set of python exceptions that are specific to OM, and a
+custom exception handler that reports the OM exceptions in a simplified way.
 """
 from __future__ import absolute_import, division, print_function
 
 import sys
-import traceback  # pylint: disable=unused-import
+import traceback
 
 
-class OndaException(Exception):
+class OmException(Exception):
     """
-    Base OnDA exception.
+    Base OM exception.
 
-    All other OnDA-specific exceptions must subclass from this exception.
+    All other OM-specific exceptions must subclass from this exception.
     """
 
 
-class OndaHidraAPIError(OndaException):
+class OmHidraAPIError(OmException):
     """
     Raised if an error happens during a HiDRA API call.
     """
 
 
-class OndaMissingEventHandlingFunctionError(OndaException):
+class OmMissingEventHandlingFunctionError(OmException):
     """
     Raised if an Event Handling Function is not defined.
     """
 
 
-class OndaMissingDataExtractionFunctionError(OndaException):
+class OmMissingDataExtractionFunctionError(OmException):
     """
     Raised if a Data Extraction Function is not defined.
     """
 
 
-class OndaMissingPsanaInitializationFunctionError(OndaException):
+class OmMissingPsanaInitializationFunctionError(OmException):
     """
     Raised if a psana Detector Interface Initialization Function is not defined.
     """
 
 
-class OndaConfigurationFileSyntaxError(OndaException):
+class OmConfigurationFileSyntaxError(OmException):
     """
     Raised if there is a syntax error in the configuration file.
     """
 
 
-class OndaConfigurationFileReadingError(OndaException):
+class OmConfigurationFileReadingError(OmException):
     """
     Raised if an error happens while reading the configuration file.
     """
 
 
-class OndaMissingParameterGroupError(OndaException):
+class OmMissingParameterGroupError(OmException):
     """
     Raised if a parameter group is missing from the configuration file.
     """
 
 
-class OndaMissingParameterError(OndaException):
+class OmMissingParameterError(OmException):
     """
     Raised if a parameter is missing from the configuration file.
     """
 
 
-class OndaWrongParameterTypeError(OndaException):
+class OmWrongParameterTypeError(OmException):
     """
     Raised if the type of the configuration parameter does not match the requested one.
     """
 
 
-class OndaDataExtractionError(OndaException):
+class OmDataExtractionError(OmException):
     """
     Raised if an error happens during data extraction.
     """
 
 
-class OndaInvalidSourceError(OndaException):
+class OmInvalidSourceError(OmException):
     """
     Raised if the format of the source string is not valid.
     """
 
 
-class OndaMissingDependencyError(OndaException):
+class OmMissingDependencyError(OmException):
     """
     Raised if one of the dependencies of a module is not found on the system.
     """
 
 
-class OndaHdf5FileReadingError(OndaException):
+class OmHdf5FileReadingError(OmException):
     """
     Raised if an error happens while reading an HDF5 file.
     """
 
 
-class OndaMissingHdf5PathError(OndaException):
+class OmMissingHdf5PathError(OmException):
     """
     Raised if an internal HDF5 path is not found.
     """
 
 
-class OndaDetectorCalibrationError(OndaException):
+class OmDetectorCalibrationError(OmException):
     """
     Raised if an error occurs while calling a calibration algorithm.
     """
 
 
-def onda_exception_handler(type_, value, traceback_):
+def onda_exception_handler(parameter_type, value, traceback_):
     """
-    Custom OnDA exception handler.
+    Custom OM exception handler.
 
     This function should never be called directly. Instead it should be used as a
-    replacement for the standard exception handler. For all OnDA exceptions, this
-    handler adds a label to the Exception and hides the stacktrace. All non-OnDA
+    replacement for the standard exception handler. For all OM exceptions, this
+    handler adds a label to the Exception and hides the stacktrace. All non-OM
     exceptions are instead reported normally.
 
     Arguments:
 
-        type_ (Exception): exception type.
+        parameter_type (Exception): exception type.
 
         value (str): exception value (the message that comes with the exception).
 
         traceback_ (str): traceback to be printed.
     """
     # TODO: Fix types.
-    if issubclass(type_, OndaException):
-        print("OnDA ERROR: {0}".format(value))
+    if issubclass(parameter_type, OmException):
+        print("OM ERROR: {0}".format(value))
         sys.stdout.flush()
         sys.stderr.flush()
         sys.exit(0)
     else:
-        traceback.print_exception(type_, value, traceback_)
+        traceback.print_exception(parameter_type, value, traceback_)
         sys.stdout.flush()
         sys.stderr.flush()
         sys.exit(0)

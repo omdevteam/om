@@ -129,14 +129,14 @@ def event_generator(
         event.framework_info["beam_energy"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="fallback_beam_energy_in_eV",
-            type_=float,
+            parameter_type=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="fallback_detector_distance_in_mm",
-            type_=float,
+            parameter_type=float,
             required=True,
         )
 

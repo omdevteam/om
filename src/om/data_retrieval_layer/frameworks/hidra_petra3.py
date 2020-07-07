@@ -49,7 +49,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
     # specified there, imports the suggested transfer type from the data extraction
     # layer and use that.
     transfer_type = monitor_params.get_param(
-        group="DataRetrievalLayer", parameter="hidra_transfer_type", type_=str
+        group="DataRetrievalLayer", parameter="hidra_transfer_type", parameter_type=str
     )
     if transfer_type is None:
         transfer_type = dynamic_import.get_hidra_transfer_type(monitor_params)
@@ -69,7 +69,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
             monitor_params.get_param(
                 group="DataRetrievalLayer",
                 parameter="hidra_data_base_path",
-                type_=str,
+                parameter_type=str,
                 required=True,
             )
         )
@@ -79,7 +79,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
     base_port = monitor_params.get_param(
         group="DataRetrievalLayer",
         parameter="hidra_base_port",
-        type_=int,
+        parameter_type=int,
         required=True,
     )
 
@@ -87,7 +87,9 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
     # string is not found, use the file extensions from the detector layer as
     # selection string.
     hidra_selection_string = monitor_params.get_param(
-        group="DataRetrievalLayer", parameter="hidra_selection_string", type_=str
+        group="DataRetrievalLayer",
+        parameter="hidra_selection_string",
+        parameter_type=str,
     )
     if hidra_selection_string is None:
         hidra_selection_string = dynamic_import.get_file_extensions(monitor_params)
@@ -207,13 +209,16 @@ def event_generator(
             HiDRA fails.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda",
+        parameter="data_retrieval_layer",
+        parameter_type=str,
+        required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        group="Onda", parameter="required_data", type_=list, required=True
+        group="Onda", parameter="required_data", parameter_type=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
@@ -231,14 +236,14 @@ def event_generator(
         event.framework_info["beam_energy"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="fallback_beam_energy_in_eV",
-            type_=float,
+            parameter_type=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="fallback_detector_distance_in_mm",
-            type_=float,
+            parameter_type=float,
             required=True,
         )
 

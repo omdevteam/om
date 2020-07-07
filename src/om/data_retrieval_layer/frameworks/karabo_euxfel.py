@@ -111,13 +111,16 @@ def event_generator(
     """
     del node_pool_size
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda",
+        parameter="data_retrieval_layer",
+        parameter_type=str,
+        required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        group="Onda", parameter="required_data", type_=list, required=True
+        group="Onda", parameter="required_data", parameter_type=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
@@ -134,55 +137,57 @@ def event_generator(
     event.framework_info["detector_label"] = monitor_params.get_param(
         group="DataRetrievalLayer",
         parameter="karabo_detector_label",
-        type_=str,
+        parameter_type=str,
         required=True,
     )
     if "detector2_label" in data_extraction_functions:
         event.framework_info["detector2_label"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="karabo_detector2_label",
-            type_=str,
+            parameter_type=str,
             required=True,
         )
     if "detector3_label" in data_extraction_functions:
         event.framework_info["detector3_label"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="karabo_detector3_label",
-            type_=str,
+            parameter_type=str,
             required=True,
         )
     if "beam_energy" in data_extraction_functions:
         event.framework_info["beam_energy"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="fallback_beam_energy_in_eV",
-            type_=float,
+            parameter_type=float,
             required=True,
         )
     if "detector_distance" in data_extraction_functions:
         event.framework_info["detector_distance"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="fallback_detector_distance_in_mm",
-            type_=float,
+            parameter_type=float,
             required=True,
         )
     if "optical_laser_active" in data_extraction_functions:
         event.framework_info["frames_with_optical_laser"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="karabo_frame_ids_with_optical_laser_active",
-            type_=list,
+            parameter_type=list,
             required=True,
         )
     if "xrays_active" in data_extraction_functions:
         event.framework_info["frames_with_xrays"] = monitor_params.get_param(
             group="DataRetrievalLayer",
             parameter="karabo_frame_ids_with_xrays_active",
-            type_=list,
+            parameter_type=list,
             required=True,
         )
 
     # Connects to the Karabo Bridge using the Karabo API.
     max_event_age = monitor_params.get_param(
-        group="DataRetrievalLayer", parameter="karabo_max_event_age", type_=float
+        group="DataRetrievalLayer",
+        parameter="karabo_max_event_age",
+        parameter_type=float,
     )
     if max_event_age is None:
         max_event_age = 10000000000
@@ -212,7 +217,7 @@ def event_generator(
                 ],
             )
         )
-        time_now = numpy.float64(time.time())  # pylint: disable=no-member
+        time_now = numpy.float64(time.time())
         if (time_now - event.timestamp) > max_event_age:
             continue
 

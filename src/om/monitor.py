@@ -64,7 +64,7 @@ def main(source, config, debug):
 
     monitor_parameters = parameters.MonitorParams(config)
     processing_layer_filename = monitor_parameters.get_param(
-        group="Onda", parameter="processing_layer", type_=str, required=True
+        group="Onda", parameter="processing_layer", parameter_type=str, required=True
     )
     processing_layer = dynamic_import.import_processing_layer(processing_layer_filename)
     monitor = processing_layer.OndaMonitor(

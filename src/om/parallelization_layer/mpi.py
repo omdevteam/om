@@ -115,7 +115,10 @@ class ParallelizationEngine(object):
             self.role = "worker"
 
         data_retrieval_layer_filename = monitor_params.get_param(
-            group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+            group="Onda",
+            parameter="data_retrieval_layer",
+            parameter_type=str,
+            required=True,
         )
         data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
             data_retrieval_layer_filename=data_retrieval_layer_filename
@@ -129,12 +132,12 @@ class ParallelizationEngine(object):
             self._num_frames_in_event_to_process = monitor_params.get_param(
                 group="DataRetrievalLayer",
                 parameter="num_of_most_recent_frames_in_event_to_process",
-                type_=int,
+                parameter_type=int,
             )
             frames_in_event_to_skip = monitor_params.get_param(
                 group="DataRetrievalLayer",
                 parameter="frame_indexes_to_skip",
-                type_=list,
+                parameter_type=list,
             )
             if frames_in_event_to_skip is not None:
                 self._frames_in_event_to_skip = tuple(frames_in_event_to_skip)

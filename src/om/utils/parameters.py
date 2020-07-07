@@ -92,9 +92,9 @@ class MonitorParams(object):
         * If the 'required' argument is False and the parameter cannot be found in the
           configuration file, this function will return None.
 
-        * If a type is specified in the function call (the 'type\_' argument is not
-          None), this function will raise an exception if the type of the retrieved
-          parameter does not match the specified one.
+        * If a type is specified in the function call (the 'parameter_type' argument
+          is not None), this function will raise an exception if the type of the
+          retrieved parameter does not match the specified one.
 
         Arguments:
 
@@ -103,68 +103,68 @@ class MonitorParams(object):
 
             parameter (str): the name of the parameter to retrieve.
 
-            type_ (Optional[Type]): the type of the parameter. If a type is specified
+            parameter_type (Any): the type of the parameter. If a type is specified
                 here, the type of the retrieved parameter will be validated. Defaults
                 to None.
 
             required (bool): True if the parameter is strictly required and must be
                 present in the configuration file, False otherwise. Defaults to False.
 
-        Returns:
+        Returns:        
 
-            Union[Any, None]: the value of the requested parameter, or None, if the
+            Any: the value of the requested parameter, or None, if the
             parameter was not found in the configuration file (and it is not
             required).
 
         Raises:
 
-            :class:`~onda.utils.exceptions.OndaMissingParameterGroupError`: if the
+            :class:`~om.utils.exceptions.OmMissingParameterGroupError`: if the
                 requested parameter group is not present in the configuration file.
 
-            :class:`~onda.utils.exceptions.OndaMissingParameterError`: if the parameter
+            :class:`~om.utils.exceptions.OmMissingParameterError`: if the parameter
                 is required but cannot be found in the configuration file.
 
-            :class:`~onda.utils.exceptions.OndaWrongParameterTypeError`: if the
+            :class:`~om.utils.exceptions.OmWrongParameterTypeError`: if the
                 requested parameter type does not match the type of the parameter in
                 the configuration file.
         """
         if group not in self._monitor_params:
-            raise exceptions.OndaMissingParameterGroupError(
+            raise exceptions.OmMissingParameterGroupError(
                 "Parameter group [{0}] is not in the configuration file".format(group)
             )
         else:
             ret = self._monitor_params[group].get(parameter)
             if ret is None and required is True:
-                raise exceptions.OndaMissingParameterError(
+                raise exceptions.OmMissingParameterError(
                     "Parameter {0} in group [{1}] was not found, but is "
                     "required.".format(parameter, group)
                 )
-            if ret is not None and type_ is not None:
-                if type_ is str:
+            if ret is not None and parameter_type is not None:
+                if parameter_type is str:
                     if not isinstance(ret, basestring):
-                        raise exceptions.OndaWrongParameterTypeError(
+                        raise exceptions.OmWrongParameterTypeError(
                             "Wrong type for parameter {0}: should be {1}, is "
                             "{2}.".format(
                                 parameter,
-                                str(type_).split()[1][1:-2],
+                                str(parameter_type).split()[1][1:-2],
                                 str(type(ret)).split()[1][1:-2],
                             )
                         )
-                elif type_ is float:
+                elif parameter_type is float:
                     if not isinstance(ret, float) and not isinstance(ret, int):
-                        raise exceptions.OndaWrongParameterTypeError(
+                        raise exceptions.OmWrongParameterTypeError(
                             "Wrong type for parameter {0}: should be {1}, is "
                             "{2}.".format(
                                 parameter,
-                                str(type_).split()[1][1:-2],
+                                str(parameter_type).split()[1][1:-2],
                                 str(type(ret)).split()[1][1:-2],
                             )
                         )
-                elif not isinstance(ret, type_):
-                    raise exceptions.OndaWrongParameterTypeError(
+                elif not isinstance(ret, parameter_type):
+                    raise exceptions.OmWrongParameterTypeError(
                         "Wrong type for parameter {0}: should be {1}, is {2}.".format(
                             parameter,
-                            str(type_).split()[1][1:-2],
+                            str(parameter_type).split()[1][1:-2],
                             str(type(ret)).split()[1][1:-2],
                         )
                     )

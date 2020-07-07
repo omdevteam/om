@@ -278,7 +278,10 @@ def get_peakfinder8_info(monitor_params):
         information.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda",
+        parameter="data_retrieval_layer",
+        parameter_type=str,
+        required=True,
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
     peakfinder8_retrieval_func = getattr(data_retrieval_layer, "get_peakfinder8_info")
@@ -304,7 +307,10 @@ def get_file_extensions(monitor_params):
         Tuple[str]: a tuple storing the file extensions
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda",
+        parameter="data_retrieval_layer",
+        parameter_type=str,
+        required=True,
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
     file_extension_info_func = getattr(data_retrieval_layer, "get_file_extensions")
@@ -329,10 +335,13 @@ def get_hidra_transfer_type(monitor_params):
         str: the HiDRA transport type for the x-ray detector ('data' or 'metadata').
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda",
+        parameter="data_retrieval_layer",
+        parameter_type=str,
+        required=True,
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
-    hidra_transport_type_func = getattr(
+    hidra_transport_parameter_typefunc = getattr(
         data_retrieval_layer, "get_hidra_transport_type"
     )
-    return hidra_transport_type_func()
+    return hidra_transport_parameter_typefunc()
