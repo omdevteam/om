@@ -304,10 +304,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._avg_sat_rate = 0
 
             broadcast_socket_ip = monitor_parameters.get_param(
-                group="Crystallography", parameter="broadcast_ip", parameter_type=str
+                group="crystallography", parameter="broadcast_ip", parameter_type=str
             )
             broadcast_socket_port = monitor_parameters.get_param(
-                group="Crystallography", parameter="broadcast_port", parameter_type=int
+                group="crystallography", parameter="broadcast_port", parameter_type=int
             )
             self._data_broadcast_socket = zmq_monitor.ZmqDataBroadcaster(
                 hostname=broadcast_socket_ip, port=broadcast_socket_port
