@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA configuration parameter object.
+OM configuration parameter object.
 
 This module contains a class that stores a set of configuration parameters read from a
 file. Configuration parameters can be retrieved from this class and optionally
@@ -24,19 +24,13 @@ validated.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import (  # pylint: disable=unused-import
-    Any,
-    List,
-    MutableMapping,
-    Union,
-    Type,
-)
+from typing import Any, Dict, List, Type, Union
 
-import toml
-from future.utils import raise_from
-from past.builtins import basestring
+import yaml
+from future.utils import raise_from  # type: ignore
+from past.builtins import basestring  # type: ignore
 
-from onda.utils import exceptions
+from om.utils import exceptions
 
 
 class MonitorParams(object):
@@ -47,40 +41,44 @@ class MonitorParams(object):
     def __init__(self, config):
         # type: (str) -> None
         """
-        Storage, retrieval and validation of OnDA monitor parameters.
+        Storage, retrieval and validation of OM monitor parameters.
 
-        This class stores a set of OnDA configuration parameters read from a file in
-        TOML format. The parameters are grouped together in groups ('Tables' in TOML
-        parlance) and can be retrieved and optionally validated.
+        This class stores a set of OM configuration parameters read from a file in
+        YAML format. The parameters are grouped together in groups and can be retrieved
+        and optionally validated.
 
         Arguments:
 
-            config (str): the absolute or relative path to a TOML-format configuration
+            config (str): the absolute or relative path to a YAML-format configuration
                 file.
 
         Raises:
 
-            :class:`~onda.utils.exceptions.OndaConfigurationFileSyntaxError`: if there
+            :class:`~om.utils.exceptions.OMConfigurationFileSyntaxError`: if there
                 is a syntax error in theconfiguration file.
         """
+
+        self._monitor_params = {}  # type: Dict[str, Any]
+
         try:
-            self._monitor_params = toml.load("".join(config))
+            with open(config, "r") as open_file:
+                self._monitor_params = yaml.load(open_file)
         except OSError:
-            raise exceptions.OndaConfigurationFileReadingError(
+            raise exceptions.OmConfigurationFileReadingError(
                 "Cannot open or read the configuration file {0}".format(config)
             )
-        except toml.TomlDecodeError as exc:
+        except yaml.parser.ParserError as exc:
             raise_from(
-                exc=exceptions.OndaConfigurationFileSyntaxError(
+                exc=exceptions.OmConfigurationFileSyntaxError(
                     "Syntax error in the configuration file: {0}".format(exc)
                 ),
                 cause=exc,
             )
 
-    def get_param(self, group, parameter, type_=None, required=False):
-        # type: (str, str, Type, bool) -> Union[Any, None]
+    def get_param(self, group, parameter, parameter_type=None, required=False):
+        # type: (str, str, Any, bool) -> Any
         """
-        Retrieves an OnDA monitor configuration parameter.
+        Retrieves an OM monitor configuration parameter.
 
         This function retrives a configuration parameter belonging to a parameter
         group. Optionally, it validates the type of the parameter. The function behaves
@@ -175,13 +173,13 @@ class MonitorParams(object):
                 return ret
 
     def get_all_parameters(self):
-        # type: () -> MutableMapping[str, Any]
+        # type: () -> Dict[str, Any]
         """
         Returns the whole set of parameters read from the configuration file.
 
         Returns:
 
-            MutableMapping[str, Any]: a dictionary containing the parameters read from
-            the configuration file.
+            Dict[str, Any]: a dictionary containing the parameters read from the
+            configuration file.
         """
         return self._monitor_params
