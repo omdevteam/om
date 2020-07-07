@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function
 
 import collections
 import sys
-from typing import Any, Dict  # pylint: disable=unused-import
+from typing import Any, Dict
 
 import click
 import numpy

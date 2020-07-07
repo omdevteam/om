@@ -27,8 +27,8 @@ import io
 
 import fabio
 
-from onda.utils import data_event  # pylint: disable=unused-import
-from .pilatus_files import (  # pylint: disable=unused-import
+from onda.utils import data_event
+from .pilatus_files import (
     # Utility functions.
     get_file_extensions,
     get_hidra_transport_type,

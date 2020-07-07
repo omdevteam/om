@@ -15,7 +15,6 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
-# pylint: disable=too-many-lines
 """
 Geometry utilities.
 
@@ -28,26 +27,21 @@ import copy
 import math
 import re
 import sys
-from typing import (Dict, List, Tuple, Type,  # pylint: disable=unused-import
-                    Union)
+from typing import Dict, List, Tuple, Type, Union
 
 import numpy  # type: ignore
 from future.utils import raise_from, viewitems  # type: ignore
 from mypy_extensions import TypedDict
 
 
-TypeBeam = TypedDict(  # pylint: disable=invalid-name
+TypeBeam = TypedDict(
     "TypeBeam",
-    {
-        "photon_energy": float,
-        "photon_energy_from": str,
-        "photon_energy_scale": float,
-    },
+    {"photon_energy": float, "photon_energy_from": str, "photon_energy_scale": float,},
     total=True,
 )
 
 
-TypePanel = TypedDict(  # pylint: disable=invalid-name
+TypePanel = TypedDict(
     "TypePanel",
     {
         "cnx": float,
@@ -91,7 +85,7 @@ TypePanel = TypedDict(  # pylint: disable=invalid-name
     total=True,
 )
 
-TypeBadRegion = TypedDict(  # pylint: disable=invalid-name
+TypeBadRegion = TypedDict(
     "TypeBadRegion",
     {
         "panel": str,
@@ -108,7 +102,7 @@ TypeBadRegion = TypedDict(  # pylint: disable=invalid-name
     total=True,
 )
 
-TypeDetector = TypedDict(  # pylint: disable=invalid-name
+TypeDetector = TypedDict(
     "TypeDetector",
     {
         "panels": Dict[str, TypePanel],
@@ -195,7 +189,7 @@ def _set_dim_structure_entry(key, value, panel):
     panel["dim_structure"] = dim
 
 
-def _parse_field_for_panel(  # pylint: disable=too-many-branches, too-many-statements
+def _parse_field_for_panel(
     key,  # type: str
     value,  # type: str
     panel,  # type: TypePanel
@@ -317,7 +311,7 @@ def _parse_toplevel(
     beam,  # type: TypeBeam
     panel,  # type: TypePanel
     hdf5_peak_path,  # type: str
-):  # pylint: disable=too-many-branches
+):
     # type: (...) -> str
     # Re-implementation of parse_toplevel from libcrystfel/src/detector.c.
     if key == "mask_bad":
@@ -399,7 +393,7 @@ def _parse_field_bad(key, value, bad):
         raise RuntimeError("Unrecognized field: {}".format(key))
 
 
-def _check_point(  # pylint: disable=too-many-arguments
+def _check_point(
     panel_name,  # type: str
     panel,  # type: TypePanel
     fs_,  # type: int
@@ -473,9 +467,7 @@ def _find_min_max_d(detector):
         )
 
 
-def load_crystfel_geometry(
-    filename,
-):  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def load_crystfel_geometry(filename,):
     # type: (str) -> Tuple[TypeDetector, TypeBeam, Union[str, None]]
     """
     Loads a CrystFEL geometry file.

@@ -20,7 +20,7 @@ Data retrieval at the MID beamline of the European XFEL.
 """
 from __future__ import absolute_import, division, print_function
 
-from ..data_sources.agipd_1m_karabo import (  # pylint: disable=unused-import
+from ..data_sources.agipd_1m_karabo import (
     # Utility functions.
     get_peakfinder8_info,
     # Event handling functions.
@@ -30,7 +30,7 @@ from ..data_sources.agipd_1m_karabo import (  # pylint: disable=unused-import
     detector_gain,
 )
 
-from ..frameworks.karabo_euxfel import (  # pylint: disable=unused-import
+from ..frameworks.karabo_euxfel import (
     # Event handling functions.
     close_event,
     event_generator,

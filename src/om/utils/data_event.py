@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import types
-from typing import Any, Callable, Dict  # pylint: disable=unused-import
+from typing import Any, Callable, Dict
 
 from future.utils import iteritems
 
@@ -112,7 +112,7 @@ class DataEvent(object):
                 data[f_name] = func(self)
         # One should never do the following, but it is not possible to anticipate
         # every possible error raised by the facility frameworks.
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
                 raise exceptions.OndaDataExtractionError(

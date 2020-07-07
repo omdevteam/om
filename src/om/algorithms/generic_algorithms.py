@@ -25,10 +25,10 @@ etc.).
 from __future__ import absolute_import, division, print_function
 
 import sys
-from typing import Any, Dict, List, Optional, Union  # pylint: disable=unused-import
+from typing import Any, Dict, List, Optional, Union
 
 import h5py  # type:ignore
-import numpy  # pylint: disable=unused-import
+import numpy
 from future.utils import raise_from  # type: ignore
 
 from onda.utils import exceptions

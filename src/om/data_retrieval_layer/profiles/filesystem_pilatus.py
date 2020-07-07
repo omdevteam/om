@@ -20,7 +20,7 @@ Data retrieval at the P11 beamline of Petra III.
 """
 from __future__ import absolute_import, division, print_function
 
-from ..data_sources.pilatus_files import (  # pylint: disable=unused-import
+from ..data_sources.pilatus_files import (
     # Utility functions.
     get_file_extensions,
     get_peakfinder8_info,
@@ -34,7 +34,7 @@ from ..data_sources.pilatus_files import (  # pylint: disable=unused-import
     frame_id,
 )
 
-from ..frameworks.files_filesystem import (  # pylint: disable=unused-import
+from ..frameworks.files_filesystem import (
     # Event handling functions.
     event_generator,
     initialize_event_source,

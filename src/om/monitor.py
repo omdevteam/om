@@ -26,7 +26,7 @@ import sys
 
 import click
 
-from onda.utils import dynamic_import, exceptions, parameters
+from om.utils import dynamic_import, exceptions, parameters
 
 
 @click.command()

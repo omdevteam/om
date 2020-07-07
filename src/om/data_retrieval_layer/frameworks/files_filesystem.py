@@ -24,12 +24,12 @@ on disk.
 from __future__ import absolute_import, division, print_function
 
 import os.path
-from typing import Generator  # pylint: disable=unused-import
+from typing import Generator
 
 import numpy
 from future.utils import raise_from
 
-from onda.utils import (  # pylint: disable=unused-import
+from onda.utils import (
     data_event,
     dynamic_import,
     parameters,
@@ -102,13 +102,16 @@ def event_generator(
         :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda", parameter="data_retrieval_layer", type_=str, required=True
+        group="Onda",
+        parameter="data_retrieval_layer",
+        parameter_type=str,
+        required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        group="Onda", parameter="required_data", type_=list, required=True
+        group="Onda", parameter="required_data", parameter_type=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer

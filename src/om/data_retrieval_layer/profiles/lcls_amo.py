@@ -20,14 +20,14 @@ Data retrieval at the AMO beamline of LCLS.
 """
 from __future__ import absolute_import, division, print_function
 
-from ..data_sources.pnccd_psana import (  # pylint: disable=unused-import
+from ..data_sources.pnccd_psana import (
     # Utility functions.
     get_peakfinder8_info,
     # Data extraction functions.
     detector_data,
 )
 
-from ..frameworks.psana_lcls import (  # pylint: disable=unused-import
+from ..frameworks.psana_lcls import (
     # Event handling function.
     close_event,
     event_generator,

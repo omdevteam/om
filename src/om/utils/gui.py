@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function
 
 import copy
 import time
-from typing import Any, Callable, Dict, List  # pylint: disable=unused-import
+from typing import Any, Callable, Dict, List
 
 from onda.utils import zmq_gui
 

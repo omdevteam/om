@@ -26,12 +26,12 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import socket
 import sys
-from typing import Any, Dict, Generator  # pylint: disable=unused-import
+from typing import Any, Dict, Generator
 
-import numpy  # pylint: disable=unused-import
+import numpy
 from future.utils import raise_from
 
-from onda.utils import (  # pylint: disable=unused-import
+from onda.utils import (
     data_event,
     dynamic_import,
     exceptions,

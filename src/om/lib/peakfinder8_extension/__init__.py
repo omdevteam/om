@@ -21,4 +21,4 @@ Peakfinder8 algorithm wrapped using cython.
 This module contains the 'peakfinder8' peak finder written in C++, along with its
 Cython wrapper.
 """
-from .peakfinder8_extension import peakfinder_8  # pylint: disable=import-error
+from .peakfinder8_extension import peakfinder_8

@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy
 
-from onda.utils import data_event, exceptions  # pylint: disable=unused-import
+from onda.utils import data_event, exceptions
 
 
 #####################

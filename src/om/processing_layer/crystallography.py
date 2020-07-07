@@ -25,13 +25,13 @@ from __future__ import absolute_import, division, print_function
 import collections
 import sys
 import time
-from typing import Any, Dict, Tuple  # pylint: disable=unused-import
+from typing import Any, Dict, Tuple
 
 from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
 from onda.parallelization_layer import mpi
-from onda.utils import (  # pylint: disable=unused-import
+from onda.utils import (
     crystfel_geometry,
     dynamic_import,
     zmq_monitor,

@@ -24,8 +24,8 @@ different parts of OnDA.
 from __future__ import absolute_import, division, print_function
 
 import importlib
-from types import ModuleType  # pylint: disable=unused-import
-from typing import (  # pylint: disable=unused-import
+from types import ModuleType
+from typing import (
     Any,
     Callable,
     Dict,
@@ -35,7 +35,7 @@ from typing import (  # pylint: disable=unused-import
 )
 from future.utils import raise_from
 
-from onda.utils import exceptions, parameters  # pylint: disable=unused-import
+from onda.utils import exceptions, parameters
 
 
 def import_processing_layer(processing_layer_filename):

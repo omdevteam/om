@@ -29,9 +29,7 @@ import h5py  # type: ignore
 import numpy  # type: ignore
 
 
-class Agipd1MCalibration(
-    object
-):  # pylint: disable=useless-object-inheritance, too-few-public-methods
+class Agipd1MCalibration(object):
     """
     See documentation of the '__init__' function.
     """

@@ -23,12 +23,12 @@ detector.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Tuple  # pylint: disable=unused-import
+from typing import Tuple
 
 import fabio
-import numpy  # pylint: disable=unused-import
+import numpy
 
-from onda.utils import data_event  # pylint: disable=unused-import
+from onda.utils import data_event
 
 
 #####################

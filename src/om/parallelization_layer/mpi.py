@@ -25,11 +25,11 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import sys
-from typing import Any, Dict, Callable, Optional, Tuple  # pylint: disable=unused-import
+from typing import Any, Dict, Callable, Optional, Tuple
 
 from mpi4py import MPI
 
-from onda.utils import (  # pylint: disable=unused-import
+from onda.utils import (
     dynamic_import,
     exceptions,
     parameters,
@@ -222,7 +222,7 @@ class ParallelizationEngine(object):
                 "You are using an OnDA real-time monitor. Please cite: "
                 "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
             )
-            _ = self._initialize_event_source(  # pylint: disable=unused-variable
+            _ = self._initialize_event_source(
                 source=self._source,
                 node_pool_size=self._mpi_size,
                 monitor_params=self._monitor_params,

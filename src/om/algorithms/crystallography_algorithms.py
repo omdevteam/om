@@ -24,7 +24,7 @@ This module contains algorithms that carry out crystallography-related data proc
 from __future__ import absolute_import, division, print_function
 
 import sys
-from typing import List, Optional, Type, Union  # pylint: disable=unused-import
+from typing import List, Optional, Type, Union
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -34,7 +34,7 @@ from mypy_extensions import TypedDict
 from onda.lib.peakfinder8_extension import peakfinder_8
 
 
-TypePeakList = TypedDict(  # pylint: disable=invalid-name
+TypePeakList = TypedDict(
     "TypePeakList",
     {"num_peaks": int, "fs": List[float], "ss": List[float], "intensity": List[float]},
     total=True,
@@ -43,7 +43,7 @@ TypePeakList = TypedDict(  # pylint: disable=invalid-name
 
 class Peakfinder8PeakDetection(
     object
-):  # pylint: disable=useless-object-inheritance, too-few-public-methods
+):
     """
     See documentation of the '__init__' function.
     """

@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function
 import socket
 import sys
 
-from typing import Optional  # pylint: disable=unused-import
+from typing import Optional
 
 import msgpack
 import msgpack_numpy
@@ -59,7 +59,7 @@ class ZmqDataBroadcaster(object):
                 socket will be opened at port 12321. Defaults to None.
         """
         self._context = zmq.Context()
-        self._sock = self._context.socket(zmq.PUB)  # pylint: disable=no-member
+        self._sock = self._context.socket(zmq.PUB)
         if hostname is not None:
             bhostname = hostname
         else:

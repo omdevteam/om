@@ -48,7 +48,7 @@ peakfinder8_ext = Extension(
 if OM_USE_CYTHON:
     from Cython.Build import cythonize  # type: ignore
 
-    extensions = cythonize(peakfinder8_ext)  # pylint: disable=invalid-name
+    extensions = cythonize(peakfinder8_ext)
 else:
     extensions = [peakfinder8_ext]
 

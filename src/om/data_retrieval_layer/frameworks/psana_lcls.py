@@ -23,12 +23,12 @@ framework at the LCLS facility.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Generator, List  # pylint: disable=unused-import
+from typing import Generator, List
 
 import numpy
 from future.utils import iteritems, raise_from
 
-from onda.utils import (  # pylint: disable=unused-import
+from onda.utils import (
     data_event,
     dynamic_import,
     exceptions,
@@ -36,7 +36,7 @@ from onda.utils import (  # pylint: disable=unused-import
 )
 
 try:
-    import psana  # pylint: disable=import-error
+    import psana
 except ImportError as exc:
     raise_from(
         exc=exceptions.OndaMissingDependencyError(

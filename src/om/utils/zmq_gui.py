@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import str as unicode_str
 
-from typing import Optional  # pylint: disable=unused-import
+from typing import Optional
 
 import msgpack
 import msgpack_numpy

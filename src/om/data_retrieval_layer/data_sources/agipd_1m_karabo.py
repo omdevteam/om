@@ -23,9 +23,9 @@ using the Karabo framework.
 """
 from __future__ import absolute_import, division, print_function
 
-import numpy  # pylint: disable=unused-import
+import numpy
 
-from onda.utils import data_event  # pylint: disable=unused-import
+from onda.utils import data_event
 
 #####################
 #                   #
