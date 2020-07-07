@@ -278,7 +278,7 @@ def get_peakfinder8_info(monitor_params):
         information.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda",
+        group="onda",
         parameter="data_retrieval_layer",
         parameter_type=str,
         required=True,
@@ -307,7 +307,7 @@ def get_file_extensions(monitor_params):
         Tuple[str]: a tuple storing the file extensions
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda",
+        group="onda",
         parameter="data_retrieval_layer",
         parameter_type=str,
         required=True,
@@ -335,7 +335,7 @@ def get_hidra_transfer_type(monitor_params):
         str: the HiDRA transport type for the x-ray detector ('data' or 'metadata').
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda",
+        group="onda",
         parameter="data_retrieval_layer",
         parameter_type=str,
         required=True,

@@ -115,7 +115,7 @@ class ParallelizationEngine(object):
             self.role = "worker"
 
         data_retrieval_layer_filename = monitor_params.get_param(
-            group="Onda",
+            group="onda",
             parameter="data_retrieval_layer",
             parameter_type=str,
             required=True,
@@ -130,12 +130,12 @@ class ParallelizationEngine(object):
         if self.role == "worker":
             self._event_generator = event_handling_functions["event_generator"]
             self._num_frames_in_event_to_process = monitor_params.get_param(
-                group="DataRetrievalLayer",
+                group="data_retrieval_layer",
                 parameter="num_of_most_recent_frames_in_event_to_process",
                 parameter_type=int,
             )
             frames_in_event_to_skip = monitor_params.get_param(
-                group="DataRetrievalLayer",
+                group="data_retrieval_layer",
                 parameter="frame_indexes_to_skip",
                 parameter_type=list,
             )

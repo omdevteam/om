@@ -138,7 +138,7 @@ def event_generator(
     # If the psana calibration directory is provided in the configuration file, it is
     # added as an option to psana.
     psana_calib_dir = monitor_params.get_param(
-        group="DataRetrievalLayer",
+        group="data_retrieval_layer",
         parameter="psana_calibration_directory",
         parameter_type=str,
     )
@@ -150,7 +150,7 @@ def event_generator(
         print("OnDA Warning: Calibration directory not provided or not found.")
     psana_source = psana.DataSource(source.encode("ascii"))
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="Onda",
+        group="onda",
         parameter="data_retrieval_layer",
         parameter_type=str,
         required=True,
@@ -159,7 +159,7 @@ def event_generator(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        group="Onda", parameter="required_data", parameter_type=list, required=True
+        group="onda", parameter="required_data", parameter_type=list, required=True
     )
     psana_detector_interface_funcs = dynamic_import.get_psana_detector_interface_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
@@ -292,7 +292,7 @@ def detector_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            group="DataRetrievalLayer",
+            group="data_retrieval_layer",
             parameter="psana_detector_name",
             parameter_type=str,
             required=True,
@@ -339,7 +339,7 @@ def detector_distance_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            group="DataRetrievalLayer",
+            group="data_retrieval_layer",
             parameter="psana_detector_distance_epics_name",
             parameter_type=str,
             required=True,
@@ -388,7 +388,7 @@ def timetool_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            group="DataRetrievalLayer",
+            group="data_retrieval_layer",
             parameter="psana_timetool_epics_name",
             parameter_type=str,
             required=True,
@@ -417,7 +417,7 @@ def digitizer_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            group="DataRetrievalLayer",
+            group="data_retrieval_layer",
             parameter="psana_digitizer_name",
             parameter_type=str,
             required=True,
@@ -446,7 +446,7 @@ def opal_data_init(monitor_params):
     """
     return psana.Detector(
         monitor_params.get_param(
-            group="DataRetrievalLayer",
+            group="data_retrieval_layer",
             parameter="psana_opal_name",
             parameter_type=str,
             required=True,
@@ -475,7 +475,7 @@ def optical_laser_active_init(monitor_params):
         to retrieve the data.
     """
     evr_source_name = monitor_params.get_param(
-        group="DataRetrievalLayer",
+        group="data_retrieval_layer",
         parameter="psana_evr_source_name",
         parameter_type=str,
         required=True,
@@ -505,7 +505,7 @@ def xrays_active_init(monitor_params):
         to retrieve the data.
     """
     evr_source_name = monitor_params.get_param(
-        group="DataRetrievalLayer",
+        group="data_retrieval_layer",
         parameter="psana_evr_source_name",
         parameter_type=str,
         required=True,

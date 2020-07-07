@@ -77,7 +77,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         if self.role == "worker":
             requested_calibration_algorithm = monitor_parameters.get_param(
-                group="DetectorCalibration",
+                group="calibration",
                 parameter="calibration_algorithm",
                 parameter_type=str,
             )
@@ -85,13 +85,13 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 calibration_alg = getattr(calib_algs, requested_calibration_algorithm)
                 self._calibration = calibration_alg(
                     calibration_file=monitor_parameters.get_param(
-                        group="DetectorCalibration",
+                        group="calibration",
                         parameter="calibration_filename",
                         parameter_type=str,
                         required=True,
                     ),
                     cellid_list=monitor_parameters.get_param(
-                        group="Crystallography",
+                        group="crystallography",
                         parameter="agipd_cellids_for_which_to_load_calibration_"
                         "parameters",
                         parameter_type=list,
@@ -108,22 +108,22 @@ class OndaMonitor(mpi.ParallelizationEngine):
             self._non_hit_frame_sending_counter = 0
 
             dark_data_filename = monitor_parameters.get_param(
-                group="Correction", parameter="dark_filename", parameter_type=str
+                group="correction", parameter="dark_filename", parameter_type=str
             )
             dark_data_hdf5_path = monitor_parameters.get_param(
-                group="Correction", parameter="dark_hdf5_path", parameter_type=str
+                group="correction", parameter="dark_hdf5_path", parameter_type=str
             )
             mask_filename = monitor_parameters.get_param(
-                group="Correction", parameter="mask_filename", parameter_type=str
+                group="correction", parameter="mask_filename", parameter_type=str
             )
             mask_hdf5_path = monitor_parameters.get_param(
-                group="Correction", parameter="mask_hdf5_path", parameter_type=str
+                group="correction", parameter="mask_hdf5_path", parameter_type=str
             )
             gain_map_filename = monitor_parameters.get_param(
-                group="Correction", parameter="gain_filename", parameter_type=str
+                group="correction", parameter="gain_filename", parameter_type=str
             )
             gain_map_hdf5_path = monitor_parameters.get_param(
-                group="Correction", parameter="gain_hdf5_path", parameter_type=str
+                group="correction", parameter="gain_hdf5_path", parameter_type=str
             )
             self._correction = gen_algs.Correction(
                 dark_filename=dark_data_filename,
@@ -135,7 +135,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             geometry_filename = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
@@ -147,61 +147,61 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 monitor_params=monitor_parameters
             )
             pf8_max_num_peaks = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="max_num_peaks",
                 parameter_type=int,
                 required=True,
             )
             pf8_adc_threshold = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="adc_threshold",
                 parameter_type=float,
                 required=True,
             )
             pf8_minimum_snr = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="minimum_snr",
                 parameter_type=float,
                 required=True,
             )
             pf8_min_pixel_count = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="min_pixel_count",
                 parameter_type=int,
                 required=True,
             )
             pf8_max_pixel_count = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="max_pixel_count",
                 parameter_type=int,
                 required=True,
             )
             pf8_local_bg_radius = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="local_bg_radius",
                 parameter_type=int,
                 required=True,
             )
             pf8_min_res = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="min_res",
                 parameter_type=int,
                 required=True,
             )
             pf8_max_res = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="max_res",
                 parameter_type=int,
                 required=True,
             )
             pf8_bad_pixel_map_fname = monitor_parameters.get_param(
-                group="Peakfinder8PeakDetection",
+                group="peakfinder8",
                 parameter="bad_pixel_map_filename",
                 parameter_type=str,
             )
             if pf8_bad_pixel_map_fname is not None:
                 pf8_bad_pixel_map_hdf5_path = monitor_parameters.get_param(
-                    group="Peakfinder8PeakDetection",
+                    group="peakfinder8",
                     parameter="bad_pixel_map_hdf5_path",
                     parameter_type=str,
                     required=True,
@@ -227,36 +227,36 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             self._max_saturated_peaks = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="max_saturated_peaks",
                 parameter_type=int,
                 required=True,
             )
             self._min_num_peaks_for_hit = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="min_num_peaks_for_hit",
                 parameter_type=int,
                 required=True,
             )
             self._max_num_peaks_for_hit = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="max_num_peaks_for_hit",
                 parameter_type=int,
                 required=True,
             )
             self._saturation_value = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="saturation_value",
                 parameter_type=int,
                 required=True,
             )
             self._hit_frame_sending_interval = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="hit_frame_sending_interval",
                 parameter_type=int,
             )
             self._non_hit_frame_sending_interval = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="non_hit_frame_sending_interval",
                 parameter_type=int,
             )
@@ -265,19 +265,19 @@ class OndaMonitor(mpi.ParallelizationEngine):
             sys.stdout.flush()
         if self.role == "master":
             self._speed_report_interval = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="speed_report_interval",
                 parameter_type=int,
                 required=True,
             )
             self._geometry_is_optimized = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="geometry_is_optimized",
                 parameter_type=bool,
                 required=True,
             )
             num_events_to_accumulate = monitor_parameters.get_param(
-                group="DataAccumulator",
+                group="data_accumulator",
                 parameter="num_events_to_accumulate",
                 parameter_type=int,
                 required=True,
@@ -287,7 +287,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             )
 
             self._running_average_window_size = monitor_parameters.get_param(
-                group="Crystallography",
+                group="crystallography",
                 parameter="running_average_window_size",
                 parameter_type=int,
                 required=True,
