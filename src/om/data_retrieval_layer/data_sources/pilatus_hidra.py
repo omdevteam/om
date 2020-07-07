@@ -27,7 +27,7 @@ import io
 
 import fabio
 
-from onda.utils import data_event
+from om.utils import data_event
 from .pilatus_files import (
     # Utility functions.
     get_file_extensions,

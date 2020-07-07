@@ -31,7 +31,7 @@ import h5py  # type:ignore
 import numpy
 from future.utils import raise_from  # type: ignore
 
-from onda.utils import exceptions
+from om.utils import exceptions
 
 
 class Correction(object):

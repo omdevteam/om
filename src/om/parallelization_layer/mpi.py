@@ -29,7 +29,7 @@ from typing import Any, Dict, Callable, Optional, Tuple
 
 from mpi4py import MPI
 
-from onda.utils import (
+from om.utils import (
     dynamic_import,
     exceptions,
     parameters,

@@ -32,7 +32,7 @@ import click
 import numpy
 import pyqtgraph
 
-from onda.utils import crystfel_geometry, gui
+from om.utils import crystfel_geometry, gui
 
 try:
     import PyQt5.QtGui as QtGui

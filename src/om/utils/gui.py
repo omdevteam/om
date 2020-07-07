@@ -28,7 +28,7 @@ import copy
 import time
 from typing import Any, Callable, Dict, List
 
-from onda.utils import zmq_gui
+from om.utils import zmq_gui
 
 try:
     from PyQt5 import QtCore, QtWidgets as qt_widget_module

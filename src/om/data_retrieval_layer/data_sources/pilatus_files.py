@@ -28,7 +28,7 @@ from typing import Tuple
 import fabio
 import numpy
 
-from onda.utils import data_event
+from om.utils import data_event
 
 
 #####################

@@ -32,7 +32,7 @@ import numpy
 import pyqtgraph
 from scipy import constants
 
-from onda.utils import gui, crystfel_geometry
+from om.utils import gui, crystfel_geometry
 
 try:
     import PyQt5.QtCore as QtCore

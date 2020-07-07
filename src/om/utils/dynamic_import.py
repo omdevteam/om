@@ -35,7 +35,7 @@ from typing import (
 )
 from future.utils import raise_from
 
-from onda.utils import exceptions, parameters
+from om.utils import exceptions, parameters
 
 
 def import_processing_layer(processing_layer_filename):

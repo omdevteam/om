@@ -28,7 +28,7 @@ from typing import Generator, List
 import numpy
 from future.utils import iteritems, raise_from
 
-from onda.utils import (
+from om.utils import (
     data_event,
     dynamic_import,
     exceptions,

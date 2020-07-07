@@ -30,7 +30,7 @@ from typing import Generator
 import numpy
 from future.utils import raise_from
 
-from onda.utils import (
+from om.utils import (
     data_event,
     dynamic_import,
     exceptions,

@@ -31,7 +31,7 @@ from onda.algorithms import calibration_algorithms as calib_algs
 from onda.algorithms import crystallography_algorithms as cryst_algs
 from onda.algorithms import generic_algorithms as gen_algs
 from onda.parallelization_layer import mpi
-from onda.utils import (
+from om.utils import (
     crystfel_geometry,
     dynamic_import,
     zmq_monitor,

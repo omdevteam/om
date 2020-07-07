@@ -29,7 +29,7 @@ from typing import Any, Callable, Dict
 
 from future.utils import iteritems
 
-from onda.utils import exceptions
+from om.utils import exceptions
 
 
 class DataEvent(object):
