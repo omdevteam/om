@@ -120,7 +120,7 @@ setup(
         ":python_version < '3.4'": ["pathlib>=1.0.1"],
     },
     entry_points={
-        "console_scripts": ["om_monitor.py=monitor:main"],
+        "console_scripts": ["om_monitor.py=om.monitor:main"],
     },
     ext_modules=extensions,
     package_dir={"": "src"},
