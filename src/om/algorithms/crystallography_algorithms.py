@@ -31,7 +31,7 @@ import numpy  # type: ignore
 from future.utils import raise_from  # type: ignore
 from mypy_extensions import TypedDict
 
-from onda.lib.peakfinder8_extension import peakfinder_8
+from om.lib.peakfinder8_extension import peakfinder_8
 
 
 TypePeakList = TypedDict(

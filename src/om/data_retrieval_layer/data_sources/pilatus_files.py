@@ -97,11 +97,11 @@ def open_event(event):
     'data' field of the 'event' object.
 
     NOTE: This function is designed to be injected as a member function into an
-    :class:`~onda.utils.data_event.DataEvent` object.
+    :class:`~om.utils.data_event.DataEvent` object.
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
     """
     event.data = fabio.open(event.framework_info["full_path"])
@@ -116,11 +116,11 @@ def close_event(event):
     this function actually does nothing.
 
     NOTE: This function is designed to be injected as a member function into an
-    :class:`~onda.utils.data_event.DataEvent` object.
+    :class:`~om.utils.data_event.DataEvent` object.
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
     """
     del event
@@ -136,11 +136,11 @@ def get_num_frames_in_event(event):
     returns 1.
 
     NOTE: This function is designed to be injected as a member function into an
-    :class:`~onda.utils.data_event.DataEvent` object.
+    :class:`~om.utils.data_event.DataEvent` object.
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -166,7 +166,7 @@ def detector_data(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -188,7 +188,7 @@ def event_id(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -210,7 +210,7 @@ def frame_id(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:

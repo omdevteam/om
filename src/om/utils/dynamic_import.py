@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Dynamic import from various OnDA layers.
+Dynamic import from various OM layers.
 
 This module contains functions that import required modules, classes and functions from
-different parts of OnDA.
+different parts of OM.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -45,7 +45,7 @@ def import_processing_layer(processing_layer_filename):
 
     This function searches for the python file with the implementation of the
     Processing Layer in the working directory first. If the file is not found there,
-    this function looks for it in the standard OnDA folder structure.
+    this function looks for it in the standard OM folder structure.
 
     Arguments:
 
@@ -60,7 +60,7 @@ def import_processing_layer(processing_layer_filename):
         processing_layer = importlib.import_module(processing_layer_filename)
     except ImportError:
         processing_layer = importlib.import_module(
-            "onda.processing_layer.{0}".format(processing_layer_filename)
+            "om.processing_layer.{0}".format(processing_layer_filename)
         )
 
     return processing_layer
@@ -73,7 +73,7 @@ def import_data_retrieval_layer(data_retrieval_layer_filename):
 
     This function searches for the python file with the implementation of the
     Data Retrieval Layer in the working directory first. If the file is not found
-    there, this function looks for it in the standard OnDA folder structure.
+    there, this function looks for it in the standard OM folder structure.
 
     Arguments:
 
@@ -88,9 +88,7 @@ def import_data_retrieval_layer(data_retrieval_layer_filename):
         data_retrieval_layer = importlib.import_module(data_retrieval_layer_filename)
     except ImportError:
         data_retrieval_layer = importlib.import_module(
-            "onda.data_retrieval_layer.profiles.{0}".format(
-                data_retrieval_layer_filename
-            )
+            "om.data_retrieval_layer.profiles.{0}".format(data_retrieval_layer_filename)
         )
 
     return data_retrieval_layer
@@ -103,7 +101,7 @@ def import_parallelization_layer(parallelization_layer_filename):
 
     This function searches for the python file with the implementation of the
     Parallelization Layer in the working directory first. If the file is not found
-    there, this function looks for it in the standard OnDA folder structure.
+    there, this function looks for it in the standard OM folder structure.
 
     Arguments:
 
@@ -118,7 +116,7 @@ def import_parallelization_layer(parallelization_layer_filename):
         parallelization_layer = importlib.import_module(parallelization_layer_filename)
     except ImportError:
         parallelization_layer = importlib.import_module(
-            "onda.parallelization_layer.{0}".format(parallelization_layer_filename)
+            "om.parallelization_layer.{0}".format(parallelization_layer_filename)
         )
 
     return parallelization_layer
@@ -148,7 +146,7 @@ def get_event_handling_funcs(data_retrieval_layer):
 
     Raises:
 
-        :class:`~onda.utils.exceptions.OndaMissingEventHandlingFunctionError`: if one
+        :class:`~om.utils.exceptions.OndaMissingEventHandlingFunctionError`: if one
             of the Event Handling Function is not found in the Data Retrieval Layer.
     """
     event_handling_funcs = {}
@@ -192,7 +190,7 @@ def get_data_extraction_funcs(required_data, data_retrieval_layer):
 
     Raises:
 
-        :class:`~onda.utils.exceptions.OndaMissingDataExtractionFunctionError`: if a
+        :class:`~om.utils.exceptions.OndaMissingDataExtractionFunctionError`: if a
             required Data Extraction Function is not found in the Data Retieval Layer.
     """
     data_extraction_funcs_list = [x.strip() for x in required_data]
@@ -232,7 +230,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
 
     Raises:
 
-        :class:`~onda.utils.exceptions.MissingPsanaInitializationFunctionError`: if a
+        :class:`~om.utils.exceptions.MissingPsanaInitializationFunctionError`: if a
             required psana Detector Interface Initialization Function is not found in
             the Data Retrieval layer.
     """
@@ -242,7 +240,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
         try:
             # Tries to retrieve a function with the name obtained by adding the
             # '_init' suffix to the the data extraction function name (This is the
-            # convention OnDA uses for naming the psana detector initialization
+            # convention OM uses for naming the psana detector initialization
             # functions).
             psana_detector_interface_funcs[func_name] = getattr(
                 data_retrieval_layer, "{0}_init".format(func_name)
@@ -269,8 +267,8 @@ def get_peakfinder8_info(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -278,10 +276,7 @@ def get_peakfinder8_info(monitor_params):
         information.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="onda",
-        parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
+        group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
     peakfinder8_retrieval_func = getattr(data_retrieval_layer, "get_peakfinder8_info")
@@ -299,18 +294,15 @@ def get_file_extensions(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
         Tuple[str]: a tuple storing the file extensions
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="onda",
-        parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
+        group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
     file_extension_info_func = getattr(data_retrieval_layer, "get_file_extensions")
@@ -327,7 +319,7 @@ def get_hidra_transfer_type(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
             storing the OnDA monitor parameters from the configuration file.
 
     Returns:
@@ -335,10 +327,7 @@ def get_hidra_transfer_type(monitor_params):
         str: the HiDRA transport type for the x-ray detector ('data' or 'metadata').
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="onda",
-        parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
+        group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
     )
     data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
     hidra_transport_parameter_typefunc = getattr(

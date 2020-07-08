@@ -17,7 +17,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Executable that launches the OnDA Monitor.
+Executable that launches the OM Monitor.
 """
 from om import monitor
 

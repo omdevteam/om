@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-ZMQ utilities for receiving data from OnDA monitors.
+ZMQ utilities for receiving data from OM monitors.
 
 This module contains classes and functions that allow external programs to receive
-data broadcasted by an OnDA monitor over a network connection.
+data broadcasted by an OM monitor over a network connection.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -54,7 +54,7 @@ class ZmqDataListener(QtCore.QObject):
     def __init__(self, hostname, port, tag):
         # type: (str, int, str) -> None
         """
-        ZMQ-based data receiving socket for OnDA GUIs and clients.
+        ZMQ-based data receiving socket for OM GUIs and clients.
 
         This class implements a ZMQ SUB socket that can be used to receive data. The
         socket receives and filters data tagged with a label, and has no queuing

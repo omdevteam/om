@@ -69,11 +69,11 @@ def get_num_frames_in_event(event):
     configuration parameter group.
 
     NOTE: This function is designed to be injected as a member function into an
-    :class:`~onda.utils.data_event.DataEvent` object.
+    :class:`~om.utils.data_event.DataEvent` object.
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -101,7 +101,7 @@ def detector_data(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing
             the event data.
 
     Returns:
@@ -126,7 +126,7 @@ def detector_gain(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing
             the event data.
 
     Returns:

@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA monitor for crystallography.
+OM monitor for crystallography.
 
-This module contains an OnDA monitor for serial x-ray crystallography experiments.
+This module contains an OM monitor for serial x-ray crystallography experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -27,10 +27,10 @@ import sys
 import time
 from typing import Any, Dict, Tuple
 
-from onda.algorithms import calibration_algorithms as calib_algs
-from onda.algorithms import crystallography_algorithms as cryst_algs
-from onda.algorithms import generic_algorithms as gen_algs
-from onda.parallelization_layer import mpi
+from om.algorithms import calibration_algorithms as calib_algs
+from om.algorithms import crystallography_algorithms as cryst_algs
+from om.algorithms import generic_algorithms as gen_algs
+from om.parallelization_layer import mpi
 from om.utils import (
     crystfel_geometry,
     dynamic_import,
@@ -47,7 +47,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
     def __init__(self, source, monitor_parameters):
         # type: (str, parameters.MonitorParams) -> None
         """
-        An OnDA real-time monitor for serial x-ray crystallography experiments.
+        An OM real-time monitor for serial x-ray crystallography experiments.
 
         This monitor processes detector data frames, optionally applying detector
         calibration, dark correction and gain correction. It detects Bragg peaks in
@@ -65,8 +65,8 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 used. See the documentation of the relevant 'initialize_event_source'
                 function.
 
-            monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-                storing the OnDA monitor parameters from the configuration file.
+            monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+                storing the OM monitor parameters from the configuration file.
         """
         super(OndaMonitor, self).__init__(
             process_func=self.process_data,
@@ -332,7 +332,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
         Arguments:
 
             data(Dict[str, Any]): a dictionary containing the data retrieved by
-                OnDA for the frame being processed.
+                OM for the frame being processed.
 
                 * The dictionary keys must match the entries in the 'required_data'
                   list found in the 'Onda' configuration parameter group.
@@ -454,7 +454,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             # wrapped into a list because the receiving programs usually expect lists
             # of aggregated events as opposed to single events.
             self._data_broadcast_socket.send_data(
-                tag=u"ondaframedata", message=[received_data]
+                tag=u"omframedata", message=[received_data]
             )
         # After it has been broadcasted, it removes the detector frame data from the
         # 'received_data' dictionary (the frame data is not needed anymore, so we
@@ -464,9 +464,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         collected_data = self._data_accumulator.add_data(data=received_data)
         if collected_data is not None:
-            self._data_broadcast_socket.send_data(
-                tag=u"ondadata", message=collected_data
-            )
+            self._data_broadcast_socket.send_data(tag=u"omdata", message=collected_data)
 
         if self._num_events % self._speed_report_interval == 0:
             now_time = time.time()

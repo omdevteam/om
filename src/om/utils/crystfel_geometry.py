@@ -1045,7 +1045,7 @@ def compute_pix_maps(geometry):
     Arguments:
 
         geometry (Dict[str, Any]): a CrystFEL geometry object (A dictionary returned by
-            the :func:`~onda.utils.crystfel.load_crystfel_geometry` function).
+            the :func:`~om.utils.crystfel.load_crystfel_geometry` function).
 
     Returns:
 

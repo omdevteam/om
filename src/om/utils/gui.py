@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Base OnDA graphical user interface object.
+Base OM graphical user interface object.
 
-This module contains a class that implements the common infrastructure of all OnDA
+This module contains a class that implements the common infrastructure of all OM
 python GUIs (e.g.: management of the data transimission, reporting of the estimated
 delay, etc.)
 """
@@ -41,24 +41,24 @@ class OndaGui(qt_widget_module.QMainWindow):
     See documentation of the '__init__' function.
     """
 
-    # Signals to connect or disconnect from an OnDA monitor.
+    # Signals to connect or disconnect from an OM monitor.
     _listening_thread_start_processing = QtCore.pyqtSignal()
     _listening_thread_stop_processing = QtCore.pyqtSignal()
 
     def __init__(self, hostname, port, tag, gui_update_func):
         # type: (str, int, str, Callable) -> None
         """
-        Main OnDA graphical user interface class.
+        Main OM graphical user interface class.
 
-        This class implements the common elements of all OnDA graphical interfaces and
+        This class implements the common elements of all OM graphical interfaces and
         must be subclassed to implement specific interfaces and viewers. A derived
         class can set up the main GUI infrastructure by calling the constructor of this
         class. This class also instantiates a listening thread that receives filtered
-        data from the broadcasting socket of an OnDA monitor. Additionally, it makes
+        data from the broadcasting socket of an OM monitor. Additionally, it makes
         sure that the 'gui_update_func' function, attached when an instance is created,
         is invoked at regular intervals to update the GUI.
 
-        NOTE: This class is designed to be subclassed to implement specific OnDA GUIs.
+        NOTE: This class is designed to be subclassed to implement specific OM GUIs.
 
         Arguments:
 
@@ -67,18 +67,18 @@ class OndaGui(qt_widget_module.QMainWindow):
 
             port(int): the port at which the GUI will listen for data.
 
-            tag (str): a string used to filter the data received from an OnDA monitor.
+            tag (str): a string used to filter the data received from an OM monitor.
                 Only data whose label matches this argument will be accepted and
                 received.
 
         Attributes:
 
             received_data (List[Dict[bytes, Any]]): the latest data received from
-                an OnDA monitor. A list of aggregated event data entries, each stored
+                an OM monitor. A list of aggregated event data entries, each stored
                 in a dictionary.
 
             is_gui_listening (bool): the state of the listening thread. True if the
-                GUI is currently listening to an OnDA monitor, False otherwise.
+                GUI is currently listening to an OM monitor, False otherwise.
         """
         super(OndaGui, self).__init__()
 
@@ -111,7 +111,7 @@ class OndaGui(qt_widget_module.QMainWindow):
     def start_listening(self):
         # type: () -> None
         """
-        Connects to an OnDA monitor and starts listening for broadcasted data.
+        Connects to an OM monitor and starts listening for broadcasted data.
         """
         if not self.listening:
             self.listening = True
@@ -120,7 +120,7 @@ class OndaGui(qt_widget_module.QMainWindow):
     def stop_listening(self):
         # type: () -> None
         """
-        Disconnects from an OnDA monitor and stops listening to broadcasted data.
+        Disconnects from an OM monitor and stops listening to broadcasted data.
         """
         if self.listening:
             self.listening = False
@@ -129,7 +129,7 @@ class OndaGui(qt_widget_module.QMainWindow):
     def _data_received(self, received_data):
         # type: (List[Dict[str, Any]]) -> None
         # This function is called every time the listening thread receives data from an
-        # OnDA monitor. The received data has the format of a list of event data
+        # OM monitor. The received data has the format of a list of event data
         # entries, each stored in a dictionary.
         self.received_data = copy.deepcopy(received_data)
 

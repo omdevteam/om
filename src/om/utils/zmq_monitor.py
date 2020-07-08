@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-ZMQ utilities for broadcasting data from an OnDA monitor.
+ZMQ utilities for broadcasting data from an OM monitor.
 
-This module contains classes and functions that allow OnDA monitors to broadcast data
+This module contains classes and functions that allow OM monitors to broadcast data
 to external programs over a network connection.
 """
 from __future__ import absolute_import, division, print_function
@@ -42,7 +42,7 @@ class ZmqDataBroadcaster(object):
     def __init__(self, hostname=None, port=None):
         # type: (Optional[str], Optional[int]) -> None
         """
-        ZMQ-based data-broadcasting socket for OnDA monitors.
+        ZMQ-based data-broadcasting socket for OM monitors.
 
         This class implements a ZMQ PUB socket that can be used to broadcast data. The
         socket supports multiple clients and broadcasts the data using the MessagePack
@@ -64,7 +64,7 @@ class ZmqDataBroadcaster(object):
             bhostname = hostname
         else:
             # If required, uses the python socket module to autodetect the hostname of
-            # the machine where the OnDA monitor is running.
+            # the machine where the OM monitor is running.
             # TODO: Check mypy output for these lines.
             bhostname = [
                 (s.connect(("8.8.8.8", 80)), s.getsockname()[0], s.close())

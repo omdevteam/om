@@ -84,11 +84,11 @@ def initialize_event_source(source, node_pool_size, monitor_params):
 
         source (str): a psana-style DataSource string.
 
-        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+        node_pool_size (int): the total number of nodes in the OM pool, including all
             the worker nodes and the master node.
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
     """
     del source
     del node_pool_size
@@ -114,18 +114,18 @@ def event_generator(
 
         source (str): a psana-style DataSource string.
 
-        node_rank (int): the rank, in the OnDA pool, of the worker node calling the
+        node_rank (int): the rank, in the OM pool, of the worker node calling the
             function.
 
-        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+        node_pool_size (int): the total number of nodes in the OM pool, including all
             the worker nodes and the master node.
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Yields:
 
-        :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
+        :class:`~om.utils.data_event.DataEvent`: an object storing the event data.
     """
     # Detects if data is being read from an online or offline source.
     if "shmem" in source:
@@ -147,19 +147,16 @@ def event_generator(
             "psana.calib-dir".encode("ascii"), psana_calib_dir.encode("ascii")
         )
     else:
-        print("OnDA Warning: Calibration directory not provided or not found.")
+        print("OM Warning: Calibration directory not provided or not found.")
     psana_source = psana.DataSource(source.encode("ascii"))
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="onda",
-        parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
+        group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        group="onda", parameter="required_data", parameter_type=list, required=True
+        group="om", parameter="required_data", parameter_type=list, required=True
     )
     psana_detector_interface_funcs = dynamic_import.get_psana_detector_interface_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
@@ -210,11 +207,11 @@ def open_event(event):
     Psana events do not need to be opened, so this function actually does nothing.
 
     NOTE: This function is designed to be injected as a member function into an
-    :class:`~onda.utils.data_event.DataEvent` object.
+    :class:`~om.utils.data_event.DataEvent` object.
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
     """
     del event
@@ -228,11 +225,11 @@ def close_event(event):
     Psana events do not need to be closed, so this function actually does nothing.
 
     NOTE: This function is designed to be injected as a member function into an
-    :class:`~onda.utils.data_event.DataEvent` object.
+    :class:`~om.utils.data_event.DataEvent` object.
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
     """
     del event
@@ -247,11 +244,11 @@ def get_num_frames_in_event(event):
     always returns 1.
 
     NOTE: This function is designed to be injected as a member function into an
-    :class:`~onda.utils.data_event.DataEvent` object.
+    :class:`~om.utils.data_event.DataEvent` object.
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -282,8 +279,8 @@ def detector_data_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -307,12 +304,12 @@ def timestamp_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
     """
     # The event timestamp gets recovered in other ways by the event recovery code. No
     # need to initialize the psana interface: the timestamp will already be in the
-    # event dictionary when OnDA starts extracting the data.
+    # event dictionary when OM starts extracting the data.
     del monitor_params
     return None
 
@@ -329,8 +326,8 @@ def detector_distance_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -354,8 +351,8 @@ def beam_energy_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -378,8 +375,8 @@ def timetool_data_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -407,8 +404,8 @@ def digitizer_data_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -436,8 +433,8 @@ def opal_data_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -466,8 +463,8 @@ def optical_laser_active_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -496,8 +493,8 @@ def xrays_active_init(monitor_params):
 
     Arguments:
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
@@ -528,7 +525,7 @@ def timestamp(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -558,7 +555,7 @@ def detector_distance(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -581,7 +578,7 @@ def beam_energy(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -613,7 +610,7 @@ def timetool_data(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -640,7 +637,7 @@ def digitizer_data(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -668,7 +665,7 @@ def opal_data(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -704,7 +701,7 @@ def optical_laser_active(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
            data.
 
     Returns:
@@ -746,7 +743,7 @@ def xrays_active(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
            data.
 
     Returns:

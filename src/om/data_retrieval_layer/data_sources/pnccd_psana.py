@@ -67,7 +67,7 @@ def detector_data(event, data_extraction_func_name):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:

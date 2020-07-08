@@ -138,11 +138,11 @@ def initialize_event_source(source, node_pool_size, monitor_params):
 
         source (str): the hostname or ip address of the machine where HiDRA is running.
 
-        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+        node_pool_size (int): the total number of nodes in the Om pool, including all
             the worker nodes and the master node.
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the Om monitor parameters from the configuration file.
 
     Returns:
 
@@ -150,10 +150,10 @@ def initialize_event_source(source, node_pool_size, monitor_params):
 
     Raises:
 
-        :class:`~onda.utils.exceptions.OndaHidraAPIError`: if the initial connection to
+        :class:`~om.utils.exceptions.OndaHidraAPIError`: if the initial connection to
             HiDRA fails.
     """
-    print("Announcing OnDA to HiDRA.")
+    print("Announcing Om to HiDRA.")
     sys.stdout.flush()
     hidra_info = _create_hidra_info(
         source=source, node_pool_size=node_pool_size, monitor_params=monitor_params
@@ -192,35 +192,32 @@ def event_generator(
 
         source (str): the hostname or ip address of the machine where HiDRA is running.
 
-        node_rank (int): the rank, in the OnDA pool, of the worker node calling the
+        node_rank (int): the rank, in the OM pool, of the worker node calling the
             function.
 
-        node_pool_size (int): the total number of nodes in the OnDA pool, including all
+        node_pool_size (int): the total number of nodes in the OM pool, including all
             the worker nodes and the master node.
 
-        monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+            storing the OM monitor parameters from the configuration file.
 
     Yields:
 
-        :class:`~onda.utils.data_event.DataEvent`: an object storing the event data.
+        :class:`~om.utils.data_event.DataEvent`: an object storing the event data.
 
     Raises:
 
-        :class:`~onda.utils.exceptions.OndaHidraAPIError`: if the initial connection to
+        :class:`~om.utils.exceptions.OndaHidraAPIError`: if the initial connection to
             HiDRA fails.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
-        group="onda",
-        parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
+        group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
     )
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
     )
     required_data = monitor_params.get_param(
-        group="onda", parameter="required_data", parameter_type=list, required=True
+        group="om", parameter="required_data", parameter_type=list, required=True
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
@@ -302,7 +299,7 @@ def timestamp(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -324,7 +321,7 @@ def beam_energy(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:
@@ -347,7 +344,7 @@ def detector_distance(event):
 
     Arguments:
 
-        event (:class:`~onda.utils.data_event.DataEvent`): an object storing the event
+        event (:class:`~om.utils.data_event.DataEvent`): an object storing the event
             data.
 
     Returns:

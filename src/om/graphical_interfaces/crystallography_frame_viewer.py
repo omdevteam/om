@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA frame viewer for crystallography.
+OM frame viewer for crystallography.
 
 This module contains a graphical interface that displays detector data frames in
 crystallography experiments.
@@ -48,10 +48,10 @@ class CrystallographyFrameViewer(gui.OndaGui):
     def __init__(self, geometry, hostname, port):
         # type: (Dict[str, Any], str, int) -> None
         """
-        OnDA frame viewer for crystallography.
+        OM frame viewer for crystallography.
 
-        This viewer receives detector frame data from an OnDA crystallography monitor,
-        when it is tagged with the 'ondadetectordata' label. It displays the received
+        This viewer receives detector frame data from an OM crystallography monitor,
+        when it is tagged with the 'omdetectordata' label. It displays the received
         detector frames, together with any detected Bragg peak (if present). A data
         buffer allows the viewer to stop receiving data from the monitor but still keep
         in memory the last 10 displayed frames for inspection.
@@ -60,7 +60,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
 
             geometry (Dict[str, Any]): a dictionary containing CrystFEL detector
                 geometry information (as returned by the
-                :func:`~onda.utils.crystfel_geometry.load_crystfel_geometry` function).
+                :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function).
 
             hostname (str): the hostname or IP address where the viewer will listen for
                 data.
@@ -71,7 +71,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
             hostname=hostname,
             port=port,
             gui_update_func=self._update_image,
-            tag=u"ondaframedata",
+            tag=u"omframedata",
         )
 
         pixel_maps = crystfel_geometry.compute_pix_maps(geometry)
@@ -109,8 +109,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
         self._citation_label = QtGui.QLabel(
-            "You are using an <b>OnDA</b> real-time monitor. Please cite: "
-            "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
+            "You are using an <b>OM</b> real-time monitor."
         )
         self._citation_label.setSizePolicy(
             QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
@@ -202,14 +201,14 @@ class CrystallographyFrameViewer(gui.OndaGui):
 
     def _stop_stream(self):
         # Type () -> None
-        # Disconnects from the OnDA monitor and stops receiving data.
+        # Disconnects from the OM monitor and stops receiving data.
         if self.listening:
             self._play_pause_button.setText("Play")
             self.stop_listening()
 
     def _start_stream(self):
         # Type () -> None
-        # Connects to the the OnDA monitor and starts receiving data.
+        # Connects to the the OM monitor and starts receiving data.
         if not self.listening:
             self._play_pause_button.setText("Pause")
             self.start_listening()
@@ -230,7 +229,7 @@ class CrystallographyFrameViewer(gui.OndaGui):
 def main(geometry_file, hostname, port):
     # type: (Dict[str, Any], str, int) -> None
     """
-    OnDA frame viewer for crystallography. This program must connect to a running OnDA
+    OM frame viewer for crystallography. This program must connect to a running OM
     monitor for crystallography. If the monitor broadcasts detector frame data, this
     viewer will display it. The viewer will also show, overlayed on the frame data,
     any found Bragg peak. The data stream from the monitor can also be temporarily

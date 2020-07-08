@@ -28,7 +28,7 @@ from setuptools import Extension, find_packages, setup  # type: ignore
 OM_USE_CYTHON = os.getenv("OM_USE_CYTHON")
 
 if OM_USE_CYTHON:
-    ext = ".pyx" 
+    ext = ".pyx"
 else:
     ext = ".c"
 
@@ -89,7 +89,7 @@ setup(
 
         OM focuses on scalability and portability, in order to facilitate its
         adoption for a wide array of current and future instruments. It also strives
-        for stability and performance. In order to achieve these goals, OnDA
+        for stability and performance. In order to achieve these goals, OM
         implements a master/worker parallelization paradigm using free and
         open-source libraries and protocols.
 
@@ -116,12 +116,8 @@ setup(
         "scipy>=1.2.1",
         "typing>=3.6.4",
     ],
-    extras_require={
-        ":python_version < '3.4'": ["pathlib>=1.0.1"],
-    },
-    entry_points={
-        "console_scripts": ["om_monitor.py=om.monitor:main"],
-    },
+    extras_require={":python_version < '3.4'": ["pathlib>=1.0.1"],},
+    entry_points={"console_scripts": ["om_monitor.py=om.monitor:main"],},
     ext_modules=extensions,
     package_dir={"": "src"},
     packages=find_packages(where="src"),

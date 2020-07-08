@@ -125,7 +125,7 @@ class OmDetectorCalibrationError(OmException):
     """
 
 
-def onda_exception_handler(parameter_type, value, traceback_):
+def om_exception_handler(parameter_type, value, traceback_):
     """
     Custom OM exception handler.
 

@@ -16,8 +16,8 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA Algorithms.
+OM Algorithms.
 
-This package contains OnDA algorithms: objects that are used by OnDA to perform
+This package contains OM algorithms: objects that are used by OM to perform
 calculations and other operations on the data.
 """

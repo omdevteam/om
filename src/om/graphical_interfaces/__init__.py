@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA GUIs and viewers.
+OM GUIs and viewers.
 
-This package contains several viewers and other graphic applications for OnDA.
+This package contains several viewers and other graphic applications for OM.
 """

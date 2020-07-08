@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-MPI-based parallelization engine for OnDA.
+MPI-based parallelization engine for OM.
 
-This module contains an MPI-based parallelization engine for OnDA, based on a
+This module contains an MPI-based parallelization engine for OM, based on a
 master/worker architecture.
 """
 from __future__ import absolute_import, division, print_function
@@ -56,7 +56,7 @@ class ParallelizationEngine(object):
     ):
         # type (...) -> None
         """
-        An MPI-based master-worker parallelization engine for OnDA.
+        An MPI-based master-worker parallelization engine for OM.
 
         This engine starts several processing worker nodes and an aggregating worker
         node. The nodes  communicate with each other using the MPI protocol. When the
@@ -75,7 +75,7 @@ class ParallelizationEngine(object):
         * When all events from the source have been processed, the engine performs
           some final clean-up tasks and shuts down.
 
-        NOTE: This class is designed to be subclassed to create an OnDA monitor.
+        NOTE: This class is designed to be subclassed to create an OM monitor.
 
         Arguments:
 
@@ -93,8 +93,8 @@ class ParallelizationEngine(object):
                 being used. See the documentation of the relevant
                 'initialize_event_source' function).
 
-            monitor_params (:class:`~onda.utils.parameters.MonitorParams`): an object
-                storing the OnDA monitor parameters from the configuration file.
+            monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
+                storing the OM monitor parameters from the configuration file.
 
         Attributes:
 
@@ -115,7 +115,7 @@ class ParallelizationEngine(object):
             self.role = "worker"
 
         data_retrieval_layer_filename = monitor_params.get_param(
-            group="onda",
+            group="om",
             parameter="data_retrieval_layer",
             parameter_type=str,
             required=True,
@@ -215,7 +215,7 @@ class ParallelizationEngine(object):
             exit(0)
 
         if self.role == "master":
-            print("Starting OnDA with the following parameters:")
+            print("Starting OM with the following parameters:")
             print(
                 json.dumps(
                     self._monitor_params.get_all_parameters(), indent=4, sort_keys=True

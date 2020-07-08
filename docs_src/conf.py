@@ -19,7 +19,7 @@ import sphinx_bootstrap_theme
 
 # -- Project information -----------------------------------------------------
 
-project = "OnDA"
+project = "OM"
 copyright = """
     2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
     the Helmholtz Association
@@ -94,15 +94,15 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "bootswatch_theme": "lumen",
     "navbar_links": [
-        ("What is an OnDA Monitor?", "documentation_what_is_an_onda_monitor"),
-        ("Running OnDA", "documentation_running_onda"),
+        ("What is OM?", "documentation_what_is_onda_monitor"),
+        ("Running OM", "documentation_running_omm"),
         ("Advanced Documentation", "documentation_advanced_documentation"),
-        ("Source Code", "https://github.com/ondateam/onda", True),
+        ("Source Code", "https://github.com/omdevteam/om", True),
     ],
     "navbar_sidebarrel": False,
     "navbar_pagenav": False,
-    'globaltoc_depth': -1,
-    'globaltoc_includehidden': "true",
+    "globaltoc_depth": -1,
+    "globaltoc_includehidden": "true",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -118,7 +118,9 @@ html_static_path = ["_static"]
 # default: ``["localtoc.html", "relations.html", "sourcelink.html",
 # "searchbox.html"]``.
 #
-html_sidebars = {"**": [],}
+html_sidebars = {
+    "**": [],
+}
 html_show_sourcelink = False
 
 
@@ -134,15 +136,12 @@ latex_elements = {
     # The paper size ("letterpaper" or "a4paper").
     #
     # "papersize": "letterpaper",
-
     # The font size ("10pt", "11pt" or "12pt").
     #
     # "pointsize": "10pt",
-
     # Additional stuff for the LaTeX preamble.
     #
     # "preamble": "",
-
     # Latex figure (float) alignment
     #
     # "figure_align": "htbp",
@@ -152,8 +151,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "onda.tex", "onda Documentation",
-     "Author", "manual"),
+    (master_doc, "onda.tex", "onda Documentation", "Author", "manual"),
 ]
 
 
@@ -161,10 +159,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, "onda", "onda Documentation",
-     [author], 1)
-]
+man_pages = [(master_doc, "onda", "onda Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -173,9 +168,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "onda", "onda Documentation",
-     author, "onda", "One line description of project.",
-     "Miscellaneous"),
+    (
+        master_doc,
+        "onda",
+        "onda Documentation",
+        author,
+        "onda",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
 ]
 
 

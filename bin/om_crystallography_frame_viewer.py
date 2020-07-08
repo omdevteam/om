@@ -17,7 +17,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Executable that launches the OnDA Crystallography Hit Viewer.
+Executable that launches the OM Crystallography Hit Viewer.
 """
 import om.graphical_interfaces.crystallography_frame_viewer as frame_viewer  # type: ignore
 

@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OnDA GUI for cystallography.
+OM GUI for cystallography.
 
 This module contains a graphical interface that displays reduced and aggregated data
 for crystallography experiments.
@@ -50,10 +50,10 @@ class CrystallographyGui(gui.OndaGui):
     def __init__(self, geometry, hostname, port):
         # type: (Dict[str, Any], str, int) -> None
         """
-        OnDA graphical user interface for crystallography.
+        OM graphical user interface for crystallography.
 
-        This graphical user interface receives reduced and aggregated data from an OnDA
-        crystallography monitor, when it is tagged with the 'ondadata' label. It
+        This graphical user interface receives reduced and aggregated data from an OM
+        crystallography monitor, when it is tagged with the 'omdata' label. It
         displays some plots showing the evolution of the hit and saturation rates over
         time, plus a real-time virtual powder pattern created using the detected Bragg
         peaks.
@@ -62,7 +62,7 @@ class CrystallographyGui(gui.OndaGui):
 
             geometry (Dict[str, Any]): a dictionary containing CrystFEL detector
                 geometry information (as returned by the
-                :func:`~onda.utils.crystfel_geometry.load_crystfel_geometry` function).
+                :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function).
 
             hostname (str): the hostname or IP address where the GUI will listen for
                 data.
@@ -73,7 +73,7 @@ class CrystallographyGui(gui.OndaGui):
             hostname=hostname,
             port=port,
             gui_update_func=self._update_image_and_plots,
-            tag="ondadata",
+            tag="omdata",
         )
         pixel_maps = crystfel_geometry.compute_pix_maps(geometry)
         x_map, y_map = pixel_maps["x"], pixel_maps["y"]
@@ -172,8 +172,7 @@ class CrystallographyGui(gui.OndaGui):
         self._reset_plots_button.clicked.connect(self._reset_plots)
 
         self._citation_label = QtGui.QLabel(
-            "You are using an <b>OnDA</b> real-time monitor. Please cite: "
-            "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
+            "You are using an <b>OM</b> real-time monitor."
         )
         self._citation_label.setSizePolicy(
             QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
@@ -359,8 +358,8 @@ class CrystallographyGui(gui.OndaGui):
 @click.argument("port", type=int, required=False)
 def main(geometry_file, hostname, port):
     """
-    OnDA graphical user interface for crystallography. This program must connect to a
-    running OnDA monitor for crystallography. If the monitor broadcasts information on
+    OM graphical user interface for crystallography. This program must connect to a
+    running OM monitor for crystallography. If the monitor broadcasts information on
     Bragg peaks and hit and saturation rates, this GUI will display their evolution
     over time, plus a real-time virtual powder pattern created using the
     detected peaks.
