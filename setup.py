@@ -110,6 +110,7 @@ setup(
         "h5py>=2.7.0",
         "msgpack-python>=0.4.8",
         "msgpack-numpy>=0.4.1",
+        "mypy-extensions>=0.4.3",
         "numpy>=1.11.3",
         "pyyaml>=5.1.2",
         "pyzmq>=18.0.2",
