@@ -24,7 +24,7 @@ This module contains algorithms that carry out crystallography-related data proc
 from __future__ import absolute_import, division, print_function
 
 import sys
-from typing import List, Optional, Type, Union
+from typing import List, Tuple, Type, Union
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -124,8 +124,8 @@ class Peakfinder8PeakDetection(object):
                 * The map is only used to exclude areas from the peak search: the data
                   is not modified in any way.
 
-            bad_pixel_map_hdf5_path (str): the internal HDF5 path to the data block
-                where the bad pixel map is stored.
+            bad_pixel_map_hdf5_path (Union[str, None): the internal HDF5 path to the
+                data block where the bad pixel map is stored.
 
                 * If the 'bad_pixel_map_filename' argument is not None, this argument
                   must also be provided, and cannot be None. Otherwise it is ignored.
@@ -217,7 +217,9 @@ class Peakfinder8PeakDetection(object):
             else:
                 self._mask = self._mask.astype(numpy.int8)
 
-            res_mask = numpy.ones(shape=self._mask.shape, dtype=numpy.int8)
+            res_mask = numpy.ones(
+                shape=self._mask.shape, dtype=numpy.int8
+            )  # type: numpy.ndarray
             res_mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             res_mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
             self._mask *= res_mask
@@ -236,7 +238,7 @@ class Peakfinder8PeakDetection(object):
             self._min_pixel_count,
             self._max_pixel_count,
             self._local_bg_radius,
-        )
+        )  # type: Tuple[List[float], List[float], List[float]]
 
         return {
             "num_peaks": len(peak_list[0]),

@@ -25,10 +25,10 @@ etc.).
 from __future__ import absolute_import, division, print_function
 
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import h5py  # type:ignore
-import numpy
+import numpy  # type: ignore
 from future.utils import raise_from  # type: ignore
 
 from om.utils import exceptions
@@ -39,14 +39,14 @@ class Correction(object):
     See documentation of the '__init__' function.
     """
 
-    def __init__(
+    def __init__(  # noqa: C901
         self,
-        dark_filename=None,  # type: Optional[str]
-        dark_hdf5_path=None,  # type: Optional[str]
-        mask_filename=None,  # type: Optional[str]
-        mask_hdf5_path=None,  # type: Optional[str]
-        gain_filename=None,  # type: Optional[str]
-        gain_hdf5_path=None,  # type: Optional[str]
+        dark_filename=None,  # type: Union[str, None]
+        dark_hdf5_path=None,  # type: Union[str, None]
+        mask_filename=None,  # type: Union[str, None]
+        mask_hdf5_path=None,  # type: Union[str, None]
+        gain_filename=None,  # type: Union[str, None]
+        gain_hdf5_path=None,  # type: Union[str, None]
     ):
         # type: (...) -> None
         """
@@ -58,7 +58,7 @@ class Correction(object):
 
         Arguments:
 
-            dark_filename (Optional[str]): the relative or absolute path to an HDF5
+            dark_filename (Union[str, None]): the relative or absolute path to an HDF5
                 file containing a dark data frame. Defaults to None.
 
                 * If this and the 'dark_hdf5_path' arguments are not None, the dark
@@ -67,13 +67,13 @@ class Correction(object):
                 * The dark data frame must be a numpy array of the same shape as the
                   data frame that will be corrected.
 
-            dark_hdf5_path (Optional[str]): the internal HDF5 path to the data block
+            dark_hdf5_path (Union[str, None]): the internal HDF5 path to the data block
                 where the dark data frame is located. Defaults to None.
 
                 * If the 'dark_filename' argument is not None, this argument must also
                   be provided, and cannot be None. Otherwise it is ignored.
 
-            mask_filename (Optional[str]): the relative or absolute path to an HDF5
+            mask_filename (Union[str, None]): the relative or absolute path to an HDF5
                 file containing a mask. Defaults to None.
 
                 * If this and the 'mask_hdf5_path' arguments are not None, the mask is
@@ -86,13 +86,13 @@ class Correction(object):
                   the corresponding pixel in the data frame must be set to 0, or 1,
                   meaning that the value of the corresponding pixel must be left alone.
 
-            mask_hdf5_path (Optional[str]): the internal HDF5 path to the data block
+            mask_hdf5_path (Union[str, None]): the internal HDF5 path to the data block
                 where the mask data is located. Defaults to None.
 
                 * If the 'mask_filename' argument is not None, this argument must also
                   be provided, and cannot be None. Otherwise it is ignored.
 
-            gain_filename (Optional[str]): the relative or absolute path to an HDF5
+            gain_filename (Union[str, None]): the relative or absolute path to an HDF5
                 file containing a gain map. Defaults to None.
 
                 * If this and the 'gain_hdf5_path' arguments are not None, the gain map
@@ -104,7 +104,7 @@ class Correction(object):
                 * Each pixel in the gain map must store the gain factor that will be
                   applied to the corresponding pixel in the data frame.
 
-            gain_hdf5_path (Optional[str]): the internal HDF5 path to the data block
+            gain_hdf5_path (Union[str, None]): the internal HDF5 path to the data block
                 where the gain map data is located. Defaults to None.
 
                 * If the 'gain_filename' argument is not None, this argument must also
@@ -118,9 +118,7 @@ class Correction(object):
                             :
                         ]  # type: Union[numpy.ndarray, None]
                 except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[
-                        :2
-                    ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                    exc_type, exc_value = sys.exc_info()[:2]  # type: Tuple[Any, Any]
                     raise_from(
                         # TODO: Fix type check
                         exc=RuntimeError(
@@ -151,9 +149,7 @@ class Correction(object):
                             hdf5_file_handle[dark_hdf5_path][:] * self._mask
                         )  # type: Union[numpy.ndarray, None]
                 except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[
-                        :2
-                    ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                    exc_type, exc_value = sys.exc_info()[:2]
                     raise_from(
                         # TODO: Fix type check
                         exc=RuntimeError(
@@ -184,9 +180,7 @@ class Correction(object):
                             hdf5_file_handle[gain_hdf5_path][:] * self._mask
                         )  # type: Union[numpy.ndarray, None]
                 except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[
-                        :2
-                    ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                    exc_type, exc_value = sys.exc_info()[:2]
                     raise_from(
                         # TODO: Fix type check
                         exc=RuntimeError(
@@ -210,7 +204,7 @@ class Correction(object):
             self._gain_map = True
 
     def apply_correction(self, data):
-        # type (numpy.ndarray) -> numpy.ndarray
+        # type: (numpy.ndarray) -> numpy.ndarray
         """
         Applies the corrections to a detector data frame.
 
@@ -251,9 +245,9 @@ class DataAccumulator(object):
             num_events_to_accumulate (int): the number of data entries that can be
                 added to the accumulator before it is 'full'.
         """
-        self._num_events_to_accumulate = num_events_to_accumulate
-        self._accumulator = []
-        self._num_events_in_accumulator = 0
+        self._num_events_to_accumulate = num_events_to_accumulate  # type: int
+        self._accumulator = []  # type: List[Dict[str, Any]]
+        self._num_events_in_accumulator = 0  # type: int
 
     def add_data(self, data):
         # type: (Dict[str, Any]) -> Union[List[Dict[str, Any]], None]

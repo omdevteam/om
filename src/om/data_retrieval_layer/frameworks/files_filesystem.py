@@ -24,16 +24,14 @@ on disk.
 from __future__ import absolute_import, division, print_function
 
 import os.path
-from typing import Generator
+from types import ModuleType
+from typing import Any, Callable, Dict, List, cast
 
-import numpy
-from future.utils import raise_from
+import numpy  # type: ignore
+from future.utils import raise_from  # type: ignore
 
-from om.utils import (
-    data_event,
-    dynamic_import,
-    parameters,
-)
+from om.utils import data_event, dynamic_import, parameters
+from om.utils.dynamic_import import TypeEventGenerator, TypeEventHandlingFuncs
 
 
 ############################
@@ -44,7 +42,7 @@ from om.utils import (
 
 
 def initialize_event_source(source, node_pool_size, monitor_params):
-    # type: (str, int, parameters.MonitorParams) -> None
+    # type: (str, int, parameters.MonitorParams) -> Any
     """
     Initializes the file event source when reading files from the filesystem.
 
@@ -74,7 +72,7 @@ def event_generator(
     node_pool_size,  # type: int
     monitor_params,  # type: parameters.MonitorParams
 ):
-    # type: (...) -> Generator[data_event.DataEvent, None, None]
+    # type: (...) -> TypeEventGenerator
     """
     Retrieves data events to process from the filesystem.
 
@@ -103,23 +101,23 @@ def event_generator(
     """
     data_retrieval_layer_filename = monitor_params.get_param(
         group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
-    )
+    )  # type: str
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
-    )
+    )  # type: ModuleType
     required_data = monitor_params.get_param(
         group="om", parameter="required_data", parameter_type=list, required=True
-    )
+    )  # type: List[str]
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
-    )
+    )  # type: TypeEventHandlingFuncs
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
-    )
+    )  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
     event = data_event.DataEvent(
         event_handling_funcs=event_handling_functions,
         data_extraction_funcs=data_extraction_functions,
-    )
+    )  # type: data_event.DataEvent
 
     # Fills the framework info with static data that will be retrieved later.
     if "beam_energy" in data_extraction_functions:
@@ -143,24 +141,29 @@ def event_generator(
     # divided by the number of workers.
     try:
         with open(source, "r") as fhandle:
-            filelist = fhandle.readlines()
+            filelist = fhandle.readlines()  # type: List[str]
     except (IOError, OSError) as exc:
         raise_from(
             exc=RuntimeError("Error reading the {0} source file.".format(source)),
             cause=exc,
         )
-    num_files_curr_node = int(numpy.ceil(len(filelist) / float(node_pool_size - 1)))
+    num_files_curr_node = int(
+        numpy.ceil(len(filelist) / float(node_pool_size - 1))
+    )  # type: int
     files_curr_node = filelist[
         ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
-    ]
+    ]  # type: List[str]
 
     for entry in files_curr_node:
-        stripped_entry = entry.strip()
+        stripped_entry = entry.strip()  # type: str
         event.framework_info["full_path"] = stripped_entry
 
         # File modification time is used as a first approximation of the timestamp
         # when the timestamp is not available.
-        event.framework_info["file_creation_time"] = os.stat(stripped_entry).st_mtime
+        event.framework_info["file_creation_time"] = numpy.float64(
+            os.stat(stripped_entry).st_mtime
+        )
+
         yield event
 
 
@@ -189,7 +192,7 @@ def timestamp(event):
         numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
-    return event.framework_info["file_creation_time"]
+    return cast(numpy.float64, event.framework_info["file_creation_time"])
 
 
 def beam_energy(event):
@@ -211,7 +214,7 @@ def beam_energy(event):
         float: the energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
-    return event.framework_info["beam_energy"]
+    return cast(float, event.framework_info["beam_energy"])
 
 
 def detector_distance(event):
@@ -234,4 +237,4 @@ def detector_distance(event):
         float: the detector distance in mm.
     """
     # Returns the value previously stored in the event.
-    return event.framework_info["detector_distance"]
+    return cast(float, event.framework_info["detector_distance"])

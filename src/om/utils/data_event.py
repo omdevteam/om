@@ -25,11 +25,13 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import types
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Union
 
-from future.utils import iteritems
+import numpy  # type: ignore
+from future.utils import iteritems  # type: ignore
 
-from om.utils import exceptions
+from om.utils import data_event, exceptions
+from om.utils.dynamic_import import TypeEventHandlingFuncs
 
 
 class DataEvent(object):
@@ -37,8 +39,12 @@ class DataEvent(object):
     See documentation of the '__init__' function.
     """
 
-    def __init__(self, event_handling_funcs, data_extraction_funcs):
-        # type: (Dict[str, Callable], Dict[str, Callable]) -> None
+    def __init__(
+        self,
+        event_handling_funcs,  # type: TypeEventHandlingFuncs
+        data_extraction_funcs,  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
+    ):
+        # type: (...) -> None
         """
         Data event.
 
@@ -48,7 +54,7 @@ class DataEvent(object):
 
         Arguments:
 
-            event_handling_funcs (Dict[str, Callable]): a dictionary containing
+            event_handling_funcs (TypeEventHandlingFuncs): a dictionary containing
                 Event Handling functions to be attached to the class instance being
                 created.
 
@@ -66,27 +72,33 @@ class DataEvent(object):
                 * The corresponding dictionary values must store the function
                   implementations.
 
-            data_extraction_funcs (Dict[str, Callable]): a dictionary containing
-                Data Extraction functions to be attached to the class instance being
-                created.
+            data_extraction_funcs (Dict[str, Callable[[data_event.DataEvent], Any]]): a
+                dictionary containing Data Extraction functions to be attached to the
+                class instance being created.
 
                 * Each dictionary value must store a function implementation.
 
                 * The corresponding dictionary key will define the name with which the
                   function will be attached to the class instance.
         """
-        self.open_event = types.MethodType(event_handling_funcs["open_event"], self)
-        self.close_event = types.MethodType(event_handling_funcs["close_event"], self)
+        self.open_event = types.MethodType(
+            event_handling_funcs["open_event"], self
+        )  # type: Callable[[], None]
+        self.close_event = types.MethodType(
+            event_handling_funcs["close_event"], self
+        )  # type: Callable[[], None]
         self.get_num_frames_in_event = types.MethodType(
             event_handling_funcs["get_num_frames_in_event"], self
-        )
+        )  # type: Callable[[], int]
 
-        self.data = None
-        self.metadata = None
-        self.timestamp = None
-        self.current_frame = None
-        self.framework_info = {}
-        self.data_extraction_functions = data_extraction_funcs
+        self.data = None  # type: Any
+        self.metadata = {}  # type: Dict[str, Any]
+        self.timestamp = None  # type: Union[numpy.float64, None]
+        self.current_frame = None  # type: Union[int, None]
+        self.framework_info = {}  # type: Dict[str, Any]
+        self.data_extraction_functions = (
+            data_extraction_funcs
+        )  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
 
     def extract_data(self):
         # type: () -> Dict[str, Any]
@@ -106,7 +118,7 @@ class DataEvent(object):
             * The corresponding dictionary value stores the data returned by the
               function.
         """
-        data = {}
+        data = {}  # type: Dict[str, Any]
         try:
             for f_name, func in iteritems(self.data_extraction_functions):
                 data[f_name] = func(self)

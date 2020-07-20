@@ -23,6 +23,7 @@ This module contains the main function that instantiates an OM monitor.
 from __future__ import absolute_import, division, print_function
 
 import sys
+from types import ModuleType
 
 import click
 
@@ -62,12 +63,17 @@ def main(source, config, debug):
     if not debug:
         sys.excepthook = exceptions.om_exception_handler
 
-    monitor_parameters = parameters.MonitorParams(config)
+    monitor_parameters = parameters.MonitorParams(
+        config
+    )  # type: parameters.MonitorParams
     processing_layer_filename = monitor_parameters.get_param(
         group="om", parameter="processing_layer", parameter_type=str, required=True
-    )
-    processing_layer = dynamic_import.import_processing_layer(processing_layer_filename)
-    monitor = processing_layer.OndaMonitor(
+    )  # type: str
+    processing_layer = dynamic_import.import_processing_layer(
+        processing_layer_filename
+    )  # type: ModuleType
+    monitor = processing_layer.OndaMonitor(  # type: ignore
         source=source, monitor_parameters=monitor_parameters
     )
+    # TODO: Fix types.
     monitor.start()

@@ -24,7 +24,7 @@ validated.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Any, Dict, List, Type, Union
+from typing import Any, Dict
 
 import yaml
 from future.utils import raise_from  # type: ignore
@@ -62,7 +62,7 @@ class MonitorParams(object):
 
         try:
             with open(config, "r") as open_file:
-                self._monitor_params = yaml.load(open_file)
+                self._monitor_params = yaml.safe_load(open_file)
         except OSError:
             raise exceptions.OmConfigurationFileReadingError(
                 "Cannot open or read the configuration file {0}".format(config)
@@ -108,7 +108,7 @@ class MonitorParams(object):
             required (bool): True if the parameter is strictly required and must be
                 present in the configuration file, False otherwise. Defaults to False.
 
-        Returns:        
+        Returns:
 
             Any: the value of the requested parameter, or None, if the
             parameter was not found in the configuration file (and it is not
@@ -131,7 +131,7 @@ class MonitorParams(object):
                 "Parameter group [{0}] is not in the configuration file".format(group)
             )
         else:
-            ret = self._monitor_params[group].get(parameter)
+            ret = self._monitor_params[group].get(parameter)  # type: Any
             if ret is None and required is True:
                 raise exceptions.OmMissingParameterError(
                     "Parameter {0} in group [{1}] was not found, but is "

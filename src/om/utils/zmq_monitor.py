@@ -26,12 +26,12 @@ from __future__ import absolute_import, division, print_function
 import socket
 import sys
 
-from typing import Optional
+from typing import Any, Dict, List, Union
 
-import msgpack
-import msgpack_numpy
-import numpy
-import zmq
+import msgpack  # type: ignore
+import msgpack_numpy  # type: ignore
+import numpy  # type: ignore
+import zmq  # type: ignore
 
 
 class ZmqDataBroadcaster(object):
@@ -40,7 +40,7 @@ class ZmqDataBroadcaster(object):
     """
 
     def __init__(self, hostname=None, port=None):
-        # type: (Optional[str], Optional[int]) -> None
+        # type: (Union[str, None], Union[int, None]) -> None
         """
         ZMQ-based data-broadcasting socket for OM monitors.
 
@@ -52,26 +52,31 @@ class ZmqDataBroadcaster(object):
 
         Args:
 
-            hostname (Optional[str]): the hostname or IP address where the socket will
-                be opened. If None it will be autodetected. Defaults to None.
+            hostname (Union[str, None]): the hostname or IP address where the socket
+                will be opened. If None it will be autodetected. Defaults to None.
 
-            port(Optional[int]): the port where the socket will be opened. If None, the
-                socket will be opened at port 12321. Defaults to None.
+            port(Union[int, None]): the port where the socket will be opened. If None,
+                the socket will be opened at port 12321. Defaults to None.
         """
         self._context = zmq.Context()
         self._sock = self._context.socket(zmq.PUB)
         if hostname is not None:
-            bhostname = hostname
+            bhostname = hostname  # type: str
         else:
             # If required, uses the python socket module to autodetect the hostname of
             # the machine where the OM monitor is running.
             # TODO: Check mypy output for these lines.
             bhostname = [
-                (s.connect(("8.8.8.8", 80)), s.getsockname()[0], s.close())
+                (
+                    s.connect(("8.8.8.8", 80)),  # type: ignore
+                    s.getsockname()[0],
+                    s.close(),  # type: ignore
+                )
                 for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
             ][0][1]
+            # TODO: Fix types
         if port is not None:
-            bport = port
+            bport = port  # type: int
         else:
             bport = 12321
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
@@ -82,7 +87,7 @@ class ZmqDataBroadcaster(object):
         sys.stdout.flush()
 
     def send_data(self, tag, message):
-        # type (str, Hashable) -> None
+        # type: (str, List[Dict[str, Any]]) -> None
         """
         Broadcasts data from the ZMQ PUB socket.
 
@@ -93,14 +98,17 @@ class ZmqDataBroadcaster(object):
 
             tag (str): the label that will be attached to the broadcasted data.
 
-            message (Any): a MessagePack-compatible python object.
+            message (List[Dict[str, Any]]): a list of dictionaries. For each
+            dictionary, the keys are names of information elements to be broadcasted
+            through the broadcasting socket, and the corresponding values are the
+            information elements to be sent (MessagePack-compatible python objects).
         """
         self._sock.send(tag.encode(), zmq.SNDMORE)
-        msgpack_message = msgpack.packb(message)
+        msgpack_message = msgpack.packb(message)  # type: bytes
         self._sock.send(msgpack_message)
 
 
-def _patched_encode(obj, chain=None):
+def _patched_encode(obj, chain=None):  # type: ignore
     # This function is the 'encode' function from msgpack-numpy, patched to use the
     # 'tobytes' method as opposed to the 'data' one. This is needed for python 2
     # compatibility.

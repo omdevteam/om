@@ -19,6 +19,6 @@
 """
 Executable that launches the OM Monitor.
 """
-from om import monitor
+from om import monitor  # type: ignore
 
 monitor.main()

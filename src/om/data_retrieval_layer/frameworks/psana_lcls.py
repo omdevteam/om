@@ -23,20 +23,17 @@ framework at the LCLS facility.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Generator, List
+from types import ModuleType
+from typing import Any, Callable, Dict, List, cast
 
-import numpy
-from future.utils import iteritems, raise_from
+import numpy  # type: ignore
+from future.utils import iteritems, raise_from  # type: ignore
 
-from om.utils import (
-    data_event,
-    dynamic_import,
-    exceptions,
-    parameters,
-)
+from om.utils import data_event, dynamic_import, exceptions, parameters
+from om.utils.dynamic_import import TypeEventGenerator, TypeEventHandlingFuncs
 
 try:
-    import psana
+    import psana  # type: ignore
 except ImportError as exc:
     raise_from(
         exc=exceptions.OmMissingDependencyError(
@@ -55,14 +52,16 @@ except ImportError as exc:
 
 
 def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
-    # type: (psana._DataSource, int, int) -> Generator[psana.Event, None, None]
+    # type: (psana._DataSource, int, int) -> Any
     # Computes how many events the current worker node should process. Splits the
     # events as equally as possible amongst the workers. If the number of events cannot
     # be exactly divided by the number of workers, an additional worker is assigned
     # the residual events.
     for run in psana_source.runs():
         times = run.times()
-        num_events_curr_node = int(numpy.ceil(len(times) / float(mpi_pool_size - 1)))
+        num_events_curr_node = int(
+            numpy.ceil(len(times) / float(mpi_pool_size - 1))
+        )  # type: int
         events_curr_node = times[
             (node_rank - 1) * num_events_curr_node : node_rank * num_events_curr_node
         ]
@@ -72,7 +71,7 @@ def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
 
 
 def initialize_event_source(source, node_pool_size, monitor_params):
-    # type: (str, int, parameters.MonitorParams) -> None
+    # type: (str, int, parameters.MonitorParams) -> Any
     """
     Initializes the psana event source at LCLS.
 
@@ -101,7 +100,7 @@ def event_generator(
     node_pool_size,  # type: int
     monitor_params,  # type: parameters.MonitorParams
 ):
-    # type: (...) -> Generator[data_event.DataEvent, None, None]
+    # type: (...) -> TypeEventGenerator
     """
     Retrieves events from psana at LCLS.
 
@@ -129,7 +128,7 @@ def event_generator(
     """
     # Detects if data is being read from an online or offline source.
     if "shmem" in source:
-        offline = False
+        offline = False  # type: bool
     else:
         offline = True
     if offline and not source[-4:] == ":idx":
@@ -141,7 +140,7 @@ def event_generator(
         group="data_retrieval_layer",
         parameter="psana_calibration_directory",
         parameter_type=str,
-    )
+    )  # type: str
     if psana_calib_dir is not None:
         psana.setOption(
             "psana.calib-dir".encode("ascii"), psana_calib_dir.encode("ascii")
@@ -151,26 +150,27 @@ def event_generator(
     psana_source = psana.DataSource(source.encode("ascii"))
     data_retrieval_layer_filename = monitor_params.get_param(
         group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
-    )
+    )  # type: str
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
-    )
+    )  # type: ModuleType
     required_data = monitor_params.get_param(
         group="om", parameter="required_data", parameter_type=list, required=True
-    )
+    )  # type: List[str]
     psana_detector_interface_funcs = dynamic_import.get_psana_detector_interface_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
     )
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
-    )
+    )  # type: TypeEventHandlingFuncs
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
-    )
+    )  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
     event = data_event.DataEvent(
         event_handling_funcs=event_handling_functions,
         data_extraction_funcs=data_extraction_functions,
-    )
+    )  # type: data_event.DataEvent
+
     # Calls all the required psana detector interface initialization functions and
     # stores the returned objects in a dictionary.
     event.framework_info["psana_detector_interface"] = {}
@@ -269,7 +269,7 @@ def get_num_frames_in_event(event):
 
 
 def detector_data_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector.AreaDetector.AreaDetector
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for x-ray detector data at LCLS.
 
@@ -298,7 +298,7 @@ def detector_data_init(monitor_params):
 
 
 def timestamp_init(monitor_params):
-    # type (parameters.MonitorParams) -> None
+    # type: (parameters.MonitorParams) -> None
     """
     Initializes the psana Detector interface for timestamp data at LCLS.
 
@@ -315,7 +315,7 @@ def timestamp_init(monitor_params):
 
 
 def detector_distance_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector.EpicsDetector.EpicsDetector
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for detector distance data at LCLS.
 
@@ -345,7 +345,7 @@ def detector_distance_init(monitor_params):
 
 
 def beam_energy_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector.DdlDetector.DdlDetector
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for beam energy data at LCLS.
 
@@ -364,7 +364,7 @@ def beam_energy_init(monitor_params):
 
 
 def timetool_data_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector  TODO: Determine return type
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for timetool data at LCLS.
 
@@ -383,6 +383,7 @@ def timetool_data_init(monitor_params):
         psana.Detector.EpicsDetector.EpicsDetector: a psana object that can be used
         later to retrieve the data.
     """
+    # TODO: Determine return type
     return psana.Detector(
         monitor_params.get_param(
             group="data_retrieval_layer",
@@ -394,7 +395,7 @@ def timetool_data_init(monitor_params):
 
 
 def digitizer_data_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector.WFDetector.WFDetector
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for digitizer data at LCLS.
 
@@ -423,7 +424,7 @@ def digitizer_data_init(monitor_params):
 
 
 def opal_data_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector.AreaDetector.AreaDetector
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for Opal camera data at LCLS.
 
@@ -452,7 +453,7 @@ def opal_data_init(monitor_params):
 
 
 def optical_laser_active_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector.EvrDetector.EvrDetector
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for an optical laser at LCLS.
 
@@ -482,7 +483,7 @@ def optical_laser_active_init(monitor_params):
 
 
 def xrays_active_init(monitor_params):
-    # type (parameters.MonitorParams) -> psana.Detector.EvrDetector.EvrDetector
+    # type: (parameters.MonitorParams) -> Any
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
@@ -519,7 +520,7 @@ def xrays_active_init(monitor_params):
 
 
 def timestamp(event):
-    # type (data_event.DataEvent) -> numpy.float64
+    # type: (data_event.DataEvent) -> numpy.float64
     """
     Gets the timestamp of an event retrieved from psana at LCLS.
 
@@ -540,11 +541,11 @@ def timestamp(event):
             "Could not retrieve timestamp information from psana."
         )
 
-    return timest
+    return cast(numpy.float64, timest)
 
 
 def detector_distance(event):
-    # type (data_event.DataEvent) -> float
+    # type: (data_event.DataEvent) -> float
     """
     Gets the detector distance for an event retrieved from psana at LCLS.
 
@@ -568,11 +569,11 @@ def detector_distance(event):
             "Could not retrieve detector distance information from psana."
         )
 
-    return det_dist
+    return cast(float, det_dist)
 
 
 def beam_energy(event):
-    # type (data_event.DataEvent) -> float
+    # type: (data_event.DataEvent) -> float
     """
     Gets the beam energy for an event retrieved from psana at LCLS.
 
@@ -595,11 +596,11 @@ def beam_energy(event):
             "Could not retrieve beam energy information from psana."
         )
 
-    return beam_en
+    return cast(float, beam_en)
 
 
 def timetool_data(event):
-    # type (data_event.DataEvent) -> float # TODO: Determine return type
+    # type: (data_event.DataEvent) -> float
     """
     Gets timetool data for an event retrieved from psana at LCLS.
 
@@ -617,17 +618,18 @@ def timetool_data(event):
 
         float: the readout of the timetool instrument.
     """
+    # TODO: Determine return type
     time_tl = event.framework_info["psana_detector_interface"]["timetool_data"]()
     if time_tl is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve time tool data from psana."
         )
 
-    return time_tl
+    return cast(float, time_tl)
 
 
 def digitizer_data(event):
-    # type (data_event.DataEvent) -> numpy.array TODO: Determine return type
+    # type: (data_event.DataEvent) -> numpy.ndarray
     """
     Get digitizer data for an event retrieved from psana at LCLS.
 
@@ -644,19 +646,20 @@ def digitizer_data(event):
 
         numpy.array: the waveform from the digitizer.
     """
-    digit_data = event["psana_detector_interface"]["digitizer_data"].waveform(
-        event.data
-    )
+    # TODO: Determine return type
+    digit_data = event.framework_info["psana_detector_interface"][
+        "digitizer_data"
+    ].waveform(event.data)
     if digit_data is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve digitizer data from psana."
         )
 
-    return digit_data
+    return cast(numpy.ndarray, digit_data)
 
 
 def opal_data(event):
-    # type (data_event.DataEvent) -> numpy.ndarray
+    # type: (data_event.DataEvent) -> numpy.ndarray
     """
     Gets Opal camera data for an event retrieved from psana at LCLS.
 
@@ -672,17 +675,19 @@ def opal_data(event):
 
         numpy.ndarray: a 2D array containing the image from the Opal camera.
     """
-    op_data = event["psana_detector_interface"]["opal_data"].calib(event.data)
+    op_data = event.framework_info["psana_detector_interface"]["opal_data"].calib(
+        event.data
+    )
     if op_data is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve Opel camera data from psana."
         )
 
-    return op_data
+    return cast(numpy.ndarray, op_data)
 
 
 def optical_laser_active(event):
-    # type (data_event.DataEvent) -> bool
+    # type: (data_event.DataEvent) -> bool
     """
     Gets the status of an optical laser for an event retrieved from psana at LCLS.
 
@@ -709,7 +714,7 @@ def optical_laser_active(event):
         bool: True if the optical laser is active for the current frame. False
         otherwise.
     """
-    current_evr_codes = event["psana_detector_interface"][
+    current_evr_codes = event.framework_info["psana_detector_interface"][
         "optical_laser_active"
     ].psana_detector_handle.eventCodes(event.data)
     if current_evr_codes is None:
@@ -718,13 +723,15 @@ def optical_laser_active(event):
         )
 
     return (
-        event["psana_detector_interface"]["optical_laser_active"].active_laser_evr_code
+        event.framework_info["psana_detector_interface"][
+            "optical_laser_active"
+        ].active_laser_evr_code
         in current_evr_codes
     )
 
 
 def xrays_active(event):
-    # type (data_event.DataEvent) -> bool
+    # type: (data_event.DataEvent) -> bool
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
@@ -750,7 +757,7 @@ def xrays_active(event):
 
         bool: True if the x-ray beam is active for the current frame. False otherwise.
     """
-    current_evr_codes = event["psana_detector_interface"][
+    current_evr_codes = event.framework_info["psana_detector_interface"][
         "xrays_active"
     ].psana_detector_handle.eventCodes(event.data)
     if current_evr_codes is None:
@@ -759,6 +766,8 @@ def xrays_active(event):
         )
 
     return (
-        event["psana_detector_interface"]["xrays_active"].active_laser_evr_code
+        event.framework_info["psana_detector_interface"][
+            "xrays_active"
+        ].active_laser_evr_code
         in current_evr_codes
     )

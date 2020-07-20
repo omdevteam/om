@@ -23,9 +23,11 @@ psana framework.
 """
 from __future__ import absolute_import, division, print_function
 
-import numpy
+import numpy  # type: ignore
 
 from om.utils import exceptions, data_event
+
+from typing import Dict
 
 
 #####################
@@ -36,14 +38,13 @@ from om.utils import exceptions, data_event
 
 
 def get_peakfinder8_info():
-    # type () -> Dict[str, Union[int, float]]
+    # type: () -> Dict[str, int]
     """
     Retrieves the peakfinder8 information for the pnCCD detector.
 
     Returns:
 
-        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
-        information.
+        Dict[str, int]: a dictionary storing the peakfinder8 information.
     """
     return {
         "asic_nx": 1024,
@@ -76,14 +77,18 @@ def detector_data(event, data_extraction_func_name):
     """
     pnccd_psana = event.framework_info["psana_detector_interface"][
         data_extraction_func_name
-    ].calib(event.framework_info["psana_event"])
+    ].calib(
+        event.framework_info["psana_event"]
+    )  # type: numpy.ndarray
     if pnccd_psana is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector from psana."
         )
 
     # Rearranges the data into 'slab' format.
-    pnccd_slab = numpy.zeros(shape=(1024, 1024), dtype=pnccd_psana.dtype)
+    pnccd_slab = numpy.zeros(
+        shape=(1024, 1024), dtype=pnccd_psana.dtype
+    )  # type: numpy.ndarray
     pnccd_slab[0:512, 0:512] = pnccd_psana[0]
     pnccd_slab[512:1024, 0:512] = pnccd_psana[1][::-1, ::-1]
     pnccd_slab[512:1024, 512:1024] = pnccd_psana[2][::-1, ::-1]

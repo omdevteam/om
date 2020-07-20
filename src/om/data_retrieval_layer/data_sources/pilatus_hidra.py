@@ -25,10 +25,12 @@ from __future__ import absolute_import, division, print_function
 
 import io
 
-import fabio
+from typing import Any
+
+import fabio  # type: ignore
 
 from om.utils import data_event
-from .pilatus_files import (
+from .pilatus_files import (  # noqa: F401
     # Utility functions.
     get_file_extensions,
     get_hidra_transport_type,
@@ -67,11 +69,11 @@ def open_event(event):
             data.
     """
     # Wraps the binary data that HiDRA sends to OM in a BytesIO object.
-    byio_data = io.BytesIO(event.data)
+    byio_data = io.BytesIO(event.data)  # type: io.BytesIO
 
     # Reads the data using the fabio library and stores the content as a cbf_obj
     # object.
-    cbf_image = fabio.cbfimage.CbfImage()
+    cbf_image = fabio.cbfimage.CbfImage()  # type: Any
     event.data = cbf_image.read(byio_data)
 
 

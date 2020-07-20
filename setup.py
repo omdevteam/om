@@ -15,6 +15,7 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+# type: ignore
 """
 setup.py file for OM
 """
@@ -22,8 +23,8 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import numpy  # type: ignore
-from setuptools import Extension, find_packages, setup  # type: ignore
+import numpy
+from setuptools import Extension, find_packages, setup
 
 OM_USE_CYTHON = os.getenv("OM_USE_CYTHON")
 
@@ -49,7 +50,7 @@ peakfinder8_ext = Extension(
 )
 
 if OM_USE_CYTHON:
-    from Cython.Build import cythonize  # type: ignore
+    from Cython.Build import cythonize
 
     extensions = cythonize(peakfinder8_ext)
 else:

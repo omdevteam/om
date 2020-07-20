@@ -20,7 +20,7 @@ Data retrieval at the P11 beamline of Petra III.
 """
 from __future__ import absolute_import, division, print_function
 
-from ..data_sources.pilatus_hidra import (
+from ..data_sources.pilatus_hidra import (  # type: ignore  # noqa: F401
     # Utility functions.
     get_file_extensions,
     get_hidra_transport_type,
@@ -35,7 +35,7 @@ from ..data_sources.pilatus_hidra import (
     frame_id,
 )
 
-from ..frameworks.hidra_petra3 import (
+from ..frameworks.hidra_petra3 import (  # noqa: F401
     # Event handling functions.
     event_generator,
     initialize_event_source,

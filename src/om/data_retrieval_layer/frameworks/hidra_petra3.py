@@ -26,18 +26,15 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import socket
 import sys
-from typing import Any, Dict, Generator
+from types import ModuleType
+from typing import Any, Callable, Dict, List, Tuple, cast
 
-import numpy
-from future.utils import raise_from
+import numpy  # type: ignore
+from future.utils import raise_from  # type: ignore
 
-from om.utils import (
-    data_event,
-    dynamic_import,
-    exceptions,
-    parameters,
-)
-from .hidra_api import Transfer, transfer
+from hidra_api import Transfer, transfer  # type: ignore
+from om.utils import data_event, dynamic_import, exceptions, parameters
+from om.utils.dynamic_import import TypeEventGenerator, TypeEventHandlingFuncs
 
 
 def _create_hidra_info(source, node_pool_size, monitor_params):
@@ -52,7 +49,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
         group="data_retrieval_layer",
         parameter="hidra_transfer_type",
         parameter_type=str,
-    )
+    )  # type: str
     if transfer_type is None:
         transfer_type = dynamic_import.get_hidra_transfer_type(monitor_params)
 
@@ -60,8 +57,8 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
         # If the transfer type is data-based, requests the latest event with full
         # data, and sets the data base path to an empty path, because HiDRA will
         # provide the data directly, and there will be no need to look for the file.
-        query_text = "QUERY_NEXT"
-        data_base_path = ""
+        query_text = "QUERY_NEXT"  # type: str
+        data_base_path = ""  # type: str
     elif transfer_type == "metadata":
         # If the transfer type is metadata-based, requests the latest event with
         # metadata only and reads the data base path from the configuration file:
@@ -83,7 +80,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
         parameter="hidra_base_port",
         parameter_type=int,
         required=True,
-    )
+    )  # type: int
 
     # Search the configuration file for a HiDRA selection string. If the selection
     # string is not found, use the file extensions from the detector layer as
@@ -92,13 +89,13 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
         group="data_retrieval_layer",
         parameter="hidra_selection_string",
         parameter_type=str,
-    )
+    )  # type: str
     if hidra_selection_string is None:
         hidra_selection_string = dynamic_import.get_file_extensions(monitor_params)
 
     # Add an empty target at the beginning to cover the master node. In this way, the
     # index of a node in the target list will match its rank.
-    targets = [["", "", 1, ""]]
+    targets = [["", "", str(1), ""]]  # type: List[List[str]]
 
     # Create the HiDRA query object, as requested by the HiDRA API.
     for rank in range(1, node_pool_size):
@@ -107,7 +104,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
             str(base_port + rank),
             str(1),
             hidra_selection_string,
-        ]
+        ]  # type: List[str]
         targets.append(target_entry)
 
     query = Transfer(connection_type=query_text, signal_host=source, use_log=False)
@@ -127,7 +124,7 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
 
 
 def initialize_event_source(source, node_pool_size, monitor_params):
-    # type: (str, int, parameters.MonitorParams) -> Dict[str, Any]
+    # type: (str, int, parameters.MonitorParams) -> Any
     """
     Initializes the HiDRA event source at Petra III.
 
@@ -176,7 +173,7 @@ def event_generator(
     node_pool_size,  # type: int
     monitor_params,  # type: parameters.MonitorParams
 ):
-    # type: (...) -> Generator[data_event.DataEvent, None, None]
+    # type: (...) -> TypeEventGenerator
     """
     Retrieves events to process from HiDRA at Petra III.
 
@@ -210,23 +207,23 @@ def event_generator(
     """
     data_retrieval_layer_filename = monitor_params.get_param(
         group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
-    )
+    )  # type: str
     data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
         data_retrieval_layer_filename=data_retrieval_layer_filename
-    )
+    )  # type: ModuleType
     required_data = monitor_params.get_param(
         group="om", parameter="required_data", parameter_type=list, required=True
-    )
+    )  # type: List[str]
     event_handling_functions = dynamic_import.get_event_handling_funcs(
         data_retrieval_layer=data_retrieval_layer
-    )
+    )  # type: TypeEventHandlingFuncs
     data_extraction_functions = dynamic_import.get_data_extraction_funcs(
         required_data=required_data, data_retrieval_layer=data_retrieval_layer
-    )
+    )  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
     event = data_event.DataEvent(
         event_handling_funcs=event_handling_functions,
         data_extraction_funcs=data_extraction_functions,
-    )
+    )  # type: data_event.DataEvent
 
     # Fills the framework info with static data that will be retrieved later.
     if "beam_energy" in data_extraction_functions:
@@ -263,7 +260,9 @@ def event_generator(
         )
 
     while True:
-        recovered_metadata, recovered_data = hidra_info["query"].get()
+        recovered_metadata, recovered_data = hidra_info[
+            "query"
+        ].get()  # type: Tuple[Dict[str,Any], Dict[str,Any]]
         event.data = recovered_data
         event.metadata = recovered_metadata
         event.framework_info["full_path"] = os.path.join(
@@ -271,9 +270,9 @@ def event_generator(
             recovered_metadata["relative_path"],
             recovered_metadata["filename"],
         )
-        event.framework_info["file_creation_time"] = recovered_metadata[
-            "file_create_time"
-        ]
+        event.framework_info["file_creation_time"] = numpy.float64(
+            recovered_metadata["file_create_time"]
+        )
 
         yield event
 
@@ -303,7 +302,7 @@ def timestamp(event):
         numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
-    return event.framework_info["file_creation_time"]
+    return cast(numpy.float64, event.framework_info["file_creation_time"])
 
 
 def beam_energy(event):
@@ -325,7 +324,7 @@ def beam_energy(event):
         float: the energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
-    return event.framework_info["beam_energy"]
+    return cast(float, event.framework_info["beam_energy"])
 
 
 def detector_distance(event):
@@ -348,4 +347,4 @@ def detector_distance(event):
         float: the detector distance in mm.
     """
     # Returns the value previously stored in the event.
-    return event.framework_info["detector_distance"]
+    return cast(float, event.framework_info["detector_distance"])

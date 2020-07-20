@@ -23,7 +23,9 @@ psana framework.
 """
 from __future__ import absolute_import, division, print_function
 
-import numpy
+from typing import Dict
+
+import numpy  # type: ignore
 
 from om.utils import data_event, exceptions
 
@@ -36,14 +38,13 @@ from om.utils import data_event, exceptions
 
 
 def get_peakfinder8_info():
-    # type () -> Dict[str, Union[int, float]]
+    # type: () -> Dict[str, int]
     """
     Retrieves the peakfinder8 information for the CSPAD detector.
 
     Returns:
 
-        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
-        information.
+        Dict[str, int]: a dictionary storing the peakfinder8 information.
     """
     return {
         "asic_nx": 194,
@@ -83,8 +84,10 @@ def detector_data(event):
         )
 
     # Rearranges the data into 'slab' format.
-    cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))
-    cspad_slab = numpy.zeros(shape=(1480, 1552), dtype=cspad_reshaped.dtype)
+    cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))  # type: numpy.ndarray
+    cspad_slab = numpy.zeros(
+        shape=(1480, 1552), dtype=cspad_reshaped.dtype
+    )  # type: numpy.ndarray
     for i in range(cspad_reshaped.shape[0]):
         cspad_slab[
             :, i * cspad_reshaped.shape[3] : (i + 1) * cspad_reshaped.shape[3]

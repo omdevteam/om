@@ -23,10 +23,10 @@ detector.
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Tuple
+from typing import Dict, Tuple, cast
 
-import fabio
-import numpy
+import fabio  # type: ignore
+import numpy  # type: ignore
 
 from om.utils import data_event
 
@@ -51,14 +51,13 @@ def get_file_extensions():
 
 
 def get_peakfinder8_info():
-    # type () -> Dict[str, Union[int, float]]
+    # type: () -> Dict[str, int]
     """
     Retrieves the peakfinder8 information for the Pilatus detector.
 
     Returns:
 
-        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
-        information.
+        Dict[str, int]: a dictionary storing the peakfinder8 information.
     """
     return {
         "asic_nx": 2463,
@@ -69,7 +68,7 @@ def get_peakfinder8_info():
 
 
 def get_hidra_transport_type():
-    # type () -> str
+    # type: () -> str
     """
     Retrieves the HiDRA transport type information for the Pilatus detector.
 
@@ -195,7 +194,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    return event.framework_info["full_path"]
+    return cast(str, event.framework_info["full_path"])
 
 
 def frame_id(event):

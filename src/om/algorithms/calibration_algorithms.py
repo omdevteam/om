@@ -23,7 +23,7 @@ design or operation (i.e., not sample- or experiment-related).
 """
 from __future__ import absolute_import, division, print_function
 
-from typing import Any, Dict, List
+from typing import Any, Dict, Tuple
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -35,7 +35,7 @@ class Agipd1MCalibration(object):
     """
 
     def __init__(self, calibration_filename, cellid_list):
-        # type: (str, List[int]) -> None
+        # type: (str, Tuple[int]) -> None
         """
         Calibration of the AGIPD 1M detector.
 

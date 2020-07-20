@@ -25,21 +25,33 @@ from __future__ import absolute_import, division, print_function
 
 import importlib
 from types import ModuleType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Tuple,
-    Union,
-)
-from future.utils import raise_from
+from typing import Any, Callable, Dict, Generator, List, Tuple
 
-from om.utils import exceptions, parameters
+from future.utils import raise_from  # type: ignore
+from mypy_extensions import TypedDict
+
+from om.utils import data_event, exceptions, parameters
+
+
+TypeEventGenerator = Generator[data_event.DataEvent, None, None]
+
+TypeEventHandlingFuncs = TypedDict(
+    "TypeEventHandlingFuncs",
+    {
+        "initialize_event_source": Callable[[str, int, parameters.MonitorParams], Any],
+        "event_generator": Callable[
+            [str, int, int, parameters.MonitorParams], TypeEventGenerator,
+        ],
+        "get_num_frames_in_event": Callable[[data_event.DataEvent], int],
+        "open_event": Callable[[data_event.DataEvent], None],
+        "close_event": Callable[[data_event.DataEvent], None],
+    },
+    total=False,
+)
 
 
 def import_processing_layer(processing_layer_filename):
-    # type (str) -> ModuleType
+    # type: (str) -> ModuleType
     """
     Imports the specified Processing Layer.
 
@@ -57,7 +69,9 @@ def import_processing_layer(processing_layer_filename):
         ModuleType: the imported processing layer.
     """
     try:
-        processing_layer = importlib.import_module(processing_layer_filename)
+        processing_layer = importlib.import_module(
+            processing_layer_filename
+        )  # type: ModuleType
     except ImportError:
         processing_layer = importlib.import_module(
             "om.processing_layer.{0}".format(processing_layer_filename)
@@ -67,7 +81,7 @@ def import_processing_layer(processing_layer_filename):
 
 
 def import_data_retrieval_layer(data_retrieval_layer_filename):
-    # type (str) -> ModuleType
+    # type: (str) -> ModuleType
     """
     Imports the specified Data Retrieval Layer.
 
@@ -85,8 +99,13 @@ def import_data_retrieval_layer(data_retrieval_layer_filename):
         ModuleType: the imported processing layer.
     """
     try:
-        data_retrieval_layer = importlib.import_module(data_retrieval_layer_filename)
-    except ImportError:
+        data_retrieval_layer = importlib.import_module(
+            data_retrieval_layer_filename
+        )  # type: ModuleType
+    except (ImportError, ModuleNotFoundError):
+        print(
+            "om.data_retrieval_layer.profiles.{0}".format(data_retrieval_layer_filename)
+        )
         data_retrieval_layer = importlib.import_module(
             "om.data_retrieval_layer.profiles.{0}".format(data_retrieval_layer_filename)
         )
@@ -95,7 +114,7 @@ def import_data_retrieval_layer(data_retrieval_layer_filename):
 
 
 def import_parallelization_layer(parallelization_layer_filename):
-    # type (str) -> ModuleType
+    # type: (str) -> ModuleType
     """
     Imports the specified Parallelization Layer.
 
@@ -113,7 +132,9 @@ def import_parallelization_layer(parallelization_layer_filename):
         ModuleType: the imported processing layer.
     """
     try:
-        parallelization_layer = importlib.import_module(parallelization_layer_filename)
+        parallelization_layer = importlib.import_module(
+            parallelization_layer_filename
+        )  # type: ModuleType
     except ImportError:
         parallelization_layer = importlib.import_module(
             "om.parallelization_layer.{0}".format(parallelization_layer_filename)
@@ -122,8 +143,8 @@ def import_parallelization_layer(parallelization_layer_filename):
     return parallelization_layer
 
 
-def get_event_handling_funcs(data_retrieval_layer):
-    # type: (ModuleType) -> Dict[str, Callable]
+def get_event_handling_funcs(data_retrieval_layer):  # noqa: C901
+    # type: (ModuleType) -> TypeEventHandlingFuncs
     """
     Retrieves Event Handling Functions from the Data Retrieval Layer.
 
@@ -141,7 +162,7 @@ def get_event_handling_funcs(data_retrieval_layer):
 
     Returns:
 
-        Dict[srt, Callable]: a dictionary whose keys are the names of the Event
+        TypeEventHandlingFuncs: a dictionary whose keys are the names of the Event
         Handling Functions, and whose values are their implementations.
 
     Raises:
@@ -212,8 +233,11 @@ def get_event_handling_funcs(data_retrieval_layer):
     return event_handling_funcs
 
 
-def get_data_extraction_funcs(required_data, data_retrieval_layer):
-    # type: (List[str], ModuleType) -> Dict[str, Callable]
+def get_data_extraction_funcs(
+    required_data,  # type: List[str]
+    data_retrieval_layer,  # type: ModuleType
+):
+    # type: (...) -> Dict[str, Callable[[data_event.DataEvent], Any]]
     """
     Retrieves Data Extraction Functions from the Data Retrieval Layer.
 
@@ -251,8 +275,11 @@ def get_data_extraction_funcs(required_data, data_retrieval_layer):
     return data_extraction_funcs
 
 
-def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
-    # type: (List[str], ModuleType) -> Dict[str, Callable]
+def get_psana_detector_interface_funcs(
+    required_data,  # type: List[str]
+    data_retrieval_layer,  # type: ModuleType
+):
+    # type: (...) -> Dict[str, Callable[[str], Any]]
     """
     Retrieves the psana Detector Interface Initialization Functions.
 
@@ -265,7 +292,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
 
     Returns:
 
-        Dict[srt, Callable]: a dictionary whose keys match the names in the
+        Dict[str, Callable[[str], Any]]: a dictionary whose keys match the names in the
         'required_data' argument, but with an '_init' extension appended at the end of
         each name. The corresponding dictionary values store the function
         implementations.
@@ -276,8 +303,10 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
             required psana Detector Interface Initialization Function is not found in
             the Data Retrieval layer.
     """
-    psana_detector_interface_func_list = [x.strip() for x in required_data]
-    psana_detector_interface_funcs = {}
+    psana_detector_interface_func_list = [
+        x.strip() for x in required_data
+    ]  # type: List[str]
+    psana_detector_interface_funcs = {}  # type: Dict[str, Callable[[str], Any]]
     for func_name in psana_detector_interface_func_list:
         try:
             # Tries to retrieve a function with the name obtained by adding the
@@ -300,7 +329,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
 
 
 def get_peakfinder8_info(monitor_params):
-    # type: (parameters.MonitorParams) -> Dict[str, Union[int, float]]
+    # type: (parameters.MonitorParams) -> Dict[str, int]
     """
     Gets the peakfinder8 information for the main x-ray detector.
 
@@ -314,14 +343,17 @@ def get_peakfinder8_info(monitor_params):
 
     Returns:
 
-        Dict[str, Union[int, float]]: a named tuple storing the peakfinder8
-        information.
+        Dict[str, int]: a named tuple storing the peakfinder8 information.
     """
     data_retrieval_layer_filename = monitor_params.get_param(
         group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
-    )
-    data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
-    peakfinder8_retrieval_func = getattr(data_retrieval_layer, "get_peakfinder8_info")
+    )  # type: str
+    data_retrieval_layer = import_data_retrieval_layer(
+        data_retrieval_layer_filename
+    )  # type: ModuleType
+    peakfinder8_retrieval_func = getattr(
+        data_retrieval_layer, "get_peakfinder8_info"
+    )  # type:  Callable[[], Dict[str, int]]
 
     return peakfinder8_retrieval_func()
 
@@ -341,13 +373,18 @@ def get_file_extensions(monitor_params):
 
     Returns:
 
-        Tuple[str]: a tuple storing the file extensions
+        Tuple[str, ...]: a tuple storing the file extensions
     """
     data_retrieval_layer_filename = monitor_params.get_param(
         group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
-    )
-    data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
-    file_extension_info_func = getattr(data_retrieval_layer, "get_file_extensions")
+    )  # type: str
+    data_retrieval_layer = import_data_retrieval_layer(
+        data_retrieval_layer_filename
+    )  # type: ModuleType
+    file_extension_info_func = getattr(
+        data_retrieval_layer, "get_file_extensions"
+    )  # type:  Callable[[], Tuple[str, ...]]
+
     return file_extension_info_func()
 
 
@@ -370,9 +407,12 @@ def get_hidra_transfer_type(monitor_params):
     """
     data_retrieval_layer_filename = monitor_params.get_param(
         group="om", parameter="data_retrieval_layer", parameter_type=str, required=True,
-    )
-    data_retrieval_layer = import_data_retrieval_layer(data_retrieval_layer_filename)
+    )  # type: str
+    data_retrieval_layer = import_data_retrieval_layer(
+        data_retrieval_layer_filename
+    )  # type: ModuleType
     hidra_transport_parameter_typefunc = getattr(
         data_retrieval_layer, "get_hidra_transport_type"
-    )
+    )  # type: Callable[[], str]
+
     return hidra_transport_parameter_typefunc()

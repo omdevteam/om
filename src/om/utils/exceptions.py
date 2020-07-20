@@ -125,7 +125,7 @@ class OmDetectorCalibrationError(OmException):
     """
 
 
-def om_exception_handler(parameter_type, value, traceback_):
+def om_exception_handler(parameter_type, value, traceback_):  # type: ignore
     """
     Custom OM exception handler.
 

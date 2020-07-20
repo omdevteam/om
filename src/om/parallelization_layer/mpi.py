@@ -25,21 +25,18 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import sys
-from typing import Any, Dict, Callable, Optional, Tuple
+from types import ModuleType
+from typing import Any, Callable, Dict, List, Tuple, Union
 
-from mpi4py import MPI
-
-from om.utils import (
-    dynamic_import,
-    exceptions,
-    parameters,
-)
+from mpi4py import MPI  # type: ignore
+from om.utils import dynamic_import, exceptions, parameters
+from om.utils.dynamic_import import TypeEventHandlingFuncs, TypeEventGenerator
 
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
-_NOMORE = 998
-_DIETAG = 999
-_DEADTAG = 1000
+_NOMORE = 998  # type: int
+_DIETAG = 999  # type: int
+_DEADTAG = 1000  # type: int
 
 
 class ParallelizationEngine(object):
@@ -49,12 +46,12 @@ class ParallelizationEngine(object):
 
     def __init__(
         self,
-        process_func,  # type: Callable[[Dict[str, Any]], Dict[str, Any]]
-        collect_func,  # type: Callable[[Dict[str, Any]], None]
+        process_func,  # type: Callable[[Dict[str, Any]], Tuple[Dict[str, Any], int]]
+        collect_func,  # type: Callable[[Tuple[Dict[str, Any], int]], None]
         source,  # type: str
         monitor_params,  # type:  parameters.MonitorParams
     ):
-        # type (...) -> None
+        # type: (...) -> None
         """
         An MPI-based master-worker parallelization engine for OM.
 
@@ -79,14 +76,17 @@ class ParallelizationEngine(object):
 
         Arguments:
 
-            process_func (Callable[[Dict[str, Any]], Dict[str, Any]]): the function
-                that will be called on each worker node for every frame in a data
-                event. The 'ProcessedData' named tuple returned by this function will
-                be transferred to the master node.
+            process_func (Callable[[Dict[str, Any]], Tuple[Dict[str, Any], int]]): the
+                function that will be called on each worker node for every frame in a
+                data event. The input to the function is a dictionary storing the
+                extracted data for the frame being processed. The tuple returned by
+                the function, storing the processed data and information about the
+                worker processing the data, will be transferred to the master node.
 
             collect_func (Callable[[Dict[str, Any], None]): the function that will run
                 on the master node every time a 'ProcessedData' named tuple is
-                transferred from a worker node.
+                transferred from a worker node. The input to the function is the
+                tuple returned by the process_func function in the previous argument.
 
             source (str): a string describing a source of event data. The exact format
                 of the string depends on the specific Data Recovery Layer currently
@@ -102,15 +102,19 @@ class ParallelizationEngine(object):
 
             rank (int): the rank (in MPI terms) of the current node.
         """
-        self._map = process_func
-        self._reduce = collect_func
-        self._source = source
-        self._monitor_params = monitor_params
+        self._map = (
+            process_func
+        )  # type: Callable[[Dict[str, Any]], Tuple[Dict[str, Any], int]]
+        self._reduce = (
+            collect_func
+        )  # type: Callable[[Tuple[Dict[str, Any], int]], None]
+        self._source = source  # type: str
+        self._monitor_params = monitor_params  # type: parameters.MonitorParams
 
-        self._mpi_size = MPI.COMM_WORLD.Get_size()
-        self.rank = MPI.COMM_WORLD.Get_rank()
+        self._mpi_size = MPI.COMM_WORLD.Get_size()  # type: int
+        self.rank = MPI.COMM_WORLD.Get_rank()  # type: int
         if self.rank == 0:
-            self.role = "master"
+            self.role = "master"  # type: str
         else:
             self.role = "worker"
 
@@ -119,45 +123,48 @@ class ParallelizationEngine(object):
             parameter="data_retrieval_layer",
             parameter_type=str,
             required=True,
-        )
+        )  # type: str
         data_retrieval_layer = dynamic_import.import_data_retrieval_layer(
             data_retrieval_layer_filename=data_retrieval_layer_filename
-        )
+        )  # type: ModuleType
         event_handling_functions = dynamic_import.get_event_handling_funcs(
             data_retrieval_layer=data_retrieval_layer
-        )
-
+        )  # type: TypeEventHandlingFuncs
         if self.role == "worker":
-            self._event_generator = event_handling_functions["event_generator"]
+            self._event_generator = event_handling_functions[
+                "event_generator"
+            ]  # type: Callable[[str, int, int, parameters.MonitorParams], TypeEventGenerator]
             self._num_frames_in_event_to_process = monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="num_of_most_recent_frames_in_event_to_process",
                 parameter_type=int,
-            )
+            )  # type: int
             frames_in_event_to_skip = monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="frame_indexes_to_skip",
                 parameter_type=list,
-            )
+            )  # type: List[int]
             if frames_in_event_to_skip is not None:
-                self._frames_in_event_to_skip = tuple(frames_in_event_to_skip)
+                self._frames_in_event_to_skip = tuple(
+                    frames_in_event_to_skip
+                )  # type: Tuple[int, ...]
             else:
                 self._frames_in_event_to_skip = tuple()
 
         if self.role == "master":
             self._initialize_event_source = event_handling_functions[
                 "initialize_event_source"
-            ]
-            self._num_nomore = 0
-            self._num_collected_events = 0
+            ]  # type: Callable[[str, int, parameters.MonitorParams], Any]
+            self._num_nomore = 0  # type: int
+            self._num_collected_events = 0  # type: int
 
-    def start(self):
-        # type () -> None
+    def start(self):  # noqa: C901
+        # type: () -> None
         """
         Starts the parallelization engine.
 
-        * When this function is called on a worker node, the node starts retrieving data
-          events and processing them.
+        * When this function is called on a worker node, the node starts retrieving
+          data events and processing them.
 
         * When this function is called on the master node, the node starts receiving
           data from the worker nodes and aggregating it.
@@ -165,7 +172,7 @@ class ParallelizationEngine(object):
         if self.role == "worker":
             # Flag used to make sure that the MPI messages have been processed.
             req = None
-            events = self._event_generator(
+            events = self._event_generator(  # type: ignore
                 source=self._source,
                 node_rank=self.rank,
                 node_pool_size=self._mpi_size,
@@ -177,16 +184,16 @@ class ParallelizationEngine(object):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
                     self.shutdown("Shutting down RANK: {0}.".format(self.rank))
                 event.open_event()
-                n_frames_in_evt = event.get_num_frames_in_event()
+                n_frames_in_evt = event.get_num_frames_in_event()  # type: int
                 if self._num_frames_in_event_to_process is not None:
                     num_frames_to_process = min(
                         n_frames_in_evt, self._num_frames_in_event_to_process
-                    )
+                    )  # type: int
                 else:
                     num_frames_to_process = n_frames_in_evt
                 # Iterates over the last 'num_frames_to_process' frames in the event.
                 for frame_offset in range(-num_frames_to_process, 0):
-                    current_frame = n_frames_in_evt + frame_offset
+                    current_frame = n_frames_in_evt + frame_offset  # type: int
                     if current_frame in self._frames_in_event_to_skip:
                         continue
                     event.current_frame = current_frame
@@ -196,7 +203,7 @@ class ParallelizationEngine(object):
                         print(exc)
                         print("Skipping event...")
                         continue
-                    result = self._map(data)
+                    result = self._map(data)  # type: Tuple[Dict[str, Any], int]
                     if req:
                         req.Wait()
                     req = MPI.COMM_WORLD.isend(result, dest=0, tag=0)
@@ -222,18 +229,20 @@ class ParallelizationEngine(object):
                 )
             )
             print(
-                "You are using an OnDA real-time monitor. Please cite: "
+                "You are using an OM real-time monitor. Please cite: "
                 "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
             )
-            _ = self._initialize_event_source(
+            _ = self._initialize_event_source(  # type: ignore
                 source=self._source,
                 node_pool_size=self._mpi_size,
                 monitor_params=self._monitor_params,
             )
             while True:
                 try:
-                    received_data = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
-                    if "end" in received_data["data"].keys():
+                    received_data = MPI.COMM_WORLD.recv(
+                        source=MPI.ANY_SOURCE, tag=0
+                    )  # type: Tuple[Dict[str, Any], int]
+                    if "end" in received_data[0].keys():
                         # If the received message announces that a worker node has
                         # finished processing data, keeps track of how many worker
                         # nodes have already finished.
@@ -262,7 +271,7 @@ class ParallelizationEngine(object):
                     sys.exit(0)
 
     def shutdown(self, msg="Reason not provided."):
-        # type (Optional[str]) -> None
+        # type: (Union[str, None]) -> None
         """
         Shuts down the parallelization engine.
 
@@ -275,8 +284,8 @@ class ParallelizationEngine(object):
 
         Arguments:
 
-            msg (Optional[str]): reason for shutting down the parallelization engine.
-                Defaults to "Reason not provided".
+            msg (Union[str, None]): reason for shutting down the parallelization
+                engine. Defaults to "Reason not provided".
         """
         print("Shutting down:", msg)
         sys.stdout.flush()
@@ -290,7 +299,7 @@ class ParallelizationEngine(object):
             # messages from the nodes (MPI cannot shut down if there are unreceived
             # messages).
             try:
-                for nod_num in range(1, self._mpi_size()):
+                for nod_num in range(1, self._mpi_size):
                     MPI.COMM_WORLD.isend(0, dest=nod_num, tag=_DIETAG)
                 num_shutdown_confirm = 0
                 while True:
@@ -298,7 +307,7 @@ class ParallelizationEngine(object):
                         _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DEADTAG):
                         num_shutdown_confirm += 1
-                    if num_shutdown_confirm == self._mpi_size() - 1:
+                    if num_shutdown_confirm == self._mpi_size - 1:
                         break
                 # When all the worker nodes have confirmed, shuts down the master.
                 MPI.Finalize()
@@ -309,7 +318,7 @@ class ParallelizationEngine(object):
                 exit(0)
 
     def end_processing(self):
-        # type () -> None
+        # type: () -> None
         """
         Executes end-of-processing actions.
 
@@ -319,7 +328,7 @@ class ParallelizationEngine(object):
         implement custom end-of-processing actions.
         """
         print(
-            "Processing finished. OnDA has processed {0} events in total.".format(
+            "Processing finished. OM has processed {0} events in total.".format(
                 self._num_collected_events
             )
         )

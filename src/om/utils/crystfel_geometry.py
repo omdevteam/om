@@ -32,11 +32,11 @@ from typing import Dict, List, Tuple, Type, Union
 import numpy  # type: ignore
 from future.utils import raise_from, viewitems  # type: ignore
 from mypy_extensions import TypedDict
-
+from om.utils import exceptions
 
 TypeBeam = TypedDict(
     "TypeBeam",
-    {"photon_energy": float, "photon_energy_from": str, "photon_energy_scale": float,},
+    {"photon_energy": float, "photon_energy_from": str, "photon_energy_scale": float},
     total=True,
 )
 
@@ -124,7 +124,8 @@ TypeDetector = TypedDict(
 
 def _assplode_algebraic(value):
     # type: (str) -> List[str]
-    # Re-implementation of assplode_algebraic from libcrystfel/src/detector.c.
+    # Re-implementation of assplode_algebraic from
+    # /src/detector.c.
     items = [
         item for item in re.split("([+-])", string=value.strip()) if item != ""
     ]  # type: List[str]
@@ -189,7 +190,7 @@ def _set_dim_structure_entry(key, value, panel):
     panel["dim_structure"] = dim
 
 
-def _parse_field_for_panel(
+def _parse_field_for_panel(  # noqa: C901
     key,  # type: str
     value,  # type: str
     panel,  # type: TypePanel
@@ -304,7 +305,7 @@ def _parse_field_for_panel(
         RuntimeError("Unrecognized field: {}".format(key))
 
 
-def _parse_toplevel(
+def _parse_toplevel(  # noqa: C901
     key,  # type: str
     value,  # type: str
     detector,  # type: TypeDetector
@@ -467,7 +468,7 @@ def _find_min_max_d(detector):
         )
 
 
-def load_crystfel_geometry(filename,):
+def load_crystfel_geometry(filename,):  # noqa: C901
     # type: (str) -> Tuple[TypeDetector, TypeBeam, Union[str, None]]
     """
     Loads a CrystFEL geometry file.
@@ -1010,7 +1011,7 @@ def load_crystfel_geometry(filename,):
         ]  # type: Tuple[Union[Type[BaseException], None], Union[BaseException, None]]
         raise_from(
             # TODO: Fix type check
-            exc=RuntimeError(
+            exc=exceptions.OmConfigurationFileReadingError(
                 "The following error occurred while reading the {0} geometry"
                 "file {1}: {2}".format(
                     filename, exc_type.__name__, exc_value,  # type: ignore
@@ -1044,8 +1045,9 @@ def compute_pix_maps(geometry):
 
     Arguments:
 
-        geometry (Dict[str, Any]): a CrystFEL geometry object (A dictionary returned by
-            the :func:`~om.utils.crystfel.load_crystfel_geometry` function).
+        geometry (TypeDetector): a dictionary returned by the
+            :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
+            storing the geometry information.
 
     Returns:
 
@@ -1177,8 +1179,9 @@ def compute_visualization_pix_maps(geometry):
 
     Arguments:
 
-        geometry (Dict[str, Any]): a CrystFEL geometry object (A dictionary returned by
-            the :func:`~load_crystfel_geometry` function).
+        geometry (TypeDetector): a dictionary returned by the
+            :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
+            storing the geometry information.
 
     Returns:
 
@@ -1238,8 +1241,9 @@ def apply_geometry_to_data(data, geometry):
         data (numpy.ndarray): the data on which the geometry information should be
             applied.
 
-        geometry (Dict[str, Any]): a CrystFEL geometry object (A dictionary returned by
-            the :func:`~load_crystfel_geometry` function).
+        geometry (TypeDetector): a dictionary returned by the
+            :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
+            storing the geometry information.
 
     Returns:
 
