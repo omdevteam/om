@@ -85,10 +85,7 @@ def import_data_retrieval_layer(data_retrieval_layer_filename):
         data_retrieval_layer = importlib.import_module(
             data_retrieval_layer_filename
         )  # type: ModuleType
-    except (ImportError, ModuleNotFoundError):
-        print(
-            "om.data_retrieval_layer.profiles.{0}".format(data_retrieval_layer_filename)
-        )
+    except (ImportError):
         data_retrieval_layer = importlib.import_module(
             "om.data_retrieval_layer.profiles.{0}".format(data_retrieval_layer_filename)
         )
