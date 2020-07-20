@@ -163,9 +163,7 @@ def initialize_event_source(source, node_pool_size, monitor_params):
         hidra_info["query"].initiate(hidra_info["targets"][1:])
     except transfer.CommunicationFailed as exc:
         raise_from(
-            exc=exceptions.OndaHidraAPIError(
-                "Failed to contact HiDRA: {0}".format(exc)
-            ),
+            exc=exceptions.OmHidraAPIError("Failed to contact HiDRA: {0}".format(exc)),
             cause=exc,
         )
 
@@ -260,9 +258,7 @@ def event_generator(
         hidra_info["query"].start(hidra_info["targets"][node_rank][1])
     except transfer.CommunicationFailed as exc:
         raise_from(
-            exc=exceptions.OndaHidraAPIError(
-                "Failed to contact HiDRA: {0}".format(exc)
-            ),
+            exc=exceptions.OmHidraAPIError("Failed to contact HiDRA: {0}".format(exc)),
             cause=exc,
         )
 

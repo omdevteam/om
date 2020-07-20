@@ -39,7 +39,7 @@ try:
     import psana
 except ImportError as exc:
     raise_from(
-        exc=exceptions.OndaMissingDependencyError(
+        exc=exceptions.OmMissingDependencyError(
             "The psana module could not be loaded. The following dependency does not "
             "appear to be available on the system: psana."
         ),
@@ -536,7 +536,7 @@ def timestamp(event):
     # again.
     timest = event.framework_info["timestamp"]
     if timest is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve timestamp information from psana."
         )
 
@@ -564,7 +564,7 @@ def detector_distance(event):
     """
     det_dist = event.framework_info["psana_detector_interface"]["detector_distance"]()
     if det_dist is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve detector distance information from psana."
         )
 
@@ -591,7 +591,7 @@ def beam_energy(event):
         .ebeamPhotonEnergy()
     )
     if beam_en is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve beam energy information from psana."
         )
 
@@ -619,7 +619,7 @@ def timetool_data(event):
     """
     time_tl = event.framework_info["psana_detector_interface"]["timetool_data"]()
     if time_tl is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve time tool data from psana."
         )
 
@@ -648,7 +648,7 @@ def digitizer_data(event):
         event.data
     )
     if digit_data is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve digitizer data from psana."
         )
 
@@ -674,7 +674,7 @@ def opal_data(event):
     """
     op_data = event["psana_detector_interface"]["opal_data"].calib(event.data)
     if op_data is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve Opel camera data from psana."
         )
 
@@ -713,7 +713,7 @@ def optical_laser_active(event):
         "optical_laser_active"
     ].psana_detector_handle.eventCodes(event.data)
     if current_evr_codes is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve event codes from psana."
         )
 
@@ -754,7 +754,7 @@ def xrays_active(event):
         "xrays_active"
     ].psana_detector_handle.eventCodes(event.data)
     if current_evr_codes is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve event codes from psana."
         )
 

@@ -115,7 +115,7 @@ class DataEvent(object):
         except Exception:
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
-                raise exceptions.OndaDataExtractionError(
+                raise exceptions.OmDataExtractionError(
                     "OM Warning: Cannot interpret {0} event data due to the "
                     "following error: {1}: {2}".format(
                         func.__name__, exc_type.__name__, exc_value

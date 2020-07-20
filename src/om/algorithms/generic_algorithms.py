@@ -129,14 +129,14 @@ class Correction(object):
                             "{2}: {3}".format(
                                 mask_filename,
                                 mask_hdf5_path,
-                                exc_type.__name__,  # type: ignore
+                                exc_type.__name__,
                                 exc_value,
                             )
                         ),
                         cause=exc,
                     )
             else:
-                raise exceptions.OndaMissingHdf5PathError(
+                raise exceptions.OmMissingHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for mask."
                 )
         else:
@@ -162,14 +162,14 @@ class Correction(object):
                             "{2}: {3}".format(
                                 dark_filename,
                                 dark_hdf5_path,
-                                exc_type.__name__,  # type: ignore
+                                exc_type.__name__,
                                 exc_value,
                             )
                         ),
                         cause=exc,
                     )
             else:
-                raise exceptions.OndaMissingHdf5PathError(
+                raise exceptions.OmMissingHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for dark frame data."
                 )
         else:
@@ -195,14 +195,14 @@ class Correction(object):
                             "{2}: {3}".format(
                                 gain_filename,
                                 gain_hdf5_path,
-                                exc_type.__name__,  # type: ignore
+                                exc_type.__name__,
                                 exc_value,
                             )
                         ),
                         cause=exc,
                     )
             else:
-                raise exceptions.OndaMissingHdf5PathError(
+                raise exceptions.OmMissingHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for gain map."
                 )
         else:

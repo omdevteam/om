@@ -191,8 +191,8 @@ class ParallelizationEngine(object):
                         continue
                     event.current_frame = current_frame
                     try:
-                        data = event.extract_data()
-                    except exceptions.OndaDataExtractionError as exc:
+                        data = event.extract_data()  # type: Dict[str, Any]
+                    except exceptions.OmDataExtractionError as exc:
                         print(exc)
                         print("Skipping event...")
                         continue

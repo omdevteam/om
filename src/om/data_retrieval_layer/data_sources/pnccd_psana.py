@@ -78,7 +78,7 @@ def detector_data(event, data_extraction_func_name):
         data_extraction_func_name
     ].calib(event.framework_info["psana_event"])
     if pnccd_psana is None:
-        raise exceptions.OndaDataExtractionError(
+        raise exceptions.OmDataExtractionError(
             "Could not retrieve detector from psana."
         )
 

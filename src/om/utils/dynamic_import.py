@@ -146,26 +146,68 @@ def get_event_handling_funcs(data_retrieval_layer):
 
     Raises:
 
-        :class:`~om.utils.exceptions.OndaMissingEventHandlingFunctionError`: if one
+        :class:`~om.utils.exceptions.OmMissingEventHandlingFunctionError`: if one
             of the Event Handling Function is not found in the Data Retrieval Layer.
     """
-    event_handling_funcs = {}
-    for func_name in [
-        "initialize_event_source",
-        "event_generator",
-        "open_event",
-        "close_event",
-        "get_num_frames_in_event",
-    ]:
-        try:
-            event_handling_funcs[func_name] = getattr(data_retrieval_layer, func_name)
-        except AttributeError as exc:
-            raise_from(
-                exc=exceptions.OndaMissingEventHandlingFunctionError(
-                    "Event handling function {0} is not defined.".format(func_name)
-                ),
-                cause=exc,
-            )
+    event_handling_funcs = {}  # type: TypeEventHandlingFuncs
+
+    try:
+        event_handling_funcs["initialize_event_source"] = getattr(
+            data_retrieval_layer, "initialize_event_source"
+        )
+    except AttributeError as exc:
+        raise_from(
+            exc=exceptions.OmMissingEventHandlingFunctionError(
+                "Event handling function initialize_event_source is not defined."
+            ),
+            cause=exc,
+        )
+
+    try:
+        event_handling_funcs["event_generator"] = getattr(
+            data_retrieval_layer, "event_generator"
+        )
+    except AttributeError as exc:
+        raise_from(
+            exc=exceptions.OmMissingEventHandlingFunctionError(
+                "Event handling function event_generator is not defined."
+            ),
+            cause=exc,
+        )
+
+    try:
+        event_handling_funcs["open_event"] = getattr(data_retrieval_layer, "open_event")
+    except AttributeError as exc:
+        raise_from(
+            exc=exceptions.OmMissingEventHandlingFunctionError(
+                "Event handling function open_event is not defined."
+            ),
+            cause=exc,
+        )
+
+    try:
+        event_handling_funcs["close_event"] = getattr(
+            data_retrieval_layer, "close_event"
+        )
+    except AttributeError as exc:
+        raise_from(
+            exc=exceptions.OmMissingEventHandlingFunctionError(
+                "Event handling function close_event is not defined."
+            ),
+            cause=exc,
+        )
+
+    try:
+        event_handling_funcs["get_num_frames_in_event"] = getattr(
+            data_retrieval_layer, "get_num_frames_in_event"
+        )
+    except AttributeError as exc:
+        raise_from(
+            exc=exceptions.OmMissingEventHandlingFunctionError(
+                "Event handling function get_num_frames_in_event is not defined."
+            ),
+            cause=exc,
+        )
 
     return event_handling_funcs
 
@@ -184,23 +226,23 @@ def get_data_extraction_funcs(required_data, data_retrieval_layer):
 
     Returns:
 
-        Dict[srt, Callable]: a dictionary whose keys match the names in the
-        'required_data' argument, and whose values store the corresponding function
-        implementations.
+       Dict[str, Callable[[data_event.DataEvent], Any]]: a dictionary whose keys match
+       the names in the 'required_data' argument, and whose values store the
+       corresponding function implementations.
 
     Raises:
 
-        :class:`~om.utils.exceptions.OndaMissingDataExtractionFunctionError`: if a
+        :class:`~om.utils.exceptions.OmMissingDataExtractionFunctionError`: if a
             required Data Extraction Function is not found in the Data Retieval Layer.
     """
-    data_extraction_funcs_list = [x.strip() for x in required_data]
-    data_extraction_funcs = {}
+    data_extraction_funcs_list = [x.strip() for x in required_data]  # type: List[str]
+    data_extraction_funcs = {}  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
     for func_name in data_extraction_funcs_list:
         try:
             data_extraction_funcs[func_name] = getattr(data_retrieval_layer, func_name)
         except AttributeError as exc:
             raise_from(
-                exc=exceptions.OndaMissingDataExtractionFunctionError(
+                exc=exceptions.OmMissingDataExtractionFunctionError(
                     "Data extraction function {0} not defined".format(func_name)
                 ),
                 cause=exc,
@@ -247,7 +289,7 @@ def get_psana_detector_interface_funcs(required_data, data_retrieval_layer):
             )
         except AttributeError as exc:
             raise_from(
-                exc=exceptions.OndaMissingPsanaInitializationFunctionError(
+                exc=exceptions.OmMissingPsanaInitializationFunctionError(
                     "Psana Detector interface initialization function {0} "
                     "not defined".format(func_name)
                 ),
@@ -320,7 +362,7 @@ def get_hidra_transfer_type(monitor_params):
     Arguments:
 
         monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OnDA monitor parameters from the configuration file.
+            storing the OM monitor parameters from the configuration file.
 
     Returns:
 
