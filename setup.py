@@ -115,7 +115,7 @@ setup(
         "pyyaml>=5.1.2",
         "pyzmq>=18.0.2",
         "scipy>=1.2.1",
-        "typing>=3.6.4",
+        "typing>=3.7.4.1",
     ],
     extras_require={":python_version < '3.4'": ["pathlib>=1.0.1"]},
     entry_points={"console_scripts": ["om_monitor.py=om.monitor:main"]},
