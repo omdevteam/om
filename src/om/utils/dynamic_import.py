@@ -25,29 +25,12 @@ from __future__ import absolute_import, division, print_function
 
 import importlib
 from types import ModuleType
-from typing import Any, Callable, Dict, Generator, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 from future.utils import raise_from  # type: ignore
-from mypy_extensions import TypedDict
 
 from om.utils import data_event, exceptions, parameters
-
-
-TypeEventGenerator = Generator[data_event.DataEvent, None, None]
-
-TypeEventHandlingFuncs = TypedDict(
-    "TypeEventHandlingFuncs",
-    {
-        "initialize_event_source": Callable[[str, int, parameters.MonitorParams], Any],
-        "event_generator": Callable[
-            [str, int, int, parameters.MonitorParams], TypeEventGenerator,
-        ],
-        "get_num_frames_in_event": Callable[[data_event.DataEvent], int],
-        "open_event": Callable[[data_event.DataEvent], None],
-        "close_event": Callable[[data_event.DataEvent], None],
-    },
-    total=False,
-)
+from om.utils.data_event import TypeEventHandlingFuncs
 
 
 def import_processing_layer(processing_layer_filename):

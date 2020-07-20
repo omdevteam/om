@@ -25,13 +25,14 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import types
-from typing import Any, Callable, Dict, Union
+from typing import Any, Callable, Dict, Generator, Union
+from mypy_extensions import TypedDict
+
 
 import numpy  # type: ignore
 from future.utils import iteritems  # type: ignore
 
-from om.utils import data_event, exceptions
-from om.utils.dynamic_import import TypeEventHandlingFuncs
+from om.utils import exceptions, parameters
 
 
 class DataEvent(object):
@@ -42,7 +43,7 @@ class DataEvent(object):
     def __init__(
         self,
         event_handling_funcs,  # type: TypeEventHandlingFuncs
-        data_extraction_funcs,  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
+        data_extraction_funcs,  # type: Dict[str, Callable[[DataEvent], Any]]
     ):
         # type: (...) -> None
         """
@@ -98,7 +99,7 @@ class DataEvent(object):
         self.framework_info = {}  # type: Dict[str, Any]
         self.data_extraction_functions = (
             data_extraction_funcs
-        )  # type: Dict[str, Callable[[data_event.DataEvent], Any]]
+        )  # type: Dict[str, Callable[[DataEvent], Any]]
 
     def extract_data(self):
         # type: () -> Dict[str, Any]
@@ -135,3 +136,20 @@ class DataEvent(object):
                 )
 
         return data
+
+
+TypeEventGenerator = Generator[DataEvent, None, None]
+
+TypeEventHandlingFuncs = TypedDict(
+    "TypeEventHandlingFuncs",
+    {
+        "initialize_event_source": Callable[[str, int, parameters.MonitorParams], Any],
+        "event_generator": Callable[
+            [str, int, int, parameters.MonitorParams], TypeEventGenerator,
+        ],
+        "get_num_frames_in_event": Callable[[DataEvent], int],
+        "open_event": Callable[[DataEvent], None],
+        "close_event": Callable[[DataEvent], None],
+    },
+    total=False,
+)

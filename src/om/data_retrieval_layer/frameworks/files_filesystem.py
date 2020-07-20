@@ -31,7 +31,7 @@ import numpy  # type: ignore
 from future.utils import raise_from  # type: ignore
 
 from om.utils import data_event, dynamic_import, parameters
-from om.utils.dynamic_import import TypeEventGenerator, TypeEventHandlingFuncs
+from om.utils.data_event import TypeEventGenerator, TypeEventHandlingFuncs
 
 
 ############################

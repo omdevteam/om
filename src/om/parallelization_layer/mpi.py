@@ -30,7 +30,7 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 
 from mpi4py import MPI  # type: ignore
 from om.utils import dynamic_import, exceptions, parameters
-from om.utils.dynamic_import import TypeEventHandlingFuncs, TypeEventGenerator
+from om.utils.data_event import TypeEventHandlingFuncs, TypeEventGenerator
 
 
 # Define some labels for internal MPI communication (just some syntactic sugar).

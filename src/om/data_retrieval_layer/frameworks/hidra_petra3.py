@@ -34,7 +34,7 @@ from future.utils import raise_from  # type: ignore
 
 from hidra_api import Transfer, transfer  # type: ignore
 from om.utils import data_event, dynamic_import, exceptions, parameters
-from om.utils.dynamic_import import TypeEventGenerator, TypeEventHandlingFuncs
+from om.utils.data_event import TypeEventGenerator, TypeEventHandlingFuncs
 
 
 def _create_hidra_info(source, node_pool_size, monitor_params):
