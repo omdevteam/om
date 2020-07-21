@@ -147,61 +147,61 @@ class OndaMonitor(mpi.ParallelizationEngine):
                 monitor_params=monitor_parameters
             )  # type: Dict[str, int]
             pf8_max_num_peaks = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="max_num_peaks",
                 parameter_type=int,
                 required=True,
             )  # type: int
             pf8_adc_threshold = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="adc_threshold",
                 parameter_type=float,
                 required=True,
             )  # type: float
             pf8_minimum_snr = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="minimum_snr",
                 parameter_type=float,
                 required=True,
             )  # type: float
             pf8_min_pixel_count = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="min_pixel_count",
                 parameter_type=int,
                 required=True,
             )  # type: int
             pf8_max_pixel_count = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="max_pixel_count",
                 parameter_type=int,
                 required=True,
             )  # type: int
             pf8_local_bg_radius = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="local_bg_radius",
                 parameter_type=int,
                 required=True,
             )  # type: int
             pf8_min_res = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="min_res",
                 parameter_type=int,
                 required=True,
             )  # type: int
             pf8_max_res = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="max_res",
                 parameter_type=int,
                 required=True,
             )  # type: int
             pf8_bad_pixel_map_fname = monitor_parameters.get_param(
-                group="peakfinder8",
+                group="peakfinder8_peak_detection",
                 parameter="bad_pixel_map_filename",
                 parameter_type=str,
             )  # type: Union[str, None]
             if pf8_bad_pixel_map_fname is not None:
                 pf8_bad_pixel_map_hdf5_path = monitor_parameters.get_param(
-                    group="peakfinder8",
+                    group="peakfinder8_peak_detection",
                     parameter="bad_pixel_map_hdf5_path",
                     parameter_type=str,
                     required=True,
