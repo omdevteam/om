@@ -1,18 +1,18 @@
 The Source String
 -----------------
 
-Information about the source of data events is provided to OnDA at start-up, in the
-form of the *Source String*, a command line argument to the *onda_monitor.py* script:
+Information about the source of data events is provided to OM at start-up, in the
+form of the *Source String*, a command line argument to the *om_monitor.py* script:
 
 .. code-block:: bash
 
-    onda_monitor.py SOURCE_STRING
+    om_monitor.py SOURCE_STRING
 
 The exact format of the string depends on the Data Retrieval Layer implementation used
 by the monitor, and is usually part of the information provided to the user by the
-developer that configured the OnDA monitor. The format is often tied to the facility
+developer that configured the OM monitor. The format is often tied to the facility
 where the experiment is taking place: the following is a list of facilities that are
-currently officially supported by OnDA, with a description of the typical format of the
+currently officially supported by OM, with a description of the typical format of the
 source string at each of them.
 
 
@@ -28,7 +28,7 @@ full relative or absolute path. Example source string: files.lst
 LCLS
 ^^^^
 
-When OnDA is run at the LCLS facility, the source string is a psana-style DataSource
+When OM is run at the LCLS facility, the source string is a psana-style DataSource
 string. Example source string: shmem=psana.0:stop=no
 
 

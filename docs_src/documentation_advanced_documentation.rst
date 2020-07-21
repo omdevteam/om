@@ -4,13 +4,13 @@ Advanced Documentation
 .. toctree::
    :hidden:
 
-   onda
+   om
 
 Code Documentation
 ------------------
 
-Automatically generated documentation from the code of OnDA can be found
-:doc:`here <onda>`.
+Automatically generated documentation from the code of OM can be found
+:doc:`here <om>`.
 
 
 Guidelines for Contributors
@@ -20,22 +20,19 @@ Guidelines for Contributors
 Version Control
 ^^^^^^^^^^^^^^^
 
-OnDA is developed using the `Git <https://git-scm.com>`_ version control system.
+OM is developed using the `Git <https://git-scm.com>`_ version control system.
 
-OnDA uses the branching strategy proposed by Vincent Driessen and commonly known as
-`Gitflow <https://nvie.com/posts/a-successful-git-branching-model>`_.
-
-OnDA follows the `CalVer <http://www.calver.org>`_ versioning system. Specifically, it
+OM follows the `CalVer <http://www.calver.org>`_ versioning system. Specifically, it
 follows the scheme: *YY.MM.MINOR.[MICRO]*
 
 Python
 ^^^^^^
 
-OnDA is mainly developed in `Python  <https://www.python.org>`_.
+OM is mainly developed in `Python  <https://www.python.org>`_.
 
-* All code in OnDA must run with both version 2 and 3 of Python, except for
+* All code in OM must run with both version 2 and 3 of Python, except for
   facility-specific code that specifically requires one of the two versions (for example,
-  Python 2 for the LCSL facility). The code must specifically support all the currently
+  Python 2 for the LCLS facility). The code must specifically support all the currently
   active versions of python:
 
   * Python 2
@@ -44,12 +41,12 @@ OnDA is mainly developed in `Python  <https://www.python.org>`_.
 
   * Python 3
 
-    * 3.5
     * 3.6
     * 3.7
+    * 3.8
 
 * The `python-future <https://python-future.org>`_ project should be used to ensure that
-  code contributed to the OnDA project is compatible with all the supported versions of
+  code contributed to the OM project is compatible with all the supported versions of
   Python.
 
 * The Python coding style should follow for the most part the `Google Python
@@ -58,11 +55,9 @@ OnDA is mainly developed in `Python  <https://www.python.org>`_.
 * All docstrings should be written following the `Google Style
   <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_.
 
-* `Pylint <https://www.pylint.org>`_ should be run on the code before submission. In
-  the root folder of the OnDA repository, contributors can find a *pylintrc* file with
-  the settings that should be applied when linting OnDA's code. Please see `here
-  <http://pylint.pycqa.org/en/latest/user_guide/run.html?highlight=pylintrc>`_ for
-  instructions on how to use the pylintrc file.
+* `Flake8 <https://gitlab.com/pycqa/flake8>`_ should be run on the code before
+  submission. In the root folder of the OM repository, the setup.cfg file stores
+  the settings that should be applied when linting OM's code with Flake8.
 
 * All submitted code should be formatted using the `Black
   <https://github.com/psf/black>`_ code formatter.
@@ -71,19 +66,20 @@ OnDA is mainly developed in `Python  <https://www.python.org>`_.
 C/C++
 ^^^^^
 
-Some extension to OnDA can, for performance reason, be written using the 
+Some extension to OM can, for performance reason, be written using the 
 `C++ <https://en.wikipedia.org/wiki/C%2B%2B>`_ or `C
 <https://en.wikipedia.org/wiki/C_(programming_language)>`_ programming languages.
 
-* All C++ code in OnDA should follow at most the C++98 ISO standard, and the code
-  should compile on a Linux RHEL7/CentOS7 platform using the development stack that
+* All C++ code in OM should follow at most the C++98 ISO standard, and the code
+  should compile on a Linux 
+  7/CentOS7 platform using the development stack that
   comes with a standard installation of the system.
 
 * Part of the C++11 standard can be used when writing extensions. However, it must be
   possible to compile the code using version 4.8 of the *gcc* compiler (in order to
   create the Linux binary Python wheel).
 
-* All C code in OnDA should follow at most the C99 ISO standard, and the code should
+* All C code in OM should follow at most the C99 ISO standard, and the code should
   compile on a Linux RHEL7/CentOS7 platform using the development stack that comes with
   a standard installation of the system.
 
@@ -94,19 +90,19 @@ Some extension to OnDA can, for performance reason, be written using the
 Other Advanced Topics
 ---------------------
 
-This section contains a collection of short essays on several OnDA-related topics.
+This section contains a collection of short essays on several OM-related topics.
 
 
-The OnDA Monitor Workflow
-^^^^^^^^^^^^^^^^^^^^^^^^^
+The OM Workflow
+^^^^^^^^^^^^^^^
 
-When an OnDA monitor starts, it first initializes all the worker and master nodes, on a
+When an OM monitor starts, it first initializes all the worker and master nodes, on a
 single or multiple machines, according to the user's wishes. The first process to
 start on the first machine usually takes the role of the master node, while all the
 others become workers nodes.
 
 Each node parses the command line arguments, and recovers the source string. It then
-reads the configuration file. By default, OnDA looks for a file called *monitor.toml*
+reads the configuration file. By default, OM looks for a file called *monitor.yaml*
 in the current working directory (or a for a different file specified by the user via a
 command-line argument).
 
@@ -135,7 +131,7 @@ stops.
 The Processing Layer
 ^^^^^^^^^^^^^^^^^^^^
 
-Writing an OnDA monitoring program consists mainly in writing a Python module, the
+Writing an OM monitoring program consists mainly in writing a Python module, the
 Processing Layer, that implements a data analysis pipeline. The Processing Layer module
 should contain, apart from some helper functions, just one class: the *OndaMonitor*
 class. The processing logic should be implemented in this class.
@@ -190,11 +186,11 @@ The methods are:
    processing. There is no fixed path. Often the information is broadcasted to a
    graphical interface via a network socket, but this is not an obligatory path at all.
    The information could also be, for example, printed on the console. If the developer
-   wants to stream data outside of the OnDA monitor, OnDA provides utilities for this
-   in the *onda.utils.zmq_monitor* module.
+   wants to stream data outside of the OM monitor, OM provides utilities for this
+   in the *om.utils.zmq_monitor* module.
 
 There is a fourth method that can be implemented by the developer. This is optional:
-if the developer does not implement this method in the Processing Layer, OnDA uses the
+if the developer does not implement this method in the Processing Layer, OM uses the
 default implementation from the Processing Layer:
 
 4. **end_processing**: this function is executed when the monitoring program finishes
@@ -238,11 +234,11 @@ default implementation from the Processing Layer:
 Algorithms
 ^^^^^^^^^^
 
-In order to perform data processing, OnDA allows developers to write *Algorithms*.
+In order to perform data processing, OM allows developers to write *Algorithms*.
 Algorithms are essentially Python classes which implement one single data processing
 step. Algorithms should be used for operations that must be applied multiple times to
 different data items, and need to remember an internal state between applications.
-For example, the averaging of detector frame data can be implemented in OnDA as an
+For example, the averaging of detector frame data can be implemented in OM as an
 algorithm. The algorithm would keep track of the internal intermediate average, and
 update it each time it is applied to new frame data.
 
@@ -261,8 +257,8 @@ Algorithms should be used mainly for two types of data processing operations:
    every time the algorithm is applied to retrieved data, the internal current average
    is updated.
 
-OnDA provides some pre-packaged algorithms for common data processing operations (peak
-finding, data accumulation, etc.) in the *onda.algorithms* Python sub-package.
+OM provides some pre-packaged algorithms for common data processing operations (peak
+finding, data accumulation, etc.) in the *om.algorithms* Python sub-package.
 
 **Notes:**
 
@@ -270,5 +266,5 @@ finding, data accumulation, etc.) in the *onda.algorithms* Python sub-package.
   and do not need to keep track of an internal state, functions can often be used in
   place of algorithms. For example, the computation of an autocorrelation, the sum of
   the intensity observed in a detector frame, are operations that do not store to store
-  any persisent information when applied multiple times. They can be implemented as
+  any persistent information when applied multiple times. They can be implemented as
   simple functions instead of algorithms.

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>OnDA: Online Data Analysis for X-Ray Imaging &#8212; OnDA 19.09.0.3 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OM: Online Data Analysis for X-Ray Imaging &#8212; OM 20.08.0.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -18,14 +19,14 @@
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="What Is An OnDA Monitor?" href="documentation_what_is_an_onda_monitor.html" />
+    <link rel="next" title="What Is An OM Monitor?" href="documentation_what_is_an_om_monitor.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -40,17 +41,17 @@
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="#">
-          OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>19.09.0.3</b></span>
+          OM</a>
+        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
             
-                <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
-                <li><a href="documentation_running_onda.html">Running OnDA</a></li>
+                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
+                <li><a href="documentation_running_om.html">Running OM</a></li>
                 <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
-                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
             
             
               
@@ -82,12 +83,14 @@
   <div class="row">
     <div class="body col-md-12 content" role="main">
       
-  <div class="section" id="onda-online-data-analysis-for-x-ray-imaging">
-<h1>OnDA: Online Data Analysis for X-Ray Imaging<a class="headerlink" href="#onda-online-data-analysis-for-x-ray-imaging" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="om-online-data-analysis-for-x-ray-imaging">
+<h1>OM: Online Data Analysis for X-Ray Imaging<a class="headerlink" href="#om-online-data-analysis-for-x-ray-imaging" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
+<div class="section" id="your-data-live-in-the-moment">
+<h2><em>“Your data, live in the moment…”</em><a class="headerlink" href="#your-data-live-in-the-moment" title="Permalink to this headline">¶</a></h2>
 <a class=""
-               data-lightbox="group-5ae784b5-6bbf-4edb-892c-048883b010ec"
+               data-lightbox="group-b02e87b9-a77b-4536-9c93-9af6595e6f57"
                href="_images/OndaScreenshot1.jpg"
                title=""
                data-title=""
@@ -96,36 +99,40 @@
                      width="60%"
                      height="auto"
                      alt=""/>
-                </a><div class="section" id="what-is-onda">
-<h2>What is OnDA?<a class="headerlink" href="#what-is-onda" title="Permalink to this headline">¶</a></h2>
-<p><strong>OnDA</strong> (<strong>On</strong>line <strong>D</strong>ata <strong>A</strong>nalysis) is a software tool for the
-the <strong>development</strong> of programs that can monitor of X-ray imaging experiments in
-<strong>real-time</strong>, and also a set of <strong>monitoring programs</strong> ready for use.</p>
-<p>OnDA provides users with a set of stable and efficient real-time monitors for the most
+                </a></div>
+<div class="section" id="what-is-om">
+<h2>What is OM?<a class="headerlink" href="#what-is-om" title="Permalink to this headline">¶</a></h2>
+<p><strong>OM</strong> (<strong>O</strong>da <strong>M</strong>onitor) is a software tool for the the <strong>development</strong> of
+programs that can monitor of X-ray imaging experiments in <strong>real-time</strong>, and also a set
+of <strong>monitoring programs</strong> ready for use.</p>
+<p>It is the spiritual successor of the OnDA project and it is maintained mostly by the
+same team of developers.</p>
+<p>OM provides users with a set of stable and efficient real-time monitors for the most
 common types of x-ray imaging experiments. These <strong>can be used immediately</strong> without
 modifications or <strong>can be easily adapted</strong> to meet the users’ requirements. In
 addition, the project provides a set of modules that can be used to easily develop
 other monitoring programs tailored to the characteristics of specific experiments.</p>
-<p>OnDA can process imaging data in the broadest sense: multidimensional and
+<p>OM can process imaging data in the broadest sense: multidimensional and
 multiple-pixel data (for example, a diffraction pattern or a photoemission spectrum,
 but also an image coming from a camera or a microscope), and any kind of digital output
 from an instrument or sensor (for example, a temperature readout, beam and pulse
 energies, etc.).</p>
-<p>OnDA focuses on <strong>scalability and portability</strong>, in order to facilitate its adoption
+<p>OM focuses on <strong>scalability and portability</strong>, in order to facilitate its adoption
 for a wide array of current and future instruments. It also strives for <strong>stability and
 performance</strong>. In order to achieve these goals, OnDA implements a master/worker
 parallelization paradigm using free and open-source libraries and protocols.</p>
-<p>OnDA is written in Python. The use of the Python programming language, which is
+<p>OM is written in Python. The use of the Python programming language, which is
 particularly suited to prototyping and rapid development, makes OnDA easy to modify and
 to adapt to the requirements of specific experiments.</p>
-<p>OnDA also aims to keep the code base <strong>simple and as small as possible</strong>. The focus is
+<p>OM also aims to keep the code base <strong>simple and as small as possible</strong>. The focus is
 on providing a core set of functions, while allowing the framework to be expanded with
 external software when possible, avoiding the need to reimplement already optimized
 algorithms.</p>
 </div>
 <div class="section" id="recommended-citation">
 <h2>Recommended Citation<a class="headerlink" href="#recommended-citation" title="Permalink to this headline">¶</a></h2>
-<p>If you use OnDA in your experiment, please cite the following paper:</p>
+<p>If you use OM in your experiment, please keep citing the original OnDA paper until a
+new publication for OM is available:</p>
 <blockquote>
 <div><p>Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O’Grady C., Kuhn M., Aplin
 S., Koglin J., Barty A., Chapman H.N., <strong>OnDA: online data analysis and feedback for
@@ -135,35 +142,34 @@ serial X-ray imaging.</strong>, J. <em>Appl. Crystallogr.</em> 2016 May 23;49(Pt
 </div>
 <div class="section" id="authors">
 <h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
-<p>OnDA is currently developed in the lab of <a class="reference external" href="https://cid.cfel.de/">Henry Chapman</a> at
-the Center For Free Electron Laser Science in Hamburg.</p>
-<p>Many people from different institutions worlwide contribute code, testing and support
+<p>OM is currently developed at the Linac Coherent Light Source facility of the SLAC
+National Accelerator Laboratory (<a class="reference external" href="https://lcls.slac.stanford.edu">https://lcls.slac.stanford.edu</a>).</p>
+<p>Many people from different institutions worldwide contribute code, testing and support
 to the project:</p>
 <ul class="simple">
-<li><p><strong>Valerio Mariani</strong> (corresponding author: <a class="reference external" href="mailto:valerio&#46;mariani&#37;&#52;&#48;desy&#46;de">valerio<span>&#46;</span>mariani<span>&#64;</span>desy<span>&#46;</span>de</a>)</p></li>
+<li><p><strong>Valerio Mariani</strong> (corresponding author: <a class="reference external" href="mailto:valmar&#37;&#52;&#48;slac&#46;stanford&#46;edu">valmar<span>&#64;</span>slac<span>&#46;</span>stanford<span>&#46;</span>edu</a>)</p></li>
 <li><p>Anton Barty</p></li>
-<li><p>Henry Chapman</p></li>
 <li><p>Thomas Grant</p></li>
 <li><p>Jason Koglin</p></li>
 <li><p>Thomas J. Lane</p></li>
-<li><p>Manuela Kuhn</p></li>
 <li><p>Andrew Morgan</p></li>
 <li><p>Christopher O’Grady</p></li>
 <li><p>Kanupriya Pande</p></li>
+<li><p>Alexandra Tolstikova</p></li>
 <li><p>Thomas A. White</p></li>
 <li><p>Chun Hong Yoon</p></li>
 </ul>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
-<p>Guidelines on how to install, configure and run OnDA at several facilities all over
-the world or on your local computer can be found <a class="reference internal" href="documentation_running_onda.html"><span class="doc">here</span></a>.</p>
+<p>Guidelines on how to install, configure and run OM at several facilities all over
+the world or on your local computer can be found <a class="reference internal" href="documentation_running_om.html"><span class="doc">here</span></a>.</p>
 <p>For advanced documentation, see <a class="reference internal" href="documentation_advanced_documentation.html"><span class="doc">this page</span></a>.</p>
 </div>
 <div class="section" id="source-code">
 <h2>Source Code<a class="headerlink" href="#source-code" title="Permalink to this headline">¶</a></h2>
-<p>The source code of OnDA can be found on GitHub: <a class="reference external" href="https://github.com/ondateam/onda">https://github.com/ondateam/onda</a></p>
-<p>Autogenerated, formatted code documentation can instead be found <a class="reference internal" href="onda.html"><span class="doc">here</span></a>.</p>
+<p>The source code of OM can be found on GitHub: <a class="reference external" href="https://github.com/omdevteam/om">https://github.com/omdevteam/om</a></p>
+<p>Autogenerated, formatted code documentation can instead be found <a class="reference internal" href="om.html"><span class="doc">here</span></a>.</p>
 </div>
 </div>
 
@@ -180,10 +186,11 @@ the world or on your local computer can be found <a class="reference internal" h
     </p>
     <p>
         &copy; Copyright 
-    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
-    the Helmholtz Association
+    2020 SLAC National Accelerator Laboratory -
+    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+    a research centre of the Helmholtz Association.
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
     </p>
   </div>
 </footer>

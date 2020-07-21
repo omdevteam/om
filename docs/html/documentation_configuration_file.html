@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>The Configuration File &#8212; OnDA 19.09.0.3 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Configuration File &#8212; OM 20.08.0.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -18,15 +19,15 @@
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="OnDA Errors and Warnings" href="documentation_errors.html" />
+    <link rel="next" title="OM Errors and Warnings" href="documentation_errors.html" />
     <link rel="prev" title="The Source String" href="documentation_source_string.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -41,17 +42,17 @@
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="index.html">
-          OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>19.09.0.3</b></span>
+          OM</a>
+        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
             
-                <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
-                <li><a href="documentation_running_onda.html">Running OnDA</a></li>
+                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
+                <li><a href="documentation_running_om.html">Running OM</a></li>
                 <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
-                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
             
             
               
@@ -85,43 +86,32 @@
       
   <div class="section" id="the-configuration-file">
 <h1>The Configuration File<a class="headerlink" href="#the-configuration-file" title="Permalink to this headline">¶</a></h1>
-<p>The behavior of an OnDA monitor is completely determined by the content of its
-configuration file. By default, OnDA looks for a file called <strong>monitor.toml</strong> in the
+<p>The behavior of an OM monitor is completely determined by the content of its
+configuration file. By default, OM looks for a file called <strong>monitor.yaml</strong> in the
 current working directory. However, the <em>–config</em> command line option to the
-<em>onda_monitor.py</em> script allows a custom location for the configuration file to be
+<em>om_monitor.py</em> script allows a custom location for the configuration file to be
 specified:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>onda_monitor.py --config PATH_TO_CONFIG_FILE SOURCE_STRING
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>om_monitor.py --config PATH_TO_CONFIG_FILE SOURCE_STRING
 </pre></div>
 </div>
 <p>The content of the configuration file must formatted according to the rules of the
-<a class="reference external" href="https://github.com/toml-lang/toml">TOML</a> language. This language is not very
-different from the one traditionally used by Python’s  <em>ini</em> files. The main
-differences are:</p>
-<ul class="simple">
-<li><p>Strings (including file and directory paths) must be always enclosed within single or
-double quotes (‘ or “).</p></li>
-<li><p>The <em>True</em> and <em>False</em> keywords are spelled without a capital first letter (<em>true</em>
-and <em>false</em> respectively)</p></li>
-<li><p>There is no <em>None</em> value. To set a parameter value to <em>None</em>, the parameter must
-be commented out or completely omitted from the configuration file.</p></li>
-</ul>
-<p>The parameters in the configuration file are divided into groups (<em>Tables</em> in TOML
-parlance). Each group contains a set of parameters that are related to each other
-(because they apply to the same OnDA algorithm, or because they control the same
-feature of the monitor). For example:</p>
-<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[Crystallography]</span>
-<span class="na">broadcast_ip</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
-<span class="na">broadcast_port</span> <span class="o">=</span> <span class="s">12321</span>
-<span class="na">speed_report_interval</span> <span class="o">=</span> <span class="s">1000</span>
+<a class="reference external" href="https://yaml.org">YAML</a> language.</p>
+<p>The parameters in the configuration file are divided into groups. Each group contains
+a set of parameters that are related to each other (because they apply to the same OM
+algorithm, or because they control the same feature of the monitor). For example:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">crystallography</span><span class="p">:</span>
+  <span class="nt">broadcast_ip</span><span class="p">:</span> <span class="s">&#39;127.0.0.1&#39;</span>
+  <span class="nt">broadcast_port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12321</span>
+  <span class="nt">speed_report_interval</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
 </pre></div>
 </div>
 <p>The following is an alphabetical list of the parameter groups that can be found in the
-configuration file. Depending on which OnDA monitor is being run, not all the groups
-need to be present in the file at the same time. Conversely, custom OnDA monitors might
+configuration file. Depending on which OM monitor is being run, not all the groups
+need to be present in the file at the same time. Conversely, custom OM monitors might
 introduce additional groups not described here. For each group, a list of the available
 parameters is provided. While some parameters are strictly required and must be
-explicitly set (again depending on the type of OnDA monitor), others are optional, and
-OnDA chooses a value for them if they cannot be found in the file. In general the
+explicitly set (again depending on the type of OM monitor), others are optional, and
+OM chooses a value for them if they cannot be found in the file. In general the
 default value of an unspecified optional parameter is considered to be <em>None</em>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -129,9 +119,9 @@ default value of an unspecified optional parameter is considered to be <em>None<
 unless the parameter name says otherwise!!</p>
 </div>
 <div class="section" id="correction">
-<h2>[Correction]<a class="headerlink" href="#correction" title="Permalink to this headline">¶</a></h2>
-<p>This parameter group contains information used by OnDA for the correction of detector
-frames (using the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.Correction" title="onda.algorithms.generic_algorithms.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a>
+<h2>correction<a class="headerlink" href="#correction" title="Permalink to this headline">¶</a></h2>
+<p>This parameter group contains information used by OM for the correction of detector
+frames (using the <a class="reference internal" href="om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.Correction" title="om.algorithms.generic_algorithms.Correction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Correction</span></code></a>
 algorithm).</p>
 <ul class="simple">
 <li><p><strong>dark_filename (str or None):</strong> the relative or absolute path to an HDF5 file
@@ -164,8 +154,8 @@ Example: ‘/data/data’</p></li>
 </ul>
 </div>
 <div class="section" id="crystallography">
-<h2>[Crystallography]<a class="headerlink" href="#crystallography" title="Permalink to this headline">¶</a></h2>
-<p>This group contains parameters used by the OnDA Monitor for Crystallography.</p>
+<h2>crystallography<a class="headerlink" href="#crystallography" title="Permalink to this headline">¶</a></h2>
+<p>This group contains parameters used by OM for Crystallography.</p>
 <ul class="simple">
 <li><p><strong>broadcast_ip (str or None):</strong> the hostname or ip address where the monitor
 broadcasts data to external programs. If the value of this parameter is <em>None</em>, the
@@ -179,7 +169,7 @@ Example: 12322</p></li>
 <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a>
 format. Example: ‘pilatus.geom’.</p></li>
 <li><p><strong>geometry_is_optimized (bool):</strong> whether the geometry is optimized. This information
-is broadcasted by the monitor and used by external programs. For example, the OnDA
+is broadcasted by the monitor and used by external programs. For example, the OM
 GUI for Crystallography uses this information to decide if the drawing of
 resolution rings should be allowed or not (if the geometry is not optimized, the
 rings are not reliable). Example: false.</p></li>
@@ -213,23 +203,23 @@ over the number of most recent events specified by this parameter. Example: 100.
 of a Bragg peak for the peak to be labelled as saturated. The value of this parameter
 usually depends on the specific detector being used. Example: 5000.5.</p></li>
 <li><p><strong>speed_report_interval (int):</strong> the number of events that must pass between
-consecutive speed reports from OnDA. This parameter determines how often OnDA prints
+consecutive speed reports from OM. This parameter determines how often OM prints
 the “Processed: …” message that provides information for about the processing speed.
 Example: 100</p></li>
 </ul>
 </div>
-<div class="section" id="dataaccumulator">
-<h2>[DataAccumulator]<a class="headerlink" href="#dataaccumulator" title="Permalink to this headline">¶</a></h2>
-<p>This group contains a parameter that dictates how OnDA aggregates events in the master
-node before sending them to external programs. It refers to the <a class="reference internal" href="onda.algorithms.generic_algorithms.html#onda.algorithms.generic_algorithms.DataAccumulator" title="onda.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a> algorithm.</p>
+<div class="section" id="data-accumulator">
+<h2>data_accumulator<a class="headerlink" href="#data-accumulator" title="Permalink to this headline">¶</a></h2>
+<p>This group contains a parameter that dictates how OM aggregates events in the master
+node before sending them to external programs. It refers to the <a class="reference internal" href="om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.DataAccumulator" title="om.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a> algorithm.</p>
 <ul class="simple">
 <li><p><strong>num_events_to_accumulate (int):</strong> number of events for which data is accumulated in
 the master node. The master node broadcasts the accumulated data in a single
 transmission, then starts accumulating data again.  Example: 20</p></li>
 </ul>
 </div>
-<div class="section" id="dataretrievallayer">
-<h2>[DataRetrievalLayer]<a class="headerlink" href="#dataretrievallayer" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data-retrieval-layer">
+<h2>data_retrieval_layer<a class="headerlink" href="#data-retrieval-layer" title="Permalink to this headline">¶</a></h2>
 <p>This parameter group contains information that determines how the Data Retrieval Layer
 extracts data from a facility framework.</p>
 <div class="admonition warning">
@@ -238,36 +228,27 @@ extracts data from a facility framework.</p>
 wrong choice can severely interfere with data retrieval and extraction.</p>
 </div>
 <ul class="simple">
-<li><p><strong>fallback_beam_energy_in_eV (float)</strong> the beam energy <em>in eV</em>. OnDA uses this
+<li><p><strong>fallback_beam_energy_in_eV (float)</strong> the beam energy <em>in eV</em>. OM uses this
 fallback value when the framework does not provide beam energy information.
 Example: 12000</p></li>
-<li><p><strong>fallback_detector_distance_in_mm (float)</strong> the detector distance <em>in mm</em>. OnDA
+<li><p><strong>fallback_detector_distance_in_mm (float)</strong> the detector distance <em>in mm</em>. OM
 uses this fallback value when the framework does not provide detector distance
 information. Example: 250</p></li>
 <li><p><strong>hidra_base_port (int):</strong> the base port used by the HiDRA framework to send data
 to the worker nodes. HiDRA will use this port and the following ones (one per node)
-to contact the workers. The machine where OnDA is running and the one where HiDRA is
+to contact the workers. The machine where OM is running and the one where HiDRA is
 running should be able to reach each other at this port and the immediately following
 ones. Example: 52000</p></li>
 <li><p><strong>hidra_transfer_type (‘data’ or ‘metadata’):</strong> the transfer type used by the HiDRA
-framework for the current monitor. If this parameter has a value of <em>‘data’</em>, OnDA
+framework for the current monitor. If this parameter has a value of <em>‘data’</em>, OM
 asks HiDRA to stream the detector data to the monitor. If instead the value is
-<em>‘metadata’</em>, OnDA asks HiDRA to just stream information on where in the filesystem
+<em>‘metadata’</em>, OM asks HiDRA to just stream information on where in the filesystem
 the most recent data can be found. Usually it is automatically determined from the
 detector(s) model currently used by the monitor, but it can be overridden using
 this parameter. Example: ‘data’</p></li>
-<li><p><strong>karabo_detector_label (str):</strong> the label of the main x-ray detector from which
-the Karabo framework retrieves data. Example:
-‘SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED’</p></li>
-<li><p><strong>karabo_max_event_age (float or None):</strong> the maximum age (in seconds) that a data
-event retrieved from Karabo must have in order to be processed. If the age of the
-event, defined as the time between data collection and the retrieval of the event by
-OnDA, is higher than this threshold, the event is not processed and a new event is
-retrieved. If the value of this parameter is <em>None</em>, all events are processed.
-Example: 0.5</p></li>
 <li><p><strong>num_of_most_recent_frames_in_event_to_process (int or None):</strong> number of frames for
 each event to process. It should be noted that these are the <em>most recent</em> events: if
-the value of this paramerer is, for example, <em>100</em>, only the <em>last</em> 100 frames in the
+the value of this parameter is, for example, <em>100</em>, only the <em>last</em> 100 frames in the
 event are processed. If the value of this parameter is <em>None</em>, all frames in the
 event are processed. Example: 0.5</p></li>
 <li><p><strong>psana_detector_name (str):</strong>  the name of the main x-ray detector from which the
@@ -286,16 +267,16 @@ the psana framework retrieves timetool information.</p></li>
 <li><p><strong>psana_max_event_age (float or None):</strong> the maximum age (in seconds) that a data
 event retrieved from psana must have in order to be processed. If the age of the
 event, defined as the time between data collection and the retrieval of the event by
-OnDA, is higher than this threshold, the event is not processed and a new event is
+OM, is higher than this threshold, the event is not processed and a new event is
 retrieved. If the value of this parameter is <em>None</em>, all events are processed.
 Example: 0.5</p></li>
 </ul>
 </div>
-<div class="section" id="detectorcalibration">
-<h2>[DetectorCalibration]<a class="headerlink" href="#detectorcalibration" title="Permalink to this headline">¶</a></h2>
-<p>This parameter group contains information used by OnDA for the calibration of
+<div class="section" id="calibration">
+<h2>calibration<a class="headerlink" href="#calibration" title="Permalink to this headline">¶</a></h2>
+<p>This parameter group contains information used by OM for the calibration of
 detector frames, using one of the calibration algorithms defined
-<a class="reference internal" href="onda.algorithms.calibration_algorithms.html"><span class="doc">onda.algorithms.calibration_algorithms</span></a>
+<a class="reference internal" href="om.algorithms.calibration_algorithms.html"><span class="doc">om.algorithms.calibration_algorithms</span></a>
 module.</p>
 <ul class="simple">
 <li><p><strong>calibration_algorithm (str or None):</strong> the name of the calibration algorithm that
@@ -310,11 +291,11 @@ algorithm. If no calibration is performed, this parameter is ignored. Example:
 ‘agipd_calibration_params.h5’</p></li>
 </ul>
 </div>
-<div class="section" id="onda">
-<h2>[Onda]<a class="headerlink" href="#onda" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="om">
+<h2>OM<a class="headerlink" href="#om" title="Permalink to this headline">¶</a></h2>
 <div class="admonition danger">
 <p class="admonition-title">Danger</p>
-<p>!! This section determines the core behavior of the OnDA monitor. The value of
+<p>!! This section determines the core behavior of the OM monitor. The value of
 these parameters should be changed only by an expert !!</p>
 </div>
 <ul class="simple">
@@ -331,10 +312,10 @@ retrieved by the monitor and made available for processing. Example:
 [‘detector_data’, ‘detector_distance’, ‘beam_energy’,’timestamp’]</p></li>
 </ul>
 </div>
-<div class="section" id="peakfinder8peakdetection">
-<h2>[Peakfinder8PeakDetection]<a class="headerlink" href="#peakfinder8peakdetection" title="Permalink to this headline">¶</a></h2>
-<p>This parameter group contains parameters used by the OnDA monitor to perform Bragg peak
-finding on a detector frame, using the (using the <a class="reference internal" href="onda.algorithms.crystallography_algorithms.html#onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Peakfinder8PeakDetection</span></code></a> algorithm).</p>
+<div class="section" id="peakfinder8">
+<h2>peakfinder8<a class="headerlink" href="#peakfinder8" title="Permalink to this headline">¶</a></h2>
+<p>This parameter group contains parameters used by the OM monitor to perform Bragg peak
+finding on a detector frame, using the (using the <a class="reference internal" href="om.algorithms.crystallography_algorithms.html#om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Peakfinder8PeakDetection</span></code></a> algorithm).</p>
 <ul class="simple">
 <li><p><strong>adc_threshold (float):</strong> the minimum ADC threshold for peak detection. Example: 200</p></li>
 <li><p><strong>bad_pixel_map_filename (str or None):</strong> the absolute or relative path to an HDF5
@@ -377,10 +358,11 @@ Example: 5.0</p></li>
     </p>
     <p>
         &copy; Copyright 
-    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
-    the Helmholtz Association
+    2020 SLAC National Accelerator Laboratory -
+    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+    a research centre of the Helmholtz Association.
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
     </p>
   </div>
 </footer>

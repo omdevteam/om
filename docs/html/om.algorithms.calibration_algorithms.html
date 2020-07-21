@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The calibration_algorithms Module &#8212; OM 20.08.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The crystallography_algorithms Module" href="om.algorithms.crystallography_algorithms.html" />
+    <link rel="prev" title="The algorithms Package" href="om.algorithms.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OM</a>
+        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
+                <li><a href="documentation_running_om.html">Running OM</a></li>
+                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
+                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <p>[<a class="reference internal" href="om.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-om.algorithms.calibration_algorithms">
+<span id="the-calibration-algorithms-module"></span><h1>The calibration_algorithms Module<a class="headerlink" href="#module-om.algorithms.calibration_algorithms" title="Permalink to this headline">¶</a></h1>
+<p>Algorithms for detector calibration.</p>
+<p>This module contains algorithms that apply corrections for artifacts caused by detector
+design or operation (i.e., not sample- or experiment-related).</p>
+<dl class="py class">
+<dt id="om.algorithms.calibration_algorithms.Agipd1MCalibration">
+<em class="property">class </em><code class="sig-name descname">Agipd1MCalibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">calibration_filename</span></em>, <em class="sig-param"><span class="n">cellid_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/calibration_algorithms.html#Agipd1MCalibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.calibration_algorithms.Agipd1MCalibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Calibration of the AGIPD 1M detector.</p>
+<p>This class stores the calibration parameters for an AGIPD 1M detector and
+applies the calibration to a detector data frame upon request. Since the the
+full set of correction parameters for the AGIPD 1M detector takes up a lot of
+memory, only the parameters needed to correct frames originating from a subset
+of cells are loaded and stored. The subset of cells is chosen when the class is
+instantiated, via the <em>cellid_list</em> parameter. It will then be possible to
+apply the correction only on detector frames originating from the chosen set of
+cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calibration_filename</strong> (<em>str</em>) – <p>the absolute or relative path to an HDF5 file
+with the calibration parameters. The following data blocks should be
+present in the file:</p>
+<ul>
+<li><p><em>/AnalogOffset</em>: a data block storing the offset coefficients for all
+pixels, cells and gain stages.</p></li>
+<li><p><em>/DigitalGainLevel</em>: a data block storing the information needed to
+determine the gain state of each pixel and cell.</p></li>
+<li><p><em>/RelativeGain</em>: a data block storing the gain coefficients for all
+pixels, cells and gain stages.</p></li>
+<li><p><em>/DetectorMask</em>: a data block storing a mask that should be applied to
+each data frame. The pixels in the mask must have a value of either
+0, meaning that the corresponding pixel in the data frame should be
+set to 0, or 1, meaning that the value of the corresponding pixel
+must be left alone.</p></li>
+</ul>
+<p>The <em>/AnalogOffset</em>, <em>/DigitalGainLevel</em>, <em>/RelativeGain</em> data blocks
+must have an internal structure organized according to the following
+axis layout:</p>
+<ul>
+<li><p><em>axis 0</em>: the three gain stages</p></li>
+<li><p><em>axis 1</em>: the cell number</p></li>
+<li><p><em>axis 2</em>: the ss coordinate of the 16 detector modules, seen as one
+big surface, stacked from module 0 to 15 along the longest edge,
+with the shortest edges touching.</p></li>
+<li><p><em>axis 3</em>: the fs coordinate of the 16 detector modules, seen as one
+big surface, stacked from module 0 to 15 along the longest edge
+with the shortest edges touching.</p></li>
+</ul>
+</p></li>
+<li><p><strong>cellid_list</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>) – the list of cells for which the correction
+parameters should be loaded and stored.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="om.algorithms.calibration_algorithms.Agipd1MCalibration.apply_calibration">
+<code class="sig-name descname">apply_calibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_and_calibration_info</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/calibration_algorithms.html#Agipd1MCalibration.apply_calibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.calibration_algorithms.Agipd1MCalibration.apply_calibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the calibration to a detector data frame.</p>
+<p>This function determines the gain stage of each pixel in the data frame, and
+applies the relevant gain and offset corrections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>Dict</strong><strong>[</strong><strong>str</strong><strong>, </strong><strong>Any</strong><strong>]</strong> (<em>data_and_calibration_info</em>) – <p>a dictionary containing the data
+frame to calibrate, and some additional necessary information. The
+dictionary should contain the following entries:</p>
+<ul class="simple">
+<li><p>An entry with key ‘data’, whose value is the detector data frame to
+calibrate.</p></li>
+<li><p>An entry with key ‘info’, whose value is a nested dictionary with the
+following keys:</p>
+<ul>
+<li><p>A key called ‘gain’ whose value is a numpy array of the same shape
+as the data frame to calibrate. Each pixel in this array must
+contain the information needed to determine the gain stage of the
+corresponding pixel in the data frame.</p></li>
+<li><p>A key called ‘cell’, whose value is the cell number from which the
+frame to calibrate originates.</p></li>
+</ul>
+</li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the corrected data frame.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2020 SLAC National Accelerator Laboratory -
+    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+    a research centre of the Helmholtz Association.
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

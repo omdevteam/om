@@ -1,47 +1,53 @@
-OnDA: Online Data Analysis for X-Ray Imaging
-============================================
+OM: Online Data Analysis for X-Ray Imaging
+==========================================
 
 .. toctree::
    :hidden:
 
-   documentation_what_is_an_onda_monitor
-   documentation_running_onda
+   documentation_what_is_an_om_monitor
+   documentation_running_om
    documentation_advanced_documentation
 
+*"Your data, live in the moment..."*
+------------------------------------
 
 .. thumbnail:: _images/OndaScreenshot1.jpg
     :width: 60%
 
 
-What is OnDA?
+
+What is OM?
 -------------
 
-**OnDA** (\ **On**\ line \ **D**\ ata \ **A**\ nalysis) is a software tool for the
-the **development** of programs that can monitor of X-ray imaging experiments in
-**real-time**, and also a set of **monitoring programs** ready for use.
+**OM** (\ **O**\ da \ **M**\ onitor) is a software tool for the the **development** of
+programs that can monitor of X-ray imaging experiments in **real-time**, and also a set
+of **monitoring programs** ready for use.
 
-OnDA provides users with a set of stable and efficient real-time monitors for the most
+It is the spiritual successor of the OnDA project and it is maintained mostly by the
+same team of developers.
+
+OM provides users with a set of stable and efficient real-time monitors for the most
 common types of x-ray imaging experiments. These **can be used immediately** without
 modifications or **can be easily adapted** to meet the users’ requirements. In
 addition, the project provides a set of modules that can be used to easily develop
 other monitoring programs tailored to the characteristics of specific experiments.
 
-OnDA can process imaging data in the broadest sense: multidimensional and
+OM can process imaging data in the broadest sense: multidimensional and
 multiple-pixel data (for example, a diffraction pattern or a photoemission spectrum,
 but also an image coming from a camera or a microscope), and any kind of digital output
 from an instrument or sensor (for example, a temperature readout, beam and pulse
 energies, etc.).
 
-OnDA focuses on **scalability and portability**, in order to facilitate its adoption
+OM focuses on **scalability and portability**, in order to facilitate its adoption
 for a wide array of current and future instruments. It also strives for **stability and
 performance**. In order to achieve these goals, OnDA implements a master/worker
 parallelization paradigm using free and open-source libraries and protocols.
 
-OnDA is written in Python. The use of the Python programming language, which is
+OM is written in Python. The use of the Python programming language, which is
 particularly suited to prototyping and rapid development, makes OnDA easy to modify and
 to adapt to the requirements of specific experiments.
 
-OnDA also aims to keep the code base **simple and as small as possible**. The focus is
+OM also aims to keep the code base **simple and as small as possible**. The focus is
 on providing a core set of functions, while allowing the framework to be expanded with
 external software when possible, avoiding the need to reimplement already optimized
 algorithms.
@@ -50,7 +56,8 @@ algorithms.
 Recommended Citation
 --------------------
 
-If you use OnDA in your experiment, please cite the following paper:
+If you use OM in your experiment, please keep citing the original OnDA paper until a
+new publication for OM is available:
 
   Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O'Grady C., Kuhn M., Aplin
   S., Koglin J., Barty A., Chapman H.N., **OnDA: online data analysis and feedback for
@@ -61,32 +68,30 @@ If you use OnDA in your experiment, please cite the following paper:
 Authors
 -------
 
-OnDA is currently developed in the lab of `Henry Chapman <https://cid.cfel.de/>`_ at
-the Center For Free Electron Laser Science in Hamburg. 
+OM is currently developed at the Linac Coherent Light Source facility of the SLAC
+National Accelerator Laboratory (https://lcls.slac.stanford.edu).
 
-Many people from different institutions worlwide contribute code, testing and support
+Many people from different institutions worldwide contribute code, testing and support
 to the project:
 
-* **Valerio Mariani** (corresponding author: valerio.mariani@desy.de)
+* **Valerio Mariani** (corresponding author: valmar@slac.stanford.edu)
 * Anton Barty
-* Henry Chapman
 * Thomas Grant
 * Jason Koglin
 * Thomas J. Lane
-* Manuela Kuhn
 * Andrew Morgan
 * Christopher O'Grady
 * Kanupriya Pande
+* Alexandra Tolstikova
 * Thomas A. White
 * Chun Hong Yoon
-
 
 Documentation
 -------------
 
-Guidelines on how to install, configure and run OnDA at several facilities all over
+Guidelines on how to install, configure and run OM at several facilities all over
 the world or on your local computer can be found :doc:`here
-<documentation_running_onda>`.
+<documentation_running_om>`.
 
 For advanced documentation, see :doc:`this page
 <documentation_advanced_documentation>`.
@@ -95,8 +100,8 @@ For advanced documentation, see :doc:`this page
 Source Code
 -----------
 
-The source code of OnDA can be found on GitHub: https://github.com/ondateam/onda
+The source code of OM can be found on GitHub: https://github.com/omdevteam/om
 
-Autogenerated, formatted code documentation can instead be found :doc:`here <onda>`.
+Autogenerated, formatted code documentation can instead be found :doc:`here <om>`.
 
 

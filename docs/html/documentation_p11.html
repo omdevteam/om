@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Running OnDA at the PETRA III Facility - P11 Beamline &#8212; OnDA 19.09.0.3 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Construction &#8212; OM 20.08.0.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
@@ -18,15 +19,15 @@
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Example monitor.toml for the P11 Beamline at the Petra III Facility" href="example_p11_monitor_toml.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="example_pnccd_geom.html" />
+    <link rel="next" title="Under Construction" href="documentation_local.html" />
+    <link rel="prev" title="Under Construction" href="documentation_lcls.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -41,17 +42,17 @@
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="index.html">
-          OnDA</a>
-        <span class="navbar-text navbar-version pull-left"><b>19.09.0.3</b></span>
+          OM</a>
+        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
           <ul class="nav navbar-nav">
             
-                <li><a href="documentation_what_is_an_onda_monitor.html">What is an OnDA Monitor?</a></li>
-                <li><a href="documentation_running_onda.html">Running OnDA</a></li>
+                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
+                <li><a href="documentation_running_om.html">Running OM</a></li>
                 <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
-                <li><a href="https://github.com/ondateam/onda">Source Code</a></li>
+                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
             
             
               
@@ -83,65 +84,10 @@
   <div class="row">
     <div class="body col-md-12 content" role="main">
       
-  <div class="section" id="running-onda-at-the-petra-iii-facility-p11-beamline">
-<h1>Running OnDA at the PETRA III Facility - P11 Beamline<a class="headerlink" href="#running-onda-at-the-petra-iii-facility-p11-beamline" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<div class="section" id="accessing-onda">
-<h2>Accessing OnDA<a class="headerlink" href="#accessing-onda" title="Permalink to this headline">¶</a></h2>
-<p>OnDA must be run at this beamline on the <em>haspp11eval01</em> machine as the <em>p11user</em>.
-Once logged in, the following command can be used to activate the Python environment
-in which OnDA is installed:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On haspp11eval01.desy.de:</span>
-<span class="nb">source</span> /home/p11user/CfelSoft/onda/onda.sh
-</pre></div>
-</div>
-</div>
-<div class="section" id="running-onda">
-<h2>Running OnDA<a class="headerlink" href="#running-onda" title="Permalink to this headline">¶</a></h2>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Please notice that all the <em>monitor.toml</em> configuration files and all the geometry
-files provided in this page are just examples. They might need to be modified to
-fit specific experiments.</p>
-</div>
-<p>In order to run OnDA on the <em>haspp11eval01</em> machine, a <em>monitor.toml</em> must be created
-(See <a class="reference internal" href="documentation_configuration_file.html"><span class="doc">here</span></a> for a discussion of the format and
-content of the configuration file).</p>
-<ul class="simple">
-<li><p><strong>Example monitor.toml for P11</strong>: <a class="reference internal" href="example_p11_monitor_toml.html"><span class="doc">monitor.toml</span></a></p></li>
-</ul>
-<p>All the files mentioned in the configuration file (masks, bad_pixel_masks, etc.) must
-be reachable and readable from the <em>p11user</em> user on <em>haspp11eval01.desy.de</em>.</p>
-<ul class="simple">
-<li><p><strong>Example pilatus.geom for the Pilatus detector</strong>: <a class="reference internal" href="example_pilatus_geom.html"><span class="doc">pilatus.geom</span></a></p></li>
-</ul>
-<p>The OnDA monitor can then be started using the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On eval01.desy.de</span>
-mpirun -n &lt;num_nodes&gt; onda_monitor.py eval01.desy.de
-</pre></div>
-</div>
-<p>In this command line, <em>num_nodes</em> should be replaced with the total number of OnDA
-nodes that the monitor should use (all workers plus a master). Usually a value of 17
-(16 workers + 1 master) is fully sufficient to process the full data stream at P11.</p>
-<p>As the monitor starts, it prints on the console a line that contains the following
-string: “Broadcasting data at &lt;ip&gt;:&lt;port&gt;” (where &lt;ip&gt; is an IP address string of the
-form XXX.XXX.XXX.XXX, and &lt;port&gt; is a number). These values are needed to start the
-graphical interfaces of OnDA. The OnDA GUI for Crystallography can be started using
-the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Replace &lt;geometry_file&gt;,&lt;ip&gt; and &lt;port&gt; with appropriate values</span>
-onda_crystallography_gui.py &lt;geometry_file&gt; &lt;ip&gt; &lt;port&gt;
-</pre></div>
-</div>
-<p>In this command line, <em>geometry_file</em> should be replaced with the name of the geometry
-file to be used for the visualization, and <em>ip</em> and <em>port</em> with the information
-provided by the starting monitor.</p>
-<p>The OnDA Frame Viewer for Crystallography can instead be started using the following
-similar command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Replace &lt;geometry_file&gt;,&lt;ip&gt; and &lt;port&gt; with appropriate values</span>
-onda_crystallography_frame_viewer.py &lt;geometry_file&gt; &lt;ip&gt; &lt;port&gt;
-</pre></div>
-</div>
+  <div class="section" id="under-construction">
+<h1>Under Construction<a class="headerlink" href="#under-construction" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="please-check-back-later">
+<h2>Please check back later<a class="headerlink" href="#please-check-back-later" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -158,10 +104,11 @@ onda_crystallography_frame_viewer.py &lt;geometry_file&gt; &lt;ip&gt; &lt;port&g
     </p>
     <p>
         &copy; Copyright 
-    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
-    the Helmholtz Association
+    2020 SLAC National Accelerator Laboratory -
+    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+    a research centre of the Helmholtz Association.
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
     </p>
   </div>
 </footer>

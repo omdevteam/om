@@ -1,49 +1,37 @@
 The Configuration File
 ----------------------
 
-The behavior of an OnDA monitor is completely determined by the content of its
-configuration file. By default, OnDA looks for a file called **monitor.toml** in the
+The behavior of an OM monitor is completely determined by the content of its
+configuration file. By default, OM looks for a file called **monitor.yaml** in the
 current working directory. However, the *--config* command line option to the
-*onda_monitor.py* script allows a custom location for the configuration file to be
+*om_monitor.py* script allows a custom location for the configuration file to be
 specified:
 
 .. code-block:: bash
 
-    onda_monitor.py --config PATH_TO_CONFIG_FILE SOURCE_STRING
+    om_monitor.py --config PATH_TO_CONFIG_FILE SOURCE_STRING
 
 The content of the configuration file must formatted according to the rules of the 
-`TOML <https://github.com/toml-lang/toml>`_ language. This language is not very
-different from the one traditionally used by Python's  *ini* files. The main
-differences are:
+`YAML <https://yaml.org>`_ language. 
 
-* Strings (including file and directory paths) must be always enclosed within single or
-  double quotes (' or ").
+The parameters in the configuration file are divided into groups. Each group contains
+a set of parameters that are related to each other (because they apply to the same OM
+algorithm, or because they control the same feature of the monitor). For example:
 
-* The *True* and *False* keywords are spelled without a capital first letter (*true*
-  and *false* respectively)
+.. code-block:: yaml
 
-* There is no *None* value. To set a parameter value to *None*, the parameter must
-  be commented out or completely omitted from the configuration file.
-
-The parameters in the configuration file are divided into groups (*Tables* in TOML
-parlance). Each group contains a set of parameters that are related to each other
-(because they apply to the same OnDA algorithm, or because they control the same
-feature of the monitor). For example:
-
-.. code-block:: ini
-
-    [Crystallography]
-    broadcast_ip = '127.0.0.1'
-    broadcast_port = 12321
-    speed_report_interval = 1000
+    crystallography:
+      broadcast_ip: '127.0.0.1'
+      broadcast_port: 12321
+      speed_report_interval: 1000
 
 The following is an alphabetical list of the parameter groups that can be found in the
-configuration file. Depending on which OnDA monitor is being run, not all the groups
-need to be present in the file at the same time. Conversely, custom OnDA monitors might
+configuration file. Depending on which OM monitor is being run, not all the groups
+need to be present in the file at the same time. Conversely, custom OM monitors might
 introduce additional groups not described here. For each group, a list of the available
 parameters is provided. While some parameters are strictly required and must be
-explicitly set (again depending on the type of OnDA monitor), others are optional, and
-OnDA chooses a value for them if they cannot be found in the file. In general the
+explicitly set (again depending on the type of OM monitor), others are optional, and
+OM chooses a value for them if they cannot be found in the file. In general the
 default value of an unspecified optional parameter is considered to be *None*.
 
 
@@ -53,11 +41,11 @@ default value of an unspecified optional parameter is considered to be *None*.
    unless the parameter name says otherwise!!
 
 
-[Correction]
-^^^^^^^^^^^^
+correction
+^^^^^^^^^^
 
-This parameter group contains information used by OnDA for the correction of detector
-frames (using the :class:`Correction <onda.algorithms.generic_algorithms.Correction>`
+This parameter group contains information used by OM for the correction of detector
+frames (using the :class:`Correction <om.algorithms.generic_algorithms.Correction>`
 algorithm).
 
 * **dark_filename (str or None):** the relative or absolute path to an HDF5 file
@@ -94,10 +82,10 @@ algorithm).
   Example: '/data/data'
 
 
-[Crystallography]
-^^^^^^^^^^^^^^^^^
+crystallography
+^^^^^^^^^^^^^^^
 
-This group contains parameters used by the OnDA Monitor for Crystallography.
+This group contains parameters used by OM for Crystallography.
 
 * **broadcast_ip (str or None):** the hostname or ip address where the monitor
   broadcasts data to external programs. If the value of this parameter is *None*, the
@@ -114,7 +102,7 @@ This group contains parameters used by the OnDA Monitor for Crystallography.
   format. Example: 'pilatus.geom'.
 
 * **geometry_is_optimized (bool):** whether the geometry is optimized. This information
-  is broadcasted by the monitor and used by external programs. For example, the OnDA
+  is broadcasted by the monitor and used by external programs. For example, the OM
   GUI for Crystallography uses this information to decide if the drawing of
   resolution rings should be allowed or not (if the geometry is not optimized, the
   rings are not reliable). Example: false.
@@ -156,24 +144,24 @@ This group contains parameters used by the OnDA Monitor for Crystallography.
   usually depends on the specific detector being used. Example: 5000.5.
 
 * **speed_report_interval (int):** the number of events that must pass between
-  consecutive speed reports from OnDA. This parameter determines how often OnDA prints
+  consecutive speed reports from OM. This parameter determines how often OM prints
   the "Processed: ..." message that provides information for about the processing speed.
   Example: 100
 
 
-[DataAccumulator]
-^^^^^^^^^^^^^^^^^
+data_accumulator
+^^^^^^^^^^^^^^^^
 
-This group contains a parameter that dictates how OnDA aggregates events in the master
+This group contains a parameter that dictates how OM aggregates events in the master
 node before sending them to external programs. It refers to the :class:`DataAccumulator
-<onda.algorithms.generic_algorithms.DataAccumulator>` algorithm.
+<om.algorithms.generic_algorithms.DataAccumulator>` algorithm.
 
 * **num_events_to_accumulate (int):** number of events for which data is accumulated in
   the master node. The master node broadcasts the accumulated data in a single
   transmission, then starts accumulating data again.  Example: 20
 
 
-[DataRetrievalLayer]
+data_retrieval_layer
 ^^^^^^^^^^^^^^^^^^^^
 
 This parameter group contains information that determines how the Data Retrieval Layer
@@ -186,42 +174,31 @@ extracts data from a facility framework.
    wrong choice can severely interfere with data retrieval and extraction.
 
 
-* **fallback_beam_energy_in_eV (float)** the beam energy *in eV*. OnDA uses this
+* **fallback_beam_energy_in_eV (float)** the beam energy *in eV*. OM uses this
   fallback value when the framework does not provide beam energy information.
   Example: 12000
 
-* **fallback_detector_distance_in_mm (float)** the detector distance *in mm*. OnDA
+* **fallback_detector_distance_in_mm (float)** the detector distance *in mm*. OM
   uses this fallback value when the framework does not provide detector distance
   information. Example: 250
 
 * **hidra_base_port (int):** the base port used by the HiDRA framework to send data
   to the worker nodes. HiDRA will use this port and the following ones (one per node)
-  to contact the workers. The machine where OnDA is running and the one where HiDRA is
+  to contact the workers. The machine where OM is running and the one where HiDRA is
   running should be able to reach each other at this port and the immediately following
   ones. Example: 52000
 
 * **hidra_transfer_type ('data' or 'metadata'):** the transfer type used by the HiDRA
-  framework for the current monitor. If this parameter has a value of *'data'*, OnDA
+  framework for the current monitor. If this parameter has a value of *'data'*, OM
   asks HiDRA to stream the detector data to the monitor. If instead the value is
-  *'metadata'*, OnDA asks HiDRA to just stream information on where in the filesystem
+  *'metadata'*, OM asks HiDRA to just stream information on where in the filesystem
   the most recent data can be found. Usually it is automatically determined from the
   detector(s) model currently used by the monitor, but it can be overridden using
   this parameter. Example: 'data'
 
-* **karabo_detector_label (str):** the label of the main x-ray detector from which 
-  the Karabo framework retrieves data. Example:
-  'SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED'
-
-* **karabo_max_event_age (float or None):** the maximum age (in seconds) that a data
-  event retrieved from Karabo must have in order to be processed. If the age of the
-  event, defined as the time between data collection and the retrieval of the event by
-  OnDA, is higher than this threshold, the event is not processed and a new event is
-  retrieved. If the value of this parameter is *None*, all events are processed.
-  Example: 0.5
-
 * **num_of_most_recent_frames_in_event_to_process (int or None):** number of frames for
   each event to process. It should be noted that these are the *most recent* events: if
-  the value of this paramerer is, for example, *100*, only the *last* 100 frames in the
+  the value of this parameter is, for example, *100*, only the *last* 100 frames in the
   event are processed. If the value of this parameter is *None*, all frames in the
   event are processed. Example: 0.5
 
@@ -247,17 +224,17 @@ extracts data from a facility framework.
 * **psana_max_event_age (float or None):** the maximum age (in seconds) that a data
   event retrieved from psana must have in order to be processed. If the age of the
   event, defined as the time between data collection and the retrieval of the event by
-  OnDA, is higher than this threshold, the event is not processed and a new event is
+  OM, is higher than this threshold, the event is not processed and a new event is
   retrieved. If the value of this parameter is *None*, all events are processed.
   Example: 0.5
 
 
-[DetectorCalibration]
-^^^^^^^^^^^^^^^^^^^^^
+calibration
+^^^^^^^^^^^
 
-This parameter group contains information used by OnDA for the calibration of
+This parameter group contains information used by OM for the calibration of
 detector frames, using one of the calibration algorithms defined
-:doc:`onda.algorithms.calibration_algorithms <onda.algorithms.calibration_algorithms>`
+:doc:`om.algorithms.calibration_algorithms <om.algorithms.calibration_algorithms>`
 module.
 
 * **calibration_algorithm (str or None):** the name of the calibration algorithm that
@@ -273,12 +250,12 @@ module.
   'agipd_calibration_params.h5'
 
 
-[Onda]
-^^^^^^
+OM
+^^
 
 .. DANGER::
 
-   !! This section determines the core behavior of the OnDA monitor. The value of
+   !! This section determines the core behavior of the OM monitor. The value of
    these parameters should be changed only by an expert !!
 
 * **data_retrieval_layer (str):** the name of the python module with the implementation
@@ -297,12 +274,12 @@ module.
   ['detector_data', 'detector_distance', 'beam_energy','timestamp']
 
 
-[Peakfinder8PeakDetection]
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+peakfinder8
+^^^^^^^^^^^
 
-This parameter group contains parameters used by the OnDA monitor to perform Bragg peak
+This parameter group contains parameters used by the OM monitor to perform Bragg peak
 finding on a detector frame, using the (using the :class:`Peakfinder8PeakDetection\ 
-<onda.algorithms.crystallography_algorithms.Peakfinder8PeakDetection>` algorithm).
+<om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection>` algorithm).
 
 * **adc_threshold (float):** the minimum ADC threshold for peak detection. Example: 200
 

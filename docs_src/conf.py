@@ -14,22 +14,24 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, "/home/vmariani/Work/Maxwell Home/Software/onda-internal/onda")
+# sys.path.insert(0, "")
+# type: ignore
 import sphinx_bootstrap_theme
 
 # -- Project information -----------------------------------------------------
 
 project = "OM"
 copyright = """
-    2014-2019 Deutsches Elektronen-Synchrotron DESY, a research centre of
-    the Helmholtz Association
+    2020 SLAC National Accelerator Laboratory -
+    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+    a research centre of the Helmholtz Association.
 """
 author = "Valerio Mariani"
 
 # The short X.Y version
-version = "19.09.0.3"
+version = "20.08.0.0"
 # The full version, including alpha/beta/rc tags
-release = "19.09.0.3"
+release = "20.08.0.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -94,8 +96,8 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 html_theme_options = {
     "bootswatch_theme": "lumen",
     "navbar_links": [
-        ("What is OM?", "documentation_what_is_onda_monitor"),
-        ("Running OM", "documentation_running_omm"),
+        ("What is OM?", "documentation_what_is_an_om_monitor"),
+        ("Running OM", "documentation_running_om"),
         ("Advanced Documentation", "documentation_advanced_documentation"),
         ("Source Code", "https://github.com/omdevteam/om", True),
     ],
@@ -127,7 +129,7 @@ html_show_sourcelink = False
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "ondadoc"
+htmlhelp_basename = "omdoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -151,7 +153,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "onda.tex", "onda Documentation", "Author", "manual"),
+    (master_doc, "om.tex", "OM Documentation", "Author", "manual"),
 ]
 
 
@@ -159,7 +161,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "onda", "onda Documentation", [author], 1)]
+man_pages = [(master_doc, "om", "OM Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -170,10 +172,10 @@ man_pages = [(master_doc, "onda", "onda Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "onda",
-        "onda Documentation",
+        "om",
+        "OM Documentation",
         author,
-        "onda",
+        "om",
         "One line description of project.",
         "Miscellaneous",
     ),
@@ -202,7 +204,8 @@ epub_exclude_files = ["search.html"]
 add_module_names = False
 autodoc_mock_imports = [
     "psana",
-    "onda.algorithms.peakfinder8_extension.peakfinder8_extension",
+    "hidra_api",
+    "om.lib.peakfinder8_extension.peakfinder8_extension",
 ]
 autodoc_member_order = "bysource"
 autodoc_typehints = "none"
