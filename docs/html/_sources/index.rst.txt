@@ -40,11 +40,11 @@ energies, etc.).
 
 OM focuses on **scalability and portability**, in order to facilitate its adoption
 for a wide array of current and future instruments. It also strives for **stability and
-performance**. In order to achieve these goals, OnDA implements a master/worker
+performance**. In order to achieve these goals, OM implements a master/worker
 parallelization paradigm using free and open-source libraries and protocols.
 
 OM is written in Python. The use of the Python programming language, which is
-particularly suited to prototyping and rapid development, makes OnDA easy to modify and
+particularly suited to prototyping and rapid development, makes OM easy to modify and
 to adapt to the requirements of specific experiments.
 
 OM also aims to keep the code base **simple and as small as possible**. The focus is
