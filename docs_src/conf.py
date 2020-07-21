@@ -29,9 +29,9 @@ copyright = """
 author = "Valerio Mariani"
 
 # The short X.Y version
-version = "20.08.0.0"
+version = "20.08.0.0dev"
 # The full version, including alpha/beta/rc tags
-release = "20.08.0.0"
+release = "20.08.0.0dev"
 
 
 # -- General configuration ---------------------------------------------------

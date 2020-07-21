@@ -18,4 +18,4 @@
 """
 The main OM package, which contains the whole framework.
 """
-__version__ = "20.08.0.0"
+__version__ = "20.08.0.0dev"
