@@ -34,9 +34,9 @@ from om.utils import dynamic_import, exceptions, parameters
 @click.option(
     "--config",
     "-c",
-    default="monitor.yml",
+    default="monitor.yaml",
     type=click.Path(),
-    help="configuration file (default: monitor.yml file in the current working "
+    help="configuration file (default: monitor.yaml file in the current working "
     "directory",
 )
 @click.option(
