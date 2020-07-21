@@ -39,7 +39,7 @@ An OM monitor requires two pieces of information to operate: a source of data ev
 and a set of configuration parameters. Information about the data source is usually
 provided as an argument to the monitor's start up script, in the form of a *source
 string*. Configuration parameters, which fully determine the behavior of the monitor,
-are instead stored in a configuration file that OnDA reads before starting.
+are instead stored in a configuration file that OM reads before starting.
 
 
 The Source String
