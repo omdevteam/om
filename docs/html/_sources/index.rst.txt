@@ -19,12 +19,12 @@ OM: Online Data Analysis for X-Ray Imaging
 What is OM?
 -------------
 
-**OM** (\ **O**\ da \ **M**\ onitor) is a software tool for the the **development** of
+**OM** (\ **O**\ nda \ **M**\ onitor) is a software tool for the the **development** of
 programs that can monitor of X-ray imaging experiments in **real-time**, and also a set
 of **monitoring programs** ready for use.
 
-It is the spiritual successor of the OnDA project and it is maintained mostly by the
-same team of developers.
+It is the spiritual successor of the **OnDA** project and it is maintained mostly by
+the same team of developers.
 
 OM provides users with a set of stable and efficient real-time monitors for the most
 common types of x-ray imaging experiments. These **can be used immediately** without
