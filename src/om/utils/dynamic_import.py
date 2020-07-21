@@ -142,7 +142,7 @@ def get_event_handling_funcs(data_retrieval_layer):  # noqa: C901
 
     Returns:
 
-        TypeEventHandlingFuncs: a dictionary whose keys are the names of the Event
+        :class:`~om.utils.data_event.TypeEventHandlingFuncs`: a dictionary whose keys are the names of the Event
         Handling Functions, and whose values are their implementations.
 
     Raises:

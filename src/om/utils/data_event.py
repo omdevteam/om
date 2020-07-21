@@ -26,11 +26,10 @@ from __future__ import absolute_import, division, print_function
 import sys
 import types
 from typing import Any, Callable, Dict, Generator, Union
-from mypy_extensions import TypedDict
-
 
 import numpy  # type: ignore
 from future.utils import iteritems  # type: ignore
+from mypy_extensions import TypedDict
 
 from om.utils import exceptions, parameters
 
@@ -55,9 +54,9 @@ class DataEvent(object):
 
         Arguments:
 
-            event_handling_funcs (TypeEventHandlingFuncs): a dictionary containing
-                Event Handling functions to be attached to the class instance being
-                created.
+            event_handling_funcs (:class:`~om.utils.data_event.TypeEventHandlingFuncs`):
+                a dictionary containing Event Handling functions to be attached to the
+                class instance being created.
 
                 * Five event handling functions must be defined:
 
