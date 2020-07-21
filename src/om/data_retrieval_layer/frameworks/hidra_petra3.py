@@ -32,9 +32,20 @@ from typing import Any, Callable, Dict, List, Tuple, cast
 import numpy  # type: ignore
 from future.utils import raise_from  # type: ignore
 
-from hidra_api import Transfer, transfer  # type: ignore
+
 from om.utils import data_event, dynamic_import, exceptions, parameters
 from om.utils.data_event import TypeEventGenerator, TypeEventHandlingFuncs
+
+try:
+    from hidra_api import Transfer, transfer  # type: ignore
+except ImportError as exc:
+    raise_from(
+        exc=exceptions.OmMissingDependencyError(
+            "The hidra_api module could not be loaded. The following dependency does "
+            "not appear to be available on the system: hidra_api."
+        ),
+        cause=exc,
+    )
 
 
 def _create_hidra_info(source, node_pool_size, monitor_params):
