@@ -139,17 +139,26 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event_handling_funcs (:class:`~om.utils.data_event.TypeEventHandlingFuncs`):</span>
-<span class="sd">                a dictionary containing Event Handling functions to be attached to the</span>
-<span class="sd">                class instance being created.</span>
+<span class="sd">            event_handling_funcs (Dict): a dictionary containing Event Handling</span>
+<span class="sd">                functions to be attached to the class instance being created.</span>
 
 <span class="sd">                * Five event handling functions must be defined:</span>
 
 <span class="sd">                  - &#39;initialize_event_source&#39;</span>
+<span class="sd">                    [[str, int, :class:`~om.utils.parameters.MonitorParams`], Any]</span>
+
 <span class="sd">                  - &#39;event_generator&#39;</span>
-<span class="sd">                  - &#39;open_even&#39;</span>
+<span class="sd">                    [[str, int, int, parameters.MonitorParams],</span>
+<span class="sd">                    Generator[DataEvent, None, None]]</span>
+
+<span class="sd">                  - &#39;open_event&#39;</span>
+<span class="sd">                    [[DataEvent], None]</span>
+
 <span class="sd">                  - &#39;close_event&#39;</span>
+<span class="sd">                    [[DataEvent], None],</span>
+
 <span class="sd">                  - &#39;get_num_frames_in_event&#39;</span>
+<span class="sd">                    [[DataEvent], int]</span>
 
 <span class="sd">                * The dictionary must contain keys corresponding to all these function</span>
 <span class="sd">                  names.</span>
@@ -157,9 +166,9 @@
 <span class="sd">                * The corresponding dictionary values must store the function</span>
 <span class="sd">                  implementations.</span>
 
-<span class="sd">            data_extraction_funcs (Dict[str, Callable[[data_event.DataEvent], Any]]): a</span>
-<span class="sd">                dictionary containing Data Extraction functions to be attached to the</span>
-<span class="sd">                class instance being created.</span>
+<span class="sd">            data_extraction_funcs (Dict[str, Callable[[~om.utils.data_event.DataEvent],\</span>
+<span class="sd">                Any]]): a dictionary containing Data Extraction functions to be</span>
+<span class="sd">                attached to the class instance being created.</span>
 
 <span class="sd">                * Each dictionary value must store a function implementation.</span>
 

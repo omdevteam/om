@@ -90,8 +90,8 @@
 <p>OM monitor for crystallography.</p>
 <p>This module contains an OM monitor for serial x-ray crystallography experiments.</p>
 <dl class="py class">
-<dt id="om.processing_layer.crystallography.OndaMonitor">
-<em class="property">class </em><code class="sig-name descname">OndaMonitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OndaMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OndaMonitor" title="Permalink to this definition">¶</a></dt>
+<dt id="om.processing_layer.crystallography.OmMonitor">
+<em class="property">class </em><code class="sig-name descname">OmMonitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OmMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OmMonitor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.ParallelizationEngine" title="om.parallelization_layer.mpi.ParallelizationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.parallelization_layer.mpi.ParallelizationEngine</span></code></a></p>
 <p>An OM real-time monitor for serial x-ray crystallography experiments.</p>
 <p>This monitor processes detector data frames, optionally applying detector
@@ -115,8 +115,8 @@ storing the OM monitor parameters from the configuration file.</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="om.processing_layer.crystallography.OndaMonitor.process_data">
-<code class="sig-name descname">process_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OndaMonitor.process_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OndaMonitor.process_data" title="Permalink to this definition">¶</a></dt>
+<dt id="om.processing_layer.crystallography.OmMonitor.process_data">
+<code class="sig-name descname">process_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OmMonitor.process_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OmMonitor.process_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Processes a detector data frame.</p>
 <p>This function performs calibration and correction of a detector data frame and
 extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
@@ -124,35 +124,38 @@ optionally, the detector frame data) for transmission to to the master node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – <p>a dictionary containing the data retrieved by
-OnDA for the frame being processed.</p>
+OM for the frame being processed.</p>
 <ul class="simple">
 <li><p>The dictionary keys must match the entries in the ‘required_data’
-list found in the ‘Onda’ configuration parameter group.</p></li>
+list found in the ‘om’ configuration parameter group.</p></li>
 <li><p>The corresponding dictionary values must store the retrieved data.</p></li>
 </ul>
 </p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a tuple storing the processed data and
-the rank number of the node that processed it.</p>
+<dd class="field-even"><p>a tuple whose first entry is a dictionary storing the
+data that should be sent to the master node, and whose second entry is the
+rank number of the node that processed the information.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Tuple[TypeProcessedData, int]</p>
+<dd class="field-odd"><p>Tuple[Dict, int]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="om.processing_layer.crystallography.OndaMonitor.collect_data">
-<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">processed_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OndaMonitor.collect_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OndaMonitor.collect_data" title="Permalink to this definition">¶</a></dt>
+<dt id="om.processing_layer.crystallography.OmMonitor.collect_data">
+<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">processed_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OmMonitor.collect_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OmMonitor.collect_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes statistics on aggregated data and broadcasts them via a network socket.</p>
 <p>This function computes aggregated statistics on data received from the worker
 nodes. It then broadcasts the results via a network socket (for visualization
 by other programs) using the MessagePack protocol.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>int</strong><strong>]</strong> (<em>Tuple</em><em>[</em><em>TypeProcessedData</em><em>,</em>) – a tuple storing the processed data and
-the rank number of the node that processed it.</p>
+<dd class="field-odd"><p><strong>processed_data</strong> (<em>Tuple</em><em>[</em><em>Dict</em><em>, </em><em>int</em><em>]</em>) – a tuple whose first entry is a
+dictionary storing the data receievd from a worker node, and whose
+second entry is the rank number of the node that processed the
+information.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>

@@ -184,9 +184,10 @@
 <span class="sd">            tag (str): the label that will be attached to the broadcasted data.</span>
 
 <span class="sd">            message (List[Dict[str, Any]]): a list of dictionaries. For each</span>
-<span class="sd">            dictionary, the keys are names of information elements to be broadcasted</span>
-<span class="sd">            through the broadcasting socket, and the corresponding values are the</span>
-<span class="sd">            information elements to be sent (MessagePack-compatible python objects).</span>
+<span class="sd">                dictionary, the keys are names of information elements to be</span>
+<span class="sd">                broadcasted through the broadcasting socket, and the corresponding</span>
+<span class="sd">                values are the information elements to be sent (MessagePack-compatible</span>
+<span class="sd">                python objects).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">tag</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">zmq</span><span class="o">.</span><span class="n">SNDMORE</span><span class="p">)</span>
         <span class="n">msgpack_message</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">packb</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>  <span class="c1"># type: bytes</span>

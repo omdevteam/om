@@ -250,7 +250,7 @@ module.
   'agipd_calibration_params.h5'
 
 
-OM
+om
 ^^
 
 .. DANGER::
@@ -274,8 +274,8 @@ OM
   ['detector_data', 'detector_distance', 'beam_energy','timestamp']
 
 
-peakfinder8
-^^^^^^^^^^^
+peakfinder8_peak_detection
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This parameter group contains parameters used by the OM monitor to perform Bragg peak
 finding on a detector frame, using the (using the :class:`Peakfinder8PeakDetection\ 

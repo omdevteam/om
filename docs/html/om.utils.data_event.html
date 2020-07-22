@@ -101,16 +101,22 @@ class at creation time, along with functions to extract data from it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>event_handling_funcs</strong> (<a class="reference internal" href="#om.utils.data_event.TypeEventHandlingFuncs" title="om.utils.data_event.TypeEventHandlingFuncs"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeEventHandlingFuncs</span></code></a>) – <p>a dictionary containing Event Handling functions to be attached to the
-class instance being created.</p>
+<li><p><strong>event_handling_funcs</strong> (<em>Dict</em>) – <p>a dictionary containing Event Handling
+functions to be attached to the class instance being created.</p>
 <ul>
 <li><p>Five event handling functions must be defined:</p>
 <ul>
-<li><p>’initialize_event_source’</p></li>
-<li><p>’event_generator’</p></li>
-<li><p>’open_even’</p></li>
-<li><p>’close_event’</p></li>
-<li><p>’get_num_frames_in_event’</p></li>
+<li><p>’initialize_event_source’
+[[str, int, <a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>], Any]</p></li>
+<li><p>’event_generator’
+[[str, int, int, parameters.MonitorParams],
+Generator[DataEvent, None, None]]</p></li>
+<li><p>’open_event’
+[[DataEvent], None]</p></li>
+<li><p>’close_event’
+[[DataEvent], None],</p></li>
+<li><p>’get_num_frames_in_event’
+[[DataEvent], int]</p></li>
 </ul>
 </li>
 <li><p>The dictionary must contain keys corresponding to all these function
@@ -119,9 +125,8 @@ names.</p></li>
 implementations.</p></li>
 </ul>
 </p></li>
-<li><p><strong>data_extraction_funcs</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="#om.utils.data_event.DataEvent" title="om.utils.data_event.DataEvent"><em>data_event.DataEvent</em></a><em>]</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>a
-dictionary containing Data Extraction functions to be attached to the
-class instance being created.</p>
+<li><p><strong>data_extraction_funcs</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Callable</em><em>[</em><em>[</em><a class="reference internal" href="#om.utils.data_event.DataEvent" title="om.utils.data_event.DataEvent"><em>DataEvent</em></a><em>]</em><em>,                </em><em>Any</em><em>]</em><em>]</em>) – <p>a dictionary containing Data Extraction functions to be
+attached to the class instance being created.</p>
 <ul>
 <li><p>Each dictionary value must store a function implementation.</p></li>
 <li><p>The corresponding dictionary key will define the name with which the
@@ -153,37 +158,6 @@ function.</p></li>
 </dd>
 </dl>
 </dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="om.utils.data_event.TypeEventHandlingFuncs">
-<em class="property">class </em><code class="sig-name descname">TypeEventHandlingFuncs</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.utils.data_event.TypeEventHandlingFuncs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
-<dl class="py attribute">
-<dt id="om.utils.data_event.TypeEventHandlingFuncs.initialize_event_source">
-<code class="sig-name descname">initialize_event_source</code><a class="headerlink" href="#om.utils.data_event.TypeEventHandlingFuncs.initialize_event_source" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="om.utils.data_event.TypeEventHandlingFuncs.event_generator">
-<code class="sig-name descname">event_generator</code><a class="headerlink" href="#om.utils.data_event.TypeEventHandlingFuncs.event_generator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="om.utils.data_event.TypeEventHandlingFuncs.get_num_frames_in_event">
-<code class="sig-name descname">get_num_frames_in_event</code><a class="headerlink" href="#om.utils.data_event.TypeEventHandlingFuncs.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="om.utils.data_event.TypeEventHandlingFuncs.open_event">
-<code class="sig-name descname">open_event</code><a class="headerlink" href="#om.utils.data_event.TypeEventHandlingFuncs.open_event" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="om.utils.data_event.TypeEventHandlingFuncs.close_event">
-<code class="sig-name descname">close_event</code><a class="headerlink" href="#om.utils.data_event.TypeEventHandlingFuncs.close_event" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 

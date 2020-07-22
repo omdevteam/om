@@ -170,11 +170,28 @@ processing layer implementation.</p>
 <dd class="field-odd"><p><strong>data_retrieval_layer</strong> (<em>ModuleType</em>) – the Data Retrieval Layer module.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a dictionary whose keys are the names of the Event
-Handling Functions, and whose values are their implementations.</p>
+<dd class="field-even"><p><p>a dictionary containing the Event Handling functions:</p>
+<ul class="simple">
+<li><p>’initialize_event_source’
+[[str, int, <a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>], Any]</p></li>
+<li><p>’event_generator’
+[[str, int, int, parameters.MonitorParams],
+Generator[DataEvent, None, None]]</p></li>
+<li><p>’open_event’
+[[DataEvent], None]</p></li>
+<li><p>’close_event’
+[[DataEvent], None],</p></li>
+<li><p>’get_num_frames_in_event’
+[[DataEvent], int]</p></li>
+</ul>
+<ul class="simple">
+<li><p>The dictionary contains keys corresponding to all these function names.</p></li>
+<li><p>The corresponding dictionary values store the function implementations.</p></li>
+</ul>
+</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="om.utils.data_event.html#om.utils.data_event.TypeEventHandlingFuncs" title="om.utils.data_event.TypeEventHandlingFuncs"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeEventHandlingFuncs</span></code></a></p>
+<dd class="field-odd"><p>Dict</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmMissingEventHandlingFunctionError" title="om.utils.exceptions.OmMissingEventHandlingFunctionError"><strong>OmMissingEventHandlingFunctionError</strong></a> – if one

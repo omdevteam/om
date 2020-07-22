@@ -7,3 +7,5 @@ The data\_event Module
     :members:
     :undoc-members:
     :show-inheritance:
+    :exclude-members: TypeEventHandlingFuncs,TypeEventGenerator
+

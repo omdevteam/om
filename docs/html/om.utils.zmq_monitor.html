@@ -119,10 +119,11 @@ must be tagged with a label.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>tag</strong> (<em>str</em>) – the label that will be attached to the broadcasted data.</p></li>
-<li><p><strong>message</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – a list of dictionaries. For each</p></li>
-<li><p><strong>the keys are names of information elements to be broadcasted</strong> (<em>dictionary</em><em>,</em>) – </p></li>
-<li><p><strong>the broadcasting socket</strong><strong>, </strong><strong>and the corresponding values are the</strong> (<em>through</em>) – </p></li>
-<li><p><strong>elements to be sent</strong> (<em>information</em>) – </p></li>
+<li><p><strong>message</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – a list of dictionaries. For each
+dictionary, the keys are names of information elements to be
+broadcasted through the broadcasting socket, and the corresponding
+values are the information elements to be sent (MessagePack-compatible
+python objects).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>

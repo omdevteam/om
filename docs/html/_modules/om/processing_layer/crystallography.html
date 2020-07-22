@@ -121,7 +121,7 @@
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">crystfel_geometry</span><span class="p">,</span> <span class="n">dynamic_import</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">zmq_monitor</span>
 
 
-<div class="viewcode-block" id="OndaMonitor"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.OndaMonitor">[docs]</a><span class="k">class</span> <span class="nc">OndaMonitor</span><span class="p">(</span><span class="n">mpi</span><span class="o">.</span><span class="n">ParallelizationEngine</span><span class="p">):</span>
+<div class="viewcode-block" id="OmMonitor"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.OmMonitor">[docs]</a><span class="k">class</span> <span class="nc">OmMonitor</span><span class="p">(</span><span class="n">mpi</span><span class="o">.</span><span class="n">ParallelizationEngine</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See documentation for the &#39;__init__&#39; function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -150,7 +150,7 @@
 <span class="sd">            monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object</span>
 <span class="sd">                storing the OM monitor parameters from the configuration file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">OndaMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OmMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">process_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">process_data</span><span class="p">,</span>
             <span class="n">collect_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">collect_data</span><span class="p">,</span>
             <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
@@ -405,7 +405,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting the monitor...&quot;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
-<div class="viewcode-block" id="OndaMonitor.process_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.OndaMonitor.process_data">[docs]</a>    <span class="k">def</span> <span class="nf">process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="OmMonitor.process_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.OmMonitor.process_data">[docs]</a>    <span class="k">def</span> <span class="nf">process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="c1"># type: (Dict[str, Any]) -&gt; Tuple[Dict[str, Any], int]</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Processes a detector data frame.</span>
@@ -417,17 +417,18 @@
 <span class="sd">        Arguments:</span>
 
 <span class="sd">            data(Dict[str, Any]): a dictionary containing the data retrieved by</span>
-<span class="sd">                OnDA for the frame being processed.</span>
+<span class="sd">                OM for the frame being processed.</span>
 
 <span class="sd">                * The dictionary keys must match the entries in the &#39;required_data&#39;</span>
-<span class="sd">                  list found in the &#39;Onda&#39; configuration parameter group.</span>
+<span class="sd">                  list found in the &#39;om&#39; configuration parameter group.</span>
 
 <span class="sd">                * The corresponding dictionary values must store the retrieved data.</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            Tuple[TypeProcessedData, int]: a tuple storing the processed data and</span>
-<span class="sd">            the rank number of the node that processed it.</span>
+<span class="sd">            Tuple[Dict, int]: a tuple whose first entry is a dictionary storing the</span>
+<span class="sd">            data that should be sent to the master node, and whose second entry is the</span>
+<span class="sd">            rank number of the node that processed the information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">processed_data</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calibration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -493,7 +494,7 @@
 
         <span class="k">return</span> <span class="p">(</span><span class="n">processed_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="OndaMonitor.collect_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.OndaMonitor.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">processed_data</span><span class="p">):</span>
+<div class="viewcode-block" id="OmMonitor.collect_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.OmMonitor.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">processed_data</span><span class="p">):</span>
         <span class="c1"># type: (Tuple[Dict[str, Any], int]) -&gt; None</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes statistics on aggregated data and broadcasts them via a network socket.</span>
@@ -504,8 +505,10 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            Tuple[TypeProcessedData, int]: a tuple storing the processed data and</span>
-<span class="sd">                the rank number of the node that processed it.</span>
+<span class="sd">            processed_data (Tuple[Dict, int]): a tuple whose first entry is a</span>
+<span class="sd">                dictionary storing the data receievd from a worker node, and whose</span>
+<span class="sd">                second entry is the rank number of the node that processed the</span>
+<span class="sd">                information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">received_data</span> <span class="o">=</span> <span class="n">processed_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: Dict[str, Any]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span> <span class="o">+=</span> <span class="mi">1</span>

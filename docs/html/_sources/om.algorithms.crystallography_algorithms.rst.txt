@@ -7,3 +7,4 @@ The crystallography\_algorithms Module
     :members:
     :undoc-members:
     :show-inheritance:
+    :exclude-members: TypePeakList
