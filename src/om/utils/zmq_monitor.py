@@ -99,9 +99,10 @@ class ZmqDataBroadcaster(object):
             tag (str): the label that will be attached to the broadcasted data.
 
             message (List[Dict[str, Any]]): a list of dictionaries. For each
-            dictionary, the keys are names of information elements to be broadcasted
-            through the broadcasting socket, and the corresponding values are the
-            information elements to be sent (MessagePack-compatible python objects).
+                dictionary, the keys are names of information elements to be
+                broadcasted through the broadcasting socket, and the corresponding
+                values are the information elements to be sent (MessagePack-compatible
+                python objects).
         """
         self._sock.send(tag.encode(), zmq.SNDMORE)
         msgpack_message = msgpack.packb(message)  # type: bytes

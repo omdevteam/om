@@ -341,8 +341,9 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Returns:
 
-            Tuple[TypeProcessedData, int]: a tuple storing the processed data and
-            the rank number of the node that processed it.
+            Tuple[Dict, int]: a tuple whose first entry is a dictionary storing the
+            data that should be sent to the master node, and whose second entry is the
+            rank number of the node that processed the information.
         """
         processed_data = {}  # type: Dict[str, Any]
         if self._calibration is not None:
@@ -419,8 +420,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
 
         Arguments:
 
-            Tuple[TypeProcessedData, int]: a tuple storing the processed data and
-                the rank number of the node that processed it.
+            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+                dictionary storing the data receievd from a worker node, and whose
+                second entry is the rank number of the node that processed the
+                information.
         """
         received_data = processed_data[0]  # type: Dict[str, Any]
         self._num_events += 1

@@ -158,7 +158,7 @@ def initialize_event_source(source, node_pool_size, monitor_params):
 
     Raises:
 
-        :class:`~om.utils.exceptions.OndaHidraAPIError`: if the initial connection to
+        :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
             HiDRA fails.
     """
     print("Announcing Om to HiDRA.")
@@ -213,7 +213,7 @@ def event_generator(
 
     Raises:
 
-        :class:`~om.utils.exceptions.OndaHidraAPIError`: if the initial connection to
+        :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
             HiDRA fails.
     """
     data_retrieval_layer_filename = monitor_params.get_param(

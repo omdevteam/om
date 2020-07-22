@@ -122,7 +122,7 @@ class Agipd1MCalibration(object):
 
         Arguments:
 
-            data_and_calibration_info (Dict[str, Any]: a dictionary containing the data
+            data_and_calibration_info (Dict[str, Any]): a dictionary containing the data
                 frame to calibrate, and some additional necessary information. The
                 dictionary should contain the following entries:
 

@@ -1241,7 +1241,7 @@ def apply_geometry_to_data(data, geometry):
         data (numpy.ndarray): the data on which the geometry information should be
             applied.
 
-        geometry (TypeDetector): a dictionary returned by the
+        geometry (Dict): a dictionary returned by the
             :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
             storing the geometry information.
 

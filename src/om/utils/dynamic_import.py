@@ -142,8 +142,27 @@ def get_event_handling_funcs(data_retrieval_layer):  # noqa: C901
 
     Returns:
 
-        :class:`~om.utils.data_event.TypeEventHandlingFuncs`: a dictionary whose keys are the names of the Event
-        Handling Functions, and whose values are their implementations.
+        Dict: a dictionary containing the Event Handling functions:
+
+        - 'initialize_event_source'
+          [[str, int, :class:`~om.utils.parameters.MonitorParams`], Any]
+
+        - 'event_generator'
+          [[str, int, int, parameters.MonitorParams],
+          Generator[DataEvent, None, None]]
+
+        - 'open_event'
+          [[DataEvent], None]
+
+        - 'close_event'
+          [[DataEvent], None],
+
+        - 'get_num_frames_in_event'
+          [[DataEvent], int]
+
+        * The dictionary contains keys corresponding to all these function names.
+
+        * The corresponding dictionary values store the function implementations.
 
     Raises:
 

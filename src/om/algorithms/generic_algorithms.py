@@ -259,7 +259,7 @@ class DataAccumulator(object):
 
         Arguments:
 
-            data: (Dict[str, Any]): a data entry to be added to the accumulator.
+            data (Dict[str, Any]): a data entry to be added to the accumulator.
 
         Returns:
 

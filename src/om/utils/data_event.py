@@ -54,17 +54,26 @@ class DataEvent(object):
 
         Arguments:
 
-            event_handling_funcs (:class:`~om.utils.data_event.TypeEventHandlingFuncs`):
-                a dictionary containing Event Handling functions to be attached to the
-                class instance being created.
+            event_handling_funcs (Dict): a dictionary containing Event Handling
+                functions to be attached to the class instance being created.
 
                 * Five event handling functions must be defined:
 
                   - 'initialize_event_source'
+                    [[str, int, :class:`~om.utils.parameters.MonitorParams`], Any]
+
                   - 'event_generator'
-                  - 'open_even'
+                    [[str, int, int, parameters.MonitorParams],
+                    Generator[DataEvent, None, None]]
+
+                  - 'open_event'
+                    [[DataEvent], None]
+
                   - 'close_event'
+                    [[DataEvent], None],
+
                   - 'get_num_frames_in_event'
+                    [[DataEvent], int]
 
                 * The dictionary must contain keys corresponding to all these function
                   names.
@@ -72,9 +81,9 @@ class DataEvent(object):
                 * The corresponding dictionary values must store the function
                   implementations.
 
-            data_extraction_funcs (Dict[str, Callable[[data_event.DataEvent], Any]]): a
-                dictionary containing Data Extraction functions to be attached to the
-                class instance being created.
+            data_extraction_funcs (Dict[str, Callable[[~om.utils.data_event.DataEvent],\
+                Any]]): a dictionary containing Data Extraction functions to be
+                attached to the class instance being created.
 
                 * Each dictionary value must store a function implementation.
 

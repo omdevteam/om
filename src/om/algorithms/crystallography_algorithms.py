@@ -196,7 +196,7 @@ class Peakfinder8PeakDetection(object):
 
         Returns:
 
-            TypePeakList: a dictionary with information about the Bragg peaks
+            Dict: a dictionary with information about the Bragg peaks
             detected in a data frame. The dictionary has the following keys:
 
             - A key named "num_peaks" whose value is the number of peaks that were
