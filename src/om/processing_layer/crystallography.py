@@ -36,7 +36,7 @@ from om.parallelization_layer import mpi
 from om.utils import crystfel_geometry, dynamic_import, parameters, zmq_monitor
 
 
-class OndaMonitor(mpi.ParallelizationEngine):
+class OmMonitor(mpi.ParallelizationEngine):
     """
     See documentation for the '__init__' function.
     """
@@ -65,7 +65,7 @@ class OndaMonitor(mpi.ParallelizationEngine):
             monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
                 storing the OM monitor parameters from the configuration file.
         """
-        super(OndaMonitor, self).__init__(
+        super(OmMonitor, self).__init__(
             process_func=self.process_data,
             collect_func=self.collect_data,
             source=source,
@@ -332,10 +332,10 @@ class OndaMonitor(mpi.ParallelizationEngine):
         Arguments:
 
             data(Dict[str, Any]): a dictionary containing the data retrieved by
-                OnDA for the frame being processed.
+                OM for the frame being processed.
 
                 * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'Onda' configuration parameter group.
+                  list found in the 'om' configuration parameter group.
 
                 * The corresponding dictionary values must store the retrieved data.
 

@@ -72,7 +72,7 @@ def main(source, config, debug):
     processing_layer = dynamic_import.import_processing_layer(
         processing_layer_filename
     )  # type: ModuleType
-    monitor = processing_layer.OndaMonitor(  # type: ignore
+    monitor = processing_layer.OmMonitor(  # type: ignore
         source=source, monitor_parameters=monitor_parameters
     )
     # TODO: Fix types.
