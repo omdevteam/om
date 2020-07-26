@@ -10,6 +10,10 @@ The data\_retrieval\_layer Package
 
 .. toctree::
 
-    data_sources <om.data_retrieval_layer.data_sources>
-    frameworks <om.data_retrieval_layer.frameworks>
-    profiles <om.data_retrieval_layer.profiles>
+    base <om.data_retrieval_layer.base>
+    data_handlers_filesystem <om.data_retrieval_layer.data_handlers_filesystem>
+    data_handlers_hidra <om.data_retrieval_layer.data_handlers_hidra>
+    data_handlers_psana <om.data_retrieval_layer.data_handlers_psana>
+    functions_cspad <om.data_retrieval_layer.functions_cspad>
+    functions_pilatus <om.data_retrieval_layer.functions_pilatus>
+    functions_psana <om.data_retrieval_layer.functions_psana>

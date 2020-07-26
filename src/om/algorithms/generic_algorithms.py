@@ -134,7 +134,7 @@ class Correction(object):
                         cause=exc,
                     )
             else:
-                raise exceptions.OmMissingHdf5PathError(
+                raise exceptions.OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for mask."
                 )
         else:
@@ -165,7 +165,7 @@ class Correction(object):
                         cause=exc,
                     )
             else:
-                raise exceptions.OmMissingHdf5PathError(
+                raise exceptions.OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for dark frame data."
                 )
         else:
@@ -196,7 +196,7 @@ class Correction(object):
                         cause=exc,
                     )
             else:
-                raise exceptions.OmMissingHdf5PathError(
+                raise exceptions.OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for gain map."
                 )
         else:

@@ -10,4 +10,5 @@ The processing\_layer Package
 
 .. toctree::
 
+   base <om.processing_layer.base>
    crystallography <om.processing_layer.crystallography>

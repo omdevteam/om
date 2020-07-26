@@ -24,7 +24,7 @@ This module contains algorithms that carry out crystallography-related data proc
 from __future__ import absolute_import, division, print_function
 
 import sys
-from typing import List, Tuple, Type, Union
+from typing import Dict, List, Tuple, Type, Union
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -33,12 +33,54 @@ from mypy_extensions import TypedDict
 
 from om.lib.peakfinder8_extension import peakfinder_8
 
-
 TypePeakList = TypedDict(
     "TypePeakList",
     {"num_peaks": int, "fs": List[float], "ss": List[float], "intensity": List[float]},
     total=True,
 )
+
+
+def get_peakfinder8_info(detector_type):
+    # type: (str) -> Dict[str, int]
+    """
+    Retrieves the peakfinder8 information for a specific detector.
+
+    Arguments:
+
+        detector_type (str): The type of detector for which the information needs to
+        be retrieved. The currently supported detectors are:
+
+        * 'cspad': the CSPAD detector used at the CXI beamtime of the LCLS facility
+          before 2020.
+
+        * 'pilatus': the Pilatus detector used at the P11 beamtime of the LCLS
+          facility.
+
+    Returns:
+
+        Dict[str, int]: a dictionary storing the peakfinder8 information.
+    """
+    if detector_type == "cspad":
+        peakfinder8_info = {
+            "asic_nx": 194,
+            "asic_ny": 185,
+            "nasics_x": 8,
+            "nasics_y": 8,
+        }  # type: Dict[str, int]
+    elif detector_type == "pilatus":
+        peakfinder8_info = {
+            "asic_nx": 2463,
+            "asic_ny": 2527,
+            "nasics_x": 1,
+            "nasics_y": 1,
+        }
+    else:
+        raise RuntimeError(
+            "The peakfinder8 information for the {0} detector "
+            "cannot be retrieved: detector type unknown"
+        )
+
+    return peakfinder8_info
 
 
 class Peakfinder8PeakDetection(object):

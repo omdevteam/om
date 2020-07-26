@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="The parameters Module" href="om.utils.parameters.html" />
-    <link rel="prev" title="The dynamic_import Module" href="om.utils.dynamic_import.html" />
+    <link rel="prev" title="The utils Package" href="om.utils.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -99,31 +99,10 @@ custom exception handler that reports the OM exceptions in a simplified way.</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt id="om.utils.exceptions.OmHidraAPIError">
-<em class="property">exception </em><code class="sig-name descname">OmHidraAPIError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmHidraAPIError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmHidraAPIError" title="Permalink to this definition">¶</a></dt>
+<dt id="om.utils.exceptions.OmConfigurationFileReadingError">
+<em class="property">exception </em><code class="sig-name descname">OmConfigurationFileReadingError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmConfigurationFileReadingError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmConfigurationFileReadingError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if an error happens during a HiDRA API call.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmMissingEventHandlingFunctionError">
-<em class="property">exception </em><code class="sig-name descname">OmMissingEventHandlingFunctionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingEventHandlingFunctionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingEventHandlingFunctionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if an Event Handling Function is not defined.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmMissingDataExtractionFunctionError">
-<em class="property">exception </em><code class="sig-name descname">OmMissingDataExtractionFunctionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingDataExtractionFunctionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingDataExtractionFunctionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if a Data Extraction Function is not defined.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmMissingPsanaInitializationFunctionError">
-<em class="property">exception </em><code class="sig-name descname">OmMissingPsanaInitializationFunctionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingPsanaInitializationFunctionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingPsanaInitializationFunctionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if a psana Detector Interface Initialization Function is not defined.</p>
+<p>Raised if an error happens while reading the configuration file.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -134,52 +113,10 @@ custom exception handler that reports the OM exceptions in a simplified way.</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt id="om.utils.exceptions.OmConfigurationFileReadingError">
-<em class="property">exception </em><code class="sig-name descname">OmConfigurationFileReadingError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmConfigurationFileReadingError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmConfigurationFileReadingError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if an error happens while reading the configuration file.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmMissingParameterGroupError">
-<em class="property">exception </em><code class="sig-name descname">OmMissingParameterGroupError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingParameterGroupError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingParameterGroupError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if a parameter group is missing from the configuration file.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmMissingParameterError">
-<em class="property">exception </em><code class="sig-name descname">OmMissingParameterError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingParameterError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingParameterError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if a parameter is missing from the configuration file.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmWrongParameterTypeError">
-<em class="property">exception </em><code class="sig-name descname">OmWrongParameterTypeError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmWrongParameterTypeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmWrongParameterTypeError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if the type of the configuration parameter does not match the requested one.</p>
-</dd></dl>
-
-<dl class="py exception">
 <dt id="om.utils.exceptions.OmDataExtractionError">
 <em class="property">exception </em><code class="sig-name descname">OmDataExtractionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmDataExtractionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmDataExtractionError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
 <p>Raised if an error happens during data extraction.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmInvalidSourceError">
-<em class="property">exception </em><code class="sig-name descname">OmInvalidSourceError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmInvalidSourceError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmInvalidSourceError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if the format of the source string is not valid.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmMissingDependencyError">
-<em class="property">exception </em><code class="sig-name descname">OmMissingDependencyError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingDependencyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingDependencyError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if one of the dependencies of a module is not found on the system.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -190,17 +127,87 @@ custom exception handler that reports the OM exceptions in a simplified way.</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt id="om.utils.exceptions.OmMissingHdf5PathError">
-<em class="property">exception </em><code class="sig-name descname">OmMissingHdf5PathError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingHdf5PathError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingHdf5PathError" title="Permalink to this definition">¶</a></dt>
+<dt id="om.utils.exceptions.OmHdf5PathError">
+<em class="property">exception </em><code class="sig-name descname">OmHdf5PathError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmHdf5PathError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmHdf5PathError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
 <p>Raised if an internal HDF5 path is not found.</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt id="om.utils.exceptions.OmDetectorCalibrationError">
-<em class="property">exception </em><code class="sig-name descname">OmDetectorCalibrationError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmDetectorCalibrationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmDetectorCalibrationError" title="Permalink to this definition">¶</a></dt>
+<dt id="om.utils.exceptions.OmHidraAPIError">
+<em class="property">exception </em><code class="sig-name descname">OmHidraAPIError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmHidraAPIError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmHidraAPIError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if an error occurs while calling a calibration algorithm.</p>
+<p>Raised if an error happens during a HiDRA API call.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmInvalidSourceError">
+<em class="property">exception </em><code class="sig-name descname">OmInvalidSourceError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmInvalidSourceError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmInvalidSourceError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if the format of the source string is not valid.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingDataEventHandlerError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingDataEventHandlerError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingDataEventHandlerError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingDataEventHandlerError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>The implementation of a data event handler cannot be found on the system.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingDataExtractionFunctionError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingDataExtractionFunctionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingDataExtractionFunctionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingDataExtractionFunctionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if a Data Extraction Function is not defined.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingDependencyError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingDependencyError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingDependencyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingDependencyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if one of the dependencies of a module is not found on the system.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingEventHandlingFunctionError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingEventHandlingFunctionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingEventHandlingFunctionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingEventHandlingFunctionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if an Event Handling Function is not defined.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingLayerModuleFileError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingLayerModuleFileError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingLayerModuleFileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingLayerModuleFileError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>The python implementation of an OM layer cannot be found on the system.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingParameterError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingParameterError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingParameterError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingParameterError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if a parameter is missing from the configuration file.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingParameterGroupError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingParameterGroupError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingParameterGroupError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingParameterGroupError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if a parameter group is missing from the configuration file.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmMissingPsanaInitializationFunctionError">
+<em class="property">exception </em><code class="sig-name descname">OmMissingPsanaInitializationFunctionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmMissingPsanaInitializationFunctionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmMissingPsanaInitializationFunctionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if a psana Detector Interface Initialization Function is not defined.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmWrongParameterTypeError">
+<em class="property">exception </em><code class="sig-name descname">OmWrongParameterTypeError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmWrongParameterTypeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmWrongParameterTypeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if the type of the configuration parameter does not match the requested one.</p>
 </dd></dl>
 
 <dl class="py function">

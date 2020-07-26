@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The data_handlers_filesystem Module &#8212; OM 20.08.0.0dev documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The data_handlers_hidra Module" href="om.data_retrieval_layer.data_handlers_hidra.html" />
+    <link rel="prev" title="The base Module" href="om.data_retrieval_layer.base.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OM</a>
+        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
+                <li><a href="documentation_running_om.html">Running OM</a></li>
+                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
+                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <p>[<a class="reference internal" href="om.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-om.data_retrieval_layer.data_handlers_filesystem">
+<span id="the-data-handlers-filesystem-module"></span><h1>The data_handlers_filesystem Module<a class="headerlink" href="#module-om.data_retrieval_layer.data_handlers_filesystem" title="Permalink to this headline">¶</a></h1>
+<p>Retrieval and handling of data events from the filesystem.</p>
+<p>This module contains classes that retrieve and process data events from files written
+on disk.</p>
+<dl class="py class">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler">
+<em class="property">class </em><code class="sig-name descname">PilatusFilesDataEventHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler" title="om.data_retrieval_layer.base.OmDataEventHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.data_retrieval_layer.base.OmDataEventHandler</span></code></a></p>
+<p>Data event handler for Pilatus files read from the filesystem.</p>
+<p>See documentation of the constructor of the base class:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">DataEventHandler()</span></code> .</p>
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.initialize_event_source">
+<code class="sig-name descname">initialize_event_source</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.initialize_event_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.initialize_event_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Pilatus filesystem event source.</p>
+<p>See documentation of the function in the base class:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">initialize_event_source()</span></code>.</p>
+<p>There is no need to initialize the filesystem source, so this function does
+nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.event_generator">
+<code class="sig-name descname">event_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves Pilatus data events to process from the filesystem.</p>
+<p>See documentation of the function in the base class:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">event_generator()</span></code>.</p>
+<p>The files to process are split evenly amongst the processing nodes, with the
+exception of the last node, which might get a lower number depending on how
+the number of files can is split.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.open_event">
+<code class="sig-name descname">open_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.open_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens an event retrieved from Pilatus files.</p>
+<p>See documentation of the function in the base class:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">open_event()</span></code>.</p>
+<p>For Pilatus data files, an event corresponds to the full content of a single
+Pilatus CBF file. This function makes the content of the file available in the
+‘data’ field of the ‘event’ object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.close_event">
+<code class="sig-name descname">close_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.close_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes an event retrieved from Pilatus files.</p>
+<p>See documentation of the function in the base class:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">close_event()</span></code> .</p>
+<p>Since an event corresponds to a CBF data file, which does not need to be closed,
+this function actually does nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.get_num_frames_in_event">
+<code class="sig-name descname">get_num_frames_in_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.get_num_frames_in_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the number of frames in an event retrieved from Pilatus files.</p>
+<p>See documentation of the function in the base class:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">get_num_frames_in_event()</span></code>.</p>
+<p>For the Pilatus detector, an event corresponds to the content of a single CBF
+data file. Since the Pilatus detector writes one frame per file, this function
+always returns 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of frames in the event.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2020 SLAC National Accelerator Laboratory -
+    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+    a research centre of the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

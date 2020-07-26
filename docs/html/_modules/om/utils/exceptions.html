@@ -120,27 +120,9 @@
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="OmHidraAPIError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmHidraAPIError">[docs]</a><span class="k">class</span> <span class="nc">OmHidraAPIError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+<div class="viewcode-block" id="OmConfigurationFileReadingError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmConfigurationFileReadingError">[docs]</a><span class="k">class</span> <span class="nc">OmConfigurationFileReadingError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if an error happens during a HiDRA API call.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmMissingEventHandlingFunctionError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingEventHandlingFunctionError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingEventHandlingFunctionError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if an Event Handling Function is not defined.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmMissingDataExtractionFunctionError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingDataExtractionFunctionError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingDataExtractionFunctionError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if a Data Extraction Function is not defined.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmMissingPsanaInitializationFunctionError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingPsanaInitializationFunctionError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingPsanaInitializationFunctionError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if a psana Detector Interface Initialization Function is not defined.</span>
+<span class="sd">    Raised if an error happens while reading the configuration file.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
@@ -150,45 +132,9 @@
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="OmConfigurationFileReadingError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmConfigurationFileReadingError">[docs]</a><span class="k">class</span> <span class="nc">OmConfigurationFileReadingError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if an error happens while reading the configuration file.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmMissingParameterGroupError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterGroupError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingParameterGroupError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if a parameter group is missing from the configuration file.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmMissingParameterError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingParameterError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if a parameter is missing from the configuration file.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmWrongParameterTypeError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmWrongParameterTypeError">[docs]</a><span class="k">class</span> <span class="nc">OmWrongParameterTypeError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if the type of the configuration parameter does not match the requested one.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
 <div class="viewcode-block" id="OmDataExtractionError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmDataExtractionError">[docs]</a><span class="k">class</span> <span class="nc">OmDataExtractionError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raised if an error happens during data extraction.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmInvalidSourceError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmInvalidSourceError">[docs]</a><span class="k">class</span> <span class="nc">OmInvalidSourceError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if the format of the source string is not valid.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="OmMissingDependencyError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingDependencyError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingDependencyError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if one of the dependencies of a module is not found on the system.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
@@ -198,15 +144,75 @@
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="OmMissingHdf5PathError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingHdf5PathError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingHdf5PathError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+<div class="viewcode-block" id="OmHdf5PathError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmHdf5PathError">[docs]</a><span class="k">class</span> <span class="nc">OmHdf5PathError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raised if an internal HDF5 path is not found.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="OmDetectorCalibrationError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmDetectorCalibrationError">[docs]</a><span class="k">class</span> <span class="nc">OmDetectorCalibrationError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+<div class="viewcode-block" id="OmHidraAPIError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmHidraAPIError">[docs]</a><span class="k">class</span> <span class="nc">OmHidraAPIError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Raised if an error occurs while calling a calibration algorithm.</span>
+<span class="sd">    Raised if an error happens during a HiDRA API call.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmInvalidSourceError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmInvalidSourceError">[docs]</a><span class="k">class</span> <span class="nc">OmInvalidSourceError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if the format of the source string is not valid.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingDataEventHandlerError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingDataEventHandlerError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingDataEventHandlerError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The implementation of a data event handler cannot be found on the system.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingDataExtractionFunctionError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingDataExtractionFunctionError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingDataExtractionFunctionError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if a Data Extraction Function is not defined.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingDependencyError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingDependencyError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingDependencyError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if one of the dependencies of a module is not found on the system.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingEventHandlingFunctionError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingEventHandlingFunctionError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingEventHandlingFunctionError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if an Event Handling Function is not defined.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingLayerModuleFileError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingLayerModuleFileError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingLayerModuleFileError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The python implementation of an OM layer cannot be found on the system.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingParameterError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingParameterError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if a parameter is missing from the configuration file.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingParameterGroupError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterGroupError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingParameterGroupError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if a parameter group is missing from the configuration file.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmMissingPsanaInitializationFunctionError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmMissingPsanaInitializationFunctionError">[docs]</a><span class="k">class</span> <span class="nc">OmMissingPsanaInitializationFunctionError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if a psana Detector Interface Initialization Function is not defined.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmWrongParameterTypeError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmWrongParameterTypeError">[docs]</a><span class="k">class</span> <span class="nc">OmWrongParameterTypeError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if the type of the configuration parameter does not match the requested one.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 

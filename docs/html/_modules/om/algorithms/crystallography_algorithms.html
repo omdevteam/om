@@ -109,7 +109,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">h5py</span>  <span class="c1"># type: ignore</span>
 <span class="kn">import</span> <span class="nn">numpy</span>  <span class="c1"># type: ignore</span>
@@ -118,12 +118,54 @@
 
 <span class="kn">from</span> <span class="nn">om.lib.peakfinder8_extension</span> <span class="kn">import</span> <span class="n">peakfinder_8</span>
 
-
 <span class="n">TypePeakList</span> <span class="o">=</span> <span class="n">TypedDict</span><span class="p">(</span>
     <span class="s2">&quot;TypePeakList&quot;</span><span class="p">,</span>
     <span class="p">{</span><span class="s2">&quot;num_peaks&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="s2">&quot;fs&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="s2">&quot;ss&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="s2">&quot;intensity&quot;</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]},</span>
     <span class="n">total</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_peakfinder8_info"><a class="viewcode-back" href="../../../om.algorithms.crystallography_algorithms.html#om.algorithms.crystallography_algorithms.get_peakfinder8_info">[docs]</a><span class="k">def</span> <span class="nf">get_peakfinder8_info</span><span class="p">(</span><span class="n">detector_type</span><span class="p">):</span>
+    <span class="c1"># type: (str) -&gt; Dict[str, int]</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the peakfinder8 information for a specific detector.</span>
+
+<span class="sd">    Arguments:</span>
+
+<span class="sd">        detector_type (str): The type of detector for which the information needs to</span>
+<span class="sd">        be retrieved. The currently supported detectors are:</span>
+
+<span class="sd">        * &#39;cspad&#39;: the CSPAD detector used at the CXI beamtime of the LCLS facility</span>
+<span class="sd">          before 2020.</span>
+
+<span class="sd">        * &#39;pilatus&#39;: the Pilatus detector used at the P11 beamtime of the LCLS</span>
+<span class="sd">          facility.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        Dict[str, int]: a dictionary storing the peakfinder8 information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">detector_type</span> <span class="o">==</span> <span class="s2">&quot;cspad&quot;</span><span class="p">:</span>
+        <span class="n">peakfinder8_info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;asic_nx&quot;</span><span class="p">:</span> <span class="mi">194</span><span class="p">,</span>
+            <span class="s2">&quot;asic_ny&quot;</span><span class="p">:</span> <span class="mi">185</span><span class="p">,</span>
+            <span class="s2">&quot;nasics_x&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">&quot;nasics_y&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="p">}</span>  <span class="c1"># type: Dict[str, int]</span>
+    <span class="k">elif</span> <span class="n">detector_type</span> <span class="o">==</span> <span class="s2">&quot;pilatus&quot;</span><span class="p">:</span>
+        <span class="n">peakfinder8_info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;asic_nx&quot;</span><span class="p">:</span> <span class="mi">2463</span><span class="p">,</span>
+            <span class="s2">&quot;asic_ny&quot;</span><span class="p">:</span> <span class="mi">2527</span><span class="p">,</span>
+            <span class="s2">&quot;nasics_x&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;nasics_y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;The peakfinder8 information for the </span><span class="si">{0}</span><span class="s2"> detector &quot;</span>
+            <span class="s2">&quot;cannot be retrieved: detector type unknown&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">peakfinder8_info</span></div>
 
 
 <div class="viewcode-block" id="Peakfinder8PeakDetection"><a class="viewcode-back" href="../../../om.algorithms.crystallography_algorithms.html#om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection">[docs]</a><span class="k">class</span> <span class="nc">Peakfinder8PeakDetection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>

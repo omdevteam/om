@@ -35,27 +35,9 @@ class OmException(Exception):
     """
 
 
-class OmHidraAPIError(OmException):
+class OmConfigurationFileReadingError(OmException):
     """
-    Raised if an error happens during a HiDRA API call.
-    """
-
-
-class OmMissingEventHandlingFunctionError(OmException):
-    """
-    Raised if an Event Handling Function is not defined.
-    """
-
-
-class OmMissingDataExtractionFunctionError(OmException):
-    """
-    Raised if a Data Extraction Function is not defined.
-    """
-
-
-class OmMissingPsanaInitializationFunctionError(OmException):
-    """
-    Raised if a psana Detector Interface Initialization Function is not defined.
+    Raised if an error happens while reading the configuration file.
     """
 
 
@@ -65,45 +47,9 @@ class OmConfigurationFileSyntaxError(OmException):
     """
 
 
-class OmConfigurationFileReadingError(OmException):
-    """
-    Raised if an error happens while reading the configuration file.
-    """
-
-
-class OmMissingParameterGroupError(OmException):
-    """
-    Raised if a parameter group is missing from the configuration file.
-    """
-
-
-class OmMissingParameterError(OmException):
-    """
-    Raised if a parameter is missing from the configuration file.
-    """
-
-
-class OmWrongParameterTypeError(OmException):
-    """
-    Raised if the type of the configuration parameter does not match the requested one.
-    """
-
-
 class OmDataExtractionError(OmException):
     """
     Raised if an error happens during data extraction.
-    """
-
-
-class OmInvalidSourceError(OmException):
-    """
-    Raised if the format of the source string is not valid.
-    """
-
-
-class OmMissingDependencyError(OmException):
-    """
-    Raised if one of the dependencies of a module is not found on the system.
     """
 
 
@@ -113,15 +59,75 @@ class OmHdf5FileReadingError(OmException):
     """
 
 
-class OmMissingHdf5PathError(OmException):
+class OmHdf5PathError(OmException):
     """
     Raised if an internal HDF5 path is not found.
     """
 
 
-class OmDetectorCalibrationError(OmException):
+class OmHidraAPIError(OmException):
     """
-    Raised if an error occurs while calling a calibration algorithm.
+    Raised if an error happens during a HiDRA API call.
+    """
+
+
+class OmInvalidSourceError(OmException):
+    """
+    Raised if the format of the source string is not valid.
+    """
+
+
+class OmMissingDataEventHandlerError(OmException):
+    """
+    The implementation of a data event handler cannot be found on the system.
+    """
+
+
+class OmMissingDataExtractionFunctionError(OmException):
+    """
+    Raised if a Data Extraction Function is not defined.
+    """
+
+
+class OmMissingDependencyError(OmException):
+    """
+    Raised if one of the dependencies of a module is not found on the system.
+    """
+
+
+class OmMissingEventHandlingFunctionError(OmException):
+    """
+    Raised if an Event Handling Function is not defined.
+    """
+
+
+class OmMissingLayerModuleFileError(OmException):
+    """
+    The python implementation of an OM layer cannot be found on the system.
+    """
+
+
+class OmMissingParameterError(OmException):
+    """
+    Raised if a parameter is missing from the configuration file.
+    """
+
+
+class OmMissingParameterGroupError(OmException):
+    """
+    Raised if a parameter group is missing from the configuration file.
+    """
+
+
+class OmMissingPsanaInitializationFunctionError(OmException):
+    """
+    Raised if a psana Detector Interface Initialization Function is not defined.
+    """
+
+
+class OmWrongParameterTypeError(OmException):
+    """
+    Raised if the type of the configuration parameter does not match the requested one.
     """
 
 

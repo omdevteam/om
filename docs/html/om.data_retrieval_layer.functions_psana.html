@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The functions_psana Module &#8212; OM 20.08.0.0dev documentation</title>
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The monitor Module" href="om.monitor.html" />
+    <link rel="prev" title="The functions_pilatus Module" href="om.data_retrieval_layer.functions_pilatus.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          OM</a>
+        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
+                <li><a href="documentation_running_om.html">Running OM</a></li>
+                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
+                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
+            
+            
+              
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <p>[<a class="reference internal" href="om.html"><span class="doc">Back to top of code documentation</span></a>]</p>
+<div class="section" id="module-om.data_retrieval_layer.functions_psana">
+<span id="the-functions-psana-module"></span><h1>The functions_psana Module<a class="headerlink" href="#module-om.data_retrieval_layer.functions_psana" title="Permalink to this headline">¶</a></h1>
+<p>Retrieval of of data from the psana framework.</p>
+<p>This module contains functions that retrieve data from the psana framework.</p>
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.detector_data_init">
+<code class="sig-name descname">detector_data_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#detector_data_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.detector_data_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for x-ray detector data at LCLS.</p>
+<p>This function initializes the Detector interface for the detector identified by the
+‘psana_detector_name’ entry in the ‘DataRetrievalLayer’ configuration parameter
+group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used later
+to retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.AreaDetector.AreaDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.timestamp_init">
+<code class="sig-name descname">timestamp_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#timestamp_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.timestamp_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for timestamp data at LCLS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.detector_distance_init">
+<code class="sig-name descname">detector_distance_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#detector_distance_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.detector_distance_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for detector distance data at LCLS.</p>
+<p>Detector distance information is recovered from an Epics controller at LCLS.
+This function initializes the Detector interface for the Epics controller
+identified by the ‘psana_detector_distance_epics_name’ entry in the
+‘DataRetrievalLayer’ configuration parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used
+later to retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.EpicsDetector.EpicsDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.beam_energy_init">
+<code class="sig-name descname">beam_energy_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#beam_energy_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.beam_energy_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for beam energy data at LCLS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used later
+to retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.DdlDetector.DdlDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.timetool_data_init">
+<code class="sig-name descname">timetool_data_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#timetool_data_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.timetool_data_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for timetool data at LCLS.</p>
+<p>Timetool data is recovered from an Epics controller at LCLS. This function
+initializes the Detector interface for the Epics controller identified by the
+‘psana_timetools_epics_name’ entry in the ‘DataRetrievalLayer’ configuration
+parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used
+later to retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.EpicsDetector.EpicsDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.digitizer_data_init">
+<code class="sig-name descname">digitizer_data_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#digitizer_data_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.digitizer_data_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for digitizer data at LCLS.</p>
+<p>This function initializes the Detector interface for the digitizer identified by
+the ‘psana_digitizer_name’ entry in the ‘DataRetrievalLayer’ configuration
+parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used later to
+retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.WFDetector.WFDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.opal_data_init">
+<code class="sig-name descname">opal_data_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#opal_data_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.opal_data_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for Opal camera data at LCLS.</p>
+<p>This function initialize the Detector interface for the Opel camera identified by
+the ‘psana_opal_name’ entry in the ‘DataRetrievalLayer’ configuration parameter
+group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used later
+to retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.AreaDetector.AreaDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.optical_laser_active_init">
+<code class="sig-name descname">optical_laser_active_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#optical_laser_active_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.optical_laser_active_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for an optical laser at LCLS.</p>
+<p>The status of an optical laser is determined by monitoring an EVR event source at
+LCLS. This function initializes the Detector interface for the EVR event source
+identified by the ‘psana_evr_source_name’ entry of the ‘DataRetrievalLayer’
+configuration parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used later
+to retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.EvrDetector.EvrDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.xrays_active_init">
+<code class="sig-name descname">xrays_active_init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_params</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#xrays_active_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.xrays_active_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for the x-ray beam status at LCLS.</p>
+<p>The status of the x-ray beam is determined by monitoring an EVR event source at
+LCLS. This function initializes the Detector interface for the EVR event source
+identified by the ‘psana_evr_source_name’ entry of the ‘DataRetrievalLayer’
+configuration parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
+storing the OM monitor parameters from the configuration file.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a psana object that can be used later
+to retrieve the data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>psana.Detector.EvrDetector.EvrDetector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.timestamp">
+<code class="sig-name descname">timestamp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.timestamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the timestamp of an event retrieved from psana at LCLS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the timestamp of the event in seconds from the Epoch.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.float64</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.detector_distance">
+<code class="sig-name descname">detector_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#detector_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.detector_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the detector distance for an event retrieved from psana at LCLS.</p>
+<p>Detector distance information is recovered from an Epics controller at LCLS . This
+function retrieves the information from the Epics controller identified by the
+‘psana_detector_distance_epics_name’ entry in the ‘DataRetrievalLayer’
+configuration parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the distance between the detector and the sample in mm.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.beam_energy">
+<code class="sig-name descname">beam_energy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#beam_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.beam_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the beam energy for an event retrieved from psana at LCLS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the energy of the beam in eV.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.timetool_data">
+<code class="sig-name descname">timetool_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#timetool_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.timetool_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets timetool data for an event retrieved from psana at LCLS.</p>
+<p>Timetool data is recovered from an Epics controller at LCLS. This function
+retrieves the data from the Epics controller identified by the
+‘psana_timetools_epics_name’ entry in the ‘DataRetrievalLayer’ configuration
+parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the readout of the timetool instrument.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.digitizer_data">
+<code class="sig-name descname">digitizer_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#digitizer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.digitizer_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get digitizer data for an event retrieved from psana at LCLS.</p>
+<p>This function retrieves data from the digitizer identified by the
+‘psana_digitizer_name’ entry in the ‘DataRetrievalLayer’ configuration parameter
+group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the waveform from the digitizer.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.opal_data">
+<code class="sig-name descname">opal_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#opal_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.opal_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets Opal camera data for an event retrieved from psana at LCLS.</p>
+<p>This function retrieves data from the Opel camera identified by the
+‘psana_opal_name’ entry in the ‘DataRetrievalLayer’ configuration parameter group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a 2D array containing the image from the Opal camera.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.optical_laser_active">
+<code class="sig-name descname">optical_laser_active</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#optical_laser_active"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.optical_laser_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the status of an optical laser for an event retrieved from psana at LCLS.</p>
+<p>The status of an optical laser is determined by monitoring an EVR event source at
+LCLS. This function determines the status of the optical laser by checking if
+the EVR source provides a specific event code for the current frame.</p>
+<ul class="simple">
+<li><p>The name of the source must be specified in the ‘psana_evr_source_name’ entry of
+the ‘DataRetrievalLayer’ configuration parameter group.</p></li>
+<li><p>The EVR event code that signals an active optical laser must be provided in
+the ‘psana_evr_code_for_active_optical_laser’ entry in the same parameter group.</p></li>
+<li><p>If the source shows this EVR code for the current frame, the optical laser is
+considered active.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the optical laser is active for the current frame. False
+otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_psana.xrays_active">
+<code class="sig-name descname">xrays_active</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_psana.html#xrays_active"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_psana.xrays_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the psana Detector interface for the x-ray beam status at LCLS.</p>
+<p>The status of an optical laser is determined by monitoring an EVR event source at
+LCLS. This function determines the status of the x-ray beam by checking if the EVR
+source provides a specific event code for the current frame.</p>
+<ul class="simple">
+<li><p>The name of the source must be specified in the ‘psana_evr_source_name’ entry of
+the ‘DataRetrievalLayer’ configuration parameter group.</p></li>
+<li><p>The EVR event code that signals an active x-ray beam must be provided in the
+‘psana_evr_code_for_active_xray_beam” entry in the same parameter group.</p></li>
+<li><p>If the source shows this EVR code for the current frame, the x-ray beam is
+considered active.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the x-ray beam is active for the current frame. False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 
+    2020 SLAC National Accelerator Laboratory -
+    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
+    a research centre of the Helmholtz Association
+.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

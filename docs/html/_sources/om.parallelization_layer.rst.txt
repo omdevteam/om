@@ -10,4 +10,5 @@ The parallelization\_layer Package
 
 .. toctree::
 
+   base <om.parallelization_layer.base>
    mpi <om.parallelization_layer.mpi>

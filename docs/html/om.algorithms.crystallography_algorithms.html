@@ -90,6 +90,30 @@
 <p>Algorithms for the processing of crystallography data.</p>
 <p>This module contains algorithms that carry out crystallography-related data processing
 (peak finding, etc.).</p>
+<dl class="py function">
+<dt id="om.algorithms.crystallography_algorithms.get_peakfinder8_info">
+<code class="sig-name descname">get_peakfinder8_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detector_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#get_peakfinder8_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.get_peakfinder8_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the peakfinder8 information for a specific detector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detector_type</strong> (<em>str</em>) – The type of detector for which the information needs to</p></li>
+<li><p><strong>retrieved. The currently supported detectors are</strong> (<em>be</em>) – </p></li>
+<li><p><strong>'cspad'</strong> (<em>*</em>) – the CSPAD detector used at the CXI beamtime of the LCLS facility
+before 2020.</p></li>
+<li><p><strong>'pilatus'</strong> (<em>*</em>) – the Pilatus detector used at the P11 beamtime of the LCLS
+facility.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dictionary storing the peakfinder8 information.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt id="om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection">
 <em class="property">class </em><code class="sig-name descname">Peakfinder8PeakDetection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_num_peaks</span></em>, <em class="sig-param"><span class="n">asic_nx</span></em>, <em class="sig-param"><span class="n">asic_ny</span></em>, <em class="sig-param"><span class="n">nasics_x</span></em>, <em class="sig-param"><span class="n">nasics_y</span></em>, <em class="sig-param"><span class="n">adc_threshold</span></em>, <em class="sig-param"><span class="n">minimum_snr</span></em>, <em class="sig-param"><span class="n">min_pixel_count</span></em>, <em class="sig-param"><span class="n">max_pixel_count</span></em>, <em class="sig-param"><span class="n">local_bg_radius</span></em>, <em class="sig-param"><span class="n">min_res</span></em>, <em class="sig-param"><span class="n">max_res</span></em>, <em class="sig-param"><span class="n">bad_pixel_map_filename</span></em>, <em class="sig-param"><span class="n">bad_pixel_map_hdf5_path</span></em>, <em class="sig-param"><span class="n">radius_pixel_map</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#Peakfinder8PeakDetection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="Permalink to this definition">¶</a></dt>

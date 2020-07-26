@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="The utils Package" href="om.utils.html" />
-    <link rel="prev" title="The processing_layer Package" href="om.processing_layer.html" />
+    <link rel="prev" title="The base Module" href="om.processing_layer.base.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -90,10 +90,12 @@
 <p>OM monitor for crystallography.</p>
 <p>This module contains an OM monitor for serial x-ray crystallography experiments.</p>
 <dl class="py class">
-<dt id="om.processing_layer.crystallography.OmMonitor">
-<em class="property">class </em><code class="sig-name descname">OmMonitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OmMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OmMonitor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.ParallelizationEngine" title="om.parallelization_layer.mpi.ParallelizationEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.parallelization_layer.mpi.ParallelizationEngine</span></code></a></p>
+<dt id="om.processing_layer.crystallography.CrystallographyMonitor">
+<em class="property">class </em><code class="sig-name descname">CrystallographyMonitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#CrystallographyMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.CrystallographyMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="om.processing_layer.base.html#om.processing_layer.base.OmMonitor" title="om.processing_layer.base.OmMonitor"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.processing_layer.base.OmMonitor</span></code></a></p>
 <p>An OM real-time monitor for serial x-ray crystallography experiments.</p>
+<p>See documentation of the constructor of the base class:
+<a class="reference internal" href="om.processing_layer.base.html#om.processing_layer.base.OmMonitor" title="om.processing_layer.base.OmMonitor"><code class="xref py py-func docutils literal notranslate"><span class="pre">OmMonitor()</span></code></a>.</p>
 <p>This monitor processes detector data frames, optionally applying detector
 calibration, dark correction and gain correction. It detects Bragg peaks in
 each detector frame using the peakfinder8 algorithm from Cheetah. It provides
@@ -102,63 +104,67 @@ Additionally, it calculates the evolution of the hit and saturation rates over
 time. It broadcasts all this information over a network socket for
 visualization by other programs. Optionally, it can also broadcast calibrated
 and corrected detector data frames.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> (<em>str</em>) – a string describing the data source. The exact format of the
-string depends on the specific Data Recovery Layer currently being
-used. See the documentation of the relevant ‘initialize_event_source’
-function.</p></li>
-<li><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
-storing the OM monitor parameters from the configuration file.</p></li>
-</ul>
-</dd>
-</dl>
 <dl class="py method">
-<dt id="om.processing_layer.crystallography.OmMonitor.process_data">
-<code class="sig-name descname">process_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OmMonitor.process_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OmMonitor.process_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Processes a detector data frame.</p>
-<p>This function performs calibration and correction of a detector data frame and
-extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
-optionally, the detector frame data) for transmission to to the master node.</p>
+<dt id="om.processing_layer.crystallography.CrystallographyMonitor.initialize_node">
+<code class="sig-name descname">initialize_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">role</span></em>, <em class="sig-param"><span class="n">rank</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#CrystallographyMonitor.initialize_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.CrystallographyMonitor.initialize_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the OM nodes for the Crystallography monitor.</p>
+<p>See documentation of the function in the base class:
+<a class="reference internal" href="om.processing_layer.base.html#om.processing_layer.base.OmMonitor" title="om.processing_layer.base.OmMonitor"><code class="xref py py-func docutils literal notranslate"><span class="pre">OmMonitor()</span></code></a>.</p>
+<p>On the processing nodes, it initializes the correction and peak finding
+algorithms, plus some internal counters. On the collecting node, this function
+initializes the data accumulation algorrithms and the storage for the
+aggregated statistics.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – <p>a dictionary containing the data retrieved by
-OM for the frame being processed.</p>
-<ul class="simple">
-<li><p>The dictionary keys must match the entries in the ‘required_data’
-list found in the ‘om’ configuration parameter group.</p></li>
-<li><p>The corresponding dictionary values must store the retrieved data.</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a tuple whose first entry is a dictionary storing the
-data that should be sent to the master node, and whose second entry is the
-rank number of the node that processed the information.</p>
-</dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Tuple[Dict, int]</p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="om.processing_layer.crystallography.OmMonitor.collect_data">
-<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">processed_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#OmMonitor.collect_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.OmMonitor.collect_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes statistics on aggregated data and broadcasts them via a network socket.</p>
-<p>This function computes aggregated statistics on data received from the worker
-nodes. It then broadcasts the results via a network socket (for visualization
-by other programs) using the MessagePack protocol.</p>
+<dt id="om.processing_layer.crystallography.CrystallographyMonitor.process_data">
+<code class="sig-name descname">process_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">role</span></em>, <em class="sig-param"><span class="n">rank</span></em>, <em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#CrystallographyMonitor.process_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.CrystallographyMonitor.process_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a detector data frame.</p>
+<p>See documentation of the function in the base class:
+<a class="reference internal" href="om.processing_layer.base.html#om.processing_layer.base.OmMonitor.process_data" title="om.processing_layer.base.OmMonitor.process_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">process_data()</span></code></a>.</p>
+<p>This function performs calibration and correction of a detector data frame and
+extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
+optionally, the detector frame data) for transmission to to the collecting
+node.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>processed_data</strong> (<em>Tuple</em><em>[</em><em>Dict</em><em>, </em><em>int</em><em>]</em>) – a tuple whose first entry is a
-dictionary storing the data receievd from a worker node, and whose
-second entry is the rank number of the node that processed the
-information.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.processing_layer.crystallography.CrystallographyMonitor.collect_data">
+<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">role</span></em>, <em class="sig-param"><span class="n">rank</span></em>, <em class="sig-param"><span class="n">processed_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#CrystallographyMonitor.collect_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.CrystallographyMonitor.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes statistics on aggregated data and broadcasts them via a network socket.</p>
+<p>See documentation of the function in the base class:
+<a class="reference internal" href="om.processing_layer.base.html#om.processing_layer.base.OmMonitor.collect_data" title="om.processing_layer.base.OmMonitor.collect_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_data()</span></code></a>.</p>
+<p>This function computes aggregated statistics on data received from the
+processing nodes. It then broadcasts the results via a network socket (for
+visualization by other programs) using the MessagePack protocol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.processing_layer.crystallography.CrystallographyMonitor.end_processing">
+<code class="sig-name descname">end_processing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">role</span></em>, <em class="sig-param"><span class="n">rank</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/crystallography.html#CrystallographyMonitor.end_processing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.crystallography.CrystallographyMonitor.end_processing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes end-of-processing actions.</p>
+<p>See documentation of the function in the base class:
+<a class="reference internal" href="om.processing_layer.base.html#om.processing_layer.base.OmMonitor.end_processing" title="om.processing_layer.base.OmMonitor.end_processing"><code class="xref py py-func docutils literal notranslate"><span class="pre">end_processing()</span></code></a>.</p>
+<p>This function is called by the parallelization engine on the processing and
+collecting nodes at the end of the processing, immediately before stopping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>

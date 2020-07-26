@@ -91,8 +91,7 @@ setup(
         OM focuses on scalability and portability, in order to facilitate its
         adoption for a wide array of current and future instruments. It also strives
         for stability and performance. In order to achieve these goals, OM
-        implements a master/worker parallelization paradigm using free and
-        open-source libraries and protocols.
+        uses free and open-source libraries and protocols.
 
         OM is written in Python. The use of the Python programming language, which
         is particularly suited to prototyping and rapid development, makes OM easy
