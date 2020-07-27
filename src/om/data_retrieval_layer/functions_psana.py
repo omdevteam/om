@@ -53,7 +53,7 @@ def detector_data_init(monitor_params):
             parameter="psana_detector_name",
             parameter_type=str,
             required=True,
-        ).encode("ascii")
+        )
     )
 
 
@@ -100,7 +100,7 @@ def detector_distance_init(monitor_params):
             parameter="psana_detector_distance_epics_name",
             parameter_type=str,
             required=True,
-        ).encode("ascii")
+        )
     )
 
 
@@ -120,7 +120,7 @@ def beam_energy_init(monitor_params):
         to retrieve the data.
     """
     del monitor_params
-    return psana.Detector("EBeam".encode("ascii"))
+    return psana.Detector("EBeam")
 
 
 def timetool_data_init(monitor_params):
@@ -150,7 +150,7 @@ def timetool_data_init(monitor_params):
             parameter="psana_timetool_epics_name",
             parameter_type=str,
             required=True,
-        ).encode("ascii")
+        )
     )
 
 
@@ -179,7 +179,7 @@ def digitizer_data_init(monitor_params):
             parameter="psana_digitizer_name",
             parameter_type=str,
             required=True,
-        ).encode("ascii")
+        )
     )
 
 
@@ -208,7 +208,7 @@ def opal_data_init(monitor_params):
             parameter="psana_opal_name",
             parameter_type=str,
             required=True,
-        ).encode("ascii")
+        )
     )
 
 
@@ -237,7 +237,7 @@ def optical_laser_active_init(monitor_params):
         parameter="psana_evr_source_name",
         parameter_type=str,
         required=True,
-    ).encode("ascii")
+    )
 
     return psana.Detector(evr_source_name)
 
@@ -267,7 +267,7 @@ def xrays_active_init(monitor_params):
         parameter="psana_evr_source_name",
         parameter_type=str,
         required=True,
-    ).encode("ascii")
+    )
 
     return psana.Detector(evr_source_name)
 

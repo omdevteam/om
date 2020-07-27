@@ -23,15 +23,18 @@ engine.
 """
 from __future__ import absolute_import, division, print_function
 
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Tuple, Type, Union
+from abc import ABCMeta, abstractmethod
+from typing import List, Tuple, Union
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.processing_layer import base as process_layer_base
 from om.utils import parameters
 
 
-class OmParallelizationEngine(ABC):
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+
+
+class OmParallelizationEngine(ABC):  # type: ignore
     """
     See documentation of the __init__ function.
     """

@@ -159,5 +159,4 @@ def main(source, config, debug):
         monitor_parameters=monitor_parameters,
     )  # type: parallel_layer_base.OmParallelizationEngine
 
-    # TODO: Fix types.
     parallelization_engine.start()

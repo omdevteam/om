@@ -20,13 +20,18 @@ Monitor base class.
 
 This module contains the abstract class that defines an OM monitor.
 """
-from abc import ABC, abstractmethod
+from __future__ import absolute_import, division, print_function
+
+from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Tuple
 
 from om.utils import parameters
 
 
-class OmMonitor(ABC):
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+
+
+class OmMonitor(ABC):  # type: ignore
     """
     See documentation for the '__init__' function.
     """

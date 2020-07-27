@@ -21,18 +21,22 @@ Data extraction layer base classes.
 This module contains the abstract classes for the Data Extraction Layer of an OM
 monitor parallelization.
 """
+from __future__ import absolute_import, division, print_function
 
 import sys
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Generator
-from typing_extensions import final
 
 from future.utils import iteritems  # type: ignore
+from typing_extensions import final
 
 from om.utils import exceptions, parameters
 
 
-class OmDataEventHandler(ABC):
+ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
+
+
+class OmDataEventHandler(ABC):  # type: ignore
     """
     See documentation of the __init__ function.
     """
@@ -193,19 +197,19 @@ Dict[str,Any]]], Any]]): a dictionary containing Data Extraction
               function.
         """
         data = {}  # type: Dict[str, Any]
-        try:
-            for f_name, func in iteritems(event["data_extraction_funcs"]):
+        for f_name, func in iteritems(event["data_extraction_funcs"]):
+            try:
                 data[f_name] = func(event)
-        # One should never do the following, but it is not possible to anticipate
-        # every possible error raised by the facility frameworks.
-        except Exception:
-            exc_type, exc_value = sys.exc_info()[:2]
-            if exc_type is not None:
-                raise exceptions.OmDataExtractionError(
-                    "OM Warning: Cannot interpret {0} event data due to the "
-                    "following error: {1}: {2}".format(
-                        func.__name__, exc_type.__name__, exc_value
+            # One should never do the following, but it is not possible to anticipate
+            # every possible error raised by the facility frameworks.
+            except Exception:
+                exc_type, exc_value = sys.exc_info()[:2]
+                if exc_type is not None:
+                    raise exceptions.OmDataExtractionError(
+                        "OM Warning: Cannot interpret {0} event data due to the "
+                        "following error: {1}: {2}".format(
+                            func.__name__, exc_type.__name__, exc_value
+                        )
                     )
-                )
 
         return data
