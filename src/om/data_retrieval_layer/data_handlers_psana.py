@@ -56,9 +56,7 @@ def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
             yield run.event(evt)
 
 
-class LclsBaseDataEventHandler(
-    data_ret_layer_base.OmDataEventHandler, ABC
-):  # type: ignore
+class LclsBaseDataEventHandler(data_ret_layer_base.OmDataEventHandler):
     """
     See documentation of the __init__ function.
     """

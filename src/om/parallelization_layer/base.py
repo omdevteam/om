@@ -26,15 +26,14 @@ from __future__ import absolute_import, division, print_function
 from abc import ABCMeta, abstractmethod
 from typing import List, Tuple, Union
 
+from future.utils import with_metaclass  # type: ignore
+
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.processing_layer import base as process_layer_base
 from om.utils import parameters
 
 
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
-
-
-class OmParallelizationEngine(ABC):  # type: ignore
+class OmParallelizationEngine(with_metaclass(ABCMeta)):
     """
     See documentation of the __init__ function.
     """

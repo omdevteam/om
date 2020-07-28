@@ -25,13 +25,12 @@ from __future__ import absolute_import, division, print_function
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Tuple
 
+from future.utils import with_metaclass  # type: ignore
+
 from om.utils import parameters
 
 
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
-
-
-class OmMonitor(ABC):  # type: ignore
+class OmMonitor(with_metaclass(ABCMeta)):
     """
     See documentation for the '__init__' function.
     """

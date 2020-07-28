@@ -27,16 +27,13 @@ import sys
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Generator
 
-from future.utils import iteritems  # type: ignore
+from future.utils import iteritems, with_metaclass  # type: ignore
 from typing_extensions import final
 
 from om.utils import exceptions, parameters
 
 
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
-
-
-class OmDataEventHandler(ABC):  # type: ignore
+class OmDataEventHandler(with_metaclass(ABCMeta, object)):
     """
     See documentation of the __init__ function.
     """
