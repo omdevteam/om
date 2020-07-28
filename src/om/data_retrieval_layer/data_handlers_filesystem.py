@@ -175,8 +175,6 @@ initialize_event_source`.
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]  # type: List[str]
 
-        print("Num files current node:", node_rank, num_files_curr_node)
-
         data_event = {}  # type: Dict[str, Dict[str, Any]]
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
         data_event["info"] = {}

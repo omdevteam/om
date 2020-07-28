@@ -130,7 +130,6 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
 
             # Flag used to make sure that the MPI messages have been processed.
             req = None
-            print("Rank", self._rank)
             events = self._data_event_handler.event_generator(
                 source=self._source,
                 node_rank=self._rank,
