@@ -51,7 +51,7 @@ def _import_class(layer, layer_filename, class_name):
         except ImportError:
             raise exceptions.OmMissingLayerModuleFileError(
                 "The python module file {0}.py with the implementation of the OM {1} "
-                "layer cannot be found or loaded.".format(layer_filename, layer)
+                "cannot be found or loaded.".format(layer_filename, layer)
             )
 
     try:
