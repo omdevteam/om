@@ -27,12 +27,11 @@ import sys
 from typing import Any, Dict, Tuple, Union
 
 from mpi4py import MPI  # type: ignore
-from om.utils import exceptions, parameters
 
+from om.data_retrieval_layer import base as data_ret_layer_base
 from om.parallelization_layer import base as par_layer_base
 from om.processing_layer import base as process_layer_base
-from om.data_retrieval_layer import base as data_ret_layer_base
-
+from om.utils import exceptions, parameters
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _NOMORE = 998  # type: int

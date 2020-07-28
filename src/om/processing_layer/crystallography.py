@@ -31,8 +31,8 @@ import numpy  # type: ignore
 
 from om.algorithms import crystallography_algorithms as cryst_algs
 from om.algorithms import generic_algorithms as gen_algs
-from om.utils import crystfel_geometry, parameters, zmq_monitor
 from om.processing_layer import base as process_layer_base
+from om.utils import crystfel_geometry, parameters, zmq_monitor
 
 
 class CrystallographyMonitor(process_layer_base.OmMonitor):

@@ -25,7 +25,6 @@ from __future__ import absolute_import, division, print_function
 
 import socket
 import sys
-
 from typing import Any, Dict, List, Union
 
 import msgpack  # type: ignore

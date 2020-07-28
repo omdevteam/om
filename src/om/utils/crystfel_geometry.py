@@ -32,6 +32,7 @@ from typing import Dict, List, Tuple, Type, Union
 import numpy  # type: ignore
 from future.utils import raise_from, viewitems  # type: ignore
 from mypy_extensions import TypedDict
+
 from om.utils import exceptions
 
 TypeBeam = TypedDict(

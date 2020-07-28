@@ -22,18 +22,17 @@ This module contains the main function that instantiates an OM monitor.
 """
 from __future__ import absolute_import, division, print_function
 
+import importlib
 import sys
-
-from typing import Type, TypeVar
 from types import ModuleType
+from typing import Type, TypeVar
 
 import click
 
-from om.utils import exceptions, parameters
-from om.processing_layer import base as process_layer_base
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.parallelization_layer import base as parallel_layer_base
-import importlib
+from om.processing_layer import base as process_layer_base
+from om.utils import exceptions, parameters
 
 T = TypeVar("T")
 

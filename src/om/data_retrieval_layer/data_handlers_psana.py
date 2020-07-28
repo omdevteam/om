@@ -27,12 +27,12 @@ from abc import ABCMeta
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
-import psana  # type: ignore
 from future.utils import iteritems, raise_from  # type: ignore
+
+import psana  # type: ignore
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.data_retrieval_layer import functions_cspad, functions_psana
 from om.utils import exceptions, parameters
-
 
 ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
