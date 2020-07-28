@@ -174,7 +174,7 @@ extracts data from a facility framework.
    wrong choice can severely interfere with data retrieval and extraction.
 
 
-** Parameters for all DataEventHandlers **
+**Parameters for all DataEventHandlers**
 
 * **num_of_most_recent_frames_in_event_to_process (int or None):** number of frames for
   each event to process. It should be noted that these are the *most recent* events: if
@@ -189,7 +189,7 @@ extracts data from a facility framework.
   [detector_data, detector_distance, beam_energy, timestamp]
 
 
-** Parameters for the psana-based DataEventHandlers **
+**Parameters for the psana-based DataEventHandlers**
 
 * **calibration** (bool): whether to retrieved calibrated detector data or not. The
   calibration is automatically provided by psana. This toggle just switched it on or
