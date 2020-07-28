@@ -302,7 +302,7 @@ finding on a detector frame, using the (using the :class:`Peakfinder8PeakDetecti
   Example: '/data/data'
 
 * **detector_type** (str): the type of detector on which the peak finding algorithm
-  will be applied. The detector types currently supported are: 'cspad'and 'pilatus'.
+  will be applied. The detector types currently supported are: 'cspad' and 'pilatus'.
   Example: cspad 
 
 * **max_num_peaks (int):** the maximum number of peaks that will be retrieved from each
