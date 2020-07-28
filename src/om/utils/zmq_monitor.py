@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function
 
 import socket
 import sys
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, Union
 
 import msgpack  # type: ignore
 import msgpack_numpy  # type: ignore
@@ -86,7 +86,7 @@ class ZmqDataBroadcaster(object):
         sys.stdout.flush()
 
     def send_data(self, tag, message):
-        # type: (str, List[Dict[str, Any]]) -> None
+        # type: (str, Dict[str, Any]) -> None
         """
         Broadcasts data from the ZMQ PUB socket.
 

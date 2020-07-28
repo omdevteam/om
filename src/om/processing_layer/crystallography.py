@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function
 import collections
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, Tuple, Union
 
 import numpy  # type: ignore
 
@@ -74,6 +74,20 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         initializes the data accumulation algorrithms and the storage for the
         aggregated statistics.
         """
+
+        geometry_filename = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="geometry_file",
+            parameter_type=str,
+            required=True,
+        )  # type: str
+        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            geometry_filename
+        )  # type: Tuple[crystfel_geometry.TypeDetector, Any, Any]
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(
+            geometry
+        )  # type: Dict[str, numpy.ndarray]
+
         if role == "processing":
             self._hit_frame_sending_counter = 0  # type: int
             self._non_hit_frame_sending_counter = 0  # type: int
@@ -104,20 +118,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 gain_filename=gain_map_filename,
                 gain_hdf5_path=gain_map_hdf5_path,
             )
-
-            geometry_filename = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="geometry_file",
-                parameter_type=str,
-                required=True,
-            )  # type: str
-            geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
-                geometry_filename
-            )  # type: Tuple[crystfel_geometry.TypeDetector, Any, Any]
-            pixelmaps = crystfel_geometry.compute_pix_maps(
-                geometry
-            )  # type: Dict[str, numpy.ndarray]
-            radius_pixel_map = pixelmaps["radius"]  # type: numpy.ndarray
 
             pf8_detector_info = cryst_algs.get_peakfinder8_info(
                 self._monitor_params.get_param(
@@ -204,7 +204,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 max_res=pf8_max_res,
                 bad_pixel_map_filename=pf8_bad_pixel_map_fname,
                 bad_pixel_map_hdf5_path=pf8_bad_pixel_map_hdf5_path,
-                radius_pixel_map=radius_pixel_map,
+                radius_pixel_map=self._pixelmaps["radius"],
             )  # type: cryst_algs.Peakfinder8PeakDetection
 
             self._max_saturated_peaks = self._monitor_params.get_param(
@@ -257,15 +257,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 parameter_type=bool,
                 required=True,
             )  # type: bool
-            num_events_to_accumulate = self._monitor_params.get_param(
-                group="data_accumulator",
-                parameter="num_events_to_accumulate",
-                parameter_type=int,
-                required=True,
-            )  # type: bool
-            self._data_accumulator = gen_algs.DataAccumulator(
-                num_events_to_accumulate=num_events_to_accumulate
-            )  # type: gen_algs.DataAccumulator
 
             self._running_average_window_size = self._monitor_params.get_param(
                 group="crystallography",
@@ -277,12 +268,46 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 [0.0] * self._running_average_window_size,
                 maxlen=self._running_average_window_size,
             )  # type: Deque[float]
-            self._saturation_rate_running_window = collections.deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
-            )  # type: Deque[float]
             self._avg_hit_rate = 0  # type: int
             self._avg_sat_rate = 0  # type: int
+            self._hit_rate_history = collections.deque(
+                10000 * [0.0], maxlen=10000
+            )  # type: Deque[float]
+
+            y_minimum = (
+                2
+                * int(
+                    max(
+                        abs(self._pixelmaps["y"].max()), abs(self._pixelmaps["y"].min())
+                    )
+                )
+                + 2
+            )  # type: int
+            x_minimum = (
+                2
+                * int(
+                    max(
+                        abs(self._pixelmaps["x"].max()), abs(self._pixelmaps["x"].min())
+                    )
+                )
+                + 2
+            )  # type: int
+            self._virt_powd_plot_img_shape = (y_minimum, x_minimum)
+            self._img_center_x = int(self._virt_powd_plot_img_shape[1] / 2)
+            self._img_center_y = int(self._virt_powd_plot_img_shape[0] / 2)
+            self._visual_pixelmap_x = (
+                numpy.array(self._pixelmaps["x"], dtype=numpy.int)
+                + self._virt_powd_plot_img_shape[1] // 2
+                - 1
+            ).flatten()  # type: numpy.ndarray
+            self._visual_pixelmap_y = (
+                numpy.array(self._pixelmaps["y"], dtype=numpy.int)
+                + self._virt_powd_plot_img_shape[0] // 2
+                - 1
+            ).flatten()  # type: numpy.ndarray
+            self._virt_powd_plot_img = numpy.zeros(
+                shape=self._virt_powd_plot_img_shape, dtype=numpy.float32
+            )
 
             broadcast_socket_ip = self._monitor_params.get_param(
                 group="crystallography", parameter="broadcast_ip", parameter_type=str
@@ -382,29 +407,31 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         self._num_events += 1
 
         self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
-        self._saturation_rate_running_window.append(
-            float(received_data["frame_is_saturated"])
-        )
         avg_hit_rate = (
             sum(self._hit_rate_running_window) / self._running_average_window_size
         )  # type: float
-        avg_sat_rate = (
-            sum(self._saturation_rate_running_window)
-            / self._running_average_window_size
-        )  # type: float
-        received_data["hit_rate"] = avg_hit_rate
-        received_data["saturation_rate"] = avg_sat_rate
-        received_data["geometry_is_optimized"] = self._geometry_is_optimized
+        self._hit_rate_history.append(avg_hit_rate)
 
-        # Since the data will be sent out of the collecting node using msgpack,
-        # NamedTuple structures will not be preserved. The peak list is converted here
-        # to a dictionary, which suvives the msgpack conversion and allows
-        # introspection on the receiver side.
-        received_data["peak_list"] = {
-            "fs": received_data["peak_list"]["fs"],
-            "ss": received_data["peak_list"]["ss"],
-            "intensity": received_data["peak_list"]["intensity"],
-        }
+        for peak_fs, peak_ss, peak_value in zip(
+            received_data["peak_list"]["fs"],
+            received_data["peak_list"]["ss"],
+            received_data["peak_list"]["intensity"],
+        ):
+            peak_index_in_slab = int(round(peak_ss)) * received_data[
+                "native_data_shape"
+            ][1] + int(round(peak_fs))
+            self._virt_powd_plot_img[
+                self._visual_pixelmap_y[peak_index_in_slab],
+                self._visual_pixelmap_x[peak_index_in_slab],
+            ] += peak_value
+
+        self._data_broadcast_socket.send_data(
+            tag=u"omdata",
+            message={
+                "virt_powder_plot": self._virt_powd_plot_img,
+                "hit_rate_history": tuple(self._hit_rate_history),
+            },
+        )
 
         if "detector_data" in received_data:
             # If detector frame data is found in the data received from the processing
@@ -412,19 +439,8 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             # wrapped into a list because the receiving programs usually expect lists
             # of aggregated events as opposed to single events.
             self._data_broadcast_socket.send_data(
-                tag=u"omframedata", message=[received_data]
+                tag=u"omframedata", message={"frame": received_data}
             )
-        # After it has been broadcasted, it removes the detector frame data from the
-        # 'received_data' dictionary (the frame data is not needed anymore, so we
-        # remove it for efficiency reasons).
-        if "detector_data" in received_data:
-            del received_data["detector_data"]
-
-        collected_data = self._data_accumulator.add_data(
-            data=received_data
-        )  # type: Union[List[Dict[str, Any]], None]
-        if collected_data is not None:
-            self._data_broadcast_socket.send_data(tag=u"omdata", message=collected_data)
 
         if self._num_events % self._speed_report_interval == 0:
             now_time = time.time()  # type: float
