@@ -24,12 +24,12 @@ any long-term analysis of the data: after the information is delivered, the data
 discarded without being saved to disk, and new data is retrieved.
 
 In order to achieve its goals of speed and high throughput data processing, OM takes
-advantage of a master / worker parallel architecture. Several processing units
-(**worker nodes** in OM parlance) retrieve data events (a single frame or a
+advantage of a multi-node parallel architecture. Several processing
+units (**processing nodes** in OM parlance) retrieve data events (a single frame or a
 collection of frames presented as a single unit) from a facility, and process them.
-A **master node** collects information from the workers and performs computations over
-multiple events (averaging, aggregation, etc.). The reduced data is finally presented
-to the users in the console or sent to external programs for visualization.
+A **collecting node** aggregates information from the processing nodes and performs
+computations over multiple events (averaging, etc.). The reduced data is finally
+presented the users in the console or sent to external programs for visualization.
 
 OM is mostly written using the Python programming language, however, some processing
 routines are implemented in other languages (C, C++) for performance reasons.
@@ -42,8 +42,8 @@ In the OM framework, a monitoring program is split into three cleanly separate p
 (or **Layers**, in OM parlance):
 
 * A part which deals with the running logic of the program (set up and finalization of
-  the worker and master nodes, communication between the nodes, etc.). This is called
-  **Parallelization Layer**.
+  the processing and collecting nodes, communication between the nodes, etc.). This is
+  called **Parallelization Layer**.
 
 * A part that deals with the retrieval of data from a facility and with the extraction
   of information from it. This is the **Data Retrieval Layer**.

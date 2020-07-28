@@ -100,7 +100,7 @@ specified:</p>
 a set of parameters that are related to each other (because they apply to the same OM
 algorithm, or because they control the same feature of the monitor). For example:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">crystallography</span><span class="p">:</span>
-  <span class="nt">broadcast_ip</span><span class="p">:</span> <span class="s">&#39;127.0.0.1&#39;</span>
+  <span class="nt">broadcast_ip</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
   <span class="nt">broadcast_port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">12321</span>
   <span class="nt">speed_report_interval</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1000</span>
 </pre></div>
@@ -127,30 +127,30 @@ algorithm).</p>
 <li><p><strong>dark_filename (str or None):</strong> the relative or absolute path to an HDF5 file
 containing a dark data frame. If this and the <em>dark_hdf5_path</em> parameters are not
 <em>None</em>, the dark data is loaded and later applied to the detector frame.
-Example: ‘run21_dark.h5’</p></li>
+Example: run21_dark.h5</p></li>
 <li><p><strong>dark_hdf5_path (str or None):</strong> the internal HDF5 path to the data block where the
 dark data frame is located. If the <em>dark_filename</em> parameter is not <em>None</em>, this
 parameter must also be provided, and cannot be <em>None</em>. Otherwise it is ignored.
-Example: ‘/data/data’</p></li>
+Example: /data/data</p></li>
 <li><p><strong>gain_filename (str or None):</strong> the relative or absolute path to an HDF5 file
 containing a gain map. If this and the <em>gain_hdf5_path</em> parameters are not <em>None</em>,
 the gain map is loaded and later applied to the detector frame. Each pixel in the
 gain map must store the gain factor that will be applied to the corresponding pixel in
-the detector frame. Example: ‘cspad_gain_map.h5’</p></li>
+the detector frame. Example: cspad_gain_map.h5</p></li>
 <li><p><strong>gain_hdf5_path (str or None)</strong> the internal HDF5 path to the data block where the
 gain map data is located. If the <em>gain_filename</em> parameter is not <em>None</em>, this
 parameter must also be provided, and cannot be <em>None</em>. Otherwise it is ignored.
-Example: ‘/data/data’</p></li>
+Example: /data/data</p></li>
 <li><p><strong>mask_filename (str or None):</strong> the relative or absolute path to an HDF5 file
 containing a mask. If this and the <em>mask_hdf5_path</em> arguments are not <em>None</em>, the
 mask is loaded and later applied to the detector frame. The pixels in the mask must
 have a value of either 0, meaning that the corresponding pixel in the detector frame
 must be set to 0, or 1, meaning that the value of the corresponding pixel must be
-left alone. Example: ‘run18_mask.h5’</p></li>
+left alone. Example: run18_mask.h5</p></li>
 <li><p><strong>mask_hdf5_path (str or None):</strong> the internal HDF5 path to the data block where the
 mask data is located. If the <em>mask_filename</em> parameter is not <em>None</em>, this parameter
 must also be provided, and cannot be <em>None</em>. Otherwise it is ignored.
-Example: ‘/data/data’</p></li>
+Example: /data/data</p></li>
 </ul>
 </div>
 <div class="section" id="crystallography">
@@ -161,13 +161,13 @@ Example: ‘/data/data’</p></li>
 broadcasts data to external programs. If the value of this parameter is <em>None</em>, the
 ip address is auto-detected. This is usually fine. An ip address or a hostname needs
 usually to be manually specified only in exceptional cases (e.g: multiple network
-interfaces on the same machine). Example: ‘127.0.0.1’</p></li>
+interfaces on the same machine). Example: 127.0.0.1</p></li>
 <li><p><strong>broadcast_port (int or None):</strong> the port where the monitor broadcasts data to
 external programs. If the value of this parameter is <em>None</em>, port 12321 is used.
 Example: 12322</p></li>
 <li><p><strong>geometry_file (str):</strong> the absolute or relative path to a geometry file in
 <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a>
-format. Example: ‘pilatus.geom’.</p></li>
+format. Example: pilatus.geom</p></li>
 <li><p><strong>geometry_is_optimized (bool):</strong> whether the geometry is optimized. This information
 is broadcasted by the monitor and used by external programs. For example, the OM
 GUI for Crystallography uses this information to decide if the drawing of
@@ -177,9 +177,9 @@ rings are not reliable). Example: false.</p></li>
 monitor sends <em>full detector frames</em> to external programs (as opposed to reduced
 data). It applies only to frames labelled as hits. If the value of this parameter is
 <em>None</em>, no hit frames are ever sent. If the value is a number, it is the number of
-hit frames that <em>each worker</em> skips before sending the next frame to the master node
-to be broadcasted. If, for example, the value of this parameter is 5, each worker
-sends every 5th hit frame to the master for broadcasting. Example: 10</p></li>
+hit frames that <em>each worker</em> skips before sending the next frame to the collecting
+node to be broadcasted. If, for example, the value of this parameter is 5, each
+worker sends every 5th hit frame to the collecting node for broadcasting. Example: 10</p></li>
 <li><p><strong>max_num_peaks_for_hit (int):</strong> the maximum number of Bragg peaks that can be found
 in a detector frame for the frame to be labelled as a hit. Example: 500.</p></li>
 <li><p><strong>max_saturated_peaks (int):</strong> the maximum number of saturated Bragg peaks that can
@@ -193,9 +193,9 @@ the monitor sends <em>full detector frames</em> to external programs (as opposed
 data). It applies only to frames that have not been labelled as hits. If the value of
 this parameter is <em>None</em>, no non-hit frames are ever sent. If value is a number, it
 is the number of non-hit frames that <em>each worker</em> skips before sending the next
-frame to the master node to be broadcasted. If, for example, the value of this
-parameter is 100, each worker sends every 100th non-hit frame to the master for
-broadcasting. Example: 1000</p></li>
+frame to the collecting node to be broadcasted. If, for example, the value of this
+parameter is 100, each worker sends every 100th non-hit frame to the collecting node
+for broadcasting. Example: 1000</p></li>
 <li><p><strong>running_average_window_size (int):</strong> the size of the running window used by the
 monitor to compute the average hit and saturation rates. The rates are computed
 over the number of most recent events specified by this parameter. Example: 100.</p></li>
@@ -210,12 +210,13 @@ Example: 100</p></li>
 </div>
 <div class="section" id="data-accumulator">
 <h2>data_accumulator<a class="headerlink" href="#data-accumulator" title="Permalink to this headline">¶</a></h2>
-<p>This group contains a parameter that dictates how OM aggregates events in the master
-node before sending them to external programs. It refers to the <a class="reference internal" href="om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.DataAccumulator" title="om.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a> algorithm.</p>
+<p>This group contains a parameter that dictates how OM aggregates events in the
+collecting node before sending them to external programs. It refers to the
+<a class="reference internal" href="om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.DataAccumulator" title="om.algorithms.generic_algorithms.DataAccumulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataAccumulator</span></code></a> algorithm.</p>
 <ul class="simple">
 <li><p><strong>num_events_to_accumulate (int):</strong> number of events for which data is accumulated in
-the master node. The master node broadcasts the accumulated data in a single
-transmission, then starts accumulating data again.  Example: 20</p></li>
+the collecting node. The collecting node broadcasts the accumulated data in a single
+transmission, then starts accumulating data again. Example: 20</p></li>
 </ul>
 </div>
 <div class="section" id="data-retrieval-layer">
@@ -227,39 +228,33 @@ extracts data from a facility framework.</p>
 <p>Please exercise caution when changing the values of the parameters in this group: a
 wrong choice can severely interfere with data retrieval and extraction.</p>
 </div>
+<p>** Parameters for all DataEventHandlers **</p>
 <ul class="simple">
-<li><p><strong>fallback_beam_energy_in_eV (float)</strong> the beam energy <em>in eV</em>. OM uses this
-fallback value when the framework does not provide beam energy information.
-Example: 12000</p></li>
-<li><p><strong>fallback_detector_distance_in_mm (float)</strong> the detector distance <em>in mm</em>. OM
-uses this fallback value when the framework does not provide detector distance
-information. Example: 250</p></li>
-<li><p><strong>hidra_base_port (int):</strong> the base port used by the HiDRA framework to send data
-to the worker nodes. HiDRA will use this port and the following ones (one per node)
-to contact the workers. The machine where OM is running and the one where HiDRA is
-running should be able to reach each other at this port and the immediately following
-ones. Example: 52000</p></li>
-<li><p><strong>hidra_transfer_type (‘data’ or ‘metadata’):</strong> the transfer type used by the HiDRA
-framework for the current monitor. If this parameter has a value of <em>‘data’</em>, OM
-asks HiDRA to stream the detector data to the monitor. If instead the value is
-<em>‘metadata’</em>, OM asks HiDRA to just stream information on where in the filesystem
-the most recent data can be found. Usually it is automatically determined from the
-detector(s) model currently used by the monitor, but it can be overridden using
-this parameter. Example: ‘data’</p></li>
 <li><p><strong>num_of_most_recent_frames_in_event_to_process (int or None):</strong> number of frames for
 each event to process. It should be noted that these are the <em>most recent</em> events: if
 the value of this parameter is, for example, <em>100</em>, only the <em>last</em> 100 frames in the
 event are processed. If the value of this parameter is <em>None</em>, all frames in the
 event are processed. Example: 0.5</p></li>
+<li><p><strong>required_data (List[str]):</strong> the data that the current monitor should retrieve for
+each event. For each type of data, a corresponding Data Extraction Function must be
+defined in the Data Retrieval Layer. If this condition is met, the data will be
+retrieved by the monitor and made available for processing. Example:
+[detector_data, detector_distance, beam_energy, timestamp]</p></li>
+</ul>
+<p>** Parameters for the psana-based DataEventHandlers **</p>
+<ul class="simple">
+<li><p><strong>calibration</strong> (bool): whether to retrieved calibrated detector data or not. The
+calibration is automatically provided by psana. This toggle just switched it on or
+off. Example: True</p></li>
 <li><p><strong>psana_detector_name (str):</strong>  the name of the main x-ray detector from which the
-psana framework retrieves data. Example: ‘DscCsPad’</p></li>
+psana framework retrieves data. Example: DscCsPad</p></li>
 <li><p><strong>psana_detector_distance_epics_name (str):</strong> the name of the Epics device from which
 the psana framework retrieves detector distance information for the main x-ray
-detector. Example: ‘CXI:DS1:MMS:06.RBV’</p></li>
+detector. Example: CXI:DS1:MMS:06.RBV</p></li>
 <li><p><strong>psana_digitizers_name (str):</strong> the name of the main digitizer device from which
 the psana framework retrieves information.</p></li>
 <li><p><strong>psana_evr_source (str):</strong> the name of the EVR source from which the psana framework
-retrieves information.</p></li>
+retrieves information. Example: evr0</p></li>
 <li><p><strong>psana_opal_name (str):</strong> the name of the Opal camera from which the psana framework
 retrieves information.</p></li>
 <li><p><strong>psana_timetool_epics_name (str):</strong> the name of the Epics device from which
@@ -271,24 +266,28 @@ OM, is higher than this threshold, the event is not processed and a new event is
 retrieved. If the value of this parameter is <em>None</em>, all events are processed.
 Example: 0.5</p></li>
 </ul>
-</div>
-<div class="section" id="calibration">
-<h2>calibration<a class="headerlink" href="#calibration" title="Permalink to this headline">¶</a></h2>
-<p>This parameter group contains information used by OM for the calibration of
-detector frames, using one of the calibration algorithms defined
-<a class="reference internal" href="om.algorithms.calibration_algorithms.html"><span class="doc">om.algorithms.calibration_algorithms</span></a>
-module.</p>
+<p><strong>Parameters for the HiDRA- and filesystem-based DataEventHandlers</strong></p>
 <ul class="simple">
-<li><p><strong>calibration_algorithm (str or None):</strong> the name of the calibration algorithm that
-the current monitor should use to calibrate the detector frames. The value of this
-parameter  must match one of the names of the calibration algorithms (or be <em>None</em>).
-If the value is <em>None</em>, no calibration will be performed.
-Example: ‘Agipd1MCalibration’</p></li>
-<li><p><strong>calibration_filename (str or None):</strong> the absolute or relative path to an HDF5 file
-containing the calibration parameters. The exact format of this file depends on the
-calibration algorithm being used. Please consult the documentation for the specific
-algorithm. If no calibration is performed, this parameter is ignored. Example:
-‘agipd_calibration_params.h5’</p></li>
+<li><p><strong>calibration</strong> (bool): whether to retrieved calibrated detector data or not.
+Example: true</p></li>
+<li><p><strong>calibration_information</strong> (Union[str, List[str]]): files or list of files
+containing information needed for calibration, if needed. If the calibration is not
+performed or if the DataEventHandler needs no information to perform the calibration,
+this parameter is ignored. Example: gain_info.h5 or [dark_info.h5, gain_info.h5]</p></li>
+<li><p><strong>fallback_beam_energy_in_eV (float)</strong> the beam energy <em>in eV</em>. OM uses this
+fallback value when the framework does not provide beam energy information.
+Example: 12000</p></li>
+<li><p><strong>fallback_detector_distance_in_mm (float)</strong> the detector distance <em>in mm</em>. OM
+uses this fallback value when the framework does not provide detector distance
+information. Example: 250</p></li>
+</ul>
+<p><strong>Parameters for the HiDRA-based DataEventHandlers</strong></p>
+<ul class="simple">
+<li><p><strong>hidra_base_port (int):</strong> the base port used by the HiDRA framework to send data
+to the worker nodes. HiDRA will use this port and the following ones (one per node)
+to contact the workers. The machine where OM is running and the one where HiDRA is
+running should be able to reach each other at this port and the immediately following
+ones. Example: 52000</p></li>
 </ul>
 </div>
 <div class="section" id="om">
@@ -299,17 +298,18 @@ algorithm. If no calibration is performed, this parameter is ignored. Example:
 these parameters should be changed only by an expert !!</p>
 </div>
 <ul class="simple">
+<li><p><strong>data_event_handler (str)</strong>: the name of the class implementing the DataEventHandler
+for the current monitor. The class should be defined in the Data Retrieval Layer
+module file specified by the <em>data_retrieval_layer</em> parameter in this group.</p></li>
 <li><p><strong>data_retrieval_layer (str):</strong> the name of the python module with the implementation
-of the Data Retrieval Layer for the current monitor. Example: ‘lcls_spb’</p></li>
+of the Data Retrieval Layer for the current monitor. Example: lcls_spb</p></li>
+<li><p><strong>monitor (str)</strong>: the name of the class implementing the monitor. The class should
+be defined in the Processing Layer module file specified by the <em>processing_layer</em>
+parameter in this group.</p></li>
 <li><p><strong>parallelization_layer (str):</strong> the name of the python module with the
-implementation of the Parallelization Layer for the current monitor. Example: ‘mpi’</p></li>
+implementation of the Parallelization Layer for the current monitor. Example: mpi</p></li>
 <li><p><strong>processing_layer (str):</strong> the name of the python module with the implementation of
-the Processing Layer for the current monitor. Example: ‘crystallography’</p></li>
-<li><p><strong>required_data (List[str]):</strong> the data that the current monitor should retrieve for
-each event. For each type of data, a corresponding Data Extraction Function must be
-defined in the Data Retrieval Layer. If this condition is met, the data will be
-retrieved by the monitor and made available for processing. Example:
-[‘detector_data’, ‘detector_distance’, ‘beam_energy’,’timestamp’]</p></li>
+the Processing Layer for the current monitor. Example: crystallography</p></li>
 </ul>
 </div>
 <div class="section" id="peakfinder8-peak-detection">
@@ -330,6 +330,9 @@ Example: ‘bad_pixel_mask.h5’</p></li>
 where the bad pixel map is stored. If the value of the <em>bad_pixel_map_filename</em>
 parameter is not <em>None</em>, this parameter must also be provided, and cannot be <em>None</em>.
 Example: ‘/data/data’</p></li>
+<li><p><strong>detector_type</strong> (str): the type of detector on which the peak finding algorithm
+will be applied. The detector types currently supported are: ‘cspad’and ‘pilatus’.
+Example: cspad</p></li>
 <li><p><strong>max_num_peaks (int):</strong> the maximum number of peaks that will be retrieved from each
 detector data frame. Additional peaks will be ignored. Example: 2048</p></li>
 <li><p><strong>local_bg_radius (int):</strong> the radius (in pixels) for the estimation of the local

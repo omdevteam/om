@@ -112,12 +112,11 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>  <span class="c1"># type: ignore</span>
-<span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">parameters</span>
 
+<span class="kn">from</span> <span class="nn">om.data_retrieval_layer</span> <span class="kn">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">data_ret_layer_base</span>
 <span class="kn">from</span> <span class="nn">om.parallelization_layer</span> <span class="kn">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">par_layer_base</span>
 <span class="kn">from</span> <span class="nn">om.processing_layer</span> <span class="kn">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">process_layer_base</span>
-<span class="kn">from</span> <span class="nn">om.data_retrieval_layer</span> <span class="kn">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">data_ret_layer_base</span>
-
+<span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">parameters</span>
 
 <span class="c1"># Define some labels for internal MPI communication (just some syntactic sugar).</span>
 <span class="n">_NOMORE</span> <span class="o">=</span> <span class="mi">998</span>  <span class="c1"># type: int</span>
@@ -160,6 +159,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">=</span> <span class="s2">&quot;processing&quot;</span>
 
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">==</span> <span class="s2">&quot;collecting&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_num_nomore</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_num_collected_events</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>

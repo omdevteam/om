@@ -108,15 +108,17 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">future.utils</span> <span class="kn">import</span> <span class="n">with_metaclass</span>  <span class="c1"># type: ignore</span>
 
 <span class="kn">from</span> <span class="nn">om.data_retrieval_layer</span> <span class="kn">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">data_ret_layer_base</span>
 <span class="kn">from</span> <span class="nn">om.processing_layer</span> <span class="kn">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">process_layer_base</span>
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">parameters</span>
 
 
-<div class="viewcode-block" id="OmParallelizationEngine"><a class="viewcode-back" href="../../../om.parallelization_layer.base.html#om.parallelization_layer.base.OmParallelizationEngine">[docs]</a><span class="k">class</span> <span class="nc">OmParallelizationEngine</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="OmParallelizationEngine"><a class="viewcode-back" href="../../../om.parallelization_layer.base.html#om.parallelization_layer.base.OmParallelizationEngine">[docs]</a><span class="k">class</span> <span class="nc">OmParallelizationEngine</span><span class="p">(</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See documentation of the __init__ function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

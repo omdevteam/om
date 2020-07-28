@@ -161,25 +161,27 @@ Python.</p></li>
 <p>This section contains a collection of short essays on several OM-related topics.</p>
 <div class="section" id="the-om-workflow">
 <h3>The OM Workflow<a class="headerlink" href="#the-om-workflow" title="Permalink to this headline">¶</a></h3>
-<p>When an OM monitor starts, it first initializes all the worker and master nodes, on a
-single or multiple machines, according to the user’s wishes. The first process to
-start on the first machine usually takes the role of the master node, while all the
-others become workers nodes.</p>
+<p>When an OM monitor starts, it first initializes all the processing and collecting
+nodes, on a single or multiple machines, according to the user’s wishes. The first
+process to start on the first machine usually takes the role of the collecting node,
+while all the others become processing nodes.</p>
 <p>Each node parses the command line arguments, and recovers the source string. It then
 reads the configuration file. By default, OM looks for a file called <em>monitor.yaml</em>
 in the current working directory (or a for a different file specified by the user via a
 command-line argument).</p>
-<p>Every node imports the Python modules for the Parallelization, Processing and Data
-Retrieval layers, as specified in the configuration file, then executes the
-<em>__init__</em> function from the Processing Layer.</p>
+<p>Every node then imports the Python modules for the Parallelization, Processing and Data
+Retrieval layers, as specified in the configuration file. After that, the
+DataEventHandler and Monitor implementations requested in the configuration file are
+recovered from the DataRetrievalLayer, and Processing Layer respectively. The monitor
+is then started.</p>
 <p>Subsequently, each worker retrieves a <em>data event</em> from the data source. After
 retrieving and unpacking the event, it extracts all the data items specified in the
 <em>required_data</em> entry of the configuration file. It stores them in a Python dictionary
 and calls the <em>process_data</em> function defined in the Processing Layer, passing the
 dictionary as an argument.</p>
 <p>When the function finishes running, the monitor transmits the Python tuple returned by
-the <em>process_data</em> function to the master node. The worker then retrieves the next
-event. The master node executes the <em>collect_data</em> function defined in the
+the <em>process_data</em> function to the collecting node. The worker then retrieves the next
+event. The collecting node executes the <em>collect_data</em> function defined in the
 Processing Layer every time it receives data from a worker, passing the received data
 as an argument to the function.</p>
 <p>This process continues indefinitely, or until the data stream ends. In the latter case,
@@ -191,47 +193,44 @@ stops.</p>
 <h3>The Processing Layer<a class="headerlink" href="#the-processing-layer" title="Permalink to this headline">¶</a></h3>
 <p>Writing an OM monitoring program consists mainly in writing a Python module, the
 Processing Layer, that implements a data analysis pipeline. The Processing Layer module
-should contain, apart from some helper functions, just one class: the <em>OndaMonitor</em>
-class. The processing logic should be implemented in this class.</p>
-<p>The <em>OndaMonitor</em> class must have at least three methods. A developer just needs to
-write the implementation for these methods, but it never needs to call any of them.
-When the monitoring program runs, the methods are automatically called when
-appropriate.</p>
+should contain, apart from some helper functions, just one class. The processing logic
+should be implemented in this class. The class must be a subclass of the OmMonitor
+abstract class from the Processing Layer.</p>
+<p>The class must implement the three abstract methods of the base class. A developer
+just needs to write the implementation for these methods, but it never needs to call
+any of them. When the monitoring program runs, the methods are automatically called
+when appropriate.</p>
 <p>The methods are:</p>
 <ol class="arabic">
-<li><p><strong>__init__</strong>: the constructor. This function is executed on both the master and the
-worker nodes when the monitor starts. All the monitor initialization code should go
-in it. All the class properties needed by the monitor should also be initialized
-in this function. Additionally, code that loads external files (for example, a
-geometry file, or a file containing a bad pixel mask) should also be placed in this
-method: the external data should be read and stored in class properties so that
+<li><p>initialize_node. This function is executed on both the processing and collecting
+nodes when the monitor starts. All the monitor initialization code should go in it.
+All the class properties needed by the monitor should be initialized in this
+function. Additionally, code that loads external files (for example, a geometry
+file, or a file containing a bad pixel mask) should also be placed in this
+function: the external data should be read and stored in class properties so that
 the other class methods can access it.</p>
 <p>This method should usually be divided in three sections. The first should be a
-common section with code that should be run on both the master and the worker nodes.
-The second and the third, introduced respectively by the code statements
-“if role == master” and “if role == worker”, should contain initialization code
-specific to one type of node.</p>
+common section with code that should be run on both the processing and the
+collecting nodes. The second and the third, introduced respectively by the code
+statements ‘“if role == “processing”’ and ‘if role == “collecting”’, should contain
+initialization code specific to one type of node.</p>
 </li>
-<li><p><strong>process_data</strong>: this function is executed on each worker node when data is
-retrieved from the data source. The function should take only one argument: <em>data</em>.
-The retrieved data gets passed to this function via this argument, which is a
-dictionary whose keys are the data entries specified in the configuration file under
-the <em>required_data</em> entry, and whose values are the data items themselves.</p>
+<li><p><strong>process_data</strong>: this function is executed on each processing node when data is
+retrieved from the data source. The retrieved data gets passed to this function.</p>
 <p>All the logic related to processing a single data event should be implemented in
 this method. Ideally, data should be reduced in this function and the raw,
-unprocessed information should not be sent to the master node.</p>
+unprocessed information should not be sent to the collecting node.</p>
 <p>The function must return a tuple, where the first entry is a dictionary containing
-all the data that should be sent to the master node for aggregation, and the
+all the data that should be sent to the collecting node for aggregation, and the
 second entry is the rank of the worker node sending the data.</p>
 <p>The developer show not concern himself with how the data is transferred to the
-master node: the Parallelization Layer takes care of the transmission.</p>
+collecting node: the Parallelization Layer takes care of the transmission.</p>
 </li>
-<li><p><strong>collect_data</strong>: this function is executed on the master node every time
-data is received from a worker node. This function should implement all the
-processing logic that involves more than one event (for example: averaging over many
-events, accumulation of events, etc.).</p>
-<p>The function should take a single argument: <em>data</em>. The tuple received from the
-worker node is passed to the function via the <em>data</em> argument.</p>
+<li><p><strong>collect_data</strong>: this function is executed on the collecting node every time
+data is received from a worker node. The data received from the processing node is
+passed to this function, and the function should implement all the processing logic
+that involves more than one event (for example: averaging over many events,
+accumulation of events, etc.).</p>
 <p>The developer can choose what to do with the result of the aggregated data
 processing. There is no fixed path. Often the information is broadcasted to a
 graphical interface via a network socket, but this is not an obligatory path at all.
@@ -240,9 +239,8 @@ wants to stream data outside of the OM monitor, OM provides utilities for this
 in the <em>om.utils.zmq_monitor</em> module.</p>
 </li>
 </ol>
-<p>There is a fourth method that can be implemented by the developer. This is optional:
-if the developer does not implement this method in the Processing Layer, OM uses the
-default implementation from the Processing Layer:</p>
+<p>There is a fourth method that is already implemented in the base class, but can be
+overridden in the class that implements the monitor:</p>
 <ol class="arabic" start="4">
 <li><p><strong>end_processing</strong>: this function is executed when the monitoring program finishes
 processing the input data, if the input data stream has an end. When the monitor
@@ -258,20 +256,20 @@ code that closes files, brings down network sockets, etc.</p>
 <p><strong>Notes:</strong></p>
 <ul class="simple">
 <li><p>Attention should be paid to where the initialization code is placed. The developer
-should carefully place the  initialization code in the relevant section (master,
-worker or common) of the <em>__init__</em> function. Variables that are initialized, or
-operations that are carried out, on node where they are not needed waste resources,
-especially memory, and might result in sub-optimal code.</p></li>
+should carefully place the  initialization code in the relevant section (Processing
+node, collecting node or both) of the <em>initialize_node</em> function. Variables that are
+initialized, or operations that are carried out, on a node where they are not needed
+waste resources, especially memory, and might result in sub-optimal code.</p></li>
 <li><p>The data being processed should ideally be reduced in the <em>process_data</em> function on
-each worker node. Transferring large amount of data between the nodes is not
+each processing node. Transferring large amount of data between the nodes is not
 efficient and should be avoided whenever possible. For example, when crystallography
 data is processed and Bragg peaks are extracted from the detector frame data, only
-the list of peaks should be sent to the master node, while the frame data should be
-dropped. Obviously, this strategy cannot be applied to all cases (a frame viewer,
+the list of peaks should be sent to the collecting node, while the frame data should
+be dropped. Obviously, this strategy cannot be applied to all cases (a frame viewer,
 for example, would need the full frame data), but developers should strive to perform
 as much data reduction as possible on the worker nodes.</p></li>
-<li><p>The <em>OndaMonitor</em> class should be carefully designed and code should be optimized.
-For example:</p>
+<li><p>The zmq_monitor class should be carefully designed and code should be optimized. For
+example:</p>
 <ul>
 <li><p>Only variables that need to be accessed from more than one method should become
 class properties. All others can remain simple local variables. Creating class
