@@ -23,7 +23,6 @@ framework.
 """
 from __future__ import absolute_import, division, print_function
 
-from abc import ABCMeta
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
@@ -33,8 +32,6 @@ import psana  # type: ignore
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.data_retrieval_layer import functions_cspad, functions_psana
 from om.utils import exceptions, parameters
-
-ABC = ABCMeta("ABC", (object,), {"__slots__": ()})
 
 
 def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
