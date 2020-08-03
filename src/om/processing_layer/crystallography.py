@@ -258,6 +258,13 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 required=True,
             )  # type: bool
 
+            # Theoretically, the pixel size could be different for every module of the
+            # detector. The pixel size of the first module is taken as the pixel size
+            # of the whole detector.
+            self._pixel_size = geometry["panels"][tuple(geometry["panels"].keys())[0]][
+                "res"
+            ]
+
             self._running_average_window_size = self._monitor_params.get_param(
                 group="crystallography",
                 parameter="running_average_window_size",
@@ -364,7 +371,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         processed_data["frame_is_hit"] = frame_is_hit
         processed_data["detector_distance"] = data["detector_distance"]
         processed_data["beam_energy"] = data["beam_energy"]
-        processed_data["native_data_shape"] = data["detector_data"].shape
+        processed_data["data_shape"] = data["detector_data"].shape
         if frame_is_hit:
             processed_data["peak_list"] = peak_list
             if self._hit_frame_sending_interval is not None:
@@ -421,19 +428,24 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             received_data["peak_list"]["ss"],
             received_data["peak_list"]["intensity"],
         ):
-            peak_index_in_slab = int(round(peak_ss)) * received_data[
-                "native_data_shape"
-            ][1] + int(round(peak_fs))
+            peak_index_in_slab = int(round(peak_ss)) * received_data["data_shape"][
+                1
+            ] + int(round(peak_fs))
             self._virt_powd_plot_img[
                 self._visual_pixelmap_y[peak_index_in_slab],
                 self._visual_pixelmap_x[peak_index_in_slab],
             ] += peak_value
 
         self._data_broadcast_socket.send_data(
-            tag=u"view:",
+            tag=u"view:omdata",
             message={
-                "Events": list(range(-4999, 1)),
-                "Hit Rate History": self._avg_hit_rate,
+                "geometry_is_optimized": self._geometry_is_optimized,
+                "timestamp": received_data["timestamp"],
+                "hit_rate_history": self._avg_hit_rate,
+                "virtual_powder_plot": self._virt_powd_plot_img,
+                "beam_energy": received_data["beam_energy"],
+                "detector_distance": received_data["detector_distance"],
+                "pixel_size": self._pixel_size,
             },
         )
 

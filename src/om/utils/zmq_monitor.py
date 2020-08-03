@@ -27,9 +27,6 @@ import socket
 import sys
 from typing import Any, Dict, Union
 
-import msgpack  # type: ignore
-import msgpack_numpy  # type: ignore
-import numpy  # type: ignore
 import zmq  # type: ignore
 
 
@@ -103,39 +100,5 @@ class ZmqDataBroadcaster(object):
                 values are the information elements to be sent (MessagePack-compatible
                 python objects).
         """
-        self._sock.send(tag.encode(), zmq.SNDMORE)
-        msgpack_message = msgpack.packb(message)  # type: bytes
-        self._sock.send(msgpack_message)
-
-
-def _patched_encode(obj, chain=None):  # type: ignore
-    # This function is the 'encode' function from msgpack-numpy, patched to use the
-    # 'tobytes' method as opposed to the 'data' one. This is needed for python 2
-    # compatibility.
-    if isinstance(obj, numpy.ndarray):
-        # If the dtype is structured, store the interface description; otherwise,
-        # store the corresponding array protocol type string:
-        if obj.dtype.kind == "V":
-            kind = b"V"
-            descr = obj.dtype.descr
-        else:
-            kind = b""
-            descr = obj.dtype.str
-        return {
-            b"nd": True,
-            b"type": descr,
-            b"kind": kind,
-            b"shape": obj.shape,
-            b"data": obj.tobytes(),
-        }
-    elif isinstance(obj, (numpy.bool_, numpy.number)):
-        return {b"nd": False, b"type": obj.dtype.str, b"data": obj.tobytes()}
-    elif isinstance(obj, complex):
-        return {b"complex": True, b"data": obj.__repr__()}
-    else:
-        return obj if chain is None else chain(obj)
-
-
-# Monkey-patches the encode function in msgpack_numpy for python 2 compatibility.
-msgpack_numpy.encode = _patched_encode
-msgpack_numpy.patch()
+        self._sock.send_string(tag, zmq.SNDMORE)
+        self._sock.send_pyobj(message)
