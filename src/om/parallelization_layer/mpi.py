@@ -74,7 +74,6 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
         else:
             self._role = "processing"
 
-        print(self._rank, self._role)
         if self._role == "collecting":
             self._num_nomore = 0  # type: int
             self._num_collected_events = 0  # type: int
