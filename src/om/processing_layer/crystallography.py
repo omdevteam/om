@@ -276,8 +276,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 maxlen=self._running_average_window_size,
             )  # type: Deque[float]
             self._avg_hit_rate = 0  # type: int
-            self._avg_sat_rate = 0  # type: int
-            self._timestamp_history = collections.deque(
+            self._hit_rate_timestamp_history = collections.deque(
                 5000 * [0.0], maxlen=5000
             )  # type: Deque[float]
             self._hit_rate_history = collections.deque(
@@ -420,8 +419,8 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         avg_hit_rate = (
             sum(self._hit_rate_running_window) / self._running_average_window_size
         )  # type: float
-        self._hit_rate_history.append(received_data["timestamp"])
-        self._hit_rate_history.append(avg_hit_rate)
+        self._hit_rate_timestamp_history.append(received_data["timestamp"])
+        self._hit_rate_history.append(avg_hit_rate * 100.0)
 
         for peak_fs, peak_ss, peak_value in zip(
             received_data["peak_list"]["fs"],
@@ -441,7 +440,8 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             message={
                 "geometry_is_optimized": self._geometry_is_optimized,
                 "timestamp": received_data["timestamp"],
-                "hit_rate_history": self._avg_hit_rate,
+                "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
+                "hit_rate_history": self._hit_rate_history,
                 "virtual_powder_plot": self._virt_powd_plot_img,
                 "beam_energy": received_data["beam_energy"],
                 "detector_distance": received_data["detector_distance"],
