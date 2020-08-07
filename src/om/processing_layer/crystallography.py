@@ -25,7 +25,7 @@ from __future__ import absolute_import, division, print_function
 import collections
 import sys
 import time
-from typing import Any, Deque, Dict, Tuple, Union
+from typing import Any, Deque, Dict, List, Tuple, Union
 
 import numpy  # type: ignore
 
@@ -422,18 +422,22 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         self._hit_rate_timestamp_history.append(received_data["timestamp"])
         self._hit_rate_history.append(avg_hit_rate * 100.0)
 
+        peak_list_x_in_frame: List[float] = []
+        peak_list_y_in_frame: List[float] = []
+
         for peak_fs, peak_ss, peak_value in zip(
             received_data["peak_list"]["fs"],
             received_data["peak_list"]["ss"],
             received_data["peak_list"]["intensity"],
         ):
-            peak_index_in_slab = int(round(peak_ss)) * received_data["data_shape"][
+            peak_index_in_slab: int = int(round(peak_ss)) * received_data["data_shape"][
                 1
             ] + int(round(peak_fs))
-            self._virt_powd_plot_img[
-                self._visual_pixelmap_y[peak_index_in_slab],
-                self._visual_pixelmap_x[peak_index_in_slab],
-            ] += peak_value
+            y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
+            x_in_frame: float = self._visual_pixelmap_x[peak_index_in_slab]
+            peak_list_x_in_frame.append(y_in_frame)
+            peak_list_y_in_frame.append(x_in_frame)
+            self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
         self._data_broadcast_socket.send_data(
             tag=u"view:omdata",
@@ -454,8 +458,19 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             # node, it must be broadcasted to visualization programs. The frame is
             # wrapped into a list because the receiving programs usually expect lists
             # of aggregated events as opposed to single events.
+
+            frame_data_img: numpy.ndarray = numpy.zeros_like(self._virt_powd_plot_img)
+            frame_data_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
+                received_data["detector_data"].ravel().astype(frame_data_img.dtype)
+            )
+
             self._data_broadcast_socket.send_data(
-                tag=u"omframedata", message={"frame": received_data}
+                tag=u"view:omframedata",
+                message={
+                    "frame_data": frame_data_img,
+                    "peak_list_x_in_frame": peak_list_x_in_frame,
+                    "peak_list_y_in_frame": peak_list_y_in_frame,
+                },
             )
 
         if self._num_events % self._speed_report_interval == 0:
