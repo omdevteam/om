@@ -440,7 +440,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
         self._data_broadcast_socket.send_data(
-            tag=u"view:omdata",
+            tag="view:omdata",
             message={
                 "geometry_is_optimized": self._geometry_is_optimized,
                 "timestamp": received_data["timestamp"],
