@@ -22,7 +22,6 @@ This module contains an MPI-based parallelization engine for OM.
 """
 from __future__ import absolute_import, division, print_function
 
-import json
 import sys
 from typing import Any, Dict, Tuple, Union
 
@@ -39,14 +38,13 @@ _DIETAG = 999  # type: int
 _DEADTAG = 1000  # type: int
 
 
-class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
+class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
     """
     See documentation of the __init__ function.
     """
 
     def __init__(
         self,
-        source,  # type: str
         data_event_handler,  # type: data_ret_layer_base.OmDataEventHandler
         monitor,  # type: process_layer_base.OmMonitor
         monitor_parameters,  # type: parameters.MonitorParams
@@ -60,8 +58,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
         In the MPI implementation of the parallelization engine, the nodes communicate
         with each other using the MPI protocol.
         """
-        super(MpiParallelizationEngine, self).__init__(
-            source=source,
+        super(MpiProcessingCollectingEngine, self).__init__(
             data_event_handler=data_event_handler,
             monitor=monitor,
             monitor_parameters=monitor_parameters,
@@ -69,52 +66,43 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
 
         self._mpi_size = MPI.COMM_WORLD.Get_size()  # type: int
         self._rank = MPI.COMM_WORLD.Get_rank()  # type: int
-        if self._rank == 0:
-            self._role = "collecting"  # type: str
-        else:
-            self._role = "processing"
 
-        if self._role == "collecting":
+        if self._rank == 0:
+            self._data_event_handler.initialize_event_handling_on_collecting_node(
+                self._rank, self._mpi_size
+            )
             self._num_nomore = 0  # type: int
             self._num_collected_events = 0  # type: int
+        else:
+            self._data_event_handler.initialize_event_handling_on_processing_node(
+                self._rank, self._mpi_size
+            )
 
-    def get_role(self):
-        # type: () -> str
-        """
-        Retrieves the role of the current node.
+    # def get_rank(self):
+    #     # type: () -> int
+    #     """
+    #     Retrieves the rank of the current node in the MPI parallelization engine.
 
-        See documentation of the function in the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_role`
-        For the MPI-based parallelization engine, the node with MPI rank 0 is the
-        collecting node, while the other nodes are processing nodes.
-        """
-        return self._role
+    #     See documentation of the function in the base class:
+    #     :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_rank`
 
-    def get_rank(self):
-        # type: () -> int
-        """
-        Retrieves the rank of the current node in the MPI parallelization engine.
+    #     For the MPI-based parallelization engine, the node rank corresponds to the MPI
+    #     rank.
+    #     """
+    #     return self._rank
 
-        See documentation of the function in the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_rank`
+    # def get_node_pool_size(self):
+    #     # type: () -> int
+    #     """
+    #     Retrieves the size of the OM node pool in the MPI parallelization engine.
 
-        For the MPI-based parallelization engine, the node rank corresponds to the MPI
-        rank.
-        """
-        return self._rank
+    #     See documentation of the function in the base class:
+    #     :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_node_pool_size`
 
-    def get_node_pool_size(self):
-        # type: () -> int
-        """
-        Retrieves the size of the OM node pool in the MPI parallelization engine.
-
-        See documentation of the function in the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_node_pool_size`
-
-        For the MPI-based parallelization engine, the node pool size is equivalent to
-        the MPI pool size.
-        """
-        return self._mpi_size
+    #     For the MPI-based parallelization engine, the node pool size is equivalent to
+    #     the MPI pool size.
+    #     """
+    #     return self._mpi_size
 
     def start(self):  # noqa: C901
         # type: () -> None
@@ -124,15 +112,68 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
         See documentation of the function in the base class:
         :func:`~om.parallelization_layer.base.OmParallelizationEngine.start` .
         """
-        if self._role == "processing":
-            self._monitor.initialize_node(self._role, self._rank)
+        if self._rank == 0:
+            print("Starting OM with the following parameters:")
+            # print(
+            #     json.dumps(
+            #         self._monitor_params.get_all_parameters(),
+            #         indent=4,
+            #         sort_keys=True
+            #     )
+            # )
+            print(
+                "You are using an OM real-time monitor. Please cite: "
+                "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
+            )
+            self._monitor.initialize_collecting_node(self._rank, self._mpi_size)
+
+            while True:
+                try:
+                    received_data = MPI.COMM_WORLD.recv(
+                        source=MPI.ANY_SOURCE, tag=0
+                    )  # type: Tuple[Dict[str, Any], int]
+                    if "end" in received_data[0].keys():
+                        # If the received message announces that a processing node has
+                        # finished processing data, keeps track of how many processing
+                        # nodes have already finished.
+                        print("Finalizing {0}".format(received_data[1]))
+                        self._num_nomore += 1
+                        # When all processing nodes have finished, calls the
+                        # 'end_processing' function then shuts down.
+                        if self._num_nomore == self._mpi_size - 1:
+                            print("All processing nodes have run out of events.")
+                            print("Shutting down.")
+                            sys.stdout.flush()
+                            print(
+                                "Processing finished. OM has processed {0} events "
+                                "in total.".format(self._num_collected_events)
+                            )
+                            self._monitor.end_processing_on_collecting_node(
+                                self._rank, self._mpi_size
+                            )
+                            MPI.Finalize()
+                            exit(0)
+                        else:
+                            continue
+                    self._monitor.collect_data(
+                        self._rank, self._mpi_size, received_data
+                    )
+                    self._num_collected_events += 1
+                except KeyboardInterrupt as exc:
+                    print("Received keyboard sigterm...")
+                    print(str(exc))
+                    print("shutting down MPI.")
+                    self.shutdown()
+                    print("---> execution finished.")
+                    sys.stdout.flush()
+                    sys.exit(0)
+        else:
+            self._monitor.initialize_processing_node(self._rank, self._mpi_size)
 
             # Flag used to make sure that the MPI messages have been processed.
             req = None
             events = self._data_event_handler.event_generator(
-                source=self._source,
-                node_rank=self._rank,
-                node_pool_size=self._mpi_size,
+                node_rank=self._rank, node_pool_size=self._mpi_size,
             )
 
             for event in events:
@@ -165,7 +206,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                         print("Skipping event...")
                         continue
                     processed_data = self._monitor.process_data(
-                        self._role, self._rank, data
+                        self._rank, self._mpi_size, data
                     )  # type: Tuple[Dict[str, Any], int]
                     if req:
                         req.Wait()
@@ -181,64 +222,9 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
             req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=0)
             if req:
                 req.Wait()
-            self._monitor.end_processing(self._role, self._rank)
+            self._monitor.end_processing(self._rank, self._mpi_size)
             MPI.Finalize()
             exit(0)
-
-        if self._role == "collecting":
-            print("Starting OM with the following parameters:")
-            # print(
-            #     json.dumps(
-            #         self._monitor_params.get_all_parameters(),
-            #         indent=4,
-            #         sort_keys=True
-            #     )
-            # )
-            print(
-                "You are using an OM real-time monitor. Please cite: "
-                "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
-            )
-            self._monitor.initialize_node(self._role, self._rank)
-
-            self._initialized_source = self._data_event_handler.initialize_event_source(
-                source=self._source, node_pool_size=self._mpi_size,
-            )
-            while True:
-                try:
-                    received_data = MPI.COMM_WORLD.recv(
-                        source=MPI.ANY_SOURCE, tag=0
-                    )  # type: Tuple[Dict[str, Any], int]
-                    if "end" in received_data[0].keys():
-                        # If the received message announces that a processing node has
-                        # finished processing data, keeps track of how many processing
-                        # nodes have already finished.
-                        print("Finalizing {0}".format(received_data[1]))
-                        self._num_nomore += 1
-                        # When all processing nodes have finished, calls the
-                        # 'end_processing' function then shuts down.
-                        if self._num_nomore == self._mpi_size - 1:
-                            print("All processing nodes have run out of events.")
-                            print("Shutting down.")
-                            sys.stdout.flush()
-                            print(
-                                "Processing finished. OM has processed {0} events "
-                                "in total.".format(self._num_collected_events)
-                            )
-                            self._monitor.end_processing(self._role, self._rank)
-                            MPI.Finalize()
-                            exit(0)
-                        else:
-                            continue
-                    self._monitor.collect_data(self._role, self._rank, received_data)
-                    self._num_collected_events += 1
-                except KeyboardInterrupt as exc:
-                    print("Received keyboard sigterm...")
-                    print(str(exc))
-                    print("shutting down MPI.")
-                    self.shutdown()
-                    print("---> execution finished.")
-                    sys.stdout.flush()
-                    sys.exit(0)
 
     def shutdown(self, msg="Reason not provided."):
         # type: (Union[str, None]) -> None
@@ -250,11 +236,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
         """
         print("Shutting down:", msg)
         sys.stdout.flush()
-        if self._role == "processing":
-            _ = MPI.COMM_WORLD.send(dest=0, tag=_DEADTAG)
-            MPI.Finalize()
-            exit(0)
-        if self._role == "collecting":
+        if self._rank == 0:
             # Tells all the processing nodes that they need to shut down, then waits
             # for confirmation. During the whole process, keeps receiving normal MPI
             # messages from the nodes (MPI cannot shut down if there are unreceived
@@ -278,3 +260,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                 # In case of error, crashes hard!
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
+        else:
+            _ = MPI.COMM_WORLD.send(dest=0, tag=_DEADTAG)
+            MPI.Finalize()
+            exit(0)

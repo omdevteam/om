@@ -26,11 +26,11 @@ from __future__ import absolute_import, division, print_function
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
+import psana  # type: ignore
 from future.utils import iteritems, raise_from  # type: ignore
 
-import psana  # type: ignore
-from om.data_retrieval_layer import base as data_ret_layer_base
-from om.data_retrieval_layer import functions_cspad, functions_psana
+from om.data_retrieval_layer import base as drl_base
+from om.data_retrieval_layer import functions_cspad, functions_jungfrau, functions_psana
 from om.utils import exceptions, parameters
 
 
@@ -53,15 +53,18 @@ def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
             yield run.event(evt)
 
 
-class LclsBaseDataEventHandler(data_ret_layer_base.OmDataEventHandler):
+class PsanaDataEventHandler(drl_base.OmDataEventHandler):
     """
     See documentation of the __init__ function.
     """
 
     def __init__(
-        self, monitor_parameters,
+        self,
+        monitor_parameters,  # type: parameters.MonitorParams
+        source,  # type: str
+        data_extraction_funcs,  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
     ):
-        # type: (parameters.MonitorParams) -> None
+        # type: (...) -> None
         """
         Data event handler for events recovered psana (LCLS).
 
@@ -69,53 +72,105 @@ class LclsBaseDataEventHandler(data_ret_layer_base.OmDataEventHandler):
         :func:`~om.data_retrieval_layer.base.DataEventHandler.__init.py__` .
 
         This class handles detector events recovered from psana at the LCLS facility.
-
         """
-        super(LclsBaseDataEventHandler, self).__init__(
+        super(PsanaDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters,
+            source=source,
+            data_extraction_funcs=data_extraction_funcs,
+            additional_info={
+                "psana_detector_init_funcs": {
+                    "timestamp_init": functions_psana.timestamp_init,
+                    "detector_data_init": functions_psana.detector_data_init,
+                    "beam_energy_init": functions_psana.beam_energy_init,
+                    "detector_distance_init": functions_psana.detector_distance_init,
+                    "timetool_data_init": functions_psana.timetool_data_init,
+                    "digitizer_data_init": functions_psana.digitizer_data_init,
+                    "opal_data_init": functions_psana.opal_data_init,
+                    "optical_laser_active_init": (
+                        functions_psana.optical_laser_active_init
+                    ),
+                    "xrays_active_init": functions_psana.xrays_active_init,
+                }
+            },
         )
+        # self._data_extraction_funcs = {
+        #     "timestamp": functions_psana.timestamp,
+        #     "beam_energy": functions_psana.beam_energy,
+        #     "detector_distance": functions_psana.detector_distance,
+        #     "timetool_data": functions_psana.timetool_data,
+        #     "digitizer_data": functions_psana.digitizer_data,
+        #     "opal_data": functions_psana.opal_data,
+        #     "optical_laser_active": functions_psana.optical_laser_active,
+        #     "xrays_active": functions_psana.xrays_active,
+        # }  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
 
-        self._psana_detector_init_funcs = {
-            "timestamp_init": functions_psana.timestamp_init,
-            "detector_data_init": functions_psana.detector_data_init,
-            "beam_energy_init": functions_psana.beam_energy_init,
-            "detector_distance_init": functions_psana.detector_distance_init,
-            "timetool_data_init": functions_psana.timetool_data_init,
-            "digitizer_data_init": functions_psana.digitizer_data_init,
-            "opal_data_init": functions_psana.opal_data_init,
-            "optical_laser_active_init": functions_psana.optical_laser_active_init,
-            "xrays_active_init": functions_psana.xrays_active_init,
-        }  # type: Dict[str, Callable[[parameters.MonitorParams], Any]]
-
-        self._data_extraction_funcs = {
-            "timestamp": functions_psana.timestamp,
-            "beam_energy": functions_psana.beam_energy,
-            "detector_distance": functions_psana.detector_distance,
-            "timetool_data": functions_psana.timetool_data,
-            "digitizer_data": functions_psana.digitizer_data,
-            "opal_data": functions_psana.opal_data,
-            "optical_laser_active": functions_psana.optical_laser_active,
-            "xrays_active": functions_psana.xrays_active,
-        }  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
-
-    def initialize_event_source(self, source, node_pool_size):
-        # type: (str, int) -> Any
+    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
         """
-        Initializes the psana event source at the LCLS facility.
+        Initializes event handling on the collecting node with psana.
 
         See documentation of the function in the base class:
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source` .
+initialize_event_source`.
 
         There is no need to initialize the psana event source, so this function
         actually does nothing.
         """
-        del source
+        del node_rank
         del node_pool_size
+
+    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
+        """
+        Initializes event handling on the processing nodes with psana.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+        """
+        required_data = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )  # type: List[str]
+
+        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
+            self._data_extraction_funcs, required_data
+        )
+
+        self._required_psana_detector_init_funcs = (
+            {}
+        )  # type: Dict[str, Callable[[parameters.MonitorParams],Any]]
+
+        for func_name in required_data:
+            try:
+                self._required_psana_detector_init_funcs[
+                    "{0}_init".format(func_name)
+                ] = self._additional_info["psana_detector_init_funcs"][
+                    "{0}_init".format(func_name)
+                ]
+            except KeyError as exc:
+                raise_from(
+                    exc=exceptions.OmMissingDataExtractionFunctionError(
+                        "Psana Detector initialization function {0}_init not "
+                        "defined".format(func_name)
+                    ),
+                    cause=exc,
+                )
+
+        self._event_info_to_append = {}  # type: Dict[str, Any]
+
+        calibration = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="calibration",
+            parameter_type=bool,
+            required=True,
+        )
+        self._event_info_to_append["calibration"] = calibration
 
     def event_generator(
         self,
-        source,  # type: str
         node_rank,  # type: int
         node_pool_size,  # type: int
     ):
@@ -132,12 +187,12 @@ initialize_event_source` .
                 HiDRA fails.
         """
         # Detects if data is being read from an online or offline source.
-        if "shmem" in source:
+        if "shmem" in self._source:
             offline = False  # type: bool
         else:
             offline = True
-        if offline and not source[-4:] == ":idx":
-            source += ":idx"
+        if offline and not self._source[-4:] == ":idx":
+            self._source += ":idx"
 
         # If the psana calibration directory is provided in the configuration file, it
         # is added as an option to psana.
@@ -147,30 +202,20 @@ initialize_event_source` .
             parameter_type=str,
         )  # type: str
         if psana_calib_dir is not None:
-            psana.setOption(
-                "psana.calib-dir".encode("ascii"), psana_calib_dir.encode("ascii")
-            )
+            psana.setOption("psana.calib-dir", psana_calib_dir)
         else:
             print("OM Warning: Calibration directory not provided or not found.")
-        psana_source = psana.DataSource(source.encode("ascii"))
+        psana_source = psana.DataSource(self._source.encode("ascii"))
 
         data_event = {}  # type: Dict[str, Dict[str, Any]]
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
-        data_event["info"] = {}
-
-        calibration = self._monitor_params.get_param(
-            group="data_retrieval_layer",
-            parameter="calibration",
-            parameter_type=bool,
-            required=True,
-        )
-        data_event["info"]["calibration"] = calibration
+        data_event["additional_info"] = {}
 
         # Calls all the required psana detector interface initialization functions and
         # stores the returned objects in a dictionary.
-        data_event["info"]["psana_detector_interface"] = {}
+        data_event["additional_info"]["psana_detector_interface"] = {}
         for f_name, func in iteritems(self._required_psana_detector_init_funcs):
-            data_event["info"]["psana_detector_interface"][
+            data_event["additional_info"]["psana_detector_interface"][
                 f_name.split("_init")[0]
             ] = func(self._monitor_params)
 
@@ -189,7 +234,7 @@ initialize_event_source` .
             # Recovers the timestamp from the psana event (as seconds from the Epoch)
             # and stores it in the event dictionary to be retrieved later.
             timestamp_epoch_format = psana_event.get(psana.EventId).time()
-            data_event["info"]["timestamp"] = numpy.float64(
+            data_event["additional_info"]["timestamp"] = numpy.float64(
                 str(timestamp_epoch_format[0]) + "." + str(timestamp_epoch_format[1])
             )
 
@@ -244,15 +289,13 @@ get_num_frames_in_event` .
         return 1
 
 
-class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
+class CxiLclsCspadDataEventHandler(PsanaDataEventHandler):
     """
     See documentation of the __init__ function.
     """
 
-    def __init__(
-        self, monitor_parameters,
-    ):
-        # type: (parameters.MonitorParams) -> None
+    def __init__(self, monitor_parameters, source):
+        # type: (parameters.MonitorParams, str) -> None
         """
         Data event handler for events recovered at CXI (LCLS) before 2020.
 
@@ -264,48 +307,48 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
         """
         super(CxiLclsCspadDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters,
+            source=source,
+            data_extraction_funcs={
+                "timestamp": functions_psana.timestamp,
+                "detector_data": functions_cspad.detector_data,
+                "beam_energy": functions_psana.beam_energy,
+                "detector_distance": functions_psana.detector_distance,
+                "timetool_data": functions_psana.timetool_data,
+                "digitizer_data": functions_psana.digitizer_data,
+                "opal_data": functions_psana.opal_data,
+                "optical_laser_active": functions_psana.optical_laser_active,
+                "xrays_active": functions_psana.xrays_active,
+            },
         )
 
-        self._data_extraction_funcs.update(
-            {"detector_data": functions_cspad.detector_data}
+
+class CxiLclsDataEventHandler(PsanaDataEventHandler):
+    """
+    See documentation of the __init__ function.
+    """
+
+    def __init__(self, monitor_parameters, source):
+        # type: (parameters.MonitorParams, str) -> None
+        """
+        Data event handler for events recovered at CXI (LCLS).
+
+        See documentation of the function in the base class:
+        :func:`~PsanaDataEventHandler.__init.py__` .
+
+        This class handles detector events recovered from psana at the LCLS facility.
+        """
+        super(CxiLclsDataEventHandler, self).__init__(
+            monitor_parameters=monitor_parameters,
+            source=source,
+            data_extraction_funcs={
+                "timestamp": functions_psana.timestamp,
+                "detector_data": functions_jungfrau.detector_data,
+                "beam_energy": functions_psana.beam_energy,
+                "detector_distance": functions_psana.detector_distance,
+                "timetool_data": functions_psana.timetool_data,
+                "digitizer_data": functions_psana.digitizer_data,
+                "opal_data": functions_psana.opal_data,
+                "optical_laser_active": functions_psana.optical_laser_active,
+                "xrays_active": functions_psana.xrays_active,
+            },
         )
-
-        self._required_data = self._monitor_params.get_param(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )  # type: List[str]
-
-        self._required_psana_detector_init_funcs = (
-            {}
-        )  # type: Dict[str, Callable[[parameters.MonitorParams],Any]]
-
-        for func_name in self._required_data:
-            try:
-                self._required_psana_detector_init_funcs[
-                    "{0}_init".format(func_name)
-                ] = self._psana_detector_init_funcs["{0}_init".format(func_name)]
-            except KeyError as exc:
-                raise_from(
-                    exc=exceptions.OmMissingDataExtractionFunctionError(
-                        "Psana Detector initialization function {0}_init not "
-                        "defined".format(func_name)
-                    ),
-                    cause=exc,
-                )
-        self._required_data_extraction_funcs = (
-            {}
-        )  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
-        for func_name in self._required_data:
-            try:
-                self._required_data_extraction_funcs[
-                    func_name
-                ] = self._data_extraction_funcs[func_name]
-            except AttributeError as exc:
-                raise_from(
-                    exc=exceptions.OmMissingDataExtractionFunctionError(
-                        "Data extraction function {0} not defined".format(func_name)
-                    ),
-                    cause=exc,
-                )

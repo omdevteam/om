@@ -30,20 +30,18 @@ import fabio  # type: ignore
 import numpy  # type: ignore
 from future.utils import raise_from  # type: ignore
 
-from om.data_retrieval_layer import base as data_ret_layer_base
+from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_pilatus
-from om.utils import exceptions, parameters
+from om.utils import parameters
 
 
-class PilatusFilesDataEventHandler(data_ret_layer_base.OmDataEventHandler):
+class PilatusFilesDataEventHandler(drl_base.OmDataEventHandler):
     """
     See documentation of the __init__ function.
     """
 
-    def __init__(
-        self, monitor_parameters,
-    ):
-        # type: (parameters.MonitorParams) -> None
+    def __init__(self, monitor_parameters, source):
+        # type: (parameters.MonitorParams, str) -> None
         """
         Data event handler for Pilatus files read from the filesystem.
 
@@ -52,17 +50,41 @@ class PilatusFilesDataEventHandler(data_ret_layer_base.OmDataEventHandler):
         """
         super(PilatusFilesDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters,
+            source=source,
+            data_extraction_funcs={
+                "timestamp": functions_pilatus.timestamp,
+                "beam_energy": functions_pilatus.beam_energy,
+                "detector_distance": functions_pilatus.detector_distance,
+                "detector_data": functions_pilatus.detector_data,
+                "event_id": functions_pilatus.event_id,
+                "frame_id": functions_pilatus.frame_id,
+            },
         )
 
-        self._data_extraction_funcs = {
-            "timestamp": functions_pilatus.timestamp,
-            "beam_energy": functions_pilatus.beam_energy,
-            "detector_distance": functions_pilatus.detector_distance,
-            "detector_data": functions_pilatus.detector_data,
-            "event_id": functions_pilatus.event_id,
-            "frame_id": functions_pilatus.frame_id,
-        }  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
+        """
+        Initializes event handling on the collecting node for Pilatus files.
 
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+
+        There is no need to initialize the filesystem source, so this function does
+        nothing.
+        """
+        del node_rank
+        del node_pool_size
+
+    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
+        """
+        Initializes event handling on the processing nodes for Pilatus files.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+        """
         required_data = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="required_data",
@@ -70,21 +92,9 @@ class PilatusFilesDataEventHandler(data_ret_layer_base.OmDataEventHandler):
             required=True,
         )  # type: List[str]
 
-        self._required_data_extraction_funcs = (
-            {}
+        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
+            self._data_extraction_funcs, required_data
         )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
-        for func_name in required_data:
-            try:
-                self._required_data_extraction_funcs[
-                    func_name
-                ] = self._data_extraction_funcs[func_name]
-            except AttributeError as exc:
-                raise_from(
-                    exc=exceptions.OmMissingDataExtractionFunctionError(
-                        "Data extraction function {0} not defined".format(func_name)
-                    ),
-                    cause=exc,
-                )
 
         # Fills the event info dictionary with static data that will be retrieved
         # later.
@@ -103,9 +113,9 @@ class PilatusFilesDataEventHandler(data_ret_layer_base.OmDataEventHandler):
                 parameter="calibration_filename",
                 parameter_type=str,
             )
-        self._event_info_to_append[
-            "calibration_info_filename"
-        ] = calibration_info_filename
+            self._event_info_to_append[
+                "calibration_info_filename"
+            ] = calibration_info_filename
 
         if "beam_energy" in required_data:
             self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
@@ -124,24 +134,8 @@ class PilatusFilesDataEventHandler(data_ret_layer_base.OmDataEventHandler):
                 required=True,
             )
 
-    def initialize_event_source(self, source, node_pool_size):
-        # type: (str, int) -> Any
-        """
-        Initializes the Pilatus filesystem event source.
-
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
-
-        There is no need to initialize the filesystem source, so this function does
-        nothing.
-        """
-        del source
-        del node_pool_size
-
     def event_generator(
         self,
-        source,  # type: str
         node_rank,  # type: int
         node_pool_size,  # type: int
     ):
@@ -160,12 +154,15 @@ initialize_event_source`.
         # the files as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
+
         try:
-            with open(source, "r") as fhandle:
+            with open(self._source, "r") as fhandle:
                 filelist = fhandle.readlines()  # type: List[str]
         except (IOError, OSError) as exc:
             raise_from(
-                exc=RuntimeError("Error reading the {0} source file.".format(source)),
+                exc=RuntimeError(
+                    "Error reading the {0} source file.".format(self._source)
+                ),
                 cause=exc,
             )
         num_files_curr_node = int(
@@ -177,16 +174,16 @@ initialize_event_source`.
 
         data_event = {}  # type: Dict[str, Dict[str, Any]]
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
-        data_event["info"] = {}
-        data_event["info"].update(self._event_info_to_append)
+        data_event["additional_info"] = {}
+        data_event["additional_info"].update(self._event_info_to_append)
 
         for entry in files_curr_node:
             stripped_entry = entry.strip()  # type: str
-            data_event["info"]["full_path"] = stripped_entry
+            data_event["additional_info"]["full_path"] = stripped_entry
 
             # File modification time is used as a first approximation of the timestamp
             # when the timestamp is not available.
-            data_event["info"]["file_creation_time"] = numpy.float64(
+            data_event["additional_info"]["file_creation_time"] = numpy.float64(
                 os.stat(stripped_entry).st_mtime
             )
 
@@ -204,7 +201,7 @@ initialize_event_source`.
         Pilatus CBF file. This function makes the content of the file available in the
         'data' field of the 'event' object.
         """
-        event["data"] = fabio.open(event["info"]["full_path"])
+        event["data"] = fabio.open(event["additional_info"]["full_path"])
 
     def close_event(self, event):
         # type: (Dict[str,Any]) -> None

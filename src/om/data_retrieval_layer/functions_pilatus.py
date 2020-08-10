@@ -61,7 +61,7 @@ def event_id(event):
 
         str: a unique event identifier.
     """
-    return cast(str, event["info"]["full_path"])
+    return cast(str, event["additional_info"]["full_path"])
 
 
 def frame_id(event):
@@ -106,7 +106,7 @@ def timestamp(event):
         numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
-    return cast(numpy.float64, event["info"]["file_creation_time"])
+    return cast(numpy.float64, event["additional_info"]["file_creation_time"])
 
 
 def beam_energy(event):
@@ -128,7 +128,7 @@ def beam_energy(event):
         float: the energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
-    return cast(float, event["info"]["beam_energy"])
+    return cast(float, event["additional_info"]["beam_energy"])
 
 
 def detector_distance(event):
@@ -151,4 +151,4 @@ def detector_distance(event):
         float: the detector distance in mm.
     """
     # Returns the value previously stored in the event.
-    return cast(float, event["info"]["detector_distance"])
+    return cast(float, event["additional_info"]["detector_distance"])

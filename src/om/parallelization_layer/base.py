@@ -40,7 +40,6 @@ class OmParallelizationEngine(with_metaclass(ABCMeta)):
 
     def __init__(
         self,
-        source,  # type: str
         data_event_handler,  # type: data_ret_layer_base.OmDataEventHandler
         monitor,  # type: process_layer_base.OmMonitor
         monitor_parameters,  # type: parameters.MonitorParams
@@ -79,7 +78,6 @@ OmMonitor`): a class defining the scientific data processing that the monitor
             monitor_parameters (:class:`~om.utils.parameters.MonitorParams`): an object
                 storing the OM monitor parameters from the configuration file.
         """
-        self._source = source  # type: str
         self._data_event_handler = (
             data_event_handler
         )  # type: data_ret_layer_base.OmDataEventHandler
@@ -102,37 +100,26 @@ OmMonitor`): a class defining the scientific data processing that the monitor
         else:
             self._frames_in_event_to_skip = tuple()
 
-    @abstractmethod
-    def get_role(self):
-        # type: () -> str
-        """
-        Retrieves the OM role of the current node.
+    # @abstractmethod
+    # def get_rank(self):
+    #     # type: () -> int
+    #     """
+    #     Retrieves the OM rank of the current node.
 
-        The returned string describers the role of the current node ('processing' or
-        'collecting').
-        """
-        pass
+    #     Returns an integer that unambiguously identifies the current node in the OM
+    #     node pool.
+    #     """
+    #     pass
 
-    @abstractmethod
-    def get_rank(self):
-        # type: () -> int
-        """
-        Retrieves the OM rank of the current node.
+    # @abstractmethod
+    # def get_node_pool_size(self):
+    #     # type: () -> int
+    #     """
+    #     Retrieves the size of the OM node pool.
 
-        Returns an integer that unambiguously identifies the current node in the OM
-        node pool.
-        """
-        pass
-
-    @abstractmethod
-    def get_node_pool_size(self):
-        # type: () -> int
-        """
-        Retrieves the size of the OM node pool.
-
-        Returns the total number of nodes in the OM pool, including all the processing
-        nodes and the collecting node.
-        """
+    #     Returns the total number of nodes in the OM pool, including all the processing
+    #     nodes and the collecting node.
+    #     """
 
     @abstractmethod
     def start(self):

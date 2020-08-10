@@ -25,8 +25,8 @@ from __future__ import absolute_import, division, print_function
 from typing import Any, Dict, cast
 
 import numpy  # type: ignore
-
 import psana  # type: ignore
+
 from om.utils import exceptions, parameters
 
 
@@ -289,7 +289,7 @@ def timestamp(event):
     """
     # Returns the timestamp stored in the event dictionary, without extracting it
     # again.
-    timest = event["info"]["timestamp"]
+    timest = event["additional_info"]["timestamp"]
     if timest is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve timestamp information from psana."
@@ -316,7 +316,9 @@ def detector_distance(event):
 
         float: the distance between the detector and the sample in mm.
     """
-    det_dist = event["info"]["psana_detector_interface"]["detector_distance"]()
+    det_dist = event["additional_info"]["psana_detector_interface"][
+        "detector_distance"
+    ]()
     if det_dist is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector distance information from psana."
@@ -339,7 +341,7 @@ def beam_energy(event):
         float: the energy of the beam in eV.
     """
     beam_en = (
-        event["info"]["psana_detector_interface"]["beam_energy"]
+        event["additional_info"]["psana_detector_interface"]["beam_energy"]
         .get(event["data"])
         .ebeamPhotonEnergy()
     )
@@ -370,7 +372,7 @@ def timetool_data(event):
         float: the readout of the timetool instrument.
     """
     # TODO: Determine return type
-    time_tl = event["info"]["psana_detector_interface"]["timetool_data"]()
+    time_tl = event["additional_info"]["psana_detector_interface"]["timetool_data"]()
     if time_tl is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve time tool data from psana."
@@ -397,9 +399,9 @@ def digitizer_data(event):
         numpy.array: the waveform from the digitizer.
     """
     # TODO: Determine return type
-    digit_data = event["info"]["psana_detector_interface"]["digitizer_data"].waveform(
-        event["data"]
-    )
+    digit_data = event["additional_info"]["psana_detector_interface"][
+        "digitizer_data"
+    ].waveform(event["data"])
     if digit_data is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve digitizer data from psana."
@@ -424,7 +426,7 @@ def opal_data(event):
 
         numpy.ndarray: a 2D array containing the image from the Opal camera.
     """
-    op_data = event["info"]["psana_detector_interface"]["opal_data"].calib(
+    op_data = event["additional_info"]["psana_detector_interface"]["opal_data"].calib(
         event["data"]
     )
     if op_data is None:
@@ -462,7 +464,7 @@ def optical_laser_active(event):
         bool: True if the optical laser is active for the current frame. False
         otherwise.
     """
-    current_evr_codes = event["info"]["psana_detector_interface"][
+    current_evr_codes = event["additional_info"]["psana_detector_interface"][
         "optical_laser_active"
     ].psana_detector_handle.eventCodes(event["data"])
     if current_evr_codes is None:
@@ -471,7 +473,7 @@ def optical_laser_active(event):
         )
 
     return (
-        event["info"]["psana_detector_interface"][
+        event["additional_info"]["psana_detector_interface"][
             "optical_laser_active"
         ].active_laser_evr_code
         in current_evr_codes
@@ -504,7 +506,7 @@ def xrays_active(event):
 
         bool: True if the x-ray beam is active for the current frame. False otherwise.
     """
-    current_evr_codes = event["info"]["psana_detector_interface"][
+    current_evr_codes = event["additional_info"]["psana_detector_interface"][
         "xrays_active"
     ].psana_detector_handle.eventCodes(event["data"])
     if current_evr_codes is None:
@@ -513,6 +515,8 @@ def xrays_active(event):
         )
 
     return (
-        event["info"]["psana_detector_interface"]["xrays_active"].active_laser_evr_code
+        event["additional_info"]["psana_detector_interface"][
+            "xrays_active"
+        ].active_laser_evr_code
         in current_evr_codes
     )

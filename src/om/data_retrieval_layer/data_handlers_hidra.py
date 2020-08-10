@@ -32,9 +32,9 @@ from typing import Any, Callable, Dict, Generator, List, Tuple, cast
 import fabio  # type: ignore
 import numpy  # type: ignore
 from future.utils import raise_from  # type: ignore
-
 from hidra_api import Transfer, transfer  # type: ignore
-from om.data_retrieval_layer import base as data_ret_layer_base
+
+from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_pilatus
 from om.utils import exceptions, parameters
 
@@ -92,15 +92,13 @@ def _create_hidra_info(source, node_pool_size, monitor_params):
     }
 
 
-class P11Petra3DataEventHandler(data_ret_layer_base.OmDataEventHandler):
+class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
     """
     See documentation of the __init__ function.
     """
 
-    def __init__(
-        self, monitor_parameters,
-    ):
-        # type: (parameters.MonitorParams) -> None
+    def __init__(self, monitor_parameters, source):
+        # type: (parameters.MonitorParams, str) -> None
         """
         Data event handler for events recovered from HiDRA at P11 (PETRA III).
 
@@ -112,40 +110,73 @@ class P11Petra3DataEventHandler(data_ret_layer_base.OmDataEventHandler):
         """
         super(P11Petra3DataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters,
+            source=source,
+            data_extraction_funcs={
+                "timestamp": functions_pilatus.timestamp,
+                "beam_energy": functions_pilatus.beam_energy,
+                "detector_distance": functions_pilatus.detector_distance,
+                "detector_data": functions_pilatus.detector_data,
+                "event_id": functions_pilatus.event_id,
+                "frame_id": functions_pilatus.frame_id,
+            },
         )
 
-        self._data_extraction_funcs = {
-            "timestamp": functions_pilatus.timestamp,
-            "beam_energy": functions_pilatus.beam_energy,
-            "detector_distance": functions_pilatus.detector_distance,
-            "detector_data": functions_pilatus.detector_data,
-            "event_id": functions_pilatus.event_id,
-            "frame_id": functions_pilatus.frame_id,
-        }  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
+    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
+        """
+        Initializes event handling on the collecting node for P11 (Petra III).
 
-        self._required_data = self._monitor_params.get_param(
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+
+        This function announces OM to HiDRA and configures HiDRA to send data event to
+        the processing nodes.
+
+        Raises:
+
+            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
+                HiDRA fails.
+        """
+        print("Announcing OM to HiDRA.")
+        sys.stdout.flush()
+        hidra_info = _create_hidra_info(
+            source=self._source,
+            node_pool_size=node_pool_size,
+            monitor_params=self._monitor_params,
+        )
+
+        try:
+            hidra_info["query"].initiate(hidra_info["targets"][1:])
+        except transfer.CommunicationFailed as exc:
+            raise_from(
+                exc=exceptions.OmHidraAPIError(
+                    "Failed to contact HiDRA: {0}".format(exc)
+                ),
+                cause=exc,
+            )
+
+        return hidra_info
+
+    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
+        """
+        Initializes event handling on the processing nodes for Pilatus files.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+        """
+        required_data = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
             required=True,
         )  # type: List[str]
 
-        self._required_data_extraction_funcs = (
-            {}
-        )  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
-
-        for func_name in self._required_data:
-            try:
-                self._required_data_extraction_funcs[
-                    func_name
-                ] = self._data_extraction_funcs[func_name]
-            except AttributeError as exc:
-                raise_from(
-                    exc=exceptions.OmMissingDataExtractionFunctionError(
-                        "Data extraction function {0} not defined".format(func_name)
-                    ),
-                    cause=exc,
-                )
+        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
+            self._data_extraction_funcs, required_data
+        )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
 
         # Fills the event info dictionary with static data that will be retrieved
         # later.
@@ -164,18 +195,18 @@ class P11Petra3DataEventHandler(data_ret_layer_base.OmDataEventHandler):
                 parameter="calibration_filename",
                 parameter_type=str,
             )
-        self._event_info_to_append[
-            "calibration_info_filename"
-        ] = calibration_info_filename
+            self._event_info_to_append[
+                "calibration_info_filename"
+            ] = calibration_info_filename
 
-        if "beam_energy" in self._required_data:
+        if "beam_energy" in required_data:
             self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="fallback_beam_energy_in_eV",
                 parameter_type=float,
                 required=True,
             )
-        if "detector_distance" in self._required_data:
+        if "detector_distance" in required_data:
             self._event_info_to_append[
                 "detector_distance"
             ] = self._monitor_params.get_param(
@@ -185,46 +216,8 @@ class P11Petra3DataEventHandler(data_ret_layer_base.OmDataEventHandler):
                 required=True,
             )
 
-    def initialize_event_source(self, source, node_pool_size):
-        # type: (str, int) -> Any
-        """
-        Initializes the HiDRA event source at P11 (Petra III).
-
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
-
-        This function announces OM to HiDRA and configures HiDRA to send data event to
-        the processing nodes.
-
-        Raises:
-
-            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
-                HiDRA fails.
-        """
-        print("Announcing OM to HiDRA.")
-        sys.stdout.flush()
-        hidra_info = _create_hidra_info(
-            source=source,
-            node_pool_size=node_pool_size,
-            monitor_params=self._monitor_params,
-        )
-
-        try:
-            hidra_info["query"].initiate(hidra_info["targets"][1:])
-        except transfer.CommunicationFailed as exc:
-            raise_from(
-                exc=exceptions.OmHidraAPIError(
-                    "Failed to contact HiDRA: {0}".format(exc)
-                ),
-                cause=exc,
-            )
-
-        return hidra_info
-
     def event_generator(
         self,
-        source,  # type: str
         node_rank,  # type: int
         node_pool_size,  # type: int
     ):
@@ -241,7 +234,7 @@ initialize_event_source`.
                 HiDRA fails.
         """
         hidra_info = _create_hidra_info(
-            source=source,
+            source=self._source,
             node_pool_size=node_pool_size,
             monitor_params=self._monitor_params,
         )
@@ -263,8 +256,8 @@ initialize_event_source`.
 
         data_event = {}  # type: Dict[str, Dict[str, Any]]
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
-        data_event["info"] = {}
-        data_event["info"].update(self._event_info_to_append)
+        data_event["additional_info"] = {}
+        data_event["additional_info"].update(self._event_info_to_append)
 
         while True:
             recovered_metadata, recovered_data = hidra_info[
@@ -272,12 +265,12 @@ initialize_event_source`.
             ].get()  # type: Tuple[Dict[str,Any], Dict[str,Any]]
             data_event["data"] = recovered_data
             data_event["metadata"] = recovered_metadata
-            data_event["info"]["full_path"] = os.path.join(
+            data_event["additional_info"]["full_path"] = os.path.join(
                 hidra_info["data_base_path"],
                 recovered_metadata["relative_path"],
                 recovered_metadata["filename"],
             )
-            data_event["info"]["timestamp"] = numpy.float64(
+            data_event["additional_info"]["timestamp"] = numpy.float64(
                 recovered_metadata["file_create_time"]
             )
 

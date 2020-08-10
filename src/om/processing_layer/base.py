@@ -52,24 +52,42 @@ class OmMonitor(with_metaclass(ABCMeta)):
         self._monitor_params = monitor_parameters
 
     @abstractmethod
-    def initialize_node(self, role, rank):
-        # type: (str, int) -> None
+    def initialize_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> None
         """
-        Initializes an OM node.
+        Initializes an OM processing node.
 
-        Performs initialization of an OM node.
+        Performs initialization of an OM processing node.
 
         Arguments:
 
-            role (str): the OM role of the current node ('processing' or 'collecting').
-
-            rank (int): the OM rank of the current node, which is an integer that
+            node_rank (int): the OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size (int): the total number of nodes in the OM pool, including
+                all the processing nodes and the collecting node.
         """
 
     @abstractmethod
-    def process_data(self, role, rank, data):
-        # type: (str, int, Dict[str, Any]) -> Tuple[Dict[str, Any], int]
+    def initialize_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> None
+        """
+        Initializes an OM collecting node.
+
+        Performs initialization of an OM collectingnode.
+
+        Arguments:
+
+            node_rank (int): the OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size (int): the total number of nodes in the OM pool, including
+                all the processing nodes and the collecting node.
+        """
+
+    @abstractmethod
+    def process_data(self, node_rank, node_pool_size, data):
+        # type: (int, int, Dict[str, Any]) -> Tuple[Dict[str, Any], int]
         """
         Processes a single frame in a data event.
 
@@ -80,10 +98,11 @@ class OmMonitor(with_metaclass(ABCMeta)):
 
         Arguments:
 
-            role (str): the OM role of the current node ('processing' or 'collecting').
-
-            rank (int): the OM rank of the current node, which is an integer that
+            node_rank (int): the OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size (int): the total number of nodes in the OM pool, including
+                all the processing nodes and the collecting node.
 
             data(Dict[str, Any]): a dictionary containing the data retrieved by
                 OM for the frame being processed.
@@ -102,8 +121,8 @@ class OmMonitor(with_metaclass(ABCMeta)):
         pass
 
     @abstractmethod
-    def collect_data(self, role, rank, processed_data):
-        # type: (str, int, Tuple[Dict[str, Any], int]) -> None
+    def collect_data(self, node_rank, node_pool_size, processed_data):
+        # type: (int, int, Tuple[Dict[str, Any], int]) -> None
         """
         The function that the collecting node will invoke every time data is
         transferred from a processing node. The function accepts as input the
@@ -111,10 +130,11 @@ class OmMonitor(with_metaclass(ABCMeta)):
 
         Arguments:
 
-            role (str): the OM role of the current node ('processing' or 'collecting').
-
-            rank (int): the OM rank of the current node, which is an integer that
+            node_rank (int): the OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size (int): the total number of nodes in the OM pool, including
+                all the processing nodes and the collecting node.
 
             processed_data (Tuple[Dict, int]): a tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
@@ -123,20 +143,42 @@ class OmMonitor(with_metaclass(ABCMeta)):
         """
         pass
 
-    def end_processing(self, role, rank):
-        # type: (str, int) -> None
+    def end_processing_on_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> None
         """
-        Executes end-of-processing actions.
+        Executes end-of-processing actions on a processing node.
 
-        This function is called by the parallelization engine on the processing and
-        collecting nodes at the end of the processing, immediately before stopping.
+        This function is called by the parallelization engine on the processing nodes
+        at the end of the processing, immediately before stopping.
 
         Arguments:
 
-            role (str): the OM role of the current node ('processing' or 'collecting').
-
-            rank (int): the OM rank of the current node, which is an integer that
+            node_rank (int): the OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size (int): the total number of nodes in the OM pool, including
+                all the processing nodes and the collecting node.
         """
-        del role
-        del rank
+        del node_rank
+        del node_pool_size
+        pass
+
+    def end_processing_on_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> None
+        """
+        Executes end-of-processing actions on the collecting node.
+
+        This function is called by the parallelization engine on the collecting node
+        at the end of the processing, immediately before stopping.
+
+        Arguments:
+
+            node_rank (int): the OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size (int): the total number of nodes in the OM pool, including
+                all the processing nodes and the collecting node.
+        """
+        del node_rank
+        del node_pool_size
+        pass

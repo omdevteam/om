@@ -25,9 +25,9 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Generator
+from typing import Any, Callable, Dict, Generator, List
 
-from future.utils import iteritems, with_metaclass  # type: ignore
+from future.utils import iteritems, raise_from, with_metaclass  # type: ignore
 from typing_extensions import final
 
 from om.utils import exceptions, parameters
@@ -39,9 +39,13 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
     """
 
     def __init__(
-        self, monitor_parameters,
+        self,
+        source,  # type: str
+        monitor_parameters,  # type: parameters.MonitorParams
+        data_extraction_funcs,  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
+        additional_info={},  # type: Dict[str, Any]
     ):
-        # type: (parameters.MonitorParams) -> None
+        # type: (...) -> None
         """
         The base class for an OM DataEventHandler.
 
@@ -53,23 +57,40 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
 
             monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
                 storing the OM monitor parameters from the configuration file.
+
+            source (str): a string describing the data source.
+
+            data_extraction_funcs \
+(Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]):
+                a dictionary containing the Data Extraction functions available to the
+                current Data Event Handler.
+
+                * Each dictionary key must define the name of a function.
+
+                * The corresponding dictionary value must store the function
+                  implementation.
+
+            additional_info (Dict[str, Any]): Dictionary story any additional
+                information needed by the Data Event Handler.
         """
         self._monitor_params = monitor_parameters
+        self._source = source
+        self._data_extraction_funcs = data_extraction_funcs
+        self._additional_info = additional_info
 
     @abstractmethod
-    def initialize_event_source(self, source, node_pool_size):
-        # type: (str, int) -> Any
+    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
         """
-        Initializes the event source.
+        Initializes event handling on the collecting node.
 
-        This function must be called on the collecting node before the
-        :func:`event_generator` function is called on the processing nodes, and
-        performs all the operation needed to initialize the event source (announcement
-        of OM, etc.)
+        This function is called on the collecting node at start up and initializes the
+        data event handling on the node.
 
         Arguments:
 
-            source (str): a psana-style DataSource string.
+            node_rank (int): the rank, in the OM pool, of the processing node calling
+                the function.
 
             node_pool_size (int): the total number of nodes in the OM pool, including
                 all the processing nodes and the collecting node.
@@ -77,27 +98,36 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         pass
 
     @abstractmethod
-    def event_generator(
-        self,
-        source,  # type: str
-        node_rank,  # type: int
-        node_pool_size,  # type: int
-    ):
-        # type: (...) -> Generator[Dict[str, Any], None, None]
+    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
         """
-        Retrieves events to process.
+        Initializes event handling on the processing node.
 
-        This function must be called on each processing node after the
-        :func:`initialize_event_source` function has been called on the collecting node.
-        The function is a generator and it returns an iterator over the events that the
-        calling node must process.
+        This function is called on the processing node at start up and initializes the
+        data event handling on the node.
 
         Arguments:
 
-            source (str): a string describing the data source. The exact format of the
-                string depends on the specific Data Recovery Layer currently being
-                used. See the documentation of the relevant 'initialize_event_source'
-                function.
+            node_rank (int): the rank, in the OM pool, of the processing node calling
+                the function.
+
+            node_pool_size (int): the total number of nodes in the OM pool, including
+                all the processing nodes and the collecting node.
+        """
+
+    @abstractmethod
+    def event_generator(
+        self, node_rank, node_pool_size,
+    ):
+        # type: (int, int) -> Generator[Dict[str, Any], None, None]
+        """
+        Retrieves events to process.
+
+        This function initializes the retrieval of events on a processing node and
+        starts retrieveing the events. The function is a generator and it returns an
+        iterator over the events that the calling node must process.
+
+        Arguments:
 
             node_rank (int): the rank, in the OM pool, of the processing node calling
                 the function.
@@ -174,21 +204,22 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
 
         Arguments:
 
-            data_extraction_funcs (Dict[str, Callable[[~om.utils.Dict[str,\
-Dict[str,Any]]], Any]]): a dictionary containing Data Extraction
-                functions to be attached to the class instance being created.
+            data_extraction_funcs \
+(Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]):
+                a dictionary containing the Data Extraction functions to be called.
 
-                * Each dictionary value must store a function implementation.
+                * Each dictionary key must define the name of a function.
 
-                * The corresponding dictionary key will define the name with which the
-                  function will be attached to the class instance.
+                * The corresponding dictionary value must store a function
+                  implementation.
 
         Returns:
 
             Dict[str, Any]: a dictionary storing the values returned by the Data
             Extraction functions.
 
-            * Each dictionary key identifies a function attached to the event.
+            * Each dictionary key identifies the Data Extraction function used to
+              extract the data.
 
             * The corresponding dictionary value stores the data returned by the
               function.
@@ -210,3 +241,45 @@ Dict[str,Any]]], Any]]): a dictionary containing Data Extraction
                     )
 
         return data
+
+
+def filter_data_extraction_funcs(
+    data_extraction_funcs,  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+    required_data,  # type: List[str]
+):
+    # type: (...) -> Dict[str, Callable[[Dict[str,Dict[str,Any]]],Any]]
+    """
+    Filters the list of data extraction functions based on the required data.
+
+    This function requires as input a dictionary storing all the data extraction
+    functions supported by the Data Event Handler. It returns a smaller dictionary
+    containing only a subset of functions based on data required by the monitor.
+
+    Arguments:
+
+        data_extraction_funcs (Dict[str, Callable[[Dict[str, Dict[str,Any]]], Any]]):
+            a dictionary containing the Data Extraction functions supported by the
+            Data Event Handler.
+
+            * Each dictionary key must define the name of a function.
+
+            * The corresponding dictionary value must store a function implementation.
+
+        required_data: (List[str]): a list of data items required by the monitor, used
+            to select the required Data Extraction functions.
+    """
+    required_data_extraction_funcs = (
+        {}
+    )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+    for func_name in required_data:
+        try:
+            required_data_extraction_funcs[func_name] = data_extraction_funcs[func_name]
+        except AttributeError as exc:
+            raise_from(
+                exc=exceptions.OmMissingDataExtractionFunctionError(
+                    "Data extraction function {0} not defined".format(func_name)
+                ),
+                cause=exc,
+            )
+
+    return required_data_extraction_funcs

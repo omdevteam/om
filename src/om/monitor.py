@@ -149,10 +149,9 @@ def main(source, config, debug):
         monitor_parameters=monitor_parameters
     )  # type: process_layer_base.OmMonitor
     data_event_handler = data_event_handler_class(
-        monitor_parameters=monitor_parameters
+        monitor_parameters=monitor_parameters, source=source,
     )  # type: data_ret_layer_base.OmDataEventHandler
     parallelization_engine = parallelization_engine_class(
-        source=source,
         data_event_handler=data_event_handler,
         monitor=monitor,
         monitor_parameters=monitor_parameters,

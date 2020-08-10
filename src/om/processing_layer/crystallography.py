@@ -33,6 +33,7 @@ from om.algorithms import crystallography_algorithms as cryst_algs
 from om.algorithms import generic_algorithms as gen_algs
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, parameters, zmq_monitor
+from om.utils.crystfel_geometry import TypeBeam, TypeDetector
 
 
 class CrystallographyMonitor(process_layer_base.OmMonitor):
@@ -61,8 +62,8 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             monitor_parameters=monitor_parameters
         )
 
-    def initialize_node(self, role, rank):
-        # type: (str, int) -> None
+    def initialize_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> None
         """
         Initializes the OM nodes for the Crystallography monitor.
 
@@ -88,255 +89,269 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             geometry
         )  # type: Dict[str, numpy.ndarray]
 
-        if role == "processing":
-            self._hit_frame_sending_counter = 0  # type: int
-            self._non_hit_frame_sending_counter = 0  # type: int
+        self._hit_frame_sending_counter = 0  # type: int
+        self._non_hit_frame_sending_counter = 0  # type: int
 
-            dark_data_filename = self._monitor_params.get_param(
-                group="correction", parameter="dark_filename", parameter_type=str
-            )  # type: str
-            dark_data_hdf5_path = self._monitor_params.get_param(
-                group="correction", parameter="dark_hdf5_path", parameter_type=str
-            )  # type: str
-            mask_filename = self._monitor_params.get_param(
-                group="correction", parameter="mask_filename", parameter_type=str
-            )  # type: str
-            mask_hdf5_path = self._monitor_params.get_param(
-                group="correction", parameter="mask_hdf5_path", parameter_type=str
-            )  # type: str
-            gain_map_filename = self._monitor_params.get_param(
-                group="correction", parameter="gain_filename", parameter_type=str
-            )  # type: str
-            gain_map_hdf5_path = self._monitor_params.get_param(
-                group="correction", parameter="gain_hdf5_path", parameter_type=str
-            )  # type: str
-            self._correction = gen_algs.Correction(
-                dark_filename=dark_data_filename,
-                dark_hdf5_path=dark_data_hdf5_path,
-                mask_filename=mask_filename,
-                mask_hdf5_path=mask_hdf5_path,
-                gain_filename=gain_map_filename,
-                gain_hdf5_path=gain_map_hdf5_path,
-            )
+        dark_data_filename = self._monitor_params.get_param(
+            group="correction", parameter="dark_filename", parameter_type=str
+        )  # type: str
+        dark_data_hdf5_path = self._monitor_params.get_param(
+            group="correction", parameter="dark_hdf5_path", parameter_type=str
+        )  # type: str
+        mask_filename = self._monitor_params.get_param(
+            group="correction", parameter="mask_filename", parameter_type=str
+        )  # type: str
+        mask_hdf5_path = self._monitor_params.get_param(
+            group="correction", parameter="mask_hdf5_path", parameter_type=str
+        )  # type: str
+        gain_map_filename = self._monitor_params.get_param(
+            group="correction", parameter="gain_filename", parameter_type=str
+        )  # type: str
+        gain_map_hdf5_path = self._monitor_params.get_param(
+            group="correction", parameter="gain_hdf5_path", parameter_type=str
+        )  # type: str
+        self._correction = gen_algs.Correction(
+            dark_filename=dark_data_filename,
+            dark_hdf5_path=dark_data_hdf5_path,
+            mask_filename=mask_filename,
+            mask_hdf5_path=mask_hdf5_path,
+            gain_filename=gain_map_filename,
+            gain_hdf5_path=gain_map_hdf5_path,
+        )
 
-            pf8_detector_info = cryst_algs.get_peakfinder8_info(
-                self._monitor_params.get_param(
-                    group="peakfinder8_peak_detection",
-                    parameter="detector_type",
-                    parameter_type=str,
-                    required=True,
-                )
-            )
-            pf8_max_num_peaks = self._monitor_params.get_param(
+        pf8_detector_info = cryst_algs.get_peakfinder8_info(
+            self._monitor_params.get_param(
                 group="peakfinder8_peak_detection",
-                parameter="max_num_peaks",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            pf8_adc_threshold = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="adc_threshold",
-                parameter_type=float,
-                required=True,
-            )  # type: float
-            pf8_minimum_snr = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="minimum_snr",
-                parameter_type=float,
-                required=True,
-            )  # type: float
-            pf8_min_pixel_count = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="min_pixel_count",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            pf8_max_pixel_count = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="max_pixel_count",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            pf8_local_bg_radius = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="local_bg_radius",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            pf8_min_res = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="min_res",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            pf8_max_res = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="max_res",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            pf8_bad_pixel_map_fname = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="bad_pixel_map_filename",
+                parameter="detector_type",
                 parameter_type=str,
-            )  # type: Union[str, None]
-            if pf8_bad_pixel_map_fname is not None:
-                pf8_bad_pixel_map_hdf5_path = self._monitor_params.get_param(
-                    group="peakfinder8_peak_detection",
-                    parameter="bad_pixel_map_hdf5_path",
-                    parameter_type=str,
-                    required=True,
-                )  # type: Union[str, None]
-            else:
-                pf8_bad_pixel_map_hdf5_path = None
-            self._peak_detection = cryst_algs.Peakfinder8PeakDetection(
-                max_num_peaks=pf8_max_num_peaks,
-                asic_nx=pf8_detector_info["asic_nx"],
-                asic_ny=pf8_detector_info["asic_ny"],
-                nasics_x=pf8_detector_info["nasics_x"],
-                nasics_y=pf8_detector_info["nasics_y"],
-                adc_threshold=pf8_adc_threshold,
-                minimum_snr=pf8_minimum_snr,
-                min_pixel_count=pf8_min_pixel_count,
-                max_pixel_count=pf8_max_pixel_count,
-                local_bg_radius=pf8_local_bg_radius,
-                min_res=pf8_min_res,
-                max_res=pf8_max_res,
-                bad_pixel_map_filename=pf8_bad_pixel_map_fname,
-                bad_pixel_map_hdf5_path=pf8_bad_pixel_map_hdf5_path,
-                radius_pixel_map=self._pixelmaps["radius"],
-            )  # type: cryst_algs.Peakfinder8PeakDetection
-
-            self._max_saturated_peaks = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="max_saturated_peaks",
-                parameter_type=int,
                 required=True,
-            )  # type: int
-            self._min_num_peaks_for_hit = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="min_num_peaks_for_hit",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            self._max_num_peaks_for_hit = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="max_num_peaks_for_hit",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            self._saturation_value = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="saturation_value",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            self._hit_frame_sending_interval = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="hit_frame_sending_interval",
-                parameter_type=int,
-            )  # type Union[int, None]
-            self._non_hit_frame_sending_interval = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="non_hit_frame_sending_interval",
-                parameter_type=int,
-            )  # type Union[int, None]
-
-            print("Processing node {0} starting.".format(rank))
-            sys.stdout.flush()
-        if role == "collecting":
-            self._speed_report_interval = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="speed_report_interval",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            self._geometry_is_optimized = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="geometry_is_optimized",
-                parameter_type=bool,
-                required=True,
-            )  # type: bool
-
-            # Theoretically, the pixel size could be different for every module of the
-            # detector. The pixel size of the first module is taken as the pixel size
-            # of the whole detector.
-            self._pixel_size = geometry["panels"][tuple(geometry["panels"].keys())[0]][
-                "res"
-            ]
-
-            self._running_average_window_size = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="running_average_window_size",
-                parameter_type=int,
-                required=True,
-            )  # type: int
-            self._hit_rate_running_window = collections.deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
-            )  # type: Deque[float]
-            self._avg_hit_rate = 0  # type: int
-            self._hit_rate_timestamp_history = collections.deque(
-                5000 * [0.0], maxlen=5000
-            )  # type: Deque[float]
-            self._hit_rate_history = collections.deque(
-                5000 * [0.0], maxlen=5000
-            )  # type: Deque[float]
-
-            y_minimum = (
-                2
-                * int(
-                    max(
-                        abs(self._pixelmaps["y"].max()), abs(self._pixelmaps["y"].min())
-                    )
-                )
-                + 2
-            )  # type: int
-            x_minimum = (
-                2
-                * int(
-                    max(
-                        abs(self._pixelmaps["x"].max()), abs(self._pixelmaps["x"].min())
-                    )
-                )
-                + 2
-            )  # type: int
-            self._virt_powd_plot_img_shape = (y_minimum, x_minimum)
-            self._img_center_x = int(self._virt_powd_plot_img_shape[1] / 2)
-            self._img_center_y = int(self._virt_powd_plot_img_shape[0] / 2)
-            self._visual_pixelmap_x = (
-                numpy.array(self._pixelmaps["x"], dtype=numpy.int)
-                + self._virt_powd_plot_img_shape[1] // 2
-                - 1
-            ).flatten()  # type: numpy.ndarray
-            self._visual_pixelmap_y = (
-                numpy.array(self._pixelmaps["y"], dtype=numpy.int)
-                + self._virt_powd_plot_img_shape[0] // 2
-                - 1
-            ).flatten()  # type: numpy.ndarray
-            self._virt_powd_plot_img = numpy.zeros(
-                shape=self._virt_powd_plot_img_shape, dtype=numpy.float32
             )
-
-            broadcast_socket_ip = self._monitor_params.get_param(
-                group="crystallography", parameter="broadcast_ip", parameter_type=str
+        )
+        pf8_max_num_peaks = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="max_num_peaks",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        pf8_adc_threshold = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="adc_threshold",
+            parameter_type=float,
+            required=True,
+        )  # type: float
+        pf8_minimum_snr = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="minimum_snr",
+            parameter_type=float,
+            required=True,
+        )  # type: float
+        pf8_min_pixel_count = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="min_pixel_count",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        pf8_max_pixel_count = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="max_pixel_count",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        pf8_local_bg_radius = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="local_bg_radius",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        pf8_min_res = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="min_res",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        pf8_max_res = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="max_res",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        pf8_bad_pixel_map_fname = self._monitor_params.get_param(
+            group="peakfinder8_peak_detection",
+            parameter="bad_pixel_map_filename",
+            parameter_type=str,
+        )  # type: Union[str, None]
+        if pf8_bad_pixel_map_fname is not None:
+            pf8_bad_pixel_map_hdf5_path = self._monitor_params.get_param(
+                group="peakfinder8_peak_detection",
+                parameter="bad_pixel_map_hdf5_path",
+                parameter_type=str,
+                required=True,
             )  # type: Union[str, None]
-            broadcast_socket_port = self._monitor_params.get_param(
-                group="crystallography", parameter="broadcast_port", parameter_type=int
-            )  # type: Union[int, None]
-            self._data_broadcast_socket = zmq_monitor.ZmqDataBroadcaster(
-                hostname=broadcast_socket_ip, port=broadcast_socket_port
-            )  # type: zmq_monitor.ZmqDataBroadcaster
+        else:
+            pf8_bad_pixel_map_hdf5_path = None
+        self._peak_detection = cryst_algs.Peakfinder8PeakDetection(
+            max_num_peaks=pf8_max_num_peaks,
+            asic_nx=pf8_detector_info["asic_nx"],
+            asic_ny=pf8_detector_info["asic_ny"],
+            nasics_x=pf8_detector_info["nasics_x"],
+            nasics_y=pf8_detector_info["nasics_y"],
+            adc_threshold=pf8_adc_threshold,
+            minimum_snr=pf8_minimum_snr,
+            min_pixel_count=pf8_min_pixel_count,
+            max_pixel_count=pf8_max_pixel_count,
+            local_bg_radius=pf8_local_bg_radius,
+            min_res=pf8_min_res,
+            max_res=pf8_max_res,
+            bad_pixel_map_filename=pf8_bad_pixel_map_fname,
+            bad_pixel_map_hdf5_path=pf8_bad_pixel_map_hdf5_path,
+            radius_pixel_map=self._pixelmaps["radius"],
+        )  # type: cryst_algs.Peakfinder8PeakDetection
 
-            self._num_events = 0  # type: int
-            self._old_time = time.time()  # type: float
-            self._time = None  # type: Union[float, None]
+        self._max_saturated_peaks = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="max_saturated_peaks",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        self._min_num_peaks_for_hit = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="min_num_peaks_for_hit",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        self._max_num_peaks_for_hit = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="max_num_peaks_for_hit",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        self._saturation_value = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="saturation_value",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        self._hit_frame_sending_interval = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="hit_frame_sending_interval",
+            parameter_type=int,
+        )  # type Union[int, None]
+        self._non_hit_frame_sending_interval = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="non_hit_frame_sending_interval",
+            parameter_type=int,
+        )  # type Union[int, None]
 
-            print("Starting the monitor...")
-            sys.stdout.flush()
+        print("Processing node {0} starting.".format(node_rank))
+        sys.stdout.flush()
 
-    def process_data(self, role, rank, data):
-        # type: (str, int, Dict[str, Any]) -> Tuple[Dict[str, Any], int]
+    def initialize_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> None
+        """
+        Initializes the OM nodes for the Crystallography monitor.
+
+        See documentation of the function in the base class:
+        :func:`~om.processing_layer.base.OmMonitor`.
+
+        On the processing nodes, it initializes the correction and peak finding
+        algorithms, plus some internal counters. On the collecting node, this function
+        initializes the data accumulation algorrithms and the storage for the
+        aggregated statistics.
+        """
+        self._speed_report_interval = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="speed_report_interval",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        self._geometry_is_optimized = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="geometry_is_optimized",
+            parameter_type=bool,
+            required=True,
+        )  # type: bool
+
+        # Theoretically, the pixel size could be different for every module of the
+        # detector. The pixel size of the first module is taken as the pixel size
+        # of the whole detector.
+        geometry_filename = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="geometry_file",
+            parameter_type=str,
+            required=True,
+        )  # type: str
+        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            geometry_filename
+        )  # type: Tuple[TypeDetector, TypeBeam, Union[str, None]]
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
+        self._pixel_size = geometry["panels"][tuple(geometry["panels"].keys())[0]][
+            "res"
+        ]
+
+        self._running_average_window_size = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="running_average_window_size",
+            parameter_type=int,
+            required=True,
+        )  # type: int
+        self._hit_rate_running_window = collections.deque(
+            [0.0] * self._running_average_window_size,
+            maxlen=self._running_average_window_size,
+        )  # type: Deque[float]
+        self._avg_hit_rate = 0  # type: int
+        self._hit_rate_timestamp_history = collections.deque(
+            5000 * [0.0], maxlen=5000
+        )  # type: Deque[float]
+        self._hit_rate_history = collections.deque(
+            5000 * [0.0], maxlen=5000
+        )  # type: Deque[float]
+
+        y_minimum = (
+            2
+            * int(max(abs(self._pixelmaps["y"].max()), abs(self._pixelmaps["y"].min())))
+            + 2
+        )  # type: int
+        x_minimum = (
+            2
+            * int(max(abs(self._pixelmaps["x"].max()), abs(self._pixelmaps["x"].min())))
+            + 2
+        )  # type: int
+        self._virt_powd_plot_img_shape = (y_minimum, x_minimum)
+        self._img_center_x = int(self._virt_powd_plot_img_shape[1] / 2)
+        self._img_center_y = int(self._virt_powd_plot_img_shape[0] / 2)
+        self._visual_pixelmap_x = (
+            numpy.array(self._pixelmaps["x"], dtype=numpy.int)
+            + self._virt_powd_plot_img_shape[1] // 2
+            - 1
+        ).flatten()  # type: numpy.ndarray
+        self._visual_pixelmap_y = (
+            numpy.array(self._pixelmaps["y"], dtype=numpy.int)
+            + self._virt_powd_plot_img_shape[0] // 2
+            - 1
+        ).flatten()  # type: numpy.ndarray
+        self._virt_powd_plot_img = numpy.zeros(
+            shape=self._virt_powd_plot_img_shape, dtype=numpy.float32
+        )
+
+        broadcast_socket_ip = self._monitor_params.get_param(
+            group="crystallography", parameter="broadcast_ip", parameter_type=str
+        )  # type: Union[str, None]
+        broadcast_socket_port = self._monitor_params.get_param(
+            group="crystallography", parameter="broadcast_port", parameter_type=int
+        )  # type: Union[int, None]
+        self._data_broadcast_socket = zmq_monitor.ZmqDataBroadcaster(
+            hostname=broadcast_socket_ip, port=broadcast_socket_port
+        )  # type: zmq_monitor.ZmqDataBroadcaster
+
+        self._num_events = 0  # type: int
+        self._old_time = time.time()  # type: float
+        self._time = None  # type: Union[float, None]
+
+        print("Starting the monitor...")
+        sys.stdout.flush()
+
+    def process_data(self, node_rank, node_pool_size, data):
+        # type: (int, int, Dict[str, Any]) -> Tuple[Dict[str, Any], int]
         """
         Processes a detector data frame.
 
@@ -368,8 +383,10 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         processed_data["timestamp"] = data["timestamp"]
         processed_data["frame_is_saturated"] = frame_is_saturated
         processed_data["frame_is_hit"] = frame_is_hit
-        processed_data["detector_distance"] = data["detector_distance"]
-        processed_data["beam_energy"] = data["beam_energy"]
+        # processed_data["detector_distance"] = data["detector_distance"]
+        processed_data["detector_distance"] = 300
+        # processed_data["beam_energy"] = data["beam_energy"]
+        processed_data["beam_energy"] = 10000
         processed_data["data_shape"] = data["detector_data"].shape
         if frame_is_hit:
             processed_data["peak_list"] = peak_list
@@ -398,10 +415,10 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                     processed_data["detector_data"] = corrected_detector_data
                     self._non_hit_frame_sending_counter = 0
 
-        return (processed_data, rank)
+        return (processed_data, node_rank)
 
-    def collect_data(self, role, rank, processed_data):
-        # type: (str, int, Tuple[Dict[str, Any], int]) -> None
+    def collect_data(self, node_rank, node_pool_size, processed_data):
+        # type: (int, int, Tuple[Dict[str, Any], int]) -> None
         """
         Computes statistics on aggregated data and broadcasts them via a network socket.
 
@@ -422,19 +439,21 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         self._hit_rate_timestamp_history.append(received_data["timestamp"])
         self._hit_rate_history.append(avg_hit_rate * 100.0)
 
-        peak_list_x_in_frame: List[float] = []
-        peak_list_y_in_frame: List[float] = []
+        peak_list_x_in_frame = []  # type: List[float]
+        peak_list_y_in_frame = []  # type: List[float]
 
         for peak_fs, peak_ss, peak_value in zip(
             received_data["peak_list"]["fs"],
             received_data["peak_list"]["ss"],
             received_data["peak_list"]["intensity"],
         ):
-            peak_index_in_slab: int = int(round(peak_ss)) * received_data["data_shape"][
+            peak_index_in_slab = int(round(peak_ss)) * received_data["data_shape"][
                 1
-            ] + int(round(peak_fs))
-            y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
-            x_in_frame: float = self._visual_pixelmap_x[peak_index_in_slab]
+            ] + int(
+                round(peak_fs)
+            )  # type: int
+            y_in_frame = self._visual_pixelmap_y[peak_index_in_slab]  # type: float
+            x_in_frame = self._visual_pixelmap_x[peak_index_in_slab]  # type: float
             peak_list_x_in_frame.append(y_in_frame)
             peak_list_y_in_frame.append(x_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
@@ -459,7 +478,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             # wrapped into a list because the receiving programs usually expect lists
             # of aggregated events as opposed to single events.
 
-            frame_data_img: numpy.ndarray = numpy.zeros_like(self._virt_powd_plot_img)
+            frame_data_img = numpy.zeros_like(
+                self._virt_powd_plot_img
+            )  # type: numpy.ndarray
             frame_data_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
                 received_data["detector_data"].ravel().astype(frame_data_img.dtype)
             )

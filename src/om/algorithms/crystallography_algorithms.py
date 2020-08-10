@@ -74,6 +74,13 @@ def get_peakfinder8_info(detector_type):
             "nasics_x": 1,
             "nasics_y": 1,
         }
+    elif detector_type == "jungfrau4M":
+        peakfinder8_info = {
+            "asic_nx": 1024,
+            "asic_ny": 512,
+            "nasics_x": 1,
+            "nasics_y": 8,
+        }
     else:
         raise RuntimeError(
             "The peakfinder8 information for the {0} detector "
