@@ -489,6 +489,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 tag=u"view:omframedata",
                 message={
                     "frame_data": frame_data_img,
+                    "timestamp": received_data["timestamp"],
                     "peak_list_x_in_frame": peak_list_x_in_frame,
                     "peak_list_y_in_frame": peak_list_y_in_frame,
                 },
