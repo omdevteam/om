@@ -182,6 +182,8 @@ initialize_event_source`.
         if offline and not self._source[-4:] == ":idx":
             self._source += ":idx"
 
+        psana_source = psana.DataSource(self._source)
+
         # If the psana calibration directory is provided in the configuration file, it
         # is added as an option to psana.
         psana_calib_dir = self._monitor_params.get_param(
@@ -193,7 +195,6 @@ initialize_event_source`.
             psana.setOption("psana.calib-dir", psana_calib_dir)
         else:
             print("OM Warning: Calibration directory not provided or not found.")
-        psana_source = psana.DataSource(self._source.encode("ascii"))
 
         data_event = {}  # type: Dict[str, Dict[str, Any]]
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
