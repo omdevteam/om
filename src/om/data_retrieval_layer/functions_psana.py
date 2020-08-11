@@ -25,8 +25,8 @@ from __future__ import absolute_import, division, print_function
 from typing import Any, Dict, cast
 
 import numpy  # type: ignore
-import psana  # type: ignore
 
+import psana  # type: ignore
 from om.utils import exceptions, parameters
 
 

@@ -100,27 +100,6 @@ OmMonitor`): a class defining the scientific data processing that the monitor
         else:
             self._frames_in_event_to_skip = tuple()
 
-    # @abstractmethod
-    # def get_rank(self):
-    #     # type: () -> int
-    #     """
-    #     Retrieves the OM rank of the current node.
-
-    #     Returns an integer that unambiguously identifies the current node in the OM
-    #     node pool.
-    #     """
-    #     pass
-
-    # @abstractmethod
-    # def get_node_pool_size(self):
-    #     # type: () -> int
-    #     """
-    #     Retrieves the size of the OM node pool.
-
-    #     Returns the total number of nodes in the OM pool, including all the processing
-    #     nodes and the collecting node.
-    #     """
-
     @abstractmethod
     def start(self):
         # type: () -> None

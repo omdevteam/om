@@ -49,17 +49,27 @@ class PilatusFilesDataEventHandler(drl_base.OmDataEventHandler):
         :func:`~om.data_retrieval_layer.base.DataEventHandler` .
         """
         super(PilatusFilesDataEventHandler, self).__init__(
-            monitor_parameters=monitor_parameters,
-            source=source,
-            data_extraction_funcs={
-                "timestamp": functions_pilatus.timestamp,
-                "beam_energy": functions_pilatus.beam_energy,
-                "detector_distance": functions_pilatus.detector_distance,
-                "detector_data": functions_pilatus.detector_data,
-                "event_id": functions_pilatus.event_id,
-                "frame_id": functions_pilatus.frame_id,
-            },
+            monitor_parameters=monitor_parameters, source=source,
         )
+
+    @property
+    def data_extraction_funcs(self):
+        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+        """
+        Retrieves the Data Extraction Functions for Pilatus files.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+data_extraction_funcs`.
+        """
+        return {
+            "timestamp": functions_pilatus.timestamp,
+            "beam_energy": functions_pilatus.beam_energy,
+            "detector_distance": functions_pilatus.detector_distance,
+            "detector_data": functions_pilatus.detector_data,
+            "event_id": functions_pilatus.event_id,
+            "frame_id": functions_pilatus.frame_id,
+        }
 
     def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
         # type: (int, int) -> Any
@@ -93,7 +103,7 @@ initialize_event_source`.
         )  # type: List[str]
 
         self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
-            self._data_extraction_funcs, required_data
+            self.data_extraction_funcs, required_data
         )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
 
         # Fills the event info dictionary with static data that will be retrieved

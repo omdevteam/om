@@ -26,9 +26,9 @@ from __future__ import absolute_import, division, print_function
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
-import psana  # type: ignore
 from future.utils import iteritems, raise_from  # type: ignore
 
+import psana  # type: ignore
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_cspad, functions_jungfrau, functions_psana
 from om.utils import exceptions, parameters
@@ -53,7 +53,7 @@ def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
             yield run.event(evt)
 
 
-class PsanaDataEventHandler(drl_base.OmDataEventHandler):
+class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
     """
     See documentation of the __init__ function.
     """
@@ -62,7 +62,6 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
         self,
         monitor_parameters,  # type: parameters.MonitorParams
         source,  # type: str
-        data_extraction_funcs,  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
     ):
         # type: (...) -> None
         """
@@ -73,10 +72,9 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
 
         This class handles detector events recovered from psana at the LCLS facility.
         """
-        super(PsanaDataEventHandler, self).__init__(
+        super(LclsBaseDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters,
             source=source,
-            data_extraction_funcs=data_extraction_funcs,
             additional_info={
                 "psana_detector_init_funcs": {
                     "timestamp_init": functions_psana.timestamp_init,
@@ -93,16 +91,6 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
                 }
             },
         )
-        # self._data_extraction_funcs = {
-        #     "timestamp": functions_psana.timestamp,
-        #     "beam_energy": functions_psana.beam_energy,
-        #     "detector_distance": functions_psana.detector_distance,
-        #     "timetool_data": functions_psana.timetool_data,
-        #     "digitizer_data": functions_psana.digitizer_data,
-        #     "opal_data": functions_psana.opal_data,
-        #     "optical_laser_active": functions_psana.optical_laser_active,
-        #     "xrays_active": functions_psana.xrays_active,
-        # }  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
 
     def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
         # type: (int, int) -> Any
@@ -136,7 +124,7 @@ initialize_event_source`.
         )  # type: List[str]
 
         self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
-            self._data_extraction_funcs, required_data
+            self.data_extraction_funcs, required_data
         )
 
         self._required_psana_detector_init_funcs = (
@@ -289,7 +277,7 @@ get_num_frames_in_event` .
         return 1
 
 
-class CxiLclsCspadDataEventHandler(PsanaDataEventHandler):
+class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
     """
     See documentation of the __init__ function.
     """
@@ -303,26 +291,39 @@ class CxiLclsCspadDataEventHandler(PsanaDataEventHandler):
         :func:`~LclsBaseDataEventHandler.__init.py__` .
 
         This class handles detector events recovered from psana at the LCLS facility.
-
         """
         super(CxiLclsCspadDataEventHandler, self).__init__(
-            monitor_parameters=monitor_parameters,
-            source=source,
-            data_extraction_funcs={
-                "timestamp": functions_psana.timestamp,
-                "detector_data": functions_cspad.detector_data,
-                "beam_energy": functions_psana.beam_energy,
-                "detector_distance": functions_psana.detector_distance,
-                "timetool_data": functions_psana.timetool_data,
-                "digitizer_data": functions_psana.digitizer_data,
-                "opal_data": functions_psana.opal_data,
-                "optical_laser_active": functions_psana.optical_laser_active,
-                "xrays_active": functions_psana.xrays_active,
-            },
+            monitor_parameters=monitor_parameters, source=source,
         )
 
+    @property
+    def data_extraction_funcs(self):
+        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+        """
+        Retrieves the Data Extraction Functions for CXI (LCLS) before 2020.
 
-class CxiLclsDataEventHandler(PsanaDataEventHandler):
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+data_extraction_funcs`.
+
+        This function retrieves the Data Extraction Functions available for the CXI
+        beamline at the LCLS facility, when data was collected before 2020 (using
+        the CSPAD detector).
+        """
+        return {
+            "timestamp": functions_psana.timestamp,
+            "detector_data": functions_cspad.detector_data,
+            "beam_energy": functions_psana.beam_energy,
+            "detector_distance": functions_psana.detector_distance,
+            "timetool_data": functions_psana.timetool_data,
+            "digitizer_data": functions_psana.digitizer_data,
+            "opal_data": functions_psana.opal_data,
+            "optical_laser_active": functions_psana.optical_laser_active,
+            "xrays_active": functions_psana.xrays_active,
+        }
+
+
+class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
     """
     See documentation of the __init__ function.
     """
@@ -338,17 +339,31 @@ class CxiLclsDataEventHandler(PsanaDataEventHandler):
         This class handles detector events recovered from psana at the LCLS facility.
         """
         super(CxiLclsDataEventHandler, self).__init__(
-            monitor_parameters=monitor_parameters,
-            source=source,
-            data_extraction_funcs={
-                "timestamp": functions_psana.timestamp,
-                "detector_data": functions_jungfrau.detector_data,
-                "beam_energy": functions_psana.beam_energy,
-                "detector_distance": functions_psana.detector_distance,
-                "timetool_data": functions_psana.timetool_data,
-                "digitizer_data": functions_psana.digitizer_data,
-                "opal_data": functions_psana.opal_data,
-                "optical_laser_active": functions_psana.optical_laser_active,
-                "xrays_active": functions_psana.xrays_active,
-            },
+            monitor_parameters=monitor_parameters, source=source
         )
+
+    @property
+    def data_extraction_funcs(self):
+        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+        """
+        Retrieves the Data Extraction Functions for CXI (LCLS).
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+data_extraction_funcs`.
+
+        This function retrieves the Data Extraction Functions available for the CXI
+        beamline at the LCLS facility, when data was collected after 2020 (using
+        the Jungfrau4M detector).
+        """
+        return {
+            "timestamp": functions_psana.timestamp,
+            "detector_data": functions_jungfrau.detector_data,
+            "beam_energy": functions_psana.beam_energy,
+            "detector_distance": functions_psana.detector_distance,
+            "timetool_data": functions_psana.timetool_data,
+            "digitizer_data": functions_psana.digitizer_data,
+            "opal_data": functions_psana.opal_data,
+            "optical_laser_active": functions_psana.optical_laser_active,
+            "xrays_active": functions_psana.xrays_active,
+        }

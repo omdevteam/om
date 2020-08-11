@@ -24,7 +24,7 @@ monitor parallelization.
 from __future__ import absolute_import, division, print_function
 
 import sys
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Any, Callable, Dict, Generator, List
 
 from future.utils import iteritems, raise_from, with_metaclass  # type: ignore
@@ -42,7 +42,6 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         self,
         source,  # type: str
         monitor_parameters,  # type: parameters.MonitorParams
-        data_extraction_funcs,  # type: Dict[str, Callable[[Dict[str, Any]], Any]]
         additional_info={},  # type: Dict[str, Any]
     ):
         # type: (...) -> None
@@ -60,23 +59,34 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
 
             source (str): a string describing the data source.
 
-            data_extraction_funcs \
-(Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]):
-                a dictionary containing the Data Extraction functions available to the
-                current Data Event Handler.
-
-                * Each dictionary key must define the name of a function.
-
-                * The corresponding dictionary value must store the function
-                  implementation.
-
             additional_info (Dict[str, Any]): Dictionary story any additional
                 information needed by the Data Event Handler.
         """
         self._monitor_params = monitor_parameters
         self._source = source
-        self._data_extraction_funcs = data_extraction_funcs
         self._additional_info = additional_info
+
+    @abstractproperty
+    def data_extraction_funcs(self):
+        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+        """
+        Retrieves Data Extraction Functions for the current Data Handler.
+
+        This functions retrieves the Data Retrieval Functions that are available for
+        the current Event Data Handler.
+
+        Returns:
+
+            Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]: a dictionary
+            storing the implementations of the Data Extraction functions available to
+            the current Data Event Handler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function
+              implementation.
+        """
+        pass
 
     @abstractmethod
     def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):

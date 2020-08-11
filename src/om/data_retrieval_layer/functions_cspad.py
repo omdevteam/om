@@ -42,9 +42,9 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    cspad_psana = event["info"]["psana_detector_interface"]["detector_data"].calib(
-        event["data"]
-    )
+    cspad_psana = event["additional_info"]["psana_detector_interface"][
+        "detector_data"
+    ].calib(event["data"])
     if cspad_psana is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector data from psana."
