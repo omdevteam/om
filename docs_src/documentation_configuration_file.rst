@@ -87,15 +87,12 @@ crystallography
 
 This group contains parameters used by OM for Crystallography.
 
-* **broadcast_ip (str or None):** the hostname or ip address where the monitor
-  broadcasts data to external programs. If the value of this parameter is *None*, the
-  ip address is auto-detected. This is usually fine. An ip address or a hostname needs
-  usually to be manually specified only in exceptional cases (e.g: multiple network
-  interfaces on the same machine). Example: 127.0.0.1
-
-* **broadcast_port (int or None):** the port where the monitor broadcasts data to
-  external programs. If the value of this parameter is *None*, port 12321 is used. 
-  Example: 12322
+* **data_broadcast_url (str or None):** the URL of the socket where the monitor
+  broadcasts data to external programs. The parameter should be in a format accepted by
+  the ZeroMQ library. Typically, the parameter either has the format
+  *tcp://hostname:port* or the format *ipc:///path/to/socket*. If the value of this
+  parameter is *None*, the hostname is detected automatically and the broadcast URL is
+  set to *tcp://hostname:12321". Example: tcp://127.0.0.1:8080
 
 * **geometry_file (str):** the absolute or relative path to a geometry file in
   `CrystFEL <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_

@@ -28,6 +28,9 @@ import sys
 from typing import Any, Dict, Union
 
 import zmq  # type: ignore
+from future.utils import raise_from  # type: ignore
+
+from om.utils import exceptions
 
 
 class ZmqDataBroadcaster(object):
@@ -35,8 +38,8 @@ class ZmqDataBroadcaster(object):
     See documentation of the '__init__' function.
     """
 
-    def __init__(self, hostname=None, port=None):
-        # type: (Union[str, None], Union[int, None]) -> None
+    def __init__(self, url):
+        # type: (Union[str, None]) -> None
         """
         ZMQ-based data-broadcasting socket for OM monitors.
 
@@ -54,15 +57,13 @@ class ZmqDataBroadcaster(object):
             port(Union[int, None]): the port where the socket will be opened. If None,
                 the socket will be opened at port 12321. Defaults to None.
         """
-        self._context = zmq.Context()
-        self._sock = self._context.socket(zmq.PUB)
-        if hostname is not None:
-            bhostname = hostname  # type: str
-        else:
+        self._context = zmq.Context()  # type: Any
+        self._sock = self._context.socket(zmq.PUB)  # type: Any
+        if url is None:
             # If required, uses the python socket module to autodetect the hostname of
             # the machine where the OM monitor is running.
             # TODO: Check mypy output for these lines.
-            bhostname = [
+            hostname = [
                 (
                     s.connect(("8.8.8.8", 80)),  # type: ignore
                     s.getsockname()[0],
@@ -71,15 +72,24 @@ class ZmqDataBroadcaster(object):
                 for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
             ][0][1]
             # TODO: Fix types
-        if port is not None:
-            bport = port  # type: int
-        else:
-            bport = 12321
+            url = "tcp://{0}:12321".format(hostname)
+
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
         self._sock.set_hwm(1)
-        self._sock.bind("tcp://%s:%d" % (bhostname, bport))
-        print("Broadcasting data at {0}:{1}".format(bhostname, bport))
+        try:
+            self._sock.bind(url)
+        except zmq.error.ZMQError as exc:
+            raise_from(
+                exc=exceptions.OmInvalidDataBroadcastUrl(
+                    "The format of the provided data broadcasting URL is not valid. "
+                    "The URL must be in the format tcp://hostname:port or in the "
+                    "format ipc:///path/to/socket, and in the latter case the user "
+                    "must have the correct permissions to access the socket."
+                ),
+                cause=exc,
+            )
+        print("Broadcasting data at {0}".format(url))
         sys.stdout.flush()
 
     def send_data(self, tag, message):

@@ -56,6 +56,16 @@ that HiDRA is not running or that the source string provided to OM points to the
 wrong machine.
 
 
+OmInvalidDataBroadcastUrl
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The format of the provided data broadcasting URL (the parameter *data_broadcast_url* in
+the *crystallography* section of the configuration file) is not valid. The URL must
+be in a format accepted by the ZeroMQ library. If the ipc protocol is used with ZeroMQ,
+the user running OM must additionally have the correct permissions to access the ipc
+socket.
+
+
 OmInvalidSourceError
 ^^^^^^^^^^^^^^^^^^^^
 

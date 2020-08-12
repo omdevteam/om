@@ -333,14 +333,11 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             shape=self._virt_powd_plot_img_shape, dtype=numpy.float32
         )
 
-        broadcast_socket_ip = self._monitor_params.get_param(
-            group="crystallography", parameter="broadcast_ip", parameter_type=str
+        data_broadcast_url = self._monitor_params.get_param(
+            group="crystallography", parameter="data_broadcast_url", parameter_type=str
         )  # type: Union[str, None]
-        broadcast_socket_port = self._monitor_params.get_param(
-            group="crystallography", parameter="broadcast_port", parameter_type=int
-        )  # type: Union[int, None]
         self._data_broadcast_socket = zmq_monitor.ZmqDataBroadcaster(
-            hostname=broadcast_socket_ip, port=broadcast_socket_port
+            url=data_broadcast_url
         )  # type: zmq_monitor.ZmqDataBroadcaster
 
         self._num_events = 0  # type: int

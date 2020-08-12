@@ -77,6 +77,12 @@ class OmInvalidSourceError(OmException):
     """
 
 
+class OmInvalidDataBroadcastUrl(OmException):
+    """
+    Raised if the format of the data broadcasting URL is not valid.
+    """
+
+
 class OmMissingDataEventHandlerError(OmException):
     """
     The implementation of a data event handler cannot be found on the system.
