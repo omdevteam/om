@@ -30,7 +30,12 @@ from future.utils import iteritems, raise_from  # type: ignore
 
 import psana  # type: ignore
 from om.data_retrieval_layer import base as drl_base
-from om.data_retrieval_layer import functions_cspad, functions_jungfrau, functions_psana
+from om.data_retrieval_layer import (
+    functions_cspad,
+    functions_epixka,
+    functions_jungfrau,
+    functions_psana,
+)
 from om.utils import exceptions, parameters
 
 
@@ -360,6 +365,52 @@ data_extraction_funcs`.
         return {
             "timestamp": functions_psana.timestamp,
             "detector_data": functions_jungfrau.detector_data,
+            "beam_energy": functions_psana.beam_energy,
+            "detector_distance": functions_psana.detector_distance,
+            "timetool_data": functions_psana.timetool_data,
+            "digitizer_data": functions_psana.digitizer_data,
+            "opal_data": functions_psana.opal_data,
+            "optical_laser_active": functions_psana.optical_laser_active,
+            "xrays_active": functions_psana.xrays_active,
+        }
+
+
+class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
+    """
+    See documentation of the __init__ function.
+    """
+
+    def __init__(self, monitor_parameters, source):
+        # type: (parameters.MonitorParams, str) -> None
+        """
+        Data event handler for events recovered at CXI (LCLS).
+
+        See documentation of the function in the base class:
+        :func:`~PsanaDataEventHandler.__init.py__` .
+
+        This class handles detector events recovered from psana at the LCLS facility.
+        """
+        super(MfxLclsDataEventHandler, self).__init__(
+            monitor_parameters=monitor_parameters, source=source
+        )
+
+    @property
+    def data_extraction_funcs(self):
+        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+        """
+        Retrieves the Data Extraction Functions for CXI (LCLS).
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+data_extraction_funcs`.
+
+        This function retrieves the Data Extraction Functions available for the CXI
+        beamline at the LCLS facility, when data was collected after 2020 (using
+        the Jungfrau4M detector).
+        """
+        return {
+            "timestamp": functions_psana.timestamp,
+            "detector_data": functions_epixka.epixka2m_detector_data,
             "beam_energy": functions_psana.beam_energy,
             "detector_distance": functions_psana.detector_distance,
             "timetool_data": functions_psana.timetool_data,

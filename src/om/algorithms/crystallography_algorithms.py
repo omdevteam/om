@@ -81,6 +81,13 @@ def get_peakfinder8_info(detector_type):
             "nasics_x": 1,
             "nasics_y": 8,
         }
+    elif detector_type == "epix10k2M":
+        peakfinder8_info = {
+            "asic_nx": 384,
+            "asic_ny": 352,
+            "nasics_x": 1,
+            "nasics_y": 16,
+        }
     else:
         raise RuntimeError(
             "The peakfinder8 information for the {0} detector "
