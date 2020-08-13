@@ -504,23 +504,33 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             sys.stdout.flush()
             self._old_time = now_time
 
-    def end_processing(self, role, rank):
-        # type: (str, int) -> None
+    def end_processing_on_processing_node(self, node_rank, rank_pool_size):
+        # type: (int, int) -> None
         """
-        Executes end-of-processing actions.
+        Executes end-of-processing actions on the processing nodes.
 
         See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.end_processing`.
+        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.
 
-        This function is called by the parallelization engine on the processing and
-        collecting nodes at the end of the processing, immediately before stopping.
+        Prints a message on the console and ends processing.
         """
-        if role == "processing":
-            print(
-                "Processing finished. OM has processed {0} events in total.".format(
-                    rank
-                )
+        print("Processing node {0} shutting down.".format(node_rank))
+        sys.stdout.flush()
+
+    def end_processing_on_collecting_node(self, node_rank, rank_pool_size):
+        # type: (int, int) -> None
+        """
+        Executes end-of-processing actions on the processing nodes.
+
+        See documentation of the function in the base class:
+        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.
+
+        Prints a message on the console and ends processing.
+        """
+        print(node_rank)
+        print(
+            "Processing finished. OM has processed {0} events in total.".format(
+                self._num_events
             )
-        if role == "collecting":
-            print("Collecting node shutting down.")
+        )
         sys.stdout.flush()

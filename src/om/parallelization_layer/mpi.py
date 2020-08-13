@@ -144,10 +144,6 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                             print("All processing nodes have run out of events.")
                             print("Shutting down.")
                             sys.stdout.flush()
-                            print(
-                                "Processing finished. OM has processed {0} events "
-                                "in total.".format(self._num_collected_events)
-                            )
                             self._monitor.end_processing_on_collecting_node(
                                 self._rank, self._mpi_size
                             )
@@ -222,7 +218,7 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=0)
             if req:
                 req.Wait()
-            self._monitor.end_processing(self._rank, self._mpi_size)
+            self._monitor.end_processing_on_processing_node(self._rank, self._mpi_size)
             MPI.Finalize()
             exit(0)
 
