@@ -32,7 +32,7 @@ import psana  # type: ignore
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import (
     functions_cspad,
-    functions_epixka,
+    functions_epix10ka,
     functions_jungfrau,
     functions_psana,
 )
@@ -410,7 +410,7 @@ data_extraction_funcs`.
         """
         return {
             "timestamp": functions_psana.timestamp,
-            "detector_data": functions_epixka.epixka2m_detector_data,
+            "detector_data": functions_epix10ka.epixka2m_detector_data,
             "beam_energy": functions_psana.beam_energy,
             "detector_distance": functions_psana.detector_distance,
             "timetool_data": functions_psana.timetool_data,
