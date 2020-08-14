@@ -42,12 +42,9 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    # jungfrau_psana = event["additional_info"]["psana_detector_interface"][
-    #     "detector_data"
-    # ].raw(event["data"])
     jungfrau_psana = event["additional_info"]["psana_detector_interface"][
         "detector_data"
-    ].raw(event["data"])
+    ].calib(event["data"])
     if jungfrau_psana is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector data from psana."

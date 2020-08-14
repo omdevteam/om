@@ -44,7 +44,7 @@ def epixka2m_detector_data(event):
     """
     epixka2m_psana = event["additional_info"]["psana_detector_interface"][
         "detector_data"
-    ].raw(event["data"])
+    ].calib(event["data"])
     if epixka2m_psana is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector data from psana."
