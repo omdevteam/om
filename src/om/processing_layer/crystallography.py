@@ -25,9 +25,11 @@ from __future__ import absolute_import, division, print_function
 import collections
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, List, Tuple, Type, Union
 
+import h5py  # type: ignore
 import numpy  # type: ignore
+from future.utils import raise_from  # type: ignore
 
 from om.algorithms import crystallography_algorithms as cryst_algs
 from om.algorithms import generic_algorithms as gen_algs
@@ -189,6 +191,34 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             )  # type: Union[str, None]
         else:
             pf8_bad_pixel_map_hdf5_path = None
+
+        if pf8_bad_pixel_map_fname is not None:
+            try:
+                with h5py.File(pf8_bad_pixel_map_fname, "r") as hdf5_file_handle:
+                    bad_pixel_map = hdf5_file_handle[pf8_bad_pixel_map_hdf5_path][
+                        :
+                    ]  # type: Union[numpy.ndarray, None]
+            except (IOError, OSError, KeyError) as exc:
+                exc_type, exc_value = sys.exc_info()[
+                    :2
+                ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
+                raise_from(
+                    # TODO: Fix type check
+                    exc=RuntimeError(
+                        "The following error occurred while reading the {0} field"
+                        "from the {1} bad pixel map HDF5 file:"
+                        "{2}: {3}".format(
+                            pf8_bad_pixel_map_fname,
+                            pf8_bad_pixel_map_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ),
+                    cause=exc,
+                )
+        else:
+            bad_pixel_map = None
+
         self._peak_detection = cryst_algs.Peakfinder8PeakDetection(
             max_num_peaks=pf8_max_num_peaks,
             asic_nx=pf8_detector_info["asic_nx"],
@@ -202,8 +232,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             local_bg_radius=pf8_local_bg_radius,
             min_res=pf8_min_res,
             max_res=pf8_max_res,
-            bad_pixel_map_filename=pf8_bad_pixel_map_fname,
-            bad_pixel_map_hdf5_path=pf8_bad_pixel_map_hdf5_path,
+            bad_pixel_map=bad_pixel_map,
             radius_pixel_map=self._pixelmaps["radius"],
         )  # type: cryst_algs.Peakfinder8PeakDetection
 
@@ -316,22 +345,25 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             * int(max(abs(self._pixelmaps["x"].max()), abs(self._pixelmaps["x"].min())))
             + 2
         )  # type: int
-        self._virt_powd_plot_img_shape = (y_minimum, x_minimum)
-        self._img_center_x = int(self._virt_powd_plot_img_shape[1] / 2)
-        self._img_center_y = int(self._virt_powd_plot_img_shape[0] / 2)
+        visual_img_shape = (y_minimum, x_minimum)
+        self._img_center_x = int(visual_img_shape[1] / 2)
+        self._img_center_y = int(visual_img_shape[0] / 2)
         self._visual_pixelmap_x = (
             numpy.array(self._pixelmaps["x"], dtype=numpy.int)
-            + self._virt_powd_plot_img_shape[1] // 2
+            + visual_img_shape[1] // 2
             - 1
         ).flatten()  # type: numpy.ndarray
         self._visual_pixelmap_y = (
             numpy.array(self._pixelmaps["y"], dtype=numpy.int)
-            + self._virt_powd_plot_img_shape[0] // 2
+            + visual_img_shape[0] // 2
             - 1
         ).flatten()  # type: numpy.ndarray
         self._virt_powd_plot_img = numpy.zeros(
-            shape=self._virt_powd_plot_img_shape, dtype=numpy.float32
-        )
+            visual_img_shape, dtype=numpy.int32
+        )  # type: numpy.ndarray
+        self._frame_data_img = numpy.zeros(
+            visual_img_shape, dtype=numpy.float32
+        )  # type: numpy.ndarray
 
         data_broadcast_url = self._monitor_params.get_param(
             group="crystallography", parameter="data_broadcast_url", parameter_type=str
@@ -475,20 +507,26 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             # wrapped into a list because the receiving programs usually expect lists
             # of aggregated events as opposed to single events.
 
-            frame_data_img = numpy.zeros_like(
-                self._virt_powd_plot_img
-            )  # type: numpy.ndarray
-            frame_data_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
-                received_data["detector_data"].ravel().astype(frame_data_img.dtype)
+            self._frame_data_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
+                received_data["detector_data"]
+                .ravel()
+                .astype(self._frame_data_img.dtype)
             )
 
             self._data_broadcast_socket.send_data(
                 tag=u"view:omframedata",
                 message={
-                    "frame_data": frame_data_img,
+                    "frame_data": self._frame_data_img,
                     "timestamp": received_data["timestamp"],
                     "peak_list_x_in_frame": peak_list_x_in_frame,
                     "peak_list_y_in_frame": peak_list_y_in_frame,
+                },
+            )
+            self._data_broadcast_socket.send_data(
+                tag=u"view:omtweakingdata",
+                message={
+                    "detector_data": received_data["detector_data"],
+                    "timestamp": received_data["timestamp"],
                 },
             )
 

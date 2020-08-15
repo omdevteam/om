@@ -23,12 +23,9 @@ This module contains algorithms that carry out crystallography-related data proc
 """
 from __future__ import absolute_import, division, print_function
 
-import sys
-from typing import Dict, List, Tuple, Type, Union
+from typing import Dict, List, Tuple, Union
 
-import h5py  # type: ignore
 import numpy  # type: ignore
-from future.utils import raise_from  # type: ignore
 from mypy_extensions import TypedDict
 
 from om.lib.peakfinder8_extension import peakfinder_8
@@ -116,8 +113,7 @@ class Peakfinder8PeakDetection(object):
         local_bg_radius,  # type: int
         min_res,  # type: int
         max_res,  # type: int
-        bad_pixel_map_filename,  # type: Union[str, None]
-        bad_pixel_map_hdf5_path,  # type: Union[str, None]
+        bad_pixel_map,  # type: Union[numpy.ndarray, None]
         radius_pixel_map,  # type: numpy.ndarray
     ):
         # type: (...) -> None
@@ -163,12 +159,10 @@ class Peakfinder8PeakDetection(object):
 
             max_res (int): the maximum resolution for a peak in pixels.
 
-            bad_pixel_map_filename (Union[str, None): the absolute or relative path to
-                an HDF5 file containing a bad pixel map. The map should mark areas of
-                the data frame that must be excluded from the peak search. If this and
-                the 'bad_pixel_map_hdf5_path' arguments are not None, the map is loaded
-                and will be used by the algorithm. Otherwise no area is excluded from
-                the search. Defaults to None.
+            bad_pixel_map (Union[numpy.ndarray, None): an array storing the a bad
+                pixel map. The map should mark areas of the data frame that must be
+                excluded from the peak search. If this argument is None, no area will
+                be excluded from the search. Defaults to None.
 
                 * The map must be a numpy array of the same shape as the data frame on
                   which the algorithm will be applied.
@@ -179,12 +173,6 @@ class Peakfinder8PeakDetection(object):
 
                 * The map is only used to exclude areas from the peak search: the data
                   is not modified in any way.
-
-            bad_pixel_map_hdf5_path (Union[str, None): the internal HDF5 path to the
-                data block where the bad pixel map is stored.
-
-                * If the 'bad_pixel_map_filename' argument is not None, this argument
-                  must also be provided, and cannot be None. Otherwise it is ignored.
 
             radius_pixel_map (numpy.ndarray): a numpy array with radius information.
 
@@ -208,34 +196,8 @@ class Peakfinder8PeakDetection(object):
         self._radius_pixel_map = radius_pixel_map  # type: numpy.ndarray
         self._min_res = min_res  # type: int
         self._max_res = max_res  # type: int
+        self._mask = bad_pixel_map  # type: numpy.ndarray
         self._mask_initialized = False  # type: bool
-
-        if bad_pixel_map_filename is not None:
-            try:
-                with h5py.File(bad_pixel_map_filename, "r") as hdf5_file_handle:
-                    self._mask = hdf5_file_handle[bad_pixel_map_hdf5_path][
-                        :
-                    ]  # type: Union[numpy.ndarray, None]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[
-                    :2
-                ]  # type: Union[Type[BaseException], None], Union[BaseException, None]
-                raise_from(
-                    # TODO: Fix type check
-                    exc=RuntimeError(
-                        "The following error occurred while reading the {0} field"
-                        "from the {1} bad pixel map HDF5 file:"
-                        "{2}: {3}".format(
-                            bad_pixel_map_filename,
-                            bad_pixel_map_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
-                        )
-                    ),
-                    cause=exc,
-                )
-        else:
-            self._mask = None
 
     def find_peaks(self, data):
         # type: (numpy.ndarray) -> TypePeakList
