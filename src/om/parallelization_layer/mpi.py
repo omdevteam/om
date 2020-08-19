@@ -78,32 +78,6 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                 self._rank, self._mpi_size
             )
 
-    # def get_rank(self):
-    #     # type: () -> int
-    #     """
-    #     Retrieves the rank of the current node in the MPI parallelization engine.
-
-    #     See documentation of the function in the base class:
-    #     :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_rank`
-
-    #     For the MPI-based parallelization engine, the node rank corresponds to the MPI
-    #     rank.
-    #     """
-    #     return self._rank
-
-    # def get_node_pool_size(self):
-    #     # type: () -> int
-    #     """
-    #     Retrieves the size of the OM node pool in the MPI parallelization engine.
-
-    #     See documentation of the function in the base class:
-    #     :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_node_pool_size`
-
-    #     For the MPI-based parallelization engine, the node pool size is equivalent to
-    #     the MPI pool size.
-    #     """
-    #     return self._mpi_size
-
     def start(self):  # noqa: C901
         # type: () -> None
         """
@@ -113,14 +87,6 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         :func:`~om.parallelization_layer.base.OmParallelizationEngine.start` .
         """
         if self._rank == 0:
-            print("Starting OM with the following parameters:")
-            # print(
-            #     json.dumps(
-            #         self._monitor_params.get_all_parameters(),
-            #         indent=4,
-            #         sort_keys=True
-            #     )
-            # )
             print(
                 "You are using an OM real-time monitor. Please cite: "
                 "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
