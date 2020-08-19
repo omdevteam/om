@@ -80,15 +80,17 @@ class ZmqDataBroadcaster(object):
         try:
             self._sock.bind(url)
         except zmq.error.ZMQError as exc:
-            raise_from(
-                exc=exceptions.OmInvalidDataBroadcastUrl(
-                    "The format of the provided data broadcasting URL is not valid. "
-                    "The URL must be in the format tcp://hostname:port or in the "
-                    "format ipc:///path/to/socket, and in the latter case the user "
-                    "must have the correct permissions to access the socket."
-                ),
-                cause=exc,
-            )
+            exc_type, exc_value = sys.exc_info()[:2]
+            if exc_type is not None:
+                raise_from(
+                    exc=exceptions.OmInvalidDataBroadcastUrl(
+                        "The setup of the data broadcasting socket failed due to the "
+                        "following error: {0}: {1}.".format(
+                            exc_type.__name__, exc_value
+                        )
+                    ),
+                    cause=exc,
+                )
         print("Broadcasting data at {0}".format(url))
         sys.stdout.flush()
 

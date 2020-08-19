@@ -49,11 +49,21 @@ def _import_class(layer, layer_filename, class_name):
                 "om.{0}.{1}".format(layer, layer_filename)
             )
         except ImportError:
-            raise exceptions.OmMissingLayerModuleFileError(
-                "The python module file {0}.py with the implementation of the OM {1} "
-                "cannot be found or loaded.".format(layer_filename, layer)
-            )
-
+            exc_type, exc_value = sys.exc_info()[:2]
+            if exc_type is not None:
+                raise_from(
+                    exc=exceptions.OmInvalidDataBroadcastUrl(
+                        "The python module file {0}.py with the implementation of the "
+                        "OM {1} cannot be found or loaded due to the following"
+                        "error: {2}: {3}.".format(
+                            layer_filename,
+                            layer,
+                            exc_type.__name__,
+                            exc_value
+                        )
+                    ),
+                    cause=exc,
+                )
     try:
         imported_class = getattr(imported_layer, class_name)  # type: Type[T]
     except AttributeError:
