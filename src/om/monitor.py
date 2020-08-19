@@ -23,6 +23,7 @@ This module contains the main function that instantiates an OM monitor.
 from __future__ import absolute_import, division, print_function
 
 import importlib
+import signal
 import sys
 from types import ModuleType
 from typing import Type, TypeVar
@@ -103,6 +104,8 @@ def main(source, config, debug):
     SOURCE: the source of data for the OM monitor. The exact format of this string
     depends on the specific Data Extraction Layer currently used (see documentation).
     """
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     # Sets a custom exception handler to deal with OM-specific exceptions.
     if not debug:
         sys.excepthook = exceptions.om_exception_handler
