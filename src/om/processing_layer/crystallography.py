@@ -548,7 +548,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
         Prints a message on the console and ends processing.
         """
-        print(node_rank)
         print(
             "Processing finished. OM has processed {0} events in total.".format(
                 self._num_events
