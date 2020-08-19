@@ -172,7 +172,13 @@ def peakfinder_8_with_pixel_information(int max_num_peaks, float[:,::1] data,
 
     freePeakList(peak_list)
 
-    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,
-            peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
+    return (
+        peak_list_x,
+        peak_list_y,
+        peak_list_value,
+        peak_list_npix,
+        peak_list_maxi,
+        peak_list_snr
+    )
 
 

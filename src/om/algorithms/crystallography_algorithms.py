@@ -32,7 +32,15 @@ from om.lib.peakfinder8_extension import peakfinder_8
 
 TypePeakList = TypedDict(
     "TypePeakList",
-    {"num_peaks": int, "fs": List[float], "ss": List[float], "intensity": List[float]},
+    {
+        "num_peaks": int,
+        "fs": List[float],
+        "ss": List[float],
+        "intensity": List[float],
+        "num_pixels": List[float],
+        "max_pixel_intensity": List[float],
+        "snr": List[float],
+    },
     total=True,
 )
 
@@ -228,6 +236,15 @@ class Peakfinder8PeakDetection(object):
 
             - A key named 'intensity' whose value is a list of integrated intensities
               for the detected peaks.
+
+            - A key named 'num_pixels' whose value is is a list storing the number of
+              pixels that make up each detected peak.
+
+            - A key named 'max_pixel_intensity' whose value is a list storing, for each
+              peak, the value of the pixel with the maximum intensity.
+
+            - A key named 'snr' whose value is a list storing  the signal-to-noise
+              ratio of each detected peak.
         """
         if not self._mask_initialized:
             if self._mask is None:
@@ -256,11 +273,14 @@ class Peakfinder8PeakDetection(object):
             self._min_pixel_count,
             self._max_pixel_count,
             self._local_bg_radius,
-        )  # type: Tuple[List[float], List[float], List[float]]
+        )  # type: Tuple[List[float], ...]
 
         return {
             "num_peaks": len(peak_list[0]),
             "fs": peak_list[0],
             "ss": peak_list[1],
             "intensity": peak_list[2],
+            "num_pixels": peak_list[3],
+            "max_pixel_intensity": peak_list[4],
+            "snr": peak_list[5],
         }
