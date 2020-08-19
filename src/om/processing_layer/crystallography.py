@@ -55,10 +55,10 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         calibration, dark correction and gain correction. It detects Bragg peaks in
         each detector frame using the peakfinder8 algorithm from Cheetah. It provides
         information about the location and integrated intensity of each peak.
-        Additionally, it calculates the evolution of the hit and saturation rates over
-        time. It broadcasts all this information over a network socket for
-        visualization by other programs. Optionally, it can also broadcast calibrated
-        and corrected detector data frames.
+        Additionally, it calculates the evolution of the hit rate over time. It
+        broadcasts all this information over a network socket for visualization by
+        other programs. Optionally, it can also broadcast calibrated and corrected
+        detector data frames.
         """
         super(CrystallographyMonitor, self).__init__(
             monitor_parameters=monitor_parameters
@@ -236,12 +236,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             radius_pixel_map=self._pixelmaps["radius"],
         )  # type: cryst_algs.Peakfinder8PeakDetection
 
-        self._max_saturated_peaks = self._monitor_params.get_param(
-            group="crystallography",
-            parameter="max_saturated_peaks",
-            parameter_type=int,
-            required=True,
-        )  # type: int
         self._min_num_peaks_for_hit = self._monitor_params.get_param(
             group="crystallography",
             parameter="min_num_peaks_for_hit",
@@ -251,12 +245,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         self._max_num_peaks_for_hit = self._monitor_params.get_param(
             group="crystallography",
             parameter="max_num_peaks_for_hit",
-            parameter_type=int,
-            required=True,
-        )  # type: int
-        self._saturation_value = self._monitor_params.get_param(
-            group="crystallography",
-            parameter="saturation_value",
             parameter_type=int,
             required=True,
         )  # type: int
@@ -399,10 +387,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         peak_list = self._peak_detection.find_peaks(
             corrected_detector_data
         )  # Tuple[List[float], ...]
-        frame_is_saturated = (
-            len([x for x in peak_list["intensity"] if x > self._saturation_value])
-            > self._max_saturated_peaks
-        )  # type: bool
         frame_is_hit = (
             self._min_num_peaks_for_hit
             < len(peak_list["intensity"])
@@ -410,7 +394,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         )  # type: bool
 
         processed_data["timestamp"] = data["timestamp"]
-        processed_data["frame_is_saturated"] = frame_is_saturated
         processed_data["frame_is_hit"] = frame_is_hit
         processed_data["detector_distance"] = data["detector_distance"]
         # processed_data["detector_distance"] = 300
