@@ -139,7 +139,7 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                         print("Finalizing {0}".format(received_data[1]))
                         self._num_nomore += 1
                         # When all processing nodes have finished, calls the
-                        # 'end_processing' function then shuts down.
+                        # 'end_processing_on_collecting_node' function then shuts down.
                         if self._num_nomore == self._mpi_size - 1:
                             print("All processing nodes have run out of events.")
                             print("Shutting down.")
@@ -212,13 +212,23 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                     req.Wait()
                 self._data_event_handler.close_event(event)
 
-            # After finishing iterating over the events to process, sends a message to
-            # the collecting node saying that there are no more events.
+            # After finishing iterating over the events to process, calls the
+            # end_processing function, and if the function returns something, sends it
+            # to the processing node.
+            final_data = self._monitor.end_processing_on_processing_node(
+                self._rank, self._mpi_size
+            )  # type: Union[Dict[str, Any], None]
+            if final_data is not None:
+                req = MPI.COMM_WORLD.isend((final_data, self._rank), dest=0, tag=0)
+                if req:
+                    req.Wait()
+
+            # Sends a message to the collecting node saying that there are no more
+            # events.
             end_dict = {"end": True}
             req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=0)
             if req:
                 req.Wait()
-            self._monitor.end_processing_on_processing_node(self._rank, self._mpi_size)
             MPI.Finalize()
             exit(0)
 

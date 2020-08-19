@@ -23,7 +23,7 @@ This module contains the abstract class that defines an OM monitor.
 from __future__ import absolute_import, division, print_function
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 
 from future.utils import with_metaclass  # type: ignore
 
@@ -144,12 +144,14 @@ class OmMonitor(with_metaclass(ABCMeta)):
         pass
 
     def end_processing_on_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> None
+        # type: (int, int) -> Union[Dict[str, Any], None]
         """
         Executes end-of-processing actions on a processing node.
 
         This function is called by the parallelization engine on the processing nodes
-        at the end of the processing, immediately before stopping.
+        at the end of the processing, immediately before stopping. The function can,
+        optionally, return a dictionary. If a dictionary is returned by this function,
+        it is transferred to the collecting node.
 
         Arguments:
 
@@ -158,10 +160,16 @@ class OmMonitor(with_metaclass(ABCMeta)):
 
             node_pool_size (int): the total number of nodes in the OM pool, including
                 all the processing nodes and the collecting node.
+
+        Returns:
+
+            Union[Dict[str, Any], None]: A dictionary storing information to be sent
+            to the processing node (Optional: if this function returns nothing, no
+            information is transferred to the processing node.
         """
         del node_rank
         del node_pool_size
-        pass
+        return None
 
     def end_processing_on_collecting_node(self, node_rank, node_pool_size):
         # type: (int, int) -> None
