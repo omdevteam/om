@@ -28,6 +28,7 @@ from types import ModuleType
 from typing import Type, TypeVar
 
 import click
+from future.utils import raise_from  # type: ignore
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.parallelization_layer import base as parallel_layer_base
@@ -48,18 +49,15 @@ def _import_class(layer, layer_filename, class_name):
             imported_layer = importlib.import_module(
                 "om.{0}.{1}".format(layer, layer_filename)
             )
-        except ImportError:
+        except ImportError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
                 raise_from(
                     exc=exceptions.OmInvalidDataBroadcastUrl(
                         "The python module file {0}.py with the implementation of the "
-                        "OM {1} cannot be found or loaded due to the following"
+                        "OM {1} cannot be found or loaded due to the following "
                         "error: {2}: {3}.".format(
-                            layer_filename,
-                            layer,
-                            exc_type.__name__,
-                            exc_value
+                            layer_filename, layer, exc_type.__name__, exc_value
                         )
                     ),
                     cause=exc,
