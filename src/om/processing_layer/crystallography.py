@@ -353,6 +353,11 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             visual_img_shape, dtype=numpy.float32
         )  # type: numpy.ndarray
 
+        first_panel = list(geometry["panels"].keys())[0]  # type: str
+        self._first_panel_coffset = geometry["panels"][first_panel][
+            "coffset"
+        ]  # type: float
+
         data_broadcast_url = self._monitor_params.get_param(
             group="crystallography", parameter="data_broadcast_url", parameter_type=str
         )  # type: Union[str, None]
@@ -478,6 +483,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 "virtual_powder_plot": self._virt_powd_plot_img,
                 "beam_energy": received_data["beam_energy"],
                 "detector_distance": received_data["detector_distance"],
+                "first_panel_coffset": self._first_panel_coffset,
                 "pixel_size": self._pixel_size,
             },
         )
