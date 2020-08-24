@@ -123,7 +123,7 @@ def beam_energy_init(monitor_params):
     """
     del monitor_params
     #psana.Detector("EBeam")
-    return psana.Detector("SIOC:SYS0:ML00:AO541")
+    return psana.Detector("SIOC:SYS0:ML00:AO192")
 
 
 def timetool_data_init(monitor_params):
@@ -346,15 +346,20 @@ def beam_energy(event):
     #    .get(event["data"])
     #    .ebeamPhotonEnergy()
     #)
-    beam_en = event["additional_info"]["psana_detector_interface"][
+    wavelength = event["additional_info"]["psana_detector_interface"][
         "beam_energy"
     ]()
-    if beam_en is None:
+    if wavelength is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve beam energy information from psana."
         )
+    h = 6.626070e-34  # J.m
+    c = 2.99792458e8  # m/s
+    joulesPerEv = 1.602176621e-19  # J/eV
+    photonEnergy = (h / joulesPerEv * c) / (wavelength * 1e-9)
 
-    return cast(float, beam_en)
+    return cast(float, photonEnergy)
+    #return cast(float, beam_en)
 
 
 def timetool_data(event):
