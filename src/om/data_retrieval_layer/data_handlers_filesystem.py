@@ -23,16 +23,49 @@ on disk.
 """
 import pathlib
 from typing import Any, Callable, Dict, Generator, List, TextIO
+import re
 
 import fabio  # type: ignore
+import h5py  # type: ignore
 import numpy  # type: ignore
 
+from om.algorithms import calibration_algorithms as calib_algs
 from om.data_retrieval_layer import base as drl_base
-from om.data_retrieval_layer import functions_pilatus
+from om.data_retrieval_layer import functions_jungfrau1M, functions_pilatus
 from om.utils import parameters
 
 
-class PilatusFilesDataEventHandler(drl_base.OmDataEventHandler):
+class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
+    def __init__(self, monitor_parameters, source):
+        # type: (parameters.MonitorParams, str) -> None
+        """
+        Data event handler for events recovered from files.
+
+        See documentation of the constructor of the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.__init.py__` .
+
+        This class handles detector events recovered from files.
+        """
+        super(FilesBaseDataEventHandler, self).__init__(
+            monitor_parameters=monitor_parameters, source=source,
+        )
+
+    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
+        """
+        Initializes file event handling on the collecting node.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+
+        There is no need to initialize a file source, so this function does nothing.
+        """
+        del node_rank
+        del node_pool_size
+
+
+class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
     """
     See documentation of the __init__ function.
     """
@@ -237,6 +270,242 @@ get_num_frames_in_event`.
 
         Returns:
 
+            int: the number of frames in the event.
+        """
+        del event
+
+        return 1
+
+
+class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
+    """
+    See documentation of the __init__ function.
+    """
+
+    def __init__(self, monitor_parameters, source):
+        # type: (parameters.MonitorParams, str) -> None
+        """
+        Data event handler for Pilatus files read from the filesystem.
+        See documentation of the constructor of the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler` .
+        """
+        super(Jungfrau1MFilesDataEventHandler, self).__init__(
+            monitor_parameters=monitor_parameters, source=source,
+        )
+
+    @property
+    def data_extraction_funcs(self):
+        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+        """
+        Retrieves the Data Extraction Functions for Pilatus files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+data_extraction_funcs`.
+        """
+        return {
+            "timestamp": functions_jungfrau1M.timestamp,
+            "beam_energy": functions_jungfrau1M.beam_energy,
+            "detector_distance": functions_jungfrau1M.detector_distance,
+            "detector_data": functions_jungfrau1M.detector_data,
+            "event_id": functions_jungfrau1M.event_id,
+            "frame_id": functions_jungfrau1M.frame_id,
+            "raw_filename": functions_jungfrau1M.raw_filename,
+            "raw_frame_number": functions_jungfrau1M.raw_frame_number,
+        }
+
+    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
+        # type: (int, int) -> Any
+        """
+        Initializes event handling on the processing nodes for Pilatus files.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+        """
+        required_data = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )  # type: List[str]
+
+        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
+            self.data_extraction_funcs, required_data
+        )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+
+        self._event_info_to_append = {}  # type: Dict[str, Any]
+
+        calibration = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="calibration",
+            parameter_type=bool,
+            required=True,
+        )  # type: bool
+        self._event_info_to_append["calibration"] = calibration
+        if calibration is True:
+            calibration_dark_filenames = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="calibration_dark_filenames",
+                parameter_type=list,
+                required=True,
+            )  # type: List[str]
+            calibration_gain_filenames = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="calibration_gain_filenames",
+                parameter_type=list,
+                required=True,
+            )  # type: List[str]
+            calibration_photon_energy_kev = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="calibration_photon_energy_kev",
+                parameter_type=float,
+                required=True,
+            )  # type: float
+            self._event_info_to_append[
+                "calibration_algorithm"
+            ] = calib_algs.Jungfrau1MCalibration(
+                calibration_dark_filenames,
+                calibration_gain_filenames,
+                calibration_photon_energy_kev,
+            )
+
+        if "beam_energy" in required_data:
+            self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="fallback_beam_energy_in_eV",
+                parameter_type=float,
+                required=True,
+            )
+        if "detector_distance" in required_data:
+            self._event_info_to_append[
+                "detector_distance"
+            ] = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="fallback_detector_distance_in_mm",
+                parameter_type=float,
+                required=True,
+            )
+
+    def event_generator(
+        self,
+        node_rank,  # type: int
+        node_pool_size,  # type: int
+    ):
+        # type: (...) -> Generator[Dict[str,Any], None, None]
+        """
+        Retrieves Jungfrau data events to process from the filesystem.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.event_generator`.
+
+        The frames to process are split evenly amongst the processing nodes, with the
+        exception of the last node, which might get a lower number depending on how
+        the number of events can be split.
+        """
+        # Computes how many events the current processing node should process. Splits
+        # the events as equally as possible amongst the processing nodes with the last
+        # processing node getting a smaller number of events if the number of events to
+        # be processed cannot be exactly divided by the number of processing nodes.
+        try:
+            with open(self._source, "r") as fhandle:
+                filelist = fhandle.readlines()  # type: List[str]
+        except (IOError, OSError) as exc:
+            raise_from(
+                exc=RuntimeError(
+                    "Error reading the {0} source file.".format(self._source)
+                ),
+                cause=exc,
+            )
+        frame_list = []  # type: List[Dict[str, Any]]  # TODO: Specify types better
+        for filename in filelist:
+            # input filename must be from panel 'd0'
+            if re.match(r".+_d0_.+\.h5", filename):
+                filename_d0 = pathlib.Path(
+                    filename.strip()
+                ).resolve()  # type: pathlib.Path
+            else:
+                continue
+            filename_d1 = re.sub(
+                r"(_d0_)(.+\.h5)", r"_d1_\2", str(filename_d0)
+            )  # type: str
+
+            h5files = (
+                h5py.File(pathlib.Path(filename_d0).absolute, "r"),
+                h5py.File(pathlib.Path(filename_d1).absolute, "r"),
+            )  # type: Tuple[Any, Any]
+
+            h5_data_path = "/data_" + re.findall(r"_(f\d+)_", filename)[0]  # type: str
+
+            frame_numbers = [
+                h5file["/frameNumber"][:] for h5file in h5files
+            ]  # List[numpy.ndarray]
+            for ind0, frame_number in enumerate(frame_numbers[0]):
+                try:
+                    ind1 = numpy.where(frame_numbers[1] == frame_number)[0][0]  # int
+                except IndexError:
+                    continue
+
+                # TODO: Type this dictionary
+                frame_list.append(
+                    {
+                        "h5files": h5files,
+                        "index": (ind0, ind1),
+                        "h5_data_path": h5_data_path,
+                        "frame_number": frame_number,
+                        "timestamp": h5files[0]["/timestamp"][ind0],
+                    }
+                )
+
+        num_frames_curr_node = int(
+            numpy.ceil(len(frame_list) / float(node_pool_size - 1))
+        )  # type int
+        frames_curr_node = frame_list[
+            ((node_rank - 1) * num_frames_curr_node) : (
+                node_rank * num_frames_curr_node
+            )
+        ]  # type: List[Dict[str, Any]]
+
+        print("Num frames current node:", node_rank, num_frames_curr_node)
+
+        data_event = {}  # type: Dict[str, Dict[str, Any]]
+        data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
+        data_event["additional_info"] = {}
+        data_event["additional_info"].update(self._event_info_to_append)
+
+        for entry in frames_curr_node:
+            data_event["additional_info"].update(entry)
+            data_event["additional_info"]["num_frames_curr_node"] = len(
+                frames_curr_node
+            )
+
+            yield data_event
+
+    def open_event(self, event):
+        # type: (Dict[str,Any]) -> None
+        """
+        Opens an event retrieved from Jungfrau files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.open_event`.
+        """
+        pass
+
+    def close_event(self, event):
+        # type: (Dict[str,Any]) -> None
+        """
+        Closes an event retrieved from Jungfrau files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.close_event` .
+        """
+        pass
+
+    def get_num_frames_in_event(self, event):
+        # type: (Dict[str,Any]) -> int
+        """
+        Gets the number of frames in an event retrieved from Pilatus files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+get_num_frames_in_event`.
+        Returns:
             int: the number of frames in the event.
         """
         del event

@@ -21,3 +21,91 @@ Algorithms for detector calibration.
 This module contains algorithms that apply corrections for artifacts caused by detector
 design or operation (i.e., not sample- or experiment-related).
 """
+import numpy  # type: ignore
+import h5py  # type: ignore
+
+from typing import Any, BinaryIO, List
+
+
+class Jungfrau1MCalibration(object):
+    """
+    See documentation of the '__init__' function.
+    """
+
+    def __init__(self, dark_filenames, gain_filenames, photon_energy_kev):
+        # type: (List[str], List[str], float) -> None
+        """
+        Calibration of the Jungfrau 1M detector.
+
+        This algorithm stores the calibration parameters for an Jungfrau 1M detector
+        and applies the calibration to a detector data frame upon request.
+
+        Arguments:
+
+            dark_filenames (List[str]): a list of relative or absolute paths to files
+                containing dark data for the calibration of the detector.
+
+            gain_filenames (List[str]): a list of relative or absolute paths to files
+                containing gain data for the calibration of the detector.
+
+            photon_energy_kev (float): the photon energy at which the detector will
+                be operated.
+        """
+        # 2 for Jungfrau 1M
+        num_panels = len(dark_filenames)  # type: int
+
+        self._dark = numpy.ndarray(
+            (3, 512 * num_panels, 1024), dtype=numpy.float32
+        )  # type: numpy.ndarray
+        self._gain = numpy.ndarray(
+            (3, 512 * num_panels, 1024), dtype=numpy.float64
+        )  # type: numpy.ndarray
+        for panel_id in range(num_panels):
+            gain_file = open(gain_filenames[panel_id], "rb")  # type: BinaryIO
+            dark_file = h5py.File(dark_filenames[panel_id], "r")  # type: Any
+            for gain in range(3):
+                self._dark[gain, 512 * panel_id : 512 * (panel_id + 1), :] = dark_file[
+                    "gain%d" % gain
+                ][:]
+                self._gain[
+                    gain, 512 * panel_id : 512 * (panel_id + 1), :
+                ] = numpy.fromfile(
+                    gain_file, dtype=numpy.float64, count=1024 * 512
+                ).reshape(
+                    (512, 1024)
+                )
+            gain_file.close()
+            dark_file.close()
+
+        # TODO: Energy should be in eV
+        self._photon_energy_kev = photon_energy_kev  # type: float
+
+    def apply_calibration(self, data):
+        # type: (numpy.ndarray) -> numpy.ndarray
+        """
+        Applies the calibration to a detector data frame.
+
+        This function determines the gain stage of each pixel in the data frame, and
+        applies the relevant gain and offset corrections.
+
+        Arguments:
+            data (numpy.ndarray): the detector data frame to calibrate.
+
+        Returns:
+            numpy.ndarray:  the corrected data frame.
+        """
+        corrected_data = data.astype(numpy.float32)  # type: numpy.ndarray
+
+        where_gain = [
+            numpy.where(data & 2 ** 14 == 0),
+            numpy.where((data & (2 ** 14) > 0) & (data & 2 ** 15 == 0)),
+            numpy.where(data & 2 ** 15 > 0),
+        ]  # type: List[numpy.ndarray]
+
+        for gain in range(3):
+            corrected_data[where_gain[gain]] -= self._dark[gain][where_gain[gain]]
+            corrected_data[where_gain[gain]] /= (
+                self._gain[gain][where_gain[gain]] * self._photon_energy_kev
+            )
+
+        return corrected_data

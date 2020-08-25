@@ -30,7 +30,7 @@ from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import (
     functions_cspad,
     functions_epix10ka,
-    functions_jungfrau,
+    functions_jungfrau4M,
     functions_psana,
 )
 from om.utils import exceptions, parameters
@@ -67,7 +67,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str,
     ) -> None:
         """
-        Data event handler for events recovered psana (LCLS).
+        Data event handler for events recovered from psana (LCLS).
 
         See documentation of the constructor of the base class:
         :func:`~om.data_retrieval_layer.base.DataEventHandler.__init.py__` .
@@ -360,7 +360,7 @@ data_extraction_funcs`.
         """
         return {
             "timestamp": functions_psana.timestamp,
-            "detector_data": functions_jungfrau.detector_data,
+            "detector_data": functions_jungfrau4M.detector_data,
             "beam_energy": functions_psana.beam_energy,
             "detector_distance": functions_psana.detector_distance,
             "timetool_data": functions_psana.timetool_data,
