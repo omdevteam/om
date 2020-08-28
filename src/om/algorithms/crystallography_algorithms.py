@@ -21,8 +21,6 @@ Algorithms for the processing of crystallography data.
 This module contains algorithms that carry out crystallography-related data processing
 (peak finding, etc.).
 """
-from __future__ import absolute_import, division, print_function
-
 from typing import Dict, List, Tuple, Union
 
 import numpy  # type: ignore
@@ -45,8 +43,7 @@ TypePeakList = TypedDict(
 )
 
 
-def get_peakfinder8_info(detector_type):
-    # type: (str) -> Dict[str, int]
+def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
     """
     Retrieves the peakfinder8 information for a specific detector.
 
@@ -66,12 +63,12 @@ def get_peakfinder8_info(detector_type):
         Dict[str, int]: a dictionary storing the peakfinder8 information.
     """
     if detector_type == "cspad":
-        peakfinder8_info = {
+        peakfinder8_info: Dict[str, int] = {
             "asic_nx": 194,
             "asic_ny": 185,
             "nasics_x": 8,
             "nasics_y": 8,
-        }  # type: Dict[str, int]
+        }
     elif detector_type == "pilatus":
         peakfinder8_info = {
             "asic_nx": 2463,
@@ -109,22 +106,21 @@ class Peakfinder8PeakDetection(object):
 
     def __init__(
         self,
-        max_num_peaks,  # type: int
-        asic_nx,  # type: int
-        asic_ny,  # type: int
-        nasics_x,  # type: int
-        nasics_y,  # type: int
-        adc_threshold,  # type: float
-        minimum_snr,  # type: float
-        min_pixel_count,  # type: int
-        max_pixel_count,  # type: int
-        local_bg_radius,  # type: int
-        min_res,  # type: int
-        max_res,  # type: int
-        bad_pixel_map,  # type: Union[numpy.ndarray, None]
-        radius_pixel_map,  # type: numpy.ndarray
-    ):
-        # type: (...) -> None
+        max_num_peaks: int,
+        asic_nx: int,
+        asic_ny: int,
+        nasics_x: int,
+        nasics_y: int,
+        adc_threshold: float,
+        minimum_snr: float,
+        min_pixel_count: int,
+        max_pixel_count: int,
+        local_bg_radius: int,
+        min_res: int,
+        max_res: int,
+        bad_pixel_map: Union[numpy.ndarray, None],
+        radius_pixel_map: numpy.ndarray,
+    ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
 
@@ -191,24 +187,23 @@ class Peakfinder8PeakDetection(object):
                   the center of the detector of the corresponding pixel in the data
                   frame.
         """
-        self._max_num_peaks = max_num_peaks  # type: int
-        self._asic_nx = asic_nx  # type: int
-        self._asic_ny = asic_ny  # type: int
-        self._nasics_x = nasics_x  # type: int
-        self._nasics_y = nasics_y  # type: int
-        self._adc_thresh = adc_threshold  # type: float
-        self._minimum_snr = minimum_snr  # type: float
-        self._min_pixel_count = min_pixel_count  # type: int
-        self._max_pixel_count = max_pixel_count  # type: int
-        self._local_bg_radius = local_bg_radius  # type: int
-        self._radius_pixel_map = radius_pixel_map  # type: numpy.ndarray
-        self._min_res = min_res  # type: int
-        self._max_res = max_res  # type: int
-        self._mask = bad_pixel_map  # type: numpy.ndarray
-        self._mask_initialized = False  # type: bool
+        self._max_num_peaks: int = max_num_peaks
+        self._asic_nx: int = asic_nx
+        self._asic_ny: int = asic_ny
+        self._nasics_x: int = nasics_x
+        self._nasics_y: int = nasics_y
+        self._adc_thresh: float = adc_threshold
+        self._minimum_snr: float = minimum_snr
+        self._min_pixel_count: int = min_pixel_count
+        self._max_pixel_count: int = max_pixel_count
+        self._local_bg_radius: int = local_bg_radius
+        self._radius_pixel_map: numpy.ndarray = radius_pixel_map
+        self._min_res: int = min_res
+        self._max_res: int = max_res
+        self._mask: numpy.ndarray = bad_pixel_map
+        self._mask_initialized: bool = False
 
-    def find_peaks(self, data):
-        # type: (numpy.ndarray) -> TypePeakList
+    def find_peaks(self, data: numpy.ndarray) -> TypePeakList:
         """
         Finds peaks in a detector data frame.
 
@@ -252,14 +247,14 @@ class Peakfinder8PeakDetection(object):
             else:
                 self._mask = self._mask.astype(numpy.int8)
 
-            res_mask = numpy.ones(
+            res_mask: numpy.ndarray = numpy.ones(
                 shape=self._mask.shape, dtype=numpy.int8
-            )  # type: numpy.ndarray
+            )
             res_mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             res_mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
             self._mask *= res_mask
 
-        peak_list = peakfinder_8(
+        peak_list: Tuple[List[float], ...] = peakfinder_8(
             self._max_num_peaks,
             data.astype(numpy.float32),
             self._mask,
@@ -273,7 +268,7 @@ class Peakfinder8PeakDetection(object):
             self._min_pixel_count,
             self._max_pixel_count,
             self._local_bg_radius,
-        )  # type: Tuple[List[float], ...]
+        )
 
         return {
             "num_peaks": len(peak_list[0]),

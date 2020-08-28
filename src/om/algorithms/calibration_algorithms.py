@@ -21,4 +21,3 @@ Algorithms for detector calibration.
 This module contains algorithms that apply corrections for artifacts caused by detector
 design or operation (i.e., not sample- or experiment-related).
 """
-from __future__ import absolute_import, division, print_function

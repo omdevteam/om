@@ -20,23 +20,18 @@ Monitor base class.
 
 This module contains the abstract class that defines an OM monitor.
 """
-from __future__ import absolute_import, division, print_function
-
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple, Union
-
-from future.utils import with_metaclass  # type: ignore
 
 from om.utils import parameters
 
 
-class OmMonitor(with_metaclass(ABCMeta)):
+class OmMonitor(ABC):
     """
     See documentation for the '__init__' function.
     """
 
-    def __init__(self, monitor_parameters):
-        # type: (parameters.MonitorParams) -> None
+    def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
         """
         The base class for an OM Monitor
 
@@ -52,8 +47,7 @@ class OmMonitor(with_metaclass(ABCMeta)):
         self._monitor_params = monitor_parameters
 
     @abstractmethod
-    def initialize_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> None
+    def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
         """
         Initializes an OM processing node.
 
@@ -69,8 +63,7 @@ class OmMonitor(with_metaclass(ABCMeta)):
         """
 
     @abstractmethod
-    def initialize_collecting_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> None
+    def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
         Initializes an OM collecting node.
 
@@ -86,8 +79,9 @@ class OmMonitor(with_metaclass(ABCMeta)):
         """
 
     @abstractmethod
-    def process_data(self, node_rank, node_pool_size, data):
-        # type: (int, int, Dict[str, Any]) -> Tuple[Dict[str, Any], int]
+    def process_data(
+        self, node_rank: int, node_pool_size: int, data: Dict[str, Any],
+    ) -> Tuple[Dict[str, Any], int]:
         """
         Processes a single frame in a data event.
 
@@ -121,8 +115,12 @@ class OmMonitor(with_metaclass(ABCMeta)):
         pass
 
     @abstractmethod
-    def collect_data(self, node_rank, node_pool_size, processed_data):
-        # type: (int, int, Tuple[Dict[str, Any], int]) -> None
+    def collect_data(
+        self,
+        node_rank: int,
+        node_pool_size: int,
+        processed_data: Tuple[Dict[str, Any], int],
+    ) -> None:
         """
         The function that the collecting node will invoke every time data is
         transferred from a processing node. The function accepts as input the
@@ -143,8 +141,9 @@ class OmMonitor(with_metaclass(ABCMeta)):
         """
         pass
 
-    def end_processing_on_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Union[Dict[str, Any], None]
+    def end_processing_on_processing_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Union[Dict[str, Any], None]:
         """
         Executes end-of-processing actions on a processing node.
 
@@ -171,8 +170,9 @@ class OmMonitor(with_metaclass(ABCMeta)):
         del node_pool_size
         return None
 
-    def end_processing_on_collecting_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> None
+    def end_processing_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Executes end-of-processing actions on the collecting node.
 

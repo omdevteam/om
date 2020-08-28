@@ -20,15 +20,12 @@ Retrieval of Pilatus detector data.
 
 This module contains functions that retrieve data from a Pilatus x-ray detector.
 """
-from __future__ import absolute_import, division, print_function
-
 from typing import Any, Dict, cast
 
 import numpy  # type: ignore
 
 
-def detector_data(event):
-    # type: (Dict[str, Any]) -> numpy.ndarray
+def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves one frame of Pilatus detector data from files (or HiDRA).
 
@@ -44,8 +41,7 @@ def detector_data(event):
     return event["data"].data
 
 
-def event_id(event):
-    # type: (Dict[str, Any]) -> str
+def event_id(event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for an event retrieved from Pilatus.
 
@@ -64,8 +60,7 @@ def event_id(event):
     return cast(str, event["additional_info"]["full_path"])
 
 
-def frame_id(event):
-    # type: (Dict[str, Any]) -> str
+def frame_id(event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for a Pilatus data frame.
 
@@ -87,8 +82,7 @@ def frame_id(event):
     return str(0)
 
 
-def timestamp(event):
-    # type: (Dict[str, Any]) -> numpy.float64
+def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of a Pilatus data event.
 
@@ -109,8 +103,7 @@ def timestamp(event):
     return cast(numpy.float64, event["additional_info"]["file_creation_time"])
 
 
-def beam_energy(event):
-    # type: (Dict[str, Any]) -> float
+def beam_energy(event: Dict[str, Any]) -> float:
     """
     Gets the beam energy for a Pilatus data event.
 
@@ -131,8 +124,7 @@ def beam_energy(event):
     return cast(float, event["additional_info"]["beam_energy"])
 
 
-def detector_distance(event):
-    # type: (Dict[str, Any]) -> float
+def detector_distance(event: Dict[str, Any]) -> float:
     """
     Gets the detector distance for a Pilatus data event.
 

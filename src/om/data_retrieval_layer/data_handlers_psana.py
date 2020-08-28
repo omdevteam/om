@@ -21,14 +21,11 @@ Retrieval and handling of data events from psana.
 This module contains classes that retrieve and process data events from the psana
 framework.
 """
-from __future__ import absolute_import, division, print_function
-
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
-from future.utils import iteritems, raise_from  # type: ignore
-
 import psana  # type: ignore
+
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import (
     functions_cspad,
@@ -39,18 +36,19 @@ from om.data_retrieval_layer import (
 from om.utils import exceptions, parameters
 
 
-def _psana_offline_event_generator(psana_source, node_rank, mpi_pool_size):
-    # type: (Any, int, int) -> Any
+def _psana_offline_event_generator(
+    psana_source: Any, node_rank: int, mpi_pool_size: int
+) -> Any:
     # Computes how many events the current processing node should process. Splits the
     # events as equally as possible amongst the processing nodes. If the number of
     # events cannot be exactly divided by the number of processing nodes, an additional
     # processing node is assigned the residual events.
     for run in psana_source.runs():
-        times = run.times()
-        num_events_curr_node = int(
+        times: Any = run.times()
+        num_events_curr_node: int = int(
             numpy.ceil(len(times) / float(mpi_pool_size - 1))
-        )  # type: int
-        events_curr_node = times[
+        )
+        events_curr_node: Any = times[
             (node_rank - 1) * num_events_curr_node : node_rank * num_events_curr_node
         ]
         for evt in events_curr_node:
@@ -64,11 +62,8 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
     """
 
     def __init__(
-        self,
-        monitor_parameters,  # type: parameters.MonitorParams
-        source,  # type: str
-    ):
-        # type: (...) -> None
+        self, monitor_parameters: parameters.MonitorParams, source: str,
+    ) -> None:
         """
         Data event handler for events recovered psana (LCLS).
 
@@ -97,8 +92,9 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
             },
         )
 
-    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the collecting node with psana.
 
@@ -112,8 +108,9 @@ initialize_event_source`.
         del node_rank
         del node_pool_size
 
-    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_processing_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the processing nodes with psana.
 
@@ -121,20 +118,20 @@ initialize_event_source`.
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
 initialize_event_source`.
         """
-        required_data = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
             required=True,
-        )  # type: List[str]
+        )
 
         self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
             self.data_extraction_funcs, required_data
         )
 
-        self._required_psana_detector_init_funcs = (
-            {}
-        )  # type: Dict[str, Callable[[parameters.MonitorParams],Any]]
+        self._required_psana_detector_init_funcs: Dict[
+            str, Callable[[parameters.MonitorParams], Any]
+        ] = ({})
 
         for func_name in required_data:
             try:
@@ -144,17 +141,14 @@ initialize_event_source`.
                     "{0}_init".format(func_name)
                 ]
             except KeyError as exc:
-                raise_from(
-                    exc=exceptions.OmMissingDataExtractionFunctionError(
-                        "Psana Detector initialization function {0}_init not "
-                        "defined".format(func_name)
-                    ),
-                    cause=exc,
-                )
+                raise exceptions.OmMissingDataExtractionFunctionError(
+                    "Psana Detector initialization function {0}_init not "
+                    "defined".format(func_name)
+                ) from exc
 
-        self._event_info_to_append = {}  # type: Dict[str, Any]
+        self._event_info_to_append: Dict[str, Any] = {}
 
-        calibration = self._monitor_params.get_param(
+        calibration: bool = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="calibration",
             parameter_type=bool,
@@ -163,11 +157,8 @@ initialize_event_source`.
         self._event_info_to_append["calibration"] = calibration
 
     def event_generator(
-        self,
-        node_rank,  # type: int
-        node_pool_size,  # type: int
-    ):
-        # type: (...) -> Generator[Dict[str, Any], None, None]
+        self, node_rank: int, node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
         """
         Retrieves events to process from psana at the LCLS facility.
 
@@ -179,9 +170,10 @@ initialize_event_source`.
             :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
                 HiDRA fails.
         """
+        # TODO: Check types of Generator
         # Detects if data is being read from an online or offline source.
         if "shmem" in self._source:
-            offline = False  # type: bool
+            offline: bool = False
         else:
             offline = True
         if offline and not self._source[-4:] == ":idx":
@@ -189,11 +181,11 @@ initialize_event_source`.
 
         # If the psana calibration directory is provided in the configuration file, it
         # is added as an option to psana before the DataSource is set.
-        psana_calib_dir = self._monitor_params.get_param(
+        psana_calib_dir: str = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="psana_calibration_directory",
             parameter_type=str,
-        )  # type: str
+        )
         if psana_calib_dir is not None:
             psana.setOption("psana.calib-dir", psana_calib_dir)
         else:
@@ -201,21 +193,21 @@ initialize_event_source`.
 
         psana_source = psana.DataSource(self._source)
 
-        data_event = {}  # type: Dict[str, Dict[str, Any]]
+        data_event: Dict[str, Dict[str, Any]] = {}
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
         data_event["additional_info"] = {}
 
         # Calls all the required psana detector interface initialization functions and
         # stores the returned objects in a dictionary.
         data_event["additional_info"]["psana_detector_interface"] = {}
-        for f_name, func in iteritems(self._required_psana_detector_init_funcs):
+        for f_name, func in self._required_psana_detector_init_funcs.items():
             data_event["additional_info"]["psana_detector_interface"][
                 f_name.split("_init")[0]
             ] = func(self._monitor_params)
 
         # Initializes the psana event source and starts retrieving events.
         if offline:
-            psana_events = _psana_offline_event_generator(
+            psana_events: Any = _psana_offline_event_generator(
                 psana_source=psana_source,
                 node_rank=node_rank,
                 mpi_pool_size=node_pool_size,
@@ -227,15 +219,14 @@ initialize_event_source`.
 
             # Recovers the timestamp from the psana event (as seconds from the Epoch)
             # and stores it in the event dictionary to be retrieved later.
-            timestamp_epoch_format = psana_event.get(psana.EventId).time()
+            timestamp_epoch_format: Any = psana_event.get(psana.EventId).time()
             data_event["additional_info"]["timestamp"] = numpy.float64(
                 str(timestamp_epoch_format[0]) + "." + str(timestamp_epoch_format[1])
             )
 
             yield data_event
 
-    def open_event(self, event):
-        # type: (Dict[str, Any]) -> None
+    def open_event(self, event: Dict[str, Any]) -> None:
         """
         Opens an event retrieved from psana at the LCLS facility.
 
@@ -250,8 +241,7 @@ initialize_event_source`.
         """
         del event
 
-    def close_event(self, event):
-        # type: (Dict[str, Any]) -> None
+    def close_event(self, event: Dict[str, Any]) -> None:
         """
         Closes an event retrieved from psana at the LCLS facility.
 
@@ -262,8 +252,7 @@ initialize_event_source`.
         """
         del event
 
-    def get_num_frames_in_event(self, event):
-        # type: (Dict[str, Any]) -> int
+    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in an event retrieved from psana at the LCLS facility.
 
@@ -288,8 +277,7 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
     See documentation of the __init__ function.
     """
 
-    def __init__(self, monitor_parameters, source):
-        # type: (parameters.MonitorParams, str) -> None
+    def __init__(self, monitor_parameters: parameters.MonitorParams, source: str):
         """
         Data event handler for events recovered at CXI (LCLS) before 2020.
 
@@ -303,8 +291,9 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
         )
 
     @property
-    def data_extraction_funcs(self):
-        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
         Retrieves the Data Extraction Functions for CXI (LCLS) before 2020.
 
@@ -334,8 +323,9 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
     See documentation of the __init__ function.
     """
 
-    def __init__(self, monitor_parameters, source):
-        # type: (parameters.MonitorParams, str) -> None
+    def __init__(
+        self, monitor_parameters: parameters.MonitorParams, source: str
+    ) -> None:
         """
         Data event handler for events recovered at CXI (LCLS).
 
@@ -349,8 +339,7 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
         )
 
     @property
-    def data_extraction_funcs(self):
-        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+    def data_extraction_funcs(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
         """
         Retrieves the Data Extraction Functions for CXI (LCLS).
 
@@ -380,8 +369,9 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
     See documentation of the __init__ function.
     """
 
-    def __init__(self, monitor_parameters, source):
-        # type: (parameters.MonitorParams, str) -> None
+    def __init__(
+        self, monitor_parameters: parameters.MonitorParams, source: str
+    ) -> None:
         """
         Data event handler for events recovered at CXI (LCLS).
 
@@ -395,8 +385,7 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
         )
 
     @property
-    def data_extraction_funcs(self):
-        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+    def data_extraction_funcs(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
         """
         Retrieves the Data Extraction Functions for CXI (LCLS).
 

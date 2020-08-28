@@ -21,30 +21,25 @@ Parallelization engine base class.
 This module contains the abstract class that defines an OM monitor parallelization
 engine.
 """
-from __future__ import absolute_import, division, print_function
-
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import List, Tuple, Union
-
-from future.utils import with_metaclass  # type: ignore
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.processing_layer import base as process_layer_base
 from om.utils import parameters
 
 
-class OmParallelizationEngine(with_metaclass(ABCMeta)):
+class OmParallelizationEngine(ABC):
     """
     See documentation of the __init__ function.
     """
 
     def __init__(
         self,
-        data_event_handler,  # type: data_ret_layer_base.OmDataEventHandler
-        monitor,  # type: process_layer_base.OmMonitor
-        monitor_parameters,  # type: parameters.MonitorParams
-    ):
-        # type: (...) -> None
+        data_event_handler: data_ret_layer_base.OmDataEventHandler,
+        monitor: process_layer_base.OmMonitor,
+        monitor_parameters: parameters.MonitorParams,
+    ) -> None:
         """
         The base class for an OM ParallelizationEngine.
 
@@ -78,31 +73,30 @@ OmMonitor`): a class defining the scientific data processing that the monitor
             monitor_parameters (:class:`~om.utils.parameters.MonitorParams`): an object
                 storing the OM monitor parameters from the configuration file.
         """
-        self._data_event_handler = (
+        self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
             data_event_handler
-        )  # type: data_ret_layer_base.OmDataEventHandler
-        self._monitor = monitor  # type: process_layer_base.OmMonitor
-        self._monitor_params = monitor_parameters
-        self._num_frames_in_event_to_process = self._monitor_params.get_param(
+        )
+        self._monitor: process_layer_base.OmMonitor = monitor
+        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._num_frames_in_event_to_process: int = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="num_frames_in_event_to_process",
-            parameter_type=str,
-        )  # type: int
-        frames_in_event_to_skip = self._monitor_params.get_param(
+            parameter_type=int,
+        )
+        frames_in_event_to_skip: List[int] = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="num_frames_in_event_to_process",
             parameter_type=list,
-        )  # type: List[int]
+        )
         if frames_in_event_to_skip is not None:
-            self._frames_in_event_to_skip = tuple(
+            self._frames_in_event_to_skip: Tuple[int, ...] = tuple(
                 frames_in_event_to_skip
-            )  # type: Tuple[int, ...]
+            )
         else:
             self._frames_in_event_to_skip = tuple()
 
     @abstractmethod
-    def start(self):
-        # type: () -> None
+    def start(self) -> None:
         """
         Starts the parallelization engine.
 
@@ -115,8 +109,7 @@ OmMonitor`): a class defining the scientific data processing that the monitor
         pass
 
     @abstractmethod
-    def shutdown(self, msg="Reason not provided."):
-        # type: (Union[str, None]) -> None
+    def shutdown(self, msg: Union[str, None] = "Reason not provided.") -> None:
         """
         Shuts down the parallelization engine.
 

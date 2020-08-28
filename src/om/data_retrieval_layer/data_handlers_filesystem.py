@@ -21,14 +21,11 @@ Retrieval and handling of data events from the filesystem.
 This module contains classes that retrieve and process data events from files written
 on disk.
 """
-from __future__ import absolute_import, division, print_function
-
 import os.path
 from typing import Any, Callable, Dict, Generator, List
 
 import fabio  # type: ignore
 import numpy  # type: ignore
-from future.utils import raise_from  # type: ignore
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_pilatus
@@ -40,8 +37,9 @@ class PilatusFilesDataEventHandler(drl_base.OmDataEventHandler):
     See documentation of the __init__ function.
     """
 
-    def __init__(self, monitor_parameters, source):
-        # type: (parameters.MonitorParams, str) -> None
+    def __init__(
+        self, monitor_parameters: parameters.MonitorParams, source: str
+    ) -> None:
         """
         Data event handler for Pilatus files read from the filesystem.
 
@@ -53,8 +51,9 @@ class PilatusFilesDataEventHandler(drl_base.OmDataEventHandler):
         )
 
     @property
-    def data_extraction_funcs(self):
-        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
         Retrieves the Data Extraction Functions for Pilatus files.
 
@@ -71,8 +70,9 @@ data_extraction_funcs`.
             "frame_id": functions_pilatus.frame_id,
         }
 
-    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the collecting node for Pilatus files.
 
@@ -86,8 +86,9 @@ initialize_event_source`.
         del node_rank
         del node_pool_size
 
-    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_processing_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the processing nodes for Pilatus files.
 
@@ -95,22 +96,24 @@ initialize_event_source`.
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
 initialize_event_source`.
         """
-        required_data = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
             required=True,
-        )  # type: List[str]
+        )
 
-        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
+        self._required_data_extraction_funcs: Dict[
+            str, Callable[[Dict[str, Dict[str, Any]]], Any]
+        ] = drl_base.filter_data_extraction_funcs(
             self.data_extraction_funcs, required_data
-        )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+        )
 
         # Fills the event info dictionary with static data that will be retrieved
         # later.
-        self._event_info_to_append = {}  # type: Dict[str, Any]
+        self._event_info_to_append: Dict[str, Any] = {}
 
-        calibration = self._monitor_params.get_param(
+        calibration: bool = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="calibration",
             parameter_type=bool,
@@ -118,7 +121,7 @@ initialize_event_source`.
         )
         self._event_info_to_append["calibration"] = calibration
         if calibration is True:
-            calibration_info_filename = self._monitor_params.get_param(
+            calibration_info_filename: str = self._monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="calibration_filename",
                 parameter_type=str,
@@ -145,11 +148,8 @@ initialize_event_source`.
             )
 
     def event_generator(
-        self,
-        node_rank,  # type: int
-        node_pool_size,  # type: int
-    ):
-        # type: (...) -> Generator[Dict[str,Any], None, None]
+        self, node_rank: int, node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
         """
         Retrieves Pilatus data events to process from the filesystem.
 
@@ -167,28 +167,25 @@ initialize_event_source`.
 
         try:
             with open(self._source, "r") as fhandle:
-                filelist = fhandle.readlines()  # type: List[str]
+                filelist: List[str] = fhandle.readlines()
         except (IOError, OSError) as exc:
-            raise_from(
-                exc=RuntimeError(
-                    "Error reading the {0} source file.".format(self._source)
-                ),
-                cause=exc,
-            )
-        num_files_curr_node = int(
+            raise RuntimeError(
+                "Error reading the {0} source file.".format(self._source)
+            ) from exc
+        num_files_curr_node: int = int(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))
-        )  # type: int
-        files_curr_node = filelist[
+        )
+        files_curr_node: List[str] = filelist[
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
-        ]  # type: List[str]
+        ]
 
-        data_event = {}  # type: Dict[str, Dict[str, Any]]
+        data_event: Dict[str, Dict[str, Any]] = {}
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
         data_event["additional_info"] = {}
         data_event["additional_info"].update(self._event_info_to_append)
 
         for entry in files_curr_node:
-            stripped_entry = entry.strip()  # type: str
+            stripped_entry: str = entry.strip()
             data_event["additional_info"]["full_path"] = stripped_entry
 
             # File modification time is used as a first approximation of the timestamp
@@ -199,8 +196,7 @@ initialize_event_source`.
 
             yield data_event
 
-    def open_event(self, event):
-        # type: (Dict[str,Any]) -> None
+    def open_event(self, event: Dict[str, Any]) -> None:
         """
         Opens an event retrieved from Pilatus files.
 
@@ -213,8 +209,7 @@ initialize_event_source`.
         """
         event["data"] = fabio.open(event["additional_info"]["full_path"])
 
-    def close_event(self, event):
-        # type: (Dict[str,Any]) -> None
+    def close_event(self, event: Dict[str, Any]) -> None:
         """
         Closes an event retrieved from Pilatus files.
 
@@ -226,8 +221,7 @@ initialize_event_source`.
         """
         pass
 
-    def get_num_frames_in_event(self, event):
-        # type: (Dict[str,Any]) -> int
+    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in an event retrieved from Pilatus files.
 

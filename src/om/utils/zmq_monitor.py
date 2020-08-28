@@ -21,14 +21,11 @@ ZMQ utilities for broadcasting data from an OM monitor.
 This module contains classes and functions that allow OM monitors to broadcast data
 to external programs over a network connection.
 """
-from __future__ import absolute_import, division, print_function
-
 import socket
 import sys
 from typing import Any, Dict, Union
 
 import zmq  # type: ignore
-from future.utils import raise_from  # type: ignore
 
 from om.utils import exceptions
 
@@ -38,8 +35,7 @@ class ZmqDataBroadcaster(object):
     See documentation of the '__init__' function.
     """
 
-    def __init__(self, url):
-        # type: (Union[str, None]) -> None
+    def __init__(self, url: Union[str, None]) -> None:
         """
         ZMQ-based data-broadcasting socket for OM monitors.
 
@@ -57,8 +53,9 @@ class ZmqDataBroadcaster(object):
             port(Union[int, None]): the port where the socket will be opened. If None,
                 the socket will be opened at port 12321. Defaults to None.
         """
-        self._context = zmq.Context()  # type: Any
-        self._sock = self._context.socket(zmq.PUB)  # type: Any
+        self._context: Any = zmq.Context()
+        self._sock: Any = self._context.socket(zmq.PUB)
+        # TODO: Fix types
         if url is None:
             # If required, uses the python socket module to autodetect the hostname of
             # the machine where the OM monitor is running.
@@ -71,7 +68,6 @@ class ZmqDataBroadcaster(object):
                 )
                 for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
             ][0][1]
-            # TODO: Fix types
             url = "tcp://{0}:12321".format(hostname)
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
@@ -82,20 +78,14 @@ class ZmqDataBroadcaster(object):
         except zmq.error.ZMQError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
-                raise_from(
-                    exc=exceptions.OmInvalidDataBroadcastUrl(
-                        "The setup of the data broadcasting socket failed due to the "
-                        "following error: {0}: {1}.".format(
-                            exc_type.__name__, exc_value
-                        )
-                    ),
-                    cause=exc,
-                )
+                raise exceptions.OmInvalidDataBroadcastUrl(
+                    "The setup of the data broadcasting socket failed due to the "
+                    "following error: {0}: {1}.".format(exc_type.__name__, exc_value)
+                ) from exc
         print("Broadcasting data at {0}".format(url))
         sys.stdout.flush()
 
-    def send_data(self, tag, message):
-        # type: (str, Dict[str, Any]) -> None
+    def send_data(self, tag: str, message: Dict[str, Any]) -> None:
         """
         Broadcasts data from the ZMQ PUB socket.
 
@@ -106,11 +96,10 @@ class ZmqDataBroadcaster(object):
 
             tag (str): the label that will be attached to the broadcasted data.
 
-            message (List[Dict[str, Any]]): a list of dictionaries. For each
-                dictionary, the keys are names of information elements to be
-                broadcasted through the broadcasting socket, and the corresponding
-                values are the information elements to be sent (MessagePack-compatible
-                python objects).
+            message (Dict[str, Any]): a dictionary, where the keys are names of
+                information elements to be broadcasted through the broadcasting socket,
+                and the corresponding values are the information elements to be sent
+                (python objects).
         """
         self._sock.send_string(tag, zmq.SNDMORE)
         self._sock.send_pyobj(message)

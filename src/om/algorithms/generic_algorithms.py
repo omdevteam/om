@@ -22,14 +22,11 @@ This module contains algorithms that carry out several operations not specific t
 experimental technique (e.g.: detector frame masking and correction, data accumulation,
 etc.).
 """
-from __future__ import absolute_import, division, print_function
-
 import sys
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Union
 
 import h5py  # type:ignore
 import numpy  # type: ignore
-from future.utils import raise_from  # type: ignore
 
 from om.utils import exceptions
 
@@ -41,14 +38,13 @@ class Correction(object):
 
     def __init__(  # noqa: C901
         self,
-        dark_filename=None,  # type: Union[str, None]
-        dark_hdf5_path=None,  # type: Union[str, None]
-        mask_filename=None,  # type: Union[str, None]
-        mask_hdf5_path=None,  # type: Union[str, None]
-        gain_filename=None,  # type: Union[str, None]
-        gain_hdf5_path=None,  # type: Union[str, None]
-    ):
-        # type: (...) -> None
+        dark_filename: Union[str, None] = None,
+        dark_hdf5_path: Union[str, None] = None,
+        mask_filename: Union[str, None] = None,
+        mask_hdf5_path: Union[str, None] = None,
+        gain_filename: Union[str, None] = None,
+        gain_hdf5_path: Union[str, None] = None,
+    ) -> None:
         """
         Detector data frame corrections.
 
@@ -114,25 +110,21 @@ class Correction(object):
             if mask_hdf5_path is not None:
                 try:
                     with h5py.File(mask_filename, "r") as hdf5_file_handle:
-                        self._mask = hdf5_file_handle[mask_hdf5_path][
-                            :
-                        ]  # type: Union[numpy.ndarray, None]
+                        self._mask: Union[numpy.ndarray, None] = hdf5_file_handle[
+                            mask_hdf5_path
+                        ][:]
                 except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[:2]  # type: Tuple[Any, Any]
-                    raise_from(
-                        # TODO: Fix type check
-                        exc=RuntimeError(
-                            "The following error occurred while reading the {0} field"
-                            "from the {1} gain map HDF5 file:"
-                            "{2}: {3}".format(
-                                mask_filename,
-                                mask_hdf5_path,
-                                exc_type.__name__,
-                                exc_value,
-                            )
-                        ),
-                        cause=exc,
-                    )
+                    exc_type, exc_value = sys.exc_info()[:2]
+                    # TODO: Fix types
+                    raise RuntimeError(
+                        "The following error occurred while reading the {0} field from "
+                        "the {1} gain map HDF5 file: {2}: {3}".format(
+                            mask_filename,
+                            mask_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for mask."
@@ -145,25 +137,21 @@ class Correction(object):
             if dark_hdf5_path is not None:
                 try:
                     with h5py.File(dark_filename, "r") as hdf5_file_handle:
-                        self._dark = (
+                        self._dark: Union[numpy.ndarray, None] = (
                             hdf5_file_handle[dark_hdf5_path][:] * self._mask
-                        )  # type: Union[numpy.ndarray, None]
+                        )
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
-                    raise_from(
-                        # TODO: Fix type check
-                        exc=RuntimeError(
-                            "The following error occurred while reading the {0} field"
-                            "from the {1} dark data HDF5 file:"
-                            "{2}: {3}".format(
-                                dark_filename,
-                                dark_hdf5_path,
-                                exc_type.__name__,
-                                exc_value,
-                            )
-                        ),
-                        cause=exc,
-                    )
+                    # TODO: Fix types
+                    raise RuntimeError(
+                        "The following error occurred while reading the {0} field from"
+                        "the {1} dark data HDF5 file: {2}: {3}".format(
+                            dark_filename,
+                            dark_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for dark frame data."
@@ -176,25 +164,21 @@ class Correction(object):
             if gain_hdf5_path is not None:
                 try:
                     with h5py.File(gain_filename, "r") as hdf5_file_handle:
-                        self._gain = (
+                        self._gain: Union[numpy.ndarray, None] = (
                             hdf5_file_handle[gain_hdf5_path][:] * self._mask
-                        )  # type: Union[numpy.ndarray, None]
+                        )
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
-                    raise_from(
-                        # TODO: Fix type check
-                        exc=RuntimeError(
-                            "The following error occurred while reading the {0} field"
-                            "from the {1} dark data HDF5 file:"
-                            "{2}: {3}".format(
-                                gain_filename,
-                                gain_hdf5_path,
-                                exc_type.__name__,
-                                exc_value,
-                            )
-                        ),
-                        cause=exc,
-                    )
+                    # TODO: Fix types
+                    raise RuntimeError(
+                        "The following error occurred while reading the {0} field from"
+                        "the {1} dark data HDF5 file: {2}: {3}".format(
+                            gain_filename,
+                            gain_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for gain map."
@@ -203,8 +187,7 @@ class Correction(object):
             # True here is equivalent to an all-one map.
             self._gain_map = True
 
-    def apply_correction(self, data):
-        # type: (numpy.ndarray) -> numpy.ndarray
+    def apply_correction(self, data: numpy.ndarray) -> numpy.ndarray:
         """
         Applies the corrections to a detector data frame.
 
@@ -230,8 +213,7 @@ class DataAccumulator(object):
     See documentation of the '__init__' function.
     """
 
-    def __init__(self, num_events_to_accumulate):
-        # type: (int) -> None
+    def __init__(self, num_events_to_accumulate: int) -> None:
         """
         Data accumulation and bulk retrieval.
 
@@ -245,12 +227,11 @@ class DataAccumulator(object):
             num_events_to_accumulate (int): the number of data entries that can be
                 added to the accumulator before it is 'full'.
         """
-        self._num_events_to_accumulate = num_events_to_accumulate  # type: int
-        self._accumulator = []  # type: List[Dict[str, Any]]
-        self._num_events_in_accumulator = 0  # type: int
+        self._num_events_to_accumulate: int = num_events_to_accumulate
+        self._accumulator: List[Dict[str, Any]] = []
+        self._num_events_in_accumulator: int = 0
 
-    def add_data(self, data):
-        # type: (Dict[str, Any]) -> Union[List[Dict[str, Any]], None]
+    def add_data(self, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
         """
         Adds data to the accumulator.
 
@@ -271,7 +252,7 @@ class DataAccumulator(object):
         self._num_events_in_accumulator += 1
 
         if self._num_events_in_accumulator == self._num_events_to_accumulate:
-            data_to_return = self._accumulator
+            data_to_return: List[Dict[str, Any]] = self._accumulator
             self._accumulator = []
             self._num_events_in_accumulator = 0
             return data_to_return

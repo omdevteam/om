@@ -20,8 +20,6 @@ Retrieval of CSPAD detector data.
 
 This module contains functions that retrieve data from a CSPAD x-ray detector.
 """
-from __future__ import absolute_import, division, print_function
-
 from typing import Any, Dict
 
 import numpy  # type: ignore
@@ -29,8 +27,7 @@ import numpy  # type: ignore
 from om.utils import exceptions
 
 
-def detector_data(event):
-    # type: (Dict[str, Any]) -> numpy.ndarray
+def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves one frame of CSPAD detector data from psana.
 
@@ -42,7 +39,7 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    cspad_psana = event["additional_info"]["psana_detector_interface"][
+    cspad_psana: numpy.ndarray = event["additional_info"]["psana_detector_interface"][
         "detector_data"
     ].calib(event["data"])
     if cspad_psana is None:
@@ -51,10 +48,10 @@ def detector_data(event):
         )
 
     # Rearranges the data into 'slab' format.
-    cspad_reshaped = cspad_psana.reshape((4, 8, 185, 388))  # type: numpy.ndarray
-    cspad_slab = numpy.zeros(
+    cspad_reshaped: numpy.ndarray = cspad_psana.reshape((4, 8, 185, 388))
+    cspad_slab: numpy.ndarray = numpy.zeros(
         shape=(1480, 1552), dtype=cspad_reshaped.dtype
-    )  # type: numpy.ndarray
+    )
     for i in range(cspad_reshaped.shape[0]):
         cspad_slab[
             :, i * cspad_reshaped.shape[3] : (i + 1) * cspad_reshaped.shape[3]

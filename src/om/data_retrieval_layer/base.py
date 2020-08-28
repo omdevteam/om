@@ -21,30 +21,26 @@ Data extraction layer base classes.
 This module contains the abstract classes for the Data Extraction Layer of an OM
 monitor parallelization.
 """
-from __future__ import absolute_import, division, print_function
-
 import sys
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod, abstractproperty
 from typing import Any, Callable, Dict, Generator, List
 
-from future.utils import iteritems, raise_from, with_metaclass  # type: ignore
 from typing_extensions import final
 
 from om.utils import exceptions, parameters
 
 
-class OmDataEventHandler(with_metaclass(ABCMeta, object)):
+class OmDataEventHandler(ABC, object):
     """
     See documentation of the __init__ function.
     """
 
     def __init__(
         self,
-        source,  # type: str
-        monitor_parameters,  # type: parameters.MonitorParams
-        additional_info={},  # type: Dict[str, Any]
-    ):
-        # type: (...) -> None
+        source: str,
+        monitor_parameters: parameters.MonitorParams,
+        additional_info: Dict[str, Any] = {},
+    ) -> None:
         """
         The base class for an OM DataEventHandler.
 
@@ -62,13 +58,14 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
             additional_info (Dict[str, Any]): Dictionary story any additional
                 information needed by the Data Event Handler.
         """
-        self._monitor_params = monitor_parameters
-        self._source = source
-        self._additional_info = additional_info
+        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._source: str = source
+        self._additional_info: Dict[str, Any] = additional_info
 
     @abstractproperty
-    def data_extraction_funcs(self):
-        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
         Retrieves Data Extraction Functions for the current Data Handler.
 
@@ -89,8 +86,9 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         pass
 
     @abstractmethod
-    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the collecting node.
 
@@ -108,8 +106,9 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         pass
 
     @abstractmethod
-    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_processing_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the processing node.
 
@@ -127,9 +126,8 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
 
     @abstractmethod
     def event_generator(
-        self, node_rank, node_pool_size,
-    ):
-        # type: (int, int) -> Generator[Dict[str, Any], None, None]
+        self, node_rank: int, node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
         """
         Retrieves events to process.
 
@@ -153,8 +151,7 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         pass
 
     @abstractmethod
-    def open_event(self, event):
-        # type: (Dict[str, Any]) -> None
+    def open_event(self, event: Dict[str, Any]) -> None:
         """
         Opens an event.
 
@@ -168,8 +165,7 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         del event
 
     @abstractmethod
-    def close_event(self, event):
-        # type: (Dict[str, Any]) -> None
+    def close_event(self, event: Dict[str, Any]) -> None:
         """
         Closes an event.
 
@@ -183,8 +179,7 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         del event
 
     @abstractmethod
-    def get_num_frames_in_event(self, event):
-        # type: (Dict[str,Any]) -> int
+    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in an event.
 
@@ -201,10 +196,7 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
         pass
 
     @final
-    def extract_data(
-        self, event,  # type: Dict[str, Any]
-    ):
-        # type: (...) -> Dict[str, Any]
+    def extract_data(self, event: Dict[str, Any],) -> Dict[str, Any]:
         """
         Extracts data from an event.
 
@@ -234,8 +226,8 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
             * The corresponding dictionary value stores the data returned by the
               function.
         """
-        data = {}  # type: Dict[str, Any]
-        for f_name, func in iteritems(event["data_extraction_funcs"]):
+        data: Dict[str, Any] = {}
+        for f_name, func in event["data_extraction_funcs"].items():
             try:
                 data[f_name] = func(event)
             # One should never do the following, but it is not possible to anticipate
@@ -254,10 +246,9 @@ class OmDataEventHandler(with_metaclass(ABCMeta, object)):
 
 
 def filter_data_extraction_funcs(
-    data_extraction_funcs,  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
-    required_data,  # type: List[str]
-):
-    # type: (...) -> Dict[str, Callable[[Dict[str,Dict[str,Any]]],Any]]
+    data_extraction_funcs: Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]],
+    required_data: List[str],
+) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
     """
     Filters the list of data extraction functions based on the required data.
 
@@ -278,18 +269,15 @@ def filter_data_extraction_funcs(
         required_data: (List[str]): a list of data items required by the monitor, used
             to select the required Data Extraction functions.
     """
-    required_data_extraction_funcs = (
-        {}
-    )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+    required_data_extraction_funcs: Dict[
+        str, Callable[[Dict[str, Dict[str, Any]]], Any]
+    ] = ({})
     for func_name in required_data:
         try:
             required_data_extraction_funcs[func_name] = data_extraction_funcs[func_name]
         except AttributeError as exc:
-            raise_from(
-                exc=exceptions.OmMissingDataExtractionFunctionError(
-                    "Data extraction function {0} not defined".format(func_name)
-                ),
-                cause=exc,
-            )
+            raise exceptions.OmMissingDataExtractionFunctionError(
+                "Data extraction function {0} not defined".format(func_name)
+            ) from exc
 
     return required_data_extraction_funcs

@@ -21,66 +21,63 @@ Retrieval and handling of data events from HiDRA.
 This module contains classes that retrieve and process data events from the HiDRA
 framework.
 """
-from __future__ import absolute_import, division, print_function
-
 import io
 import os.path
 import socket
 import sys
-from typing import Any, Callable, Dict, Generator, List, Tuple, cast
+from typing import Any, Callable, Dict, Generator, List, cast
 
 import fabio  # type: ignore
 import numpy  # type: ignore
-from future.utils import raise_from  # type: ignore
-
 from hidra_api import Transfer, transfer  # type: ignore
+
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_pilatus
 from om.utils import exceptions, parameters
 
 
-def _create_hidra_info(source, node_pool_size, monitor_params):
-    # type: (str, int, parameters.MonitorParams) -> Dict[str, Any]
-
+def _create_hidra_info(
+    source: str, node_pool_size: int, monitor_params: parameters.MonitorParams
+) -> Dict[str, Any]:
     # Creates the HidraInfo object needed to initialize the HiDRA event source.
 
     # Reads the requested transfer type from the configuration file. If it is not
     # specified there, imports the suggested transfer type from the data extraction
     # layer and use that.
 
-    query_text = "QUERY_NEXT"  # type: str
-    data_base_path = ""  # type: str
+    query_text: str = "QUERY_NEXT"
+    data_base_path: str = ""
 
-    base_port = monitor_params.get_param(
+    base_port: int = monitor_params.get_param(
         group="data_retrieval_layer",
         parameter="hidra_base_port",
         parameter_type=int,
         required=True,
-    )  # type: int
+    )
 
     # Search the configuration file for a HiDRA selection string. If the selection
     # string is not found, use the file extensions from the detector layer as
     # selection string.
-    hidra_selection_string = monitor_params.get_param(
+    hidra_selection_string: str = monitor_params.get_param(
         group="data_retrieval_layer",
         parameter="hidra_selection_string",
         parameter_type=str,
-    )  # type: str
+    )
     if hidra_selection_string is None:
         hidra_selection_string = functions_pilatus.get_file_extensions()
 
     # Add an empty target at the beginning to cover the collecting node. In this way,
     # the index of a node in the target list will match its OM rank.
-    targets = [["", "", str(1), ""]]  # type: List[List[str]]
+    targets: List[List[str]] = [["", "", str(1), ""]]
 
     # Create the HiDRA query object, as requested by the HiDRA API.
     for rank in range(1, node_pool_size):
-        target_entry = [
+        target_entry: List[str] = [
             socket.gethostname(),
             str(base_port + rank),
             str(1),
             hidra_selection_string,
-        ]  # type: List[str]
+        ]
         targets.append(target_entry)
 
     query = Transfer(connection_type=query_text, signal_host=source, use_log=False)
@@ -97,8 +94,9 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
     See documentation of the __init__ function.
     """
 
-    def __init__(self, monitor_parameters, source):
-        # type: (parameters.MonitorParams, str) -> None
+    def __init__(
+        self, monitor_parameters: parameters.MonitorParams, source: str
+    ) -> None:
         """
         Data event handler for events recovered from HiDRA at P11 (PETRA III).
 
@@ -113,8 +111,9 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         )
 
     @property
-    def data_extraction_funcs(self):
-        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
         Retrieves the Data Extraction Functions for Pilatus files.
 
@@ -131,8 +130,9 @@ data_extraction_funcs`.
             "frame_id": functions_pilatus.frame_id,
         }
 
-    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the collecting node for P11 (Petra III).
 
@@ -150,7 +150,9 @@ initialize_event_source`.
         """
         print("Announcing OM to HiDRA.")
         sys.stdout.flush()
-        hidra_info = _create_hidra_info(
+
+        # TODO: Type this dict
+        hidra_info: Dict[str, Any] = _create_hidra_info(
             source=self._source,
             node_pool_size=node_pool_size,
             monitor_params=self._monitor_params,
@@ -159,17 +161,15 @@ initialize_event_source`.
         try:
             hidra_info["query"].initiate(hidra_info["targets"][1:])
         except transfer.CommunicationFailed as exc:
-            raise_from(
-                exc=exceptions.OmHidraAPIError(
-                    "Failed to contact HiDRA: {0}".format(exc)
-                ),
-                cause=exc,
-            )
+            raise exceptions.OmHidraAPIError(
+                "Failed to contact HiDRA: {0}".format(exc)
+            ) from exc
 
         return hidra_info
 
-    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_processing_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the processing nodes for Pilatus files.
 
@@ -177,22 +177,23 @@ initialize_event_source`.
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
 initialize_event_source`.
         """
-        required_data = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
             required=True,
-        )  # type: List[str]
-
-        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
+        )
+        self._required_data_extraction_funcs: Dict[
+            str, Callable[[Dict[str, Dict[str, Any]]], Any]
+        ] = drl_base.filter_data_extraction_funcs(
             self.data_extraction_funcs, required_data
-        )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+        )
 
         # Fills the event info dictionary with static data that will be retrieved
         # later.
-        self._event_info_to_append = {}  # type: Dict[str, Any]
+        self._event_info_to_append: Dict[str, Any] = {}
 
-        calibration = self._monitor_params.get_param(
+        calibration: bool = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="calibration",
             parameter_type=bool,
@@ -200,7 +201,7 @@ initialize_event_source`.
         )
         self._event_info_to_append["calibration"] = calibration
         if calibration is True:
-            calibration_info_filename = self._monitor_params.get_param(
+            calibration_info_filename: str = self._monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="calibration_filename",
                 parameter_type=str,
@@ -227,11 +228,8 @@ initialize_event_source`.
             )
 
     def event_generator(
-        self,
-        node_rank,  # type: int
-        node_pool_size,  # type: int
-    ):
-        # type: (...) -> Generator[Dict[str, Any], None, None]
+        self, node_rank: int, node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
         """
         Retrieves events to process from HiDRA at Petra III.
 
@@ -243,7 +241,7 @@ initialize_event_source`.
             :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
                 HiDRA fails.
         """
-        hidra_info = _create_hidra_info(
+        hidra_info: Dict[str, Any] = _create_hidra_info(
             source=self._source,
             node_pool_size=node_pool_size,
             monitor_params=self._monitor_params,
@@ -257,22 +255,19 @@ initialize_event_source`.
         try:
             hidra_info["query"].start(hidra_info["targets"][node_rank][1])
         except transfer.CommunicationFailed as exc:
-            raise_from(
-                exc=exceptions.OmHidraAPIError(
-                    "Failed to contact HiDRA: {0}".format(exc)
-                ),
-                cause=exc,
-            )
+            raise exceptions.OmHidraAPIError(
+                "Failed to contact HiDRA: {0}".format(exc)
+            ) from exc
 
-        data_event = {}  # type: Dict[str, Dict[str, Any]]
+        data_event: Dict[str, Dict[str, Any]] = {}
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
         data_event["additional_info"] = {}
         data_event["additional_info"].update(self._event_info_to_append)
 
         while True:
-            recovered_metadata, recovered_data = hidra_info[
-                "query"
-            ].get()  # type: Tuple[Dict[str,Any], Dict[str,Any]]
+            Dict[str, Any]
+            Dict[str, Any]
+            recovered_metadata, recovered_data = hidra_info["query"].get()
             data_event["data"] = recovered_data
             data_event["metadata"] = recovered_metadata
             data_event["additional_info"]["full_path"] = os.path.join(
@@ -286,8 +281,7 @@ initialize_event_source`.
 
             yield data_event
 
-    def open_event(self, event):
-        # type: (Dict[str,Any]) -> None
+    def open_event(self, event: Dict[str, Any]) -> None:
         """
         Opens an event retrieved from HiDRA at P11 (Petra III).
 
@@ -299,15 +293,14 @@ initialize_event_source`.
         available in the 'data' entry of the 'event' dictionary.
         """
         # Wraps the binary data that HiDRA sends to OM in a BytesIO object.
-        byio_data = io.BytesIO(cast(bytes, event["data"]))  # type: io.BytesIO
+        byio_data: io.BytesIO = io.BytesIO(cast(bytes, event["data"]))
 
         # Reads the data using the fabio library and stores the content as a cbf_obj
         # object.
-        cbf_image = fabio.cbfimage.CbfImage()  # type: Any
+        cbf_image: Any = fabio.cbfimage.CbfImage()
         event["data"] = cbf_image.read(byio_data)
 
-    def close_event(self, event):
-        # type: (Dict[str,Any]) -> None
+    def close_event(self, event: Dict[str, Any]) -> None:
         """
         Closes an event retrieved from HiDRA at P11 (Petra III)
 
@@ -319,8 +312,7 @@ initialize_event_source`.
         """
         del event
 
-    def get_num_frames_in_event(self, event):
-        # type: (Dict[str,Any]) -> int
+    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in an event retrieved from Pilatus files.
 

@@ -20,8 +20,6 @@ Retrieval of EPIX 2M detector data.
 
 This module contains functions that retrieve data from a EPIX 2M x-ray detector.
 """
-from __future__ import absolute_import, division, print_function
-
 from typing import Any, Dict
 
 import numpy  # type: ignore
@@ -29,8 +27,7 @@ import numpy  # type: ignore
 from om.utils import exceptions
 
 
-def epixka2m_detector_data(event):
-    # type: (Dict[str, Any]) -> numpy.ndarray
+def epixka2m_detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves one frame of CSPAD detector data from psana.
 
@@ -42,15 +39,15 @@ def epixka2m_detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    epixka2m_psana = event["additional_info"]["psana_detector_interface"][
-        "detector_data"
-    ].calib(event["data"])
+    epixka2m_psana: numpy.ndarray = event["additional_info"][
+        "psana_detector_interface"
+    ]["detector_data"].calib(event["data"])
     if epixka2m_psana is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector data from psana."
         )
 
     # Rearranges the data into 'slab' format.
-    epixka2m_reshaped = epixka2m_psana.reshape(16 * 352, 384)  # type: numpy.ndarray
+    epixka2m_reshaped: numpy.ndarray = epixka2m_psana.reshape(16 * 352, 384)
 
     return epixka2m_reshaped

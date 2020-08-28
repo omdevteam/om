@@ -21,8 +21,6 @@ OM-specific exceptions and exception handling.
 This module contains a set of python exceptions that are specific to OM, and a
 custom exception handler that reports the OM exceptions in a simplified way.
 """
-from __future__ import absolute_import, division, print_function
-
 import sys
 import traceback
 

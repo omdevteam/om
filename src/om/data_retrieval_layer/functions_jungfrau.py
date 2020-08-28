@@ -20,8 +20,6 @@ Retrieval of Jungfrau 4M detector data.
 
 This module contains functions that retrieve data from a Jungfrau 4M x-ray detector.
 """
-from __future__ import absolute_import, division, print_function
-
 from typing import Any, Dict
 
 import numpy  # type: ignore
@@ -29,8 +27,7 @@ import numpy  # type: ignore
 from om.utils import exceptions
 
 
-def detector_data(event):
-    # type: (Dict[str, Any]) -> numpy.ndarray
+def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves one frame of CSPAD detector data from psana.
 
@@ -42,15 +39,15 @@ def detector_data(event):
 
         numpy.ndarray: one frame of detector data.
     """
-    jungfrau_psana = event["additional_info"]["psana_detector_interface"][
-        "detector_data"
-    ].calib(event["data"])
+    jungfrau_psana: numpy.ndarray = event["additional_info"][
+        "psana_detector_interface"
+    ]["detector_data"].calib(event["data"])
     if jungfrau_psana is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector data from psana."
         )
 
     # Rearranges the data into 'slab' format.
-    jungfrau_reshaped = jungfrau_psana.reshape(8 * 512, 1024)  # type: numpy.ndarray
+    jungfrau_reshaped: numpy.ndarray = jungfrau_psana.reshape(8 * 512, 1024)
 
     return jungfrau_reshaped

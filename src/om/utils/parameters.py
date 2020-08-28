@@ -22,12 +22,9 @@ This module contains a class that stores a set of configuration parameters read 
 file. Configuration parameters can be retrieved from this class and optionally
 validated.
 """
-from __future__ import absolute_import, division, print_function
-
-from typing import Any, Dict
+from typing import Any
 
 import yaml
-from future.utils import raise_from  # type: ignore
 from past.builtins import basestring  # type: ignore
 
 from om.utils import exceptions
@@ -38,8 +35,7 @@ class MonitorParams(object):
     See documentation for the '__init__' function.
     """
 
-    def __init__(self, config):
-        # type: (str) -> None
+    def __init__(self, config: str) -> None:
         """
         Storage, retrieval and validation of OM monitor parameters.
 
@@ -58,7 +54,7 @@ class MonitorParams(object):
                 is a syntax error in theconfiguration file.
         """
 
-        self._monitor_params = {}  # type: Dict[str, Any]
+        self._monitor_params: Any = {}
 
         try:
             with open(config, "r") as open_file:
@@ -68,15 +64,17 @@ class MonitorParams(object):
                 "Cannot open or read the configuration file {0}".format(config)
             )
         except yaml.parser.ParserError as exc:
-            raise_from(
-                exc=exceptions.OmConfigurationFileSyntaxError(
-                    "Syntax error in the configuration file: {0}".format(exc)
-                ),
-                cause=exc,
-            )
+            raise exceptions.OmConfigurationFileSyntaxError(
+                "Syntax error in the configuration file: {0}".format(exc)
+            ) from exc
 
-    def get_param(self, group, parameter, parameter_type=None, required=False):
-        # type: (str, str, Any, bool) -> Any
+    def get_param(
+        self,
+        group: str,
+        parameter: str,
+        parameter_type: Any = None,
+        required: bool = False,
+    ) -> Any:
         """
         Retrieves an OM monitor configuration parameter.
 
@@ -126,12 +124,13 @@ class MonitorParams(object):
                 requested parameter type does not match the type of the parameter in
                 the configuration file.
         """
+        # TODO: check types
         if group not in self._monitor_params:
             raise exceptions.OmMissingParameterGroupError(
                 "Parameter group [{0}] is not in the configuration file".format(group)
             )
         else:
-            ret = self._monitor_params[group].get(parameter)  # type: Any
+            ret: Any = self._monitor_params[group].get(parameter)
             if ret is None and required is True:
                 raise exceptions.OmMissingParameterError(
                     "Parameter {0} in group [{1}] was not found, but is "
@@ -172,14 +171,14 @@ class MonitorParams(object):
 
                 return ret
 
-    def get_all_parameters(self):
-        # type: () -> Dict[str, Any]
+    def get_all_parameters(self) -> Any:
         """
         Returns the whole set of parameters read from the configuration file.
 
         Returns:
 
-            Dict[str, Any]: a dictionary containing the parameters read from the
+            Any: a dictionary containing the parameters read from the
             configuration file.
         """
+        # TODO: check types
         return self._monitor_params

@@ -20,8 +20,6 @@ MPI-based parallelization engine for OM.
 
 This module contains an MPI-based parallelization engine for OM.
 """
-from __future__ import absolute_import, division, print_function
-
 import sys
 from typing import Any, Dict, Tuple, Union
 
@@ -33,9 +31,9 @@ from om.processing_layer import base as process_layer_base
 from om.utils import exceptions, parameters
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
-_NOMORE = 998  # type: int
-_DIETAG = 999  # type: int
-_DEADTAG = 1000  # type: int
+_NOMORE: int = 998
+_DIETAG: int = 999
+_DEADTAG: int = 1000
 
 
 class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
@@ -45,11 +43,10 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
 
     def __init__(
         self,
-        data_event_handler,  # type: data_ret_layer_base.OmDataEventHandler
-        monitor,  # type: process_layer_base.OmMonitor
-        monitor_parameters,  # type: parameters.MonitorParams
-    ):
-        # type: (...) -> None
+        data_event_handler: data_ret_layer_base.OmDataEventHandler,
+        monitor: process_layer_base.OmMonitor,
+        monitor_parameters: parameters.MonitorParams,
+    ) -> None:
         """
         An MPI-based parallelization engine for OM.
 
@@ -64,22 +61,21 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             monitor_parameters=monitor_parameters,
         )
 
-        self._mpi_size = MPI.COMM_WORLD.Get_size()  # type: int
-        self._rank = MPI.COMM_WORLD.Get_rank()  # type: int
+        self._mpi_size: int = MPI.COMM_WORLD.Get_size()
+        self._rank: int = MPI.COMM_WORLD.Get_rank()
 
         if self._rank == 0:
             self._data_event_handler.initialize_event_handling_on_collecting_node(
                 self._rank, self._mpi_size
             )
-            self._num_nomore = 0  # type: int
-            self._num_collected_events = 0  # type: int
+            self._num_nomore: int = 0
+            self._num_collected_events: int = 0
         else:
             self._data_event_handler.initialize_event_handling_on_processing_node(
                 self._rank, self._mpi_size
             )
 
-    def start(self):  # noqa: C901
-        # type: () -> None
+    def start(self) -> None:  # noqa: C901
         """
         Starts the MPI parallelization engine.
 
@@ -95,9 +91,9 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
 
             while True:
                 try:
-                    received_data = MPI.COMM_WORLD.recv(
+                    received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
                         source=MPI.ANY_SOURCE, tag=0
-                    )  # type: Tuple[Dict[str, Any], int]
+                    )
                     if "end" in received_data[0].keys():
                         # If the received message announces that a processing node has
                         # finished processing data, keeps track of how many processing
@@ -144,32 +140,32 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                     self.shutdown("Shutting down RANK: {0}.".format(self._rank))
 
                 self._data_event_handler.open_event(event)
-                n_frames_in_evt = self._data_event_handler.get_num_frames_in_event(
+                n_frames_in_evt: int = self._data_event_handler.get_num_frames_in_event(
                     event
-                )  # type: int
+                )
                 if self._num_frames_in_event_to_process is not None:
-                    num_frames_to_process = min(
+                    num_frames_to_process: int = min(
                         n_frames_in_evt, self._num_frames_in_event_to_process
-                    )  # type: int
+                    )
                 else:
                     num_frames_to_process = n_frames_in_evt
                 # Iterates over the last 'num_frames_to_process' frames in the event.
                 for frame_offset in range(-num_frames_to_process, 0):
-                    current_frame = n_frames_in_evt + frame_offset  # type: int
+                    current_frame: int = n_frames_in_evt + frame_offset
                     if current_frame in self._frames_in_event_to_skip:
                         continue
                     event["current_frame"] = current_frame
                     try:
-                        data = self._data_event_handler.extract_data(
+                        data: Dict[str, Any] = self._data_event_handler.extract_data(
                             event
-                        )  # type: Dict[str, Any]
+                        )
                     except exceptions.OmDataExtractionError as exc:
                         print(exc)
                         print("Skipping event...")
                         continue
-                    processed_data = self._monitor.process_data(
-                        self._rank, self._mpi_size, data
-                    )  # type: Tuple[Dict[str, Any], int]
+                    processed_data: Tuple[
+                        Dict[str, Any], int
+                    ] = self._monitor.process_data(self._rank, self._mpi_size, data)
                     if req:
                         req.Wait()
                     req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=0)
@@ -181,9 +177,11 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             # After finishing iterating over the events to process, calls the
             # end_processing function, and if the function returns something, sends it
             # to the processing node.
-            final_data = self._monitor.end_processing_on_processing_node(
+            final_data: Union[
+                Dict[str, Any], None
+            ] = self._monitor.end_processing_on_processing_node(
                 self._rank, self._mpi_size
-            )  # type: Union[Dict[str, Any], None]
+            )
             if final_data is not None:
                 req = MPI.COMM_WORLD.isend((final_data, self._rank), dest=0, tag=0)
                 if req:
@@ -198,8 +196,7 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             MPI.Finalize()
             exit(0)
 
-    def shutdown(self, msg="Reason not provided."):
-        # type: (Union[str, None]) -> None
+    def shutdown(self, msg: Union[str, None] = "Reason not provided.") -> None:
         """
         Shuts down the MPI parallelization engine.
 
