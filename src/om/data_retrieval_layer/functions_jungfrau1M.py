@@ -20,15 +20,12 @@ Retrieval of Jungfrau 1M detector data.
 
 This module contains functions that retrieve data from a Jungfrau 1M x-ray detector.
 """
-from __future__ import absolute_import, division, print_function
-
 from typing import Any, Dict, Tuple, cast
 
 import numpy  # type: ignore
 
 
-def detector_data(event):
-    # type: (Dict[str, Any]) -> numpy.ndarray
+def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves one frame of Jungfrau detector data from files (or HiDRA).
     Arguments:
@@ -37,34 +34,34 @@ def detector_data(event):
         numpy.ndarray: one frame of detector data.
     """
     # Returns the data from the Jungfrau HDF5 files
-    h5files = event["additional_info"]["h5files"]  # type: Tuple[Any, Any]
-    h5_data_path = event["additional_info"]["h5_data_path"]  # type: str
-    index = event["additional_info"]["index"]  # type: Tuple[int, int]
+    h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
+    h5_data_path: str = event["additional_info"]["h5_data_path"]
+    index: Tuple[int, int] = event["additional_info"]["index"]
 
-    data = numpy.concatenate(
+    data: numpy.ndarray = numpy.concatenate(
         [h5files[i][h5_data_path][index[i]] for i in range(len(h5files))]
-    )  # type: numpy.ndarray
+    )
     if event["additional_info"]["calibration"]:
-        calibrated_data = event["additional_info"][
+        calibrated_data: numpy.ndarray = event["additional_info"][
             "calibration_algorithm"
-        ].apply_calibration(
-            data
-        )  # type: numpy.ndarray
+        ].apply_calibration(data)
     else:
         calibrated_data = data
 
     return calibrated_data
 
 
-def event_id(event):
-    # type: (Dict[str, Any]) -> str
+def event_id(event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for an event retrieved from Jungfrau.
     Returns a label that unambiguously identifies, within an experiment, the event
     currently being processed.
+
     # TODO: Add documentation.
+
     Arguments:
         event (Dict[str, Any]): a dictionary storing the event data.
+
     Returns:
         str: a unique event identifier.
     """
@@ -76,16 +73,20 @@ def event_id(event):
     )
 
 
-def frame_id(event):
-    # type: (Dict[str, Any]) -> str
+def frame_id(event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for a Jungfrau data frame.
     Returns a label that unambiguously identifies, within an event, the frame currently
     being processed.
+
     # TODO: Add documentations.
+
     Arguments:
+
         event (Dict[str, Any]): a dictionary storing the event data.
+
     Returns:
+
         str: a unique frame identifier (within an event).
     """
     del event
@@ -93,8 +94,7 @@ def frame_id(event):
     return str(0)
 
 
-def timestamp(event):
-    # type: (Dict[str, Any]) -> numpy.float64
+def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of a Jungfrau data event.
     OM currently supports Jungfrau data events originating from files or recovered from
@@ -110,8 +110,7 @@ def timestamp(event):
     return cast(numpy.float64, event["additional_info"]["timestamp"])
 
 
-def beam_energy(event):
-    # type: (Dict[str, Any]) -> float
+def beam_energy(event: Dict[str, Any]) -> float:
     """
     Gets the beam energy for a Jungfrau data event.
     OM currently supports Jungfrau data events originating from files or recovered from
@@ -127,8 +126,7 @@ def beam_energy(event):
     return cast(float, event["additional_info"]["beam_energy"])
 
 
-def detector_distance(event):
-    # type: (Dict[str, Any]) -> float
+def detector_distance(event: Dict[str, Any]) -> float:
     """
     Gets the detector distance for a Jungfrau data event.
     OM currently supports Jungfrau data events originating from files or recovered from
@@ -145,16 +143,14 @@ def detector_distance(event):
     return cast(float, event["additional_info"]["detector_distance"])
 
 
-def raw_filename(event):
-    # type: (Dict[str, Any]) -> str
+def raw_filename(event: Dict[str, Any]) -> str:
     """
     #TODO: Add documentation.
     """
     return event["additional_info"]["h5files"][0].filename
 
 
-def raw_frame_number(event):
-    # type: (Dict[str, Any]) -> int
+def raw_frame_number(event: Dict[str, Any]) -> int:
     """
     #TODO: Add documentation.
     """

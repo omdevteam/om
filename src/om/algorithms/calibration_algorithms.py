@@ -32,8 +32,12 @@ class Jungfrau1MCalibration(object):
     See documentation of the '__init__' function.
     """
 
-    def __init__(self, dark_filenames, gain_filenames, photon_energy_kev):
-        # type: (List[str], List[str], float) -> None
+    def __init__(
+        self,
+        dark_filenames: List[str],
+        gain_filenames: List[str],
+        photon_energy_kev: float,
+    ) -> None:
         """
         Calibration of the Jungfrau 1M detector.
 
@@ -52,17 +56,17 @@ class Jungfrau1MCalibration(object):
                 be operated.
         """
         # 2 for Jungfrau 1M
-        num_panels = len(dark_filenames)  # type: int
+        num_panels: int = len(dark_filenames)
 
-        self._dark = numpy.ndarray(
+        self._dark: numpy.ndarray = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float32
-        )  # type: numpy.ndarray
-        self._gain = numpy.ndarray(
+        )
+        self._gain: numpy.ndarray = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float64
-        )  # type: numpy.ndarray
+        )
         for panel_id in range(num_panels):
-            gain_file = open(gain_filenames[panel_id], "rb")  # type: BinaryIO
-            dark_file = h5py.File(dark_filenames[panel_id], "r")  # type: Any
+            gain_file: BinaryIO = open(gain_filenames[panel_id], "rb")
+            dark_file: Any = h5py.File(dark_filenames[panel_id], "r")
             for gain in range(3):
                 self._dark[gain, 512 * panel_id : 512 * (panel_id + 1), :] = dark_file[
                     "gain%d" % gain
@@ -78,10 +82,9 @@ class Jungfrau1MCalibration(object):
             dark_file.close()
 
         # TODO: Energy should be in eV
-        self._photon_energy_kev = photon_energy_kev  # type: float
+        self._photon_energy_kev: float = photon_energy_kev
 
-    def apply_calibration(self, data):
-        # type: (numpy.ndarray) -> numpy.ndarray
+    def apply_calibration(self, data: numpy.ndarray) -> numpy.ndarray:
         """
         Applies the calibration to a detector data frame.
 
@@ -94,13 +97,13 @@ class Jungfrau1MCalibration(object):
         Returns:
             numpy.ndarray:  the corrected data frame.
         """
-        corrected_data = data.astype(numpy.float32)  # type: numpy.ndarray
+        corrected_data: numpy.ndarray = data.astype(numpy.float32)
 
-        where_gain = [
+        where_gain: List[numpy.ndarray] = [
             numpy.where(data & 2 ** 14 == 0),
             numpy.where((data & (2 ** 14) > 0) & (data & 2 ** 15 == 0)),
             numpy.where(data & 2 ** 15 > 0),
-        ]  # type: List[numpy.ndarray]
+        ]
 
         for gain in range(3):
             corrected_data[where_gain[gain]] -= self._dark[gain][where_gain[gain]]

@@ -36,8 +36,9 @@ from om.utils import parameters
 
 
 class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
-    def __init__(self, monitor_parameters, source):
-        # type: (parameters.MonitorParams, str) -> None
+    def __init__(
+        self, monitor_parameters: parameters.MonitorParams, source: str
+    ) -> None:
         """
         Data event handler for events recovered from files.
 
@@ -50,8 +51,9 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
             monitor_parameters=monitor_parameters, source=source,
         )
 
-    def initialize_event_handling_on_collecting_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes file event handling on the collecting node.
 
@@ -282,8 +284,9 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
     See documentation of the __init__ function.
     """
 
-    def __init__(self, monitor_parameters, source):
-        # type: (parameters.MonitorParams, str) -> None
+    def __init__(
+        self, monitor_parameters: parameters.MonitorParams, source: str
+    ) -> None:
         """
         Data event handler for Pilatus files read from the filesystem.
         See documentation of the constructor of the base class:
@@ -294,8 +297,9 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         )
 
     @property
-    def data_extraction_funcs(self):
-        # type: () -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
         Retrieves the Data Extraction Functions for Pilatus files.
         See documentation of the function in the base class:
@@ -313,8 +317,9 @@ data_extraction_funcs`.
             "raw_frame_number": functions_jungfrau1M.raw_frame_number,
         }
 
-    def initialize_event_handling_on_processing_node(self, node_rank, node_pool_size):
-        # type: (int, int) -> Any
+    def initialize_event_handling_on_processing_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
         """
         Initializes event handling on the processing nodes for Pilatus files.
 
@@ -322,45 +327,47 @@ data_extraction_funcs`.
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
 initialize_event_source`.
         """
-        required_data = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
             required=True,
-        )  # type: List[str]
+        )
 
-        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
+        self._required_data_extraction_funcs: Dict[
+            str, Callable[[Dict[str, Dict[str, Any]]], Any]
+        ] = drl_base.filter_data_extraction_funcs(
             self.data_extraction_funcs, required_data
-        )  # type: Dict[str, Callable[ [Dict[str,Dict[str,Any]]],Any]]
+        )  # type
 
-        self._event_info_to_append = {}  # type: Dict[str, Any]
+        self._event_info_to_append: Dict[str, Any] = {}
 
-        calibration = self._monitor_params.get_param(
+        calibration: bool = self._monitor_params.get_param(
             group="data_retrieval_layer",
             parameter="calibration",
             parameter_type=bool,
             required=True,
-        )  # type: bool
+        )
         self._event_info_to_append["calibration"] = calibration
         if calibration is True:
-            calibration_dark_filenames = self._monitor_params.get_param(
+            calibration_dark_filenames: List[str] = self._monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="calibration_dark_filenames",
                 parameter_type=list,
                 required=True,
-            )  # type: List[str]
-            calibration_gain_filenames = self._monitor_params.get_param(
+            )
+            calibration_gain_filenames: List[str] = self._monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="calibration_gain_filenames",
                 parameter_type=list,
                 required=True,
-            )  # type: List[str]
-            calibration_photon_energy_kev = self._monitor_params.get_param(
+            )
+            calibration_photon_energy_kev: float = self._monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="calibration_photon_energy_kev",
                 parameter_type=float,
                 required=True,
-            )  # type: float
+            )
             self._event_info_to_append[
                 "calibration_algorithm"
             ] = calib_algs.Jungfrau1MCalibration(
@@ -387,11 +394,8 @@ initialize_event_source`.
             )
 
     def event_generator(
-        self,
-        node_rank,  # type: int
-        node_pool_size,  # type: int
-    ):
-        # type: (...) -> Generator[Dict[str,Any], None, None]
+        self, node_rank: int, node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
         """
         Retrieves Jungfrau data events to process from the filesystem.
 
@@ -408,40 +412,34 @@ initialize_event_source`.
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
             with open(self._source, "r") as fhandle:
-                filelist = fhandle.readlines()  # type: List[str]
+                filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
-            raise_from(
-                exc=RuntimeError(
-                    "Error reading the {0} source file.".format(self._source)
-                ),
-                cause=exc,
-            )
-        frame_list = []  # type: List[Dict[str, Any]]  # TODO: Specify types better
+            raise RuntimeError(
+                "Error reading the {0} source file.".format(self._source)
+            ) from exc
+        frame_list: List[Dict[str, Any]] = []
+        # TODO: Specify types better
         for filename in filelist:
             # input filename must be from panel 'd0'
             if re.match(r".+_d0_.+\.h5", filename):
-                filename_d0 = pathlib.Path(
-                    filename.strip()
-                ).resolve()  # type: pathlib.Path
+                filename_d0: pathlib.Path = pathlib.Path(filename.strip()).resolve()
             else:
                 continue
-            filename_d1 = re.sub(
-                r"(_d0_)(.+\.h5)", r"_d1_\2", str(filename_d0)
-            )  # type: str
+            filename_d1: str = re.sub(r"(_d0_)(.+\.h5)", r"_d1_\2", str(filename_d0))
 
-            h5files = (
+            h5files: Tuple[Any, Any] = (
                 h5py.File(pathlib.Path(filename_d0).absolute, "r"),
                 h5py.File(pathlib.Path(filename_d1).absolute, "r"),
-            )  # type: Tuple[Any, Any]
+            )
 
-            h5_data_path = "/data_" + re.findall(r"_(f\d+)_", filename)[0]  # type: str
+            h5_data_path: str = "/data_" + re.findall(r"_(f\d+)_", filename)[0]
 
-            frame_numbers = [
+            frame_numbers: List[numpy.ndarray] = [
                 h5file["/frameNumber"][:] for h5file in h5files
-            ]  # List[numpy.ndarray]
+            ]
             for ind0, frame_number in enumerate(frame_numbers[0]):
                 try:
-                    ind1 = numpy.where(frame_numbers[1] == frame_number)[0][0]  # int
+                    ind1: int = numpy.where(frame_numbers[1] == frame_number)[0][0]
                 except IndexError:
                     continue
 
@@ -456,18 +454,18 @@ initialize_event_source`.
                     }
                 )
 
-        num_frames_curr_node = int(
+        num_frames_curr_node: int = int(
             numpy.ceil(len(frame_list) / float(node_pool_size - 1))
-        )  # type int
-        frames_curr_node = frame_list[
+        )
+        frames_curr_node: List[Dict[str, Any]] = frame_list[
             ((node_rank - 1) * num_frames_curr_node) : (
                 node_rank * num_frames_curr_node
             )
-        ]  # type: List[Dict[str, Any]]
+        ]
 
         print("Num frames current node:", node_rank, num_frames_curr_node)
 
-        data_event = {}  # type: Dict[str, Dict[str, Any]]
+        data_event: Dict[str, Dict[str, Any]] = {}
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
         data_event["additional_info"] = {}
         data_event["additional_info"].update(self._event_info_to_append)
@@ -480,8 +478,7 @@ initialize_event_source`.
 
             yield data_event
 
-    def open_event(self, event):
-        # type: (Dict[str,Any]) -> None
+    def open_event(self, event: Dict[str, Any]) -> None:
         """
         Opens an event retrieved from Jungfrau files.
         See documentation of the function in the base class:
@@ -489,8 +486,7 @@ initialize_event_source`.
         """
         pass
 
-    def close_event(self, event):
-        # type: (Dict[str,Any]) -> None
+    def close_event(self, event: Dict[str, Any]) -> None:
         """
         Closes an event retrieved from Jungfrau files.
         See documentation of the function in the base class:
@@ -498,8 +494,7 @@ initialize_event_source`.
         """
         pass
 
-    def get_num_frames_in_event(self, event):
-        # type: (Dict[str,Any]) -> int
+    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in an event retrieved from Pilatus files.
         See documentation of the function in the base class:
