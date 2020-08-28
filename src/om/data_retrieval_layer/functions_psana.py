@@ -331,30 +331,19 @@ def beam_energy(event: Dict[str, Any]) -> float:
     #    event["additional_info"]["psana_detector_interface"]["beam_energy"]
     #    .get(event["data"])
     #    .ebeamPhotonEnergy()
-<<<<<<< HEAD
     #)
-    wavelength = event["additional_info"]["psana_detector_interface"][
-=======
-    # )
-    beam_en: Union[float, None] = event["additional_info"]["psana_detector_interface"][
->>>>>>> 3766b54... Removed support for python 2
-        "beam_energy"
-    ]()
+    wavelength: Union[float, None] = event["additional_info"]["psana_detector_interface"]["beam_energy"]()
     if wavelength is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve beam energy information from psana."
         )
-    h = 6.626070e-34  # J.m
-    c = 2.99792458e8  # m/s
-    joulesPerEv = 1.602176621e-19  # J/eV
-    photonEnergy = (h / joulesPerEv * c) / (wavelength * 1e-9)
+    h: float = 6.626070e-34  # J.m
+    c: float = 2.99792458e8  # m/s
+    joulesPerEv: float = 1.602176621e-19  # J/eV
+    photonEnergy: float = (h / joulesPerEv * c) / (wavelength * 1e-9)
 
-<<<<<<< HEAD
-    return cast(float, photonEnergy)
-    #return cast(float, beam_en)
-=======
-    return beam_en
->>>>>>> 3766b54... Removed support for python 2
+    return photonEnergy
+    #return beam_en
 
 
 def timetool_data(event: Dict[str, Any]) -> float:
