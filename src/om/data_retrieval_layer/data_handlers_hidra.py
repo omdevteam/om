@@ -22,7 +22,7 @@ This module contains classes that retrieve and process data events from the HiDR
 framework.
 """
 import io
-import os.path
+import pathlib
 import socket
 import sys
 from typing import Any, Callable, Dict, Generator, List, cast
@@ -270,10 +270,10 @@ initialize_event_source`.
             recovered_metadata, recovered_data = hidra_info["query"].get()
             data_event["data"] = recovered_data
             data_event["metadata"] = recovered_metadata
-            data_event["additional_info"]["full_path"] = os.path.join(
-                hidra_info["data_base_path"],
-                recovered_metadata["relative_path"],
-                recovered_metadata["filename"],
+            data_event["additional_info"]["full_path"] = (
+                pathlib.Path(hidra_info["data_base_path"])
+                / recovered_metadata["relative_path"]
+                / recovered_metadata["filename"],
             )
             data_event["additional_info"]["timestamp"] = numpy.float64(
                 recovered_metadata["file_create_time"]

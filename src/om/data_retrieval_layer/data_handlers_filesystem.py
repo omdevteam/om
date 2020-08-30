@@ -21,12 +21,11 @@ Retrieval and handling of data events from the filesystem.
 This module contains classes that retrieve and process data events from files written
 on disk.
 """
-import os.path
+import pathlib
 from typing import Any, Callable, Dict, Generator, List
 
 import fabio  # type: ignore
 import numpy  # type: ignore
-
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_pilatus
 from om.utils import parameters
@@ -191,7 +190,7 @@ initialize_event_source`.
             # File modification time is used as a first approximation of the timestamp
             # when the timestamp is not available.
             data_event["additional_info"]["file_creation_time"] = numpy.float64(
-                os.stat(stripped_entry).st_mtime
+                pathlib.Path(stripped_entry).stat().st_mtime
             )
 
             yield data_event
