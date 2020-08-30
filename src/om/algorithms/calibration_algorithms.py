@@ -21,10 +21,10 @@ Algorithms for detector calibration.
 This module contains algorithms that apply corrections for artifacts caused by detector
 design or operation (i.e., not sample- or experiment-related).
 """
-import numpy  # type: ignore
-import h5py  # type: ignore
-
 from typing import Any, BinaryIO, List
+
+import h5py  # type: ignore
+import numpy  # type: ignore
 
 
 class Jungfrau1MCalibration(object):

@@ -16,14 +16,16 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM monitor for crystallography.
+Cheetah
 
-This module contains an OM monitor for serial x-ray crystallography experiments.
+This module contains the implementation of Cheetah, a data processing program for
+serial x-ray crystallography experiments based on OM.
 """
 import collections
+import os
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, List, Tuple, Type, Union
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -31,46 +33,33 @@ import numpy  # type: ignore
 from om.algorithms import crystallography_algorithms as cryst_algs
 from om.algorithms import generic_algorithms as gen_algs
 from om.processing_layer import base as process_layer_base
-from om.utils import crystfel_geometry, parameters, zmq_monitor
-from om.utils.crystfel_geometry import TypeDetector
+from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 
 
-class CrystallographyMonitor(process_layer_base.OmMonitor):
+class Cheetah(process_layer_base.OmMonitor):
     """
     See documentation for the '__init__' function.
     """
 
     def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        An OM real-time monitor for serial x-ray crystallography experiments.
+        Cheetah
 
         See documentation of the constructor of the base class:
         :func:`~om.processing_layer.base.OmMonitor`.
 
-        This monitor processes detector data frames, optionally applying detector
-        calibration, dark correction and gain correction. It detects Bragg peaks in
-        each detector frame using the peakfinder8 algorithm from Cheetah. It provides
-        information about the location and integrated intensity of each peak.
-        Additionally, it calculates the evolution of the hit rate over time. It
-        broadcasts all this information over a network socket for visualization by
-        other programs. Optionally, it can also broadcast calibrated and corrected
-        detector data frames.
+        TODO: Add description
         """
-        super(CrystallographyMonitor, self).__init__(
-            monitor_parameters=monitor_parameters
-        )
+        super(Cheetah, self).__init__(monitor_parameters=monitor_parameters)
 
     def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
         """
-        Initializes the OM processing nodes for the Crystallography monitor.
+        Initializes the OM processing nodes for Cheetah.
 
         See documentation of the function in the base class:
         :func:`~om.processing_layer.base.OmMonitor`.
 
-        On the processing nodes, it initializes the correction and peak finding
-        algorithms, plus some internal counters. On the collecting node, this function
-        initializes the data accumulation algorrithms and the storage for the
-        aggregated statistics.
+        TODO: Add description
         """
         geometry_filename: str = self._monitor_params.get_param(
             group="crystallography",
@@ -78,13 +67,29 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=str,
             required=True,
         )
-        geometry: crystfel_geometry.TypeDetector
-        _: Any
-        __: Any
+        crystfel_geometry.TypeDetector
+        Any
+        Any
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps: Dict[str, numpy.ndarray] = crystfel_geometry.compute_pix_maps(
             geometry
         )
+        self._data_shape = self._pixelmaps["x"].shape
+
+        # TODO: Type this dictionary
+        self._total_sums: List[Dict[str, Any]] = [
+            {
+                "num_frames": 0,
+                "sum_frames": numpy.zeros(self._data_shape, dtype=numpy.float64),
+            }
+            for class_number in range(2)
+        ]
+        self._sum_sending_interval: Union[int, None] = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="class_sums_sending_interval",
+            parameter_type=int,
+        )
+        self._sum_sending_counter = 0
 
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
@@ -191,12 +196,13 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
         if pf8_bad_pixel_map_fname is not None:
             try:
-                map_hdf5_file_handle: Any
-                with h5py.File(pf8_bad_pixel_map_fname, "r") as map_hdf5_file_handle:
-                    bad_pixel_map: Union[numpy.ndarray, None] = map_hdf5_file_handle[
+                with h5py.File(pf8_bad_pixel_map_fname, "r") as hdf5_file_handle:
+                    bad_pixel_map: Union[numpy.ndarray, None] = hdf5_file_handle[
                         pf8_bad_pixel_map_hdf5_path
                     ][:]
             except (IOError, OSError, KeyError) as exc:
+                Union[Type[BaseException], None]
+                Union[BaseException, None]
                 exc_type, exc_value = sys.exc_info()[:2]
                 # TODO: Fix type check
                 raise RuntimeError(
@@ -258,18 +264,77 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=int,
         )
 
+        processed_directory: str = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="processed_directory",
+            parameter_type=str,
+            required=True,
+        )
+        processed_filename_prefix: Union[str, None] = self._monitor_params.get_param(
+            group="cheetah", parameter="processed_filename_prefix", parameter_type=str,
+        )
+        processed_filename_extension: Union[str, None] = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="processed_filename_extension",
+            parameter_type=str,
+        )
+        data_type: Union[str, None] = self._monitor_params.get_param(
+            group="cheetah", parameter="hdf5_file_data_type", parameter_type=str,
+        )
+        compression: Union[bool, None] = self._monitor_params.get_param(
+            group="cheetah", parameter="hdf5_file_compression", parameter_type=bool,
+        )
+
+        compression_opts: Union[int, None] = self._monitor_params.get_param(
+            group="cheetah", parameter="hdf5_file_compression_opts", parameter_type=int,
+        )
+
+        hdf5_fields: Dict[str, str] = self._monitor_params.get_all_parameters()[
+            "cheetah"
+        ]["hdf5_fields"]
+
+        self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
+            directory_for_processed_data=processed_directory,
+            node_rank=node_rank,
+            geometry=geometry,
+            compression=compression,
+            detector_data_type=data_type,
+            detector_data_shape=self._data_shape,
+            hdf5_fields=hdf5_fields,
+            processed_filename_prefix=processed_filename_prefix,
+            processed_filename_extension=processed_filename_extension,
+            compression_opts=compression_opts,
+        )
+
         print("Processing node {0} starting.".format(node_rank))
         sys.stdout.flush()
 
+    def _write_status_file(
+        self, status: str = "", num_frames: int = 0, num_hits: int = 0,
+    ) -> None:
+        # Writes a status file that the Cheetah GUI from Anton Barty can inspect.
+
+        with open(self._status_filename, "w") as fh:
+            fh.write("# Cheetah status\n")
+            fh.write("Update time: {}\n".format(time.strftime("%a %b %d %H:%M:%S %Y")))
+            dt: int = int(time.time() - self._start_time)
+            int, int
+            hours, minutes = divmod(dt, 3600)
+            int, int
+            minutes, seconds = divmod(minutes, 60)
+            fh.write("Elapsed time: {}hr {}min {}sec\n".format(hours, minutes, seconds))
+            fh.write("Status: {}\n".format(status))
+            fh.write("Frames processed: {}\n".format(num_frames))
+            fh.write("Number of hits: {}\n".format(num_hits))
+
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
-        Initializes the OM collecting node for the Crystallography monitor.
+        Initializes the OM collecting node for Cheetah.
 
         See documentation of the function in the base class:
         :func:`~om.processing_layer.base.OmMonitor`.
 
-        This function initializes the algorithms that compute aggregated statistics,
-        and prepares the the node to broadcast data to other programs for visualization.
+        TODO: Add description
         """
         self._speed_report_interval: int = self._monitor_params.get_param(
             group="crystallography",
@@ -290,9 +355,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=str,
             required=True,
         )
-        geometry: TypeDetector
-        _: Any
-        __: Any
+        crystfel_geometry.TypeDetector
+        Any
+        Any
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
 
@@ -361,14 +426,81 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             zmq_monitor.ZmqDataBroadcaster(url=data_broadcast_url)
         )
 
-        self._num_events: int = 0
-        self._old_time: float = time.time()
-        self._time: Union[float, None] = None
+        self._num_events = 0  # type: int
+        self._num_hits = 0  # type: int
+        self._old_time = time.time()  # type: float
+        self._time = None  # type: Union[float, None]
 
+        processed_directory: str = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="processed_directory",
+            parameter_type=str,
+            required=True,
+        )
+        if not os.path.exists(processed_directory):
+            os.mkdir(processed_directory)
+        self._frames_filename: str = os.path.join(
+            os.path.abspath(processed_directory), "frames.txt"
+        )
+        self._cleaned_filename: str = os.path.join(
+            os.path.abspath(processed_directory), "cleaned.txt"
+        )
+        self._status_filename: str = os.path.join(
+            os.path.abspath(processed_directory), "status.txt"
+        )
+        self._start_time: float = time.time()
+        self._status_file_update_interval: int = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="status_file_update_interval",
+            parameter_type=int,
+        )
+        if self._status_file_update_interval is not None:
+            self._write_status_file(status="Not finished")
+
+        self._frame_list: List[Tuple[Any, ...]] = []
+        self._write_class_sums: bool = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="write_class_sums",
+            parameter_type=bool,
+            required=True,
+        )
+        if self._write_class_sums is True:
+            sum_filename_prefix: Union[str, None] = self._monitor_params.get_param(
+                group="cheetah",
+                parameter="class_sum_filename_prefix",
+                parameter_type=str,
+            )
+
+            self._sum_writers = [
+                hdf5_writers.SumHDF5Writer(
+                    directory_for_processed_data=processed_directory,
+                    powder_class=class_number,
+                    detector_data_shape=self._data_shape,
+                    sum_filename_prefix=sum_filename_prefix,
+                )
+                for class_number in range(2)
+            ]
+            self._class_sum_update_interval: int = self._monitor_params.get_param(
+                group="cheetah",
+                parameter="class_sums_update_interval",
+                parameter_type=int,
+                required=True,
+            )
+            self._class_sum_update_counter: int = 0
+
+        # TODO: Type this dictionary
+        self._total_sums = [
+            {
+                "num_frames": 0,
+                "sum_frames": numpy.zeros(self._data_shape, dtype=numpy.float64),
+                "peak_powder": numpy.zeros(self._data_shape, dtype=numpy.float64),
+            }
+            for class_number in range(2)
+        ]
         print("Starting the monitor...")
         sys.stdout.flush()
 
-    def process_data(
+    def process_data(  # noqa: C901
         self, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
@@ -427,9 +559,29 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                     processed_data["detector_data"] = corrected_detector_data
                     self._non_hit_frame_sending_counter = 0
 
+        self._total_sums[frame_is_hit]["num_frames"] += 1
+        self._total_sums[frame_is_hit]["sum_frames"] += corrected_detector_data
+        if self._sum_sending_interval is not None:
+            if self._sum_sending_counter == 0:
+                self._sum_to_send: List[Dict[str, Any]] = [
+                    {
+                        "num_frames": 0,
+                        "sum_frames": numpy.zeros(
+                            self._data_shape, dtype=numpy.float64
+                        ),
+                    }
+                    for class_number in range(2)
+                ]
+            self._sum_to_send[frame_is_hit]["num_frames"] += 1
+            self._sum_to_send[frame_is_hit]["sum_frames"] += corrected_detector_data
+            self._sum_sending_counter += 1
+            if self._sum_sending_counter == self._sum_sending_interval:
+                self._sum_sending_counter = 0
+                processed_data["class_sums"] = self._sum_to_send
+
         return (processed_data, node_rank)
 
-    def collect_data(
+    def collect_data(  # noqa: C901
         self,
         node_rank: int,
         node_pool_size: int,
@@ -446,7 +598,32 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         visualization by other programs) using the MessagePack protocol.
         """
         received_data: Dict[str, Any] = processed_data[0]
+        if "class_sums" in received_data:
+            for class_number in range(2):
+                for key in ("num_frames", "sum_frames"):
+                    self._total_sums[class_number][key] += received_data["class_sums"][
+                        class_number
+                    ][key]
+            self._class_sum_update_counter += 1
+
+        if "end_processing" in received_data:
+            return
+
         self._num_events += 1
+        if received_data["frame_is_hit"]:
+            self._num_hits += 1
+
+        self._frame_list.append(
+            (
+                received_data["timestamp"],
+                received_data["event_id"],
+                received_data["frame_is_hit"],
+                received_data["filename"],
+                received_data["index"],
+                received_data["peak_list"]["num_peaks"],
+                numpy.mean(received_data["peak_list"]["intensity"]),
+            )
+        )
 
         self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
         avg_hit_rate: float = (
@@ -457,9 +634,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
-        peak_fs: float
-        peak_ss: float
-        peak_value: float
+
         for peak_fs, peak_ss, peak_value in zip(
             received_data["peak_list"]["fs"],
             received_data["peak_list"]["ss"],
@@ -474,8 +649,35 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             peak_list_y_in_frame.append(x_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
+            self._total_sums[received_data["frame_is_hit"]]["peak_powder"][
+                int(round(peak_ss))
+            ][int(round(peak_fs))] += peak_value
+
+        if (
+            self._write_class_sums is True
+            and self._class_sum_update_counter == self._class_sum_update_interval
+        ):
+            self._class_sum_update_counter = 0
+            for class_number in range(2):
+                self._sum_writers[class_number].write_sums(
+                    num_frames=self._total_sums[class_number]["num_frames"],
+                    sum_frames=self._total_sums[class_number]["sum_frames"],
+                    virtual_powder_pattern=self._total_sums[class_number][
+                        "peak_powder"
+                    ],
+                )
+        if (
+            self._status_file_update_interval is not None
+            and self._num_events % self._status_file_update_interval == 0
+        ):
+            self._write_status_file(
+                status="Not finished",
+                num_frames=self._num_events,
+                num_hits=self._num_hits,
+            )
+
         self._data_broadcast_socket.send_data(
-            tag="view:omdata",
+            tag=u"view:omdata",
             message={
                 "geometry_is_optimized": self._geometry_is_optimized,
                 "timestamp": received_data["timestamp"],
@@ -484,7 +686,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 "virtual_powder_plot": self._virt_powd_plot_img,
                 "beam_energy": received_data["beam_energy"],
                 "detector_distance": received_data["detector_distance"],
-                "first_panel_coffset": self._first_panel_coffset,
                 "pixel_size": self._pixel_size,
             },
         )
@@ -536,33 +737,72 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             self._old_time = now_time
 
     def end_processing_on_processing_node(
-        self, node_rank: int, rank_pool_size: int
-    ) -> None:
+        self, node_rank: int, node_pool_size: int,
+    ) -> Union[Dict[str, Any], None]:
         """
-        Executes end-of-processing actions on the processing nodes.
+        Executes end-of-processing actions.
 
         See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.
+        :func:`~om.processing_layer.base.OmMonitor.end_processing`.
 
-        Prints a message on the console and ends processing.
-        """
-        print("Processing node {0} shutting down.".format(node_rank))
-        sys.stdout.flush()
-
-    def end_processing_on_collecting_node(
-        self, node_rank: int, rank_pool_size: int
-    ) -> None:
-        """
-        Executes end-of-processing actions on the processing nodes.
-
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.
-
-        Prints a message on the console and ends processing.
+        # TODO: Add description
         """
         print(
-            "Processing finished. OM has processed {0} events in total.".format(
-                self._num_events
+            "Processing finished. OM node {0} has processed {1} events in "
+            "total.".format(
+                node_rank,
+                self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"],
             )
         )
+        sys.stdout.flush()
+        if self._file_writer is not None:
+            # self._file_writer.write_sums(self._total_sums)
+            self._file_writer.close()
+        if self._sum_sending_interval is not None and self._sum_sending_counter > 0:
+            return {"class_sums": self._sum_to_send, "end_processing": True}
+        else:
+            return None
+
+    def end_processing_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Executes end-of-processing actions.
+
+        See documentation of the function in the base class:
+        :func:`~om.processing_layer.base.OmMonitor.end_processing`.
+
+        # TODO: Add description
+        """
+        if self._write_class_sums:
+            for class_number in range(2):
+                self._sum_writers[class_number].write_sums(
+                    num_frames=self._total_sums[class_number]["num_frames"],
+                    sum_frames=self._total_sums[class_number]["sum_frames"],
+                    virtual_powder_pattern=self._total_sums[class_number][
+                        "peak_powder"
+                    ],
+                )
+        # TODO: Type this tuple
+        frame_list: List[Tuple[Any, ...]] = sorted(self._frame_list)
+        if self._status_file_update_interval is not None:
+            self._write_status_file(
+                "Finished", self._num_events, self._total_sums[1]["num_frames"]
+            )
+        with open(self._frames_filename, "w") as fh:
+            fh.write(
+                "# timestamp, event_id, hit, filename, index, num_peaks, "
+                "ave_intensity\n"
+            )
+            for frame in frame_list:
+                fh.write("{}, {}, {}, {}, {}, {}, {}\n".format(*frame))
+        with open(self._cleaned_filename, "w") as fh:
+            fh.write(
+                "# timestamp, event_id, hit, filename, index, num_peaks, "
+                "ave_intensity\n"
+            )
+            for frame in frame_list:
+                if frame[2] is True:
+                    fh.write("{}, {}, {}, {}, {}, {}, {}\n".format(*frame))
+        print("Collecting node shutting down.")
         sys.stdout.flush()

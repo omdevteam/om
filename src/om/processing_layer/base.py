@@ -141,6 +141,7 @@ class OmMonitor(ABC):
         """
         pass
 
+    @abstractmethod
     def end_processing_on_processing_node(
         self, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
