@@ -313,8 +313,6 @@ data_extraction_funcs`.
             "detector_data": functions_jungfrau1M.detector_data,
             "event_id": functions_jungfrau1M.event_id,
             "frame_id": functions_jungfrau1M.frame_id,
-            "raw_filename": functions_jungfrau1M.raw_filename,
-            "raw_frame_number": functions_jungfrau1M.raw_frame_number,
         }
 
     def initialize_event_handling_on_processing_node(
@@ -422,14 +420,14 @@ initialize_event_source`.
         for filename in filelist:
             # input filename must be from panel 'd0'
             if re.match(r".+_d0_.+\.h5", filename):
-                filename_d0: pathlib.Path = pathlib.Path(filename.strip()).resolve()
+                filename_d0: str  = filename.strip()
             else:
                 continue
             filename_d1: str = re.sub(r"(_d0_)(.+\.h5)", r"_d1_\2", str(filename_d0))
 
             h5files: Tuple[Any, Any] = (
-                h5py.File(pathlib.Path(filename_d0).absolute, "r"),
-                h5py.File(pathlib.Path(filename_d1).absolute, "r"),
+                h5py.File(pathlib.Path(filename_d0).resolve(), "r"),
+                h5py.File(pathlib.Path(filename_d1).resolve(), "r"),
             )
 
             h5_data_path: str = "/data_" + re.findall(r"_(f\d+)_", filename)[0]
@@ -450,7 +448,8 @@ initialize_event_source`.
                         "index": (ind0, ind1),
                         "h5_data_path": h5_data_path,
                         "frame_number": frame_number,
-                        "timestamp": h5files[0]["/timestamp"][ind0],
+                        "jf_internal_clock": h5files[0]["/timestamp"][ind0] - h5files[0]["/timestamp"][0],
+                        "file_creation_time": numpy.float64(pathlib.Path(filename_d0).stat().st_ctime)
                     }
                 )
 

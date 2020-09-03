@@ -97,8 +97,12 @@ def frame_id(event: Dict[str, Any]) -> str:
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. In both cases, the creation
+    OM currently supports Jungfrau data events originating from files. 
+    The timestamp for an event is calculated as the creation time of the file that the 
+    Jungfrau detector writes plus the offset determined from the Jungfrau internal
+    10MHz clock. 
+
+    In both cases, the creation
     date and time of data file that the Jungfrau detector writes is used as timestamp
     for the event.
     Arguments:
@@ -107,7 +111,12 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
         numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
-    return cast(numpy.float64, event["additional_info"]["timestamp"])
+
+    file_creation_time: float = event["additional_info"]["file_creation_time"]
+    jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
+    # Jungfrau internal clock frequency in Hz (may not be entirely correct)
+    jf_clock_frequency: int = 9721700
+    return cast(numpy.float64, file_creation_time + jf_clock_value/jf_clock_frequency)
 
 
 def beam_energy(event: Dict[str, Any]) -> float:
@@ -141,17 +150,3 @@ def detector_distance(event: Dict[str, Any]) -> float:
     """
     # Returns the value previously stored in the event.
     return cast(float, event["additional_info"]["detector_distance"])
-
-
-def raw_filename(event: Dict[str, Any]) -> str:
-    """
-    #TODO: Add documentation.
-    """
-    return event["additional_info"]["h5files"][0].filename
-
-
-def raw_frame_number(event: Dict[str, Any]) -> int:
-    """
-    #TODO: Add documentation.
-    """
-    return event["additional_info"]["frame_number"]
