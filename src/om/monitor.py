@@ -47,6 +47,7 @@ def _import_class(layer: str, layer_filename: str, class_name: str) -> Type[T]:
             )
         except ImportError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
+            # TODO: Fix types
             if exc_type is not None:
                 raise exceptions.OmInvalidDataBroadcastUrl(
                     "The python module file {0}.py with the implementation of the "

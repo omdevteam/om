@@ -71,6 +71,7 @@ def _create_hidra_info(
     targets: List[List[str]] = [["", "", str(1), ""]]
 
     # Create the HiDRA query object, as requested by the HiDRA API.
+    rank: int
     for rank in range(1, node_pool_size):
         target_entry: List[str] = [
             socket.gethostname(),
@@ -265,8 +266,8 @@ initialize_event_source`.
         data_event["additional_info"].update(self._event_info_to_append)
 
         while True:
-            Dict[str, Any]
-            Dict[str, Any]
+            recovered_metadata: Dict[str, Any]
+            recovered_data: Dict[str, Any]
             recovered_metadata, recovered_data = hidra_info["query"].get()
             data_event["data"] = recovered_data
             data_event["metadata"] = recovered_metadata

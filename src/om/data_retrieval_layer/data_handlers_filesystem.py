@@ -22,10 +22,11 @@ This module contains classes that retrieve and process data events from files wr
 on disk.
 """
 import pathlib
-from typing import Any, Callable, Dict, Generator, List
+from typing import Any, Callable, Dict, Generator, List, TextIO
 
 import fabio  # type: ignore
 import numpy  # type: ignore
+
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_pilatus
 from om.utils import parameters
@@ -165,6 +166,7 @@ initialize_event_source`.
         # be processed cannot be exactly divided by the number of processing nodes.
 
         try:
+            fhandle: TextIO
             with open(self._source, "r") as fhandle:
                 filelist: List[str] = fhandle.readlines()
         except (IOError, OSError) as exc:
@@ -183,6 +185,7 @@ initialize_event_source`.
         data_event["additional_info"] = {}
         data_event["additional_info"].update(self._event_info_to_append)
 
+        entry: str
         for entry in files_curr_node:
             stripped_entry: str = entry.strip()
             data_event["additional_info"]["full_path"] = stripped_entry

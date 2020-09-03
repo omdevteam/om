@@ -22,7 +22,7 @@ This module contains a class that stores a set of configuration parameters read 
 file. Configuration parameters can be retrieved from this class and optionally
 validated.
 """
-from typing import Any
+from typing import Any, TextIO
 
 import yaml
 from past.builtins import basestring  # type: ignore
@@ -57,6 +57,7 @@ class MonitorParams(object):
         self._monitor_params: Any = {}
 
         try:
+            open_file: TextIO
             with open(config, "r") as open_file:
                 self._monitor_params = yaml.safe_load(open_file)
         except OSError:

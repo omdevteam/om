@@ -76,6 +76,7 @@ class ZmqDataBroadcaster(object):
         try:
             self._sock.bind(url)
         except zmq.error.ZMQError as exc:
+            # TODO: fix_types
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
                 raise exceptions.OmInvalidDataBroadcastUrl(

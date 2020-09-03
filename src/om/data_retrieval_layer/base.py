@@ -227,6 +227,8 @@ class OmDataEventHandler(ABC, object):
               function.
         """
         data: Dict[str, Any] = {}
+        f_name: str
+        func: Callable[[Dict[str, Dict[str, Any]]], Any]
         for f_name, func in event["data_extraction_funcs"].items():
             try:
                 data[f_name] = func(event)

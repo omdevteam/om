@@ -134,6 +134,7 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                 node_rank=self._rank, node_pool_size=self._mpi_size,
             )
 
+            event: Dict[str, Any]
             for event in events:
                 # Listens for requests to shut down.
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
@@ -150,6 +151,7 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                 else:
                     num_frames_to_process = n_frames_in_evt
                 # Iterates over the last 'num_frames_to_process' frames in the event.
+                frame_offset: int
                 for frame_offset in range(-num_frames_to_process, 0):
                     current_frame: int = n_frames_in_evt + frame_offset
                     if current_frame in self._frames_in_event_to_skip:
@@ -211,8 +213,9 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             # messages from the nodes (MPI cannot shut down if there are unreceived
             # messages).
             try:
-                for nod_num in range(1, self._mpi_size):
-                    MPI.COMM_WORLD.isend(0, dest=nod_num, tag=_DIETAG)
+                node_num: int
+                for node_num in range(1, self._mpi_size):
+                    MPI.COMM_WORLD.isend(0, dest=node_num, tag=_DIETAG)
                 num_shutdown_confirm = 0
                 while True:
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=0):

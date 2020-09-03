@@ -43,6 +43,7 @@ def _psana_offline_event_generator(
     # events as equally as possible amongst the processing nodes. If the number of
     # events cannot be exactly divided by the number of processing nodes, an additional
     # processing node is assigned the residual events.
+    run: Any
     for run in psana_source.runs():
         times: Any = run.times()
         num_events_curr_node: int = int(
@@ -51,6 +52,7 @@ def _psana_offline_event_generator(
         events_curr_node: Any = times[
             (node_rank - 1) * num_events_curr_node : node_rank * num_events_curr_node
         ]
+        evt: Any
         for evt in events_curr_node:
 
             yield run.event(evt)
@@ -133,6 +135,7 @@ initialize_event_source`.
             str, Callable[[parameters.MonitorParams], Any]
         ] = ({})
 
+        func_name: str
         for func_name in required_data:
             try:
                 self._required_psana_detector_init_funcs[
@@ -200,6 +203,8 @@ initialize_event_source`.
         # Calls all the required psana detector interface initialization functions and
         # stores the returned objects in a dictionary.
         data_event["additional_info"]["psana_detector_interface"] = {}
+        f_name: str
+        func: Callable[[parameters.MonitorParams], Any]
         for f_name, func in self._required_psana_detector_init_funcs.items():
             data_event["additional_info"]["psana_detector_interface"][
                 f_name.split("_init")[0]
@@ -214,6 +219,8 @@ initialize_event_source`.
             )
         else:
             psana_events = psana_source.events()
+
+        psana_event: Any
         for psana_event in psana_events:
             data_event["data"] = psana_event
 

@@ -23,7 +23,7 @@ This module contains an OM monitor for serial x-ray crystallography experiments.
 import collections
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Type, Union
+from typing import Any, Deque, Dict, List, Tuple, Union
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -79,9 +79,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=str,
             required=True,
         )
-        crystfel_geometry.TypeDetector
-        Any
-        Any
+        geometry: crystfel_geometry.TypeDetector
+        _: Any
+        __: Any
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps: Dict[str, numpy.ndarray] = crystfel_geometry.compute_pix_maps(
             geometry
@@ -192,13 +192,12 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
         if pf8_bad_pixel_map_fname is not None:
             try:
-                with h5py.File(pf8_bad_pixel_map_fname, "r") as hdf5_file_handle:
-                    bad_pixel_map: Union[numpy.ndarray, None] = hdf5_file_handle[
+                map_hdf5_file_handle: Any
+                with h5py.File(pf8_bad_pixel_map_fname, "r") as map_hdf5_file_handle:
+                    bad_pixel_map: Union[numpy.ndarray, None] = map_hdf5_file_handle[
                         pf8_bad_pixel_map_hdf5_path
                     ][:]
             except (IOError, OSError, KeyError) as exc:
-                Union[Type[BaseException], None]
-                Union[BaseException, None]
                 exc_type, exc_value = sys.exc_info()[:2]
                 # TODO: Fix type check
                 raise RuntimeError(
@@ -297,9 +296,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=str,
             required=True,
         )
-        TypeDetector
-        Any
-        Any
+        geometry: TypeDetector
+        _: Any
+        __: Any
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
         self._pixel_size: float = geometry["panels"][
@@ -460,7 +459,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
-
+        peak_fs: float
+        peak_ss: float
+        peak_value: float
         for peak_fs, peak_ss, peak_value in zip(
             received_data["peak_list"]["fs"],
             received_data["peak_list"]["ss"],

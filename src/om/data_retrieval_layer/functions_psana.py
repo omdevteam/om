@@ -116,7 +116,7 @@ def beam_energy_init(monitor_params: parameters.MonitorParams) -> Any:
         to retrieve the data.
     """
     del monitor_params
-    #psana.Detector("EBeam")
+    # psana.Detector("EBeam")
     return psana.Detector("SIOC:SYS0:ML00:AO192")
 
 
@@ -331,8 +331,10 @@ def beam_energy(event: Dict[str, Any]) -> float:
     #    event["additional_info"]["psana_detector_interface"]["beam_energy"]
     #    .get(event["data"])
     #    .ebeamPhotonEnergy()
-    #)
-    wavelength: Union[float, None] = event["additional_info"]["psana_detector_interface"]["beam_energy"]()
+    # )
+    wavelength: Union[float, None] = event["additional_info"][
+        "psana_detector_interface"
+    ]["beam_energy"]()
     if wavelength is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve beam energy information from psana."
@@ -343,7 +345,7 @@ def beam_energy(event: Dict[str, Any]) -> float:
     photonEnergy: float = (h / joulesPerEv * c) / (wavelength * 1e-9)
 
     return photonEnergy
-    #return beam_en
+    # return beam_en
 
 
 def timetool_data(event: Dict[str, Any]) -> float:

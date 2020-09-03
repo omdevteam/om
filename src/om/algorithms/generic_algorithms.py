@@ -109,8 +109,9 @@ class Correction(object):
         if mask_filename is not None:
             if mask_hdf5_path is not None:
                 try:
-                    with h5py.File(mask_filename, "r") as hdf5_file_handle:
-                        self._mask: Union[numpy.ndarray, None] = hdf5_file_handle[
+                    mask_hdf5_file_handle: Any
+                    with h5py.File(mask_filename, "r") as mask_hdf5_file_handle:
+                        self._mask: Union[numpy.ndarray, None] = mask_hdf5_file_handle[
                             mask_hdf5_path
                         ][:]
                 except (IOError, OSError, KeyError) as exc:
@@ -136,9 +137,10 @@ class Correction(object):
         if dark_filename is not None:
             if dark_hdf5_path is not None:
                 try:
-                    with h5py.File(dark_filename, "r") as hdf5_file_handle:
+                    dark_hdf5_file_handle: Any
+                    with h5py.File(dark_filename, "r") as dark_hdf5_file_handle:
                         self._dark: Union[numpy.ndarray, None] = (
-                            hdf5_file_handle[dark_hdf5_path][:] * self._mask
+                            dark_hdf5_file_handle[dark_hdf5_path][:] * self._mask
                         )
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
@@ -163,9 +165,10 @@ class Correction(object):
         if gain_filename is not None:
             if gain_hdf5_path is not None:
                 try:
-                    with h5py.File(gain_filename, "r") as hdf5_file_handle:
+                    gain_hdf5_file_handle: Any
+                    with h5py.File(gain_filename, "r") as gain_hdf5_file_handle:
                         self._gain: Union[numpy.ndarray, None] = (
-                            hdf5_file_handle[gain_hdf5_path][:] * self._mask
+                            gain_hdf5_file_handle[gain_hdf5_path][:] * self._mask
                         )
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]

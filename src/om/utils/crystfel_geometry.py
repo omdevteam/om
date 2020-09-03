@@ -25,7 +25,7 @@ import copy
 import math
 import re
 import sys
-from typing import Dict, List, Tuple, Type, Union
+from typing import Dict, List, TextIO, Tuple, Union
 
 import numpy  # type: ignore
 from mypy_extensions import TypedDict
@@ -140,9 +140,10 @@ def _dir_conv(
         direction_y,
         direction_z,
     ]
-    items = _assplode_algebraic(value)
+    items: List[str] = _assplode_algebraic(value)
     if not items:
         raise RuntimeError("Invalid direction: {}.".format(value))
+    item: str
     for item in items:
         axis: str = item[-1]
         if axis not in ("x", "y", "z"):
@@ -397,7 +398,7 @@ def _check_point(
     ys: float = fs * panel["fsy"] + ss * panel["ssy"]
     rx: float = (xs + panel["cnx"]) / panel["res"]
     ry: float = (ys + panel["cny"]) / panel["res"]
-    dist = math.sqrt(rx * rx + ry * ry)
+    dist: float = math.sqrt(rx * rx + ry * ry)
     if dist > max_d:
         detector["furthest_out_panel"] = panel_name
         detector["furthest_out_fs"] = fs
@@ -416,6 +417,8 @@ def _find_min_max_d(detector: TypeDetector) -> None:
     # Re-implementation of find_min_max_d from libcrystfel/src/detector.c.
     min_d: float = float("inf")
     max_d: float = 0.0
+    panel_name: str
+    panel: TypePanel
     for panel_name, panel in detector["panels"].items():
         min_d, max_d = _check_point(
             panel_name=panel_name,
@@ -769,7 +772,9 @@ def load_crystfel_geometry(  # noqa: C901
     default_dim: List[Union[int, str, None]] = ["ss", "fs"]
     hdf5_peak_path: str = ""
     try:
+        file_handle: TextIO
         with open(filename, mode="r") as file_handle:
+            line: str
             file_lines: List[str] = file_handle.readlines()
             for line in file_lines:
                 if line.startswith(";"):
@@ -800,14 +805,14 @@ def load_crystfel_geometry(  # noqa: C901
                     continue
                 if path[0].startswith("bad"):
                     if path[0] in detector["bad"]:
-                        curr_bad = detector["bad"][path[0]]
+                        curr_bad: TypeBadRegion = detector["bad"][path[0]]
                     else:
                         curr_bad = copy.deepcopy(default_bad_region)
                         detector["bad"][path[0]] = curr_bad
                     _parse_field_bad(key=path[1], value=value, bad=curr_bad)
                 else:
                     if path[0] in detector["panels"]:
-                        curr_panel = detector["panels"][path[0]]
+                        curr_panel: TypePanel = detector["panels"][path[0]]
                     else:
                         curr_panel = copy.deepcopy(default_panel)
                         detector["panels"][path[0]] = curr_panel
@@ -821,6 +826,7 @@ def load_crystfel_geometry(  # noqa: C901
             if not detector["panels"]:
                 raise RuntimeError("No panel descriptions in geometry file.")
             num_placeholders_in_panels: int = -1
+            panel: TypePanel
             for panel in detector["panels"].values():
                 if panel["dim_structure"] is not None:
                     curr_num_placeholders: int = panel["dim_structure"].count("%")
@@ -856,12 +862,15 @@ def load_crystfel_geometry(  # noqa: C901
                     "for data."
                 )
             dim_length: int = -1
+            panel_name: str
             for panel_name, panel in detector["panels"].items():
                 if len(panel["dim_structure"]) == 0:
                     panel["dim_structure"] = copy.deepcopy(default_dim)
                 found_ss: int = 0
                 found_fs: int = 0
                 found_placeholder: int = 0
+                dim_index: int
+                entry: Union[int, str, None]
                 for dim_index, entry in enumerate(panel["dim_structure"]):
                     if entry is None:
                         raise RuntimeError(
@@ -960,26 +969,33 @@ def load_crystfel_geometry(  # noqa: C901
                     panel["clen_for_centering"] = 0.0
                 panel["w"] = panel["orig_max_fs"] - panel["orig_min_fs"] + 1
                 panel["h"] = panel["orig_max_ss"] - panel["orig_min_ss"] + 1
+            bad_region_name: str
+            bad_region: TypeBadRegion
             for bad_region_name, bad_region in detector["bad"].items():
                 if bad_region["is_fsss"] == 99:
                     raise RuntimeError(
                         "Please specify the coordinate ranges for bad "
                         "region {}.".format(bad_region_name)
                     )
+            group: str
             for group in detector["rigid_groups"]:
+                name: str
                 for name in detector["rigid_groups"][group]:
                     if name not in detector["panels"]:
                         raise RuntimeError(
                             "Cannot add panel to rigid_group. Panel not "
                             "found: {}".format(name)
                         )
+            group_collection: str
             for group_collection in detector["rigid_group_collections"]:
-                for name in detector["rigid_group_collections"][group_collection]:
-                    if name not in detector["rigid_groups"]:
+                group_name: str
+                for group_name in detector["rigid_group_collections"][group_collection]:
+                    if group_name not in detector["rigid_groups"]:
                         raise RuntimeError(
                             "Cannot add rigid_group to collection. Rigid group not "
                             "found: {}".format(name)
                         )
+
             for panel in detector["panels"].values():
                 d: float = (panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"])
                 if d == 0.0:
@@ -991,8 +1007,6 @@ def load_crystfel_geometry(  # noqa: C901
             _find_min_max_d(detector)
     except (IOError, OSError) as exc:
         # TODO: Fix type check
-        Union[Type[BaseException], None]
-        Union[BaseException, None]
         exc_type, exc_value = sys.exc_info()[:2]
         raise exceptions.OmConfigurationFileReadingError(
             "The following error occurred while reading the {0} geometry"
@@ -1066,65 +1080,66 @@ def compute_pix_maps(geometry: TypeDetector) -> Dict[str, numpy.ndarray]:
     # Iterates over the panels. For each panel, determines the pixel indices, then
     # computes the x,y vectors. Finally, copies the panel pixel maps into the
     # detector-wide pixel maps.
-    for pan in geometry["panels"]:
-        if "clen" in geometry["panels"][pan]:
-            first_panel_camera_length: float = geometry["panels"][pan]["clen"]
+    panel_name: str
+    for panel_name in geometry["panels"]:
+        if "clen" in geometry["panels"][panel_name]:
+            first_panel_camera_length: float = geometry["panels"][panel_name]["clen"]
         else:
             first_panel_camera_length = 0.0
 
-        numpy.ndarray
-        numpy.ndarray
+        ss_grid: numpy.ndarray
+        fs_grid: numpy.ndarray
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
-                geometry["panels"][pan]["orig_max_ss"]
-                - geometry["panels"][pan]["orig_min_ss"]
+                geometry["panels"][panel_name]["orig_max_ss"]
+                - geometry["panels"][panel_name]["orig_min_ss"]
                 + 1
             ),
             numpy.arange(
-                geometry["panels"][pan]["orig_max_fs"]
-                - geometry["panels"][pan]["orig_min_fs"]
+                geometry["panels"][panel_name]["orig_max_fs"]
+                - geometry["panels"][panel_name]["orig_min_fs"]
                 + 1
             ),
             indexing="ij",
         )
         y_panel: numpy.ndarray = (
-            ss_grid * geometry["panels"][pan]["ssy"]
-            + fs_grid * geometry["panels"][pan]["fsy"]
-            + geometry["panels"][pan]["cny"]
+            ss_grid * geometry["panels"][panel_name]["ssy"]
+            + fs_grid * geometry["panels"][panel_name]["fsy"]
+            + geometry["panels"][panel_name]["cny"]
         )
         x_panel: numpy.ndarray = (
-            ss_grid * geometry["panels"][pan]["ssx"]
-            + fs_grid * geometry["panels"][pan]["fsx"]
-            + geometry["panels"][pan]["cnx"]
+            ss_grid * geometry["panels"][panel_name]["ssx"]
+            + fs_grid * geometry["panels"][panel_name]["fsx"]
+            + geometry["panels"][panel_name]["cnx"]
         )
         x_map[
-            geometry["panels"][pan]["orig_min_ss"] : geometry["panels"][pan][
-                "orig_max_ss"
-            ]
+            geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
+                panel_name
+            ]["orig_max_ss"]
             + 1,
-            geometry["panels"][pan]["orig_min_fs"] : geometry["panels"][pan][
-                "orig_max_fs"
-            ]
+            geometry["panels"][panel_name]["orig_min_fs"] : geometry["panels"][
+                panel_name
+            ]["orig_max_fs"]
             + 1,
         ] = x_panel
         y_map[
-            geometry["panels"][pan]["orig_min_ss"] : geometry["panels"][pan][
-                "orig_max_ss"
-            ]
+            geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
+                panel_name
+            ]["orig_max_ss"]
             + 1,
-            geometry["panels"][pan]["orig_min_fs"] : geometry["panels"][pan][
-                "orig_max_fs"
-            ]
+            geometry["panels"][panel_name]["orig_min_fs"] : geometry["panels"][
+                panel_name
+            ]["orig_max_fs"]
             + 1,
         ] = y_panel
         z_map[
-            geometry["panels"][pan]["orig_min_ss"] : geometry["panels"][pan][
-                "orig_max_ss"
-            ]
+            geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
+                panel_name
+            ]["orig_max_ss"]
             + 1,
-            geometry["panels"][pan]["orig_min_fs"] : geometry["panels"][pan][
-                "orig_max_fs"
-            ]
+            geometry["panels"][panel_name]["orig_min_fs"] : geometry["panels"][
+                panel_name
+            ]["orig_max_fs"]
             + 1,
         ] = first_panel_camera_length
 
@@ -1178,8 +1193,8 @@ def compute_visualization_pix_maps(geometry: TypeDetector) -> Dict[str, numpy.nd
     # display the data, then use this information to estimate the magnitude of the
     # shift.
     pixel_maps: Dict[str, numpy.ndarray] = compute_pix_maps(geometry)
-    numpy.ndarray
-    numpy.ndarray
+    x_map: numpy.ndarray
+    y_map: numpy.ndarray
     x_map, y_map = (
         pixel_maps["x"],
         pixel_maps["y"],
@@ -1235,8 +1250,8 @@ def apply_geometry_to_data(
         applied.
     """
     pixel_maps: Dict[str, numpy.ndarray] = compute_pix_maps(geometry)
-    numpy.ndarray
-    numpy.ndarray
+    x_map: numpy.ndarray
+    y_map: numpy.ndarray
     x_map, y_map = (
         pixel_maps["x"],
         pixel_maps["y"],
