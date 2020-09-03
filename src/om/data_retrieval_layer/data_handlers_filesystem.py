@@ -288,7 +288,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Data event handler for Pilatus files read from the filesystem.
+        Data event handler for Jungfrau files read from the filesystem.
         See documentation of the constructor of the base class:
         :func:`~om.data_retrieval_layer.base.DataEventHandler` .
         """
@@ -301,7 +301,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         self,
     ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
-        Retrieves the Data Extraction Functions for Pilatus files.
+        Retrieves the Data Extraction Functions for Jungfrau files.
         See documentation of the function in the base class:
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
 data_extraction_funcs`.
@@ -319,7 +319,7 @@ data_extraction_funcs`.
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes event handling on the processing nodes for Pilatus files.
+        Initializes event handling on the processing nodes for Jungfrau files.
 
         See documentation of the function in the base class:
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
@@ -495,7 +495,7 @@ initialize_event_source`.
 
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in an event retrieved from Pilatus files.
+        Gets the number of frames in an event retrieved from Jungfrau files.
         See documentation of the function in the base class:
         :func:`~om.data_retrieval_layer.base.DataEventHandler.\
 get_num_frames_in_event`.
