@@ -43,8 +43,8 @@ class HDF5Writer(object):
         directory_for_processed_data: str,
         node_rank: int,
         geometry: TypeDetector,
-        compression: Union[bool, None],
-        detector_data_type: Any,
+        compression: Union[str, None],
+        detector_data_type: Union[str, None],
         detector_data_shape: Tuple[int, int],
         hdf5_fields: Dict[str, str],
         processed_filename_prefix: Union[str, None] = None,
@@ -93,8 +93,8 @@ class HDF5Writer(object):
 
             processed_filename_extension (Union[str, None]): a string that will
                 appended to the name of the output files. Optional. If the value of
-                this argument is None, the string 'processed_' will be used as
-                extension. Defaults to None.
+                this argument is None, the string 'h5' will be used as extension. 
+                Defaults to None.
 
             compression_opts (Union[int, None]): the compression level to be used if
                 data compression is applied. This is argument is considered only if the
@@ -112,7 +112,7 @@ class HDF5Writer(object):
         if processed_filename_prefix is None:
             processed_filename_prefix = "processed"
         if processed_filename_extension is None:
-            processed_filename_extension = "processed"
+            processed_filename_extension = "h5"
 
         if detector_data_type is None:
             self._data_type = numpy.float32
@@ -182,38 +182,38 @@ class HDF5Writer(object):
                     ),
                     "fs": self._h5file.create_dataset(
                         name=hdf5_fields["peak_list"] + "/peakXPosRaw",
-                        shape=(0, max_num_peaks),
-                        maxshape=(None, max_num_peaks),
+                        shape=(0, self._max_num_peaks),
+                        maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "ss": self._h5file.create_dataset(
                         name=hdf5_fields["peak_list"] + "/peakYPosRaw",
-                        shape=(0, max_num_peaks),
-                        maxshape=(None, max_num_peaks),
+                        shape=(0, self._max_num_peaks),
+                        maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "intensity": self._h5file.create_dataset(
                         name=hdf5_fields["peak_list"] + "/peakTotalIntensity",
-                        shape=(0, max_num_peaks),
-                        maxshape=(None, max_num_peaks),
+                        shape=(0, self._max_num_peaks),
+                        maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
-                    "n_pix": self._h5file.create_dataset(
+                    "num_pixels": self._h5file.create_dataset(
                         name=hdf5_fields["peak_list"] + "/peakNPixels",
-                        shape=(0, max_num_peaks),
-                        maxshape=(None, max_num_peaks),
+                        shape=(0, self._max_num_peaks),
+                        maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
-                    "max_intensity": self._h5file.create_dataset(
+                    "max_pixel_intensity": self._h5file.create_dataset(
                         name=hdf5_fields["peak_list"] + "/peakMaximumValue",
-                        shape=(0, max_num_peaks),
-                        maxshape=(None, max_num_peaks),
+                        shape=(0, self._max_num_peaks),
+                        maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "snr": self._h5file.create_dataset(
                         name=hdf5_fields["peak_list"] + "/peakSNR",
-                        shape=(0, max_num_peaks),
-                        maxshape=(None, max_num_peaks),
+                        shape=(0, self._max_num_peaks),
+                        maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                 }

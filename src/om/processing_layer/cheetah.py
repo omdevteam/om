@@ -281,8 +281,8 @@ class Cheetah(process_layer_base.OmMonitor):
         data_type: Union[str, None] = self._monitor_params.get_param(
             group="cheetah", parameter="hdf5_file_data_type", parameter_type=str,
         )
-        compression: Union[bool, None] = self._monitor_params.get_param(
-            group="cheetah", parameter="hdf5_file_compression", parameter_type=bool,
+        compression: Union[str, None] = self._monitor_params.get_param(
+            group="cheetah", parameter="hdf5_file_compression", parameter_type=str,
         )
 
         compression_opts: Union[int, None] = self._monitor_params.get_param(
@@ -360,7 +360,8 @@ class Cheetah(process_layer_base.OmMonitor):
         Any
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
-
+        self._data_shape = self._pixelmaps["x"].shape
+        
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
         # of the whole detector.
@@ -529,11 +530,29 @@ class Cheetah(process_layer_base.OmMonitor):
 
         processed_data["timestamp"] = data["timestamp"]
         processed_data["frame_is_hit"] = frame_is_hit
-        processed_data["detector_distance"] = data["detector_distance"]
-        processed_data["beam_energy"] = data["beam_energy"]
+        if "detector_distance" in data.keys():
+            processed_data["detector_distance"] = data["detector_distance"]
+        else:
+            processed_data["detector_distance"] = 300
+        if "beam_energy" in data.keys():
+            processed_data["beam_energy"] = data["beam_energy"]
+        else:
+            processed_data["beam_energy"] = 10000
         processed_data["data_shape"] = data["detector_data"].shape
+        if "event_id" in data.keys():
+            processed_data["event_id"] = data["event_id"]
+        else:
+            processed_data["event_id"] = None
+        processed_data["peak_list"] = peak_list
+        processed_data["filename"] = "---"
+        processed_data["index"] = -1
         if frame_is_hit:
-            processed_data["peak_list"] = peak_list
+            data_to_write = {"detector_data": corrected_detector_data}
+            data_to_write.update(processed_data)
+            self._file_writer._write_frame(data_to_write)
+            processed_data["filename"] = self._file_writer._processed_filename
+            processed_data["index"] = self._file_writer._num_frames - 1
+
             if self._hit_frame_sending_interval is not None:
                 self._hit_frame_sending_counter += 1
                 if self._hit_frame_sending_counter == self._hit_frame_sending_interval:
@@ -544,8 +563,6 @@ class Cheetah(process_layer_base.OmMonitor):
                     processed_data["detector_data"] = corrected_detector_data
                     self._hit_frame_sending_counter = 0
         else:
-            # If the frame is not a hit, sends an empty peak list.
-            processed_data["peak_list"] = {"fs": [], "ss": [], "intensity": []}
             if self._non_hit_frame_sending_interval is not None:
                 self._non_hit_frame_sending_counter += 1
                 if (
