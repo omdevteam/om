@@ -355,6 +355,11 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         data_broadcast_url: Union[str, None] = self._monitor_params.get_param(
             group="crystallography", parameter="data_broadcast_url", parameter_type=str
         )
+        if data_broadcast_url is None:
+            data_broadcast_url = "tcp://{0}:12321".format(
+                zmq_monitor.get_current_machine_ip()
+            )
+
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
             zmq_monitor.ZmqDataBroadcaster(url=data_broadcast_url)
         )

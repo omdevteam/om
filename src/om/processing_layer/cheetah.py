@@ -325,6 +325,8 @@ class Cheetah(process_layer_base.OmMonitor):
             fh.write("Status: {}\n".format(status))
             fh.write("Frames processed: {}\n".format(num_frames))
             fh.write("Number of hits: {}\n".format(num_hits))
+            if status == "Not finished":
+                fh.write("ZMQ broadcast URL: {}\n".format(self._data_broadcast_url))
 
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
@@ -420,8 +422,15 @@ class Cheetah(process_layer_base.OmMonitor):
         data_broadcast_url: Union[str, None] = self._monitor_params.get_param(
             group="crystallography", parameter="data_broadcast_url", parameter_type=str
         )
+        if data_broadcast_url is None:
+            self._data_broadcast_url: str = "tcp://{0}:12321".format(
+                zmq_monitor.get_current_machine_ip()
+            )
+        else:
+            self._data_broadcast_url = data_broadcast_url
+
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-            zmq_monitor.ZmqDataBroadcaster(url=data_broadcast_url)
+            zmq_monitor.ZmqDataBroadcaster(url=self._data_broadcast_url)
         )
 
         self._num_events = 0  # type: int
