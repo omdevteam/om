@@ -64,9 +64,11 @@ class Jungfrau1MCalibration(object):
         self._gain: numpy.ndarray = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float64
         )
+        panel_id: int
         for panel_id in range(num_panels):
             gain_file: BinaryIO = open(gain_filenames[panel_id], "rb")
             dark_file: Any = h5py.File(dark_filenames[panel_id], "r")
+            gain: int
             for gain in range(3):
                 self._dark[gain, 512 * panel_id : 512 * (panel_id + 1), :] = dark_file[
                     "gain%d" % gain
@@ -105,6 +107,7 @@ class Jungfrau1MCalibration(object):
             numpy.where(data & 2 ** 15 > 0),
         ]
 
+        gain: int
         for gain in range(3):
             corrected_data[where_gain[gain]] -= self._dark[gain][where_gain[gain]]
             corrected_data[where_gain[gain]] /= (

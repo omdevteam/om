@@ -93,7 +93,7 @@ class HDF5Writer(object):
 
             processed_filename_extension (Union[str, None]): a string that will
                 appended to the name of the output files. Optional. If the value of
-                this argument is None, the string 'h5' will be used as extension. 
+                this argument is None, the string 'h5' will be used as extension.
                 Defaults to None.
 
             compression_opts (Union[int, None]): the compression level to be used if
@@ -115,12 +115,12 @@ class HDF5Writer(object):
             processed_filename_extension = "h5"
 
         if detector_data_type is None:
-            self._data_type = numpy.float32
+            self._data_type: numpy.ndarray = numpy.float32
         else:
             self._data_type = numpy.dtype(detector_data_type)
 
         if max_num_peaks is None:
-            self._max_num_peaks = 1024
+            self._max_num_peaks: int = 1024
         else:
             self._max_num_peaks = max_num_peaks
 
@@ -163,6 +163,7 @@ class HDF5Writer(object):
                 dtype=h5py.special_dtype(vlen=str),
             )
         # Creating all requested 1D float64 datasets:
+        key: str
         for key in ("timestamp", "beam_energy", "pixel_size", "detector_distance"):
             if key in hdf5_fields.keys():
                 self._resizable_datasets[key] = self._h5file.create_dataset(
@@ -218,17 +219,11 @@ class HDF5Writer(object):
                     ),
                 }
             )
-        self._requested_datasets = set(hdf5_fields.keys())
+        self._requested_datasets: Set[str] = set(hdf5_fields.keys())
 
-        self._num_frames = 0
+        self._num_frames: int = 0
 
-    def _resize_datasets(self, extension_size: int = 1) -> None:
-        # Extends all resizable datasets by the specified extension size
-        for dataset in self._resizable_datasets.values():
-            dataset.resize(self._num_frames + extension_size, axis=0)
-        self._num_frames += extension_size
-
-    def _write_frame(self, processed_data: Dict[str, Any]) -> None:
+    def write_frame(self, processed_data: Dict[str, Any]) -> None:
         self._resize_datasets()
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
@@ -249,6 +244,7 @@ class HDF5Writer(object):
             "beam_energy",
             "detector_distance",
         ]
+        dataset_dict_key: str
         for dataset_dict_key in dataset_dict_keys_to_write:
             if dataset_dict_key in fields:
                 self._resizable_datasets[dataset_dict_key][frame_num] = processed_data[
@@ -267,6 +263,7 @@ class HDF5Writer(object):
                     "fs", "ss", "intensity", "num_pixels", "max_pixel_intensity", "snr"
                 ]
             ] = ["fs", "ss", "intensity", "num_pixels", "max_pixel_intensity", "snr"]
+            peak_dict_key: str
             for peak_dict_key in peak_dict_keys_to_write:
                 self._resizable_datasets[peak_dict_key][
                     frame_num, :n_peaks
@@ -280,6 +277,33 @@ class HDF5Writer(object):
             )
         )
         sys.stdout.flush()
+
+    def get_current_filename(self) -> pathlib.Path:
+        """
+        Retrieves the path to the file being written.
+
+        Returns:
+
+            pathlib.Path: the path to the file currently being written.
+        """
+        return self._processed_filename
+
+    def get_num_written_frames(self) -> int:
+        """
+        Retrieves the number of frames already written.
+
+        Returns:
+
+            int: the number of frames already written in the current file.
+        """
+        return self._num_frames - 1
+
+    def _resize_datasets(self, extension_size: int = 1) -> None:
+        # Extends all resizable datasets by the specified extension size
+        dataset: Any
+        for dataset in self._resizable_datasets.values():
+            dataset.resize(self._num_frames + extension_size, axis=0)
+        self._num_frames += extension_size
 
 
 class SumHDF5Writer(object):
@@ -324,7 +348,7 @@ class SumHDF5Writer(object):
         ).resolve() / "{0}-detector0-class{1}-sum.h5".format(
             sum_filename_prefix, powder_class
         )
-        self._h5file = h5py.File(self._class_filename, "w")
+        self._h5file: Any = h5py.File(self._class_filename, "w")
 
         self._h5file.create_dataset(
             name="/data/nframes", shape=(1,), dtype=numpy.int64,
@@ -358,6 +382,7 @@ class SumHDF5Writer(object):
             virtual_powder_pattern (numpy.ndarray): the virtual powder patter that will
                 be written in the output file.
         """
+        attempt: int
         for attempt in range(5):
             # If file is opened by someone else try 5 times during 10 seconds and exit
             try:
@@ -371,8 +396,8 @@ class SumHDF5Writer(object):
                 time.sleep(2)
                 pass
         print(
-            "The file {0} has been opened by another application. Five attempts to "
-            "open the files failed. Cannot update the file.".format(
+            "Another application is reading the file {0} exclusively. Five attempts "
+            "to open the files failed. Cannot update the file.".format(
                 self._class_filename
             )
         )

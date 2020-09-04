@@ -291,8 +291,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             required=True,
         )
         geometry: TypeDetector
-        _: Any
-        __: Any
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
 

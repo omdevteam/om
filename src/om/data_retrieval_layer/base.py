@@ -274,6 +274,7 @@ def filter_data_extraction_funcs(
     required_data_extraction_funcs: Dict[
         str, Callable[[Dict[str, Dict[str, Any]]], Any]
     ] = ({})
+    func_name: str
     for func_name in required_data:
         try:
             required_data_extraction_funcs[func_name] = data_extraction_funcs[func_name]

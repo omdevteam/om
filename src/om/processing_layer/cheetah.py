@@ -22,10 +22,10 @@ This module contains the implementation of Cheetah, a data processing program fo
 serial x-ray crystallography experiments based on OM.
 """
 import collections
-import os
+import pathlib
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Type, Union
+from typing import Any, Deque, Dict, List, TextIO, Tuple, Union
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -67,14 +67,12 @@ class Cheetah(process_layer_base.OmMonitor):
             parameter_type=str,
             required=True,
         )
-        crystfel_geometry.TypeDetector
-        Any
-        Any
+        geometry: crystfel_geometry.TypeDetector
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps: Dict[str, numpy.ndarray] = crystfel_geometry.compute_pix_maps(
             geometry
         )
-        self._data_shape = self._pixelmaps["x"].shape
+        self._data_shape: Tuple[int, int] = self._pixelmaps["x"].shape
 
         # TODO: Type this dictionary
         self._total_sums: List[Dict[str, Any]] = [
@@ -89,7 +87,7 @@ class Cheetah(process_layer_base.OmMonitor):
             parameter="class_sums_sending_interval",
             parameter_type=int,
         )
-        self._sum_sending_counter = 0
+        self._sum_sending_counter: int = 0
 
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
@@ -196,13 +194,12 @@ class Cheetah(process_layer_base.OmMonitor):
 
         if pf8_bad_pixel_map_fname is not None:
             try:
+                hdf5_file_handle: Any
                 with h5py.File(pf8_bad_pixel_map_fname, "r") as hdf5_file_handle:
                     bad_pixel_map: Union[numpy.ndarray, None] = hdf5_file_handle[
                         pf8_bad_pixel_map_hdf5_path
                     ][:]
             except (IOError, OSError, KeyError) as exc:
-                Union[Type[BaseException], None]
-                Union[BaseException, None]
                 exc_type, exc_value = sys.exc_info()[:2]
                 # TODO: Fix type check
                 raise RuntimeError(
@@ -314,13 +311,15 @@ class Cheetah(process_layer_base.OmMonitor):
     ) -> None:
         # Writes a status file that the Cheetah GUI from Anton Barty can inspect.
 
+        fh: TextIO
         with open(self._status_filename, "w") as fh:
             fh.write("# Cheetah status\n")
             fh.write("Update time: {}\n".format(time.strftime("%a %b %d %H:%M:%S %Y")))
             dt: int = int(time.time() - self._start_time)
-            int, int
+            hours: int
+            minutes: int
             hours, minutes = divmod(dt, 3600)
-            int, int
+            seconds: int
             minutes, seconds = divmod(minutes, 60)
             fh.write("Elapsed time: {}hr {}min {}sec\n".format(hours, minutes, seconds))
             fh.write("Status: {}\n".format(status))
@@ -355,13 +354,11 @@ class Cheetah(process_layer_base.OmMonitor):
             parameter_type=str,
             required=True,
         )
-        crystfel_geometry.TypeDetector
-        Any
-        Any
+        geometry: crystfel_geometry.TypeDetector
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
         self._data_shape = self._pixelmaps["x"].shape
-        
+
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
         # of the whole detector.
@@ -438,16 +435,17 @@ class Cheetah(process_layer_base.OmMonitor):
             parameter_type=str,
             required=True,
         )
-        if not os.path.exists(processed_directory):
-            os.mkdir(processed_directory)
-        self._frames_filename: str = os.path.join(
-            os.path.abspath(processed_directory), "frames.txt"
+        processed_directory_path: pathlib.Path = pathlib.Path(processed_directory)
+        if not processed_directory_path.exists():
+            processed_directory_path.mkdir()
+        self._frames_filename: pathlib.Path = (
+            processed_directory_path.resolve() / "frames.txt"
         )
-        self._cleaned_filename: str = os.path.join(
-            os.path.abspath(processed_directory), "cleaned.txt"
+        self._cleaned_filename: pathlib.Path = (
+            processed_directory_path.resolve() / "cleaned.txt"
         )
-        self._status_filename: str = os.path.join(
-            os.path.abspath(processed_directory), "status.txt"
+        self._status_filename: pathlib.Path = (
+            processed_directory_path.resolve() / "status.txt"
         )
         self._start_time: float = time.time()
         self._status_file_update_interval: int = self._monitor_params.get_param(
@@ -490,6 +488,7 @@ class Cheetah(process_layer_base.OmMonitor):
             self._class_sum_update_counter: int = 0
 
         # TODO: Type this dictionary
+        class_number: int
         self._total_sums = [
             {
                 "num_frames": 0,
@@ -549,9 +548,9 @@ class Cheetah(process_layer_base.OmMonitor):
         if frame_is_hit:
             data_to_write = {"detector_data": corrected_detector_data}
             data_to_write.update(processed_data)
-            self._file_writer._write_frame(data_to_write)
-            processed_data["filename"] = self._file_writer._processed_filename
-            processed_data["index"] = self._file_writer._num_frames - 1
+            self._file_writer.write_frame(data_to_write)
+            processed_data["filename"] = self._file_writer.get_current_filename()
+            processed_data["index"] = self._file_writer.get_num_written_frames()
 
             if self._hit_frame_sending_interval is not None:
                 self._hit_frame_sending_counter += 1
@@ -616,7 +615,9 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         received_data: Dict[str, Any] = processed_data[0]
         if "class_sums" in received_data:
+            class_number: int
             for class_number in range(2):
+                key: str
                 for key in ("num_frames", "sum_frames"):
                     self._total_sums[class_number][key] += received_data["class_sums"][
                         class_number
@@ -652,6 +653,9 @@ class Cheetah(process_layer_base.OmMonitor):
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
 
+        peak_fs: float
+        peak_ss: float
+        peak_value: float
         for peak_fs, peak_ss, peak_value in zip(
             received_data["peak_list"]["fs"],
             received_data["peak_list"]["ss"],
@@ -694,7 +698,7 @@ class Cheetah(process_layer_base.OmMonitor):
             )
 
         self._data_broadcast_socket.send_data(
-            tag=u"view:omdata",
+            tag="view:omdata",
             message={
                 "geometry_is_optimized": self._geometry_is_optimized,
                 "timestamp": received_data["timestamp"],
@@ -720,7 +724,7 @@ class Cheetah(process_layer_base.OmMonitor):
             )
 
             self._data_broadcast_socket.send_data(
-                tag=u"view:omframedata",
+                tag="view:omframedata",
                 message={
                     "frame_data": self._frame_data_img,
                     "timestamp": received_data["timestamp"],
@@ -729,7 +733,7 @@ class Cheetah(process_layer_base.OmMonitor):
                 },
             )
             self._data_broadcast_socket.send_data(
-                tag=u"view:omtweakingdata",
+                tag="view:omtweakingdata",
                 message={
                     "detector_data": received_data["detector_data"],
                     "timestamp": received_data["timestamp"],
@@ -792,6 +796,7 @@ class Cheetah(process_layer_base.OmMonitor):
         # TODO: Add description
         """
         if self._write_class_sums:
+            class_number: int
             for class_number in range(2):
                 self._sum_writers[class_number].write_sums(
                     num_frames=self._total_sums[class_number]["num_frames"],
@@ -806,11 +811,13 @@ class Cheetah(process_layer_base.OmMonitor):
             self._write_status_file(
                 "Finished", self._num_events, self._total_sums[1]["num_frames"]
             )
+        fh: TextIO
         with open(self._frames_filename, "w") as fh:
             fh.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
                 "ave_intensity\n"
             )
+            frame: Tuple[Any, ...]
             for frame in frame_list:
                 fh.write("{}, {}, {}, {}, {}, {}, {}\n".format(*frame))
         with open(self._cleaned_filename, "w") as fh:

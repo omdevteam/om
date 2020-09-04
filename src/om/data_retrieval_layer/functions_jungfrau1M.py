@@ -56,7 +56,7 @@ def event_id(event: Dict[str, Any]) -> str:
     Gets a unique identifier for an event retrieved from Jungfrau.
     Returns a label that unambiguously identifies, within an experiment, the event
     currently being processed. For the Jungfrau detector, event identifier consists of
-    the full path to the raw data file of the first detector panel (d0) and an index of 
+    the full path to the raw data file of the first detector panel (d0) and an index of
     the event in this file, separated by " //".
 
     Arguments:
@@ -97,11 +97,11 @@ def frame_id(event: Dict[str, Any]) -> str:
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files. 
-    The timestamp for an event is calculated as the creation time of the file that the 
-    Jungfrau detector writes plus the time which passed between the event currently 
-    being processed and the first event in the file determined from the Jungfrau 
-    internal 10MHz clock. 
+    OM currently supports Jungfrau data events originating from files.
+    The timestamp for an event is calculated as the creation time of the file that the
+    Jungfrau detector writes plus the time which passed between the event currently
+    being processed and the first event in the file determined from the Jungfrau
+    internal 10MHz clock.
 
     Arguments:
         event (Dict[str, Any]): a dictionary storing the event data.
@@ -114,17 +114,17 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
     jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
     # Jungfrau internal clock frequency in Hz (may not be entirely correct)
     jf_clock_frequency: int = 9721700
-    return cast(numpy.float64, file_creation_time + jf_clock_value/jf_clock_frequency)
+    return file_creation_time + jf_clock_value / jf_clock_frequency
 
 
 def beam_energy(event: Dict[str, Any]) -> float:
     """
     Gets the beam energy for a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files, which do not 
-    provide beam energy information. OM uses the value provided for the 
-    'fallback_beam_energy_in_eV' entry in the configuration file, in the 
+    OM currently supports Jungfrau data events originating from files, which do not
+    provide beam energy information. OM uses the value provided for the
+    'fallback_beam_energy_in_eV' entry in the configuration file, in the
     'data_retrieval_layer' parameter group.
-    
+
     Arguments:
         event (Dict[str, Any]): a dictionary storing the event data.
     Returns:
@@ -137,7 +137,7 @@ def beam_energy(event: Dict[str, Any]) -> float:
 def detector_distance(event: Dict[str, Any]) -> float:
     """
     Gets the detector distance for a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files which do not 
+    OM currently supports Jungfrau data events originating from files which do not
     provide detector distance information. OM uses the value provided for the
     'fallback_detector_distance_in_mm' entry in the configuration file, in the
     'data_retrieval_layer' parameter group.

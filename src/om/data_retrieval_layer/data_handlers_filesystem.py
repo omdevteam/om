@@ -22,8 +22,8 @@ This module contains classes that retrieve and process data events from files wr
 on disk.
 """
 import pathlib
-from typing import Any, Callable, Dict, Generator, List, TextIO
 import re
+from typing import Any, Callable, Dict, Generator, List, TextIO, Tuple
 
 import fabio  # type: ignore
 import h5py  # type: ignore
@@ -336,7 +336,7 @@ initialize_event_source`.
             str, Callable[[Dict[str, Dict[str, Any]]], Any]
         ] = drl_base.filter_data_extraction_funcs(
             self.data_extraction_funcs, required_data
-        )  # type
+        )
 
         self._event_info_to_append: Dict[str, Any] = {}
 
@@ -409,6 +409,7 @@ initialize_event_source`.
         # processing node getting a smaller number of events if the number of events to
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
+            fhandle: TextIO
             with open(self._source, "r") as fhandle:
                 filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
@@ -417,10 +418,11 @@ initialize_event_source`.
             ) from exc
         frame_list: List[Dict[str, Any]] = []
         # TODO: Specify types better
+        filename: str
         for filename in filelist:
             # input filename must be from panel 'd0'
             if re.match(r".+_d0_.+\.h5", filename):
-                filename_d0: str  = filename.strip()
+                filename_d0: str = filename.strip()
             else:
                 continue
             filename_d1: str = re.sub(r"(_d0_)(.+\.h5)", r"_d1_\2", str(filename_d0))
@@ -435,6 +437,8 @@ initialize_event_source`.
             frame_numbers: List[numpy.ndarray] = [
                 h5file["/frameNumber"][:] for h5file in h5files
             ]
+            ind0: int
+            frame_number: numpy.ndarray
             for ind0, frame_number in enumerate(frame_numbers[0]):
                 try:
                     ind1: int = numpy.where(frame_numbers[1] == frame_number)[0][0]
@@ -448,8 +452,11 @@ initialize_event_source`.
                         "index": (ind0, ind1),
                         "h5_data_path": h5_data_path,
                         "frame_number": frame_number,
-                        "jf_internal_clock": h5files[0]["/timestamp"][ind0] - h5files[0]["/timestamp"][0],
-                        "file_creation_time": numpy.float64(pathlib.Path(filename_d0).stat().st_ctime)
+                        "jf_internal_clock": h5files[0]["/timestamp"][ind0]
+                        - h5files[0]["/timestamp"][0],
+                        "file_creation_time": numpy.float64(
+                            pathlib.Path(filename_d0).stat().st_ctime
+                        ),
                     }
                 )
 
@@ -469,6 +476,7 @@ initialize_event_source`.
         data_event["additional_info"] = {}
         data_event["additional_info"].update(self._event_info_to_append)
 
+        entry: Dict[str, Any]
         for entry in frames_curr_node:
             data_event["additional_info"].update(entry)
             data_event["additional_info"]["num_frames_curr_node"] = len(

@@ -52,11 +52,11 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     cspad_slab: numpy.ndarray = numpy.zeros(
         shape=(1480, 1552), dtype=cspad_reshaped.dtype
     )
-    i: int
-    for i in range(cspad_reshaped.shape[0]):
+    index: int
+    for index in range(cspad_reshaped.shape[0]):
         cspad_slab[
-            :, i * cspad_reshaped.shape[3] : (i + 1) * cspad_reshaped.shape[3]
-        ] = cspad_reshaped[i].reshape(
+            :, index * cspad_reshaped.shape[3] : (index + 1) * cspad_reshaped.shape[3]
+        ] = cspad_reshaped[index].reshape(
             (cspad_reshaped.shape[1] * cspad_reshaped.shape[2], cspad_reshaped.shape[3])
         )
 
