@@ -277,6 +277,14 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=int,
             required=True,
         )
+
+        self._data_broadcast_interval: int = self._monitor_params.get_param(
+            group="crystallography",
+            parameter="data_broadcast_interval",
+            parameter_type=int,
+            required=True,
+        )
+
         self._geometry_is_optimized: bool = self._monitor_params.get_param(
             group="crystallography",
             parameter="geometry_is_optimized",
@@ -477,49 +485,50 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             peak_list_y_in_frame.append(x_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
-        self._data_broadcast_socket.send_data(
-            tag="view:omdata",
-            message={
-                "geometry_is_optimized": self._geometry_is_optimized,
-                "timestamp": received_data["timestamp"],
-                "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
-                "hit_rate_history": self._hit_rate_history,
-                "virtual_powder_plot": self._virt_powd_plot_img,
-                "beam_energy": received_data["beam_energy"],
-                "detector_distance": received_data["detector_distance"],
-                "first_panel_coffset": self._first_panel_coffset,
-                "pixel_size": self._pixel_size,
-            },
-        )
-
-        if "detector_data" in received_data:
-            # If detector frame data is found in the data received from the processing
-            # node, it must be broadcasted to visualization programs. The frame is
-            # wrapped into a list because the receiving programs usually expect lists
-            # of aggregated events as opposed to single events.
-
-            self._frame_data_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
-                received_data["detector_data"]
-                .ravel()
-                .astype(self._frame_data_img.dtype)
-            )
-
+        if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
-                tag=u"view:omframedata",
+                tag="view:omdata",
                 message={
-                    "frame_data": self._frame_data_img,
+                    "geometry_is_optimized": self._geometry_is_optimized,
                     "timestamp": received_data["timestamp"],
-                    "peak_list_x_in_frame": peak_list_x_in_frame,
-                    "peak_list_y_in_frame": peak_list_y_in_frame,
+                    "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
+                    "hit_rate_history": self._hit_rate_history,
+                    "virtual_powder_plot": self._virt_powd_plot_img,
+                    "beam_energy": received_data["beam_energy"],
+                    "detector_distance": received_data["detector_distance"],
+                    "first_panel_coffset": self._first_panel_coffset,
+                    "pixel_size": self._pixel_size,
                 },
             )
-            self._data_broadcast_socket.send_data(
-                tag=u"view:omtweakingdata",
-                message={
-                    "detector_data": received_data["detector_data"],
-                    "timestamp": received_data["timestamp"],
-                },
-            )
+
+            if "detector_data" in received_data:
+                # If detector frame data is found in the data received from the
+                # processing node, it must be broadcasted to visualization programs.
+
+                self._frame_data_img[
+                    self._visual_pixelmap_y, self._visual_pixelmap_x
+                ] = (
+                    received_data["detector_data"]
+                    .ravel()
+                    .astype(self._frame_data_img.dtype)
+                )
+
+                self._data_broadcast_socket.send_data(
+                    tag=u"view:omframedata",
+                    message={
+                        "frame_data": self._frame_data_img,
+                        "timestamp": received_data["timestamp"],
+                        "peak_list_x_in_frame": peak_list_x_in_frame,
+                        "peak_list_y_in_frame": peak_list_y_in_frame,
+                    },
+                )
+                self._data_broadcast_socket.send_data(
+                    tag=u"view:omtweakingdata",
+                    message={
+                        "detector_data": received_data["detector_data"],
+                        "timestamp": received_data["timestamp"],
+                    },
+                )
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
