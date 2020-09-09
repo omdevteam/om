@@ -68,7 +68,6 @@ def timestamp_init(monitor_params: parameters.MonitorParams) -> None:
     # The event timestamp gets recovered in other ways by the event recovery code. No
     # need to initialize the psana interface: the timestamp will already be in the
     # event dictionary when OM starts extracting the data.
-    del monitor_params
     return None
 
 
@@ -115,7 +114,6 @@ def beam_energy_init(monitor_params: parameters.MonitorParams) -> Any:
         psana.Detector.DdlDetector.DdlDetector: a psana object that can be used later
         to retrieve the data.
     """
-    del monitor_params
     # psana.Detector("EBeam")
     return psana.Detector("SIOC:SYS0:ML00:AO192")
 

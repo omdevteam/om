@@ -16,58 +16,70 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of Pilatus detector data.
+Retrieval of Jungfrau 1M detector data.
 
-This module contains functions that retrieve data from a Pilatus x-ray detector.
+This module contains functions that retrieve data from a Jungfrau 1M x-ray detector.
 """
-from typing import Any, Dict, cast
+from typing import Any, Dict, Tuple, cast
 
 import numpy  # type: ignore
 
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Pilatus detector data from files (or HiDRA).
-
+    Retrieves one frame of Jungfrau detector data from files.
     Arguments:
-
         event (Dict[str, Any]): a dictionary storing the event data.
-
     Returns:
-
         numpy.ndarray: one frame of detector data.
     """
-    # Returns the data from the fabio cbf_obj object previously stored in the event.
-    return event["data"].data
+    # Returns the data from the Jungfrau HDF5 files
+    h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
+    h5_data_path: str = event["additional_info"]["h5_data_path"]
+    index: Tuple[int, int] = event["additional_info"]["index"]
+
+    data: numpy.ndarray = numpy.concatenate(
+        [h5files[i][h5_data_path][index[i]] for i in range(len(h5files))]
+    )
+    if event["additional_info"]["calibration"]:
+        calibrated_data: numpy.ndarray = event["additional_info"][
+            "calibration_algorithm"
+        ].apply_calibration(data)
+    else:
+        calibrated_data = data
+
+    return calibrated_data
 
 
 def event_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for an event retrieved from Pilatus.
-
+    Gets a unique identifier for an event retrieved from Jungfrau.
     Returns a label that unambiguously identifies, within an experiment, the event
-    currently being processed. For the Pilatus detector, an event corresponds to a
-    single CBF file, and the full path to the file is used as identifier.
+    currently being processed. For the Jungfrau detector, event identifier consists of
+    the full path to the raw data file of the first detector panel (d0) and an index of
+    the event in this file, separated by " //".
 
     Arguments:
-
         event (Dict[str, Any]): a dictionary storing the event data.
 
     Returns:
-
         str: a unique event identifier.
     """
-    return cast(str, event["additional_info"]["full_path"])
+    return " // ".join(
+        (
+            event["additional_info"]["h5files"][0].filename,
+            "{:04d}".format(event["additional_info"]["index"][0]),
+        )
+    )
 
 
 def frame_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for a Pilatus data frame.
-
+    Gets a unique identifier for a Jungfrau data frame.
     Returns a label that unambiguously identifies, within an event, the frame currently
-    being processed. For the Pilatus detector, the index of the frame within the event
-    is used as identifier. However, each Pilatus event only contains one frame, so this
-    function always returns the string "0".
+    being processed.
+
+    # TODO: Add documentations.
 
     Arguments:
 
@@ -82,40 +94,38 @@ def frame_id(event: Dict[str, Any]) -> str:
 
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
-    Gets the timestamp of a Pilatus data event.
-
-    OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. In both cases, the creation
-    date and time of data file that the Pilatus detector writes is used as timestamp
-    for the event.
+    Gets the timestamp of a Jungfrau data event.
+    OM currently supports Jungfrau data events originating from files.
+    The timestamp for an event is calculated as the creation time of the file that the
+    Jungfrau detector writes plus the time which passed between the event currently
+    being processed and the first event in the file determined from the Jungfrau
+    internal 10MHz clock.
 
     Arguments:
-
         event (Dict[str, Any]): a dictionary storing the event data.
-
     Returns:
-
         numpy.float64: the timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
-    return cast(numpy.float64, event["additional_info"]["file_creation_time"])
+
+    file_creation_time: float = event["additional_info"]["file_creation_time"]
+    jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
+    # Jungfrau internal clock frequency in Hz (may not be entirely correct)
+    jf_clock_frequency: int = 9721700
+    return file_creation_time + jf_clock_value / jf_clock_frequency
 
 
 def beam_energy(event: Dict[str, Any]) -> float:
     """
-    Gets the beam energy for a Pilatus data event.
-
-    OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. Neither provide beam energy
-    information. OM uses the value provided for the 'fallback_beam_energy_in_eV' entry
-    in the configuration file, in the 'data_retrieval_layer' parameter group.
+    Gets the beam energy for a Jungfrau data event.
+    OM currently supports Jungfrau data events originating from files, which do not
+    provide beam energy information. OM uses the value provided for the
+    'fallback_beam_energy_in_eV' entry in the configuration file, in the
+    'data_retrieval_layer' parameter group.
 
     Arguments:
-
         event (Dict[str, Any]): a dictionary storing the event data.
-
     Returns:
-
         float: the energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
@@ -124,20 +134,14 @@ def beam_energy(event: Dict[str, Any]) -> float:
 
 def detector_distance(event: Dict[str, Any]) -> float:
     """
-    Gets the detector distance for a Pilatus data event.
-
-    OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. Neither provide detector
-    distance information. OM uses the value provided for the
+    Gets the detector distance for a Jungfrau data event.
+    OM currently supports Jungfrau data events originating from files which do not
+    provide detector distance information. OM uses the value provided for the
     'fallback_detector_distance_in_mm' entry in the configuration file, in the
     'data_retrieval_layer' parameter group.
-
     Arguments:
-
         event (Dict[str,Any]): a dictionary storing the event data.
-
     Returns:
-
         float: the detector distance in mm.
     """
     # Returns the value previously stored in the event.

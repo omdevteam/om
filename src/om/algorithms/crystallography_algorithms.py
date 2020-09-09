@@ -76,6 +76,13 @@ def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
             "nasics_x": 1,
             "nasics_y": 1,
         }
+    elif detector_type == "jungfrau1M":
+        peakfinder8_info = {
+            "asic_nx": 1024,
+            "asic_ny": 512,
+            "nasics_x": 1,
+            "nasics_y": 2,
+        }
     elif detector_type == "jungfrau4M":
         peakfinder8_info = {
             "asic_nx": 1024,
@@ -99,7 +106,7 @@ def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
     return peakfinder8_info
 
 
-class Peakfinder8PeakDetection(object):
+class Peakfinder8PeakDetection:
     """
     See documentation of the '__init__' function.
     """

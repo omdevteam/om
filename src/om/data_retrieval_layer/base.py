@@ -30,7 +30,7 @@ from typing_extensions import final
 from om.utils import exceptions, parameters
 
 
-class OmDataEventHandler(ABC, object):
+class OmDataEventHandler(ABC):
     """
     See documentation of the __init__ function.
     """
@@ -123,6 +123,7 @@ class OmDataEventHandler(ABC, object):
             node_pool_size (int): the total number of nodes in the OM pool, including
                 all the processing nodes and the collecting node.
         """
+        pass
 
     @abstractmethod
     def event_generator(
@@ -162,7 +163,7 @@ class OmDataEventHandler(ABC, object):
 
             event (Dict[str, Any]): a dictionary storing the event data.
         """
-        del event
+        pass
 
     @abstractmethod
     def close_event(self, event: Dict[str, Any]) -> None:
@@ -176,7 +177,7 @@ class OmDataEventHandler(ABC, object):
 
             event (Dict[str, Any]): a dictionary storing the event data.
         """
-        del event
+        pass
 
     @abstractmethod
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
@@ -274,6 +275,7 @@ def filter_data_extraction_funcs(
     required_data_extraction_funcs: Dict[
         str, Callable[[Dict[str, Dict[str, Any]]], Any]
     ] = ({})
+    func_name: str
     for func_name in required_data:
         try:
             required_data_extraction_funcs[func_name] = data_extraction_funcs[func_name]

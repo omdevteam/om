@@ -30,7 +30,31 @@ import zmq  # type: ignore
 from om.utils import exceptions
 
 
-class ZmqDataBroadcaster(object):
+def get_current_machine_ip() -> str:
+    """
+    Retrieves the IP address of the current machine.
+
+    This function uses the python socket module to autodetect the IP addess of the
+    the machine where it is invoked.
+
+    Returns:
+
+        str: A string storing the IP address of the machine in the format
+            XXX.XXX.XXX.XXX.
+    """
+    ip: str = [
+        (
+            s.connect(("8.8.8.8", 80)),  # type: ignore
+            s.getsockname()[0],
+            s.close(),  # type: ignore
+        )
+        for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
+    ][0][1]
+
+    return ip
+
+
+class ZmqDataBroadcaster:
     """
     See documentation of the '__init__' function.
     """
@@ -57,18 +81,7 @@ class ZmqDataBroadcaster(object):
         self._sock: Any = self._context.socket(zmq.PUB)
         # TODO: Fix types
         if url is None:
-            # If required, uses the python socket module to autodetect the hostname of
-            # the machine where the OM monitor is running.
-            # TODO: Check mypy output for these lines.
-            hostname = [
-                (
-                    s.connect(("8.8.8.8", 80)),  # type: ignore
-                    s.getsockname()[0],
-                    s.close(),  # type: ignore
-                )
-                for s in [socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)]
-            ][0][1]
-            url = "tcp://{0}:12321".format(hostname)
+            url = "tcp://127.0.0.1:12321"
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).

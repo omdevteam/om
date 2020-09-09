@@ -30,7 +30,7 @@ from past.builtins import basestring  # type: ignore
 from om.utils import exceptions
 
 
-class MonitorParams(object):
+class MonitorParams:
     """
     See documentation for the '__init__' function.
     """

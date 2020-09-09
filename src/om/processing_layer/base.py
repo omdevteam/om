@@ -141,6 +141,7 @@ class OmMonitor(ABC):
         """
         pass
 
+    @abstractmethod
     def end_processing_on_processing_node(
         self, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
@@ -166,8 +167,6 @@ class OmMonitor(ABC):
             to the processing node (Optional: if this function returns nothing, no
             information is transferred to the processing node.
         """
-        del node_rank
-        del node_pool_size
         return None
 
     def end_processing_on_collecting_node(
@@ -187,6 +186,4 @@ class OmMonitor(ABC):
             node_pool_size (int): the total number of nodes in the OM pool, including
                 all the processing nodes and the collecting node.
         """
-        del node_rank
-        del node_pool_size
         pass
