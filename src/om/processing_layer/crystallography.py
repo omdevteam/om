@@ -285,7 +285,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             required=True,
         )
 
-       self._geometry_is_optimized: bool = self._monitor_params.get_param(
+        self._geometry_is_optimized: bool = self._monitor_params.get_param(
             group="crystallography",
             parameter="geometry_is_optimized",
             parameter_type=bool,
@@ -542,6 +542,10 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                         / float(now_time - self._old_time)
                     ),
                 )
+            )
+            print(speed_report_msg)
+            sys.stdout.flush()
+            self._old_time = now_time
 
     def end_processing_on_processing_node(
         self, node_rank: int, rank_pool_size: int
