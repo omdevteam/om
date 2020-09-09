@@ -311,7 +311,7 @@ initialize_event_source`.
         An HiDRA event does not need to be closed, so this function actually does
         nothing.
         """
-        del event
+        pass
 
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
@@ -325,6 +325,4 @@ get_num_frames_in_event`.
         data file. Since the Pilatus detector writes one frame per file, this function
         always returns 1.
         """
-        del event
-
         return 1

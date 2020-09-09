@@ -485,6 +485,7 @@ class Cheetah(process_layer_base.OmMonitor):
                 parameter_type=str,
             )
 
+            class_number: int
             self._sum_writers = [
                 hdf5_writers.SumHDF5Writer(
                     directory_for_processed_data=processed_directory,
@@ -503,7 +504,6 @@ class Cheetah(process_layer_base.OmMonitor):
             self._class_sum_update_counter: int = 0
 
         # TODO: Type this dictionary
-        class_number: int
         self._total_sums = [
             {
                 "num_frames": 0,

@@ -63,8 +63,7 @@ initialize_event_source`.
 
         There is no need to initialize a file source, so this function does nothing.
         """
-        del node_rank
-        del node_pool_size
+        pass
 
 
 class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
@@ -118,8 +117,7 @@ initialize_event_source`.
         There is no need to initialize the filesystem source, so this function does
         nothing.
         """
-        del node_rank
-        del node_pool_size
+        pass
 
     def initialize_event_handling_on_processing_node(
         self, node_rank: int, node_pool_size: int
@@ -199,7 +197,6 @@ initialize_event_source`.
         # the files as equally as possible amongst the processing nodes with the last
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
-
         try:
             fhandle: TextIO
             with open(self._source, "r") as fhandle:
@@ -274,8 +271,6 @@ get_num_frames_in_event`.
 
             int: the number of frames in the event.
         """
-        del event
-
         return 1
 
 
@@ -510,6 +505,4 @@ get_num_frames_in_event`.
         Returns:
             int: the number of frames in the event.
         """
-        del event
-
         return 1

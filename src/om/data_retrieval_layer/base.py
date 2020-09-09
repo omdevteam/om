@@ -123,6 +123,7 @@ class OmDataEventHandler(ABC):
             node_pool_size (int): the total number of nodes in the OM pool, including
                 all the processing nodes and the collecting node.
         """
+        pass
 
     @abstractmethod
     def event_generator(
@@ -162,7 +163,7 @@ class OmDataEventHandler(ABC):
 
             event (Dict[str, Any]): a dictionary storing the event data.
         """
-        del event
+        pass
 
     @abstractmethod
     def close_event(self, event: Dict[str, Any]) -> None:
@@ -176,7 +177,7 @@ class OmDataEventHandler(ABC):
 
             event (Dict[str, Any]): a dictionary storing the event data.
         """
-        del event
+        pass
 
     @abstractmethod
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:

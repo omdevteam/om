@@ -107,8 +107,7 @@ initialize_event_source`.
         There is no need to initialize the psana event source, so this function
         actually does nothing.
         """
-        del node_rank
-        del node_pool_size
+        pass
 
     def initialize_event_handling_on_processing_node(
         self, node_rank: int, node_pool_size: int
@@ -246,7 +245,7 @@ initialize_event_source`.
 
             event (Dict[str, Any]): a dictionary storing the event data.
         """
-        del event
+        pass
 
     def close_event(self, event: Dict[str, Any]) -> None:
         """
@@ -257,7 +256,7 @@ initialize_event_source`.
 
         Psana events do not need to be closed, so this function actually does nothing.
         """
-        del event
+        pass
 
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
@@ -274,8 +273,6 @@ get_num_frames_in_event` .
 
             int: the number of frames in the event.
         """
-        del event
-
         return 1
 
 

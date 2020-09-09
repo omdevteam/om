@@ -89,8 +89,6 @@ def frame_id(event: Dict[str, Any]) -> str:
 
         str: a unique frame identifier (within an event).
     """
-    del event
-
     return str(0)
 
 
