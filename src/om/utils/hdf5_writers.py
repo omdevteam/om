@@ -24,7 +24,8 @@ HDF5 format files.
 import pathlib
 import sys
 import time
-from typing import Any, Dict, List, Literal, Set, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union
+from typing_extensions import Literal
 
 import h5py  # type: ignore
 import numpy  # type: ignore
