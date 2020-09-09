@@ -25,10 +25,10 @@ import pathlib
 import sys
 import time
 from typing import Any, Dict, List, Set, Tuple, Union
-from typing_extensions import Literal
 
 import h5py  # type: ignore
 import numpy  # type: ignore
+from typing_extensions import Literal
 
 from om.algorithms import crystallography_algorithms as cryst_algs
 from om.utils.crystfel_geometry import TypeDetector
