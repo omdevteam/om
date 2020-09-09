@@ -757,6 +757,23 @@ class Cheetah(process_layer_base.OmMonitor):
                     },
                 )
 
+        if self._num_events % self._speed_report_interval == 0:
+            now_time: float = time.time()
+            speed_report_msg: str = (
+                "Processed: {0} in {1:.2f} seconds "
+                "({2:.2f} Hz)".format(
+                    self._num_events,
+                    now_time - self._old_time,
+                    (
+                        float(self._speed_report_interval)
+                        / float(now_time - self._old_time)
+                    ),
+                )
+            )
+            print(speed_report_msg)
+            sys.stdout.flush()
+            self._old_time = now_time
+
     def end_processing_on_processing_node(
         self, node_rank: int, node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
