@@ -54,7 +54,7 @@ def get_current_machine_ip() -> str:
     return ip
 
 
-class ZmqDataBroadcaster(object):
+class ZmqDataBroadcaster:
     """
     See documentation of the '__init__' function.
     """

@@ -30,7 +30,7 @@ from typing_extensions import final
 from om.utils import exceptions, parameters
 
 
-class OmDataEventHandler(ABC, object):
+class OmDataEventHandler(ABC):
     """
     See documentation of the __init__ function.
     """

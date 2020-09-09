@@ -34,7 +34,7 @@ from om.algorithms import crystallography_algorithms as cryst_algs
 from om.utils.crystfel_geometry import TypeDetector
 
 
-class HDF5Writer(object):
+class HDF5Writer:
     """
     See documentation of the '__init__' function.
     """
@@ -307,7 +307,7 @@ class HDF5Writer(object):
         self._num_frames += extension_size
 
 
-class SumHDF5Writer(object):
+class SumHDF5Writer:
     """
     See documentation of the '__init__' function.
     """

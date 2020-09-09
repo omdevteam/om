@@ -31,7 +31,7 @@ import numpy  # type: ignore
 from om.utils import exceptions
 
 
-class Correction(object):
+class Correction:
     """
     See documentation of the '__init__' function.
     """
@@ -211,7 +211,7 @@ class Correction(object):
         return (data * self._mask - self._dark) * self._gain_map
 
 
-class DataAccumulator(object):
+class DataAccumulator:
     """
     See documentation of the '__init__' function.
     """

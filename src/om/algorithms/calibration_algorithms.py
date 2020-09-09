@@ -27,7 +27,7 @@ import h5py  # type: ignore
 import numpy  # type: ignore
 
 
-class Jungfrau1MCalibration(object):
+class Jungfrau1MCalibration:
     """
     See documentation of the '__init__' function.
     """

@@ -106,7 +106,7 @@ def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
     return peakfinder8_info
 
 
-class Peakfinder8PeakDetection(object):
+class Peakfinder8PeakDetection:
     """
     See documentation of the '__init__' function.
     """
