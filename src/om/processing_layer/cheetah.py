@@ -629,7 +629,7 @@ class Cheetah(process_layer_base.OmMonitor):
         visualization by other programs) using the MessagePack protocol.
         """
         received_data: Dict[str, Any] = processed_data[0]
-        if "class_sums" in received_data:
+        if self._write_class_sums and "class_sums" in received_data:
             class_number: int
             for class_number in range(2):
                 key: str
