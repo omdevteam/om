@@ -137,8 +137,9 @@ class HDF5Writer:
             1 / geometry["panels"][tuple(geometry["panels"].keys())[0]]["res"]
         )
 
-        compression_opts = None
-        if compression is not None and compression_opts is None:
+        if compression is None:
+            compression_opts = None
+        elif compression_opts is None:
             compression_opts = 4
 
         # TODO: decide what to do if file exists
