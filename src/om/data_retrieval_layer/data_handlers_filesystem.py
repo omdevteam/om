@@ -31,7 +31,7 @@ import numpy  # type: ignore
 
 from om.algorithms import calibration_algorithms as calib_algs
 from om.data_retrieval_layer import base as drl_base
-from om.data_retrieval_layer import functions_jungfrau1M, functions_pilatus
+from om.data_retrieval_layer import functions_jungfrau1M, functions_pilatus, functions_eiger16M
 from om.utils import parameters
 
 
@@ -269,6 +269,196 @@ get_num_frames_in_event`.
 
         Returns:
 
+            int: the number of frames in the event.
+        """
+        return 1
+
+
+class Eiger16MFilesDataEventHandler(FilesBaseDataEventHandler):
+    """
+    See documentation of the __init__ function.
+    """
+
+    def __init__(
+        self, monitor_parameters: parameters.MonitorParams, source: str
+    ) -> None:
+        """
+        Data event handler for Eiger files read from the filesystem.
+        See documentation of the constructor of the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler` .
+        """
+        super(Eiger16MFilesDataEventHandler, self).__init__(
+            monitor_parameters=monitor_parameters, source=source,
+        )
+
+    @property
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
+        """
+        Retrieves the Data Extraction Functions for Eiger files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+data_extraction_funcs`.
+        """
+        return {
+            "timestamp": functions_eiger16M.timestamp,
+            "beam_energy": functions_eiger16M.beam_energy,
+            "detector_distance": functions_eiger16M.detector_distance,
+            "detector_data": functions_eiger16M.detector_data,
+            "event_id": functions_eiger16M.event_id,
+            "frame_id": functions_eiger16M.frame_id,
+        }
+
+    def initialize_event_handling_on_processing_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> Any:
+        """
+        Initializes event handling on the processing nodes for Eiger files.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+initialize_event_source`.
+        """
+        required_data: List[str] = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_extraction_funcs: Dict[
+            str, Callable[[Dict[str, Dict[str, Any]]], Any]
+        ] = drl_base.filter_data_extraction_funcs(
+            self.data_extraction_funcs, required_data
+        )
+
+        # Fills the event info dictionary with static data that will be retrieved
+        # later.
+        self._event_info_to_append: Dict[str, Any] = {}
+
+        calibration: bool = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="calibration",
+            parameter_type=bool,
+            required=True,
+        )
+        self._event_info_to_append["calibration"] = calibration
+        if calibration is True:
+            calibration_info_filename: str = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="calibration_filename",
+                parameter_type=str,
+            )
+            self._event_info_to_append[
+                "calibration_info_filename"
+            ] = calibration_info_filename
+
+        binning: Union[bool, None] = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="binning",
+            parameter_type=bool,
+            required=False,
+        )
+        if binning is None:
+            binning = False
+        self._event_info_to_append["binning"] = binning
+
+        if "beam_energy" in required_data:
+            self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="fallback_beam_energy_in_eV",
+                parameter_type=float,
+                required=True,
+            )
+        if "detector_distance" in required_data:
+            self._event_info_to_append[
+                "detector_distance"
+            ] = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="fallback_detector_distance_in_mm",
+                parameter_type=float,
+                required=True,
+            )
+
+    def event_generator(
+        self, node_rank: int, node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
+        """
+        Retrieves Eiger data events to process from the filesystem.
+
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.event_generator`.
+
+        The frames to process are split evenly amongst the processing nodes, with the
+        exception of the last node, which might get a lower number depending on how
+        the number of events can be split.
+        """
+        # Computes how many events the current processing node should process. Splits
+        # the events as equally as possible amongst the processing nodes with the last
+        # processing node getting a smaller number of events if the number of events to
+        # be processed cannot be exactly divided by the number of processing nodes.
+        try:
+            fhandle: TextIO
+            with open(self._source, "r") as fhandle:
+                filelist: List[str] = fhandle.readlines()  # type
+        except (IOError, OSError) as exc:
+            raise RuntimeError(
+                "Error reading the {0} source file.".format(self._source)
+            ) from exc
+
+        num_files_curr_node: int = int(
+            numpy.ceil(len(filelist) / float(node_pool_size - 1))
+        )
+        files_curr_node: List[str] = filelist[
+            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
+        ]
+
+        data_event: Dict[str, Dict[str, Any]] = {}
+        data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
+        data_event["additional_info"] = {}
+        data_event["additional_info"].update(self._event_info_to_append)
+
+        entry: str
+        for entry in files_curr_node:
+            filename: str = entry.strip()
+            h5file: Any = h5py.File(filename, "r")
+            num_frames: int = h5file["/entry/data/data"].shape[0]
+            data_event["additional_info"]["h5file"] = h5file
+            data_event["additional_info"]["full_path"] = str(
+                pathlib.Path(filename).resolve()
+            )
+            data_event["additional_info"]["file_creation_time"] = numpy.float64(
+                pathlib.Path(filename).stat().st_mtime
+            )
+            index: int
+            for index in range(num_frames):
+                data_event["additional_info"]["index"] = index
+                yield data_event
+
+    def open_event(self, event: Dict[str, Any]) -> None:
+        """
+        Opens an event retrieved from Jungfrau files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.open_event`.
+        """
+        pass
+
+    def close_event(self, event: Dict[str, Any]) -> None:
+        """
+        Closes an event retrieved from Jungfrau files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.close_event` .
+        """
+        pass
+
+    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
+        """
+        Gets the number of frames in an event retrieved from Jungfrau files.
+        See documentation of the function in the base class:
+        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
+get_num_frames_in_event`.
+        Returns:
             int: the number of frames in the event.
         """
         return 1

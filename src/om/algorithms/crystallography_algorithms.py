@@ -76,6 +76,20 @@ def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
             "nasics_x": 1,
             "nasics_y": 1,
         }
+    elif detector_type == "eiger16M":
+        peakfinder8_info = {
+            "asic_nx": 4148,
+            "asic_ny": 4362,
+            "nasics_x": 1,
+            "nasics_y": 1,
+        }
+    elif detector_type == "eiger16Mbinned":
+        peakfinder8_info = {
+            "asic_nx": 2074,
+            "asic_ny": 2181,
+            "nasics_x": 1,
+            "nasics_y": 1,
+        }
     elif detector_type == "jungfrau1M":
         peakfinder8_info = {
             "asic_nx": 1024,
