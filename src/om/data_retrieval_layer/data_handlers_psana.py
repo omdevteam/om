@@ -64,15 +64,24 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str,
+        self,
+        monitor_parameters: parameters.MonitorParams,
+        source: str,
     ) -> None:
         """
-        Data event handler for events recovered from psana (LCLS).
+        Data event handler for events recovered from psana at LCLS.
 
-        See documentation of the constructor of the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.__init.py__` .
+        See documentation of the corresponding function in the base class. This class
+        handles detector events retrieved from the psana framework at the LCLS
+        facility. It should be subclassed to work with specific detectors integrated
+        in psana.
 
-        This class handles detector events recovered from psana at the LCLS facility.
+        Arguments:
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
+
+            source: A string describing the data source.
         """
         super(LclsBaseDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters,
@@ -98,14 +107,23 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes event handling on the collecting node with psana.
+        Initializes psana data event handling on the collecting node
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
+        See documentation of the corresponding function in the base class. There is
+        usually no initialization to perform  on the collecting node for a psana data
+        source, so this function does nothing.
 
-        There is no need to initialize the psana event source, so this function
-        actually does nothing.
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            An optional initialization token.
         """
         pass
 
@@ -113,11 +131,21 @@ initialize_event_source`.
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes event handling on the processing nodes with psana.
+        Initializes psana data event handling on the processing nodes.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
+        See documentation of the corresponding function in the base class.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            An optional initialization token.
         """
         required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
@@ -132,7 +160,7 @@ initialize_event_source`.
 
         self._required_psana_detector_init_funcs: Dict[
             str, Callable[[parameters.MonitorParams], Any]
-        ] = ({})
+        ] = {}
 
         func_name: str
         for func_name in required_data:
@@ -159,18 +187,27 @@ initialize_event_source`.
         self._event_info_to_append["calibration"] = calibration
 
     def event_generator(
-        self, node_rank: int, node_pool_size: int,
+        self,
+        node_rank: int,
+        node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves events to process from psana at the LCLS facility.
+        Retrieves psana data events.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.event_generator`.
+        See documentation of the corresponding function in the base class. Psana data
+        events usually store data related to a single detector frame.
 
-        Raises:
+        Arguments:
 
-            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
-                HiDRA fails.
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Yields:
+
+            A dictionary storing the event data.
         """
         # TODO: Check types of Generator
         # Detects if data is being read from an online or offline source.
@@ -234,40 +271,41 @@ initialize_event_source`.
 
     def open_event(self, event: Dict[str, Any]) -> None:
         """
-        Opens an event retrieved from psana at the LCLS facility.
+        Opens a psana data event.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.open_event` .
-
-        Psana events do not need to be opened, so this function actually does nothing.
+        See documentation of the corresponding function in the base class. Psana data
+        events do not need to be opened, so this function actually does nothing.
 
         Arguments:
 
-            event (Dict[str, Any]): a dictionary storing the event data.
+            event: a dictionary storing the event data.
         """
         pass
 
     def close_event(self, event: Dict[str, Any]) -> None:
         """
-        Closes an event retrieved from psana at the LCLS facility.
+        Closes a psana data event.
 
-        See documentation of the constructor of the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.close_event` .
+        See documentation of the corresponding function in the base class. Psana data
+        events do not need to be closed, so this function actually does nothing.
 
-        Psana events do not need to be closed, so this function actually does nothing.
+        Arguments:
+
+            event: a dictionary storing the event data.
         """
         pass
 
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in an event retrieved from psana at the LCLS facility.
+        Gets the number of frames in a psana data event.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-get_num_frames_in_event` .
-
-        Psana events are frame-based, and always contain just one frame. This function
+        See documentation of the corresponding function in the base class. Psana data
+        events store data related to a single detector frame, so this function
         always returns 1.
+
+        Arguments:
+
+            event: a dictionary storing the event data.
 
         Returns:
 
@@ -283,15 +321,22 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
 
     def __init__(self, monitor_parameters: parameters.MonitorParams, source: str):
         """
-        Data event handler for events recovered at CXI (LCLS) before 2020.
+        Data event handler for events recovered at CXI with CSPAD (LCLS).
 
-        See documentation of the function in the base class:
-        :func:`~LclsBaseDataEventHandler.__init.py__` .
+        See documentation of the corresponding function in the base class. This class
+        handles events recovered from psana at the CXI beamline of the LCLS facility
+        before 2020, when the beamline mainly used the CSPAD detector.
 
-        This class handles detector events recovered from psana at the LCLS facility.
+        Arguments:
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
+
+            source: A string describing the data source.
         """
         super(CxiLclsCspadDataEventHandler, self).__init__(
-            monitor_parameters=monitor_parameters, source=source,
+            monitor_parameters=monitor_parameters,
+            source=source,
         )
 
     @property
@@ -299,15 +344,18 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
         self,
     ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
-        Retrieves the Data Extraction Functions for CXI (LCLS) before 2020.
+        Retrieves the Data Extraction Functions for psana data events at CXI (CSPAD)
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-data_extraction_funcs`.
+        See documentation of the corresponding function in the base class.
 
-        This function retrieves the Data Extraction Functions available for the CXI
-        beamline at the LCLS facility, when data was collected before 2020 (using
-        the CSPAD detector).
+        Returns:
+
+            A dictionary storing the implementations of the Data Extraction functions
+            available to the current Data Event Handler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function implementation.
         """
         return {
             "timestamp": functions_psana.timestamp,
@@ -333,10 +381,15 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
         """
         Data event handler for events recovered at CXI (LCLS).
 
-        See documentation of the function in the base class:
-        :func:`~PsanaDataEventHandler.__init.py__` .
+        See documentation of the corresponding function in the base class. This class
+        handles events recovered from psana at the CXI beamline of the LCLS facility.
 
-        This class handles detector events recovered from psana at the LCLS facility.
+        Arguments:
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
+
+            source: A string describing the data source.
         """
         super(CxiLclsDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters, source=source
@@ -345,15 +398,18 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
     @property
     def data_extraction_funcs(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
         """
-        Retrieves the Data Extraction Functions for CXI (LCLS).
+        Retrieves the Data Extraction Functions for psana data events at CXI.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-data_extraction_funcs`.
+        See documentation of the corresponding function in the base class.
 
-        This function retrieves the Data Extraction Functions available for the CXI
-        beamline at the LCLS facility, when data was collected after 2020 (using
-        the Jungfrau4M detector).
+        Returns:
+
+            A dictionary storing the implementations of the Data Extraction functions
+            available to the current Data Event Handler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function implementation.
         """
         return {
             "timestamp": functions_psana.timestamp,
@@ -377,12 +433,17 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Data event handler for events recovered at CXI (LCLS).
+        Data event handler for events recovered at MFX (LCLS).
 
-        See documentation of the function in the base class:
-        :func:`~PsanaDataEventHandler.__init.py__` .
+        See documentation of the corresponding function in the base class. This class
+        handles events recovered from psana at the MFX beamline of the LCLS facility.
 
-        This class handles detector events recovered from psana at the LCLS facility.
+        Arguments:
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
+
+            source: A string describing the data source.
         """
         super(MfxLclsDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters, source=source
@@ -391,15 +452,18 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
     @property
     def data_extraction_funcs(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
         """
-        Retrieves the Data Extraction Functions for CXI (LCLS).
+        Retrieves the Data Extraction Functions for psana data events at MFX.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-data_extraction_funcs`.
+        See documentation of the corresponding function in the base class.
 
-        This function retrieves the Data Extraction Functions available for the CXI
-        beamline at the LCLS facility, when data was collected after 2020 (using
-        the Jungfrau4M detector).
+        Returns:
+
+            A dictionary storing the implementations of the Data Extraction functions
+            available to the current Data Event Handler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function implementation.
         """
         return {
             "timestamp": functions_psana.timestamp,

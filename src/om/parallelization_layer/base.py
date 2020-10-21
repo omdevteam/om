@@ -59,19 +59,16 @@ class OmParallelizationEngine(ABC):
 
         Arguments:
 
-            source (str): a string describing a source of event data. The exact format
-                of the string depends on the specific DataEventHandler class being
-                used.
+            source: A string describing a source of event data. The exact format of the
+                string depends on the specific DataEventHandler class being used.
 
-            event_data_handler(:class:`~om.data_retrieval_layer.base.\
-DataEventHandler`): a class defining how data events are handled.
+            event_data_handler: A class defining how data events are handled.
 
-            monitor(:class:`~om.processing_layer.base.\
-OmMonitor`): a class defining the scientific data processing that the monitor
+            monitor: A class defining the scientific data processing that the monitor
                 performs.
 
-            monitor_parameters (:class:`~om.utils.parameters.MonitorParams`): an object
-                storing the OM monitor parameters from the configuration file.
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
         """
         self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
             data_event_handler
@@ -123,7 +120,7 @@ OmMonitor`): a class defining the scientific data processing that the monitor
 
         Arguments:
 
-            msg (Union[str, None]): reason for shutting down the parallelization
-                engine. Defaults to "Reason not provided".
+            msg: Reason for shutting down the parallelization engine. Defaults to
+                "Reason not provided".
         """
         pass

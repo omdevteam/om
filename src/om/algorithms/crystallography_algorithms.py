@@ -28,19 +28,47 @@ from mypy_extensions import TypedDict
 
 from om.lib.peakfinder8_extension import peakfinder_8
 
-TypePeakList = TypedDict(
-    "TypePeakList",
-    {
-        "num_peaks": int,
-        "fs": List[float],
-        "ss": List[float],
-        "intensity": List[float],
-        "num_pixels": List[float],
-        "max_pixel_intensity": List[float],
-        "snr": List[float],
-    },
-    total=True,
-)
+
+class TypePeakList(TypedDict, total=True):
+    """
+    A dictionary storing information about the Bragg peaks detected in a data frame.
+    """
+
+    num_peaks: int
+    """
+    The number of peaks that were detected in the data frame.
+    """
+
+    fs: List[float]
+    """
+    A list of fractional fs indexes locating the detected peaks in the data frame.
+    """
+
+    ss: List[float]
+    """
+    A list of fractional ss indexes locating the detected peaks in the data frame.
+    """
+
+    intensity: List[float]
+    """
+    A list of integrated intensities for the detected peaks.
+    """
+
+    num_pixels: List[float]
+    """
+    A key named 'num_pixels' whose value is is a list storing the number of pixels
+    that make up each detected peak.
+    """
+
+    max_pixel_intensity: List[float]
+    """
+    A list storing, for each peak, the value of the pixel with the maximum intensity.
+    """
+
+    snr: List[float]
+    """
+    A list storing  the signal-to-noise ratio of each detected peak.
+    """
 
 
 def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
@@ -49,18 +77,27 @@ def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
 
     Arguments:
 
-        detector_type (str): The type of detector for which the information needs to
-        be retrieved. The currently supported detectors are:
+        detector_type: The type of detector for which the information needs to be
+            retrieved. The currently supported detectors are:
 
-        * 'cspad': the CSPAD detector used at the CXI beamtime of the LCLS facility
-          before 2020.
+            * 'cspad': The CSPAD detector used at the CXI beamtime of the LCLS facility
+              before 2020.
 
-        * 'pilatus': the Pilatus detector used at the P11 beamtime of the LCLS
-          facility.
+            * 'pilatus': The Pilatus detector used at the P11 beamtime of the LCLS
+              facility.
+
+            * 'jungfrau1M': The 1M version of the Jungfrau detector used at the Petra
+              III facility.
+
+            * 'jungfrau4M': The 4M version of the Jungfrau detector used at the CXI
+              beamline of the LCLS facility.
+
+            * 'epix10k2M': The 2M version of the Epix10KA detector used at the MFX
+              beamline of the LCLS facility.
 
     Returns:
 
-        Dict[str, int]: a dictionary storing the peakfinder8 information.
+        A dictionary storing the peakfinder8 information.
     """
     if detector_type == "cspad":
         peakfinder8_info: Dict[str, int] = {
@@ -142,38 +179,36 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            max_num_peaks (int): the maximum number of peaks that will be retrieved
-                from each data frame. Additional peaks will be ignored.
+            max_num_peaks: The maximum number of peaks that will be retrieved from each
+                data frame. Additional peaks will be ignored.
 
-            asic_nx (int): the fs size in pixels of each detector's ASIC in the data
-                frame.
+            asic_nx: The fs size in pixels of each detector's ASIC in the data frame.
 
-            asic_ny (int): the ss size in pixels of each detector's ASIC in the data
-                frame.
+            asic_ny: The ss size in pixels of each detector's ASIC in the data frame.
 
-            nasics_x (int): the number of ASICs along the fs axis of the data frame.
+            nasics_x: The number of ASICs along the fs axis of the data frame.
 
-            nasics_y (int): the number of ASICs along the ss axis of the data frame.
+            nasics_y: The number of ASICs along the ss axis of the data frame.
 
-            adc_threshold (float): the minimum ADC threshold for peak detection.
+            adc_threshold: The minimum ADC threshold for peak detection.
 
-            minimum_snr (float): the minimum signal-to-noise ratio for peak detection.
+            minimum_snr: The minimum signal-to-noise ratio for peak detection.
 
-            min_pixel_count (int): the minimum size of a peak in pixels.
+            min_pixel_count: The minimum size of a peak in pixels.
 
-            max_pixel_count (int): the maximum size of a peak in pixels.
+            max_pixel_count: The maximum size of a peak in pixels.
 
-            local_bg_radius (int): the radius for the estimation of the
-                local background in pixels.
+            local_bg_radius: The radius for the estimation of the local background in
+                pixels.
 
-            min_res (int): the minimum resolution for a peak in pixels.
+            min_res: The minimum resolution for a peak in pixels.
 
-            max_res (int): the maximum resolution for a peak in pixels.
+            max_res: The maximum resolution for a peak in pixels.
 
-            bad_pixel_map (Union[numpy.ndarray, None): an array storing the a bad
-                pixel map. The map should mark areas of the data frame that must be
-                excluded from the peak search. If this argument is None, no area will
-                be excluded from the search. Defaults to None.
+            bad_pixel_map: An array storing the a bad pixel map. The map should mark
+                areas of the data frame that must be excluded from the peak search. If
+                this argument is None, no area will be excluded from the search.
+                Defaults to None.
 
                 * The map must be a numpy array of the same shape as the data frame on
                   which the algorithm will be applied.
@@ -185,7 +220,7 @@ class Peakfinder8PeakDetection:
                 * The map is only used to exclude areas from the peak search: the data
                   is not modified in any way.
 
-            radius_pixel_map (numpy.ndarray): a numpy array with radius information.
+            radius_pixel_map: A numpy array with radius information.
 
                 * The array must have the same shape as the data frame on which the
                   algorithm will be applied.
@@ -219,34 +254,12 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            data (numpy.ndarray): the detector data frame on which the peak finding
-                must be performed.
+            data: The detector data frame on which the peak finding must be performed.
 
         Returns:
 
-            Dict: a dictionary with information about the Bragg peaks
-            detected in a data frame. The dictionary has the following keys:
-
-            - A key named "num_peaks" whose value is the number of peaks that were
-              detected in the data frame.
-
-            - A key named 'fs' whose value is a list of fractional fs indexes locating
-              the detected peaks in the data frame.
-
-            - A key named 'ss' whose value is a list of fractional ss indexes locating
-              the detected peaks in the data frame.
-
-            - A key named 'intensity' whose value is a list of integrated intensities
-              for the detected peaks.
-
-            - A key named 'num_pixels' whose value is is a list storing the number of
-              pixels that make up each detected peak.
-
-            - A key named 'max_pixel_intensity' whose value is a list storing, for each
-              peak, the value of the pixel with the maximum intensity.
-
-            - A key named 'snr' whose value is a list storing  the signal-to-noise
-              ratio of each detected peak.
+            A dictionary with information about the Bragg peaks detected in a data
+            frame.
         """
         if not self._mask_initialized:
             if self._mask is None:

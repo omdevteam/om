@@ -44,17 +44,19 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         An OM real-time monitor for serial x-ray crystallography experiments.
 
-        See documentation of the constructor of the base class:
-        :func:`~om.processing_layer.base.OmMonitor`.
+        See documentation of the corresponding function in the base class. This monitor
+        processes detector data frames, optionally applying detector calibration, dark
+        correction and gain correction. It detects Bragg peaks in each detector frame
+        using the peakfinder8 algorithm from Cheetah. It provides information about the
+        location and integrated intensity of each peak. Additionally, it calculates the
+        evolution of the hit rate over time. It broadcasts all this information over a
+        network socket for visualization by other programs. Optionally, it can also
+        broadcast calibrated and corrected detector data frames.
 
-        This monitor processes detector data frames, optionally applying detector
-        calibration, dark correction and gain correction. It detects Bragg peaks in
-        each detector frame using the peakfinder8 algorithm from Cheetah. It provides
-        information about the location and integrated intensity of each peak.
-        Additionally, it calculates the evolution of the hit rate over time. It
-        broadcasts all this information over a network socket for visualization by
-        other programs. Optionally, it can also broadcast calibrated and corrected
-        detector data frames.
+        Arguments:
+
+            monitor_params: An object storing the OM monitor parameters from the
+                configuration file.
         """
         super(CrystallographyMonitor, self).__init__(
             monitor_parameters=monitor_parameters
@@ -64,13 +66,19 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Initializes the OM processing nodes for the Crystallography monitor.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor`.
+        See documentation of the corresponding function in the base class. On the
+        processing nodes, it initializes the correction and peak finding algorithms,
+        plus some internal counters. On the collecting node, this function initializes
+        the data accumulation algorrithms and the storage for the aggregated
+        statistics.
 
-        On the processing nodes, it initializes the correction and peak finding
-        algorithms, plus some internal counters. On the collecting node, this function
-        initializes the data accumulation algorrithms and the storage for the
-        aggregated statistics.
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         geometry_filename: str = self._monitor_params.get_param(
             group="crystallography",
@@ -265,11 +273,17 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Initializes the OM collecting node for the Crystallography monitor.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor`.
+        See documentation of the corresponding function in the base class. This
+        function initializes the algorithms that compute aggregated statistics, and
+        prepares the the node to broadcast data to other programs for visualization.
 
-        This function initializes the algorithms that compute aggregated statistics,
-        and prepares the the node to broadcast data to other programs for visualization.
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         self._speed_report_interval: int = self._monitor_params.get_param(
             group="crystallography",
@@ -385,13 +399,33 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Processes a detector data frame.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.process_data`.
-
-        This function performs calibration and correction of a detector data frame and
+        See documentation of the corresponding function in the base class. This
+        function performs calibration and correction of a detector data frame and
         extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
         optionally, the detector frame data) for transmission to to the collecting
         node.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            data: A dictionary containing the data retrieved by OM for the frame being
+                processed.
+
+                * The dictionary keys must match the entries in the 'required_data'
+                  list found in the 'om' configuration parameter group.
+
+                * The corresponding dictionary values must store the retrieved data.
+
+        Returns:
+
+            A tuple whose first entry is a dictionary storing the data that should be
+            sent to the collecting node, and whose second entry is the OM rank number
+            of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
         corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
@@ -449,12 +483,23 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Computes statistics on aggregated data and broadcasts them via a network socket.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.collect_data`.
+        See documentation of the corresponding function in the base class. This
+        function computes aggregated statistics on data received from the processing
+        nodes. It then broadcasts the results via a network socket (for visualization
+        by other programs) using the MessagePack protocol.
 
-        This function computes aggregated statistics on data received from the
-        processing nodes. It then broadcasts the results via a network socket (for
-        visualization by other programs) using the MessagePack protocol.
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+                dictionary storing the data received from a processing node, and whose
+                second entry is the OM rank number of the node that processed the
+                information.
         """
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
@@ -553,10 +598,23 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Executes end-of-processing actions on the processing nodes.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.
+        See documentation of the corresponding function in the base class. Prints a
+        message on the console and ends processing.
 
-        Prints a message on the console and ends processing.
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            A dictionary storing information to be sent to the processing node
+            (Optional: if this function returns nothing, no information is transferred
+            to the processing node.
+
         """
         print("Processing node {0} shutting down.".format(node_rank))
         sys.stdout.flush()
@@ -567,10 +625,16 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Executes end-of-processing actions on the processing nodes.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.
+        See documentation of the corresponding function in the base class. This
+          function prints a message on the console and ends processing.
 
-        Prints a message on the console and ends processing.
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         print(
             "Processing finished. OM has processed {0} events in total.".format(

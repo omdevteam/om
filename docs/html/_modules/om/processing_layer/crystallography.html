@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.processing_layer.crystallography &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -105,19 +105,19 @@
 
 <span class="sd">This module contains an OM monitor for serial x-ray crystallography experiments.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Deque</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
+<span class="kn">import</span> <span class="nn">h5py</span>  <span class="c1"># type: ignore</span>
 <span class="kn">import</span> <span class="nn">numpy</span>  <span class="c1"># type: ignore</span>
 
 <span class="kn">from</span> <span class="nn">om.algorithms</span> <span class="kn">import</span> <span class="n">crystallography_algorithms</span> <span class="k">as</span> <span class="n">cryst_algs</span>
 <span class="kn">from</span> <span class="nn">om.algorithms</span> <span class="kn">import</span> <span class="n">generic_algorithms</span> <span class="k">as</span> <span class="n">gen_algs</span>
 <span class="kn">from</span> <span class="nn">om.processing_layer</span> <span class="kn">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">process_layer_base</span>
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">crystfel_geometry</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">zmq_monitor</span>
+<span class="kn">from</span> <span class="nn">om.utils.crystfel_geometry</span> <span class="kn">import</span> <span class="n">TypeDetector</span>
 
 
 <div class="viewcode-block" id="CrystallographyMonitor"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor">[docs]</a><span class="k">class</span> <span class="nc">CrystallographyMonitor</span><span class="p">(</span><span class="n">process_layer_base</span><span class="o">.</span><span class="n">OmMonitor</span><span class="p">):</span>
@@ -125,8 +125,7 @@
 <span class="sd">    See documentation for the &#39;__init__&#39; function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">):</span>
-        <span class="c1"># type: (parameters.MonitorParams) -&gt; None</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        An OM real-time monitor for serial x-ray crystallography experiments.</span>
 
@@ -137,19 +136,18 @@
 <span class="sd">        calibration, dark correction and gain correction. It detects Bragg peaks in</span>
 <span class="sd">        each detector frame using the peakfinder8 algorithm from Cheetah. It provides</span>
 <span class="sd">        information about the location and integrated intensity of each peak.</span>
-<span class="sd">        Additionally, it calculates the evolution of the hit and saturation rates over</span>
-<span class="sd">        time. It broadcasts all this information over a network socket for</span>
-<span class="sd">        visualization by other programs. Optionally, it can also broadcast calibrated</span>
-<span class="sd">        and corrected detector data frames.</span>
+<span class="sd">        Additionally, it calculates the evolution of the hit rate over time. It</span>
+<span class="sd">        broadcasts all this information over a network socket for visualization by</span>
+<span class="sd">        other programs. Optionally, it can also broadcast calibrated and corrected</span>
+<span class="sd">        detector data frames.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CrystallographyMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="CrystallographyMonitor.initialize_node"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.initialize_node">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="n">rank</span><span class="p">):</span>
-        <span class="c1"># type: (str, int) -&gt; None</span>
+<div class="viewcode-block" id="CrystallographyMonitor.initialize_processing_node"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.initialize_processing_node">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_processing_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes the OM nodes for the Crystallography monitor.</span>
+<span class="sd">        Initializes the OM processing nodes for the Crystallography monitor.</span>
 
 <span class="sd">        See documentation of the function in the base class:</span>
 <span class="sd">        :func:`~om.processing_layer.base.OmMonitor`.</span>
@@ -159,122 +157,148 @@
 <span class="sd">        initializes the data accumulation algorrithms and the storage for the</span>
 <span class="sd">        aggregated statistics.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;processing&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_counter</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_counter</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
+        <span class="n">geometry_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;geometry_file&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">TypeDetector</span>
+        <span class="n">_</span><span class="p">:</span> <span class="n">Any</span>
+        <span class="n">__</span><span class="p">:</span> <span class="n">Any</span>
+        <span class="n">geometry</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">load_crystfel_geometry</span><span class="p">(</span><span class="n">geometry_filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">compute_pix_maps</span><span class="p">(</span>
+            <span class="n">geometry</span>
+        <span class="p">)</span>
 
-            <span class="n">dark_data_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;dark_filename&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-            <span class="n">dark_data_hdf5_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;dark_hdf5_path&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-            <span class="n">mask_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;mask_filename&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-            <span class="n">mask_hdf5_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;mask_hdf5_path&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-            <span class="n">gain_map_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;gain_filename&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-            <span class="n">gain_map_hdf5_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;gain_hdf5_path&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_correction</span> <span class="o">=</span> <span class="n">gen_algs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
-                <span class="n">dark_filename</span><span class="o">=</span><span class="n">dark_data_filename</span><span class="p">,</span>
-                <span class="n">dark_hdf5_path</span><span class="o">=</span><span class="n">dark_data_hdf5_path</span><span class="p">,</span>
-                <span class="n">mask_filename</span><span class="o">=</span><span class="n">mask_filename</span><span class="p">,</span>
-                <span class="n">mask_hdf5_path</span><span class="o">=</span><span class="n">mask_hdf5_path</span><span class="p">,</span>
-                <span class="n">gain_filename</span><span class="o">=</span><span class="n">gain_map_filename</span><span class="p">,</span>
-                <span class="n">gain_hdf5_path</span><span class="o">=</span><span class="n">gain_map_hdf5_path</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_counter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_counter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
-            <span class="n">geometry_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;geometry_file&quot;</span><span class="p">,</span>
+        <span class="n">dark_data_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;dark_filename&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="n">dark_data_hdf5_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;dark_hdf5_path&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="n">mask_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;mask_filename&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="n">mask_hdf5_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;mask_hdf5_path&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="n">gain_map_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;gain_filename&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="n">gain_map_hdf5_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;correction&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;gain_hdf5_path&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_correction</span> <span class="o">=</span> <span class="n">gen_algs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
+            <span class="n">dark_filename</span><span class="o">=</span><span class="n">dark_data_filename</span><span class="p">,</span>
+            <span class="n">dark_hdf5_path</span><span class="o">=</span><span class="n">dark_data_hdf5_path</span><span class="p">,</span>
+            <span class="n">mask_filename</span><span class="o">=</span><span class="n">mask_filename</span><span class="p">,</span>
+            <span class="n">mask_hdf5_path</span><span class="o">=</span><span class="n">mask_hdf5_path</span><span class="p">,</span>
+            <span class="n">gain_filename</span><span class="o">=</span><span class="n">gain_map_filename</span><span class="p">,</span>
+            <span class="n">gain_hdf5_path</span><span class="o">=</span><span class="n">gain_map_hdf5_path</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">pf8_detector_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">cryst_algs</span><span class="o">.</span><span class="n">get_peakfinder8_info</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;detector_type&quot;</span><span class="p">,</span>
                 <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
                 <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-            <span class="n">geometry</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">load_crystfel_geometry</span><span class="p">(</span>
-                <span class="n">geometry_filename</span>
-            <span class="p">)</span>  <span class="c1"># type: Tuple[crystfel_geometry.TypeDetector, Any, Any]</span>
-            <span class="n">pixelmaps</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">compute_pix_maps</span><span class="p">(</span>
-                <span class="n">geometry</span>
-            <span class="p">)</span>  <span class="c1"># type: Dict[str, numpy.ndarray]</span>
-            <span class="n">radius_pixel_map</span> <span class="o">=</span> <span class="n">pixelmaps</span><span class="p">[</span><span class="s2">&quot;radius&quot;</span><span class="p">]</span>  <span class="c1"># type: numpy.ndarray</span>
-
-            <span class="n">pf8_detector_info</span> <span class="o">=</span> <span class="n">cryst_algs</span><span class="o">.</span><span class="n">get_peakfinder8_info</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                    <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;detector_type&quot;</span><span class="p">,</span>
-                    <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                    <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="p">)</span>
             <span class="p">)</span>
-            <span class="n">pf8_max_num_peaks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+        <span class="p">)</span>
+        <span class="n">pf8_max_num_peaks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_num_peaks&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_adc_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;adc_threshold&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_minimum_snr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;minimum_snr&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_min_pixel_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;min_pixel_count&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_max_pixel_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_pixel_count&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_local_bg_radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;local_bg_radius&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_min_res</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;min_res&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_max_res</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_res&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">pf8_bad_pixel_map_fname</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;bad_pixel_map_filename&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">pf8_bad_pixel_map_fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pf8_bad_pixel_map_hdf5_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+                <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
                 <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_num_peaks&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="n">pf8_adc_threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;adc_threshold&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: float</span>
-            <span class="n">pf8_minimum_snr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;minimum_snr&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: float</span>
-            <span class="n">pf8_min_pixel_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;min_pixel_count&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="n">pf8_max_pixel_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_pixel_count&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="n">pf8_local_bg_radius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;local_bg_radius&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="n">pf8_min_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;min_res&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="n">pf8_max_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_res&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="n">pf8_bad_pixel_map_fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;bad_pixel_map_filename&quot;</span><span class="p">,</span>
+                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;bad_pixel_map_hdf5_path&quot;</span><span class="p">,</span>
                 <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: Union[str, None]</span>
-            <span class="k">if</span> <span class="n">pf8_bad_pixel_map_fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">pf8_bad_pixel_map_hdf5_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                    <span class="n">group</span><span class="o">=</span><span class="s2">&quot;peakfinder8_peak_detection&quot;</span><span class="p">,</span>
-                    <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;bad_pixel_map_hdf5_path&quot;</span><span class="p">,</span>
-                    <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                    <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="p">)</span>  <span class="c1"># type: Union[str, None]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">pf8_bad_pixel_map_hdf5_path</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_peak_detection</span> <span class="o">=</span> <span class="n">cryst_algs</span><span class="o">.</span><span class="n">Peakfinder8PeakDetection</span><span class="p">(</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pf8_bad_pixel_map_hdf5_path</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">pf8_bad_pixel_map_fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">map_hdf5_file_handle</span><span class="p">:</span> <span class="n">Any</span>
+                <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">pf8_bad_pixel_map_fname</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">map_hdf5_file_handle</span><span class="p">:</span>
+                    <span class="n">bad_pixel_map</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">map_hdf5_file_handle</span><span class="p">[</span>
+                        <span class="n">pf8_bad_pixel_map_hdf5_path</span>
+                    <span class="p">][:]</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="c1"># TODO: Fix type check</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> field from&quot;</span>
+                    <span class="s2">&quot;the </span><span class="si">{1}</span><span class="s2"> bad pixel map HDF5 file:&quot;</span>
+                    <span class="s2">&quot;</span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">pf8_bad_pixel_map_fname</span><span class="p">,</span>
+                        <span class="n">pf8_bad_pixel_map_hdf5_path</span><span class="p">,</span>
+                        <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                        <span class="n">exc_value</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bad_pixel_map</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_detection</span><span class="p">:</span> <span class="n">cryst_algs</span><span class="o">.</span><span class="n">Peakfinder8PeakDetection</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">cryst_algs</span><span class="o">.</span><span class="n">Peakfinder8PeakDetection</span><span class="p">(</span>
                 <span class="n">max_num_peaks</span><span class="o">=</span><span class="n">pf8_max_num_peaks</span><span class="p">,</span>
                 <span class="n">asic_nx</span><span class="o">=</span><span class="n">pf8_detector_info</span><span class="p">[</span><span class="s2">&quot;asic_nx&quot;</span><span class="p">],</span>
                 <span class="n">asic_ny</span><span class="o">=</span><span class="n">pf8_detector_info</span><span class="p">[</span><span class="s2">&quot;asic_ny&quot;</span><span class="p">],</span>
@@ -287,107 +311,162 @@
                 <span class="n">local_bg_radius</span><span class="o">=</span><span class="n">pf8_local_bg_radius</span><span class="p">,</span>
                 <span class="n">min_res</span><span class="o">=</span><span class="n">pf8_min_res</span><span class="p">,</span>
                 <span class="n">max_res</span><span class="o">=</span><span class="n">pf8_max_res</span><span class="p">,</span>
-                <span class="n">bad_pixel_map_filename</span><span class="o">=</span><span class="n">pf8_bad_pixel_map_fname</span><span class="p">,</span>
-                <span class="n">bad_pixel_map_hdf5_path</span><span class="o">=</span><span class="n">pf8_bad_pixel_map_hdf5_path</span><span class="p">,</span>
-                <span class="n">radius_pixel_map</span><span class="o">=</span><span class="n">radius_pixel_map</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: cryst_algs.Peakfinder8PeakDetection</span>
+                <span class="n">bad_pixel_map</span><span class="o">=</span><span class="n">bad_pixel_map</span><span class="p">,</span>
+                <span class="n">radius_pixel_map</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">[</span><span class="s2">&quot;radius&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_max_saturated_peaks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_saturated_peaks&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_min_num_peaks_for_hit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;min_num_peaks_for_hit&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_max_num_peaks_for_hit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_num_peaks_for_hit&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_saturation_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;saturation_value&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;hit_frame_sending_interval&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type Union[int, None]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;non_hit_frame_sending_interval&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type Union[int, None]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_num_peaks_for_hit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;min_num_peaks_for_hit&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_num_peaks_for_hit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;max_num_peaks_for_hit&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_interval</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;hit_frame_sending_interval&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_interval</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;non_hit_frame_sending_interval&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="p">)</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing node </span><span class="si">{0}</span><span class="s2"> starting.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;collecting&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_speed_report_interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;speed_report_interval&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_geometry_is_optimized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;geometry_is_optimized&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: bool</span>
-            <span class="n">num_events_to_accumulate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_accumulator&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;num_events_to_accumulate&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: bool</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_data_accumulator</span> <span class="o">=</span> <span class="n">gen_algs</span><span class="o">.</span><span class="n">DataAccumulator</span><span class="p">(</span>
-                <span class="n">num_events_to_accumulate</span><span class="o">=</span><span class="n">num_events_to_accumulate</span>
-            <span class="p">)</span>  <span class="c1"># type: gen_algs.DataAccumulator</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing node </span><span class="si">{0}</span><span class="s2"> starting.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node_rank</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;running_average_window_size&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_running_window</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">(</span>
-                <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span><span class="p">,</span>
-                <span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: Deque[float]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_saturation_rate_running_window</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">(</span>
-                <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span><span class="p">,</span>
-                <span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span><span class="p">,</span>
-            <span class="p">)</span>  <span class="c1"># type: Deque[float]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_avg_hit_rate</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_avg_sat_rate</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
+<div class="viewcode-block" id="CrystallographyMonitor.initialize_collecting_node"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.initialize_collecting_node">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_collecting_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the OM collecting node for the Crystallography monitor.</span>
 
-            <span class="n">broadcast_socket_ip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;broadcast_ip&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
-            <span class="p">)</span>  <span class="c1"># type: Union[str, None]</span>
-            <span class="n">broadcast_socket_port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;broadcast_port&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span>
-            <span class="p">)</span>  <span class="c1"># type: Union[int, None]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span> <span class="o">=</span> <span class="n">zmq_monitor</span><span class="o">.</span><span class="n">ZmqDataBroadcaster</span><span class="p">(</span>
-                <span class="n">hostname</span><span class="o">=</span><span class="n">broadcast_socket_ip</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">broadcast_socket_port</span>
-            <span class="p">)</span>  <span class="c1"># type: zmq_monitor.ZmqDataBroadcaster</span>
+<span class="sd">        See documentation of the function in the base class:</span>
+<span class="sd">        :func:`~om.processing_layer.base.OmMonitor`.</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_old_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># type: float</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_time</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: Union[float, None]</span>
+<span class="sd">        This function initializes the algorithms that compute aggregated statistics,</span>
+<span class="sd">        and prepares the the node to broadcast data to other programs for visualization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_speed_report_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;speed_report_interval&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting the monitor...&quot;</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;data_broadcast_interval&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
 
-<div class="viewcode-block" id="CrystallographyMonitor.process_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.process_data">[docs]</a>    <span class="k">def</span> <span class="nf">process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="c1"># type: (str, int, Dict[str, Any]) -&gt; Tuple[Dict[str, Any], int]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_geometry_is_optimized</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;geometry_is_optimized&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">geometry_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;geometry_file&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">TypeDetector</span>
+        <span class="n">geometry</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">load_crystfel_geometry</span><span class="p">(</span><span class="n">geometry_filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span> <span class="o">=</span> <span class="n">crystfel_geometry</span><span class="o">.</span><span class="n">compute_pix_maps</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+
+        <span class="c1"># Theoretically, the pixel size could be different for every module of the</span>
+        <span class="c1"># detector. The pixel size of the first module is taken as the pixel size</span>
+        <span class="c1"># of the whole detector.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pixel_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span>
+            <span class="nb">tuple</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">][</span><span class="s2">&quot;res&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
+            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;running_average_window_size&quot;</span><span class="p">,</span>
+            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_running_window</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">(</span>
+            <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span><span class="p">,</span>
+            <span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_avg_hit_rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_timestamp_history</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">(</span>
+            <span class="mi">5000</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">5000</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_history</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">deque</span><span class="p">(</span>
+            <span class="mi">5000</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">5000</span>
+        <span class="p">)</span>
+
+        <span class="n">y_minimum</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mi">2</span>
+            <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span>
+            <span class="o">+</span> <span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">x_minimum</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mi">2</span>
+            <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())))</span>
+            <span class="o">+</span> <span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">visual_img_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_minimum</span><span class="p">,</span> <span class="n">x_minimum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img_center_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">visual_img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_img_center_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">visual_img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixelmap_x</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">visual_img_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="o">-</span> <span class="mi">1</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixelmap_y</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pixelmaps</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">visual_img_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="o">-</span> <span class="mi">1</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_virt_powd_plot_img</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="n">visual_img_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame_data_img</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="n">visual_img_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span>
+        <span class="p">)</span>
+
+        <span class="n">first_panel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_first_panel_coffset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s2">&quot;panels&quot;</span><span class="p">][</span><span class="n">first_panel</span><span class="p">][</span><span class="s2">&quot;coffset&quot;</span><span class="p">]</span>
+
+        <span class="n">data_broadcast_url</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;data_broadcast_url&quot;</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_broadcast_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data_broadcast_url</span> <span class="o">=</span> <span class="s2">&quot;tcp://</span><span class="si">{0}</span><span class="s2">:12321&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">zmq_monitor</span><span class="o">.</span><span class="n">get_current_machine_ip</span><span class="p">()</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span><span class="p">:</span> <span class="n">zmq_monitor</span><span class="o">.</span><span class="n">ZmqDataBroadcaster</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">zmq_monitor</span><span class="o">.</span><span class="n">ZmqDataBroadcaster</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">data_broadcast_url</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_old_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting the monitor...&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CrystallographyMonitor.process_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.process_data">[docs]</a>    <span class="k">def</span> <span class="nf">process_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Processes a detector data frame.</span>
 
@@ -399,29 +478,24 @@
 <span class="sd">        optionally, the detector frame data) for transmission to to the collecting</span>
 <span class="sd">        node.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">processed_data</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
-        <span class="n">corrected_detector_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_correction</span><span class="o">.</span><span class="n">apply_correction</span><span class="p">(</span>
+        <span class="n">processed_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">corrected_detector_data</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_correction</span><span class="o">.</span><span class="n">apply_correction</span><span class="p">(</span>
             <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span>
-        <span class="p">)</span>  <span class="c1"># type: numpy.ndarray</span>
-        <span class="n">peak_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_detection</span><span class="o">.</span><span class="n">find_peaks</span><span class="p">(</span>
+        <span class="p">)</span>
+        <span class="n">peak_list</span><span class="p">:</span> <span class="n">cryst_algs</span><span class="o">.</span><span class="n">TypePeakList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_detection</span><span class="o">.</span><span class="n">find_peaks</span><span class="p">(</span>
             <span class="n">corrected_detector_data</span>
-        <span class="p">)</span>  <span class="c1"># Tuple[List[float], ...]</span>
-        <span class="n">frame_is_saturated</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">peak_list</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saturation_value</span><span class="p">])</span>
-            <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_saturated_peaks</span>
-        <span class="p">)</span>  <span class="c1"># type: bool</span>
-        <span class="n">frame_is_hit</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">)</span>
+        <span class="n">frame_is_hit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_min_num_peaks_for_hit</span>
             <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">peak_list</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">])</span>
             <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_num_peaks_for_hit</span>
-        <span class="p">)</span>  <span class="c1"># type: bool</span>
+        <span class="p">)</span>
 
         <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span>
-        <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;frame_is_saturated&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_is_saturated</span>
         <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;frame_is_hit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_is_hit</span>
         <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]</span>
         <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">]</span>
-        <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;native_data_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;data_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">if</span> <span class="n">frame_is_hit</span><span class="p">:</span>
             <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">peak_list</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hit_frame_sending_interval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -449,10 +523,14 @@
                     <span class="n">processed_data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">corrected_detector_data</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_non_hit_frame_sending_counter</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">return</span> <span class="p">(</span><span class="n">processed_data</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">processed_data</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CrystallographyMonitor.collect_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">processed_data</span><span class="p">):</span>
-        <span class="c1"># type: (str, int, Tuple[Dict[str, Any], int]) -&gt; None</span>
+<div class="viewcode-block" id="CrystallographyMonitor.collect_data"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">processed_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes statistics on aggregated data and broadcasts them via a network socket.</span>
 
@@ -463,85 +541,127 @@
 <span class="sd">        processing nodes. It then broadcasts the results via a network socket (for</span>
 <span class="sd">        visualization by other programs) using the MessagePack protocol.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">received_data</span> <span class="o">=</span> <span class="n">processed_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: Dict[str, Any]</span>
+        <span class="n">received_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">processed_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_running_window</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;frame_is_hit&quot;</span><span class="p">]))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_saturation_rate_running_window</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="nb">float</span><span class="p">(</span><span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;frame_is_saturated&quot;</span><span class="p">])</span>
-        <span class="p">)</span>
-        <span class="n">avg_hit_rate</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">avg_hit_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="p">(</span>
             <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_running_window</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span>
-        <span class="p">)</span>  <span class="c1"># type: float</span>
-        <span class="n">avg_sat_rate</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_saturation_rate_running_window</span><span class="p">)</span>
-            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_average_window_size</span>
-        <span class="p">)</span>  <span class="c1"># type: float</span>
-        <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;hit_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_hit_rate</span>
-        <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;saturation_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_sat_rate</span>
-        <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;geometry_is_optimized&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometry_is_optimized</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_timestamp_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_hit_rate</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">)</span>
 
-        <span class="c1"># Since the data will be sent out of the collecting node using msgpack,</span>
-        <span class="c1"># NamedTuple structures will not be preserved. The peak list is converted here</span>
-        <span class="c1"># to a dictionary, which suvives the msgpack conversion and allows</span>
-        <span class="c1"># introspection on the receiver side.</span>
-        <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;fs&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="s2">&quot;fs&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;ss&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="s2">&quot;ss&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;intensity&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="s2">&quot;intensity&quot;</span><span class="p">],</span>
-        <span class="p">}</span>
+        <span class="n">peak_list_x_in_frame</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">peak_list_y_in_frame</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">peak_fs</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="n">peak_ss</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="n">peak_value</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="k">for</span> <span class="n">peak_fs</span><span class="p">,</span> <span class="n">peak_ss</span><span class="p">,</span> <span class="n">peak_value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="s2">&quot;fs&quot;</span><span class="p">],</span>
+            <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="s2">&quot;ss&quot;</span><span class="p">],</span>
+            <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;peak_list&quot;</span><span class="p">][</span><span class="s2">&quot;intensity&quot;</span><span class="p">],</span>
+        <span class="p">):</span>
+            <span class="n">peak_index_in_slab</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">peak_ss</span><span class="p">))</span> <span class="o">*</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;data_shape&quot;</span><span class="p">][</span>
+                <span class="mi">1</span>
+            <span class="p">]</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">peak_fs</span><span class="p">))</span>
+            <span class="n">y_in_frame</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixelmap_y</span><span class="p">[</span><span class="n">peak_index_in_slab</span><span class="p">]</span>
+            <span class="n">x_in_frame</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixelmap_x</span><span class="p">[</span><span class="n">peak_index_in_slab</span><span class="p">]</span>
+            <span class="n">peak_list_x_in_frame</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_in_frame</span><span class="p">)</span>
+            <span class="n">peak_list_y_in_frame</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_in_frame</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_virt_powd_plot_img</span><span class="p">[</span><span class="n">y_in_frame</span><span class="p">,</span> <span class="n">x_in_frame</span><span class="p">]</span> <span class="o">+=</span> <span class="n">peak_value</span>
 
-        <span class="k">if</span> <span class="s2">&quot;detector_data&quot;</span> <span class="ow">in</span> <span class="n">received_data</span><span class="p">:</span>
-            <span class="c1"># If detector frame data is found in the data received from the processing</span>
-            <span class="c1"># node, it must be broadcasted to visualization programs. The frame is</span>
-            <span class="c1"># wrapped into a list because the receiving programs usually expect lists</span>
-            <span class="c1"># of aggregated events as opposed to single events.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span><span class="o">.</span><span class="n">send_data</span><span class="p">(</span>
-                <span class="n">tag</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;omframedata&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="p">[</span><span class="n">received_data</span><span class="p">]</span>
+                <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;view:omdata&quot;</span><span class="p">,</span>
+                <span class="n">message</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;geometry_is_optimized&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometry_is_optimized</span><span class="p">,</span>
+                    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;hit_rate_timestamp_history&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_timestamp_history</span><span class="p">,</span>
+                    <span class="s2">&quot;hit_rate_history&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hit_rate_history</span><span class="p">,</span>
+                    <span class="s2">&quot;virtual_powder_plot&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_virt_powd_plot_img</span><span class="p">,</span>
+                    <span class="s2">&quot;beam_energy&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;detector_distance&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;first_panel_coffset&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_panel_coffset</span><span class="p">,</span>
+                    <span class="s2">&quot;pixel_size&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pixel_size</span><span class="p">,</span>
+                <span class="p">},</span>
             <span class="p">)</span>
-        <span class="c1"># After it has been broadcasted, it removes the detector frame data from the</span>
-        <span class="c1"># &#39;received_data&#39; dictionary (the frame data is not needed anymore, so we</span>
-        <span class="c1"># remove it for efficiency reasons).</span>
-        <span class="k">if</span> <span class="s2">&quot;detector_data&quot;</span> <span class="ow">in</span> <span class="n">received_data</span><span class="p">:</span>
-            <span class="k">del</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span>
 
-        <span class="n">collected_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_accumulator</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">received_data</span>
-        <span class="p">)</span>  <span class="c1"># type: Union[List[Dict[str, Any]], None]</span>
-        <span class="k">if</span> <span class="n">collected_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span><span class="o">.</span><span class="n">send_data</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;omdata&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">collected_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;detector_data&quot;</span> <span class="ow">in</span> <span class="n">received_data</span><span class="p">:</span>
+                <span class="c1"># If detector frame data is found in the data received from the</span>
+                <span class="c1"># processing node, it must be broadcasted to visualization programs.</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_frame_data_img</span><span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixelmap_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visual_pixelmap_x</span>
+                <span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">]</span>
+                    <span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                    <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_data_img</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span><span class="o">.</span><span class="n">send_data</span><span class="p">(</span>
+                    <span class="n">tag</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;view:omframedata&quot;</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;frame_data&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_data_img</span><span class="p">,</span>
+                        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">],</span>
+                        <span class="s2">&quot;peak_list_x_in_frame&quot;</span><span class="p">:</span> <span class="n">peak_list_x_in_frame</span><span class="p">,</span>
+                        <span class="s2">&quot;peak_list_y_in_frame&quot;</span><span class="p">:</span> <span class="n">peak_list_y_in_frame</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_broadcast_socket</span><span class="o">.</span><span class="n">send_data</span><span class="p">(</span>
+                    <span class="n">tag</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;view:omtweakingdata&quot;</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;detector_data&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;detector_data&quot;</span><span class="p">],</span>
+                        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">received_data</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">],</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_speed_report_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">now_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># type: float</span>
-            <span class="n">speed_report_msg</span> <span class="o">=</span> <span class="s2">&quot;Processed: </span><span class="si">{0}</span><span class="s2"> in </span><span class="si">{1:.2f}</span><span class="s2"> seconds (</span><span class="si">{2:.2f}</span><span class="s2"> Hz)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span><span class="p">,</span>
-                <span class="n">now_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_time</span><span class="p">,</span>
-                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_speed_report_interval</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">now_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_time</span><span class="p">)),</span>
-            <span class="p">)</span>  <span class="c1"># type: str</span>
-
+            <span class="n">now_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">speed_report_msg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;Processed: </span><span class="si">{0}</span><span class="s2"> in </span><span class="si">{1:.2f}</span><span class="s2"> seconds &quot;</span>
+                <span class="s2">&quot;(</span><span class="si">{2:.2f}</span><span class="s2"> Hz)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span><span class="p">,</span>
+                    <span class="n">now_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_time</span><span class="p">,</span>
+                    <span class="p">(</span>
+                        <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_speed_report_interval</span><span class="p">)</span>
+                        <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">now_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_time</span><span class="p">)</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">speed_report_msg</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_old_time</span> <span class="o">=</span> <span class="n">now_time</span></div>
 
-<div class="viewcode-block" id="CrystallographyMonitor.end_processing"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.end_processing">[docs]</a>    <span class="k">def</span> <span class="nf">end_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="n">rank</span><span class="p">):</span>
-        <span class="c1"># type: (str, int) -&gt; None</span>
+<div class="viewcode-block" id="CrystallographyMonitor.end_processing_on_processing_node"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.end_processing_on_processing_node">[docs]</a>    <span class="k">def</span> <span class="nf">end_processing_on_processing_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rank_pool_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Executes end-of-processing actions.</span>
+<span class="sd">        Executes end-of-processing actions on the processing nodes.</span>
 
 <span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor.end_processing`.</span>
+<span class="sd">        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.</span>
 
-<span class="sd">        This function is called by the parallelization engine on the processing and</span>
-<span class="sd">        collecting nodes at the end of the processing, immediately before stopping.</span>
+<span class="sd">        Prints a message on the console and ends processing.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;processing&quot;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="s2">&quot;Processing finished. OM has processed </span><span class="si">{0}</span><span class="s2"> events in total.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">rank</span>
-                <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing node </span><span class="si">{0}</span><span class="s2"> shutting down.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node_rank</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CrystallographyMonitor.end_processing_on_collecting_node"><a class="viewcode-back" href="../../../om.processing_layer.crystallography.html#om.processing_layer.crystallography.CrystallographyMonitor.end_processing_on_collecting_node">[docs]</a>    <span class="k">def</span> <span class="nf">end_processing_on_collecting_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rank_pool_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes end-of-processing actions on the processing nodes.</span>
+
+<span class="sd">        See documentation of the function in the base class:</span>
+<span class="sd">        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.</span>
+
+<span class="sd">        Prints a message on the console and ends processing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Processing finished. OM has processed </span><span class="si">{0}</span><span class="s2"> events in total.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;collecting&quot;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Collecting node shutting down.&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div></div>
 </pre></div>
 
@@ -561,7 +681,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

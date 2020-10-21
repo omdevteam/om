@@ -41,8 +41,8 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-                storing the OM monitor parameters from the configuration file.
+            monitor_params: An object storing the OM monitor parameters from the
+                configuration file.
         """
         self._monitor_params = monitor_parameters
 
@@ -55,11 +55,11 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            node_rank (int): the OM rank of the current node, which is an integer that
+            node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
 
     @abstractmethod
@@ -71,16 +71,19 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            node_rank (int): the OM rank of the current node, which is an integer that
+            node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
 
     @abstractmethod
     def process_data(
-        self, node_rank: int, node_pool_size: int, data: Dict[str, Any],
+        self,
+        node_rank: int,
+        node_pool_size: int,
+        data: Dict[str, Any],
     ) -> Tuple[Dict[str, Any], int]:
         """
         Processes a single frame in a data event.
@@ -92,14 +95,14 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            node_rank (int): the OM rank of the current node, which is an integer that
+            node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
 
-            data(Dict[str, Any]): a dictionary containing the data retrieved by
-                OM for the frame being processed.
+            data: A dictionary containing the data retrieved by OM for the frame being
+                processed.
 
                 * The dictionary keys must match the entries in the 'required_data'
                   list found in the 'om' configuration parameter group.
@@ -108,9 +111,9 @@ class OmMonitor(ABC):
 
         Returns:
 
-            Tuple[Dict, int]: a tuple whose first entry is a dictionary storing the
-            data that should be sent to the collecting node, and whose second entry is
-            the OM rank number of the node that processed the information.
+            A tuple whose first entry is a dictionary storing the data that should be
+            sent to the collecting node, and whose second entry is the OM rank number
+            of the node that processed the information.
         """
         pass
 
@@ -128,11 +131,11 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            node_rank (int): the OM rank of the current node, which is an integer that
+            node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
 
             processed_data (Tuple[Dict, int]): a tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
@@ -155,17 +158,17 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            node_rank (int): the OM rank of the current node, which is an integer that
+            node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
 
         Returns:
 
-            Union[Dict[str, Any], None]: A dictionary storing information to be sent
-            to the processing node (Optional: if this function returns nothing, no
-            information is transferred to the processing node.
+            A dictionary storing information to be sent to the processing node
+            (Optional: if this function returns nothing, no information is transferred
+            to the processing node.
         """
         return None
 
@@ -180,10 +183,10 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            node_rank (int): the OM rank of the current node, which is an integer that
+            node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         pass

@@ -27,11 +27,15 @@ import numpy  # type: ignore
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Jungfrau detector data from files.
+    Retrieves one frame of Jungfrau 1N detector data from files.
+
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        numpy.ndarray: one frame of detector data.
+
+        One frame of detector data.
     """
     # Returns the data from the Jungfrau HDF5 files
     h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
@@ -53,17 +57,20 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
 
 def event_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for an event retrieved from Jungfrau.
+    Gets a unique identifier for an event retrieved from a Jungfrau 1M detector.
+
     Returns a label that unambiguously identifies, within an experiment, the event
-    currently being processed. For the Jungfrau detector, event identifier consists of
-    the full path to the raw data file of the first detector panel (d0) and an index of
-    the event in this file, separated by " //".
+    currently being processed. For the Jungfrau 1M detector, event identifier consists
+    of the full path to the raw data file of the first detector panel (d0) and an index
+    of the event in this file, separated by the symbol "//".
 
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
 
     Returns:
-        str: a unique event identifier.
+
+        A unique event identifier.
     """
     return " // ".join(
         (
@@ -75,7 +82,8 @@ def event_id(event: Dict[str, Any]) -> str:
 
 def frame_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for a Jungfrau data frame.
+    Gets a unique identifier for a Jungfrau 1M detector data frame.
+
     Returns a label that unambiguously identifies, within an event, the frame currently
     being processed.
 
@@ -83,28 +91,32 @@ def frame_id(event: Dict[str, Any]) -> str:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: a dictionary storing the event data.
 
     Returns:
 
-        str: a unique frame identifier (within an event).
+        A unique frame identifier (within an event).
     """
     return str(0)
 
 
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
-    Gets the timestamp of a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files.
-    The timestamp for an event is calculated as the creation time of the file that the
-    Jungfrau detector writes plus the time which passed between the event currently
-    being processed and the first event in the file determined from the Jungfrau
-    internal 10MHz clock.
+    Gets the timestamp of a Jungfrau 1M detector data event.
+
+    OM currently supports Jungfrau 1M data events originating from files. The timestamp
+    for an event, corresponding to a single detector frame, is determined by adding the
+    creation time of the file from which the frame originates to the relative timestamp
+    difference between the first frame in the file and the current one (determined from
+    the detector's internal clock and stored in the file).
 
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        numpy.float64: the timestamp of the event in seconds from the Epoch.
+
+        The timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
 
@@ -117,16 +129,20 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
 
 def beam_energy(event: Dict[str, Any]) -> float:
     """
-    Gets the beam energy for a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files, which do not
+    Gets the beam energy for a Jungfrau 1M data event.
+
+    OM currently supports Jungfrau data events originating from files which do not
     provide beam energy information. OM uses the value provided for the
     'fallback_beam_energy_in_eV' entry in the configuration file, in the
     'data_retrieval_layer' parameter group.
 
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        float: the energy of the beam in eV.
+
+        The energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
     return cast(float, event["additional_info"]["beam_energy"])
@@ -134,15 +150,20 @@ def beam_energy(event: Dict[str, Any]) -> float:
 
 def detector_distance(event: Dict[str, Any]) -> float:
     """
-    Gets the detector distance for a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files which do not
+    Gets the detector distance for a Jungfrau 1M data event.
+
+    OM currently supports Jungfrau 1M data events originating from files which do not
     provide detector distance information. OM uses the value provided for the
     'fallback_detector_distance_in_mm' entry in the configuration file, in the
     'data_retrieval_layer' parameter group.
+
     Arguments:
-        event (Dict[str,Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        float: the detector distance in mm.
+
+        The detector distance in mm.
     """
     # Returns the value previously stored in the event.
     return cast(float, event["additional_info"]["detector_distance"])

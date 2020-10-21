@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Configuration File &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,9 +25,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -157,14 +157,12 @@ Example: /data/data</p></li>
 <h2>crystallography<a class="headerlink" href="#crystallography" title="Permalink to this headline">¶</a></h2>
 <p>This group contains parameters used by OM for Crystallography.</p>
 <ul class="simple">
-<li><p><strong>broadcast_ip (str or None):</strong> the hostname or ip address where the monitor
-broadcasts data to external programs. If the value of this parameter is <em>None</em>, the
-ip address is auto-detected. This is usually fine. An ip address or a hostname needs
-usually to be manually specified only in exceptional cases (e.g: multiple network
-interfaces on the same machine). Example: 127.0.0.1</p></li>
-<li><p><strong>broadcast_port (int or None):</strong> the port where the monitor broadcasts data to
-external programs. If the value of this parameter is <em>None</em>, port 12321 is used.
-Example: 12322</p></li>
+<li><p><strong>data_broadcast_url (str or None):</strong> the URL of the socket where the monitor
+broadcasts data to external programs. The parameter should be in a format accepted by
+the ZeroMQ library. Typically, the parameter either has the format
+<em>tcp://hostname:port</em> or the format <em>ipc:///path/to/socket</em>. If the value of this
+parameter is <em>None</em>, the hostname is detected automatically and the broadcast URL is
+set to <a href="#id1"><span class="problematic" id="id2">*</span></a><a class="reference external" href="tcp://hostname:12321">tcp://hostname:12321</a>”. Example: <a class="reference external" href="tcp://127.0.0.1:8080">tcp://127.0.0.1:8080</a></p></li>
 <li><p><strong>geometry_file (str):</strong> the absolute or relative path to a geometry file in
 <a class="reference external" href="http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html">CrystFEL</a>
 format. Example: pilatus.geom</p></li>
@@ -331,7 +329,7 @@ where the bad pixel map is stored. If the value of the <em>bad_pixel_map_filenam
 parameter is not <em>None</em>, this parameter must also be provided, and cannot be <em>None</em>.
 Example: ‘/data/data’</p></li>
 <li><p><strong>detector_type</strong> (str): the type of detector on which the peak finding algorithm
-will be applied. The detector types currently supported are: ‘cspad’and ‘pilatus’.
+will be applied. The detector types currently supported are: ‘cspad’ and ‘pilatus’.
 Example: cspad</p></li>
 <li><p><strong>max_num_peaks (int):</strong> the maximum number of peaks that will be retrieved from each
 detector data frame. Additional peaks will be ignored. Example: 2048</p></li>
@@ -365,7 +363,7 @@ Example: 5.0</p></li>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

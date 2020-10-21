@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.utils.parameters &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -107,24 +107,20 @@
 <span class="sd">file. Configuration parameters can be retrieved from this class and optionally</span>
 <span class="sd">validated.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TextIO</span>
 
 <span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">from</span> <span class="nn">future.utils</span> <span class="kn">import</span> <span class="n">raise_from</span>  <span class="c1"># type: ignore</span>
 <span class="kn">from</span> <span class="nn">past.builtins</span> <span class="kn">import</span> <span class="n">basestring</span>  <span class="c1"># type: ignore</span>
 
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">exceptions</span>
 
 
-<div class="viewcode-block" id="MonitorParams"><a class="viewcode-back" href="../../../om.utils.parameters.html#om.utils.parameters.MonitorParams">[docs]</a><span class="k">class</span> <span class="nc">MonitorParams</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="MonitorParams"><a class="viewcode-back" href="../../../om.utils.parameters.html#om.utils.parameters.MonitorParams">[docs]</a><span class="k">class</span> <span class="nc">MonitorParams</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See documentation for the &#39;__init__&#39; function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
-        <span class="c1"># type: (str) -&gt; None</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Storage, retrieval and validation of OM monitor parameters.</span>
 
@@ -143,9 +139,10 @@
 <span class="sd">                is a syntax error in theconfiguration file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">try</span><span class="p">:</span>
+            <span class="n">open_file</span><span class="p">:</span> <span class="n">TextIO</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">open_file</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
@@ -153,15 +150,17 @@
                 <span class="s2">&quot;Cannot open or read the configuration file </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="n">yaml</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">ParserError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="n">raise_from</span><span class="p">(</span>
-                <span class="n">exc</span><span class="o">=</span><span class="n">exceptions</span><span class="o">.</span><span class="n">OmConfigurationFileSyntaxError</span><span class="p">(</span>
-                    <span class="s2">&quot;Syntax error in the configuration file: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
-                <span class="p">),</span>
-                <span class="n">cause</span><span class="o">=</span><span class="n">exc</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmConfigurationFileSyntaxError</span><span class="p">(</span>
+                <span class="s2">&quot;Syntax error in the configuration file: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
 
-<div class="viewcode-block" id="MonitorParams.get_param"><a class="viewcode-back" href="../../../om.utils.parameters.html#om.utils.parameters.MonitorParams.get_param">[docs]</a>    <span class="k">def</span> <span class="nf">get_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">parameter_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="c1"># type: (str, str, Any, bool) -&gt; Any</span>
+<div class="viewcode-block" id="MonitorParams.get_param"><a class="viewcode-back" href="../../../om.utils.parameters.html#om.utils.parameters.MonitorParams.get_param">[docs]</a>    <span class="k">def</span> <span class="nf">get_param</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">parameter</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">parameter_type</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">required</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves an OM monitor configuration parameter.</span>
 
@@ -211,12 +210,13 @@
 <span class="sd">                requested parameter type does not match the type of the parameter in</span>
 <span class="sd">                the configuration file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: check types</span>
         <span class="k">if</span> <span class="n">group</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmMissingParameterGroupError</span><span class="p">(</span>
                 <span class="s2">&quot;Parameter group [</span><span class="si">{0}</span><span class="s2">] is not in the configuration file&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="p">[</span><span class="n">group</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>  <span class="c1"># type: Any</span>
+            <span class="n">ret</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="p">[</span><span class="n">group</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ret</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">required</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmMissingParameterError</span><span class="p">(</span>
                     <span class="s2">&quot;Parameter </span><span class="si">{0}</span><span class="s2"> in group [</span><span class="si">{1}</span><span class="s2">] was not found, but is &quot;</span>
@@ -257,16 +257,16 @@
 
                 <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="MonitorParams.get_all_parameters"><a class="viewcode-back" href="../../../om.utils.parameters.html#om.utils.parameters.MonitorParams.get_all_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># type: () -&gt; Dict[str, Any]</span>
+<div class="viewcode-block" id="MonitorParams.get_all_parameters"><a class="viewcode-back" href="../../../om.utils.parameters.html#om.utils.parameters.MonitorParams.get_all_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the whole set of parameters read from the configuration file.</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            Dict[str, Any]: a dictionary containing the parameters read from the</span>
+<span class="sd">            Any: a dictionary containing the parameters read from the</span>
 <span class="sd">            configuration file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: check types</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span></div></div>
 </pre></div>
 
@@ -286,7 +286,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

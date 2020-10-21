@@ -151,7 +151,10 @@ def main(source: str, config: str, debug: bool) -> None:
         monitor_parameters=monitor_parameters
     )
     data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-        data_event_handler_class(monitor_parameters=monitor_parameters, source=source,)
+        data_event_handler_class(
+            monitor_parameters=monitor_parameters,
+            source=source,
+        )
     )
     parallelization_engine: parallel_layer_base.OmParallelizationEngine = (
         parallelization_engine_class(

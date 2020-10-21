@@ -29,11 +29,15 @@ from om.utils import exceptions
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of CSPAD detector data from psana.
+    Retrieves one frame of Jungfrau 4M detector data from psana.
+
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        numpy.ndarray: one frame of detector data.
+
+        One frame of detector data.
     """
     jungfrau_psana: numpy.ndarray = event["additional_info"][
         "psana_detector_interface"

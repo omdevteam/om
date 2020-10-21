@@ -54,8 +54,8 @@ class Correction:
 
         Arguments:
 
-            dark_filename (Union[str, None]): the relative or absolute path to an HDF5
-                file containing a dark data frame. Defaults to None.
+            dark_filename: The relative or absolute path to an HDF5 file containing a
+                dark data frame. Defaults to None.
 
                 * If this and the 'dark_hdf5_path' arguments are not None, the dark
                   data is loaded and will be used by the algorithm.
@@ -63,14 +63,14 @@ class Correction:
                 * The dark data frame must be a numpy array of the same shape as the
                   data frame that will be corrected.
 
-            dark_hdf5_path (Union[str, None]): the internal HDF5 path to the data block
-                where the dark data frame is located. Defaults to None.
+            dark_hdf5_path: The internal HDF5 path to the data block where the dark
+                data frame is located. Defaults to None.
 
                 * If the 'dark_filename' argument is not None, this argument must also
                   be provided, and cannot be None. Otherwise it is ignored.
 
-            mask_filename (Union[str, None]): the relative or absolute path to an HDF5
-                file containing a mask. Defaults to None.
+            mask_filename: The relative or absolute path to an HDF5 file containing a
+                mask. Defaults to None.
 
                 * If this and the 'mask_hdf5_path' arguments are not None, the mask is
                   loaded and will be used by the algorithm.
@@ -82,14 +82,14 @@ class Correction:
                   the corresponding pixel in the data frame must be set to 0, or 1,
                   meaning that the value of the corresponding pixel must be left alone.
 
-            mask_hdf5_path (Union[str, None]): the internal HDF5 path to the data block
-                where the mask data is located. Defaults to None.
+            mask_hdf5_path: The internal HDF5 path to the data block where the mask
+                data is located. Defaults to None.
 
                 * If the 'mask_filename' argument is not None, this argument must also
                   be provided, and cannot be None. Otherwise it is ignored.
 
-            gain_filename (Union[str, None]): the relative or absolute path to an HDF5
-                file containing a gain map. Defaults to None.
+            gain_filename: The relative or absolute path to an HDF5 file containing a
+                gain map. Defaults to None.
 
                 * If this and the 'gain_hdf5_path' arguments are not None, the gain map
                   is loaded and will be used by the algorithm.
@@ -100,8 +100,8 @@ class Correction:
                 * Each pixel in the gain map must store the gain factor that will be
                   applied to the corresponding pixel in the data frame.
 
-            gain_hdf5_path (Union[str, None]): the internal HDF5 path to the data block
-                where the gain map data is located. Defaults to None.
+            gain_hdf5_path: The internal HDF5 path to the data block where the gain map
+                data is located. Defaults to None.
 
                 * If the 'gain_filename' argument is not None, this argument must also
                   be provided, and cannot be None. Otherwise it is ignored.
@@ -200,13 +200,11 @@ class Correction:
 
         Arguments:
 
-            data (numpy.ndarray): the detector data frame on which the correction
-                must be applied.
+            data: The detector data frame on which the correction must be applied.
 
         Returns:
 
-            numpy.ndarray: the corrected data.
-
+            The corrected data.
         """
         return (data * self._mask - self._dark) * self._gain_map
 
@@ -243,13 +241,13 @@ class DataAccumulator:
 
         Arguments:
 
-            data (Dict[str, Any]): a data entry to be added to the accumulator.
+            data: A data entry to be added to the accumulator.
 
         Returns:
 
-            Union[List[Dict[str, Any]]], None]: either a list containing the
-            accumulated data (if the accumulator is emptied), or None, if more data
-            entries can still be added to the accumulator.
+            Either a list containing the accumulated data (if the accumulator is
+            emptied), or None, if more data entries can still be added to the
+            accumulator.
         """
         self._accumulator.append(data)
         self._num_events_in_accumulator += 1

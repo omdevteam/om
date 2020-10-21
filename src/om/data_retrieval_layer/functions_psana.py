@@ -38,13 +38,12 @@ def detector_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.AreaDetector.AreaDetector: a psana object that can be used later
-        to retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -62,8 +61,8 @@ def timestamp_init(monitor_params: parameters.MonitorParams) -> None:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
     """
     # The event timestamp gets recovered in other ways by the event recovery code. No
     # need to initialize the psana interface: the timestamp will already be in the
@@ -82,13 +81,12 @@ def detector_distance_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.EpicsDetector.EpicsDetector: a psana object that can be used
-        later to retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -106,13 +104,12 @@ def beam_energy_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.DdlDetector.DdlDetector: a psana object that can be used later
-        to retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     # psana.Detector("EBeam")
     return psana.Detector("SIOC:SYS0:ML00:AO192")
@@ -129,13 +126,12 @@ def timetool_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.EpicsDetector.EpicsDetector: a psana object that can be used
-        later to retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -157,13 +153,12 @@ def digitizer_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.WFDetector.WFDetector: a psana object that can be used later to
-        retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -185,13 +180,12 @@ def opal_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.AreaDetector.AreaDetector: a psana object that can be used later
-        to retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
         monitor_params.get_param(
@@ -214,13 +208,12 @@ def optical_laser_active_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.EvrDetector.EvrDetector: a psana object that can be used later
-        to retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     evr_source_name = monitor_params.get_param(
         group="data_retrieval_layer",
@@ -243,13 +236,12 @@ def xrays_active_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-            storing the OM monitor parameters from the configuration file.
+        monitor_params: An object storing the OM monitor parameters from the
+            configuration file.
 
     Returns:
 
-        psana.Detector.EvrDetector.EvrDetector: a psana object that can be used later
-        to retrieve the data.
+        A psana object that can be used later to retrieve the data.
     """
     evr_source_name = monitor_params.get_param(
         group="data_retrieval_layer",
@@ -267,11 +259,11 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.float64: the timestamp of the event in seconds from the Epoch.
+        The timestamp of the event in seconds from the Epoch.
     """
     # Returns the timestamp stored in the event dictionary, without extracting it
     # again.
@@ -296,11 +288,11 @@ def detector_distance(event: Dict[str, Any]) -> float:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        float: the distance between the detector and the sample in mm.
+        The distance between the detector and the sample in mm.
     """
     det_dist: Union[float, None] = event["additional_info"]["psana_detector_interface"][
         "detector_distance"
@@ -319,11 +311,11 @@ def beam_energy(event: Dict[str, Any]) -> float:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        float: the energy of the beam in eV.
+        The energy of the beam in eV.
     """
     # beam_en = (
     #    event["additional_info"]["psana_detector_interface"]["beam_energy"]
@@ -357,11 +349,11 @@ def timetool_data(event: Dict[str, Any]) -> float:
 
     Arguments:
 
-            event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        float: the readout of the timetool instrument.
+        The readout of the timetool instrument.
     """
     # TODO: Determine return type
     time_tl: Union[float, None] = event["additional_info"]["psana_detector_interface"][
@@ -385,11 +377,11 @@ def digitizer_data(event: Dict[str, Any]) -> numpy.ndarray:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.array: the waveform from the digitizer.
+        The waveform from the digitizer.
     """
     # TODO: Determine return type
     digit_data: Union[numpy.ndarray, None] = event["additional_info"][
@@ -412,11 +404,11 @@ def opal_data(event: Dict[str, Any]) -> numpy.ndarray:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.ndarray: a 2D array containing the image from the Opal camera.
+        A 2D array containing the image from the Opal camera.
     """
     op_data: Union[numpy.ndarray, None] = event["additional_info"][
         "psana_detector_interface"
@@ -448,11 +440,11 @@ def optical_laser_active(event: Dict[str, Any]) -> bool:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        bool: True if the optical laser is active for the current frame. False
+        True if the optical laser is active for the current frame. False
         otherwise.
     """
     current_evr_codes: Union[List[int], None] = event["additional_info"][
@@ -490,11 +482,11 @@ def xrays_active(event: Dict[str, Any]) -> bool:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        bool: True if the x-ray beam is active for the current frame. False otherwise.
+        True if the x-ray beam is active for the current frame. False otherwise.
     """
     current_evr_codes: Union[List[int], None] = event["additional_info"][
         "psana_detector_interface"

@@ -39,8 +39,7 @@ def get_current_machine_ip() -> str:
 
     Returns:
 
-        str: A string storing the IP address of the machine in the format
-            XXX.XXX.XXX.XXX.
+        A string storing the IP address of the machine in the format XXX.XXX.XXX.XXX.
     """
     ip: str = [
         (
@@ -71,11 +70,11 @@ class ZmqDataBroadcaster:
 
         Args:
 
-            hostname (Union[str, None]): the hostname or IP address where the socket
-                will be opened. If None it will be autodetected. Defaults to None.
+            hostname: The hostname or IP address where the socket will be opened. If
+                None it will be autodetected. Defaults to None.
 
-            port(Union[int, None]): the port where the socket will be opened. If None,
-                the socket will be opened at port 12321. Defaults to None.
+            port: The port where the socket will be opened. If None, the socket will be
+                opened at port 12321. Defaults to None.
         """
         self._context: Any = zmq.Context()
         self._sock: Any = self._context.socket(zmq.PUB)
@@ -108,12 +107,11 @@ class ZmqDataBroadcaster:
 
         Arguments:
 
-            tag (str): the label that will be attached to the broadcasted data.
+            tag: The label that will be attached to the broadcasted data.
 
-            message (Dict[str, Any]): a dictionary, where the keys are names of
-                information elements to be broadcasted through the broadcasting socket,
-                and the corresponding values are the information elements to be sent
-                (python objects).
+            message: A dictionary, where the keys are names of information elements to
+                be broadcasted through the broadcasting socket, and the corresponding
+                values are the information elements to be sent (python objects).
         """
         self._sock.send_string(tag, zmq.SNDMORE)
         self._sock.send_pyobj(message)

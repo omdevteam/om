@@ -45,12 +45,11 @@ class MonitorParams:
 
         Arguments:
 
-            config (str): the absolute or relative path to a YAML-format configuration
-                file.
+            config: The absolute or relative path to a YAML-format configuration file.
 
         Raises:
 
-            :class:`~om.utils.exceptions.OMConfigurationFileSyntaxError`: if there
+            :class:`~om.utils.exceptions.OMConfigurationFileSyntaxError`: If there
                 is a syntax error in theconfiguration file.
         """
 
@@ -95,35 +94,33 @@ class MonitorParams:
 
         Arguments:
 
-            group (str): the name of the parameter group in which the parameter to
-                retrieve is located.
+            group: The name of the parameter group in which the parameter to retrieve
+                is located.
 
-            parameter (str): the name of the parameter to retrieve.
+            parameter (str): The name of the parameter to retrieve.
 
-            parameter_type (Any): the type of the parameter. If a type is specified
-                here, the type of the retrieved parameter will be validated. Defaults
-                to None.
+            parameter_type: The type of the parameter. If a type is specified here, the
+                type of the retrieved parameter will be validated. Defaults to None.
 
-            required (bool): True if the parameter is strictly required and must be
+            required: True if the parameter is strictly required and must be present
                 present in the configuration file, False otherwise. Defaults to False.
 
         Returns:
 
-            Any: the value of the requested parameter, or None, if the
-            parameter was not found in the configuration file (and it is not
-            required).
+            The value of the requested parameter, or None, if the parameter was not
+                found in the configuration file (and it is not required).
 
         Raises:
 
-            :class:`~om.utils.exceptions.OmMissingParameterGroupError`: if the
+            :class:`~om.utils.exceptions.OmMissingParameterGroupError`: If the
                 requested parameter group is not present in the configuration file.
 
-            :class:`~om.utils.exceptions.OmMissingParameterError`: if the parameter
+            :class:`~om.utils.exceptions.OmMissingParameterError`: If the parameter
                 is required but cannot be found in the configuration file.
 
-            :class:`~om.utils.exceptions.OmWrongParameterTypeError`: if the
-                requested parameter type does not match the type of the parameter in
-                the configuration file.
+            :class:`~om.utils.exceptions.OmWrongParameterTypeError`: If the requested
+                parameter type does not match the type of the parameter in the
+                configuration file.
         """
         # TODO: check types
         if group not in self._monitor_params:
@@ -178,8 +175,7 @@ class MonitorParams:
 
         Returns:
 
-            Any: a dictionary containing the parameters read from the
-            configuration file.
+            A dictionary containing the parameters read from the configuration file.
         """
         # TODO: check types
         return self._monitor_params

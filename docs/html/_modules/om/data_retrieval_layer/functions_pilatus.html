@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.data_retrieval_layer.functions_pilatus &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -105,15 +105,12 @@
 
 <span class="sd">This module contains functions that retrieve data from a Pilatus x-ray detector.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>  <span class="c1"># type: ignore</span>
 
 
-<div class="viewcode-block" id="detector_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.detector_data">[docs]</a><span class="k">def</span> <span class="nf">detector_data</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; numpy.ndarray</span>
+<div class="viewcode-block" id="detector_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.detector_data">[docs]</a><span class="k">def</span> <span class="nf">detector_data</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves one frame of Pilatus detector data from files (or HiDRA).</span>
 
@@ -129,8 +126,7 @@
     <span class="k">return</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="event_id"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.event_id">[docs]</a><span class="k">def</span> <span class="nf">event_id</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; str</span>
+<div class="viewcode-block" id="event_id"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.event_id">[docs]</a><span class="k">def</span> <span class="nf">event_id</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets a unique identifier for an event retrieved from Pilatus.</span>
 
@@ -146,11 +142,10 @@
 
 <span class="sd">        str: a unique event identifier.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;full_path&quot;</span><span class="p">])</span></div>
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;full_path&quot;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="frame_id"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.frame_id">[docs]</a><span class="k">def</span> <span class="nf">frame_id</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; str</span>
+<div class="viewcode-block" id="frame_id"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.frame_id">[docs]</a><span class="k">def</span> <span class="nf">frame_id</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets a unique identifier for a Pilatus data frame.</span>
 
@@ -167,13 +162,10 @@
 
 <span class="sd">        str: a unique frame identifier (within an event).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">del</span> <span class="n">event</span>
-
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="timestamp"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.timestamp">[docs]</a><span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; numpy.float64</span>
+<div class="viewcode-block" id="timestamp"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.timestamp">[docs]</a><span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the timestamp of a Pilatus data event.</span>
 
@@ -191,11 +183,10 @@
 <span class="sd">        numpy.float64: the timestamp of the event in seconds from the Epoch.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Returns the file creation time previously stored in the event.</span>
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;file_creation_time&quot;</span><span class="p">])</span></div>
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;file_creation_time&quot;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="beam_energy"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.beam_energy">[docs]</a><span class="k">def</span> <span class="nf">beam_energy</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; float</span>
+<div class="viewcode-block" id="beam_energy"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.beam_energy">[docs]</a><span class="k">def</span> <span class="nf">beam_energy</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the beam energy for a Pilatus data event.</span>
 
@@ -213,11 +204,10 @@
 <span class="sd">        float: the energy of the beam in eV.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Returns the value previously stored in the event.</span>
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">])</span></div>
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="detector_distance"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.detector_distance">[docs]</a><span class="k">def</span> <span class="nf">detector_distance</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; float</span>
+<div class="viewcode-block" id="detector_distance"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_pilatus.html#om.data_retrieval_layer.functions_pilatus.detector_distance">[docs]</a><span class="k">def</span> <span class="nf">detector_distance</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the detector distance for a Pilatus data event.</span>
 
@@ -236,7 +226,7 @@
 <span class="sd">        float: the detector distance in mm.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Returns the value previously stored in the event.</span>
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">])</span></div>
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">])</span></div>
 </pre></div>
 
     </div>
@@ -255,7 +245,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

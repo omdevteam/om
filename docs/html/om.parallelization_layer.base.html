@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The base Module &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,9 +25,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -92,8 +92,8 @@
 engine.</p>
 <dl class="py class">
 <dt id="om.parallelization_layer.base.OmParallelizationEngine">
-<em class="property">class </em><code class="sig-name descname">OmParallelizationEngine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">data_event_handler</span></em>, <em class="sig-param"><span class="n">monitor</span></em>, <em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property">class </em><code class="sig-name descname">OmParallelizationEngine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_event_handler</span></em>, <em class="sig-param"><span class="n">monitor</span></em>, <em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>The base class for an OM ParallelizationEngine.</p>
 <p>The parallelization engine initializes several processing nodes and a
 collecting node. An OM monitor is attached to the engine when it is created.</p>
@@ -122,62 +122,6 @@ storing the OM monitor parameters from the configuration file.</p></li>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="om.parallelization_layer.base.OmParallelizationEngine.get_role">
-<em class="property">abstract </em><code class="sig-name descname">get_role</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine.get_role"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine.get_role" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the OM role of the current node.</p>
-<p>The returned string describers the role of the current node (‘processing’ or
-‘collecting’).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.parallelization_layer.base.OmParallelizationEngine.get_rank">
-<em class="property">abstract </em><code class="sig-name descname">get_rank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine.get_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine.get_rank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the OM rank of the current node.</p>
-<p>Returns an integer that unambiguously identifies the current node in the OM
-node pool.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.parallelization_layer.base.OmParallelizationEngine.get_node_pool_size">
-<em class="property">abstract </em><code class="sig-name descname">get_node_pool_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine.get_node_pool_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine.get_node_pool_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the size of the OM node pool.</p>
-<p>Returns the total number of nodes in the OM pool, including all the processing
-nodes and the collecting node.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.parallelization_layer.base.OmParallelizationEngine.start">
-<em class="property">abstract </em><code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine.start" title="Permalink to this definition">¶</a></dt>
-<dd><p>Starts the parallelization engine.</p>
-<ul class="simple">
-<li><p>When this function is called on a processing node, the node starts retrieving
-data events and processing them.</p></li>
-<li><p>When this function is called on the collecting node, the node starts
-receiving data from the processing nodes and aggregating it.</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt id="om.parallelization_layer.base.OmParallelizationEngine.shutdown">
 <em class="property">abstract </em><code class="sig-name descname">shutdown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="o">=</span><span class="default_value">'Reason not provided.'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine.shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine.shutdown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shuts down the parallelization engine.</p>
@@ -196,6 +140,23 @@ engine. Defaults to “Reason not provided”.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.parallelization_layer.base.OmParallelizationEngine.start">
+<em class="property">abstract </em><code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/parallelization_layer/base.html#OmParallelizationEngine.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.parallelization_layer.base.OmParallelizationEngine.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the parallelization engine.</p>
+<ul class="simple">
+<li><p>When this function is called on a processing node, the node starts retrieving
+data events and processing them.</p></li>
+<li><p>When this function is called on the collecting node, the node starts
+receiving data from the processing nodes and aggregating it.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -221,7 +182,7 @@ engine. Defaults to “Reason not provided”.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

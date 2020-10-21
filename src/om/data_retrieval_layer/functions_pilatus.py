@@ -27,15 +27,15 @@ import numpy  # type: ignore
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Pilatus detector data from files (or HiDRA).
+    Retrieves one frame of Pilatus detector data from files or HiDRA.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        One frame of detector data.
     """
     # Returns the data from the fabio cbf_obj object previously stored in the event.
     return event["data"].data
@@ -51,11 +51,11 @@ def event_id(event: Dict[str, Any]) -> str:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        str: a unique event identifier.
+        Aa unique event identifier.
     """
     return cast(str, event["additional_info"]["full_path"])
 
@@ -71,11 +71,11 @@ def frame_id(event: Dict[str, Any]) -> str:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        str: a unique frame identifier (within an event).
+        A unique frame identifier (within an event).
     """
     return str(0)
 
@@ -85,17 +85,16 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
     Gets the timestamp of a Pilatus data event.
 
     OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. In both cases, the creation
-    date and time of data file that the Pilatus detector writes is used as timestamp
-    for the event.
+    HiDRA. In both cases, an event corresponds to a single data file and the creation
+    date and time of the file is used as timestamp for the event.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.float64: the timestamp of the event in seconds from the Epoch.
+        The timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
     return cast(numpy.float64, event["additional_info"]["file_creation_time"])
@@ -106,17 +105,17 @@ def beam_energy(event: Dict[str, Any]) -> float:
     Gets the beam energy for a Pilatus data event.
 
     OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. Neither provide beam energy
-    information. OM uses the value provided for the 'fallback_beam_energy_in_eV' entry
-    in the configuration file, in the 'data_retrieval_layer' parameter group.
+    HiDRA. Neither provide beam energy information. OM uses the value provided for the
+    'fallback_beam_energy_in_eV' entry in the configuration file, in the
+    'data_retrieval_layer' parameter group.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        float: the energy of the beam in eV.
+        The energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
     return cast(float, event["additional_info"]["beam_energy"])
@@ -127,9 +126,8 @@ def detector_distance(event: Dict[str, Any]) -> float:
     Gets the detector distance for a Pilatus data event.
 
     OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. Neither provide detector
-    distance information. OM uses the value provided for the
-    'fallback_detector_distance_in_mm' entry in the configuration file, in the
+    HiDRA.  Neither provide detector distance information. OM uses the value provided
+    for the 'fallback_detector_distance_in_mm' entry in the configuration file, in the
     'data_retrieval_layer' parameter group.
 
     Arguments:

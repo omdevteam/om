@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.utils.exceptions &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -106,8 +106,6 @@
 <span class="sd">This module contains a set of python exceptions that are specific to OM, and a</span>
 <span class="sd">custom exception handler that reports the OM exceptions in a simplified way.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 
@@ -159,6 +157,12 @@
 <div class="viewcode-block" id="OmInvalidSourceError"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmInvalidSourceError">[docs]</a><span class="k">class</span> <span class="nc">OmInvalidSourceError</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Raised if the format of the source string is not valid.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OmInvalidDataBroadcastUrl"><a class="viewcode-back" href="../../../om.utils.exceptions.html#om.utils.exceptions.OmInvalidDataBroadcastUrl">[docs]</a><span class="k">class</span> <span class="nc">OmInvalidDataBroadcastUrl</span><span class="p">(</span><span class="n">OmException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised if the format of the data broadcasting URL is not valid.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
@@ -262,7 +266,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

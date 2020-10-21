@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.parallelization_layer.mpi &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -105,9 +105,6 @@
 
 <span class="sd">This module contains an MPI-based parallelization engine for OM.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
-<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
@@ -119,24 +116,22 @@
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">parameters</span>
 
 <span class="c1"># Define some labels for internal MPI communication (just some syntactic sugar).</span>
-<span class="n">_NOMORE</span> <span class="o">=</span> <span class="mi">998</span>  <span class="c1"># type: int</span>
-<span class="n">_DIETAG</span> <span class="o">=</span> <span class="mi">999</span>  <span class="c1"># type: int</span>
-<span class="n">_DEADTAG</span> <span class="o">=</span> <span class="mi">1000</span>  <span class="c1"># type: int</span>
+<span class="n">_NOMORE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">998</span>
+<span class="n">_DIETAG</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">999</span>
+<span class="n">_DEADTAG</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
 
 
-<div class="viewcode-block" id="MpiParallelizationEngine"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiParallelizationEngine">[docs]</a><span class="k">class</span> <span class="nc">MpiParallelizationEngine</span><span class="p">(</span><span class="n">par_layer_base</span><span class="o">.</span><span class="n">OmParallelizationEngine</span><span class="p">):</span>
+<div class="viewcode-block" id="MpiProcessingCollectingEngine"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiProcessingCollectingEngine">[docs]</a><span class="k">class</span> <span class="nc">MpiProcessingCollectingEngine</span><span class="p">(</span><span class="n">par_layer_base</span><span class="o">.</span><span class="n">OmParallelizationEngine</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See documentation of the __init__ function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">source</span><span class="p">,</span>  <span class="c1"># type: str</span>
-        <span class="n">data_event_handler</span><span class="p">,</span>  <span class="c1"># type: data_ret_layer_base.OmDataEventHandler</span>
-        <span class="n">monitor</span><span class="p">,</span>  <span class="c1"># type: process_layer_base.OmMonitor</span>
-        <span class="n">monitor_parameters</span><span class="p">,</span>  <span class="c1"># type: parameters.MonitorParams</span>
-    <span class="p">):</span>
-        <span class="c1"># type: (...) -&gt; None</span>
+        <span class="n">data_event_handler</span><span class="p">:</span> <span class="n">data_ret_layer_base</span><span class="o">.</span><span class="n">OmDataEventHandler</span><span class="p">,</span>
+        <span class="n">monitor</span><span class="p">:</span> <span class="n">process_layer_base</span><span class="o">.</span><span class="n">OmMonitor</span><span class="p">,</span>
+        <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        An MPI-based parallelization engine for OM.</span>
 
@@ -145,156 +140,45 @@
 <span class="sd">        In the MPI implementation of the parallelization engine, the nodes communicate</span>
 <span class="sd">        with each other using the MPI protocol.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">MpiParallelizationEngine</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MpiProcessingCollectingEngine</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">data_event_handler</span><span class="o">=</span><span class="n">data_event_handler</span><span class="p">,</span>
             <span class="n">monitor</span><span class="o">=</span><span class="n">monitor</span><span class="p">,</span>
             <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>  <span class="c1"># type: int</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>  <span class="c1"># type: int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">=</span> <span class="s2">&quot;collecting&quot;</span>  <span class="c1"># type: str</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">initialize_event_handling_on_collecting_node</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_nomore</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_collected_events</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">=</span> <span class="s2">&quot;processing&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">initialize_event_handling_on_processing_node</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span>
+            <span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">==</span> <span class="s2">&quot;collecting&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_num_nomore</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_num_collected_events</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
-
-<div class="viewcode-block" id="MpiParallelizationEngine.get_role"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiParallelizationEngine.get_role">[docs]</a>    <span class="k">def</span> <span class="nf">get_role</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># type: () -&gt; str</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the role of the current node.</span>
-
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_role`</span>
-<span class="sd">        For the MPI-based parallelization engine, the node with MPI rank 0 is the</span>
-<span class="sd">        collecting node, while the other nodes are processing nodes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span></div>
-
-<div class="viewcode-block" id="MpiParallelizationEngine.get_rank"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiParallelizationEngine.get_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># type: () -&gt; int</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the rank of the current node in the MPI parallelization engine.</span>
-
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_rank`</span>
-
-<span class="sd">        For the MPI-based parallelization engine, the node rank corresponds to the MPI</span>
-<span class="sd">        rank.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span></div>
-
-<div class="viewcode-block" id="MpiParallelizationEngine.get_node_pool_size"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiParallelizationEngine.get_node_pool_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_pool_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># type: () -&gt; int</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the size of the OM node pool in the MPI parallelization engine.</span>
-
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.parallelization_layer.base.OmParallelizationEngine.get_node_pool_size`</span>
-
-<span class="sd">        For the MPI-based parallelization engine, the node pool size is equivalent to</span>
-<span class="sd">        the MPI pool size.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span></div>
-
-<div class="viewcode-block" id="MpiParallelizationEngine.start"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiParallelizationEngine.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># noqa: C901</span>
-        <span class="c1"># type: () -&gt; None</span>
+<div class="viewcode-block" id="MpiProcessingCollectingEngine.start"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiProcessingCollectingEngine.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: C901</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Starts the MPI parallelization engine.</span>
 
 <span class="sd">        See documentation of the function in the base class:</span>
 <span class="sd">        :func:`~om.parallelization_layer.base.OmParallelizationEngine.start` .</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">==</span> <span class="s2">&quot;processing&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">initialize_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">)</span>
-
-            <span class="c1"># Flag used to make sure that the MPI messages have been processed.</span>
-            <span class="n">req</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rank&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">)</span>
-            <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">event_generator</span><span class="p">(</span>
-                <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">,</span>
-                <span class="n">node_rank</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span>
-                <span class="n">node_pool_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">,</span>
-            <span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
-                <span class="c1"># Listens for requests to shut down.</span>
-                <span class="k">if</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Iprobe</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">_DIETAG</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="s2">&quot;Shutting down RANK: </span><span class="si">{0}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">))</span>
-
-                <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">open_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
-                <span class="n">n_frames_in_evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">get_num_frames_in_event</span><span class="p">(</span>
-                    <span class="n">event</span>
-                <span class="p">)</span>  <span class="c1"># type: int</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_frames_in_event_to_process</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">num_frames_to_process</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-                        <span class="n">n_frames_in_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_frames_in_event_to_process</span>
-                    <span class="p">)</span>  <span class="c1"># type: int</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">num_frames_to_process</span> <span class="o">=</span> <span class="n">n_frames_in_evt</span>
-                <span class="c1"># Iterates over the last &#39;num_frames_to_process&#39; frames in the event.</span>
-                <span class="k">for</span> <span class="n">frame_offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">num_frames_to_process</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
-                    <span class="n">current_frame</span> <span class="o">=</span> <span class="n">n_frames_in_evt</span> <span class="o">+</span> <span class="n">frame_offset</span>  <span class="c1"># type: int</span>
-                    <span class="k">if</span> <span class="n">current_frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frames_in_event_to_skip</span><span class="p">:</span>
-                        <span class="k">continue</span>
-                    <span class="n">event</span><span class="p">[</span><span class="s2">&quot;current_frame&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_frame</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">extract_data</span><span class="p">(</span>
-                            <span class="n">event</span>
-                        <span class="p">)</span>  <span class="c1"># type: Dict[str, Any]</span>
-                    <span class="k">except</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping event...&quot;</span><span class="p">)</span>
-                        <span class="k">continue</span>
-                    <span class="n">processed_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">process_data</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="n">data</span>
-                    <span class="p">)</span>  <span class="c1"># type: Tuple[Dict[str, Any], int]</span>
-                    <span class="k">if</span> <span class="n">req</span><span class="p">:</span>
-                        <span class="n">req</span><span class="o">.</span><span class="n">Wait</span><span class="p">()</span>
-                    <span class="n">req</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">processed_data</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-                <span class="c1"># Makes sure that the last MPI message has processed.</span>
-                <span class="k">if</span> <span class="n">req</span><span class="p">:</span>
-                    <span class="n">req</span><span class="o">.</span><span class="n">Wait</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">close_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
-
-            <span class="c1"># After finishing iterating over the events to process, sends a message to</span>
-            <span class="c1"># the collecting node saying that there are no more events.</span>
-            <span class="n">end_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
-            <span class="n">req</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">isend</span><span class="p">((</span><span class="n">end_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">),</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">req</span><span class="p">:</span>
-                <span class="n">req</span><span class="o">.</span><span class="n">Wait</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">end_processing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">)</span>
-            <span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
-            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">==</span> <span class="s2">&quot;collecting&quot;</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting OM with the following parameters:&quot;</span><span class="p">)</span>
-            <span class="c1"># print(</span>
-            <span class="c1">#     json.dumps(</span>
-            <span class="c1">#         self._monitor_params.get_all_parameters(),</span>
-            <span class="c1">#         indent=4,</span>
-            <span class="c1">#         sort_keys=True</span>
-            <span class="c1">#     )</span>
-            <span class="c1"># )</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
                 <span class="s2">&quot;You are using an OM real-time monitor. Please cite: &quot;</span>
                 <span class="s2">&quot;Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080&quot;</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">initialize_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">initialize_collecting_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">initialize_event_source</span><span class="p">(</span>
-                <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">,</span>
-            <span class="p">)</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">received_data</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span>
+                    <span class="n">received_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span>
                         <span class="n">source</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">ANY_SOURCE</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span>
-                    <span class="p">)</span>  <span class="c1"># type: Tuple[Dict[str, Any], int]</span>
+                    <span class="p">)</span>
                     <span class="k">if</span> <span class="s2">&quot;end&quot;</span> <span class="ow">in</span> <span class="n">received_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                         <span class="c1"># If the received message announces that a processing node has</span>
                         <span class="c1"># finished processing data, keeps track of how many processing</span>
@@ -302,21 +186,21 @@
                         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finalizing </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">received_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_num_nomore</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="c1"># When all processing nodes have finished, calls the</span>
-                        <span class="c1"># &#39;end_processing&#39; function then shuts down.</span>
+                        <span class="c1"># &#39;end_processing_on_collecting_node&#39; function then shuts down.</span>
                         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_nomore</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All processing nodes have run out of events.&quot;</span><span class="p">)</span>
                             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutting down.&quot;</span><span class="p">)</span>
                             <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-                            <span class="nb">print</span><span class="p">(</span>
-                                <span class="s2">&quot;Processing finished. OM has processed </span><span class="si">{0}</span><span class="s2"> events &quot;</span>
-                                <span class="s2">&quot;in total.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_collected_events</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">end_processing_on_collecting_node</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span>
                             <span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">end_processing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">)</span>
                             <span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
                             <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
                             <span class="k">continue</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_role</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="n">received_data</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">collect_data</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">,</span> <span class="n">received_data</span>
+                    <span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_num_collected_events</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">except</span> <span class="ne">KeyboardInterrupt</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Received keyboard sigterm...&quot;</span><span class="p">)</span>
@@ -325,10 +209,81 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
                     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---&gt; execution finished.&quot;</span><span class="p">)</span>
                     <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">initialize_processing_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MpiParallelizationEngine.shutdown"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiParallelizationEngine.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Reason not provided.&quot;</span><span class="p">):</span>
-        <span class="c1"># type: (Union[str, None]) -&gt; None</span>
+            <span class="c1"># Flag used to make sure that the MPI messages have been processed.</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">event_generator</span><span class="p">(</span>
+                <span class="n">node_rank</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+                <span class="c1"># Listens for requests to shut down.</span>
+                <span class="k">if</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Iprobe</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">_DIETAG</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">(</span><span class="s2">&quot;Shutting down RANK: </span><span class="si">{0}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">))</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">open_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+                <span class="n">n_frames_in_evt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">get_num_frames_in_event</span><span class="p">(</span>
+                    <span class="n">event</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_frames_in_event_to_process</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">num_frames_to_process</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                        <span class="n">n_frames_in_evt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_frames_in_event_to_process</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">num_frames_to_process</span> <span class="o">=</span> <span class="n">n_frames_in_evt</span>
+                <span class="c1"># Iterates over the last &#39;num_frames_to_process&#39; frames in the event.</span>
+                <span class="n">frame_offset</span><span class="p">:</span> <span class="nb">int</span>
+                <span class="k">for</span> <span class="n">frame_offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">num_frames_to_process</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">current_frame</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">n_frames_in_evt</span> <span class="o">+</span> <span class="n">frame_offset</span>
+                    <span class="k">if</span> <span class="n">current_frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frames_in_event_to_skip</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">event</span><span class="p">[</span><span class="s2">&quot;current_frame&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_frame</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">extract_data</span><span class="p">(</span>
+                            <span class="n">event</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping event...&quot;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+                    <span class="n">processed_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span>
+                        <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">int</span>
+                    <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">process_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">req</span><span class="p">:</span>
+                        <span class="n">req</span><span class="o">.</span><span class="n">Wait</span><span class="p">()</span>
+                    <span class="n">req</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">processed_data</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="c1"># Makes sure that the last MPI message has processed.</span>
+                <span class="k">if</span> <span class="n">req</span><span class="p">:</span>
+                    <span class="n">req</span><span class="o">.</span><span class="n">Wait</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">close_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+            <span class="c1"># After finishing iterating over the events to process, calls the</span>
+            <span class="c1"># end_processing function, and if the function returns something, sends it</span>
+            <span class="c1"># to the processing node.</span>
+            <span class="n">final_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+                <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span><span class="o">.</span><span class="n">end_processing_on_processing_node</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">final_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">req</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">isend</span><span class="p">((</span><span class="n">final_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">),</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">req</span><span class="p">:</span>
+                    <span class="n">req</span><span class="o">.</span><span class="n">Wait</span><span class="p">()</span>
+
+            <span class="c1"># Sends a message to the collecting node saying that there are no more</span>
+            <span class="c1"># events.</span>
+            <span class="n">end_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">isend</span><span class="p">((</span><span class="n">end_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">),</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">req</span><span class="p">:</span>
+                <span class="n">req</span><span class="o">.</span><span class="n">Wait</span><span class="p">()</span>
+            <span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MpiProcessingCollectingEngine.shutdown"><a class="viewcode-back" href="../../../om.parallelization_layer.mpi.html#om.parallelization_layer.mpi.MpiProcessingCollectingEngine.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Reason not provided.&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shuts down the MPI parallelization engine.</span>
 
@@ -337,18 +292,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutting down:&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">==</span> <span class="s2">&quot;processing&quot;</span><span class="p">:</span>
-            <span class="n">_</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">_DEADTAG</span><span class="p">)</span>
-            <span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
-            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_role</span> <span class="o">==</span> <span class="s2">&quot;collecting&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Tells all the processing nodes that they need to shut down, then waits</span>
             <span class="c1"># for confirmation. During the whole process, keeps receiving normal MPI</span>
             <span class="c1"># messages from the nodes (MPI cannot shut down if there are unreceived</span>
             <span class="c1"># messages).</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">nod_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">):</span>
-                    <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">nod_num</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">_DIETAG</span><span class="p">)</span>
+                <span class="n">node_num</span><span class="p">:</span> <span class="nb">int</span>
+                <span class="k">for</span> <span class="n">node_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">):</span>
+                    <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">node_num</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">_DIETAG</span><span class="p">)</span>
                 <span class="n">num_shutdown_confirm</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Iprobe</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">ANY_SOURCE</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -364,7 +316,11 @@
             <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
                 <span class="c1"># In case of error, crashes hard!</span>
                 <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Abort</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div></div>
+                <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">_DEADTAG</span><span class="p">)</span>
+            <span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div></div>
 </pre></div>
 
     </div>
@@ -383,7 +339,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

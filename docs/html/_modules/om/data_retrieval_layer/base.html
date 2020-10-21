@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.data_retrieval_layer.base &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -106,27 +106,26 @@
 <span class="sd">This module contains the abstract classes for the Data Extraction Layer of an OM</span>
 <span class="sd">monitor parallelization.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generator</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span><span class="p">,</span> <span class="n">abstractproperty</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">List</span>
 
-<span class="kn">from</span> <span class="nn">future.utils</span> <span class="kn">import</span> <span class="n">iteritems</span><span class="p">,</span> <span class="n">with_metaclass</span>  <span class="c1"># type: ignore</span>
 <span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">final</span>
 
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">parameters</span>
 
 
-<div class="viewcode-block" id="OmDataEventHandler"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler">[docs]</a><span class="k">class</span> <span class="nc">OmDataEventHandler</span><span class="p">(</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="nb">object</span><span class="p">)):</span>
+<div class="viewcode-block" id="OmDataEventHandler"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler">[docs]</a><span class="k">class</span> <span class="nc">OmDataEventHandler</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See documentation of the __init__ function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="c1"># type: (parameters.MonitorParams) -&gt; None</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span>
+        <span class="n">additional_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The base class for an OM DataEventHandler.</span>
 
@@ -136,70 +135,108 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object</span>
-<span class="sd">                storing the OM monitor parameters from the configuration file.</span>
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
+
+<span class="sd">            source: A string describing the data source.</span>
+
+<span class="sd">            additional_info: A dictionary storing any additional information needed by</span>
+<span class="sd">                the Data Event Handler.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span> <span class="o">=</span> <span class="n">monitor_parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span> <span class="o">=</span> <span class="n">monitor_parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">source</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_additional_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">additional_info</span>
 
-<div class="viewcode-block" id="OmDataEventHandler.initialize_event_source"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_source">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">initialize_event_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">):</span>
-        <span class="c1"># type: (str, int) -&gt; Any</span>
+    <span class="nd">@abstractproperty</span>
+    <span class="k">def</span> <span class="nf">data_extraction_funcs</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes the event source.</span>
+<span class="sd">        Data Extraction Functions for the current Data Handler.</span>
 
-<span class="sd">        This function must be called on the collecting node before the</span>
-<span class="sd">        :func:`event_generator` function is called on the processing nodes, and</span>
-<span class="sd">        performs all the operation needed to initialize the event source (announcement</span>
-<span class="sd">        of OM, etc.)</span>
+<span class="sd">        This property can be used to access the Data Retrieval Functions that are</span>
+<span class="sd">        available for the current Event Data Handler.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
+<span class="sd">            available to the current Data Event Handler.</span>
+
+<span class="sd">            * Each dictionary key defines the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value stores the function implementation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="OmDataEventHandler.initialize_event_handling_on_collecting_node"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_handling_on_collecting_node">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">initialize_event_handling_on_collecting_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes event handling on the collecting node.</span>
+
+<span class="sd">        This function is called on the collecting node at start up and initializes the</span>
+<span class="sd">        data event handling on the node.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            source (str): a psana-style DataSource string.</span>
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
 
-<span class="sd">            node_pool_size (int): the total number of nodes in the OM pool, including</span>
-<span class="sd">                all the processing nodes and the collecting node.</span>
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="OmDataEventHandler.initialize_event_handling_on_processing_node"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_handling_on_processing_node">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">initialize_event_handling_on_processing_node</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes event handling on the processing node.</span>
+
+<span class="sd">        This function is called on the processing node at start up and initializes the</span>
+<span class="sd">        data event handling on the node.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="OmDataEventHandler.event_generator"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.event_generator">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">event_generator</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">source</span><span class="p">,</span>  <span class="c1"># type: str</span>
-        <span class="n">node_rank</span><span class="p">,</span>  <span class="c1"># type: int</span>
-        <span class="n">node_pool_size</span><span class="p">,</span>  <span class="c1"># type: int</span>
-    <span class="p">):</span>
-        <span class="c1"># type: (...) -&gt; Generator[Dict[str, Any], None, None]</span>
+        <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves events to process.</span>
 
-<span class="sd">        This function must be called on each processing node after the</span>
-<span class="sd">        :func:`initialize_event_source` function has been called on the collecting node.</span>
-<span class="sd">        The function is a generator and it returns an iterator over the events that the</span>
-<span class="sd">        calling node must process.</span>
+<span class="sd">        This function initializes the retrieval of events on a processing node and</span>
+<span class="sd">        starts retrieveing the events. The function is a generator and it returns an</span>
+<span class="sd">        iterator over the events that the calling node must process.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            source (str): a string describing the data source. The exact format of the</span>
-<span class="sd">                string depends on the specific Data Recovery Layer currently being</span>
-<span class="sd">                used. See the documentation of the relevant &#39;initialize_event_source&#39;</span>
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
 <span class="sd">                function.</span>
 
-<span class="sd">            node_rank (int): the rank, in the OM pool, of the processing node calling</span>
-<span class="sd">                the function.</span>
-
-<span class="sd">            node_pool_size (int): the total number of nodes in the OM pool, including</span>
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including</span>
 <span class="sd">                all the processing nodes and the collecting node.</span>
 
 <span class="sd">        Yields:</span>
 
-<span class="sd">            :class:`~om.utils.Dict[str, Dict[str,Any]]`: a dictionary storing the event</span>
-<span class="sd">            data.</span>
+<span class="sd">            A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="OmDataEventHandler.open_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.open_event">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">open_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="c1"># type: (Dict[str, Any]) -&gt; None</span>
+    <span class="k">def</span> <span class="nf">open_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens an event.</span>
 
@@ -208,13 +245,12 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event (Dict[str, Any]): a dictionary storing the event data.</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">del</span> <span class="n">event</span></div>
+        <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="OmDataEventHandler.close_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.close_event">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">close_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="c1"># type: (Dict[str, Any]) -&gt; None</span>
+    <span class="k">def</span> <span class="nf">close_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Closes an event.</span>
 
@@ -223,13 +259,12 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event (Dict[str, Any]): a dictionary storing the event data.</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">del</span> <span class="n">event</span></div>
+        <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="OmDataEventHandler.get_num_frames_in_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.get_num_frames_in_event">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">get_num_frames_in_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="c1"># type: (Dict[str,Any]) -&gt; int</span>
+    <span class="k">def</span> <span class="nf">get_num_frames_in_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Gets the number of frames in an event.</span>
 
@@ -237,19 +272,19 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event (Dict[str, Any]): a dictionary storing the event data.</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            int: the number of frames in the event.</span>
+<span class="sd">            The number of frames in the event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="OmDataEventHandler.extract_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.extract_data">[docs]</a>    <span class="nd">@final</span>
     <span class="k">def</span> <span class="nf">extract_data</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span>  <span class="c1"># type: Dict[str, Any]</span>
-    <span class="p">):</span>
-        <span class="c1"># type: (...) -&gt; Dict[str, Any]</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extracts data from an event.</span>
 
@@ -259,27 +294,28 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            data_extraction_funcs (Dict[str, Callable[[~om.utils.Dict[str,\</span>
-<span class="sd">Dict[str,Any]]], Any]]): a dictionary containing Data Extraction</span>
-<span class="sd">                functions to be attached to the class instance being created.</span>
+<span class="sd">            data_extraction_funcs: A dictionary containing the Data Extraction</span>
+<span class="sd">                functions to be called.</span>
 
-<span class="sd">                * Each dictionary value must store a function implementation.</span>
+<span class="sd">                * Each dictionary key must define the name of a function.</span>
 
-<span class="sd">                * The corresponding dictionary key will define the name with which the</span>
-<span class="sd">                  function will be attached to the class instance.</span>
+<span class="sd">                * The corresponding dictionary value must store a function</span>
+<span class="sd">                  implementation.</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            Dict[str, Any]: a dictionary storing the values returned by the Data</span>
-<span class="sd">            Extraction functions.</span>
+<span class="sd">            A dictionary storing the values returned by the Data Extraction functions.</span>
 
-<span class="sd">            * Each dictionary key identifies a function attached to the event.</span>
+<span class="sd">            * Each dictionary key identifies the Data Extraction function used to</span>
+<span class="sd">              extract the data.</span>
 
 <span class="sd">            * The corresponding dictionary value stores the data returned by the</span>
 <span class="sd">              function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># type: Dict[str, Any]</span>
-        <span class="k">for</span> <span class="n">f_name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data_extraction_funcs&quot;</span><span class="p">]):</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">f_name</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">f_name</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;data_extraction_funcs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">data</span><span class="p">[</span><span class="n">f_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
             <span class="c1"># One should never do the following, but it is not possible to anticipate</span>
@@ -295,6 +331,44 @@
                     <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="filter_data_extraction_funcs"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.filter_data_extraction_funcs">[docs]</a><span class="k">def</span> <span class="nf">filter_data_extraction_funcs</span><span class="p">(</span>
+    <span class="n">data_extraction_funcs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]],</span>
+    <span class="n">required_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filters the list of data extraction functions based on the required data.</span>
+
+<span class="sd">    This function requires as input a dictionary storing all the data extraction</span>
+<span class="sd">    functions supported by the Data Event Handler. It returns a smaller dictionary</span>
+<span class="sd">    containing only a subset of functions based on data required by the monitor.</span>
+
+<span class="sd">    Arguments:</span>
+
+<span class="sd">        data_extraction_funcs: A dictionary containing the Data Extraction functions</span>
+<span class="sd">            supported by the Data Event Handler.</span>
+
+<span class="sd">            * Each dictionary key must define the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value must store a function implementation.</span>
+
+<span class="sd">        required_data: A list of data items required by the monitor, used</span>
+<span class="sd">            to select the required Data Extraction functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">required_data_extraction_funcs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span>
+        <span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">func_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="k">for</span> <span class="n">func_name</span> <span class="ow">in</span> <span class="n">required_data</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">required_data_extraction_funcs</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_extraction_funcs</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmMissingDataExtractionFunctionError</span><span class="p">(</span>
+                <span class="s2">&quot;Data extraction function </span><span class="si">{0}</span><span class="s2"> not defined&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func_name</span><span class="p">)</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+
+    <span class="k">return</span> <span class="n">required_data_extraction_funcs</span></div>
 </pre></div>
 
     </div>
@@ -313,7 +387,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

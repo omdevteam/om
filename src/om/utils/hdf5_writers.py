@@ -58,28 +58,27 @@ class HDF5Writer:
 
         Arguments:
 
-            directory_for_processed_data (str): a relative or absolute path to the
-                directory where the output files with the processed data will be
-                written.
+            directory_for_processed_data: A relative or absolute path to the directory
+                where the output files with the processed data will be written.
 
-            node_rank (int): the rank of the OM node that will write the data in the
-                output files.
+            node_rank: The rank of the OM node that will write the data in the output
+                files.
 
-            geometry (TypeDetector): a dictionary returned by the
+            geometry: A dictionary returned by the
                 :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
                 storing the geometry information.
 
-            compression (Union[bool, None]): whether compression should be applied to
-                the data in the output file.
+            compression: Whether compression should be applied to the data in the
+                output file.
 
-            detector_data_type (str): the numpy type of the detector data that will
-                be written to the output files.
+            detector_data_type: The numpy type of the detector data that will be
+                written to the output files.
 
-            detector_data_shape (Tuple[int, int]): the numpy shape of the detector data
-                that will be written to the output files.
+            detector_data_shape: The numpy shape of the detector data that will be
+                written to the output files.
 
-            hdf5_fields (Dict[str, str]): a dictionary storing information about the
-                internal HDF5 path where each data entry will be written.
+            hdf5_fields: A dictionary storing information about the internal HDF5 path
+                where each data entry will be written.
 
                 * The keys in the dictionary must store the names of data entries to
                   write.
@@ -87,27 +86,24 @@ class HDF5Writer:
                 * The corresponding dictionary values must contain the internal HDF5
                   paths where the entries will be written.
 
-            processed_filename_prefix (Union[str, None): a string that will be
-                prepended to the name of the output files. Optional. If the value
-                of this argument is None, the string 'processed_' will be used as
-                prefix. Defaults to None.
+            processed_filename_prefix: A string that will be prepended to the name of
+                the output files. Optional. If the value of this argument is None, the
+                string 'processed_' will be used as prefix. Defaults to None.
 
-            processed_filename_extension (Union[str, None]): a string that will
-                appended to the name of the output files. Optional. If the value of
-                this argument is None, the string 'h5' will be used as extension.
-                Defaults to None.
+            processed_filename_extension: A string that will appended to the name of
+                the output files. Optional. If the value of this argument is None, the
+                string 'h5' will be used as extension. Defaults to None.
 
-            compression_opts (Union[int, None]): the compression level to be used if
-                data compression is applied. This is argument is considered only if the
-                'compression' argument is True, otherwise, the argument is ignored.
-                Optional. If the value of this argument is None, the compression
-                level will be set to 4. Defaults to None
+            compression_opts: The compression level to be used if data compression is
+                applied. This is argument is considered only if the 'compression'
+                argument is True, otherwise, the argument is ignored. Optional. If the
+                value of this argument is None, the compression level will be set to 4.
+                Defaults to None
 
-            max_num_peaks (Union[int, None]): the maximum number of detected
-                Bragg peaks that should be written in the HDF5 for each frame.
-                Optional. If the value of this argument is None, only the first
-                1024 detected peaks will be written in the output file for each frame.
-                Defaults to None.
+            max_num_peaks: The maximum number of detected Bragg peaks that should be
+                written in the HDF5 for each frame. Optional. If the value of this
+                argument is None, only the first 1024 detected peaks will be written in
+                the output file for each frame. Defaults to None.
         """
 
         if processed_filename_prefix is None:
@@ -272,6 +268,9 @@ class HDF5Writer:
                 ] = peak_list[peak_dict_key][:n_peaks]
 
     def close(self) -> None:
+        """
+        Closes the file being written.
+        """
         self._h5file.close()
         print(
             "{0} frames saved in {1} file.".format(
@@ -286,7 +285,7 @@ class HDF5Writer:
 
         Returns:
 
-            pathlib.Path: the path to the file currently being written.
+            The path to the file currently being written.
         """
         return self._processed_filename
 
@@ -296,7 +295,7 @@ class HDF5Writer:
 
         Returns:
 
-            int: the number of frames already written in the current file.
+            The number of frames already written in the current file.
         """
         return self._num_frames - 1
 
@@ -327,21 +326,18 @@ class SumHDF5Writer:
 
         Arguments:
 
-            directory_for_processed_data (str): a relative or absolute path to the
-                directory where the output files with the processed data will be
-                written.
+            directory_for_processed_data: A relative or absolute path to the directory
+                where the output files with the processed data will be written.
 
-            powder_class (int): a unique identifier for the sum of frames being saved.
+            powder_class: A unique identifier for the sum of frames being saved.
 
-            detector_data_shape (Tuple[int, int]): the numpy shape of the detector data
-                that will be written to the output files.
+            detector_data_shape: The numpy shape of the detector data that will be
+                written to the output files.
 
-            sum_filename_prefix (Union[str, None): a string that will be prepended to
-                the name of the output files. Optional. If the value of this argument
-                is None, the string 'processed' will be used as
-                prefix. Defaults to None.
+            sum_filename_prefix: a string that will be prepended to the name of the
+                output files. Optional. If the value of this argument is None, the
+                string 'processed' will be used as prefix. Defaults to None.
         """
-
         if sum_filename_prefix is None:
             sum_filename_prefix = "processed"
 
@@ -353,13 +349,19 @@ class SumHDF5Writer:
         self._h5file: Any = h5py.File(self._class_filename, "w")
 
         self._h5file.create_dataset(
-            name="/data/nframes", shape=(1,), dtype=numpy.int64,
+            name="/data/nframes",
+            shape=(1,),
+            dtype=numpy.int64,
         )
         self._h5file.create_dataset(
-            name="/data/data", shape=detector_data_shape, dtype=numpy.float64,
+            name="/data/data",
+            shape=detector_data_shape,
+            dtype=numpy.float64,
         )
         self._h5file.create_dataset(
-            name="/data/peakpowder", shape=detector_data_shape, dtype=numpy.float64,
+            name="/data/peakpowder",
+            shape=detector_data_shape,
+            dtype=numpy.float64,
         )
         self._h5file.close()
 
@@ -376,13 +378,13 @@ class SumHDF5Writer:
 
         Arguments:
 
-            num_frames (int): the number of frames in the sum.
+            num_frames: The number of frames in the sum.
 
-            sum_frames (numpy.ndarray): the sum of detector frames that will be written
-                in the output file.
+            sum_frames: The sum of detector frames that will be written in the output
+                file.
 
-            virtual_powder_pattern (numpy.ndarray): the virtual powder patter that will
-                be written in the output file.
+            virtual_powder_pattern: The virtual powder patter that will be written in
+                the output file.
         """
         attempt: int
         for attempt in range(5):

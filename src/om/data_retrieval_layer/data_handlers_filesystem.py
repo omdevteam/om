@@ -40,15 +40,22 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Data event handler for events recovered from files.
+        Base data event handler for events retrieved from files.
 
-        See documentation of the constructor of the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.__init.py__` .
+        See documentation of the corresponding function in the base class. This class
+        handles detector events retrieved from files. It should be subclassed to work
+        with specific file types.
 
-        This class handles detector events recovered from files.
+        Arguments:
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
+
+            source: A string describing the data source.
         """
         super(FilesBaseDataEventHandler, self).__init__(
-            monitor_parameters=monitor_parameters, source=source,
+            monitor_parameters=monitor_parameters,
+            source=source,
         )
 
     def initialize_event_handling_on_collecting_node(
@@ -57,11 +64,20 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Initializes file event handling on the collecting node.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
+        See documentation of the corresponding function in the base class. There is
+        usually no need to initialize a file source, so this function does nothing.
 
-        There is no need to initialize a file source, so this function does nothing.
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            An optional initialization token.
         """
         pass
 
@@ -75,13 +91,21 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Data event handler for Pilatus files read from the filesystem.
+        Data event handler for Pilatus files from the filesystem.
 
-        See documentation of the constructor of the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler` .
+        See documentation of the corresponding function in the base class. This class
+        handles files written by a 1M Pilatus detector in CBF format.
+
+        Arguments:
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
+
+            source: A string describing the data source.
         """
         super(PilatusFilesDataEventHandler, self).__init__(
-            monitor_parameters=monitor_parameters, source=source,
+            monitor_parameters=monitor_parameters,
+            source=source,
         )
 
     @property
@@ -89,11 +113,18 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         self,
     ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
-        Retrieves the Data Extraction Functions for Pilatus files.
+        Retrieves the Data Extraction Functions for Pilatus file events.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-data_extraction_funcs`.
+        See documentation of the corresponding function in the base class.
+
+        Returns:
+
+            A dictionary storing the implementations of the Data Extraction functions
+            available to the current Data Event Handler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function implementation.
         """
         return {
             "timestamp": functions_pilatus.timestamp,
@@ -104,30 +135,25 @@ data_extraction_funcs`.
             "frame_id": functions_pilatus.frame_id,
         }
 
-    def initialize_event_handling_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
-    ) -> Any:
-        """
-        Initializes event handling on the collecting node for Pilatus files.
-
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
-
-        There is no need to initialize the filesystem source, so this function does
-        nothing.
-        """
-        pass
-
     def initialize_event_handling_on_processing_node(
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes event handling on the processing nodes for Pilatus files.
+        Initializes Pilatus files event handling on the processing nodes.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
+        See documentation of the corresponding function in the base class.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            An optional initialization token.
         """
         required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
@@ -181,17 +207,29 @@ initialize_event_source`.
             )
 
     def event_generator(
-        self, node_rank: int, node_pool_size: int,
+        self,
+        node_rank: int,
+        node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves Pilatus data events to process from the filesystem.
+        Retrieves Pilatus file events from the filesystem.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.event_generator`.
+        See documentation of the corresponding function in the base class The files to
+        process are split evenly amongst the processing nodes, with the exception of
+        the last node, which might get a lower number depending on how the number of
+        files can is split.
 
-        The files to process are split evenly amongst the processing nodes, with the
-        exception of the last node, which might get a lower number depending on how
-        the number of files can is split.
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Yields:
+
+            A dictionary storing the event data.
         """
         # Computes how many files the current processing node should process. Splits
         # the files as equally as possible amongst the processing nodes with the last
@@ -232,44 +270,49 @@ initialize_event_source`.
 
     def open_event(self, event: Dict[str, Any]) -> None:
         """
-        Opens an event retrieved from Pilatus files.
+        Opens a Pilatus file event.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.open_event`.
+        See documentation of the corresponding function in the base class. For Pilatus
+        data files, an event corresponds to the full content of a single Pilatus CBF
+        file. This function makes the content of the file available in the 'data'
+        field of the 'event' object.
 
-        For Pilatus data files, an event corresponds to the full content of a single
-        Pilatus CBF file. This function makes the content of the file available in the
-        'data' field of the 'event' object.
+        Arguments:
+
+            event: A dictionary storing the event data.
         """
         event["data"] = fabio.open(event["additional_info"]["full_path"])
 
     def close_event(self, event: Dict[str, Any]) -> None:
         """
-        Closes an event retrieved from Pilatus files.
+        Closes a Pilatus file event.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.close_event` .
+        See documentation of the corresponding function in the base class. Since an
+        event corresponds to a CBF data file, which does not need to be closed, this
+        function actually does nothing.
 
-        Since an event corresponds to a CBF data file, which does not need to be closed,
-        this function actually does nothing.
+        Arguments:
+
+            event: A dictionary storing the event data.
         """
         pass
 
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in an event retrieved from Pilatus files.
+        Gets the number of frames in a Pilatus file  event.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-get_num_frames_in_event`.
-
-        For the Pilatus detector, an event corresponds to the content of a single CBF
-        data file. Since the Pilatus detector writes one frame per file, this function
+        See documentation of the corresponding function in the base class. For the
+        Pilatus detector, an event corresponds to the content of a single CBF data
+        file. Since the Pilatus detector writes one frame per file, this function
         always returns 1.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
 
         Returns:
 
-            int: the number of frames in the event.
+            The number of frames in the event.
         """
         return 1
 
@@ -283,12 +326,21 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Data event handler for Jungfrau files read from the filesystem.
-        See documentation of the constructor of the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler` .
+        Data event handler for Jungfrau 1M files from the filesystem.
+
+        See documentation of the corresponding function in the base class. This event
+        handler deals with files written by a Jungfrau 1M detector in HDF5 format.
+
+        Arguments:
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
+
+            source: A string describing the data source.
         """
         super(Jungfrau1MFilesDataEventHandler, self).__init__(
-            monitor_parameters=monitor_parameters, source=source,
+            monitor_parameters=monitor_parameters,
+            source=source,
         )
 
     @property
@@ -296,10 +348,18 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         self,
     ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
-        Retrieves the Data Extraction Functions for Jungfrau files.
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-data_extraction_funcs`.
+        Retrieves the Data Extraction Functions for Jungfrau 1M file events.
+
+        See documentation of the corresponding function in the base class.
+
+        Returns:
+
+            A dictionary storing the implementations of the Data Extraction functions
+            available to the current Data Event Handler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function implementation.
         """
         return {
             "timestamp": functions_jungfrau1M.timestamp,
@@ -314,11 +374,26 @@ data_extraction_funcs`.
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes event handling on the processing nodes for Jungfrau files.
+        Initializes Jungfrau 1M file event handling on the processing nodes.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-initialize_event_source`.
+        See documentation of the corresponding function in the base class.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            A dictionary storing the implementations of the Data Extraction functions
+            available to the current Data Event Handler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function implementation.
         """
         required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
@@ -387,17 +462,30 @@ initialize_event_source`.
             )
 
     def event_generator(
-        self, node_rank: int, node_pool_size: int,
+        self,
+        node_rank: int,
+        node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves Jungfrau data events to process from the filesystem.
+        Retrieves Jungfrau 1M file events from the filesystem.
 
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.event_generator`.
-
+        See documentation of the corresponding function in the base class. In the
+        current implementation, each frame in a file is considered a separate event.
         The frames to process are split evenly amongst the processing nodes, with the
-        exception of the last node, which might get a lower number depending on how
-        the number of events can be split.
+        exception of the last node, which might get a lower number depending on how the
+        number of events can be split.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Yields:
+
+            A dictionary storing the event data.
         """
         # Computes how many events the current processing node should process. Splits
         # the events as equally as possible amongst the processing nodes with the last
@@ -482,27 +570,48 @@ initialize_event_source`.
 
     def open_event(self, event: Dict[str, Any]) -> None:
         """
-        Opens an event retrieved from Jungfrau files.
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.open_event`.
+        Opens a Jungfrau 1M file event.
+
+        See documentation of the corresponding function in the base class. In the
+        current implementation, each frame in a file is considered a separate event,
+        and the event generator takes care of opening the file. This function therefore
+        does nothing.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
         """
         pass
 
     def close_event(self, event: Dict[str, Any]) -> None:
         """
-        Closes an event retrieved from Jungfrau files.
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.close_event` .
+        Closes a Jungfrau 1M file event.
+
+        See documentation of the corresponding function in the base class. In the
+        current implementation, each frame in a file is considered a separate event,
+        and the event generator takes care of closing the file. This function therefore
+        does nothing.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
         """
         pass
 
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in an event retrieved from Jungfrau files.
-        See documentation of the function in the base class:
-        :func:`~om.data_retrieval_layer.base.DataEventHandler.\
-get_num_frames_in_event`.
+        Gets the number of frames in a Jungfrau 1M file event.
+
+        See documentation of the corresponding function in the base class. In the
+        current implementation, each frame in a file is considered a separate event,
+        therefore this function always returns 1.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
         Returns:
-            int: the number of frames in the event.
+
+            The number of frames in the event.
         """
         return 1

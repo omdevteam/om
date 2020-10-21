@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The base Module &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,9 +25,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -92,87 +92,23 @@
 monitor parallelization.</p>
 <dl class="py class">
 <dt id="om.data_retrieval_layer.base.OmDataEventHandler">
-<em class="property">class </em><code class="sig-name descname">OmDataEventHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_parameters</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property">class </em><code class="sig-name descname">OmDataEventHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">monitor_parameters</span></em>, <em class="sig-param"><span class="n">additional_info</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>The base class for an OM DataEventHandler.</p>
 <p>The event handler deals with event and event sources, and implements functions
 to initialize the sources, recover events from them, opening and closing event,
 and investigate the event content.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
-storing the OM monitor parameters from the configuration file.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_source">
-<em class="property">abstract </em><code class="sig-name descname">initialize_event_source</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.initialize_event_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_source" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes the event source.</p>
-<p>This function must be called on the collecting node before the
-<a class="reference internal" href="#om.data_retrieval_layer.base.OmDataEventHandler.event_generator" title="om.data_retrieval_layer.base.OmDataEventHandler.event_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">event_generator()</span></code></a> function is called on the processing nodes, and
-performs all the operation needed to initialize the event source (announcement
-of OM, etc.)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> (<em>str</em>) – a psana-style DataSource string.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
+<li><p><strong>monitor_parameters</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – An object storing the OM monitor parameters from the
+configuration file.</p></li>
+<li><p><strong>source</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – A string describing the data source.</p></li>
+<li><p><strong>additional_info</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing any additional information needed by
+the Data Event Handler.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
-</dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.base.OmDataEventHandler.event_generator">
-<em class="property">abstract </em><code class="sig-name descname">event_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves events to process.</p>
-<p>This function must be called on each processing node after the
-<a class="reference internal" href="#om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_source" title="om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">initialize_event_source()</span></code></a> function has been called on the collecting node.
-The function is a generator and it returns an iterator over the events that the
-calling node must process.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>source</strong> (<em>str</em>) – a string describing the data source. The exact format of the
-string depends on the specific Data Recovery Layer currently being
-used. See the documentation of the relevant ‘initialize_event_source’
-function.</p></li>
-<li><p><strong>node_rank</strong> (<em>int</em>) – the rank, in the OM pool, of the processing node calling
-the function.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Yields</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Dict[str,Any]]</span></code> – a dictionary storing the event
-data.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.base.OmDataEventHandler.open_event">
-<em class="property">abstract </em><code class="sig-name descname">open_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.open_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens an event.</p>
-<p>Processes an event in such a way that the data content of the event is
-retrievable by OM (opens files, unpacks binary content, etc.)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt id="om.data_retrieval_layer.base.OmDataEventHandler.close_event">
 <em class="property">abstract </em><code class="sig-name descname">close_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.close_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
@@ -183,7 +119,7 @@ retrievable by OM (opens files, unpacks binary content, etc.)</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
@@ -192,19 +128,26 @@ retrievable by OM (opens files, unpacks binary content, etc.)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="om.data_retrieval_layer.base.OmDataEventHandler.get_num_frames_in_event">
-<em class="property">abstract </em><code class="sig-name descname">get_num_frames_in_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.get_num_frames_in_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the number of frames in an event.</p>
-<p>Returns the number of detector data frames in a data event.</p>
+<dt id="om.data_retrieval_layer.base.OmDataEventHandler.event_generator">
+<em class="property">abstract </em><code class="sig-name descname">event_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves events to process.</p>
+<p>This function initializes the retrieval of events on a processing node and
+starts retrieveing the events. The function is a generator and it returns an
+iterator over the events that the calling node must process.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including
+all the processing nodes and the collecting node.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the number of frames in the event.</p>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p>A dictionary storing the event data.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>int</p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -218,31 +161,156 @@ event to event as input to each of them. The function then returns the
 extracted data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data_extraction_funcs</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Callable</em><em>[</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>,</em><em>Dict</em><em>[</em><em>str</em><em>,</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – <p>a dictionary containing Data Extraction
-functions to be attached to the class instance being created.</p>
+<dd class="field-odd"><p><strong>data_extraction_funcs</strong> – <p>A dictionary containing the Data Extraction
+functions to be called.</p>
 <ul class="simple">
-<li><p>Each dictionary value must store a function implementation.</p></li>
-<li><p>The corresponding dictionary key will define the name with which the
-function will be attached to the class instance.</p></li>
+<li><p>Each dictionary key must define the name of a function.</p></li>
+<li><p>The corresponding dictionary value must store a function
+implementation.</p></li>
 </ul>
 </p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><p>a dictionary storing the values returned by the Data
-Extraction functions.</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>A dictionary storing the values returned by the Data Extraction functions.</p>
 <ul class="simple">
-<li><p>Each dictionary key identifies a function attached to the event.</p></li>
+<li><p>Each dictionary key identifies the Data Extraction function used to
+extract the data.</p></li>
 <li><p>The corresponding dictionary value stores the data returned by the
 function.</p></li>
 </ul>
 </p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dict[str, Any]</p>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.base.OmDataEventHandler.get_num_frames_in_event">
+<em class="property">abstract </em><code class="sig-name descname">get_num_frames_in_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.get_num_frames_in_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the number of frames in an event.</p>
+<p>Returns the number of detector data frames in a data event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The number of frames in the event.</p>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt id="om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_handling_on_collecting_node">
+<em class="property">abstract </em><code class="sig-name descname">initialize_event_handling_on_collecting_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.initialize_event_handling_on_collecting_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_handling_on_collecting_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes event handling on the collecting node.</p>
+<p>This function is called on the collecting node at start up and initializes the
+data event handling on the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_handling_on_processing_node">
+<em class="property">abstract </em><code class="sig-name descname">initialize_event_handling_on_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.initialize_event_handling_on_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.initialize_event_handling_on_processing_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes event handling on the processing node.</p>
+<p>This function is called on the processing node at start up and initializes the
+data event handling on the node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.base.OmDataEventHandler.open_event">
+<em class="property">abstract </em><code class="sig-name descname">open_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#OmDataEventHandler.open_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens an event.</p>
+<p>Processes an event in such a way that the data content of the event is
+retrievable by OM (opens files, unpacks binary content, etc.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.base.OmDataEventHandler.data_extraction_funcs">
+<em class="property">abstract property </em><code class="sig-name descname">data_extraction_funcs</code><a class="headerlink" href="#om.data_retrieval_layer.base.OmDataEventHandler.data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Data Extraction Functions for the current Data Handler.</p>
+<p>This property can be used to access the Data Retrieval Functions that are
+available for the current Event Data Handler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A dictionary storing the implementations of the Data Extraction functions
+available to the current Data Event Handler.</p>
+<ul class="simple">
+<li><p>Each dictionary key defines the name of a function.</p></li>
+<li><p>The corresponding dictionary value stores the function implementation.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.base.filter_data_extraction_funcs">
+<code class="sig-name descname">filter_data_extraction_funcs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_extraction_funcs</span></em>, <em class="sig-param"><span class="n">required_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/base.html#filter_data_extraction_funcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.base.filter_data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters the list of data extraction functions based on the required data.</p>
+<p>This function requires as input a dictionary storing all the data extraction
+functions supported by the Data Event Handler. It returns a smaller dictionary
+containing only a subset of functions based on data required by the monitor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_extraction_funcs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]) – <p>A dictionary containing the Data Extraction functions
+supported by the Data Event Handler.</p>
+<ul>
+<li><p>Each dictionary key must define the name of a function.</p></li>
+<li><p>The corresponding dictionary value must store a function implementation.</p></li>
+</ul>
+</p></li>
+<li><p><strong>required_data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – A list of data items required by the monitor, used
+to select the required Data Extraction functions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -264,7 +332,7 @@ function.</p></li>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The zmq_monitor Module &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,9 +24,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -91,7 +91,7 @@
 to external programs over a network connection.</p>
 <dl class="py class">
 <dt id="om.utils.zmq_monitor.ZmqDataBroadcaster">
-<em class="property">class </em><code class="sig-name descname">ZmqDataBroadcaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hostname</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/zmq_monitor.html#ZmqDataBroadcaster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.zmq_monitor.ZmqDataBroadcaster" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">ZmqDataBroadcaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/zmq_monitor.html#ZmqDataBroadcaster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.zmq_monitor.ZmqDataBroadcaster" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>ZMQ-based data-broadcasting socket for OM monitors.</p>
 <p>This class implements a ZMQ PUB socket that can be used to broadcast data. The
@@ -119,11 +119,10 @@ must be tagged with a label.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>tag</strong> (<em>str</em>) – the label that will be attached to the broadcasted data.</p></li>
-<li><p><strong>message</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – a list of dictionaries. For each
-dictionary, the keys are names of information elements to be
-broadcasted through the broadcasting socket, and the corresponding
-values are the information elements to be sent (MessagePack-compatible
-python objects).</p></li>
+<li><p><strong>message</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary, where the keys are names of
+information elements to be broadcasted through the broadcasting socket,
+and the corresponding values are the information elements to be sent
+(python objects).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -132,6 +131,26 @@ python objects).</p></li>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.utils.zmq_monitor.get_current_machine_ip">
+<code class="sig-name descname">get_current_machine_ip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/zmq_monitor.html#get_current_machine_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.zmq_monitor.get_current_machine_ip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the IP address of the current machine.</p>
+<p>This function uses the python socket module to autodetect the IP addess of the
+the machine where it is invoked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A string storing the IP address of the machine in the format</dt><dd><p>XXX.XXX.XXX.XXX.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -153,7 +172,7 @@ python objects).</p></li>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

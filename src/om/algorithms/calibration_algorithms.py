@@ -46,14 +46,13 @@ class Jungfrau1MCalibration:
 
         Arguments:
 
-            dark_filenames (List[str]): a list of relative or absolute paths to files
-                containing dark data for the calibration of the detector.
+            dark_filenames: A list of relative or absolute paths to files containing
+                dark data for the calibration of the detector.
 
-            gain_filenames (List[str]): a list of relative or absolute paths to files
-                containing gain data for the calibration of the detector.
+            gain_filenames: A list of relative or absolute paths to files containing
+                gain data for the calibration of the detector.
 
-            photon_energy_kev (float): the photon energy at which the detector will
-                be operated.
+            photon_energy_kev: the photon energy at which the detector will be operated.
         """
         # 2 for Jungfrau 1M
         num_panels: int = len(dark_filenames)
@@ -94,10 +93,12 @@ class Jungfrau1MCalibration:
         applies the relevant gain and offset corrections.
 
         Arguments:
-            data (numpy.ndarray): the detector data frame to calibrate.
+
+            data: The detector data frame to calibrate.
 
         Returns:
-            numpy.ndarray:  the corrected data frame.
+
+            The corrected data frame.
         """
         corrected_data: numpy.ndarray = data.astype(numpy.float32)
 

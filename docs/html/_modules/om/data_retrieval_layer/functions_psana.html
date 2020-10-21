@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.data_retrieval_layer.functions_psana &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -105,18 +105,15 @@
 
 <span class="sd">This module contains functions that retrieve data from the psana framework.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>  <span class="c1"># type: ignore</span>
-
 <span class="kn">import</span> <span class="nn">psana</span>  <span class="c1"># type: ignore</span>
+
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">exceptions</span><span class="p">,</span> <span class="n">parameters</span>
 
 
-<div class="viewcode-block" id="detector_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.detector_data_init">[docs]</a><span class="k">def</span> <span class="nf">detector_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="detector_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.detector_data_init">[docs]</a><span class="k">def</span> <span class="nf">detector_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for x-ray detector data at LCLS.</span>
 
@@ -144,8 +141,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="timestamp_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timestamp_init">[docs]</a><span class="k">def</span> <span class="nf">timestamp_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; None</span>
+<div class="viewcode-block" id="timestamp_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timestamp_init">[docs]</a><span class="k">def</span> <span class="nf">timestamp_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for timestamp data at LCLS.</span>
 
@@ -157,12 +153,10 @@
     <span class="c1"># The event timestamp gets recovered in other ways by the event recovery code. No</span>
     <span class="c1"># need to initialize the psana interface: the timestamp will already be in the</span>
     <span class="c1"># event dictionary when OM starts extracting the data.</span>
-    <span class="k">del</span> <span class="n">monitor_params</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="detector_distance_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.detector_distance_init">[docs]</a><span class="k">def</span> <span class="nf">detector_distance_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="detector_distance_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.detector_distance_init">[docs]</a><span class="k">def</span> <span class="nf">detector_distance_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for detector distance data at LCLS.</span>
 
@@ -191,8 +185,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="beam_energy_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.beam_energy_init">[docs]</a><span class="k">def</span> <span class="nf">beam_energy_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="beam_energy_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.beam_energy_init">[docs]</a><span class="k">def</span> <span class="nf">beam_energy_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for beam energy data at LCLS.</span>
 
@@ -206,12 +199,11 @@
 <span class="sd">        psana.Detector.DdlDetector.DdlDetector: a psana object that can be used later</span>
 <span class="sd">        to retrieve the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">del</span> <span class="n">monitor_params</span>
-    <span class="k">return</span> <span class="n">psana</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="s2">&quot;EBeam&quot;</span><span class="p">)</span></div>
+    <span class="c1"># psana.Detector(&quot;EBeam&quot;)</span>
+    <span class="k">return</span> <span class="n">psana</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="s2">&quot;SIOC:SYS0:ML00:AO192&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="timetool_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timetool_data_init">[docs]</a><span class="k">def</span> <span class="nf">timetool_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="timetool_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timetool_data_init">[docs]</a><span class="k">def</span> <span class="nf">timetool_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for timetool data at LCLS.</span>
 
@@ -230,7 +222,6 @@
 <span class="sd">        psana.Detector.EpicsDetector.EpicsDetector: a psana object that can be used</span>
 <span class="sd">        later to retrieve the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># TODO: Determine return type</span>
     <span class="k">return</span> <span class="n">psana</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span>
         <span class="n">monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
             <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
@@ -241,8 +232,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="digitizer_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.digitizer_data_init">[docs]</a><span class="k">def</span> <span class="nf">digitizer_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="digitizer_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.digitizer_data_init">[docs]</a><span class="k">def</span> <span class="nf">digitizer_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for digitizer data at LCLS.</span>
 
@@ -270,8 +260,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="opal_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.opal_data_init">[docs]</a><span class="k">def</span> <span class="nf">opal_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="opal_data_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.opal_data_init">[docs]</a><span class="k">def</span> <span class="nf">opal_data_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for Opal camera data at LCLS.</span>
 
@@ -299,8 +288,7 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="optical_laser_active_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.optical_laser_active_init">[docs]</a><span class="k">def</span> <span class="nf">optical_laser_active_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="optical_laser_active_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.optical_laser_active_init">[docs]</a><span class="k">def</span> <span class="nf">optical_laser_active_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for an optical laser at LCLS.</span>
 
@@ -329,8 +317,7 @@
     <span class="k">return</span> <span class="n">psana</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">evr_source_name</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="xrays_active_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.xrays_active_init">[docs]</a><span class="k">def</span> <span class="nf">xrays_active_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">):</span>
-    <span class="c1"># type: (parameters.MonitorParams) -&gt; Any</span>
+<div class="viewcode-block" id="xrays_active_init"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.xrays_active_init">[docs]</a><span class="k">def</span> <span class="nf">xrays_active_init</span><span class="p">(</span><span class="n">monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for the x-ray beam status at LCLS.</span>
 
@@ -359,8 +346,7 @@
     <span class="k">return</span> <span class="n">psana</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">evr_source_name</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="timestamp"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timestamp">[docs]</a><span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; numpy.float64</span>
+<div class="viewcode-block" id="timestamp"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timestamp">[docs]</a><span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the timestamp of an event retrieved from psana at LCLS.</span>
 
@@ -374,17 +360,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Returns the timestamp stored in the event dictionary, without extracting it</span>
     <span class="c1"># again.</span>
-    <span class="n">timest</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span>
+    <span class="c1"># TODO: Determine return type</span>
+    <span class="n">timest</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float64</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">timest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve timestamp information from psana.&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">timest</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">timest</span></div>
 
 
-<div class="viewcode-block" id="detector_distance"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.detector_distance">[docs]</a><span class="k">def</span> <span class="nf">detector_distance</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; float</span>
+<div class="viewcode-block" id="detector_distance"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.detector_distance">[docs]</a><span class="k">def</span> <span class="nf">detector_distance</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the detector distance for an event retrieved from psana at LCLS.</span>
 
@@ -401,17 +387,18 @@
 
 <span class="sd">        float: the distance between the detector and the sample in mm.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">det_dist</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;detector_distance&quot;</span><span class="p">]()</span>
+    <span class="n">det_dist</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;detector_distance&quot;</span>
+    <span class="p">]()</span>
     <span class="k">if</span> <span class="n">det_dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve detector distance information from psana.&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">det_dist</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">det_dist</span></div>
 
 
-<div class="viewcode-block" id="beam_energy"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.beam_energy">[docs]</a><span class="k">def</span> <span class="nf">beam_energy</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; float</span>
+<div class="viewcode-block" id="beam_energy"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.beam_energy">[docs]</a><span class="k">def</span> <span class="nf">beam_energy</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the beam energy for an event retrieved from psana at LCLS.</span>
 
@@ -423,21 +410,28 @@
 
 <span class="sd">        float: the energy of the beam in eV.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">beam_en</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">]</span>
-        <span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
-        <span class="o">.</span><span class="n">ebeamPhotonEnergy</span><span class="p">()</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="n">beam_en</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># beam_en = (</span>
+    <span class="c1">#    event[&quot;additional_info&quot;][&quot;psana_detector_interface&quot;][&quot;beam_energy&quot;]</span>
+    <span class="c1">#    .get(event[&quot;data&quot;])</span>
+    <span class="c1">#    .ebeamPhotonEnergy()</span>
+    <span class="c1"># )</span>
+    <span class="n">wavelength</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;psana_detector_interface&quot;</span>
+    <span class="p">][</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">]()</span>
+    <span class="k">if</span> <span class="n">wavelength</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve beam energy information from psana.&quot;</span>
         <span class="p">)</span>
+    <span class="n">h</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.626070e-34</span>  <span class="c1"># J.m</span>
+    <span class="n">c</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.99792458e8</span>  <span class="c1"># m/s</span>
+    <span class="n">joulesPerEv</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.602176621e-19</span>  <span class="c1"># J/eV</span>
+    <span class="n">photonEnergy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="n">joulesPerEv</span> <span class="o">*</span> <span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">wavelength</span> <span class="o">*</span> <span class="mf">1e-9</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">beam_en</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">photonEnergy</span></div>
+    <span class="c1"># return beam_en</span>
 
 
-<div class="viewcode-block" id="timetool_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timetool_data">[docs]</a><span class="k">def</span> <span class="nf">timetool_data</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; float</span>
+<div class="viewcode-block" id="timetool_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.timetool_data">[docs]</a><span class="k">def</span> <span class="nf">timetool_data</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets timetool data for an event retrieved from psana at LCLS.</span>
 
@@ -455,17 +449,18 @@
 <span class="sd">        float: the readout of the timetool instrument.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: Determine return type</span>
-    <span class="n">time_tl</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;timetool_data&quot;</span><span class="p">]()</span>
+    <span class="n">time_tl</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;timetool_data&quot;</span>
+    <span class="p">]()</span>
     <span class="k">if</span> <span class="n">time_tl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve time tool data from psana.&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">time_tl</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">time_tl</span></div>
 
 
-<div class="viewcode-block" id="digitizer_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.digitizer_data">[docs]</a><span class="k">def</span> <span class="nf">digitizer_data</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; numpy.ndarray</span>
+<div class="viewcode-block" id="digitizer_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.digitizer_data">[docs]</a><span class="k">def</span> <span class="nf">digitizer_data</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get digitizer data for an event retrieved from psana at LCLS.</span>
 
@@ -482,19 +477,18 @@
 <span class="sd">        numpy.array: the waveform from the digitizer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># TODO: Determine return type</span>
-    <span class="n">digit_data</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;digitizer_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">waveform</span><span class="p">(</span>
-        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
-    <span class="p">)</span>
+    <span class="n">digit_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;psana_detector_interface&quot;</span>
+    <span class="p">][</span><span class="s2">&quot;digitizer_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">waveform</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">digit_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve digitizer data from psana.&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">digit_data</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">digit_data</span></div>
 
 
-<div class="viewcode-block" id="opal_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.opal_data">[docs]</a><span class="k">def</span> <span class="nf">opal_data</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; numpy.ndarray</span>
+<div class="viewcode-block" id="opal_data"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.opal_data">[docs]</a><span class="k">def</span> <span class="nf">opal_data</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets Opal camera data for an event retrieved from psana at LCLS.</span>
 
@@ -509,19 +503,18 @@
 
 <span class="sd">        numpy.ndarray: a 2D array containing the image from the Opal camera.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">op_data</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;opal_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">calib</span><span class="p">(</span>
-        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
-    <span class="p">)</span>
+    <span class="n">op_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;psana_detector_interface&quot;</span>
+    <span class="p">][</span><span class="s2">&quot;opal_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">calib</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">op_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve Opel camera data from psana.&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">op_data</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">op_data</span></div>
 
 
-<div class="viewcode-block" id="optical_laser_active"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.optical_laser_active">[docs]</a><span class="k">def</span> <span class="nf">optical_laser_active</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; bool</span>
+<div class="viewcode-block" id="optical_laser_active"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.optical_laser_active">[docs]</a><span class="k">def</span> <span class="nf">optical_laser_active</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Gets the status of an optical laser for an event retrieved from psana at LCLS.</span>
 
@@ -547,24 +540,23 @@
 <span class="sd">        bool: True if the optical laser is active for the current frame. False</span>
 <span class="sd">        otherwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">current_evr_codes</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
-        <span class="s2">&quot;optical_laser_active&quot;</span>
-    <span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
+    <span class="n">current_evr_codes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;psana_detector_interface&quot;</span>
+    <span class="p">][</span><span class="s2">&quot;optical_laser_active&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">current_evr_codes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve event codes from psana.&quot;</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">(</span>
-        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
+        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
             <span class="s2">&quot;optical_laser_active&quot;</span>
         <span class="p">]</span><span class="o">.</span><span class="n">active_laser_evr_code</span>
         <span class="ow">in</span> <span class="n">current_evr_codes</span>
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="xrays_active"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.xrays_active">[docs]</a><span class="k">def</span> <span class="nf">xrays_active</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-    <span class="c1"># type: (Dict[str, Any]) -&gt; bool</span>
+<div class="viewcode-block" id="xrays_active"><a class="viewcode-back" href="../../../om.data_retrieval_layer.functions_psana.html#om.data_retrieval_layer.functions_psana.xrays_active">[docs]</a><span class="k">def</span> <span class="nf">xrays_active</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes the psana Detector interface for the x-ray beam status at LCLS.</span>
 
@@ -589,16 +581,18 @@
 
 <span class="sd">        bool: True if the x-ray beam is active for the current frame. False otherwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">current_evr_codes</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
-        <span class="s2">&quot;xrays_active&quot;</span>
-    <span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
+    <span class="n">current_evr_codes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span>
+        <span class="s2">&quot;psana_detector_interface&quot;</span>
+    <span class="p">][</span><span class="s2">&quot;xrays_active&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">psana_detector_handle</span><span class="o">.</span><span class="n">eventCodes</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">current_evr_codes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmDataExtractionError</span><span class="p">(</span>
             <span class="s2">&quot;Could not retrieve event codes from psana.&quot;</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">(</span>
-        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span><span class="s2">&quot;xrays_active&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">active_laser_evr_code</span>
+        <span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;psana_detector_interface&quot;</span><span class="p">][</span>
+            <span class="s2">&quot;xrays_active&quot;</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">active_laser_evr_code</span>
         <span class="ow">in</span> <span class="n">current_evr_codes</span>
     <span class="p">)</span></div>
 </pre></div>
@@ -619,7 +613,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

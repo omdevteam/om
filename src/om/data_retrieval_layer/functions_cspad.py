@@ -33,11 +33,11 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        One frame of detector data.
     """
     cspad_psana: numpy.ndarray = event["additional_info"]["psana_detector_interface"][
         "detector_data"

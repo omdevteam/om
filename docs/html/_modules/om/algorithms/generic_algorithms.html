@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.algorithms.generic_algorithms &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -23,9 +23,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../../_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../../_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -107,33 +107,29 @@
 <span class="sd">experimental technique (e.g.: detector frame masking and correction, data accumulation,</span>
 <span class="sd">etc.).</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">h5py</span>  <span class="c1"># type:ignore</span>
 <span class="kn">import</span> <span class="nn">numpy</span>  <span class="c1"># type: ignore</span>
-<span class="kn">from</span> <span class="nn">future.utils</span> <span class="kn">import</span> <span class="n">raise_from</span>  <span class="c1"># type: ignore</span>
 
 <span class="kn">from</span> <span class="nn">om.utils</span> <span class="kn">import</span> <span class="n">exceptions</span>
 
 
-<div class="viewcode-block" id="Correction"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.Correction">[docs]</a><span class="k">class</span> <span class="nc">Correction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Correction"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.Correction">[docs]</a><span class="k">class</span> <span class="nc">Correction</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See documentation of the &#39;__init__&#39; function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>  <span class="c1"># noqa: C901</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dark_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
-        <span class="n">dark_hdf5_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
-        <span class="n">mask_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
-        <span class="n">mask_hdf5_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
-        <span class="n">gain_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
-        <span class="n">gain_hdf5_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: Union[str, None]</span>
-    <span class="p">):</span>
-        <span class="c1"># type: (...) -&gt; None</span>
+        <span class="n">dark_filename</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dark_hdf5_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mask_filename</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mask_hdf5_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gain_filename</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gain_hdf5_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Detector data frame corrections.</span>
 
@@ -143,8 +139,8 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            dark_filename (Union[str, None]): the relative or absolute path to an HDF5</span>
-<span class="sd">                file containing a dark data frame. Defaults to None.</span>
+<span class="sd">            dark_filename: The relative or absolute path to an HDF5 file containing a</span>
+<span class="sd">                dark data frame. Defaults to None.</span>
 
 <span class="sd">                * If this and the &#39;dark_hdf5_path&#39; arguments are not None, the dark</span>
 <span class="sd">                  data is loaded and will be used by the algorithm.</span>
@@ -152,14 +148,14 @@
 <span class="sd">                * The dark data frame must be a numpy array of the same shape as the</span>
 <span class="sd">                  data frame that will be corrected.</span>
 
-<span class="sd">            dark_hdf5_path (Union[str, None]): the internal HDF5 path to the data block</span>
-<span class="sd">                where the dark data frame is located. Defaults to None.</span>
+<span class="sd">            dark_hdf5_path: The internal HDF5 path to the data block where the dark</span>
+<span class="sd">                data frame is located. Defaults to None.</span>
 
 <span class="sd">                * If the &#39;dark_filename&#39; argument is not None, this argument must also</span>
 <span class="sd">                  be provided, and cannot be None. Otherwise it is ignored.</span>
 
-<span class="sd">            mask_filename (Union[str, None]): the relative or absolute path to an HDF5</span>
-<span class="sd">                file containing a mask. Defaults to None.</span>
+<span class="sd">            mask_filename: The relative or absolute path to an HDF5 file containing a</span>
+<span class="sd">                mask. Defaults to None.</span>
 
 <span class="sd">                * If this and the &#39;mask_hdf5_path&#39; arguments are not None, the mask is</span>
 <span class="sd">                  loaded and will be used by the algorithm.</span>
@@ -171,14 +167,14 @@
 <span class="sd">                  the corresponding pixel in the data frame must be set to 0, or 1,</span>
 <span class="sd">                  meaning that the value of the corresponding pixel must be left alone.</span>
 
-<span class="sd">            mask_hdf5_path (Union[str, None]): the internal HDF5 path to the data block</span>
-<span class="sd">                where the mask data is located. Defaults to None.</span>
+<span class="sd">            mask_hdf5_path: The internal HDF5 path to the data block where the mask</span>
+<span class="sd">                data is located. Defaults to None.</span>
 
 <span class="sd">                * If the &#39;mask_filename&#39; argument is not None, this argument must also</span>
 <span class="sd">                  be provided, and cannot be None. Otherwise it is ignored.</span>
 
-<span class="sd">            gain_filename (Union[str, None]): the relative or absolute path to an HDF5</span>
-<span class="sd">                file containing a gain map. Defaults to None.</span>
+<span class="sd">            gain_filename: The relative or absolute path to an HDF5 file containing a</span>
+<span class="sd">                gain map. Defaults to None.</span>
 
 <span class="sd">                * If this and the &#39;gain_hdf5_path&#39; arguments are not None, the gain map</span>
 <span class="sd">                  is loaded and will be used by the algorithm.</span>
@@ -189,8 +185,8 @@
 <span class="sd">                * Each pixel in the gain map must store the gain factor that will be</span>
 <span class="sd">                  applied to the corresponding pixel in the data frame.</span>
 
-<span class="sd">            gain_hdf5_path (Union[str, None]): the internal HDF5 path to the data block</span>
-<span class="sd">                where the gain map data is located. Defaults to None.</span>
+<span class="sd">            gain_hdf5_path: The internal HDF5 path to the data block where the gain map</span>
+<span class="sd">                data is located. Defaults to None.</span>
 
 <span class="sd">                * If the &#39;gain_filename&#39; argument is not None, this argument must also</span>
 <span class="sd">                  be provided, and cannot be None. Otherwise it is ignored.</span>
@@ -198,26 +194,23 @@
         <span class="k">if</span> <span class="n">mask_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">mask_hdf5_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">mask_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdf5_file_handle</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">hdf5_file_handle</span><span class="p">[</span><span class="n">mask_hdf5_path</span><span class="p">][</span>
-                            <span class="p">:</span>
-                        <span class="p">]</span>  <span class="c1"># type: Union[numpy.ndarray, None]</span>
+                    <span class="n">mask_hdf5_file_handle</span><span class="p">:</span> <span class="n">Any</span>
+                    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">mask_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mask_hdf5_file_handle</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_hdf5_file_handle</span><span class="p">[</span>
+                            <span class="n">mask_hdf5_path</span>
+                        <span class="p">][:]</span>
                 <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-                    <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># type: Tuple[Any, Any]</span>
-                    <span class="n">raise_from</span><span class="p">(</span>
-                        <span class="c1"># TODO: Fix type check</span>
-                        <span class="n">exc</span><span class="o">=</span><span class="ne">RuntimeError</span><span class="p">(</span>
-                            <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> field&quot;</span>
-                            <span class="s2">&quot;from the </span><span class="si">{1}</span><span class="s2"> gain map HDF5 file:&quot;</span>
-                            <span class="s2">&quot;</span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                                <span class="n">mask_filename</span><span class="p">,</span>
-                                <span class="n">mask_hdf5_path</span><span class="p">,</span>
-                                <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                                <span class="n">exc_value</span><span class="p">,</span>
-                            <span class="p">)</span>
-                        <span class="p">),</span>
-                        <span class="n">cause</span><span class="o">=</span><span class="n">exc</span><span class="p">,</span>
-                    <span class="p">)</span>
+                    <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="c1"># TODO: Fix types</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> field from &quot;</span>
+                        <span class="s2">&quot;the </span><span class="si">{1}</span><span class="s2"> gain map HDF5 file: </span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">mask_filename</span><span class="p">,</span>
+                            <span class="n">mask_hdf5_path</span><span class="p">,</span>
+                            <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                            <span class="n">exc_value</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmHdf5PathError</span><span class="p">(</span>
                     <span class="s2">&quot;Correction Algorithm: missing HDF5 path for mask.&quot;</span>
@@ -229,26 +222,23 @@
         <span class="k">if</span> <span class="n">dark_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">dark_hdf5_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">dark_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdf5_file_handle</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_dark</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="n">hdf5_file_handle</span><span class="p">[</span><span class="n">dark_hdf5_path</span><span class="p">][:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span>
-                        <span class="p">)</span>  <span class="c1"># type: Union[numpy.ndarray, None]</span>
+                    <span class="n">dark_hdf5_file_handle</span><span class="p">:</span> <span class="n">Any</span>
+                    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">dark_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dark_hdf5_file_handle</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_dark</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">dark_hdf5_file_handle</span><span class="p">[</span><span class="n">dark_hdf5_path</span><span class="p">][:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span>
+                        <span class="p">)</span>
                 <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                     <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
-                    <span class="n">raise_from</span><span class="p">(</span>
-                        <span class="c1"># TODO: Fix type check</span>
-                        <span class="n">exc</span><span class="o">=</span><span class="ne">RuntimeError</span><span class="p">(</span>
-                            <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> field&quot;</span>
-                            <span class="s2">&quot;from the </span><span class="si">{1}</span><span class="s2"> dark data HDF5 file:&quot;</span>
-                            <span class="s2">&quot;</span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                                <span class="n">dark_filename</span><span class="p">,</span>
-                                <span class="n">dark_hdf5_path</span><span class="p">,</span>
-                                <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                                <span class="n">exc_value</span><span class="p">,</span>
-                            <span class="p">)</span>
-                        <span class="p">),</span>
-                        <span class="n">cause</span><span class="o">=</span><span class="n">exc</span><span class="p">,</span>
-                    <span class="p">)</span>
+                    <span class="c1"># TODO: Fix types</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> field from&quot;</span>
+                        <span class="s2">&quot;the </span><span class="si">{1}</span><span class="s2"> dark data HDF5 file: </span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">dark_filename</span><span class="p">,</span>
+                            <span class="n">dark_hdf5_path</span><span class="p">,</span>
+                            <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                            <span class="n">exc_value</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmHdf5PathError</span><span class="p">(</span>
                     <span class="s2">&quot;Correction Algorithm: missing HDF5 path for dark frame data.&quot;</span>
@@ -260,26 +250,23 @@
         <span class="k">if</span> <span class="n">gain_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">gain_hdf5_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">gain_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">hdf5_file_handle</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="n">hdf5_file_handle</span><span class="p">[</span><span class="n">gain_hdf5_path</span><span class="p">][:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span>
-                        <span class="p">)</span>  <span class="c1"># type: Union[numpy.ndarray, None]</span>
+                    <span class="n">gain_hdf5_file_handle</span><span class="p">:</span> <span class="n">Any</span>
+                    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">gain_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">gain_hdf5_file_handle</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_gain</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">gain_hdf5_file_handle</span><span class="p">[</span><span class="n">gain_hdf5_path</span><span class="p">][:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span>
+                        <span class="p">)</span>
                 <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
                     <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
-                    <span class="n">raise_from</span><span class="p">(</span>
-                        <span class="c1"># TODO: Fix type check</span>
-                        <span class="n">exc</span><span class="o">=</span><span class="ne">RuntimeError</span><span class="p">(</span>
-                            <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> field&quot;</span>
-                            <span class="s2">&quot;from the </span><span class="si">{1}</span><span class="s2"> dark data HDF5 file:&quot;</span>
-                            <span class="s2">&quot;</span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                                <span class="n">gain_filename</span><span class="p">,</span>
-                                <span class="n">gain_hdf5_path</span><span class="p">,</span>
-                                <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                                <span class="n">exc_value</span><span class="p">,</span>
-                            <span class="p">)</span>
-                        <span class="p">),</span>
-                        <span class="n">cause</span><span class="o">=</span><span class="n">exc</span><span class="p">,</span>
-                    <span class="p">)</span>
+                    <span class="c1"># TODO: Fix types</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The following error occurred while reading the </span><span class="si">{0}</span><span class="s2"> field from&quot;</span>
+                        <span class="s2">&quot;the </span><span class="si">{1}</span><span class="s2"> dark data HDF5 file: </span><span class="si">{2}</span><span class="s2">: </span><span class="si">{3}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">gain_filename</span><span class="p">,</span>
+                            <span class="n">gain_hdf5_path</span><span class="p">,</span>
+                            <span class="n">exc_type</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                            <span class="n">exc_value</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">exceptions</span><span class="o">.</span><span class="n">OmHdf5PathError</span><span class="p">(</span>
                     <span class="s2">&quot;Correction Algorithm: missing HDF5 path for gain map.&quot;</span>
@@ -288,8 +275,7 @@
             <span class="c1"># True here is equivalent to an all-one map.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gain_map</span> <span class="o">=</span> <span class="kc">True</span>
 
-<div class="viewcode-block" id="Correction.apply_correction"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.Correction.apply_correction">[docs]</a>    <span class="k">def</span> <span class="nf">apply_correction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="c1"># type: (numpy.ndarray) -&gt; numpy.ndarray</span>
+<div class="viewcode-block" id="Correction.apply_correction"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.Correction.apply_correction">[docs]</a>    <span class="k">def</span> <span class="nf">apply_correction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Applies the corrections to a detector data frame.</span>
 
@@ -299,24 +285,21 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            data (numpy.ndarray): the detector data frame on which the correction</span>
-<span class="sd">                must be applied.</span>
+<span class="sd">            data: The detector data frame on which the correction must be applied.</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            numpy.ndarray: the corrected data.</span>
-
+<span class="sd">            The corrected data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">data</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dark</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gain_map</span></div></div>
 
 
-<div class="viewcode-block" id="DataAccumulator"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.DataAccumulator">[docs]</a><span class="k">class</span> <span class="nc">DataAccumulator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="DataAccumulator"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.DataAccumulator">[docs]</a><span class="k">class</span> <span class="nc">DataAccumulator</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    See documentation of the &#39;__init__&#39; function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_events_to_accumulate</span><span class="p">):</span>
-        <span class="c1"># type: (int) -&gt; None</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_events_to_accumulate</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Data accumulation and bulk retrieval.</span>
 
@@ -330,12 +313,11 @@
 <span class="sd">            num_events_to_accumulate (int): the number of data entries that can be</span>
 <span class="sd">                added to the accumulator before it is &#39;full&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_to_accumulate</span> <span class="o">=</span> <span class="n">num_events_to_accumulate</span>  <span class="c1"># type: int</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[Dict[str, Any]]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_in_accumulator</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># type: int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_to_accumulate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">num_events_to_accumulate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_in_accumulator</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="DataAccumulator.add_data"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.DataAccumulator.add_data">[docs]</a>    <span class="k">def</span> <span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="c1"># type: (Dict[str, Any]) -&gt; Union[List[Dict[str, Any]], None]</span>
+<div class="viewcode-block" id="DataAccumulator.add_data"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.DataAccumulator.add_data">[docs]</a>    <span class="k">def</span> <span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds data to the accumulator.</span>
 
@@ -344,19 +326,19 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            data (Dict[str, Any]): a data entry to be added to the accumulator.</span>
+<span class="sd">            data: A data entry to be added to the accumulator.</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            Union[List[Dict[str, Any]]], None]: either a list containing the</span>
-<span class="sd">            accumulated data (if the accumulator is emptied), or None, if more data</span>
-<span class="sd">            entries can still be added to the accumulator.</span>
+<span class="sd">            Either a list containing the accumulated data (if the accumulator is</span>
+<span class="sd">            emptied), or None, if more data entries can still be added to the</span>
+<span class="sd">            accumulator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_in_accumulator</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_in_accumulator</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_to_accumulate</span><span class="p">:</span>
-            <span class="n">data_to_return</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span>
+            <span class="n">data_to_return</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_in_accumulator</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">return</span> <span class="n">data_to_return</span>
@@ -380,7 +362,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

@@ -207,9 +207,10 @@ autodoc_mock_imports = [
     "hidra_api",
     "om.lib.peakfinder8_extension.peakfinder8_extension",
 ]
-autodoc_member_order = "bysource"
+autodoc_member_order = "groupwise"
 autodoc_typehints = "none"
 autoclass_content = "init"
+napoleon_use_param = True
 
 # -- Options for todo extension ----------------------------------------------
 

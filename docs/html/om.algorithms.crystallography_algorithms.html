@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The crystallography_algorithms Module &#8212; OM 20.08.0.0dev documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,9 +25,9 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
 <script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
 <script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
 
   </head><body>
@@ -90,33 +90,9 @@
 <p>Algorithms for the processing of crystallography data.</p>
 <p>This module contains algorithms that carry out crystallography-related data processing
 (peak finding, etc.).</p>
-<dl class="py function">
-<dt id="om.algorithms.crystallography_algorithms.get_peakfinder8_info">
-<code class="sig-name descname">get_peakfinder8_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detector_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#get_peakfinder8_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.get_peakfinder8_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the peakfinder8 information for a specific detector.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>detector_type</strong> (<em>str</em>) – The type of detector for which the information needs to</p></li>
-<li><p><strong>retrieved. The currently supported detectors are</strong> (<em>be</em>) – </p></li>
-<li><p><strong>'cspad'</strong> (<em>*</em>) – the CSPAD detector used at the CXI beamtime of the LCLS facility
-before 2020.</p></li>
-<li><p><strong>'pilatus'</strong> (<em>*</em>) – the Pilatus detector used at the P11 beamtime of the LCLS
-facility.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a dictionary storing the peakfinder8 information.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dict[str, int]</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py class">
 <dt id="om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection">
-<em class="property">class </em><code class="sig-name descname">Peakfinder8PeakDetection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_num_peaks</span></em>, <em class="sig-param"><span class="n">asic_nx</span></em>, <em class="sig-param"><span class="n">asic_ny</span></em>, <em class="sig-param"><span class="n">nasics_x</span></em>, <em class="sig-param"><span class="n">nasics_y</span></em>, <em class="sig-param"><span class="n">adc_threshold</span></em>, <em class="sig-param"><span class="n">minimum_snr</span></em>, <em class="sig-param"><span class="n">min_pixel_count</span></em>, <em class="sig-param"><span class="n">max_pixel_count</span></em>, <em class="sig-param"><span class="n">local_bg_radius</span></em>, <em class="sig-param"><span class="n">min_res</span></em>, <em class="sig-param"><span class="n">max_res</span></em>, <em class="sig-param"><span class="n">bad_pixel_map_filename</span></em>, <em class="sig-param"><span class="n">bad_pixel_map_hdf5_path</span></em>, <em class="sig-param"><span class="n">radius_pixel_map</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#Peakfinder8PeakDetection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Peakfinder8PeakDetection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_num_peaks</span></em>, <em class="sig-param"><span class="n">asic_nx</span></em>, <em class="sig-param"><span class="n">asic_ny</span></em>, <em class="sig-param"><span class="n">nasics_x</span></em>, <em class="sig-param"><span class="n">nasics_y</span></em>, <em class="sig-param"><span class="n">adc_threshold</span></em>, <em class="sig-param"><span class="n">minimum_snr</span></em>, <em class="sig-param"><span class="n">min_pixel_count</span></em>, <em class="sig-param"><span class="n">max_pixel_count</span></em>, <em class="sig-param"><span class="n">local_bg_radius</span></em>, <em class="sig-param"><span class="n">min_res</span></em>, <em class="sig-param"><span class="n">max_res</span></em>, <em class="sig-param"><span class="n">bad_pixel_map</span></em>, <em class="sig-param"><span class="n">radius_pixel_map</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#Peakfinder8PeakDetection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Peakfinder8 algorithm for peak detection.</p>
 <p>This class stores the parameters needed by the ‘peakfinder8’ algorithm, and
@@ -129,28 +105,24 @@ vol. 47, pp. 1118-1131 (2014).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>max_num_peaks</strong> (<em>int</em>) – the maximum number of peaks that will be retrieved
-from each data frame. Additional peaks will be ignored.</p></li>
-<li><p><strong>asic_nx</strong> (<em>int</em>) – the fs size in pixels of each detector’s ASIC in the data
-frame.</p></li>
-<li><p><strong>asic_ny</strong> (<em>int</em>) – the ss size in pixels of each detector’s ASIC in the data
-frame.</p></li>
-<li><p><strong>nasics_x</strong> (<em>int</em>) – the number of ASICs along the fs axis of the data frame.</p></li>
-<li><p><strong>nasics_y</strong> (<em>int</em>) – the number of ASICs along the ss axis of the data frame.</p></li>
-<li><p><strong>adc_threshold</strong> (<em>float</em>) – the minimum ADC threshold for peak detection.</p></li>
-<li><p><strong>minimum_snr</strong> (<em>float</em>) – the minimum signal-to-noise ratio for peak detection.</p></li>
-<li><p><strong>min_pixel_count</strong> (<em>int</em>) – the minimum size of a peak in pixels.</p></li>
-<li><p><strong>max_pixel_count</strong> (<em>int</em>) – the maximum size of a peak in pixels.</p></li>
-<li><p><strong>local_bg_radius</strong> (<em>int</em>) – the radius for the estimation of the
-local background in pixels.</p></li>
-<li><p><strong>min_res</strong> (<em>int</em>) – the minimum resolution for a peak in pixels.</p></li>
-<li><p><strong>max_res</strong> (<em>int</em>) – the maximum resolution for a peak in pixels.</p></li>
-<li><p><strong>bad_pixel_map_filename</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em>) – <p>the absolute or relative path to
-an HDF5 file containing a bad pixel map. The map should mark areas of
-the data frame that must be excluded from the peak search. If this and
-the ‘bad_pixel_map_hdf5_path’ arguments are not None, the map is loaded
-and will be used by the algorithm. Otherwise no area is excluded from
-the search. Defaults to None.</p>
+<li><p><strong>max_num_peaks</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The maximum number of peaks that will be retrieved from each
+data frame. Additional peaks will be ignored.</p></li>
+<li><p><strong>asic_nx</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The fs size in pixels of each detector’s ASIC in the data frame.</p></li>
+<li><p><strong>asic_ny</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The ss size in pixels of each detector’s ASIC in the data frame.</p></li>
+<li><p><strong>nasics_x</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The number of ASICs along the fs axis of the data frame.</p></li>
+<li><p><strong>nasics_y</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The number of ASICs along the ss axis of the data frame.</p></li>
+<li><p><strong>adc_threshold</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – The minimum ADC threshold for peak detection.</p></li>
+<li><p><strong>minimum_snr</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – The minimum signal-to-noise ratio for peak detection.</p></li>
+<li><p><strong>min_pixel_count</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The minimum size of a peak in pixels.</p></li>
+<li><p><strong>max_pixel_count</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The maximum size of a peak in pixels.</p></li>
+<li><p><strong>local_bg_radius</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The radius for the estimation of the local background in
+pixels.</p></li>
+<li><p><strong>min_res</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The minimum resolution for a peak in pixels.</p></li>
+<li><p><strong>max_res</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The maximum resolution for a peak in pixels.</p></li>
+<li><p><strong>bad_pixel_map</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>]) – <p>An array storing the a bad pixel map. The map should mark
+areas of the data frame that must be excluded from the peak search. If
+this argument is None, no area will be excluded from the search.
+Defaults to None.</p>
 <ul>
 <li><p>The map must be a numpy array of the same shape as the data frame on
 which the algorithm will be applied.</p></li>
@@ -161,14 +133,7 @@ meaning that the corresponding pixel must be included in the search.</p></li>
 is not modified in any way.</p></li>
 </ul>
 </p></li>
-<li><p><strong>bad_pixel_map_hdf5_path</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em>) – <p>the internal HDF5 path to the
-data block where the bad pixel map is stored.</p>
-<ul>
-<li><p>If the ‘bad_pixel_map_filename’ argument is not None, this argument
-must also be provided, and cannot be None. Otherwise it is ignored.</p></li>
-</ul>
-</p></li>
-<li><p><strong>radius_pixel_map</strong> (<em>numpy.ndarray</em>) – <p>a numpy array with radius information.</p>
+<li><p><strong>radius_pixel_map</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – <p>A numpy array with radius information.</p>
 <ul>
 <li><p>The array must have the same shape as the data frame on which the
 algorithm will be applied.</p></li>
@@ -188,30 +153,99 @@ frame.</p></li>
 the data frame but also about their integrated intensity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> (<em>numpy.ndarray</em>) – the detector data frame on which the peak finding
-must be performed.</p>
+<dd class="field-odd"><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – The detector data frame on which the peak finding must be performed.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><p>a dictionary with information about the Bragg peaks
-detected in a data frame. The dictionary has the following keys:</p>
-<ul class="simple">
-<li><p>A key named “num_peaks” whose value is the number of peaks that were
-detected in the data frame.</p></li>
-<li><p>A key named ‘fs’ whose value is a list of fractional fs indexes locating
-the detected peaks in the data frame.</p></li>
-<li><p>A key named ‘ss’ whose value is a list of fractional ss indexes locating
-the detected peaks in the data frame.</p></li>
-<li><p>A key named ‘intensity’ whose value is a list of integrated intensities
-for the detected peaks.</p></li>
-</ul>
-</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#om.algorithms.crystallography_algorithms.TypePeakList" title="om.algorithms.crystallography_algorithms.TypePeakList"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypePeakList</span></code></a></p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Dict</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary with information about the Bragg peaks detected in a data
+frame.</p>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList">
+<em class="property">class </em><code class="sig-name descname">TypePeakList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#TypePeakList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>A dictionary storing information about the Bragg peaks detected in a data frame.</p>
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.fs">
+<code class="sig-name descname">fs</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.fs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of fractional fs indexes locating the detected peaks in the data frame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.intensity">
+<code class="sig-name descname">intensity</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of integrated intensities for the detected peaks.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.max_pixel_intensity">
+<code class="sig-name descname">max_pixel_intensity</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.max_pixel_intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list storing, for each peak, the value of the pixel with the maximum intensity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.num_peaks">
+<code class="sig-name descname">num_peaks</code><em class="property">: int</em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.num_peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of peaks that were detected in the data frame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.num_pixels">
+<code class="sig-name descname">num_pixels</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.num_pixels" title="Permalink to this definition">¶</a></dt>
+<dd><p>A key named ‘num_pixels’ whose value is is a list storing the number of pixels
+that make up each detected peak.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.snr">
+<code class="sig-name descname">snr</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.snr" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list storing  the signal-to-noise ratio of each detected peak.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.ss">
+<code class="sig-name descname">ss</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.ss" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of fractional ss indexes locating the detected peaks in the data frame.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.algorithms.crystallography_algorithms.get_peakfinder8_info">
+<code class="sig-name descname">get_peakfinder8_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detector_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#get_peakfinder8_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.get_peakfinder8_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the peakfinder8 information for a specific detector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>detector_type</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <p>The type of detector for which the information needs to be
+retrieved. The currently supported detectors are:</p>
+<ul class="simple">
+<li><p>’cspad’: The CSPAD detector used at the CXI beamtime of the LCLS facility
+before 2020.</p></li>
+<li><p>’pilatus’: The Pilatus detector used at the P11 beamtime of the LCLS
+facility.</p></li>
+<li><p>’jungfrau1M’: The 1M version of the Jungfrau detector used at the Petra
+III facility.</p></li>
+<li><p>’jungfrau4M’: The 4M version of the Jungfrau detector used at the CXI
+beamline of the LCLS facility.</p></li>
+<li><p>’epix10k2M’: The 2M version of the Epix10KA detector used at the MFX
+beamline of the LCLS facility.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary storing the peakfinder8 information.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -233,7 +267,7 @@ for the detected peaks.</p></li>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
     </p>
   </div>
 </footer>

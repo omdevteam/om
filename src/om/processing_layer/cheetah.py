@@ -45,10 +45,14 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Cheetah
 
-        See documentation of the constructor of the base class:
-        :func:`~om.processing_layer.base.OmMonitor`.
+        See documentation of the corresponding function in the base class.
 
         TODO: Add description
+
+        Arguments:
+
+            monitor_params: An object storing the OM monitor parameters from the
+                configuration file.
         """
         super(Cheetah, self).__init__(monitor_parameters=monitor_parameters)
 
@@ -56,10 +60,17 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Initializes the OM processing nodes for Cheetah.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor`.
+        See documentation of the corresponding function in the base class.
 
         TODO: Add description
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         geometry_filename: str = self._monitor_params.get_param(
             group="crystallography",
@@ -268,7 +279,9 @@ class Cheetah(process_layer_base.OmMonitor):
             required=True,
         )
         processed_filename_prefix: Union[str, None] = self._monitor_params.get_param(
-            group="cheetah", parameter="processed_filename_prefix", parameter_type=str,
+            group="cheetah",
+            parameter="processed_filename_prefix",
+            parameter_type=str,
         )
         processed_filename_extension: Union[str, None] = self._monitor_params.get_param(
             group="cheetah",
@@ -276,14 +289,20 @@ class Cheetah(process_layer_base.OmMonitor):
             parameter_type=str,
         )
         data_type: Union[str, None] = self._monitor_params.get_param(
-            group="cheetah", parameter="hdf5_file_data_type", parameter_type=str,
+            group="cheetah",
+            parameter="hdf5_file_data_type",
+            parameter_type=str,
         )
         compression: Union[str, None] = self._monitor_params.get_param(
-            group="cheetah", parameter="hdf5_file_compression", parameter_type=str,
+            group="cheetah",
+            parameter="hdf5_file_compression",
+            parameter_type=str,
         )
 
         compression_opts: Union[int, None] = self._monitor_params.get_param(
-            group="cheetah", parameter="hdf5_file_compression_opts", parameter_type=int,
+            group="cheetah",
+            parameter="hdf5_file_compression_opts",
+            parameter_type=int,
         )
 
         hdf5_fields: Dict[str, str] = self._monitor_params.get_all_parameters()[
@@ -307,7 +326,10 @@ class Cheetah(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def _write_status_file(
-        self, status: str = "", num_frames: int = 0, num_hits: int = 0,
+        self,
+        status: str = "",
+        num_frames: int = 0,
+        num_hits: int = 0,
     ) -> None:
         # Writes a status file that the Cheetah GUI from Anton Barty can inspect.
 
@@ -332,10 +354,17 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Initializes the OM collecting node for Cheetah.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor`.
+        See documentation of the corresponding function in the base class.
 
-        TODO: Add description
+        # TODO: Add description
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         self._speed_report_interval: int = self._monitor_params.get_param(
             group="crystallography",
@@ -521,13 +550,31 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Processes a detector data frame.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.process_data`.
+        See documentation of the corresponding function in the base class.
 
-        This function performs calibration and correction of a detector data frame and
-        extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
-        optionally, the detector frame data) for transmission to to the collecting
-        node.
+        TODO: Add description
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            data: A dictionary containing the data retrieved by OM for the frame being
+                processed.
+
+                * The dictionary keys must match the entries in the 'required_data'
+                  list found in the 'om' configuration parameter group.
+
+                * The corresponding dictionary values must store the retrieved data.
+
+        Returns:
+
+            A tuple whose first entry is a dictionary storing the data that should be
+            sent to the collecting node, and whose second entry is the OM rank number
+            of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
         corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
@@ -621,12 +668,22 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Computes statistics on aggregated data and broadcasts them via a network socket.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.collect_data`.
+        See documentation of the corresponding function in the base class.
 
-        This function computes aggregated statistics on data received from the
-        processing nodes. It then broadcasts the results via a network socket (for
-        visualization by other programs) using the MessagePack protocol.
+        TODO: Add description
+
+            Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+                dictionary storing the data received from a processing node, and whose
+                second entry is the OM rank number of the node that processed the
+                information.
         """
         received_data: Dict[str, Any] = processed_data[0]
         if self._write_class_sums and "class_sums" in received_data:
@@ -775,15 +832,30 @@ class Cheetah(process_layer_base.OmMonitor):
             self._old_time = now_time
 
     def end_processing_on_processing_node(
-        self, node_rank: int, node_pool_size: int,
+        self,
+        node_rank: int,
+        node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
         """
         Executes end-of-processing actions.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.end_processing`.
+        See documentation of the corresponding function in the base class.
 
-        # TODO: Add description
+        TODO: Add description
+
+         Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            Union[Dict[str, Any], None]: A dictionary storing information to be sent
+            to the processing node (Optional: if this function returns nothing, no
+            information is transferred to the processing node.
         """
         print(
             "Processing finished. OM node {0} has processed {1} events in "
@@ -807,10 +879,17 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Executes end-of-processing actions.
 
-        See documentation of the function in the base class:
-        :func:`~om.processing_layer.base.OmMonitor.end_processing`.
+        See documentation of the corresponding function in the base class.
 
-        # TODO: Add description
+        TODO: Add description
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         if self._write_class_sums:
             class_number: int

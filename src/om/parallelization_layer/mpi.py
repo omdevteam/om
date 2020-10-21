@@ -50,10 +50,22 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         """
         An MPI-based parallelization engine for OM.
 
-        See documentation of the constructor of the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.__init__` .
-        In the MPI implementation of the parallelization engine, the nodes communicate
-        with each other using the MPI protocol.
+        See documentation of the corresponding function in the base class. In the MPI
+        implementation of the parallelization engine, the nodes communicate with each
+        other using the MPI protocol.
+
+         Arguments:
+
+            source: A string describing a source of event data. The exact format of the
+                string depends on the specific DataEventHandler class being used.
+
+            event_data_handler: A class defining how data events are handled.
+
+            monitor: A class defining the scientific data processing that the monitor
+                performs.
+
+            monitor_parameters: An object storing the OM monitor parameters from the
+                configuration file.
         """
         super(MpiProcessingCollectingEngine, self).__init__(
             data_event_handler=data_event_handler,
@@ -79,8 +91,7 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         """
         Starts the MPI parallelization engine.
 
-        See documentation of the function in the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.start` .
+        See documentation of the corresponding function in the base class.
         """
         if self._rank == 0:
             print(
@@ -131,7 +142,8 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             # Flag used to make sure that the MPI messages have been processed.
             req = None
             events = self._data_event_handler.event_generator(
-                node_rank=self._rank, node_pool_size=self._mpi_size,
+                node_rank=self._rank,
+                node_pool_size=self._mpi_size,
             )
 
             event: Dict[str, Any]
@@ -202,8 +214,12 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         """
         Shuts down the MPI parallelization engine.
 
-        See documentation of the function in the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.shutdown` .
+        See documentation of the corresponding function in the base class.
+
+        Arguments:
+
+            msg: Reason for shutting down the parallelization engine. Defaults to
+                "Reason not provided".
         """
         print("Shutting down:", msg)
         sys.stdout.flush()
