@@ -111,18 +111,18 @@ class FXSMonitor(process_layer_base.OmMonitor):
                 processing nodes and the collecting node.
         """
         self._num_phi_steps = self._monitor_params.get_param(
-            group="FXS", parameter="num_phi_steps", parameter_type=int, required=True
+            group="fxs", parameter="num_phi_steps", parameter_type=int, required=True
         )
 
         self._num_radial_steps = self._monitor_params.get_param(
-            group="FXS",
+            group="fxs",
             parameter="num_radial_steps",
             parameter_type=int,
             required=True,
         )
 
         geometry_filename: str = self._monitor_params.get_param(
-            group="crystallography",
+            group="geometry",
             parameter="geometry_file",
             parameter_type=str,
             required=True,
@@ -141,13 +141,13 @@ class FXSMonitor(process_layer_base.OmMonitor):
         # TODO: this reference grid so that SAXS and auto-correlations
         # TODO: are computed on the same resolution rings.
         self._reference_detector_distance = self._monitor_params.get_param(
-            group="FXS",
+            group="fxs",
             parameter="estimated_detector_distance",
             parameter_type=float,
             required=True,
         )
         self._reference_beam_energy = self._monitor_params.get_param(
-            group="FXS",
+            group="fxs",
             parameter="estimated_beam_energy",
             parameter_type=float,
             required=True,
@@ -167,7 +167,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         # check if radial range for interpolation is entered
         # if not, set min and max to that from fxs_pix_map['r_corr']
         radial_range: Tuple[float, float] = self._monitor_params.get_param(
-            group="FXS", parameter="radial-range", parameter_type=tuple
+            group="fxs", parameter="radial-range", parameter_type=tuple
         )
         r_min: float
         r_max: float
@@ -217,11 +217,11 @@ class FXSMonitor(process_layer_base.OmMonitor):
         )
 
         fxs_mask_fname: str = self._monitor_params.get_param(
-            group="FXS", parameter="fs_mask_filename", parameter_type=str, required=True
+            group="fxs", parameter="fs_mask_filename", parameter_type=str, required=True
         )
 
         fxs_mask_hdf5_pth: str = self._monitor_params.get_param(
-            group="FXS",
+            group="fxs",
             parameter="fxs_mask_hdf5_path",
             parameter_type=str,
             required=True,
@@ -236,12 +236,12 @@ class FXSMonitor(process_layer_base.OmMonitor):
         self._intensity_limits_for_hit: Tuple[
             float, float
         ] = self._monitor_params.get_param(
-            group="FXS", parameter="intensity_limits_for_hit", parameter_type=tuple
+            group="fxs", parameter="intensity_limits_for_hit", parameter_type=tuple
         )
 
         # For interpolation from cartesian to polar detector.
         interpolation_method: str = self._monitor_params.get_param(
-            group="FXS", parameter="interpolation_method", parameter_type=str
+            group="fxs", parameter="interpolation_method", parameter_type=str
         )
 
         if interpolation_method == "nearest":
@@ -253,7 +253,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
             num_neighbors: int = 1
         elif interpolation_method == "idw":
             num_neighbors = self._monitor_params.get_param(
-                group="FXS",
+                group="fxs",
                 parameter="number_of_neighbors_for_interpolation",
                 parameter_type=int,
                 required=True,
@@ -268,7 +268,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         # Correct for different panel coffsets if desired, changing
         # detector distance, and energy.
         self._correct_for_coffset = self._monitor_params.get_param(
-            group="FXS", parameter="correct_for_coffset", parameter_type=bool
+            group="fxs", parameter="correct_for_coffset", parameter_type=bool
         )
 
         self._interpolation_alg = fxs_algs.CartesianToPolarInterpolation(
@@ -300,18 +300,18 @@ class FXSMonitor(process_layer_base.OmMonitor):
                 processing nodes and the collecting node.
         """
         self._num_phi_steps = self._monitor_params.get_param(
-            group="FXS", parameter="num_phi_steps", parameter_type=int, required=True
+            group="fxs", parameter="num_phi_steps", parameter_type=int, required=True
         )
 
         self._num_radial_steps = self._monitor_params.get_param(
-            group="FXS",
+            group="fxs",
             parameter="num_radial_steps",
             parameter_type=int,
             required=True,
         )
 
         geometry_filename: str = self._monitor_params.get_param(
-            group="crystallography",
+            group="geometry",
             parameter="geometry_file",
             parameter_type=str,
             required=True,
@@ -330,13 +330,13 @@ class FXSMonitor(process_layer_base.OmMonitor):
         # TODO: this reference grid so that SAXS and auto-correlations
         # TODO: are computed on the same resolution rings.
         self._reference_detector_distance = self._monitor_params.get_param(
-            group="FXS",
+            group="xfs",
             parameter="estimated_detector_distance",
             parameter_type=float,
             required=True,
         )
         self._reference_beam_energy = self._monitor_params.get_param(
-            group="FXS",
+            group="xfs",
             parameter="estimated_beam_energy",
             parameter_type=float,
             required=True,
@@ -356,7 +356,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         # check if radial range for interpolation is entered
         # if not, set min and max to that from fxs_pix_map['r_corr']
         radial_range: Tuple[float, float] = self._monitor_params.get_param(
-            group="FXS", parameter="radial-range", parameter_type=tuple
+            group="fxs", parameter="radial-range", parameter_type=tuple
         )
         r_min: float
         r_max: float
@@ -379,7 +379,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         self._q_grid = fxs_pixel_maps["q"].flatten()[idx]
 
         self._speed_report_interval: int = self._monitor_params.get_param(
-            group="crystallography",
+            group="fxs",
             parameter="speed_report_interval",
             parameter_type=int,
             required=True,
@@ -416,7 +416,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         self._sum_image_misses: numpy.ndarray = numpy.zeros(self._pixelmaps["x"].shape)
 
         self._data_broadcast_interval: int = self._monitor_params.get_param(
-            group="crystallography",
+            group="fxs",
             parameter="data_broadcast_interval",
             parameter_type=int,
             required=True,
@@ -427,7 +427,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         self._time: Union[float, None] = None
 
         data_broadcast_url: Union[str, None] = self._monitor_params.get_param(
-            group="crystallography", parameter="data_broadcast_url", parameter_type=str
+            group="fxs", parameter="data_broadcast_url", parameter_type=str
         )
         if data_broadcast_url is None:
             data_broadcast_url = "tcp://{0}:12321".format(
