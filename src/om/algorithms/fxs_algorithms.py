@@ -110,9 +110,9 @@ class FxsPixelMaps(object):
     def compute_fxs_pixel_maps(
         self,
         detector_distance: float,
-        wavelength: float,
-        reference_detector_distance: float,
-        reference_wavelength: float,
+        wavelength: float#,
+        #reference_detector_distance: float,
+        #reference_wavelength: float,
     ) -> Dict[str, numpy.ndarray]:
         """
         Computes the augmented pixel maps.
@@ -144,7 +144,7 @@ class FxsPixelMaps(object):
         # and the optical axis that goes through the sample, in
         # radians (In crystallography, this is called two theta).
         self._theta_map = numpy.arctan2(
-            numpy.abs(self._pixel_maps["r"]),
+            numpy.abs(self._pixel_maps["radius"]),
             (self._corrected_z + detector_distance) * self._res_map,
         )
         # Compute a pixel map for q (in m^-1 units).
@@ -159,12 +159,12 @@ class FxsPixelMaps(object):
         # shot could have changed, compute r_corr in pixel units using
         # the reference detector distance and wavelength. This way we can
         # interpolate in pixel units, and pick the "correct" radii.
-        half_theta_ref: float = numpy.arcsin(
-            q_map * reference_wavelength / (4.0 * numpy.pi)
-        )
-        r_corr_map: numpy.ndarray = (
-            reference_detector_distance * self._res_map * numpy.tan(half_theta_ref)
-        )
+        #half_theta_ref: float = numpy.arcsin(
+        #    q_map * reference_wavelength / (4.0 * numpy.pi)
+        #)
+        #r_corr_map: numpy.ndarray = (
+        #    reference_detector_distance * self._res_map * numpy.tan(half_theta_ref)
+        #)
 
         # r_corr_map = (
         #    (reference_detector_distance * numpy.abs(self._pixel_maps.r)) /
@@ -174,10 +174,10 @@ class FxsPixelMaps(object):
         return {
             "x": self._pixel_maps["x"],
             "y": self._pixel_maps["y"],
-            "r": self._pixel_maps["r"],
+            "radius": self._pixel_maps["radius"],
             "phi": self._pixel_maps["phi"],
             "q": q_map,
-            "r_corr": r_corr_map,
+            "r_corr": self._pixel_maps["radius"], #r_corr_map,
             "pix_size": 1.0 / self._res_map,
         }
 
@@ -194,6 +194,7 @@ class CartesianToPolarInterpolation:
         interpolation_method: str,
         num_neighbors: int,
         correct_for_coffset: bool,
+        pixel_mask: numpy.ndarray
     ) -> None:
         """
         Convert data from cartesian to polar coordinates.
@@ -225,11 +226,12 @@ class CartesianToPolarInterpolation:
         self._phi: numpy.ndarray = numpy.linspace(
             0, 2.0 * numpy.pi, num_phi_steps, endpoint=False
         )
+        self._pixel_mask: numpy.ndarray = pixel_mask
 
         if correct_for_coffset:
             self._radius_pixmap_key: str = "r_corr"
         else:
-            self._radius_pixmap_key = "r"
+            self._radius_pixmap_key = "radius"
 
         # store to save time later
         self._distance: Union[numpy.ndarray, None]
@@ -303,16 +305,21 @@ class CartesianToPolarInterpolation:
             "distance": distance,
             "index": index,
         }
-
+        
         if self._interpolation_method == "nearest":
-            interpolation_info["weight"] = numpy.ones(index.shape)
-
+            _weight = numpy.ones(index.shape)
+            #interpolation_info["weight"] = numpy.ones(index.shape)
             # TODO: Er... What?
             # a sort of dumb way of taking care of pixels that fall in
             # the gap.
-            interpolation_info["weight"][numpy.where(distance > 1.0)] = 0.0
+            #interpolation_info["weight"][numpy.where(distance > 1.0)] = 0.0
         else:
-            interpolation_info["weight"] = 1.0 / (distance + numpy.finfo(float).eps)
+            _weight = 1./(distance + numpy.finfo(float).eps)
+            #interpolation_info["weight"] = 1.0 / (distance + numpy.finfo(float).eps)
+        
+        # set the weight to zero at masked pixels to ignore their contribution
+        _weight *= self._pixel_mask.ravel()[index]
+        interpolation_info["weight"] = _weight
 
         return interpolation_info
 

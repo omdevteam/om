@@ -18,7 +18,7 @@
 """
 OM monitor for FXS.
 
-This module contains an OM monitor for flotation x-ray scattering experiments.
+This module contains an OM monitor for fluctuation X-ray scattering experiments.
 """
 import sys
 import time
@@ -28,6 +28,8 @@ import h5py  # type: ignore
 import numpy  # type: ignore
 
 from om.algorithms import fxs_algorithms as fxs_algs
+#import fxs_algorithms as fxs_algs
+
 from om.algorithms import generic_algorithms as gen_algs
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, parameters, zmq_monitor
@@ -66,7 +68,7 @@ def _normalize_autocorrelation(
     return ret_img
 
 
-class FXSMonitor(process_layer_base.OmMonitor):
+class FxsMonitor(process_layer_base.OmMonitor):
     """
     See documentation for the '__init__' function.
     """
@@ -82,7 +84,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
             monitor_params: An object storing the OM monitor parameters from the
                 configuration file.
         """
-        super(FXSMonitor, self).__init__(monitor_parameters=monitor_parameters)
+        super(FxsMonitor, self).__init__(monitor_parameters=monitor_parameters)
 
         self._pixelmaps: Dict[str, numpy.ndarray]
         self._num_phi_steps: int
@@ -161,13 +163,13 @@ class FXSMonitor(process_layer_base.OmMonitor):
         fxs_pixel_maps: Dict[
             str, numpy.ndarray
         ] = self._fxs_pix_map_alg.compute_fxs_pixel_maps(
-            reference_detector_distance=self._reference_detector_distance,
-            reference_wavelength=self._reference_wavelength,
+            detector_distance=self._reference_detector_distance,
+            wavelength=self._reference_wavelength,
         )
         # check if radial range for interpolation is entered
         # if not, set min and max to that from fxs_pix_map['r_corr']
-        radial_range: Tuple[float, float] = self._monitor_params.get_param(
-            group="fxs", parameter="radial-range", parameter_type=tuple
+        radial_range: list[float, float] = self._monitor_params.get_param(
+            group="fxs", parameter="radial_range", parameter_type=list
         )
         r_min: float
         r_max: float
@@ -175,15 +177,15 @@ class FXSMonitor(process_layer_base.OmMonitor):
             r_min, r_max = radial_range
         else:
             r_min, r_max = (
-                fxs_pixel_maps["r_corr"].min(),
-                fxs_pixel_maps["r_corr"].max(),
+                fxs_pixel_maps["radius"].min(),
+                fxs_pixel_maps["radius"].max(),
             )
         self._radial_grid = numpy.linspace(r_min, r_max, self._num_radial_steps)
 
-        # TODO: FInd a better place to do this
+        # TODO: Find a better place to do this
         # get the q values in inverse-metres corresponding to these radii
         idx: List[float] = [
-            numpy.abs(radius - fxs_pixel_maps["r_corr"].flatten()).argmin()
+            numpy.abs(radius - fxs_pixel_maps["radius"].flatten()).argmin()
             for radius in self._radial_grid
         ]
 
@@ -217,7 +219,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         )
 
         fxs_mask_fname: str = self._monitor_params.get_param(
-            group="fxs", parameter="fs_mask_filename", parameter_type=str, required=True
+            group="fxs", parameter="fxs_mask_filename", parameter_type=str, required=True
         )
 
         fxs_mask_hdf5_pth: str = self._monitor_params.get_param(
@@ -236,7 +238,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         self._intensity_limits_for_hit: Tuple[
             float, float
         ] = self._monitor_params.get_param(
-            group="fxs", parameter="intensity_limits_for_hit", parameter_type=tuple
+            group="fxs", parameter="intensity_limits_for_hit", parameter_type=list
         )
 
         # For interpolation from cartesian to polar detector.
@@ -277,6 +279,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
             interpolation_method=interpolation_method,
             num_neighbors=num_neighbors,
             correct_for_coffset=self._correct_for_coffset,
+            pixel_mask=self._fxs_mask
         )
 
         self._previous_detector_distance = None
@@ -330,13 +333,13 @@ class FXSMonitor(process_layer_base.OmMonitor):
         # TODO: this reference grid so that SAXS and auto-correlations
         # TODO: are computed on the same resolution rings.
         self._reference_detector_distance = self._monitor_params.get_param(
-            group="xfs",
+            group="fxs",
             parameter="estimated_detector_distance",
             parameter_type=float,
             required=True,
         )
         self._reference_beam_energy = self._monitor_params.get_param(
-            group="xfs",
+            group="fxs",
             parameter="estimated_beam_energy",
             parameter_type=float,
             required=True,
@@ -350,13 +353,13 @@ class FXSMonitor(process_layer_base.OmMonitor):
         fxs_pixel_maps: Dict[
             str, numpy.ndarray
         ] = self._fxs_pix_map_alg.compute_fxs_pixel_maps(
-            reference_detector_distance=self._reference_detector_distance,
-            reference_wavelength=self._reference_wavelength,
+            detector_distance=self._reference_detector_distance,
+            wavelength=self._reference_wavelength,
         )
         # check if radial range for interpolation is entered
         # if not, set min and max to that from fxs_pix_map['r_corr']
-        radial_range: Tuple[float, float] = self._monitor_params.get_param(
-            group="fxs", parameter="radial-range", parameter_type=tuple
+        radial_range: list[float, float] = self._monitor_params.get_param(
+            group="fxs", parameter="radial_range", parameter_type=list
         )
         r_min: float
         r_max: float
@@ -364,15 +367,15 @@ class FXSMonitor(process_layer_base.OmMonitor):
             r_min, r_max = radial_range
         else:
             r_min, r_max = (
-                fxs_pixel_maps["r_corr"].min(),
-                fxs_pixel_maps["r_corr"].max(),
+                fxs_pixel_maps["radius"].min(),
+                fxs_pixel_maps["radius"].max(),
             )
         self._radial_grid = numpy.linspace(r_min, r_max, self._num_radial_steps)
 
         # TODO: FInd a better place to do this
         # get the q values in inverse-metres corresponding to these radii
         idx: List[float] = [
-            numpy.abs(radius - fxs_pixel_maps["r_corr"].flatten()).argmin()
+            numpy.abs(radius - fxs_pixel_maps["radius"].flatten()).argmin()
             for radius in self._radial_grid
         ]
 
@@ -506,8 +509,8 @@ class FXSMonitor(process_layer_base.OmMonitor):
         ] = self._fxs_pix_map_alg.compute_fxs_pixel_maps(
             detector_distance=data["detector_distance"],
             wavelength=wavelength,
-            reference_detector_distance=self._reference_detector_distance,
-            reference_wavelength=self._reference_wavelength,
+            #reference_detector_distance=self._reference_detector_distance,
+            #reference_wavelength=self._reference_wavelength,
         )
 
         interpolation_info: Dict[
@@ -558,7 +561,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
         # TODO: KP will look at it (maybe)
         # HACK: assume all pixels have the same size
         theta = numpy.arctan2(
-            radii * fxs_pixel_maps["pix_size"][0, 0],
+            self._radial_grid * fxs_pixel_maps["pix_size"][0, 0],
             (data["detector_distance"] + numpy.zeros((self._num_radial_steps,))),
         )
 
@@ -616,17 +619,17 @@ class FXSMonitor(process_layer_base.OmMonitor):
         else:
             self._num_misses += 1
 
-        self._sum_pix_int.append(received_data["masked_corr_raw_data"].sum())
+        self._sum_pix_int.append(received_data["masked_corrected_det_data"].sum())
         self._sum_radial_average += received_data["radial_average"]
         self._sum_autocorr_image += received_data["autocorrelation_image"]
         self._sum_autocorr_mask += received_data["autocorrelation_mask"]
         self._sum_polar_image += received_data["polar_image"]
         self._sum_polar_mask += received_data["polar_mask"]
 
-        if received_data["hit_flag"]:
-            self._sum_image_hits += received_data["masked_corr_raw_data"]
+        if received_data["hit"]:
+            self._sum_image_hits += received_data["masked_corrected_det_data"]
         else:
-            self._sum_image_misses += received_data["masked_corr_raw_data"]
+            self._sum_image_misses += received_data["masked_corrected_det_data"]
 
         if self._num_events % self._data_broadcast_interval == 0:
 
@@ -678,7 +681,7 @@ class FXSMonitor(process_layer_base.OmMonitor):
             collected_data["q_coords"] = received_data["q_coords"]
 
             self._data_broadcast_socket.send_data(
-                tag="ondadata", message=collected_data
+                tag="view:omdata", message=collected_data
             )
 
             self._gui_sending_counter = 0
@@ -700,3 +703,13 @@ class FXSMonitor(process_layer_base.OmMonitor):
             print(speed_report_msg)
             sys.stdout.flush()
             self._old_time = now_time
+
+    def end_processing_on_processing_node(
+       self, node_rank: int, node_pool_size: int
+    ) -> Union[Dict[str, Any], None]:
+        pass
+
+    def end_processing_on_collecting_node(
+        self, node_rank: int, node_pool_size: int
+    ) -> None:
+        pass
