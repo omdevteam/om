@@ -455,12 +455,7 @@ def optical_laser_active(event: Dict[str, Any]) -> bool:
             "Could not retrieve event codes from psana."
         )
 
-    return (
-        event["additional_info"]["psana_detector_interface"][
-            "optical_laser_active"
-        ].active_laser_evr_code
-        in current_evr_codes
-    )
+    return event["additional_info"]["active_laser_evr_code"] in current_evr_codes
 
 
 def xrays_active(event: Dict[str, Any]) -> bool:

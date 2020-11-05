@@ -176,15 +176,18 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
                     "defined".format(func_name)
                 ) from exc
 
+        # Fills the event info dictionary with static data that will be retrieved
+        # later.
         self._event_info_to_append: Dict[str, Any] = {}
-
-        calibration: bool = self._monitor_params.get_param(
-            group="data_retrieval_layer",
-            parameter="calibration",
-            parameter_type=bool,
-            required=True,
-        )
-        self._event_info_to_append["calibration"] = calibration
+        if "optical_laser_active" in required_data:
+            self._event_info_to_append[
+                "active_laser_evr_code"
+            ] = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="active_optical_laser_evr_code",
+                parameter_type=int,
+                required=True,
+            )
 
     def event_generator(
         self,
