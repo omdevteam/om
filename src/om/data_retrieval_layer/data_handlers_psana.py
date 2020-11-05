@@ -238,6 +238,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         data_event: Dict[str, Dict[str, Any]] = {}
         data_event["data_extraction_funcs"] = self._required_data_extraction_funcs
         data_event["additional_info"] = {}
+        data_event["additional_info"].update(self._event_info_to_append)
 
         # Calls all the required psana detector interface initialization functions and
         # stores the returned objects in a dictionary.
