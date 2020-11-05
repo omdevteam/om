@@ -160,6 +160,13 @@ class HDF5Writer:
                 maxshape=(None,),
                 dtype=h5py.special_dtype(vlen=str),
             )
+        if "optical_laser_active" in hdf5_fields.keys():
+            self._resizable_datasets["optical_laser_active"] = self._h5file.create_dataset(
+                name=hdf5_fields["optical_laser_active"],
+                shape=(0,),
+                maxshape=(None,),
+                dtype=numpy.bool,
+            )
         # Creating all requested 1D float64 datasets:
         key: str
         for key in ("timestamp", "beam_energy", "pixel_size", "detector_distance"):
@@ -234,6 +241,7 @@ class HDF5Writer:
                 "timestamp",
                 "beam_energy",
                 "detector_distance",
+                "optical_laser_active",
             ]
         ] = [
             "detector_data",
@@ -241,6 +249,7 @@ class HDF5Writer:
             "timestamp",
             "beam_energy",
             "detector_distance",
+            "optical_laser_active",
         ]
         dataset_dict_key: str
         for dataset_dict_key in dataset_dict_keys_to_write:

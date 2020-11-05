@@ -604,6 +604,10 @@ class Cheetah(process_layer_base.OmMonitor):
             processed_data["event_id"] = data["event_id"]
         else:
             processed_data["event_id"] = None
+        if "optical_laser_active" in data.keys():
+            processed_data["optical_laser_active"] = data["optical_laser_active"]
+        else:
+            processed_data["optical_laser_active"] = None
         processed_data["peak_list"] = peak_list
         processed_data["filename"] = "---"
         processed_data["index"] = -1
