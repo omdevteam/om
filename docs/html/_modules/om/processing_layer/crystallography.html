@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.processing_layer.crystallography &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -129,17 +128,19 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        An OM real-time monitor for serial x-ray crystallography experiments.</span>
 
-<span class="sd">        See documentation of the constructor of the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This monitor</span>
+<span class="sd">        processes detector data frames, optionally applying detector calibration, dark</span>
+<span class="sd">        correction and gain correction. It detects Bragg peaks in each detector frame</span>
+<span class="sd">        using the peakfinder8 algorithm from Cheetah. It provides information about the</span>
+<span class="sd">        location and integrated intensity of each peak. Additionally, it calculates the</span>
+<span class="sd">        evolution of the hit rate over time. It broadcasts all this information over a</span>
+<span class="sd">        network socket for visualization by other programs. Optionally, it can also</span>
+<span class="sd">        broadcast calibrated and corrected detector data frames.</span>
 
-<span class="sd">        This monitor processes detector data frames, optionally applying detector</span>
-<span class="sd">        calibration, dark correction and gain correction. It detects Bragg peaks in</span>
-<span class="sd">        each detector frame using the peakfinder8 algorithm from Cheetah. It provides</span>
-<span class="sd">        information about the location and integrated intensity of each peak.</span>
-<span class="sd">        Additionally, it calculates the evolution of the hit rate over time. It</span>
-<span class="sd">        broadcasts all this information over a network socket for visualization by</span>
-<span class="sd">        other programs. Optionally, it can also broadcast calibrated and corrected</span>
-<span class="sd">        detector data frames.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            monitor_params: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CrystallographyMonitor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span>
@@ -149,13 +150,19 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the OM processing nodes for the Crystallography monitor.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. On the</span>
+<span class="sd">        processing nodes, it initializes the correction and peak finding algorithms,</span>
+<span class="sd">        plus some internal counters. On the collecting node, this function initializes</span>
+<span class="sd">        the data accumulation algorrithms and the storage for the aggregated</span>
+<span class="sd">        statistics.</span>
 
-<span class="sd">        On the processing nodes, it initializes the correction and peak finding</span>
-<span class="sd">        algorithms, plus some internal counters. On the collecting node, this function</span>
-<span class="sd">        initializes the data accumulation algorrithms and the storage for the</span>
-<span class="sd">        aggregated statistics.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The OM rank of the current node, which is an integer that</span>
+<span class="sd">                unambiguously identifies the current node in the OM node pool.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">geometry_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
             <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
@@ -350,11 +357,17 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializes the OM collecting node for the Crystallography monitor.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This</span>
+<span class="sd">        function initializes the algorithms that compute aggregated statistics, and</span>
+<span class="sd">        prepares the the node to broadcast data to other programs for visualization.</span>
 
-<span class="sd">        This function initializes the algorithms that compute aggregated statistics,</span>
-<span class="sd">        and prepares the the node to broadcast data to other programs for visualization.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The OM rank of the current node, which is an integer that</span>
+<span class="sd">                unambiguously identifies the current node in the OM node pool.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_speed_report_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
             <span class="n">group</span><span class="o">=</span><span class="s2">&quot;crystallography&quot;</span><span class="p">,</span>
@@ -470,13 +483,33 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Processes a detector data frame.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor.process_data`.</span>
-
-<span class="sd">        This function performs calibration and correction of a detector data frame and</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This</span>
+<span class="sd">        function performs calibration and correction of a detector data frame and</span>
 <span class="sd">        extracts Bragg peak information. Finally, it prepares the Bragg peak data (and</span>
 <span class="sd">        optionally, the detector frame data) for transmission to to the collecting</span>
 <span class="sd">        node.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The OM rank of the current node, which is an integer that</span>
+<span class="sd">                unambiguously identifies the current node in the OM node pool.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">            data: A dictionary containing the data retrieved by OM for the frame being</span>
+<span class="sd">                processed.</span>
+
+<span class="sd">                * The dictionary keys must match the entries in the &#39;required_data&#39;</span>
+<span class="sd">                  list found in the &#39;om&#39; configuration parameter group.</span>
+
+<span class="sd">                * The corresponding dictionary values must store the retrieved data.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A tuple whose first entry is a dictionary storing the data that should be</span>
+<span class="sd">            sent to the collecting node, and whose second entry is the OM rank number</span>
+<span class="sd">            of the node that processed the information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">processed_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">corrected_detector_data</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_correction</span><span class="o">.</span><span class="n">apply_correction</span><span class="p">(</span>
@@ -534,12 +567,23 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes statistics on aggregated data and broadcasts them via a network socket.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor.collect_data`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This</span>
+<span class="sd">        function computes aggregated statistics on data received from the processing</span>
+<span class="sd">        nodes. It then broadcasts the results via a network socket (for visualization</span>
+<span class="sd">        by other programs) using the MessagePack protocol.</span>
 
-<span class="sd">        This function computes aggregated statistics on data received from the</span>
-<span class="sd">        processing nodes. It then broadcasts the results via a network socket (for</span>
-<span class="sd">        visualization by other programs) using the MessagePack protocol.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The OM rank of the current node, which is an integer that</span>
+<span class="sd">                unambiguously identifies the current node in the OM node pool.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">            processed_data (Tuple[Dict, int]): a tuple whose first entry is a</span>
+<span class="sd">                dictionary storing the data received from a processing node, and whose</span>
+<span class="sd">                second entry is the OM rank number of the node that processed the</span>
+<span class="sd">                information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">received_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">processed_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_events</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -638,10 +682,23 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes end-of-processing actions on the processing nodes.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. Prints a</span>
+<span class="sd">        message on the console and ends processing.</span>
 
-<span class="sd">        Prints a message on the console and ends processing.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The OM rank of the current node, which is an integer that</span>
+<span class="sd">                unambiguously identifies the current node in the OM node pool.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing information to be sent to the processing node</span>
+<span class="sd">            (Optional: if this function returns nothing, no information is transferred</span>
+<span class="sd">            to the processing node.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Processing node </span><span class="si">{0}</span><span class="s2"> shutting down.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">node_rank</span><span class="p">))</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
@@ -652,10 +709,16 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes end-of-processing actions on the processing nodes.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.processing_layer.base.OmMonitor.end_processing_on_processing_node`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This</span>
+<span class="sd">          function prints a message on the console and ends processing.</span>
 
-<span class="sd">        Prints a message on the console and ends processing.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The OM rank of the current node, which is an integer that</span>
+<span class="sd">                unambiguously identifies the current node in the OM node pool.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span>
             <span class="s2">&quot;Processing finished. OM has processed </span><span class="si">{0}</span><span class="s2"> events in total.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -681,7 +744,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

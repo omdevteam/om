@@ -29,7 +29,7 @@ from om.utils import exceptions
 
 def epixka2m_detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of CSPAD detector data from psana.
+    Retrieves one Epix10KA detector data frame from psana.
 
     Arguments:
 

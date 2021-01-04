@@ -27,7 +27,7 @@ import numpy  # type: ignore
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Jungfrau 1N detector data from files.
+    Retrieves one Jungfrau 1M detector data frame from files.
 
     Arguments:
 
@@ -60,9 +60,10 @@ def event_id(event: Dict[str, Any]) -> str:
     Gets a unique identifier for an event retrieved from a Jungfrau 1M detector.
 
     Returns a label that unambiguously identifies, within an experiment, the event
-    currently being processed. For the Jungfrau 1M detector, event identifier consists
-    of the full path to the raw data file of the first detector panel (d0) and an index
-    of the event in this file, separated by the symbol "//".
+    currently being processed. For the Jungfrau 1M detector, the event identifier
+    consists of the full path to the file containing the raw data for the first
+    detector panel (d0), plus the index of the current frame within the file. The two
+    parts of the identifier are separated by the symbol "//".
 
     Arguments:
 
@@ -102,7 +103,7 @@ def frame_id(event: Dict[str, Any]) -> str:
 
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
-    Gets the timestamp of a Jungfrau 1M detector data event.
+    Gets the timestamp of a Jungfrau 1M event.
 
     OM currently supports Jungfrau 1M data events originating from files. The timestamp
     for an event, corresponding to a single detector frame, is determined by adding the
@@ -129,12 +130,12 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
 
 def beam_energy(event: Dict[str, Any]) -> float:
     """
-    Gets the beam energy for a Jungfrau 1M data event.
+    Gets the beam energy for a Jungfrau 1M event.
 
     OM currently supports Jungfrau data events originating from files which do not
-    provide beam energy information. OM uses the value provided for the
-    'fallback_beam_energy_in_eV' entry in the configuration file, in the
-    'data_retrieval_layer' parameter group.
+    provide beam energy information. Therefore OM uses the value provided for the
+    'fallback_beam_energy_in_eV' entry in the 'data_retrieval_layer' parameter group of
+    the configuration file.
 
     Arguments:
 
@@ -150,12 +151,12 @@ def beam_energy(event: Dict[str, Any]) -> float:
 
 def detector_distance(event: Dict[str, Any]) -> float:
     """
-    Gets the detector distance for a Jungfrau 1M data event.
+    Gets the detector distance for a Jungfrau 1M event.
 
     OM currently supports Jungfrau 1M data events originating from files which do not
-    provide detector distance information. OM uses the value provided for the
-    'fallback_detector_distance_in_mm' entry in the configuration file, in the
-    'data_retrieval_layer' parameter group.
+    provide detector distance information. Therefore OM uses the value provided for the
+    'fallback_detector_distance_in_mm' entry in the 'data_retrieval_layer' parameter
+    group of the configuration file.
 
     Arguments:
 

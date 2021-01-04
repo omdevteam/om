@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The parameters Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -101,29 +100,13 @@ YAML format. The parameters are grouped together in groups and can be retrieved
 and optionally validated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>str</em>) – the absolute or relative path to a YAML-format configuration
-file.</p>
+<dd class="field-odd"><p><strong>config</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The absolute or relative path to a YAML-format configuration file.</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>OMConfigurationFileSyntaxError</strong> – if there
+<dd class="field-even"><p><strong>OMConfigurationFileSyntaxError</strong> – If there
     is a syntax error in theconfiguration file.</p>
 </dd>
 </dl>
-<dl class="py method">
-<dt id="om.utils.parameters.MonitorParams.get_all_parameters">
-<code class="sig-name descname">get_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/parameters.html#MonitorParams.get_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.parameters.MonitorParams.get_all_parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the whole set of parameters read from the configuration file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a dictionary containing the parameters read from the
-configuration file.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Any</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt id="om.utils.parameters.MonitorParams.get_param">
 <code class="sig-name descname">get_param</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">group</span></em>, <em class="sig-param"><span class="n">parameter</span></em>, <em class="sig-param"><span class="n">parameter_type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">required</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/parameters.html#MonitorParams.get_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.parameters.MonitorParams.get_param" title="Permalink to this definition">¶</a></dt>
@@ -143,34 +126,49 @@ retrieved parameter does not match the specified one.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>group</strong> (<em>str</em>) – the name of the parameter group in which the parameter to
-retrieve is located.</p></li>
-<li><p><strong>parameter</strong> (<em>str</em>) – the name of the parameter to retrieve.</p></li>
-<li><p><strong>parameter_type</strong> (<em>Any</em>) – the type of the parameter. If a type is specified
-here, the type of the retrieved parameter will be validated. Defaults
-to None.</p></li>
-<li><p><strong>required</strong> (<em>bool</em>) – True if the parameter is strictly required and must be
+<li><p><strong>group</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The name of the parameter group in which the parameter to retrieve
+is located.</p></li>
+<li><p><strong>parameter</strong> (<em>str</em>) – The name of the parameter to retrieve.</p></li>
+<li><p><strong>parameter_type</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – The type of the parameter. If a type is specified here, the
+type of the retrieved parameter will be validated. Defaults to None.</p></li>
+<li><p><strong>required</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – True if the parameter is strictly required and must be present
 present in the configuration file, False otherwise. Defaults to False.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the value of the requested parameter, or None, if the
-parameter was not found in the configuration file (and it is not
-required).</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Any</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>The value of the requested parameter, or None, if the parameter was not</dt><dd><p>found in the configuration file (and it is not required).</p>
+</dd>
+</dl>
+</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterGroupError" title="om.utils.exceptions.OmMissingParameterGroupError"><strong>OmMissingParameterGroupError</strong></a> – if the
+<li><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterGroupError" title="om.utils.exceptions.OmMissingParameterGroupError"><strong>OmMissingParameterGroupError</strong></a> – If the
     requested parameter group is not present in the configuration file.</p></li>
-<li><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterError" title="om.utils.exceptions.OmMissingParameterError"><strong>OmMissingParameterError</strong></a> – if the parameter
+<li><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmMissingParameterError" title="om.utils.exceptions.OmMissingParameterError"><strong>OmMissingParameterError</strong></a> – If the parameter
     is required but cannot be found in the configuration file.</p></li>
-<li><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmWrongParameterTypeError" title="om.utils.exceptions.OmWrongParameterTypeError"><strong>OmWrongParameterTypeError</strong></a> – if the
-    requested parameter type does not match the type of the parameter in
-    the configuration file.</p></li>
+<li><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmWrongParameterTypeError" title="om.utils.exceptions.OmWrongParameterTypeError"><strong>OmWrongParameterTypeError</strong></a> – If the requested
+    parameter type does not match the type of the parameter in the
+    configuration file.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.utils.parameters.MonitorParams.get_all_parameters">
+<code class="sig-name descname">get_all_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/parameters.html#MonitorParams.get_all_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.parameters.MonitorParams.get_all_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the whole set of parameters read from the configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary containing the parameters read from the configuration file.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -196,7 +194,7 @@ required).</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

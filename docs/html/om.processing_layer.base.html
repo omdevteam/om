@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The base Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -99,80 +98,26 @@ to process retrieved data on the processing nodes, to aggregate data on the
 processing nodes and, optionally, to perform some end-of-processing tasks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>monitor_params</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – an object
-storing the OM monitor parameters from the configuration file.</p>
+<dd class="field-odd"><p><strong>monitor_params</strong> – An object storing the OM monitor parameters from the
+configuration file.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="om.processing_layer.base.OmMonitor.collect_data">
-<em class="property">abstract </em><code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em>, <em class="sig-param"><span class="n">processed_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.collect_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.collect_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function that the collecting node will invoke every time data is
-transferred from a processing node. The function accepts as input the
-processed data received from the processing node.</p>
+<dt id="om.processing_layer.base.OmMonitor.initialize_processing_node">
+<em class="property">abstract </em><code class="sig-name descname">initialize_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.initialize_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.initialize_processing_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes an OM processing node.</p>
+<p>Performs initialization of an OM processing node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<em>int</em>) – the OM rank of the current node, which is an integer that
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The OM rank of the current node, which is an integer that
 unambiguously identifies the current node in the OM node pool.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
-<li><p><strong>processed_data</strong> (<em>Tuple</em><em>[</em><em>Dict</em><em>, </em><em>int</em><em>]</em>) – a tuple whose first entry is a
-dictionary storing the data received from a processing node, and whose
-second entry is the OM rank number of the node that processed the
-information.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.processing_layer.base.OmMonitor.end_processing_on_collecting_node">
-<code class="sig-name descname">end_processing_on_collecting_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.end_processing_on_collecting_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.end_processing_on_collecting_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executes end-of-processing actions on the collecting node.</p>
-<p>This function is called by the parallelization engine on the collecting node
-at the end of the processing, immediately before stopping.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<em>int</em>) – the OM rank of the current node, which is an integer that
-unambiguously identifies the current node in the OM node pool.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.processing_layer.base.OmMonitor.end_processing_on_processing_node">
-<em class="property">abstract </em><code class="sig-name descname">end_processing_on_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.end_processing_on_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.end_processing_on_processing_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Executes end-of-processing actions on a processing node.</p>
-<p>This function is called by the parallelization engine on the processing nodes
-at the end of the processing, immediately before stopping. The function can,
-optionally, return a dictionary. If a dictionary is returned by this function,
-it is transferred to the collecting node.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<em>int</em>) – the OM rank of the current node, which is an integer that
-unambiguously identifies the current node in the OM node pool.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A dictionary storing information to be sent
-to the processing node (Optional: if this function returns nothing, no
-information is transferred to the processing node.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Union[Dict[str, Any], None]</p>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -185,34 +130,14 @@ information is transferred to the processing node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<em>int</em>) – the OM rank of the current node, which is an integer that
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The OM rank of the current node, which is an integer that
 unambiguously identifies the current node in the OM node pool.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.processing_layer.base.OmMonitor.initialize_processing_node">
-<em class="property">abstract </em><code class="sig-name descname">initialize_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.initialize_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.initialize_processing_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes an OM processing node.</p>
-<p>Performs initialization of an OM processing node.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<em>int</em>) – the OM rank of the current node, which is an integer that
-unambiguously identifies the current node in the OM node pool.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -228,12 +153,12 @@ processed data, will be transferred to the collecting node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<em>int</em>) – the OM rank of the current node, which is an integer that
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The OM rank of the current node, which is an integer that
 unambiguously identifies the current node in the OM node pool.</p></li>
-<li><p><strong>node_pool_size</strong> (<em>int</em>) – the total number of nodes in the OM pool, including
-all the processing nodes and the collecting node.</p></li>
-<li><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – <p>a dictionary containing the data retrieved by
-OM for the frame being processed.</p>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+<li><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – <p>A dictionary containing the data retrieved by OM for the frame being
+processed.</p>
 <ul>
 <li><p>The dictionary keys must match the entries in the ‘required_data’
 list found in the ‘om’ configuration parameter group.</p></li>
@@ -242,13 +167,87 @@ list found in the ‘om’ configuration parameter group.</p></li>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a tuple whose first entry is a dictionary storing the
-data that should be sent to the collecting node, and whose second entry is
-the OM rank number of the node that processed the information.</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Tuple[Dict, int]</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tuple whose first entry is a dictionary storing the data that should be
+sent to the collecting node, and whose second entry is the OM rank number
+of the node that processed the information.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.processing_layer.base.OmMonitor.collect_data">
+<em class="property">abstract </em><code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em>, <em class="sig-param"><span class="n">processed_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.collect_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function that the collecting node will invoke every time data is
+transferred from a processing node. The function accepts as input the
+processed data received from the processing node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The OM rank of the current node, which is an integer that
+unambiguously identifies the current node in the OM node pool.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+<li><p><strong>processed_data</strong> (<em>Tuple</em><em>[</em><em>Dict</em><em>, </em><em>int</em><em>]</em>) – a tuple whose first entry is a
+dictionary storing the data received from a processing node, and whose
+second entry is the OM rank number of the node that processed the
+information.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.processing_layer.base.OmMonitor.end_processing_on_processing_node">
+<em class="property">abstract </em><code class="sig-name descname">end_processing_on_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.end_processing_on_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.end_processing_on_processing_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes end-of-processing actions on a processing node.</p>
+<p>This function is called by the parallelization engine on the processing nodes
+at the end of the processing, immediately before stopping. The function can,
+optionally, return a dictionary. If a dictionary is returned by this function,
+it is transferred to the collecting node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The OM rank of the current node, which is an integer that
+unambiguously identifies the current node in the OM node pool.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary storing information to be sent to the processing node
+(Optional: if this function returns nothing, no information is transferred
+to the processing node.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.processing_layer.base.OmMonitor.end_processing_on_collecting_node">
+<code class="sig-name descname">end_processing_on_collecting_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/processing_layer/base.html#OmMonitor.end_processing_on_collecting_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.processing_layer.base.OmMonitor.end_processing_on_collecting_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes end-of-processing actions on the collecting node.</p>
+<p>This function is called by the parallelization engine on the collecting node
+at the end of the processing, immediately before stopping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The OM rank of the current node, which is an integer that
+unambiguously identifies the current node in the OM node pool.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -274,7 +273,7 @@ the OM rank number of the node that processed the information.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

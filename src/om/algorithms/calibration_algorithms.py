@@ -18,8 +18,7 @@
 """
 Algorithms for detector calibration.
 
-This module contains algorithms that apply corrections for artifacts caused by detector
-design or operation (i.e., not sample- or experiment-related).
+This module contains algorithms that apply calibration to raw detector data.
 """
 from typing import Any, BinaryIO, List
 
@@ -41,8 +40,8 @@ class Jungfrau1MCalibration:
         """
         Calibration of the Jungfrau 1M detector.
 
-        This algorithm stores the calibration parameters for an Jungfrau 1M detector
-        and applies the calibration to a detector data frame upon request.
+        This algorithm stores the calibration parameters for a Jungfrau 1M detector
+        and applies them to a raw detector data frame upon request.
 
         Arguments:
 

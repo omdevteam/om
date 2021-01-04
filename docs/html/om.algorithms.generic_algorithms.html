@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The generic_algorithms Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -88,17 +87,17 @@
 <div class="section" id="module-om.algorithms.generic_algorithms">
 <span id="the-generic-algorithms-module"></span><h1>The generic_algorithms Module<a class="headerlink" href="#module-om.algorithms.generic_algorithms" title="Permalink to this headline">¶</a></h1>
 <p>Generic algorithms.</p>
-<p>This module contains algorithms that carry out several operations not specific to one
-experimental technique (e.g.: detector frame masking and correction, data accumulation,
-etc.).</p>
+<p>This module contains algorithms that perform operations which are not tied to a
+specific experimental technique (e.g.: detector frame masking and correction, data
+accumulation, etc.).</p>
 <dl class="py class">
 <dt id="om.algorithms.generic_algorithms.Correction">
 <em class="property">class </em><code class="sig-name descname">Correction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dark_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dark_hdf5_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mask_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mask_hdf5_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gain_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gain_hdf5_path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/generic_algorithms.html#Correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.generic_algorithms.Correction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Detector data frame corrections.</p>
+<p>Detector data frame correction.</p>
 <p>This algorithm can store a dark data frame, a bad pixel mask, and a gain map
-(all three are optionals). Upon request, the algorithm can apply all of these
-corrections to a detector data frame.</p>
+(all three are optionals). Upon request, it can apply all these to a detector
+data frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -106,9 +105,9 @@ corrections to a detector data frame.</p>
 dark data frame. Defaults to None.</p>
 <ul>
 <li><p>If this and the ‘dark_hdf5_path’ arguments are not None, the dark
-data is loaded and will be used by the algorithm.</p></li>
+data is loaded and used by the algorithm.</p></li>
 <li><p>The dark data frame must be a numpy array of the same shape as the
-data frame that will be corrected.</p></li>
+data frame on which the correction will be applied.</p></li>
 </ul>
 </p></li>
 <li><p><strong>dark_hdf5_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – <p>The internal HDF5 path to the data block where the dark
@@ -122,12 +121,13 @@ be provided, and cannot be None. Otherwise it is ignored.</p></li>
 mask. Defaults to None.</p>
 <ul>
 <li><p>If this and the ‘mask_hdf5_path’ arguments are not None, the mask is
-loaded and will be used by the algorithm.</p></li>
+loaded and used by the algorithm.</p></li>
 <li><p>The mask data must be a numpy array of the same shape as the data
-frame that will be corrected.</p></li>
+frame on which the correction will be applied.</p></li>
 <li><p>The pixels in the mask must have a value of either 0, meaning that
-the corresponding pixel in the data frame must be set to 0, or 1,
-meaning that the value of the corresponding pixel must be left alone.</p></li>
+the corresponding pixel in the data frame should be set to 0, or 1,
+meaning that the value of the corresponding pixel should be left
+alone.</p></li>
 </ul>
 </p></li>
 <li><p><strong>mask_hdf5_path</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]) – <p>The internal HDF5 path to the data block where the mask
@@ -141,9 +141,9 @@ be provided, and cannot be None. Otherwise it is ignored.</p></li>
 gain map. Defaults to None.</p>
 <ul>
 <li><p>If this and the ‘gain_hdf5_path’ arguments are not None, the gain map
-is loaded and will be used by the algorithm.</p></li>
+is loaded used by the algorithm.</p></li>
 <li><p>The map must be a numpy array of the same shape as the data frame
-that will be corrected.</p></li>
+on which the correction will be applied.</p></li>
 <li><p>Each pixel in the gain map must store the gain factor that will be
 applied to the corresponding pixel in the data frame.</p></li>
 </ul>
@@ -161,10 +161,10 @@ be provided, and cannot be None. Otherwise it is ignored.</p></li>
 <dl class="py method">
 <dt id="om.algorithms.generic_algorithms.Correction.apply_correction">
 <code class="sig-name descname">apply_correction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/generic_algorithms.html#Correction.apply_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.generic_algorithms.Correction.apply_correction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies the corrections to a detector data frame.</p>
+<dd><p>Applies the correction to a detector data frame.</p>
 <p>This function initially applies the mask, if provided, to the data frame. The
 dark data, if provided, is then subtracted. Finally, the result is multiplied
-by the gain map (if provided).</p>
+by the gain map, if provided.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – The detector data frame on which the correction must be applied.</p>
@@ -186,21 +186,22 @@ by the gain map (if provided).</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Data accumulation and bulk retrieval.</p>
 <p>This algorithm accumulates a predefined number of data entries (each data entry
-has the form of a dictionary). When the accumulator is ‘full’, the
-whole set of accumulated data is returned to the user in one go, and the
-accumulator is emptied.</p>
+must have the format of a dictionary). When the predefined number of entries is
+reached, the accumulated data is returned to the user in one go, and the
+accumulator is reset.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>num_events_to_accumulate</strong> (<em>int</em>) – the number of data entries that can be
-added to the accumulator before it is ‘full’.</p>
+added to the accumulator before the accumulated data is returned.</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="om.algorithms.generic_algorithms.DataAccumulator.add_data">
 <code class="sig-name descname">add_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/generic_algorithms.html#DataAccumulator.add_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.generic_algorithms.DataAccumulator.add_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds data to the accumulator.</p>
-<p>If the addition of data ‘fills’ the accumulator, this function additionally
-empties it, returning the accumulated data to the user.</p>
+<p>If the accumulator, after adding the data, reaches the predefined number of
+accumulated entries, this function additionally resets it and returns the
+accumulated data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A data entry to be added to the accumulator.</p>
@@ -210,7 +211,7 @@ empties it, returning the accumulated data to the user.</p>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Either a list containing the accumulated data (if the accumulator is
-emptied), or None, if more data entries can still be added to the
+reset), or None, if more data entries can still be added to the
 accumulator.</p>
 </dd>
 </dl>
@@ -237,7 +238,7 @@ accumulator.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

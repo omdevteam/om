@@ -32,10 +32,10 @@ from om.utils import exceptions
 
 def get_current_machine_ip() -> str:
     """
-    Retrieves the IP address of the current machine.
+    Retrieves the IP address of the local machine.
 
     This function uses the python socket module to autodetect the IP addess of the
-    the machine where it is invoked.
+    the machine on which it is invoked.
 
     Returns:
 
@@ -63,10 +63,9 @@ class ZmqDataBroadcaster:
         ZMQ-based data-broadcasting socket for OM monitors.
 
         This class implements a ZMQ PUB socket that can be used to broadcast data. The
-        socket supports multiple clients and broadcasts the data using the MessagePack
-        protocol. The data is tagged with a label. The socket has no queuing system:
-        data that has not been picked up by a receiver will be lost when the next
-        broadcast takes place.
+        data is tagged with a label. The socket supports multiple clients but has no
+        queuing system: data that has not been picked up by the clients will be lost
+        to them when the next broadcast takes place.
 
         Args:
 
@@ -102,8 +101,8 @@ class ZmqDataBroadcaster:
         """
         Broadcasts data from the ZMQ PUB socket.
 
-        This function broadcasts the data in the form of a MessagePack object. The data
-        must be tagged with a label.
+        This function broadcasts data in the format of a python dictionary. The
+            data is tagged with the specified tag label.
 
         Arguments:
 

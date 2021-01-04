@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.utils.zmq_monitor &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -124,8 +123,7 @@
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        str: A string storing the IP address of the machine in the format</span>
-<span class="sd">            XXX.XXX.XXX.XXX.</span>
+<span class="sd">        A string storing the IP address of the machine in the format XXX.XXX.XXX.XXX.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ip</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span>
@@ -156,11 +154,11 @@
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            hostname (Union[str, None]): the hostname or IP address where the socket</span>
-<span class="sd">                will be opened. If None it will be autodetected. Defaults to None.</span>
+<span class="sd">            hostname: The hostname or IP address where the socket will be opened. If</span>
+<span class="sd">                None it will be autodetected. Defaults to None.</span>
 
-<span class="sd">            port(Union[int, None]): the port where the socket will be opened. If None,</span>
-<span class="sd">                the socket will be opened at port 12321. Defaults to None.</span>
+<span class="sd">            port: The port where the socket will be opened. If None, the socket will be</span>
+<span class="sd">                opened at port 12321. Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_context</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">zmq</span><span class="o">.</span><span class="n">Context</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_context</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">zmq</span><span class="o">.</span><span class="n">PUB</span><span class="p">)</span>
@@ -193,12 +191,11 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            tag (str): the label that will be attached to the broadcasted data.</span>
+<span class="sd">            tag: The label that will be attached to the broadcasted data.</span>
 
-<span class="sd">            message (Dict[str, Any]): a dictionary, where the keys are names of</span>
-<span class="sd">                information elements to be broadcasted through the broadcasting socket,</span>
-<span class="sd">                and the corresponding values are the information elements to be sent</span>
-<span class="sd">                (python objects).</span>
+<span class="sd">            message: A dictionary, where the keys are names of information elements to</span>
+<span class="sd">                be broadcasted through the broadcasting socket, and the corresponding</span>
+<span class="sd">                values are the information elements to be sent (python objects).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">send_string</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">zmq</span><span class="o">.</span><span class="n">SNDMORE</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">send_pyobj</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div></div>
@@ -220,7 +217,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

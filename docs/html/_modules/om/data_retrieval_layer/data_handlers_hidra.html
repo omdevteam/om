@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.data_retrieval_layer.data_handlers_hidra &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -103,8 +102,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Retrieval and handling of data events from HiDRA.</span>
 
-<span class="sd">This module contains classes that retrieve and process data events from the HiDRA</span>
-<span class="sd">framework.</span>
+<span class="sd">This module contains DataEventHandlers for events retrieved from the HiDRA framework.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">pathlib</span>
@@ -184,16 +182,22 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data event handler for events recovered from HiDRA at P11 (PETRA III).</span>
+<span class="sd">        DataEventHandler for events retrieved from HiDRA at P11 (PETRA III).</span>
 
-<span class="sd">        See documentation of the constructor of the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This class</span>
+<span class="sd">        handles Pilatus detector data events retrieved from HiDRA at the P11 beamline</span>
+<span class="sd">        of the PETRA III facility.</span>
 
-<span class="sd">        This class handles Pilatus detector data events recovered from HiDRA at the</span>
-<span class="sd">        P11 beamtime of the PETRA III facility.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
+
+<span class="sd">            source: A string describing the data source.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">P11Petra3DataEventHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
+            <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -201,11 +205,18 @@
         <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the Data Extraction Functions for Pilatus files.</span>
+<span class="sd">        Retrieves the Data Extraction Functions for HiDRA events at P11.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">data_extraction_funcs`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing the implementations of the Data Extraction Functions</span>
+<span class="sd">            available to the current DataEventHandler.</span>
+
+<span class="sd">            * Each dictionary key defines the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value stores the function implementation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">functions_pilatus</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
@@ -220,14 +231,23 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes event handling on the collecting node for P11 (Petra III).</span>
+<span class="sd">        Initializes P11 HiDRA event handling on the collecting node.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">initialize_event_source`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This</span>
+<span class="sd">        function announces OM to HiDRA at P11 and configures HiDRA to send data event</span>
+<span class="sd">        to the processing nodes.</span>
 
-<span class="sd">        This function announces OM to HiDRA and configures HiDRA to send data event to</span>
-<span class="sd">        the processing nodes.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            An optional initialization token.</span>
 
 <span class="sd">        Raises:</span>
 
@@ -257,11 +277,23 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes event handling on the processing nodes for Pilatus files.</span>
+<span class="sd">        Initializes P11 HiDRA event handling on the processing nodes.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">initialize_event_source`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This</span>
+<span class="sd">        function configures each processing node to receive events from HiDRA at P11.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Raises:</span>
+
+<span class="sd">            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to</span>
+<span class="sd">                HiDRA fails.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">required_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
             <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
@@ -278,24 +310,6 @@
         <span class="c1"># Fills the event info dictionary with static data that will be retrieved</span>
         <span class="c1"># later.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_info_to_append</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="n">calibration</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
-            <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;calibration&quot;</span><span class="p">,</span>
-            <span class="n">parameter_type</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span>
-            <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_event_info_to_append</span><span class="p">[</span><span class="s2">&quot;calibration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calibration</span>
-        <span class="k">if</span> <span class="n">calibration</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">calibration_info_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
-                <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
-                <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;calibration_filename&quot;</span><span class="p">,</span>
-                <span class="n">parameter_type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_event_info_to_append</span><span class="p">[</span>
-                <span class="s2">&quot;calibration_info_filename&quot;</span>
-            <span class="p">]</span> <span class="o">=</span> <span class="n">calibration_info_filename</span>
-
         <span class="k">if</span> <span class="s2">&quot;beam_energy&quot;</span> <span class="ow">in</span> <span class="n">required_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_info_to_append</span><span class="p">[</span><span class="s2">&quot;beam_energy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
                 <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
@@ -314,13 +328,28 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="P11Petra3DataEventHandler.event_generator"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_hidra.html#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.event_generator">[docs]</a>    <span class="k">def</span> <span class="nf">event_generator</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves events to process from HiDRA at Petra III.</span>
+<span class="sd">        Retrieves HiDRA events at P11.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.event_generator`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This</span>
+<span class="sd">        function retrieves events from HiDRA at P11. Each HiDRA event contains data</span>
+<span class="sd">        from a single CBF file written by a Pilatus detector.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Yields:</span>
+
+<span class="sd">            A dictionary storing the event data.</span>
 
 <span class="sd">        Raises:</span>
 
@@ -369,14 +398,16 @@
 
 <div class="viewcode-block" id="P11Petra3DataEventHandler.open_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_hidra.html#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.open_event">[docs]</a>    <span class="k">def</span> <span class="nf">open_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Opens an event retrieved from HiDRA at P11 (Petra III).</span>
+<span class="sd">        Opens a P11 HiDRA event.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.open_event`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. At P11, each</span>
+<span class="sd">        HiDRA event contains data from a single Pilatus CBF data file. This function</span>
+<span class="sd">        opens the file and associates its binary content to the &#39;data&#39; key of the</span>
+<span class="sd">        &#39;event&#39; dictionary.</span>
 
-<span class="sd">        For the Pilatus detector, a HiDRA event corresponds to the full content of a</span>
-<span class="sd">        single Pilatus CBF data file. This function makes the content of the file</span>
-<span class="sd">        available in the &#39;data&#39; entry of the &#39;event&#39; dictionary.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Wraps the binary data that HiDRA sends to OM in a BytesIO object.</span>
         <span class="n">byio_data</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]))</span>
@@ -388,27 +419,29 @@
 
 <div class="viewcode-block" id="P11Petra3DataEventHandler.close_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_hidra.html#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.close_event">[docs]</a>    <span class="k">def</span> <span class="nf">close_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Closes an event retrieved from HiDRA at P11 (Petra III)</span>
+<span class="sd">        Closes a P11 HiDRA data event.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.close_event` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class. At P11, each</span>
+<span class="sd">        HiDRA event contains data from a single Pilatus CBF data file. The file does</span>
+<span class="sd">        not need to be closed, therefore this function does nothing,</span>
 
-<span class="sd">        An HiDRA event does not need to be closed, so this function actually does</span>
-<span class="sd">        nothing.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="P11Petra3DataEventHandler.get_num_frames_in_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_hidra.html#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.get_num_frames_in_event">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_frames_in_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Gets the number of frames in an event retrieved from Pilatus files.</span>
+<span class="sd">        Gets the number of frames in a P11 HiDRA data event.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">get_num_frames_in_event`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. At P11, each</span>
+<span class="sd">        HiDRA event contains data from a single Pilatus CBF data file. The file usually</span>
+<span class="sd">        contains just one frame, therefore this function always returns 1.</span>
 
-<span class="sd">        For the Pilatus detector, an event corresponds to the content of a single CBF</span>
-<span class="sd">        data file. Since the Pilatus detector writes one frame per file, this function</span>
-<span class="sd">        always returns 1.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mi">1</span></div></div>
 </pre></div>
@@ -429,7 +462,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

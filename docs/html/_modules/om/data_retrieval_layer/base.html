@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.data_retrieval_layer.base &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -103,8 +102,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Data extraction layer base classes.</span>
 
-<span class="sd">This module contains the abstract classes for the Data Extraction Layer of an OM</span>
-<span class="sd">monitor parallelization.</span>
+<span class="sd">This module contains base abstract classes for the Data Extraction Layer of OM.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span><span class="p">,</span> <span class="n">abstractproperty</span>
@@ -129,9 +127,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The base class for an OM DataEventHandler.</span>
 
-<span class="sd">        The event handler deals with event and event sources, and implements functions</span>
-<span class="sd">        to initialize the sources, recover events from them, opening and closing event,</span>
-<span class="sd">        and investigate the event content.</span>
+<span class="sd">        DataEventHandlers deal with data events and data event sources, and implement</span>
+<span class="sd">        functions to initialize the sources, recover events from them, open and close</span>
+<span class="sd">        events, and examine their content.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -140,8 +138,8 @@
 
 <span class="sd">            source: A string describing the data source.</span>
 
-<span class="sd">            additional_info: A dictionary storing any additional information needed by</span>
-<span class="sd">                the Data Event Handler.</span>
+<span class="sd">            additional_info: A dictionary storing any additional information needed for</span>
+<span class="sd">                the initialization of the DataEventHandler.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span> <span class="o">=</span> <span class="n">monitor_parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">source</span>
@@ -152,15 +150,15 @@
         <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data Extraction Functions for the current Data Handler.</span>
+<span class="sd">        Data Extraction Functions for the current DataEventHandler.</span>
 
-<span class="sd">        This property can be used to access the Data Retrieval Functions that are</span>
-<span class="sd">        available for the current Event Data Handler.</span>
+<span class="sd">        This property can be used to retrieve the Data Extractions Functions that are</span>
+<span class="sd">        available to the current DataEventHandler.</span>
 
 <span class="sd">        Returns:</span>
 
 <span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
-<span class="sd">            available to the current Data Event Handler.</span>
+<span class="sd">            available to the current DataEventHandler.</span>
 
 <span class="sd">            * Each dictionary key defines the name of a function.</span>
 
@@ -185,6 +183,10 @@
 
 <span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
 <span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            An optional initialization token.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
@@ -205,6 +207,10 @@
 
 <span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
 <span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            An optional initialization token.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
@@ -217,9 +223,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves events to process.</span>
 
-<span class="sd">        This function initializes the retrieval of events on a processing node and</span>
-<span class="sd">        starts retrieveing the events. The function is a generator and it returns an</span>
-<span class="sd">        iterator over the events that the calling node must process.</span>
+<span class="sd">        This function initializes the retrieval of data events on a processing node and</span>
+<span class="sd">        starts retrieving the events. The function is a generator and it returns an</span>
+<span class="sd">        iterator over the data events that the calling node should process.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -231,7 +237,7 @@
 
 <span class="sd">        Yields:</span>
 
-<span class="sd">            A dictionary storing the event data.</span>
+<span class="sd">            A dictionary storing the data for the current event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
@@ -240,7 +246,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens an event.</span>
 
-<span class="sd">        Processes an event in such a way that the data content of the event is</span>
+<span class="sd">        This function processes an event in such a way that the content of the event is</span>
 <span class="sd">        retrievable by OM (opens files, unpacks binary content, etc.)</span>
 
 <span class="sd">        Arguments:</span>
@@ -254,8 +260,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Closes an event.</span>
 
-<span class="sd">        Processes an event in such a way that the event is ready to be discared by OM</span>
-<span class="sd">            (closes files, frees memory, etc.)</span>
+<span class="sd">        This function processes an event in such a way that the event is ready to be</span>
+<span class="sd">        discared by OM (closes files, frees memory, etc.)</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -266,9 +272,9 @@
 <div class="viewcode-block" id="OmDataEventHandler.get_num_frames_in_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler.get_num_frames_in_event">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">get_num_frames_in_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Gets the number of frames in an event.</span>
+<span class="sd">        Gets the number of detector frames in an event.</span>
 
-<span class="sd">        Returns the number of detector data frames in a data event.</span>
+<span class="sd">        This function returns the number of detector frames stored in an event.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -288,25 +294,19 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extracts data from an event.</span>
 
-<span class="sd">        This function calls in sequence all the Data Extraction functions, passing the</span>
-<span class="sd">        event to event as input to each of them. The function then returns the</span>
-<span class="sd">        extracted data.</span>
+<span class="sd">        This function calls in sequence all the Data Extraction Functions associated</span>
+<span class="sd">        with an event, passing the event itself as input to each of them. The function</span>
+<span class="sd">        then returns the extracted data.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            data_extraction_funcs: A dictionary containing the Data Extraction</span>
-<span class="sd">                functions to be called.</span>
-
-<span class="sd">                * Each dictionary key must define the name of a function.</span>
-
-<span class="sd">                * The corresponding dictionary value must store a function</span>
-<span class="sd">                  implementation.</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 
 <span class="sd">        Returns:</span>
 
 <span class="sd">            A dictionary storing the values returned by the Data Extraction functions.</span>
 
-<span class="sd">            * Each dictionary key identifies the Data Extraction function used to</span>
+<span class="sd">            * Each dictionary key identifies the Data Extraction Function used to</span>
 <span class="sd">              extract the data.</span>
 
 <span class="sd">            * The corresponding dictionary value stores the data returned by the</span>
@@ -338,23 +338,32 @@
     <span class="n">required_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Filters the list of data extraction functions based on the required data.</span>
+<span class="sd">    Filters the list of Data Extraction Functions based on the required data.</span>
 
-<span class="sd">    This function requires as input a dictionary storing all the data extraction</span>
-<span class="sd">    functions supported by the Data Event Handler. It returns a smaller dictionary</span>
-<span class="sd">    containing only a subset of functions based on data required by the monitor.</span>
+<span class="sd">    This function takes a dictionary storing a set of Data Extraction Functions</span>
+<span class="sd">    as input, in addition to a list of required data entries. It returns a smaller</span>
+<span class="sd">    dictionary containing only the subset of Extraction Functions needed to retrieve</span>
+<span class="sd">    the required data.</span>
 
 <span class="sd">    Arguments:</span>
 
-<span class="sd">        data_extraction_funcs: A dictionary containing the Data Extraction functions</span>
-<span class="sd">            supported by the Data Event Handler.</span>
+<span class="sd">        data_extraction_funcs: A dictionary containing a set of Data Extraction</span>
+<span class="sd">            Functions.</span>
 
 <span class="sd">            * Each dictionary key must define the name of a function.</span>
 
 <span class="sd">            * The corresponding dictionary value must store a function implementation.</span>
 
-<span class="sd">        required_data: A list of data items required by the monitor, used</span>
-<span class="sd">            to select the required Data Extraction functions.</span>
+<span class="sd">        required_data: A list of required data entries, used to select the necessary</span>
+<span class="sd">            Data Extraction Functions.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        A dictionary containing only the required Data Extraction Functions.</span>
+
+<span class="sd">        * Each dictionary key must define the name of a function.</span>
+
+<span class="sd">        * The corresponding dictionary value must store a function implementation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">required_data_extraction_funcs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span>
         <span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]</span>
@@ -387,7 +396,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

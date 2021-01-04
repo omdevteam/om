@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The data_handlers_hidra Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -88,61 +87,41 @@
 <div class="section" id="module-om.data_retrieval_layer.data_handlers_hidra">
 <span id="the-data-handlers-hidra-module"></span><h1>The data_handlers_hidra Module<a class="headerlink" href="#module-om.data_retrieval_layer.data_handlers_hidra" title="Permalink to this headline">¶</a></h1>
 <p>Retrieval and handling of data events from HiDRA.</p>
-<p>This module contains classes that retrieve and process data events from the HiDRA
-framework.</p>
+<p>This module contains DataEventHandlers for events retrieved from the HiDRA framework.</p>
 <dl class="py class">
 <dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler">
 <em class="property">class </em><code class="sig-name descname">P11Petra3DataEventHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_parameters</span></em>, <em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler" title="om.data_retrieval_layer.base.OmDataEventHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.data_retrieval_layer.base.OmDataEventHandler</span></code></a></p>
-<p>Data event handler for events recovered from HiDRA at P11 (PETRA III).</p>
-<p>See documentation of the constructor of the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">DataEventHandler()</span></code>.</p>
-<p>This class handles Pilatus detector data events recovered from HiDRA at the
-P11 beamtime of the PETRA III facility.</p>
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.close_event">
-<code class="sig-name descname">close_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.close_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Closes an event retrieved from HiDRA at P11 (Petra III)</p>
-<p>See documentation of the function in the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">close_event()</span></code> .</p>
-<p>An HiDRA event does not need to be closed, so this function actually does
-nothing.</p>
+<p>DataEventHandler for events retrieved from HiDRA at P11 (PETRA III).</p>
+<p>See documentation of the corresponding function in the base class. This class
+handles Pilatus detector data events retrieved from HiDRA at the P11 beamline
+of the PETRA III facility.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>monitor_parameters</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – An object storing the OM monitor parameters from the
+configuration file.</p></li>
+<li><p><strong>source</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – A string describing the data source.</p></li>
+</ul>
 </dd>
 </dl>
-</dd></dl>
-
 <dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.event_generator">
-<code class="sig-name descname">event_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves events to process from HiDRA at Petra III.</p>
-<p>See documentation of the function in the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">event_generator()</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmHidraAPIError" title="om.utils.exceptions.OmHidraAPIError"><strong>OmHidraAPIError</strong></a> – if the initial connection to
-    HiDRA fails.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.get_num_frames_in_event">
-<code class="sig-name descname">get_num_frames_in_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.get_num_frames_in_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the number of frames in an event retrieved from Pilatus files.</p>
-<p>See documentation of the function in the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">get_num_frames_in_event()</span></code>.</p>
-<p>For the Pilatus detector, an event corresponds to the content of a single CBF
-data file. Since the Pilatus detector writes one frame per file, this function
-always returns 1.</p>
+<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.data_extraction_funcs">
+<em class="property">property </em><code class="sig-name descname">data_extraction_funcs</code><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the Data Extraction Functions for HiDRA events at P11.</p>
+<p>See documentation of the corresponding function in the base class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A dictionary storing the implementations of the Data Extraction Functions
+available to the current DataEventHandler.</p>
+<ul class="simple">
+<li><p>Each dictionary key defines the name of a function.</p></li>
+<li><p>The corresponding dictionary value stores the function implementation.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -150,18 +129,28 @@ always returns 1.</p>
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.initialize_event_handling_on_collecting_node">
 <code class="sig-name descname">initialize_event_handling_on_collecting_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.initialize_event_handling_on_collecting_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.initialize_event_handling_on_collecting_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes event handling on the collecting node for P11 (Petra III).</p>
-<p>See documentation of the function in the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">initialize_event_source()</span></code>.</p>
-<p>This function announces OM to HiDRA and configures HiDRA to send data event to
-the processing nodes.</p>
+<dd><p>Initializes P11 HiDRA event handling on the collecting node.</p>
+<p>See documentation of the corresponding function in the base class. This
+function announces OM to HiDRA at P11 and configures HiDRA to send data event
+to the processing nodes.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmHidraAPIError" title="om.utils.exceptions.OmHidraAPIError"><strong>OmHidraAPIError</strong></a> – if the initial connection to
-    HiDRA fails.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An optional initialization token.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmHidraAPIError" title="om.utils.exceptions.OmHidraAPIError"><strong>OmHidraAPIError</strong></a> – if the initial connection to
+    HiDRA fails.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -169,10 +158,22 @@ the processing nodes.</p>
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.initialize_event_handling_on_processing_node">
 <code class="sig-name descname">initialize_event_handling_on_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.initialize_event_handling_on_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.initialize_event_handling_on_processing_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes event handling on the processing nodes for Pilatus files.</p>
-<p>See documentation of the function in the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">initialize_event_source()</span></code>.</p>
+<dd><p>Initializes P11 HiDRA event handling on the processing nodes.</p>
+<p>See documentation of the corresponding function in the base class. This
+function configures each processing node to receive events from HiDRA at P11.</p>
 <dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmHidraAPIError" title="om.utils.exceptions.OmHidraAPIError"><strong>OmHidraAPIError</strong></a> – if the initial connection to
+    HiDRA fails.</p>
+</dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
 </dd>
@@ -180,30 +181,82 @@ the processing nodes.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.open_event">
-<code class="sig-name descname">open_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.open_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens an event retrieved from HiDRA at P11 (Petra III).</p>
-<p>See documentation of the function in the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">open_event()</span></code>.</p>
-<p>For the Pilatus detector, a HiDRA event corresponds to the full content of a
-single Pilatus CBF data file. This function makes the content of the file
-available in the ‘data’ entry of the ‘event’ dictionary.</p>
+<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.event_generator">
+<code class="sig-name descname">event_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves HiDRA events at P11.</p>
+<p>See documentation of the corresponding function in the base class. This
+function retrieves events from HiDRA at P11. Each HiDRA event contains data
+from a single CBF file written by a Pilatus detector.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p>A dictionary storing the event data.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference internal" href="om.utils.exceptions.html#om.utils.exceptions.OmHidraAPIError" title="om.utils.exceptions.OmHidraAPIError"><strong>OmHidraAPIError</strong></a> – if the initial connection to
+    HiDRA fails.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.data_extraction_funcs">
-<em class="property">property </em><code class="sig-name descname">data_extraction_funcs</code><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the Data Extraction Functions for Pilatus files.</p>
-<p>See documentation of the function in the base class:
-<code class="xref py py-func docutils literal notranslate"><span class="pre">data_extraction_funcs()</span></code>.</p>
+<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.open_event">
+<code class="sig-name descname">open_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.open_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a P11 HiDRA event.</p>
+<p>See documentation of the corresponding function in the base class. At P11, each
+HiDRA event contains data from a single Pilatus CBF data file. This function
+opens the file and associates its binary content to the ‘data’ key of the
+‘event’ dictionary.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.close_event">
+<code class="sig-name descname">close_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.close_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes a P11 HiDRA data event.</p>
+<p>See documentation of the corresponding function in the base class. At P11, each
+HiDRA event contains data from a single Pilatus CBF data file. The file does
+not need to be closed, therefore this function does nothing,</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.get_num_frames_in_event">
+<code class="sig-name descname">get_num_frames_in_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_hidra.html#P11Petra3DataEventHandler.get_num_frames_in_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_hidra.P11Petra3DataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the number of frames in a P11 HiDRA data event.</p>
+<p>See documentation of the corresponding function in the base class. At P11, each
+HiDRA event contains data from a single Pilatus CBF data file. The file usually
+contains just one frame, therefore this function always returns 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -229,7 +282,7 @@ available in the ‘data’ entry of the ‘event’ dictionary.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

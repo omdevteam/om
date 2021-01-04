@@ -15,5 +15,7 @@ The data\_retrieval\_layer Package
     data_handlers_hidra <om.data_retrieval_layer.data_handlers_hidra>
     data_handlers_psana <om.data_retrieval_layer.data_handlers_psana>
     functions_cspad <om.data_retrieval_layer.functions_cspad>
+    functions_jungfrau1M <om.data_retrieval_layer.functions_jungfrau1M>
+    functions_jungfrau4M <om.data_retrieval_layer.functions_jungfrau4M>
     functions_pilatus <om.data_retrieval_layer.functions_pilatus>
     functions_psana <om.data_retrieval_layer.functions_psana>

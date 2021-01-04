@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.parallelization_layer.mpi &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -135,10 +134,22 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        An MPI-based parallelization engine for OM.</span>
 
-<span class="sd">        See documentation of the constructor of the base class:</span>
-<span class="sd">        :func:`~om.parallelization_layer.base.OmParallelizationEngine.__init__` .</span>
-<span class="sd">        In the MPI implementation of the parallelization engine, the nodes communicate</span>
-<span class="sd">        with each other using the MPI protocol.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. In the MPI</span>
+<span class="sd">        implementation of the parallelization engine, the nodes communicate with each</span>
+<span class="sd">        other using the MPI protocol.</span>
+
+<span class="sd">         Arguments:</span>
+
+<span class="sd">            source: A string describing a source of event data. The exact format of the</span>
+<span class="sd">                string depends on the specific DataEventHandler class being used.</span>
+
+<span class="sd">            event_data_handler: A class defining how data events are handled.</span>
+
+<span class="sd">            monitor: A class defining the scientific data processing that the monitor</span>
+<span class="sd">                performs.</span>
+
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MpiProcessingCollectingEngine</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">data_event_handler</span><span class="o">=</span><span class="n">data_event_handler</span><span class="p">,</span>
@@ -164,8 +175,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Starts the MPI parallelization engine.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.parallelization_layer.base.OmParallelizationEngine.start` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
@@ -216,7 +226,8 @@
             <span class="c1"># Flag used to make sure that the MPI messages have been processed.</span>
             <span class="n">req</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="o">.</span><span class="n">event_generator</span><span class="p">(</span>
-                <span class="n">node_rank</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">,</span>
+                <span class="n">node_rank</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span><span class="p">,</span>
+                <span class="n">node_pool_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpi_size</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
@@ -287,8 +298,12 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shuts down the MPI parallelization engine.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.parallelization_layer.base.OmParallelizationEngine.shutdown` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            msg: Reason for shutting down the parallelization engine. Defaults to</span>
+<span class="sd">                &quot;Reason not provided&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutting down:&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
@@ -339,7 +354,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

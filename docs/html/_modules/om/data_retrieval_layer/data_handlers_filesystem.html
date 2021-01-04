@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.data_retrieval_layer.data_handlers_filesystem &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -103,8 +102,8 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Retrieval and handling of data events from the filesystem.</span>
 
-<span class="sd">This module contains classes that retrieve and process data events from files written</span>
-<span class="sd">on disk.</span>
+<span class="sd">This module contains DataEventHandlers for files read from a filesystem (a physical or</span>
+<span class="sd">virtual disk).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -125,11 +124,11 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Base data event handler for events retrieved from files.</span>
+<span class="sd">        Base DataEventHandler for events retrieved from files.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class. This class</span>
-<span class="sd">        handles detector events retrieved from files. It should be subclassed to work</span>
-<span class="sd">        with specific file types.</span>
+<span class="sd">        generically handles events retrieved from files. It should be subclassed to</span>
+<span class="sd">        work with specific file types.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -159,6 +158,10 @@
 
 <span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
 <span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            An optional initialization token.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div></div>
 
@@ -172,10 +175,10 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data event handler for Pilatus files read from the filesystem.</span>
+<span class="sd">        DataEventHandler for Pilatus files from a filesystem.</span>
 
-<span class="sd">        See documentation of the corresponding function in the base class. This event</span>
-<span class="sd">        handler deals with files written by a 1M Pilatus detector in CBF format.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This class</span>
+<span class="sd">        handles files written by a 1M Pilatus detector in CBF format.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -194,14 +197,14 @@
         <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the Data Extraction Functions for Pilatus files.</span>
+<span class="sd">        Retrieves the Data Extraction Functions for Pilatus file events.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class.</span>
 
 <span class="sd">        Returns:</span>
 
 <span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
-<span class="sd">            available to the current Data Event Handler.</span>
+<span class="sd">            available to the current DataEventHandler.</span>
 
 <span class="sd">            * Each dictionary key defines the name of a function.</span>
 
@@ -220,7 +223,7 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes event handling on the processing nodes for Pilatus files.</span>
+<span class="sd">        Initializes Pilatus file event handling on the processing nodes.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class.</span>
 
@@ -231,6 +234,10 @@
 
 <span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
 <span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            An optional initialization token.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">required_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
             <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
@@ -289,12 +296,12 @@
         <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves Pilatus data events to process from the filesystem.</span>
+<span class="sd">        Retrieves Pilatus file events from a filesystem.</span>
 
-<span class="sd">        See documentation of the corresponding function in the base class The files to</span>
-<span class="sd">        process are split evenly amongst the processing nodes, with the exception of</span>
-<span class="sd">        the last node, which might get a lower number depending on how the number of</span>
-<span class="sd">        files can is split.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. Each</span>
+<span class="sd">        processing node retrieves the same number of files from the data source, with</span>
+<span class="sd">        the exception of the last node, which might retrieve fewer files depending on</span>
+<span class="sd">        how evenly the total number of files can be split.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -303,6 +310,10 @@
 
 <span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
 <span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Yields:</span>
+
+<span class="sd">            A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Computes how many files the current processing node should process. Splits</span>
         <span class="c1"># the files as equally as possible amongst the processing nodes with the last</span>
@@ -343,41 +354,45 @@
 
 <div class="viewcode-block" id="PilatusFilesDataEventHandler.open_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_filesystem.html#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.open_event">[docs]</a>    <span class="k">def</span> <span class="nf">open_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Opens an event retrieved from Pilatus files.</span>
+<span class="sd">        Opens a Pilatus file event.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class. For Pilatus</span>
-<span class="sd">        data files, an event corresponds to the full content of a single Pilatus CBF</span>
-<span class="sd">        file. This function makes the content of the file available in the &#39;data&#39;</span>
-<span class="sd">        field of the &#39;event&#39; object.</span>
+<span class="sd">        data files, an event corresponds to the content of a single Pilatus CBF file.</span>
+<span class="sd">        This function opens the file and associates its content with the &#39;data&#39; key of</span>
+<span class="sd">        the &#39;event&#39; dictionary.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event: A dictionary storing the event data</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">event</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fabio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s2">&quot;additional_info&quot;</span><span class="p">][</span><span class="s2">&quot;full_path&quot;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="PilatusFilesDataEventHandler.close_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_filesystem.html#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.close_event">[docs]</a>    <span class="k">def</span> <span class="nf">close_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Closes an event retrieved from Pilatus files.</span>
+<span class="sd">        Closes a Pilatus file event.</span>
 
-<span class="sd">        See documentation of the corresponding function in the base class. Since an</span>
-<span class="sd">        event corresponds to a CBF data file, which does not need to be closed, this</span>
-<span class="sd">        function actually does nothing.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. For Pilatus</span>
+<span class="sd">        data files, an event corresponds to the content of a single Pilatus CBF file,</span>
+<span class="sd">        which does not need to be closed. Therefore this function does nothing.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event: A dictionary storing the event data</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="PilatusFilesDataEventHandler.get_num_frames_in_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_filesystem.html#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.get_num_frames_in_event">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_frames_in_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Gets the number of frames in an event retrieved from Pilatus files.</span>
+<span class="sd">        Gets the number of frames in a Pilatus file  event.</span>
 
-<span class="sd">        See documentation of the corresponding function in the base class. For the</span>
-<span class="sd">        Pilatus detector, an event corresponds to the content of a single CBF data</span>
-<span class="sd">        file. Since the Pilatus detector writes one frame per file, this function</span>
-<span class="sd">        always returns 1.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. For Pilatus</span>
+<span class="sd">        data files, an event corresponds to the content of a single CBF data file.</span>
+<span class="sd">        Since the Pilatus detector writes one frame per file, this function always</span>
+<span class="sd">        returns 1.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            event: A dictionary storing the event data.</span>
 
 <span class="sd">        Returns:</span>
 
@@ -395,7 +410,7 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data event handler for Jungfrau files read from the filesystem.</span>
+<span class="sd">        DataEventHandler for Jungfrau 1M files from a filesystem.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class. This event</span>
 <span class="sd">        handler deals with files written by a Jungfrau 1M detector in HDF5 format.</span>
@@ -417,9 +432,18 @@
         <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the Data Extraction Functions for Jungfrau 1M files.</span>
+<span class="sd">        Retrieves the Data Extraction Functions for Jungfrau 1M file events.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
+<span class="sd">            available to the current DataEventHandler.</span>
+
+<span class="sd">            * Each dictionary key defines the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value stores the function implementation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">functions_jungfrau1M</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
@@ -434,7 +458,7 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes event handling on the processing nodes for Jungfrau 1M files.</span>
+<span class="sd">        Initializes Jungfrau 1M file event handling on the processing nodes.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class.</span>
 
@@ -445,6 +469,15 @@
 
 <span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
 <span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
+<span class="sd">            available to the current DataEventHandler.</span>
+
+<span class="sd">            * Each dictionary key defines the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value stores the function implementation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">required_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
             <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
@@ -518,13 +551,13 @@
         <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves Jungfrau 1M data events to process from the filesystem.</span>
+<span class="sd">        Retrieves Jungfrau 1M file events from a filesystem.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class. In the</span>
-<span class="sd">        current implementation, each frame in a file is considered a separate event.</span>
-<span class="sd">        The frames to process are split evenly amongst the processing nodes, with the</span>
-<span class="sd">        exception of the last node, which might get a lower number depending on how the</span>
-<span class="sd">        number of events can be split.</span>
+<span class="sd">        current implementation, each detector frame in a file is considered a separate</span>
+<span class="sd">        event. Each processing node retrieves the same number of frames from the data</span>
+<span class="sd">        source, with the exception of the last node, which might retrieve fewer frames</span>
+<span class="sd">        depending on how evenly the total number of frames can be split.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -533,6 +566,10 @@
 
 <span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
 <span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Yields:</span>
+
+<span class="sd">            A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Computes how many events the current processing node should process. Splits</span>
         <span class="c1"># the events as equally as possible amongst the processing nodes with the last</span>
@@ -617,37 +654,37 @@
 
 <div class="viewcode-block" id="Jungfrau1MFilesDataEventHandler.open_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_filesystem.html#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.open_event">[docs]</a>    <span class="k">def</span> <span class="nf">open_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Opens an event retrieved from Jungfrau 1M files.</span>
+<span class="sd">        Opens a Jungfrau 1M file event.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class. In the</span>
-<span class="sd">        current implementation, each frame in a file is considered a separate event,</span>
-<span class="sd">        and the event generator takes care of opening the file. This function therefore</span>
-<span class="sd">        does nothing.</span>
+<span class="sd">        current implementation, each detector frame in a file is considered a separate</span>
+<span class="sd">        event, and the event generator takes care of opening the file. This function</span>
+<span class="sd">        therefore does nothing.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event: A dictionary storing the event data</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Jungfrau1MFilesDataEventHandler.close_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_filesystem.html#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.close_event">[docs]</a>    <span class="k">def</span> <span class="nf">close_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Closes an event retrieved from Jungfrau 1M files.</span>
+<span class="sd">        Closes a Jungfrau 1M file event.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class. In the</span>
-<span class="sd">        current implementation, each frame in a file is considered a separate event,</span>
-<span class="sd">        and the event generator takes care of closing the file. This function therefore</span>
-<span class="sd">        does nothing.</span>
+<span class="sd">        current implementation, each detector frame in a file is considered a separate</span>
+<span class="sd">        event, and the event generator takes care of closing the file. This function</span>
+<span class="sd">        therefore does nothing.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event: A dictionary storing the event data</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Jungfrau1MFilesDataEventHandler.get_num_frames_in_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_filesystem.html#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.get_num_frames_in_event">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_frames_in_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Gets the number of frames in an event retrieved from Jungfrau 1M files.</span>
+<span class="sd">        Gets the number of frames in a Jungfrau 1M file event.</span>
 
 <span class="sd">        See documentation of the corresponding function in the base class. In the</span>
 <span class="sd">        current implementation, each frame in a file is considered a separate event,</span>
@@ -655,9 +692,10 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event: A dictionary storing the event data</span>
+<span class="sd">            event: A dictionary storing the event data.</span>
 
 <span class="sd">        Returns:</span>
+
 <span class="sd">            The number of frames in the event.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mi">1</span></div></div>
@@ -679,7 +717,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

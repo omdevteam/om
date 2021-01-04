@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The exceptions Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -91,6 +90,14 @@
 <p>This module contains a set of python exceptions that are specific to OM, and a
 custom exception handler that reports the OM exceptions in a simplified way.</p>
 <dl class="py exception">
+<dt id="om.utils.exceptions.OmException">
+<em class="property">exception </em><code class="sig-name descname">OmException</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Base OM exception.</p>
+<p>All other OM-specific exceptions must subclass from this exception.</p>
+</dd></dl>
+
+<dl class="py exception">
 <dt id="om.utils.exceptions.OmConfigurationFileReadingError">
 <em class="property">exception </em><code class="sig-name descname">OmConfigurationFileReadingError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmConfigurationFileReadingError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmConfigurationFileReadingError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
@@ -109,14 +116,6 @@ custom exception handler that reports the OM exceptions in a simplified way.</p>
 <em class="property">exception </em><code class="sig-name descname">OmDataExtractionError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmDataExtractionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmDataExtractionError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
 <p>Raised if an error happens during data extraction.</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt id="om.utils.exceptions.OmException">
-<em class="property">exception </em><code class="sig-name descname">OmException</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmException" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-<p>Base OM exception.</p>
-<p>All other OM-specific exceptions must subclass from this exception.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -141,17 +140,17 @@ custom exception handler that reports the OM exceptions in a simplified way.</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt id="om.utils.exceptions.OmInvalidDataBroadcastUrl">
-<em class="property">exception </em><code class="sig-name descname">OmInvalidDataBroadcastUrl</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmInvalidDataBroadcastUrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmInvalidDataBroadcastUrl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
-<p>Raised if the format of the data broadcasting URL is not valid.</p>
-</dd></dl>
-
-<dl class="py exception">
 <dt id="om.utils.exceptions.OmInvalidSourceError">
 <em class="property">exception </em><code class="sig-name descname">OmInvalidSourceError</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmInvalidSourceError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmInvalidSourceError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
 <p>Raised if the format of the source string is not valid.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="om.utils.exceptions.OmInvalidDataBroadcastUrl">
+<em class="property">exception </em><code class="sig-name descname">OmInvalidDataBroadcastUrl</code><a class="reference internal" href="_modules/om/utils/exceptions.html#OmInvalidDataBroadcastUrl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.exceptions.OmInvalidDataBroadcastUrl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.utils.exceptions.OmException" title="om.utils.exceptions.OmException"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.utils.exceptions.OmException</span></code></a></p>
+<p>Raised if the format of the data broadcasting URL is not valid.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -255,7 +254,7 @@ exceptions are instead reported normally.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

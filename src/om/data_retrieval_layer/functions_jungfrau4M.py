@@ -29,7 +29,7 @@ from om.utils import exceptions
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Jungfrau 4M detector data from psana.
+    Retrieves one Jungfrau 4M detector data frame from psana.
 
     Arguments:
 

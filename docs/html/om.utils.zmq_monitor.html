@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The zmq_monitor Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -89,6 +88,22 @@
 <p>ZMQ utilities for broadcasting data from an OM monitor.</p>
 <p>This module contains classes and functions that allow OM monitors to broadcast data
 to external programs over a network connection.</p>
+<dl class="py function">
+<dt id="om.utils.zmq_monitor.get_current_machine_ip">
+<code class="sig-name descname">get_current_machine_ip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/zmq_monitor.html#get_current_machine_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.zmq_monitor.get_current_machine_ip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the IP address of the current machine.</p>
+<p>This function uses the python socket module to autodetect the IP addess of the
+the machine where it is invoked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A string storing the IP address of the machine in the format XXX.XXX.XXX.XXX.</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt id="om.utils.zmq_monitor.ZmqDataBroadcaster">
 <em class="property">class </em><code class="sig-name descname">ZmqDataBroadcaster</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/zmq_monitor.html#ZmqDataBroadcaster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.zmq_monitor.ZmqDataBroadcaster" title="Permalink to this definition">¶</a></dt>
@@ -102,10 +117,10 @@ broadcast takes place.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>hostname</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em>) – the hostname or IP address where the socket
-will be opened. If None it will be autodetected. Defaults to None.</p></li>
-<li><p><strong>port</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>None</em><em>]</em>) – the port where the socket will be opened. If None,
-the socket will be opened at port 12321. Defaults to None.</p></li>
+<li><p><strong>hostname</strong> – The hostname or IP address where the socket will be opened. If
+None it will be autodetected. Defaults to None.</p></li>
+<li><p><strong>port</strong> – The port where the socket will be opened. If None, the socket will be
+opened at port 12321. Defaults to None.</p></li>
 </ul>
 </dd>
 </dl>
@@ -118,39 +133,18 @@ must be tagged with a label.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tag</strong> (<em>str</em>) – the label that will be attached to the broadcasted data.</p></li>
-<li><p><strong>message</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary, where the keys are names of
-information elements to be broadcasted through the broadcasting socket,
-and the corresponding values are the information elements to be sent
-(python objects).</p></li>
+<li><p><strong>tag</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The label that will be attached to the broadcasted data.</p></li>
+<li><p><strong>message</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary, where the keys are names of information elements to
+be broadcasted through the broadcasting socket, and the corresponding
+values are the information elements to be sent (python objects).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt id="om.utils.zmq_monitor.get_current_machine_ip">
-<code class="sig-name descname">get_current_machine_ip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/utils/zmq_monitor.html#get_current_machine_ip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.utils.zmq_monitor.get_current_machine_ip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the IP address of the current machine.</p>
-<p>This function uses the python socket module to autodetect the IP addess of the
-the machine where it is invoked.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>A string storing the IP address of the machine in the format</dt><dd><p>XXX.XXX.XXX.XXX.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>str</p>
-</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -172,7 +166,7 @@ the machine where it is invoked.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

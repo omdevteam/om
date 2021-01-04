@@ -32,7 +32,8 @@ from om.algorithms import crystallography_algorithms as cryst_algs
 from om.algorithms import generic_algorithms as gen_algs
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, parameters, zmq_monitor
-from om.utils.crystfel_geometry import TypeDetector
+from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
+from om.algorithms.crystallography_algorithms import TypePeakfinder8Info
 
 
 class CrystallographyMonitor(process_layer_base.OmMonitor):
@@ -44,14 +45,16 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         An OM real-time monitor for serial x-ray crystallography experiments.
 
-        See documentation of the corresponding function in the base class. This monitor
-        processes detector data frames, optionally applying detector calibration, dark
-        correction and gain correction. It detects Bragg peaks in each detector frame
-        using the peakfinder8 algorithm from Cheetah. It provides information about the
-        location and integrated intensity of each peak. Additionally, it calculates the
-        evolution of the hit rate over time. It broadcasts all this information over a
-        network socket for visualization by other programs. Optionally, it can also
-        broadcast calibrated and corrected detector data frames.
+        See documentation of the corresponding function in the base class. This class
+        contains the implementation of an OM monitor that processes detector data
+        frames, optionally applying detector calibration, dark correction and gain
+        correction. The monitor detects Bragg peaks in each detector frame using the
+        peakfinder8 peak detection algorithm from Cheetah and retrieves information
+        about the location, size and intensity of each peak. Additionally, it
+        calculates the evolution of the hit rate over time. It broadcasts all this
+        information over a network socket for visualization by other programs. This OM
+        monitor can also optionally broadcast calibrated and corrected detector data
+        frames to be displayed by an external program.
 
         Arguments:
 
@@ -66,11 +69,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Initializes the OM processing nodes for the Crystallography monitor.
 
-        See documentation of the corresponding function in the base class. On the
-        processing nodes, it initializes the correction and peak finding algorithms,
-        plus some internal counters. On the collecting node, this function initializes
-        the data accumulation algorrithms and the storage for the aggregated
-        statistics.
+        See documentation of the corresponding function in the base class. This
+        function initializes the correction and peak finding algorithms, plus some
+        internal counters.
 
         Arguments:
 
@@ -90,9 +91,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         _: Any
         __: Any
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps: Dict[str, numpy.ndarray] = crystfel_geometry.compute_pix_maps(
-            geometry
-        )
+        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(geometry)
 
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
@@ -124,7 +123,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             gain_hdf5_path=gain_map_hdf5_path,
         )
 
-        pf8_detector_info: Dict[str, int] = cryst_algs.get_peakfinder8_info(
+        pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
             self._monitor_params.get_param(
                 group="peakfinder8_peak_detection",
                 parameter="detector_type",
@@ -274,8 +273,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         Initializes the OM collecting node for the Crystallography monitor.
 
         See documentation of the corresponding function in the base class. This
-        function initializes the algorithms that compute aggregated statistics, and
-        prepares the the node to broadcast data to other programs for visualization.
+        function initializes the data accumulation algorithms and the storage buffers
+        used to compute statistics on aggregated data. Additionally, it prepares the
+        data broadcasting socket to send data to external viewers.
 
         Arguments:
 
@@ -417,7 +417,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 processed.
 
                 * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' configuration parameter group.
+                  list found in the 'om' parameter group in the configuration file.
 
                 * The corresponding dictionary values must store the retrieved data.
 
@@ -481,12 +481,12 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> None:
         """
-        Computes statistics on aggregated data and broadcasts them via a network socket.
+        Computes statistics on aggregated data and broadcasts them.
 
         See documentation of the corresponding function in the base class. This
-        function computes aggregated statistics on data received from the processing
-        nodes. It then broadcasts the results via a network socket (for visualization
-        by other programs) using the MessagePack protocol.
+        function collects the Bragg peak information from the processing nodes and
+        computes the average hit rate. It then broadcasts the Bragg peak and hit rate
+        information a network socket for visualization by external programs.
 
         Arguments:
 
@@ -598,8 +598,8 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         Executes end-of-processing actions on the processing nodes.
 
-        See documentation of the corresponding function in the base class. Prints a
-        message on the console and ends processing.
+        See documentation of the corresponding function in the base class. This
+        function prints a message on the console and ends the processing.
 
         Arguments:
 
@@ -626,7 +626,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         Executes end-of-processing actions on the processing nodes.
 
         See documentation of the corresponding function in the base class. This
-          function prints a message on the console and ends processing.
+          function prints a message on the console and ends the processing.
 
         Arguments:
 

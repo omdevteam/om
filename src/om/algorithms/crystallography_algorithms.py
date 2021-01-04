@@ -18,10 +18,10 @@
 """
 Algorithms for the processing of crystallography data.
 
-This module contains algorithms that carry out crystallography-related data processing
+This module contains algorithms that perform crystallography-related data processing
 (peak finding, etc.).
 """
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy  # type: ignore
 from mypy_extensions import TypedDict
@@ -29,9 +29,35 @@ from mypy_extensions import TypedDict
 from om.lib.peakfinder8_extension import peakfinder_8
 
 
+class TypePeakfinder8Info(TypedDict, total=True):
+    """
+    A dictionary storing information about the data layout in a detector data frame.
+    """
+
+    asic_nx: int
+    """
+    The fs size in pixels of each detector panel in the data frame.
+    """
+
+    asic_ny: int
+    """
+    The ss size in pixels of each detector panel in the data frame.
+    """
+
+    nasics_x: int
+    """
+    The number of detector panels along the fs axis of the data frame.
+    """
+
+    nasics_y: int
+    """
+    The number of detector panels along the ss axis of the data frame.
+    """
+
+
 class TypePeakList(TypedDict, total=True):
     """
-    A dictionary storing information about the Bragg peaks detected in a data frame.
+    A dictionary storing information about peaks detected in a data frame.
     """
 
     num_peaks: int
@@ -56,8 +82,7 @@ class TypePeakList(TypedDict, total=True):
 
     num_pixels: List[float]
     """
-    A key named 'num_pixels' whose value is is a list storing the number of pixels
-    that make up each detected peak.
+    A list storing the number of pixels that make up each detected peak.
     """
 
     max_pixel_intensity: List[float]
@@ -71,14 +96,15 @@ class TypePeakList(TypedDict, total=True):
     """
 
 
-def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
+def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
     """
-    Retrieves the peakfinder8 information for a specific detector.
+    Retrieves the data layout information required by the peakfinder8 algorithm for any
+    supported detector.
 
     Arguments:
 
         detector_type: The type of detector for which the information needs to be
-            retrieved. The currently supported detectors are:
+            retrieved. The detector currently supported are:
 
             * 'cspad': The CSPAD detector used at the CXI beamtime of the LCLS facility
               before 2020.
@@ -97,10 +123,10 @@ def get_peakfinder8_info(detector_type: str) -> Dict[str, int]:
 
     Returns:
 
-        A dictionary storing the peakfinder8 information.
+        A dictionary storing the data layout information.
     """
     if detector_type == "cspad":
-        peakfinder8_info: Dict[str, int] = {
+        peakfinder8_info: TypePeakfinder8Info = {
             "asic_nx": 194,
             "asic_ny": 185,
             "nasics_x": 8,
@@ -168,9 +194,10 @@ class Peakfinder8PeakDetection:
         """
         Peakfinder8 algorithm for peak detection.
 
-        This class stores the parameters needed by the 'peakfinder8' algorithm, and
-        detect peaks in a detector data frame upon request. The 'peakfinder8' algorithm
-        is described in the following publication:
+        This algorithm stores the parameters required to find peaks in a detector data
+        frame using the 'peakfinder8' strategy. It also performs peak finding on a data
+        frame upon request. The 'peakfinder8' peak detection strategy is described in
+        the following publication:
 
         A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
         and H. N. Chapman, "Cheetah: software for high-throughput reduction and
@@ -182,13 +209,13 @@ class Peakfinder8PeakDetection:
             max_num_peaks: The maximum number of peaks that will be retrieved from each
                 data frame. Additional peaks will be ignored.
 
-            asic_nx: The fs size in pixels of each detector's ASIC in the data frame.
+            asic_nx: The fs size in pixels of each detector panel in the data frame.
 
-            asic_ny: The ss size in pixels of each detector's ASIC in the data frame.
+            asic_ny: The ss size in pixels of each detector panel in the data frame.
 
-            nasics_x: The number of ASICs along the fs axis of the data frame.
+            nasics_x: The number of panels along the fs axis of the data frame.
 
-            nasics_y: The number of ASICs along the ss axis of the data frame.
+            nasics_y: The number of panels along the ss axis of the data frame.
 
             adc_threshold: The minimum ADC threshold for peak detection.
 
@@ -205,17 +232,18 @@ class Peakfinder8PeakDetection:
 
             max_res: The maximum resolution for a peak in pixels.
 
-            bad_pixel_map: An array storing the a bad pixel map. The map should mark
-                areas of the data frame that must be excluded from the peak search. If
-                this argument is None, no area will be excluded from the search.
-                Defaults to None.
+            bad_pixel_map: An array storing a bad pixel map. The map should mark areas
+                of the data frame that must be excluded from the peak search. If this
+                argument is None, no area will be excluded from the search. Defaults
+                to None.
 
                 * The map must be a numpy array of the same shape as the data frame on
                   which the algorithm will be applied.
 
                 * Each pixel in the map must have a value of either 0, meaning that
-                  the corresponding pixel in the data frame must be ignored, or 1,
-                  meaning that the corresponding pixel must be included in the search.
+                  the corresponding pixel in the data frame should be ignored, or 1,
+                  meaning that the corresponding pixel should be included in the
+                  search.
 
                 * The map is only used to exclude areas from the peak search: the data
                   is not modified in any way.
@@ -249,8 +277,8 @@ class Peakfinder8PeakDetection:
         """
         Finds peaks in a detector data frame.
 
-        This function not only retrieves information about the position of the peaks in
-        the data frame but also about their integrated intensity.
+        This function detects peaks in a data frame, and returns information about
+        their location, size and intensity.
 
         Arguments:
 
@@ -258,8 +286,7 @@ class Peakfinder8PeakDetection:
 
         Returns:
 
-            A dictionary with information about the Bragg peaks detected in a data
-            frame.
+            A dictionary with information about the detected peaks.
         """
         if not self._mask_initialized:
             if self._mask is None:

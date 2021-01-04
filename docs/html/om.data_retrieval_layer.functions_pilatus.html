@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The functions_pilatus Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -90,61 +89,18 @@
 <p>Retrieval of Pilatus detector data.</p>
 <p>This module contains functions that retrieve data from a Pilatus x-ray detector.</p>
 <dl class="py function">
-<dt id="om.data_retrieval_layer.functions_pilatus.beam_energy">
-<code class="sig-name descname">beam_energy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#beam_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.beam_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the beam energy for a Pilatus data event.</p>
-<p>OM currently supports Pilatus data events originating from files or recovered from
-HiDRA at the P11 beamline of the Petra III facility. Neither provide beam energy
-information. OM uses the value provided for the ‘fallback_beam_energy_in_eV’ entry
-in the configuration file, in the ‘data_retrieval_layer’ parameter group.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the energy of the beam in eV.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt id="om.data_retrieval_layer.functions_pilatus.detector_data">
 <code class="sig-name descname">detector_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#detector_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.detector_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves one frame of Pilatus detector data from files (or HiDRA).</p>
+<dd><p>Retrieves one Pilatus detector data frame from files or the HiDRA framework.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>one frame of detector data.</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>numpy.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="om.data_retrieval_layer.functions_pilatus.detector_distance">
-<code class="sig-name descname">detector_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#detector_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.detector_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the detector distance for a Pilatus data event.</p>
-<p>OM currently supports Pilatus data events originating from files or recovered from
-HiDRA at the P11 beamline of the Petra III facility. Neither provide detector
-distance information. OM uses the value provided for the
-‘fallback_detector_distance_in_mm’ entry in the configuration file, in the
-‘data_retrieval_layer’ parameter group.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>,</em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the detector distance in mm.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>One frame of detector data.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -152,19 +108,20 @@ distance information. OM uses the value provided for the
 <dl class="py function">
 <dt id="om.data_retrieval_layer.functions_pilatus.event_id">
 <code class="sig-name descname">event_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#event_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.event_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a unique identifier for an event retrieved from Pilatus.</p>
-<p>Returns a label that unambiguously identifies, within an experiment, the event
-currently being processed. For the Pilatus detector, an event corresponds to a
-single CBF file, and the full path to the file is used as identifier.</p>
+<dd><p>Gets a unique identifier for an event retrieved from a Pilatus detector.</p>
+<p>This function retrives a label that unambiguously identifies, within an experiment,
+the event currently being processed. For the Pilatus detector, each HiDRA or file
+event corresponds to a single CBF data file, and the full path to the file is used
+as identifier.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a unique event identifier.</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A unique event identifier.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -172,20 +129,20 @@ single CBF file, and the full path to the file is used as identifier.</p>
 <dl class="py function">
 <dt id="om.data_retrieval_layer.functions_pilatus.frame_id">
 <code class="sig-name descname">frame_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#frame_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.frame_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a unique identifier for a Pilatus data frame.</p>
-<p>Returns a label that unambiguously identifies, within an event, the frame currently
-being processed. For the Pilatus detector, the index of the frame within the event
-is used as identifier. However, each Pilatus event only contains one frame, so this
-function always returns the string “0”.</p>
+<dd><p>Gets a unique identifier for a Pilatus detector data frame.</p>
+<p>This function returns a label that unambiguously identifies, within an event, the
+frame currently being processed. For the Pilatus detector, the index of the frame
+within the event is used as identifier. However, each Pilatus event only contains
+only one frame, so this function always returns the string “0”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>a unique frame identifier (within an event).</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A unique frame identifier (within an event).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -195,18 +152,60 @@ function always returns the string “0”.</p>
 <code class="sig-name descname">timestamp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.timestamp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the timestamp of a Pilatus data event.</p>
 <p>OM currently supports Pilatus data events originating from files or recovered from
-HiDRA at the P11 beamline of the Petra III facility. In both cases, the creation
-date and time of data file that the Pilatus detector writes is used as timestamp
-for the event.</p>
+HiDRA. In both cases, an event corresponds to a single CBF data file written by the
+detector and the creation date and time of the file is used as timestamp for the
+event.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float64</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The timestamp of the event in seconds from the Epoch.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_pilatus.beam_energy">
+<code class="sig-name descname">beam_energy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#beam_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.beam_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the beam energy for a Pilatus event.</p>
+<p>OM currently supports Pilatus data events originating from files or recovered from
+HiDRA. Neither provide beam energy information. OM uses the value provided for the
+‘fallback_beam_energy_in_eV’ entry in the ‘data_retrieval_layer’ parameter group of
+the configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The energy of the beam in eV.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.data_retrieval_layer.functions_pilatus.detector_distance">
+<code class="sig-name descname">detector_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/functions_pilatus.html#detector_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.functions_pilatus.detector_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the detector distance for a Pilatus data event.</p>
+<p>OM currently supports Pilatus data events originating from files or recovered from
+HiDRA. Neither provide detector distance information. OM uses the value provided
+for the ‘fallback_detector_distance_in_mm’ entry in the ‘data_retrieval_layer’
+parameter group of the configuration file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><em>str</em><em>,</em><em>Any</em><em>]</em>) – a dictionary storing the event data.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the timestamp of the event in seconds from the Epoch.</p>
+<dd class="field-even"><p>the detector distance in mm.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>numpy.float64</p>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -230,7 +229,7 @@ for the event.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The calibration_algorithms Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -88,15 +87,14 @@
 <div class="section" id="module-om.algorithms.calibration_algorithms">
 <span id="the-calibration-algorithms-module"></span><h1>The calibration_algorithms Module<a class="headerlink" href="#module-om.algorithms.calibration_algorithms" title="Permalink to this headline">¶</a></h1>
 <p>Algorithms for detector calibration.</p>
-<p>This module contains algorithms that apply corrections for artifacts caused by detector
-design or operation (i.e., not sample- or experiment-related).</p>
+<p>This module contains algorithms that apply calibration to raw detector data.</p>
 <dl class="py class">
 <dt id="om.algorithms.calibration_algorithms.Jungfrau1MCalibration">
 <em class="property">class </em><code class="sig-name descname">Jungfrau1MCalibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dark_filenames</span></em>, <em class="sig-param"><span class="n">gain_filenames</span></em>, <em class="sig-param"><span class="n">photon_energy_kev</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/calibration_algorithms.html#Jungfrau1MCalibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.calibration_algorithms.Jungfrau1MCalibration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Calibration of the Jungfrau 1M detector.</p>
-<p>This algorithm stores the calibration parameters for an Jungfrau 1M detector
-and applies the calibration to a detector data frame upon request.</p>
+<p>This algorithm stores the calibration parameters for a Jungfrau 1M detector
+and applies them to a raw detector data frame upon request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -148,7 +146,7 @@ applies the relevant gain and offset corrections.</p>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

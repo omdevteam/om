@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The crystallography_algorithms Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -88,16 +87,98 @@
 <div class="section" id="module-om.algorithms.crystallography_algorithms">
 <span id="the-crystallography-algorithms-module"></span><h1>The crystallography_algorithms Module<a class="headerlink" href="#module-om.algorithms.crystallography_algorithms" title="Permalink to this headline">¶</a></h1>
 <p>Algorithms for the processing of crystallography data.</p>
-<p>This module contains algorithms that carry out crystallography-related data processing
+<p>This module contains algorithms that perform crystallography-related data processing
 (peak finding, etc.).</p>
+<dl class="py class">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList">
+<em class="property">class </em><code class="sig-name descname">TypePeakList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#TypePeakList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>A dictionary storing information about peaks detected in a data frame.</p>
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.num_peaks">
+<code class="sig-name descname">num_peaks</code><em class="property">: int</em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.num_peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of peaks that were detected in the data frame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.fs">
+<code class="sig-name descname">fs</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.fs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of fractional fs indexes locating the detected peaks in the data frame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.ss">
+<code class="sig-name descname">ss</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.ss" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of fractional ss indexes locating the detected peaks in the data frame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.intensity">
+<code class="sig-name descname">intensity</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of integrated intensities for the detected peaks.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.num_pixels">
+<code class="sig-name descname">num_pixels</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.num_pixels" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list storing the number of pixels that make up each detected peak.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.max_pixel_intensity">
+<code class="sig-name descname">max_pixel_intensity</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.max_pixel_intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list storing, for each peak, the value of the pixel with the maximum intensity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="om.algorithms.crystallography_algorithms.TypePeakList.snr">
+<code class="sig-name descname">snr</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.snr" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list storing  the signal-to-noise ratio of each detected peak.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="om.algorithms.crystallography_algorithms.get_peakfinder8_info">
+<code class="sig-name descname">get_peakfinder8_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detector_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#get_peakfinder8_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.get_peakfinder8_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the data layout information required by the peakfinder8 algorithm for any
+supported detector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>detector_type</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <p>The type of detector for which the information needs to be
+retrieved. The detector currently supported are:</p>
+<ul class="simple">
+<li><p>’cspad’: The CSPAD detector used at the CXI beamtime of the LCLS facility
+before 2020.</p></li>
+<li><p>’pilatus’: The Pilatus detector used at the P11 beamtime of the LCLS
+facility.</p></li>
+<li><p>’jungfrau1M’: The 1M version of the Jungfrau detector used at the Petra
+III facility.</p></li>
+<li><p>’jungfrau4M’: The 4M version of the Jungfrau detector used at the CXI
+beamline of the LCLS facility.</p></li>
+<li><p>’epix10k2M’: The 2M version of the Epix10KA detector used at the MFX
+beamline of the LCLS facility.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary storing the data layout information.</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt id="om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection">
 <em class="property">class </em><code class="sig-name descname">Peakfinder8PeakDetection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_num_peaks</span></em>, <em class="sig-param"><span class="n">asic_nx</span></em>, <em class="sig-param"><span class="n">asic_ny</span></em>, <em class="sig-param"><span class="n">nasics_x</span></em>, <em class="sig-param"><span class="n">nasics_y</span></em>, <em class="sig-param"><span class="n">adc_threshold</span></em>, <em class="sig-param"><span class="n">minimum_snr</span></em>, <em class="sig-param"><span class="n">min_pixel_count</span></em>, <em class="sig-param"><span class="n">max_pixel_count</span></em>, <em class="sig-param"><span class="n">local_bg_radius</span></em>, <em class="sig-param"><span class="n">min_res</span></em>, <em class="sig-param"><span class="n">max_res</span></em>, <em class="sig-param"><span class="n">bad_pixel_map</span></em>, <em class="sig-param"><span class="n">radius_pixel_map</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#Peakfinder8PeakDetection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Peakfinder8 algorithm for peak detection.</p>
-<p>This class stores the parameters needed by the ‘peakfinder8’ algorithm, and
-detect peaks in a detector data frame upon request. The ‘peakfinder8’ algorithm
-is described in the following publication:</p>
+<p>This algorithm stores the parameters required to find peaks in a detector data
+frame using the ‘peakfinder8’ strategy. It also performs peak finding on a data
+frame upon request. The ‘peakfinder8’ peak detection strategy is described in
+the following publication:</p>
 <p>A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
 and H. N. Chapman, “Cheetah: software for high-throughput reduction and
 analysis of serial femtosecond X-ray diffraction data”, J Appl  Crystallogr,
@@ -119,16 +200,17 @@ data frame. Additional peaks will be ignored.</p></li>
 pixels.</p></li>
 <li><p><strong>min_res</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The minimum resolution for a peak in pixels.</p></li>
 <li><p><strong>max_res</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The maximum resolution for a peak in pixels.</p></li>
-<li><p><strong>bad_pixel_map</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>]) – <p>An array storing the a bad pixel map. The map should mark
-areas of the data frame that must be excluded from the peak search. If
-this argument is None, no area will be excluded from the search.
-Defaults to None.</p>
+<li><p><strong>bad_pixel_map</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>]) – <p>An array storing a bad pixel map. The map should mark areas
+of the data frame that must be excluded from the peak search. If this
+argument is None, no area will be excluded from the search. Defaults
+to None.</p>
 <ul>
 <li><p>The map must be a numpy array of the same shape as the data frame on
 which the algorithm will be applied.</p></li>
 <li><p>Each pixel in the map must have a value of either 0, meaning that
-the corresponding pixel in the data frame must be ignored, or 1,
-meaning that the corresponding pixel must be included in the search.</p></li>
+the corresponding pixel in the data frame should be ignored, or 1,
+meaning that the corresponding pixel should be included in the
+search.</p></li>
 <li><p>The map is only used to exclude areas from the peak search: the data
 is not modified in any way.</p></li>
 </ul>
@@ -149,8 +231,8 @@ frame.</p></li>
 <dt id="om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection.find_peaks">
 <code class="sig-name descname">find_peaks</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#Peakfinder8PeakDetection.find_peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection.find_peaks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds peaks in a detector data frame.</p>
-<p>This function not only retrieves information about the position of the peaks in
-the data frame but also about their integrated intensity.</p>
+<p>This function detects peaks in a data frame, and returns information about
+their location, size and intensity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code>) – The detector data frame on which the peak finding must be performed.</p>
@@ -159,93 +241,11 @@ the data frame but also about their integrated intensity.</p>
 <dd class="field-even"><p><a class="reference internal" href="#om.algorithms.crystallography_algorithms.TypePeakList" title="om.algorithms.crystallography_algorithms.TypePeakList"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypePeakList</span></code></a></p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A dictionary with information about the Bragg peaks detected in a data
-frame.</p>
+<dd class="field-odd"><p>A dictionary with information about the detected peaks.</p>
 </dd>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py class">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList">
-<em class="property">class </em><code class="sig-name descname">TypePeakList</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#TypePeakList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
-<p>A dictionary storing information about the Bragg peaks detected in a data frame.</p>
-<dl class="py attribute">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList.fs">
-<code class="sig-name descname">fs</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.fs" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of fractional fs indexes locating the detected peaks in the data frame.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList.intensity">
-<code class="sig-name descname">intensity</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.intensity" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of integrated intensities for the detected peaks.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList.max_pixel_intensity">
-<code class="sig-name descname">max_pixel_intensity</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.max_pixel_intensity" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list storing, for each peak, the value of the pixel with the maximum intensity.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList.num_peaks">
-<code class="sig-name descname">num_peaks</code><em class="property">: int</em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.num_peaks" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of peaks that were detected in the data frame.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList.num_pixels">
-<code class="sig-name descname">num_pixels</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.num_pixels" title="Permalink to this definition">¶</a></dt>
-<dd><p>A key named ‘num_pixels’ whose value is is a list storing the number of pixels
-that make up each detected peak.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList.snr">
-<code class="sig-name descname">snr</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.snr" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list storing  the signal-to-noise ratio of each detected peak.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="om.algorithms.crystallography_algorithms.TypePeakList.ss">
-<code class="sig-name descname">ss</code><em class="property">: List<span class="p">[</span>float<span class="p">]</span></em><a class="headerlink" href="#om.algorithms.crystallography_algorithms.TypePeakList.ss" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of fractional ss indexes locating the detected peaks in the data frame.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="om.algorithms.crystallography_algorithms.get_peakfinder8_info">
-<code class="sig-name descname">get_peakfinder8_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detector_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/algorithms/crystallography_algorithms.html#get_peakfinder8_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.algorithms.crystallography_algorithms.get_peakfinder8_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the peakfinder8 information for a specific detector.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>detector_type</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – <p>The type of detector for which the information needs to be
-retrieved. The currently supported detectors are:</p>
-<ul class="simple">
-<li><p>’cspad’: The CSPAD detector used at the CXI beamtime of the LCLS facility
-before 2020.</p></li>
-<li><p>’pilatus’: The Pilatus detector used at the P11 beamtime of the LCLS
-facility.</p></li>
-<li><p>’jungfrau1M’: The 1M version of the Jungfrau detector used at the Petra
-III facility.</p></li>
-<li><p>’jungfrau4M’: The 4M version of the Jungfrau detector used at the CXI
-beamline of the LCLS facility.</p></li>
-<li><p>’epix10k2M’: The 2M version of the Epix10KA detector used at the MFX
-beamline of the LCLS facility.</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A dictionary storing the peakfinder8 information.</p>
-</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -267,7 +267,7 @@ beamline of the LCLS facility.</p></li>
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

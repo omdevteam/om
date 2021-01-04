@@ -27,7 +27,7 @@ import numpy  # type: ignore
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Pilatus detector data from files or HiDRA.
+    Retrieves one Pilatus detector data frame from files or the HiDRA framework.
 
     Arguments:
 
@@ -43,11 +43,12 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
 
 def event_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for an event retrieved from Pilatus.
+    Gets a unique identifier for an event retrieved from a Pilatus detector.
 
-    Returns a label that unambiguously identifies, within an experiment, the event
-    currently being processed. For the Pilatus detector, an event corresponds to a
-    single CBF file, and the full path to the file is used as identifier.
+    This function retrives a label that unambiguously identifies, within an experiment,
+    the event currently being processed. For the Pilatus detector, each HiDRA or file
+    event corresponds to a single CBF data file, and the full path to the file is used
+    as identifier.
 
     Arguments:
 
@@ -55,19 +56,19 @@ def event_id(event: Dict[str, Any]) -> str:
 
     Returns:
 
-        Aa unique event identifier.
+        A unique event identifier.
     """
     return cast(str, event["additional_info"]["full_path"])
 
 
 def frame_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for a Pilatus data frame.
+    Gets a unique identifier for a Pilatus detector data frame.
 
-    Returns a label that unambiguously identifies, within an event, the frame currently
-    being processed. For the Pilatus detector, the index of the frame within the event
-    is used as identifier. However, each Pilatus event only contains one frame, so this
-    function always returns the string "0".
+    This function returns a label that unambiguously identifies, within an event, the
+    frame currently being processed. For the Pilatus detector, the index of the frame
+    within the event is used as identifier. However, each Pilatus event only contains
+    only one frame, so this function always returns the string "0".
 
     Arguments:
 
@@ -85,8 +86,9 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
     Gets the timestamp of a Pilatus data event.
 
     OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA. In both cases, an event corresponds to a single data file and the creation
-    date and time of the file is used as timestamp for the event.
+    HiDRA. In both cases, an event corresponds to a single CBF data file written by the
+    detector and the creation date and time of the file is used as timestamp for the
+    event.
 
     Arguments:
 
@@ -102,12 +104,12 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
 
 def beam_energy(event: Dict[str, Any]) -> float:
     """
-    Gets the beam energy for a Pilatus data event.
+    Gets the beam energy for a Pilatus event.
 
     OM currently supports Pilatus data events originating from files or recovered from
     HiDRA. Neither provide beam energy information. OM uses the value provided for the
-    'fallback_beam_energy_in_eV' entry in the configuration file, in the
-    'data_retrieval_layer' parameter group.
+    'fallback_beam_energy_in_eV' entry in the 'data_retrieval_layer' parameter group of
+    the configuration file.
 
     Arguments:
 
@@ -126,9 +128,9 @@ def detector_distance(event: Dict[str, Any]) -> float:
     Gets the detector distance for a Pilatus data event.
 
     OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA.  Neither provide detector distance information. OM uses the value provided
-    for the 'fallback_detector_distance_in_mm' entry in the configuration file, in the
-    'data_retrieval_layer' parameter group.
+    HiDRA. Neither provide detector distance information. OM uses the value provided
+    for the 'fallback_detector_distance_in_mm' entry in the 'data_retrieval_layer'
+    parameter group of the configuration file.
 
     Arguments:
 

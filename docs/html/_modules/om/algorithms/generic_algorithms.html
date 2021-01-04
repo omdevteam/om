@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.algorithms.generic_algorithms &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -103,9 +102,9 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Generic algorithms.</span>
 
-<span class="sd">This module contains algorithms that carry out several operations not specific to one</span>
-<span class="sd">experimental technique (e.g.: detector frame masking and correction, data accumulation,</span>
-<span class="sd">etc.).</span>
+<span class="sd">This module contains algorithms that perform operations which are not tied to a</span>
+<span class="sd">specific experimental technique (e.g.: detector frame masking and correction, data</span>
+<span class="sd">accumulation, etc.).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
@@ -131,11 +130,11 @@
         <span class="n">gain_hdf5_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Detector data frame corrections.</span>
+<span class="sd">        Detector data frame correction.</span>
 
 <span class="sd">        This algorithm can store a dark data frame, a bad pixel mask, and a gain map</span>
-<span class="sd">        (all three are optionals). Upon request, the algorithm can apply all of these</span>
-<span class="sd">        corrections to a detector data frame.</span>
+<span class="sd">        (all three are optionals). Upon request, it can apply all these to a detector</span>
+<span class="sd">        data frame.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -143,10 +142,10 @@
 <span class="sd">                dark data frame. Defaults to None.</span>
 
 <span class="sd">                * If this and the &#39;dark_hdf5_path&#39; arguments are not None, the dark</span>
-<span class="sd">                  data is loaded and will be used by the algorithm.</span>
+<span class="sd">                  data is loaded and used by the algorithm.</span>
 
 <span class="sd">                * The dark data frame must be a numpy array of the same shape as the</span>
-<span class="sd">                  data frame that will be corrected.</span>
+<span class="sd">                  data frame on which the correction will be applied.</span>
 
 <span class="sd">            dark_hdf5_path: The internal HDF5 path to the data block where the dark</span>
 <span class="sd">                data frame is located. Defaults to None.</span>
@@ -158,14 +157,15 @@
 <span class="sd">                mask. Defaults to None.</span>
 
 <span class="sd">                * If this and the &#39;mask_hdf5_path&#39; arguments are not None, the mask is</span>
-<span class="sd">                  loaded and will be used by the algorithm.</span>
+<span class="sd">                  loaded and used by the algorithm.</span>
 
 <span class="sd">                * The mask data must be a numpy array of the same shape as the data</span>
-<span class="sd">                  frame that will be corrected.</span>
+<span class="sd">                  frame on which the correction will be applied.</span>
 
 <span class="sd">                * The pixels in the mask must have a value of either 0, meaning that</span>
-<span class="sd">                  the corresponding pixel in the data frame must be set to 0, or 1,</span>
-<span class="sd">                  meaning that the value of the corresponding pixel must be left alone.</span>
+<span class="sd">                  the corresponding pixel in the data frame should be set to 0, or 1,</span>
+<span class="sd">                  meaning that the value of the corresponding pixel should be left</span>
+<span class="sd">                  alone.</span>
 
 <span class="sd">            mask_hdf5_path: The internal HDF5 path to the data block where the mask</span>
 <span class="sd">                data is located. Defaults to None.</span>
@@ -177,10 +177,10 @@
 <span class="sd">                gain map. Defaults to None.</span>
 
 <span class="sd">                * If this and the &#39;gain_hdf5_path&#39; arguments are not None, the gain map</span>
-<span class="sd">                  is loaded and will be used by the algorithm.</span>
+<span class="sd">                  is loaded used by the algorithm.</span>
 
 <span class="sd">                * The map must be a numpy array of the same shape as the data frame</span>
-<span class="sd">                  that will be corrected.</span>
+<span class="sd">                  on which the correction will be applied.</span>
 
 <span class="sd">                * Each pixel in the gain map must store the gain factor that will be</span>
 <span class="sd">                  applied to the corresponding pixel in the data frame.</span>
@@ -277,11 +277,11 @@
 
 <div class="viewcode-block" id="Correction.apply_correction"><a class="viewcode-back" href="../../../om.algorithms.generic_algorithms.html#om.algorithms.generic_algorithms.Correction.apply_correction">[docs]</a>    <span class="k">def</span> <span class="nf">apply_correction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Applies the corrections to a detector data frame.</span>
+<span class="sd">        Applies the correction to a detector data frame.</span>
 
 <span class="sd">        This function initially applies the mask, if provided, to the data frame. The</span>
 <span class="sd">        dark data, if provided, is then subtracted. Finally, the result is multiplied</span>
-<span class="sd">        by the gain map (if provided).</span>
+<span class="sd">        by the gain map, if provided.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -304,14 +304,14 @@
 <span class="sd">        Data accumulation and bulk retrieval.</span>
 
 <span class="sd">        This algorithm accumulates a predefined number of data entries (each data entry</span>
-<span class="sd">        has the form of a dictionary). When the accumulator is &#39;full&#39;, the</span>
-<span class="sd">        whole set of accumulated data is returned to the user in one go, and the</span>
-<span class="sd">        accumulator is emptied.</span>
+<span class="sd">        must have the format of a dictionary). When the predefined number of entries is</span>
+<span class="sd">        reached, the accumulated data is returned to the user in one go, and the</span>
+<span class="sd">        accumulator is reset.</span>
 
 <span class="sd">        Arguments:</span>
 
 <span class="sd">            num_events_to_accumulate (int): the number of data entries that can be</span>
-<span class="sd">                added to the accumulator before it is &#39;full&#39;.</span>
+<span class="sd">                added to the accumulator before the accumulated data is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_events_to_accumulate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">num_events_to_accumulate</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -321,8 +321,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds data to the accumulator.</span>
 
-<span class="sd">        If the addition of data &#39;fills&#39; the accumulator, this function additionally</span>
-<span class="sd">        empties it, returning the accumulated data to the user.</span>
+<span class="sd">        If the accumulator, after adding the data, reaches the predefined number of</span>
+<span class="sd">        accumulated entries, this function additionally resets it and returns the</span>
+<span class="sd">        accumulated data.</span>
 
 <span class="sd">        Arguments:</span>
 
@@ -331,7 +332,7 @@
 <span class="sd">        Returns:</span>
 
 <span class="sd">            Either a list containing the accumulated data (if the accumulator is</span>
-<span class="sd">            emptied), or None, if more data entries can still be added to the</span>
+<span class="sd">            reset), or None, if more data entries can still be added to the</span>
 <span class="sd">            accumulator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_accumulator</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -362,7 +363,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

@@ -32,8 +32,10 @@ import numpy  # type: ignore
 
 from om.algorithms import crystallography_algorithms as cryst_algs
 from om.algorithms import generic_algorithms as gen_algs
+from om.algorithms.crystallography_algorithms import TypePeakfinder8Info
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
+from om.utils.crystfel_geometry import TypePixelMaps
 
 
 class Cheetah(process_layer_base.OmMonitor):
@@ -80,9 +82,7 @@ class Cheetah(process_layer_base.OmMonitor):
         )
         geometry: crystfel_geometry.TypeDetector
         geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps: Dict[str, numpy.ndarray] = crystfel_geometry.compute_pix_maps(
-            geometry
-        )
+        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(geometry)
         self._data_shape: Tuple[int, int] = self._pixelmaps["x"].shape
 
         # TODO: Type this dictionary
@@ -130,7 +130,7 @@ class Cheetah(process_layer_base.OmMonitor):
             gain_hdf5_path=gain_map_hdf5_path,
         )
 
-        pf8_detector_info: Dict[str, int] = cryst_algs.get_peakfinder8_info(
+        pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
             self._monitor_params.get_param(
                 group="peakfinder8_peak_detection",
                 parameter="detector_type",

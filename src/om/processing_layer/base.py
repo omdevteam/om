@@ -18,7 +18,7 @@
 """
 Monitor base class.
 
-This module contains the abstract class that defines an OM monitor.
+This module contains base abstract classes for the Proceessing Layer of OM.
 """
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple, Union
@@ -35,9 +35,10 @@ class OmMonitor(ABC):
         """
         The base class for an OM Monitor
 
-        The OM monitor performs the scientific data processing. It implements functions
-        to process retrieved data on the processing nodes, to aggregate data on the
-        processing nodes and, optionally, to perform some end-of-processing tasks.
+        This class manages the scientific processing of the retrieved data. It
+        features methods to process single events on the processing nodes, and to
+        aggregate multi-event data on the collecting node. It also has methods to
+        optionally perform some end-of-processing tasks.
 
         Arguments:
 
@@ -51,7 +52,9 @@ class OmMonitor(ABC):
         """
         Initializes an OM processing node.
 
-        Performs initialization of an OM processing node.
+        This function prepares the processing node to begin processing data events
+        (reads additional external data, initializes the algorithms with the required
+        parameters, etc.).
 
         Arguments:
 
@@ -67,7 +70,9 @@ class OmMonitor(ABC):
         """
         Initializes an OM collecting node.
 
-        Performs initialization of an OM collectingnode.
+        This function prepares the collecting node for the aggregation of data received
+        from the processing nodes (initializes algorithms, creates data event buffers,
+        etc.).
 
         Arguments:
 
@@ -88,10 +93,11 @@ class OmMonitor(ABC):
         """
         Processes a single frame in a data event.
 
-        The function that each processing node will invoke on every frame in a data
-        event. The function receives as input a dictionary storing the retrieved data
-        for the frame being processed. The output of the function, storing the
-        processed data, will be transferred to the collecting node.
+        This function is invoked on each processing node for every detector data frame
+        in a data event. The function receives as input a dictionary storing the data
+        related to the frame being processed, and outputs the processed data. The
+        output of the function will then be transferred by the Parallelization Engine
+        to the collecting node.
 
         Arguments:
 
@@ -101,8 +107,8 @@ class OmMonitor(ABC):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            data: A dictionary containing the data retrieved by OM for the frame being
-                processed.
+            data: A dictionary containing the data retrieved by OM for the detector
+                data frame being processed.
 
                 * The dictionary keys must match the entries in the 'required_data'
                   list found in the 'om' configuration parameter group.
@@ -125,9 +131,11 @@ class OmMonitor(ABC):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> None:
         """
-        The function that the collecting node will invoke every time data is
-        transferred from a processing node. The function accepts as input the
-        processed data received from the processing node.
+        Collects processed data from a processing node.
+
+        This unction is invoked on the collecting node every time data is transferred
+        from a processing node. The function accepts as input the data received from
+        the processing node.
 
         Arguments:
 
@@ -151,10 +159,11 @@ class OmMonitor(ABC):
         """
         Executes end-of-processing actions on a processing node.
 
-        This function is called by the parallelization engine on the processing nodes
-        at the end of the processing, immediately before stopping. The function can,
-        optionally, return a dictionary. If a dictionary is returned by this function,
-        it is transferred to the collecting node.
+        This function is called by the Parallelization Engine on the processing nodes
+        at the end of the processing, immediately before stopping. The function usually
+        does not return any value, but can optionally return a dictionary. In this
+        case the Parallelization Engine makes sure that the dictionary is sent to the
+        collecting node before the processing node shuts down.
 
         Arguments:
 

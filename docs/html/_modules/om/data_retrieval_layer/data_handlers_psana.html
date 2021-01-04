@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.data_retrieval_layer.data_handlers_psana &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -103,8 +102,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Retrieval and handling of data events from psana.</span>
 
-<span class="sd">This module contains classes that retrieve and process data events from the psana</span>
-<span class="sd">framework.</span>
+<span class="sd">This module contains DataEventHandlers for events retrieved from the psana framework.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">List</span>
 
@@ -149,15 +147,23 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span>
+        <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data event handler for events recovered from psana (LCLS).</span>
+<span class="sd">        DataEventHandler for events recovered from psana at LCLS.</span>
 
-<span class="sd">        See documentation of the constructor of the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.__init.py__` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This class</span>
+<span class="sd">        generically handles events retrieved from the psana framework at the LCLS</span>
+<span class="sd">        facility. It should be subclassed to work with specific detectors.</span>
 
-<span class="sd">        This class handles detector events recovered from psana at the LCLS facility.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
+
+<span class="sd">            source: A string describing the data source.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">LclsBaseDataEventHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span>
@@ -183,14 +189,23 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes event handling on the collecting node with psana.</span>
+<span class="sd">        Initializes psana event handling on the collecting node.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">initialize_event_source`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. The psana</span>
+<span class="sd">        data source does not need to be initialized on the collecting node, therefore</span>
+<span class="sd">        this function does nothing.</span>
 
-<span class="sd">        There is no need to initialize the psana event source, so this function</span>
-<span class="sd">        actually does nothing.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            An optional initialization token.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
@@ -198,11 +213,21 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes event handling on the processing nodes with psana.</span>
+<span class="sd">        Initializes psana event handling on the processing nodes.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">initialize_event_source`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            An optional initialization token.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">required_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_params</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span>
             <span class="n">group</span><span class="o">=</span><span class="s2">&quot;data_retrieval_layer&quot;</span><span class="p">,</span>
@@ -217,7 +242,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_required_psana_detector_init_funcs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span>
             <span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span>
-        <span class="p">]</span> <span class="o">=</span> <span class="p">({})</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="n">func_name</span><span class="p">:</span> <span class="nb">str</span>
         <span class="k">for</span> <span class="n">func_name</span> <span class="ow">in</span> <span class="n">required_data</span><span class="p">:</span>
@@ -244,18 +269,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_info_to_append</span><span class="p">[</span><span class="s2">&quot;calibration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calibration</span></div>
 
 <div class="viewcode-block" id="LclsBaseDataEventHandler.event_generator"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_psana.html#om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler.event_generator">[docs]</a>    <span class="k">def</span> <span class="nf">event_generator</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node_rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">node_pool_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves events to process from psana at the LCLS facility.</span>
+<span class="sd">        Retrieves psana events.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.event_generator`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. Each psana</span>
+<span class="sd">        event contains data related, timewise, to a single detector frame.</span>
 
-<span class="sd">        Raises:</span>
+<span class="sd">        Arguments:</span>
 
-<span class="sd">            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to</span>
-<span class="sd">                HiDRA fails.</span>
+<span class="sd">            node_rank: The rank, in the OM pool, of the processing node calling the</span>
+<span class="sd">                function.</span>
+
+<span class="sd">            node_pool_size: The total number of nodes in the OM pool, including all the</span>
+<span class="sd">                processing nodes and the collecting node.</span>
+
+<span class="sd">        Yields:</span>
+
+<span class="sd">            A dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: Check types of Generator</span>
         <span class="c1"># Detects if data is being read from an online or offline source.</span>
@@ -319,40 +353,41 @@
 
 <div class="viewcode-block" id="LclsBaseDataEventHandler.open_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_psana.html#om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler.open_event">[docs]</a>    <span class="k">def</span> <span class="nf">open_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Opens an event retrieved from psana at the LCLS facility.</span>
+<span class="sd">        Opens a psana event.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.open_event` .</span>
-
-<span class="sd">        Psana events do not need to be opened, so this function actually does nothing.</span>
+<span class="sd">        See documentation of the corresponding function in the base class. Psana events</span>
+<span class="sd">        do not need to be opened, so this function actually does nothing.</span>
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            event (Dict[str, Any]): a dictionary storing the event data.</span>
+<span class="sd">            event: a dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="LclsBaseDataEventHandler.close_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_psana.html#om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler.close_event">[docs]</a>    <span class="k">def</span> <span class="nf">close_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Closes an event retrieved from psana at the LCLS facility.</span>
+<span class="sd">        Closes a psana event.</span>
 
-<span class="sd">        See documentation of the constructor of the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.close_event` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class. Psana events</span>
+<span class="sd">        do not need to be closed, so this function actually does nothing.</span>
 
-<span class="sd">        Psana events do not need to be closed, so this function actually does nothing.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            event: a dictionary storing the event data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="LclsBaseDataEventHandler.get_num_frames_in_event"><a class="viewcode-back" href="../../../om.data_retrieval_layer.data_handlers_psana.html#om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler.get_num_frames_in_event">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_frames_in_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Gets the number of frames in an event retrieved from psana at the LCLS facility.</span>
+<span class="sd">        Gets the number of frames in a psana data event.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">get_num_frames_in_event` .</span>
-
-<span class="sd">        Psana events are frame-based, and always contain just one frame. This function</span>
+<span class="sd">        See documentation of the corresponding function in the base class. Each psana</span>
+<span class="sd">        event contains data related to a single detector frame, so this function</span>
 <span class="sd">        always returns 1.</span>
+
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            event: a dictionary storing the event data.</span>
 
 <span class="sd">        Returns:</span>
 
@@ -368,15 +403,22 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data event handler for events recovered at CXI (LCLS) before 2020.</span>
+<span class="sd">        DataEventHandler for events retrieved from psana at CXI with CSPAD (LCLS).</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~LclsBaseDataEventHandler.__init.py__` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This class</span>
+<span class="sd">        handles events retrieved from psana at the CXI beamline of the LCLS facility</span>
+<span class="sd">        before 2020, when the beamline mainly used the CSPAD detector.</span>
 
-<span class="sd">        This class handles detector events recovered from psana at the LCLS facility.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
+
+<span class="sd">            source: A string describing the data source.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CxiLclsCspadDataEventHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
+            <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -384,15 +426,18 @@
         <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the Data Extraction Functions for CXI (LCLS) before 2020.</span>
+<span class="sd">        Retrieves the Data Extraction Functions for CXI psana events (CSPAD).</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">data_extraction_funcs`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class.</span>
 
-<span class="sd">        This function retrieves the Data Extraction Functions available for the CXI</span>
-<span class="sd">        beamline at the LCLS facility, when data was collected before 2020 (using</span>
-<span class="sd">        the CSPAD detector).</span>
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
+<span class="sd">            available to the current DataEventHandler.</span>
+
+<span class="sd">            * Each dictionary key defines the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value stores the function implementation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">functions_psana</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
@@ -416,12 +461,17 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data event handler for events recovered at CXI (LCLS).</span>
+<span class="sd">        DataEventHandler for events retrieved from psana at CXI (LCLS).</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~PsanaDataEventHandler.__init.py__` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This class</span>
+<span class="sd">        handles events retrieved from psana at the CXI beamline of the LCLS facility.</span>
 
-<span class="sd">        This class handles detector events recovered from psana at the LCLS facility.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
+
+<span class="sd">            source: A string describing the data source.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CxiLclsDataEventHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span>
@@ -430,15 +480,18 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data_extraction_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the Data Extraction Functions for CXI (LCLS).</span>
+<span class="sd">        Retrieves the Data Extraction Functions for CXI psana events.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">data_extraction_funcs`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class.</span>
 
-<span class="sd">        This function retrieves the Data Extraction Functions available for the CXI</span>
-<span class="sd">        beamline at the LCLS facility, when data was collected after 2020 (using</span>
-<span class="sd">        the Jungfrau4M detector).</span>
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
+<span class="sd">            available to the current Data Event Handler.</span>
+
+<span class="sd">            * Each dictionary key defines the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value stores the function implementation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">functions_psana</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
@@ -462,12 +515,17 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Data event handler for events recovered at CXI (LCLS).</span>
+<span class="sd">        DataEventHandler for events retrieved from psana at MFX (LCLS).</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~PsanaDataEventHandler.__init.py__` .</span>
+<span class="sd">        See documentation of the corresponding function in the base class. This class</span>
+<span class="sd">        handles events retrieved from psana at the MFX beamline of the LCLS facility.</span>
 
-<span class="sd">        This class handles detector events recovered from psana at the LCLS facility.</span>
+<span class="sd">        Arguments:</span>
+
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
+
+<span class="sd">            source: A string describing the data source.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MfxLclsDataEventHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">monitor_parameters</span><span class="o">=</span><span class="n">monitor_parameters</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span>
@@ -476,15 +534,18 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data_extraction_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieves the Data Extraction Functions for CXI (LCLS).</span>
+<span class="sd">        Retrieves the Data Extraction Functions for MFX psana events.</span>
 
-<span class="sd">        See documentation of the function in the base class:</span>
-<span class="sd">        :func:`~om.data_retrieval_layer.base.DataEventHandler.\</span>
-<span class="sd">data_extraction_funcs`.</span>
+<span class="sd">        See documentation of the corresponding function in the base class.</span>
 
-<span class="sd">        This function retrieves the Data Extraction Functions available for the CXI</span>
-<span class="sd">        beamline at the LCLS facility, when data was collected after 2020 (using</span>
-<span class="sd">        the Jungfrau4M detector).</span>
+<span class="sd">        Returns:</span>
+
+<span class="sd">            A dictionary storing the implementations of the Data Extraction functions</span>
+<span class="sd">            available to the current DataEventHandler.</span>
+
+<span class="sd">            * Each dictionary key defines the name of a function.</span>
+
+<span class="sd">            * The corresponding dictionary value stores the function implementation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">functions_psana</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
@@ -515,7 +576,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

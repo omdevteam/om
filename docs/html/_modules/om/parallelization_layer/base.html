@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>om.parallelization_layer.base &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/my-styles.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
     <script src="../../../_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
@@ -103,8 +102,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Parallelization engine base class.</span>
 
-<span class="sd">This module contains the abstract class that defines an OM monitor parallelization</span>
-<span class="sd">engine.</span>
+<span class="sd">This module contains base abstract classes for the Data Parallelization Layer of OM.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
@@ -126,13 +124,14 @@
         <span class="n">monitor_parameters</span><span class="p">:</span> <span class="n">parameters</span><span class="o">.</span><span class="n">MonitorParams</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The base class for an OM ParallelizationEngine.</span>
+<span class="sd">        The base class for an OM Parallelization Engine.</span>
 
-<span class="sd">        The parallelization engine initializes several processing nodes and a</span>
-<span class="sd">        collecting node. An OM monitor is attached to the engine when it is created.</span>
+<span class="sd">        The Parallelization Engine initializes several processing nodes and a</span>
+<span class="sd">        collecting node. An instance of an :class:`~om.processing_layer.base.OmMonitor`</span>
+<span class="sd">        class is attached to the engine when it is created.</span>
 
 <span class="sd">        * On each processing node, the engine retrieves one data event from a source.</span>
-<span class="sd">          It then invokes the OM monitor to process on every frame of the retrieved</span>
+<span class="sd">          It then invokes the OM Monitor to process on every frame of the retrieved</span>
 <span class="sd">          data. The engine makes then sure that the processed data returned by the OM</span>
 <span class="sd">          monitor is transferred to the collecting node.</span>
 
@@ -144,19 +143,16 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            source (str): a string describing a source of event data. The exact format</span>
-<span class="sd">                of the string depends on the specific DataEventHandler class being</span>
-<span class="sd">                used.</span>
+<span class="sd">            source: A string describing a source of event data. The exact format of the</span>
+<span class="sd">                string depends on the specific DataEventHandler class being used.</span>
 
-<span class="sd">            event_data_handler(:class:`~om.data_retrieval_layer.base.\</span>
-<span class="sd">DataEventHandler`): a class defining how data events are handled.</span>
+<span class="sd">            event_data_handler: A class defining how data events are handled.</span>
 
-<span class="sd">            monitor(:class:`~om.processing_layer.base.\</span>
-<span class="sd">OmMonitor`): a class defining the scientific data processing that the monitor</span>
+<span class="sd">            monitor: A class defining the scientific data processing that the monitor</span>
 <span class="sd">                performs.</span>
 
-<span class="sd">            monitor_parameters (:class:`~om.utils.parameters.MonitorParams`): an object</span>
-<span class="sd">                storing the OM monitor parameters from the configuration file.</span>
+<span class="sd">            monitor_parameters: An object storing the OM monitor parameters from the</span>
+<span class="sd">                configuration file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_event_handler</span><span class="p">:</span> <span class="n">data_ret_layer_base</span><span class="o">.</span><span class="n">OmDataEventHandler</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">data_event_handler</span>
@@ -208,8 +204,8 @@
 
 <span class="sd">        Arguments:</span>
 
-<span class="sd">            msg (Union[str, None]): reason for shutting down the parallelization</span>
-<span class="sd">                engine. Defaults to &quot;Reason not provided&quot;.</span>
+<span class="sd">            msg: Reason for shutting down the parallelization engine. Defaults to</span>
+<span class="sd">                &quot;Reason not provided&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span></div></div>
 </pre></div>
@@ -230,7 +226,7 @@
     Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
     a research centre of the Helmholtz Association
 .<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
     </p>
   </div>
 </footer>

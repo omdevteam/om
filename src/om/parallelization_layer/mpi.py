@@ -59,10 +59,10 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             source: A string describing a source of event data. The exact format of the
                 string depends on the specific DataEventHandler class being used.
 
-            event_data_handler: A class defining how data events are handled.
+            event_data_handler: A class defining how data events are retrieved and
+                handled.
 
-            monitor: A class defining the scientific data processing that the monitor
-                performs.
+            monitor: A class defining the how the retrieved data must be processed.
 
             monitor_parameters: An object storing the OM monitor parameters from the
                 configuration file.

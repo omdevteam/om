@@ -39,9 +39,9 @@ class MonitorParams:
         """
         Storage, retrieval and validation of OM monitor parameters.
 
-        This class stores a set of OM configuration parameters read from a file in
-        YAML format. The parameters are grouped together in groups and can be retrieved
-        and optionally validated.
+        This class stores a set of parameters, subdivided in groups, read from YAML
+        format OM configuration file. It features methods to retrieve and optionally
+        validate configuration parameter values.
 
         Arguments:
 

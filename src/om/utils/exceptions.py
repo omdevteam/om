@@ -18,8 +18,8 @@
 """
 OM-specific exceptions and exception handling.
 
-This module contains a set of python exceptions that are specific to OM, and a
-custom exception handler that reports the OM exceptions in a simplified way.
+This module contains a set of python exceptions that are specific to OM, and a custom
+exception handler that reports the OM exceptions in a simplified way.
 """
 import sys
 import traceback
@@ -27,9 +27,9 @@ import traceback
 
 class OmException(Exception):
     """
-    Base OM exception.
+    Base class for OM exceptions.
 
-    All other OM-specific exceptions must subclass from this exception.
+    All other OM-specific exceptions should subclass from this exception.
     """
 
 
@@ -107,7 +107,7 @@ class OmMissingEventHandlingFunctionError(OmException):
 
 class OmMissingLayerModuleFileError(OmException):
     """
-    The python implementation of an OM layer cannot be found on the system.
+    Raised if the python implementation of an OM layer cannot be found on the system.
     """
 
 

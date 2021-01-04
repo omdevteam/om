@@ -18,8 +18,7 @@
 """
 Retrieval and handling of data events from psana.
 
-This module contains classes that retrieve and process data events from the psana
-framework.
+This module contains DataEventHandlers for events retrieved from the psana framework.
 """
 from typing import Any, Callable, Dict, Generator, List
 
@@ -69,12 +68,11 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         source: str,
     ) -> None:
         """
-        Data event handler for events recovered from psana at LCLS.
+        DataEventHandler for events recovered from psana at LCLS.
 
         See documentation of the corresponding function in the base class. This class
-        handles detector events retrieved from the psana framework at the LCLS
-        facility. It should be subclassed to work with specific detectors integrated
-        in psana.
+        generically handles events retrieved from the psana framework at the LCLS
+        facility. It should be subclassed to work with specific detectors.
 
         Arguments:
 
@@ -107,11 +105,11 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes psana data event handling on the collecting node
+        Initializes psana event handling on the collecting node.
 
-        See documentation of the corresponding function in the base class. There is
-        usually no initialization to perform  on the collecting node for a psana data
-        source, so this function does nothing.
+        See documentation of the corresponding function in the base class. The psana
+        data source does not need to be initialized on the collecting node, therefore
+        this function does nothing.
 
         Arguments:
 
@@ -131,7 +129,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes psana data event handling on the processing nodes.
+        Initializes psana event handling on the processing nodes.
 
         See documentation of the corresponding function in the base class.
 
@@ -195,10 +193,10 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves psana data events.
+        Retrieves psana events.
 
-        See documentation of the corresponding function in the base class. Psana data
-        events usually store data related to a single detector frame.
+        See documentation of the corresponding function in the base class. Each psana
+        event contains data related, timewise, to a single detector frame.
 
         Arguments:
 
@@ -275,10 +273,10 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
     def open_event(self, event: Dict[str, Any]) -> None:
         """
-        Opens a psana data event.
+        Opens a psana event.
 
-        See documentation of the corresponding function in the base class. Psana data
-        events do not need to be opened, so this function actually does nothing.
+        See documentation of the corresponding function in the base class. Psana events
+        do not need to be opened, so this function actually does nothing.
 
         Arguments:
 
@@ -288,10 +286,10 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
     def close_event(self, event: Dict[str, Any]) -> None:
         """
-        Closes a psana data event.
+        Closes a psana event.
 
-        See documentation of the corresponding function in the base class. Psana data
-        events do not need to be closed, so this function actually does nothing.
+        See documentation of the corresponding function in the base class. Psana events
+        do not need to be closed, so this function actually does nothing.
 
         Arguments:
 
@@ -303,8 +301,8 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Gets the number of frames in a psana data event.
 
-        See documentation of the corresponding function in the base class. Psana data
-        events store data related to a single detector frame, so this function
+        See documentation of the corresponding function in the base class. Each psana
+        event contains data related to a single detector frame, so this function
         always returns 1.
 
         Arguments:
@@ -325,10 +323,10 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
 
     def __init__(self, monitor_parameters: parameters.MonitorParams, source: str):
         """
-        Data event handler for events recovered at CXI with CSPAD (LCLS).
+        DataEventHandler for events retrieved from psana at CXI with CSPAD (LCLS).
 
         See documentation of the corresponding function in the base class. This class
-        handles events recovered from psana at the CXI beamline of the LCLS facility
+        handles events retrieved from psana at the CXI beamline of the LCLS facility
         before 2020, when the beamline mainly used the CSPAD detector.
 
         Arguments:
@@ -348,14 +346,14 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
         self,
     ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
-        Retrieves the Data Extraction Functions for psana data events at CXI (CSPAD)
+        Retrieves the Data Extraction Functions for CXI psana events (CSPAD).
 
         See documentation of the corresponding function in the base class.
 
         Returns:
 
             A dictionary storing the implementations of the Data Extraction functions
-            available to the current Data Event Handler.
+            available to the current DataEventHandler.
 
             * Each dictionary key defines the name of a function.
 
@@ -383,10 +381,10 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Data event handler for events recovered at CXI (LCLS).
+        DataEventHandler for events retrieved from psana at CXI (LCLS).
 
         See documentation of the corresponding function in the base class. This class
-        handles events recovered from psana at the CXI beamline of the LCLS facility.
+        handles events retrieved from psana at the CXI beamline of the LCLS facility.
 
         Arguments:
 
@@ -402,7 +400,7 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
     @property
     def data_extraction_funcs(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
         """
-        Retrieves the Data Extraction Functions for psana data events at CXI.
+        Retrieves the Data Extraction Functions for CXI psana events.
 
         See documentation of the corresponding function in the base class.
 
@@ -437,10 +435,10 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Data event handler for events recovered at MFX (LCLS).
+        DataEventHandler for events retrieved from psana at MFX (LCLS).
 
         See documentation of the corresponding function in the base class. This class
-        handles events recovered from psana at the MFX beamline of the LCLS facility.
+        handles events retrieved from psana at the MFX beamline of the LCLS facility.
 
         Arguments:
 
@@ -456,14 +454,14 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
     @property
     def data_extraction_funcs(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
         """
-        Retrieves the Data Extraction Functions for psana data events at MFX.
+        Retrieves the Data Extraction Functions for MFX psana events.
 
         See documentation of the corresponding function in the base class.
 
         Returns:
 
             A dictionary storing the implementations of the Data Extraction functions
-            available to the current Data Event Handler.
+            available to the current DataEventHandler.
 
             * Each dictionary key defines the name of a function.
 
