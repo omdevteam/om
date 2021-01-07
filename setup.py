@@ -106,8 +106,6 @@ setup(
         "fabio>=0.9.0",
         "future>=0.17.1",
         "h5py>=2.7.0",
-        "msgpack-python>=0.4.8",
-        "msgpack-numpy>=0.4.1",
         "mypy-extensions>=0.4.3",
         "numpy>=1.11.3",
         "pyyaml>=5.1.2",
@@ -115,8 +113,21 @@ setup(
         "scipy>=1.2.1",
         "typing_extensions>=3.7.4.1",
     ],
-    extras_require={":python_version < '3.4'": ["pathlib>=1.0.1"]},
-    entry_points={"console_scripts": ["om_monitor.py=om.monitor:main"]},
+    extras_require={
+        ":python_version < '3.4'": ["pathlib>=1.0.1"],
+        "qt": ["pyqt5>=5.9.2", "pyqtgraph>=0.10.0"],
+    },
+    entry_points={
+        "console_scripts": ["om_monitor.py=om.monitor:main"],
+        "gui_scripts": [
+            "om_crystallography_gui.py=om.graphical_interfaces."
+            "crystallography_gui:main",
+            "om_crystallography_frame_viewer.py=om.graphical_interfaces."
+            "crystallography_frame_viewer:main",
+            "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
+            "crystallography_parameter_tweaker:main",
+        ],
+    },
     ext_modules=extensions,
     package_dir={"": "src"},
     packages=find_packages(where="src"),
