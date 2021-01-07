@@ -33,7 +33,7 @@ class OmMonitor(ABC):
 
     def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        The base class for an OM Monitor
+        The base class for an OM monitor
 
         This class manages the scientific processing of the retrieved data. It
         features methods to process single events on the processing nodes, and to
