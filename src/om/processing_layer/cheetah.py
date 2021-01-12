@@ -281,11 +281,15 @@ class Cheetah(process_layer_base.OmMonitor):
         compression: Union[str, None] = self._monitor_params.get_param(
             group="cheetah", parameter="hdf5_file_compression", parameter_type=str,
         )
-
         compression_opts: Union[int, None] = self._monitor_params.get_param(
             group="cheetah", parameter="hdf5_file_compression_opts", parameter_type=int,
         )
-
+        compression_shuffle: Union[bool, None] = self._monitor_params.get_param(
+            group="cheetah", parameter="hdf5_file_compression_shuffle", parameter_type=bool,
+        )
+        hdf5_file_max_num_peaks: Union[int, None] = self._monitor_params.get_param(
+            group="cheetah", parameter="hdf5_file_max_num_peaks", parameter_type=int,
+        )
         hdf5_fields: Dict[str, str] = self._monitor_params.get_all_parameters()[
             "cheetah"
         ]["hdf5_fields"]
@@ -301,6 +305,8 @@ class Cheetah(process_layer_base.OmMonitor):
             processed_filename_prefix=processed_filename_prefix,
             processed_filename_extension=processed_filename_extension,
             compression_opts=compression_opts,
+            compression_shuffle=compression_shuffle,
+            max_num_peaks=hdf5_file_max_num_peaks,
         )
 
         print("Processing node {0} starting.".format(node_rank))
