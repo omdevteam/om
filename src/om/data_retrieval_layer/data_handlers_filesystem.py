@@ -364,6 +364,57 @@ initialize_event_source`.
             binning = False
         self._event_info_to_append["binning"] = binning
 
+        binning_bad_pixel_map_fname: Union[str, None] = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="binning_bad_pixel_map_filename",
+            parameter_type=str,
+        )
+        if binning_bad_pixel_map_fname is not None:
+            binning_bad_pixel_map_hdf5_path: Union[
+                str, None
+            ] = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="binning_bad_pixel_map_hdf5_path",
+                parameter_type=str,
+                required=True,
+            )
+        else:
+            binning_bad_pixel_map_hdf5_path = None
+
+        if binning_bad_pixel_map_fname is not None:
+            try:
+                map_hdf5_file_handle: Any
+                with h5py.File(binning_bad_pixel_map_fname, "r") as map_hdf5_file_handle:
+                    bad_pixel_map: Union[numpy.ndarray, None] = map_hdf5_file_handle[
+                        binning_bad_pixel_map_hdf5_path
+                    ][:]
+            except (IOError, OSError, KeyError) as exc:
+                exc_type, exc_value = sys.exc_info()[:2]
+                # TODO: Fix type check
+                raise RuntimeError(
+                    "The following error occurred while reading the {0} field from"
+                    "the {1} bad pixel map HDF5 file:"
+                    "{2}: {3}".format(
+                        binning_bad_pixel_map_fname,
+                        binning_bad_pixel_map_hdf5_path,
+                        exc_type.__name__,  # type: ignore
+                        exc_value,
+                    )
+                ) from exc
+        else:
+            bad_pixel_map = None
+        self._event_info_to_append["binning_bad_pixel_map"] = bad_pixel_map
+
+        binning_min_good_pixel_count: Union[int, None] = self._monitor_params.get_param(
+            group="data_retrieval_layer",
+            parameter="binning_min_good_pixel_count",
+            parameter_type=int,
+            required=False,
+        )
+        if binning_min_good_pixel_count is None:
+            binning_min_good_pixel_count = 4
+        self._event_info_to_append["binning_min_good_pixel_count"] = binning_min_good_pixel_count
+
         if "beam_energy" in required_data:
             self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
                 group="data_retrieval_layer",

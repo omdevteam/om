@@ -36,14 +36,31 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     # Returns the data from the Eiger HDF5 files
     data: numpy.ndarray = event["additional_info"]["h5file"]["entry/data/data"][event["additional_info"]["index"]]
     if event["additional_info"]["binning"] is True:
+        mask: numpy.ndarray = event["additional_info"]["binning_bad_pixel_map"]
+        min_pix_count: int = event["additional_info"]["binning_min_good_pixel_count"]
+        if mask is None or mask.shape != data.shape:
+            mask = numpy.ones(data.shape, dtype=numpy.int)        
         nx: int
         ny: int
         nx, ny = data.shape
         data_type: numpy.dtype = data.dtype
+
+        #set bad pixels to zero:
+        data = data * mask
+        #binned data:
         data = data.reshape(nx // 2, 2, ny // 2, 2).sum(3).sum(1)
+        
+        #binned mask = num good pixels per bin
+        mask_binned = mask.reshape(nx // 2, 2, ny // 2, 2).sum(3).sum(1)
+        data = data / mask_binned * 4
+        
         if numpy.issubdtype(data_type, numpy.integer):
-            max_value: int = numpy.iinfo(data_type).max
-            data[numpy.where(data > max_value)] = max_value 
+            bad_pix_value: int = numpy.iinfo(data_type).max
+            data[numpy.where(data > bad_pix_value)] = bad_pix_value
+        else:
+            bad_pix_value = numpy.nan
+        data[numpy.where(mask_binned < min_pix_count)] = bad_pix_value
+    
     return data
 
 def event_id(event: Dict[str, Any]) -> str:
