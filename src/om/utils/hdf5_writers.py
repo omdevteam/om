@@ -51,6 +51,7 @@ class HDF5Writer:
         processed_filename_prefix: Union[str, None] = None,
         processed_filename_extension: Union[str, None] = None,
         compression_opts: Union[int, None] = None,
+        compression_shuffle: Union[bool, None] = None,
         max_num_peaks: Union[int, None] = None,
     ) -> None:
         """
@@ -143,6 +144,9 @@ class HDF5Writer:
         elif compression_opts is None:
             compression_opts = 4
 
+        if compression_shuffle is None:
+            compression_shuffle = False
+
         # TODO: decide what to do if file exists
         self._h5file: Any = h5py.File(self._processed_filename, "w")
 
@@ -157,6 +161,7 @@ class HDF5Writer:
                 chunks=(1,) + detector_data_shape,
                 compression=compression,
                 compression_opts=compression_opts,
+                shuffle=compression_shuffle,
             )
         if "event_id" in hdf5_fields.keys():
             self._resizable_datasets["event_id"] = self._h5file.create_dataset(
