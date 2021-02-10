@@ -32,7 +32,7 @@ else:
     ext = ".c"
 
 peakfinder8_ext = Extension(
-    name="om.lib.peakfinder8_extension.peakfinder8_extension",
+    name="om.lib.peakfinder8_extension",
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
     sources=[
