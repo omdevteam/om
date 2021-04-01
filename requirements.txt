@@ -15,16 +15,16 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
-click>=7.0
-fabio>=0.9.0
-future>=0.17.1
-h5py>=2.7.0
-mypy-extensions>=0.4.3
-numpy>=1.11.3
-pathlib>=1.0.1;python_version<"3.4"
-pyqt5[qt]>=5.9.2
-pyqtgraph[qt]>=0.10.0
-pyyaml>=5.1.2
-pyzmq>=18.0.2
-scipy>=1.2.1
-typing_extensions>=3.7.4.1
+click
+fabio
+future
+h5py
+mypy-extensions
+numpy
+pathlib;python_version<"3.4"
+pyqt5[qt]
+pyqtgraph[qt]
+pyyaml
+pyzmq
+scipy
+typing_extensions
