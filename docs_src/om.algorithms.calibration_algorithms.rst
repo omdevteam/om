@@ -1,7 +1,7 @@
-[:doc:`Back to top of code documentation <om>`]
+:hide-toc:
 
-The calibration\_algorithms Module
-==================================
+The calibration_algorithms Module
+=================================
 
 .. automodule:: om.algorithms.calibration_algorithms
     :members:

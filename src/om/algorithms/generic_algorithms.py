@@ -18,9 +18,9 @@
 """
 Generic algorithms.
 
-This module contains algorithms that perform operations which are not tied to a
-specific experimental technique (e.g.: detector frame masking and correction, data
-accumulation, etc.).
+This module contains algorithms that perform generic processing the data: common
+operations that are not tied to a specific experimental technique (e.g.: detector frame
+masking and correction, data accumulation, etc.).
 """
 import sys
 from typing import Any, Dict, List, Union
@@ -49,8 +49,8 @@ class Correction:
         Detector data frame correction.
 
         This algorithm can store a dark data frame, a bad pixel mask, and a gain map
-        (all three are optionals). Upon request, it can apply all these to a detector
-        data frame.
+        (all three are optionals). Upon request, it can apply all of these to a
+        detector data frame.
 
         Arguments:
 
@@ -61,7 +61,7 @@ class Correction:
                   data is loaded and used by the algorithm.
 
                 * The dark data frame must be a numpy array of the same shape as the
-                  data frame on which the correction will be applied.
+                  data frame on which the algorithm will be applied.
 
             dark_hdf5_path: The internal HDF5 path to the data block where the dark
                 data frame is located. Defaults to None.
@@ -76,9 +76,9 @@ class Correction:
                   loaded and used by the algorithm.
 
                 * The mask data must be a numpy array of the same shape as the data
-                  frame on which the correction will be applied.
+                  frame on which the algorithm will be applied.
 
-                * The pixels in the mask must have a value of either 0, meaning that
+                * Each pixel in the mask must have a value of either 0, meaning that
                   the corresponding pixel in the data frame should be set to 0, or 1,
                   meaning that the value of the corresponding pixel should be left
                   alone.
@@ -93,10 +93,10 @@ class Correction:
                 gain map. Defaults to None.
 
                 * If this and the 'gain_hdf5_path' arguments are not None, the gain map
-                  is loaded used by the algorithm.
+                  is loaded and used by the algorithm.
 
                 * The map must be a numpy array of the same shape as the data frame
-                  on which the correction will be applied.
+                  on which the algorithm will be applied.
 
                 * Each pixel in the gain map must store the gain factor that will be
                   applied to the corresponding pixel in the data frame.
@@ -197,7 +197,7 @@ class Correction:
 
         This function initially applies the mask, if provided, to the data frame. The
         dark data, if provided, is then subtracted. Finally, the result is multiplied
-        by the gain map, if provided.
+        by the gain map, again only if the latter is provided.
 
         Arguments:
 
@@ -220,14 +220,14 @@ class DataAccumulator:
         Data accumulation and bulk retrieval.
 
         This algorithm accumulates a predefined number of data entries (each data entry
-        must have the format of a dictionary). When the predefined number of entries is
-        reached, the accumulated data is returned to the user in one go, and the
-        accumulator is reset.
+        must have the format of a dictionary). When the right number of entries has
+        been added to the accumulator, the collected data is returned to the user in
+        bulk, and the accumulator resets.
 
         Arguments:
 
             num_events_to_accumulate (int): the number of data entries that can be
-                added to the accumulator before the accumulated data is returned.
+                added to the accumulator before the collected data is returned.
         """
         self._num_events_to_accumulate: int = num_events_to_accumulate
         self._accumulator: List[Dict[str, Any]] = []
@@ -238,8 +238,8 @@ class DataAccumulator:
         Adds data to the accumulator.
 
         If the accumulator, after adding the data, reaches the predefined number of
-        accumulated entries, this function additionally resets it and returns the
-        accumulated data.
+        entries, this function additionally resets the accumulator and returns the
+        collected data.
 
         Arguments:
 

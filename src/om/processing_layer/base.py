@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Monitor base class.
+Parallelization Layer's base classes.
 
-This module contains base abstract classes for the Proceessing Layer of OM.
+This module contains base abstract classes for OM's Proceessing Layer.
 """
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple, Union
@@ -33,12 +33,18 @@ class OmMonitor(ABC):
 
     def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        The base class for an OM monitor
+        Base class for an OM's Monitor.
 
-        This class manages the scientific processing of the retrieved data. It
-        features methods to process single events on the processing nodes, and to
-        aggregate multi-event data on the collecting node. It also has methods to
-        optionally perform some end-of-processing tasks.
+        Monitors implement scientific data processing pipelines in OM. A Monitor class
+        has methods that define how single data events are processed on the processing
+        nodes and how multi-event data is aggregated on the collecting node. Other
+        methods describe actions that OM should perform when all data events from a
+        source have been processed.
+
+        This class is the base abstract class for all OM's Monitors. It should be
+        subclassed to implement each specific Monitor. All its methods are virtual:
+        each derived class is expected to provide its own functions that implement the
+        Monitor's data processing logic.
 
         Arguments:
 
@@ -52,9 +58,9 @@ class OmMonitor(ABC):
         """
         Initializes an OM processing node.
 
-        This function prepares the processing node to begin processing data events
-        (reads additional external data, initializes the algorithms with the required
-        parameters, etc.).
+        This function is invoked on each processing node when OM starts and it prepares
+        the node to begin retrieveing and processing data events: it reads additional
+        external data, initializes the algorithms with the required parameters, etc.
 
         Arguments:
 
@@ -64,15 +70,17 @@ class OmMonitor(ABC):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        pass
 
     @abstractmethod
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
         Initializes an OM collecting node.
 
-        This function prepares the collecting node for the aggregation of data received
-        from the processing nodes (initializes algorithms, creates data event buffers,
-        etc.).
+        This function is invoked on the collecting node when OM starts and it prepares
+        the node for the aggregation of data received from the processing nodes: it
+        initializes the algorithms with the required parameters, creates data event
+        buffers, etc.
 
         Arguments:
 
@@ -82,6 +90,7 @@ class OmMonitor(ABC):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        pass
 
     @abstractmethod
     def process_data(
@@ -94,10 +103,10 @@ class OmMonitor(ABC):
         Processes a single frame in a data event.
 
         This function is invoked on each processing node for every detector data frame
-        in a data event. The function receives as input a dictionary storing the data
-        related to the frame being processed, and outputs the processed data. The
-        output of the function will then be transferred by the Parallelization Engine
-        to the collecting node.
+        in a data event. It receives a dictionary storing the raw frame data as input,
+        and returns a dictionary with the processed data. OM's Parallelization Engine
+        will make sure that the output of this function is tranferred to the collecting
+        node.
 
         Arguments:
 
@@ -111,9 +120,10 @@ class OmMonitor(ABC):
                 data frame being processed.
 
                 * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' configuration parameter group.
+                  list in the 'om' parameter group of the configuration file.
 
-                * The corresponding dictionary values must store the retrieved data.
+                * The corresponding dictionary values must store the retrieved data for
+                  the frame currently being processed.
 
         Returns:
 
@@ -133,9 +143,11 @@ class OmMonitor(ABC):
         """
         Collects processed data from a processing node.
 
-        This unction is invoked on the collecting node every time data is transferred
+        This function is invoked on the collecting node every time data is transferred
         from a processing node. The function accepts as input the data received from
-        the processing node.
+        the processing node (the object returned by the :func:`process_data` function).
+        This function usually computes aggregate statistics on the data received from
+        all the nodes.
 
         Arguments:
 
@@ -145,14 +157,13 @@ class OmMonitor(ABC):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
         """
         pass
 
-    @abstractmethod
     def end_processing_on_processing_node(
         self, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
@@ -160,7 +171,7 @@ class OmMonitor(ABC):
         Executes end-of-processing actions on a processing node.
 
         This function is called by the Parallelization Engine on the processing nodes
-        at the end of the processing, immediately before stopping. The function usually
+        at the end of the processing, immediately before OM stops. The function usually
         does not return any value, but can optionally return a dictionary. In this
         case the Parallelization Engine makes sure that the dictionary is sent to the
         collecting node before the processing node shuts down.
@@ -177,7 +188,7 @@ class OmMonitor(ABC):
 
             A dictionary storing information to be sent to the processing node
             (Optional: if this function returns nothing, no information is transferred
-            to the processing node.
+            to the processing node).
         """
         return None
 
@@ -188,7 +199,7 @@ class OmMonitor(ABC):
         Executes end-of-processing actions on the collecting node.
 
         This function is called by the parallelization engine on the collecting node
-        at the end of the processing, immediately before stopping.
+        at the end of the processing, immediately before OM stops.
 
         Arguments:
 

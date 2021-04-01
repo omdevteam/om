@@ -1,4 +1,4 @@
-[:doc:`Back to top of code documentation <om>`]
+:hide-toc:
 
 The data\_handlers\_filesystem Module
 =====================================

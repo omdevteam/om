@@ -18,13 +18,13 @@
 """
 Retrieval and handling of data events from psana.
 
-This module contains DataEventHandlers for events retrieved from the psana framework.
+This module contains Data Event Handlers for events retrieved from the psana software
+framework (used at the LCLS facility).
 """
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
 import psana  # type: ignore
-
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import (
     functions_cspad,
@@ -68,11 +68,16 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         source: str,
     ) -> None:
         """
-        DataEventHandler for events recovered from psana at LCLS.
+        Base Data Event Handler for events recovered from psana at LCLS.
 
-        See documentation of the corresponding function in the base class. This class
-        generically handles events retrieved from the psana framework at the LCLS
-        facility. It should be subclassed to work with specific detectors.
+        This is the base class for Data Event Handlers that deal with events retrieved
+        from the psana software framework at the LCLS facility. It is a subclass of the
+        more generic OmDataEventHandler base class and should in turn be subclassed to
+        work with specific detectors or beamlines.
+
+        The source string for this Data Event Handler is a string of the type used by
+        the psana framework to identify specific runs, experiments, or live data
+        streams.
 
         Arguments:
 
@@ -107,9 +112,11 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Initializes psana event handling on the collecting node.
 
-        See documentation of the corresponding function in the base class. The psana
-        data source does not need to be initialized on the collecting node, therefore
-        this function does nothing.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        The psana data source does not need to be initialized on the collecting node,
+        therefore this function actually does nothing.
 
         Arguments:
 
@@ -131,7 +138,14 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Initializes psana event handling on the processing nodes.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function prepares the processing node to retrieve events from psana,
+        initializing all the members of the psana Detector interface according to the
+        instructions specified in OM's configuration file. Please refer to the
+        documentation of the each Detector interface initialization function for a
+        description of the relevant configuration parameters.
 
         Arguments:
 
@@ -195,8 +209,25 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Retrieves psana events.
 
-        See documentation of the corresponding function in the base class. Each psana
-        event contains data related, timewise, to a single detector frame.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        When OM runs in shared memory mode (the usual way to retrieve real-time data at
+        the LCLS facility), each processing node retrieves data from a shared memory
+        server operated by the facility. The memory server must be running on the same
+        machine as the processing node.
+
+        When instead OM uses the psana framework to read offline data, this Data Event
+        Handler distributes the data events as evenly as possible across all the
+        processing nodes. Each node ideally retrieves the same number of events from
+        psana. Only the last node might retrieve fewer events, depending on how evenly
+        the total number can be split.
+
+        Each retrieved psana event contains a single detector frame, along with all the
+        data whose timestamp matches the timestamp of the frame. This is also true for
+        data that is is updated at a slower rate than the frame itself. For this kind
+        of  data, the last reported value at the time the frame is collected is
+        associated with it.
 
         Arguments:
 
@@ -275,8 +306,10 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Opens a psana event.
 
-        See documentation of the corresponding function in the base class. Psana events
-        do not need to be opened, so this function actually does nothing.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Psana events do not need to be opened, so this function actually does nothing.
 
         Arguments:
 
@@ -288,8 +321,10 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Closes a psana event.
 
-        See documentation of the corresponding function in the base class. Psana events
-        do not need to be closed, so this function actually does nothing.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Psana events do not need to be closed, so this function actually does nothing.
 
         Arguments:
 
@@ -299,11 +334,13 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in a psana data event.
+        Gets the number of frames in a psana event.
 
-        See documentation of the corresponding function in the base class. Each psana
-        event contains data related to a single detector frame, so this function
-        always returns 1.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Each psana event stores data related to a single detector frame, so this
+        function always returns 1.
 
         Arguments:
 
@@ -323,11 +360,11 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
 
     def __init__(self, monitor_parameters: parameters.MonitorParams, source: str):
         """
-        DataEventHandler for events retrieved from psana at CXI with CSPAD (LCLS).
+        Data Event Handler for events retrieved from psana at CXI with CSPAD (LCLS).
 
-        See documentation of the corresponding function in the base class. This class
-        handles events retrieved from psana at the CXI beamline of the LCLS facility
-        before 2020, when the beamline mainly used the CSPAD detector.
+        This Data Event Handler deals with events retrieved from psana at the CXI
+        beamline of the LCLS facility before 2020, when a CSPAD was the main x-ray
+        detector. Is is a subclass of the LclsBaseDataEventHandler class.
 
         Arguments:
 
@@ -348,7 +385,8 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
         """
         Retrieves the Data Extraction Functions for CXI psana events (CSPAD).
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Returns:
 
@@ -381,10 +419,11 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        DataEventHandler for events retrieved from psana at CXI (LCLS).
+        Data Event Handler for events retrieved from psana at CXI (LCLS).
 
-        See documentation of the corresponding function in the base class. This class
-        handles events retrieved from psana at the CXI beamline of the LCLS facility.
+        This Data Event Handler deals with events retrieved from psana at the CXI
+        beamline of the LCLS facility from 2020, with a Jungfrau 4M as the main x-ray
+        detector. Is is a subclass of the LclsBaseDataEventHandler class.
 
         Arguments:
 
@@ -402,12 +441,13 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
         """
         Retrieves the Data Extraction Functions for CXI psana events.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Returns:
 
-            A dictionary storing the implementations of the Data Extraction functions
-            available to the current Data Event Handler.
+            A dictionary storing the Data Extraction functions available to the current
+            Data Event Handler.
 
             * Each dictionary key defines the name of a function.
 
@@ -435,10 +475,11 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        DataEventHandler for events retrieved from psana at MFX (LCLS).
+        Data Event Handler for events retrieved from psana at MFX (LCLS).
 
-        See documentation of the corresponding function in the base class. This class
-        handles events retrieved from psana at the MFX beamline of the LCLS facility.
+        This Data Event Handler deals with events retrieved from psana at the MFX
+        beamline of the LCLS facility, with an Epix10KA as the main x-ray detector. It
+        is a subclass of the LclsBaseDataEventHandler class.
 
         Arguments:
 
@@ -456,7 +497,8 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
         """
         Retrieves the Data Extraction Functions for MFX psana events.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Returns:
 

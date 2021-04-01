@@ -18,7 +18,8 @@
 """
 Retrieval of Jungfrau 4M detector data.
 
-This module contains functions that retrieve data from a Jungfrau 4M x-ray detector.
+This module contains functions that retrieve Jungfrau 4M detector data from the psana
+software framework (used at the LCLS facility).
 """
 from typing import Any, Dict
 
@@ -30,6 +31,9 @@ from om.utils import exceptions
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves one Jungfrau 4M detector data frame from psana.
+
+    This function retrieves a single Jungfrau M detector frame from psana. It returns
+    the frame as a 2D array storing pixel data.
 
     Arguments:
 

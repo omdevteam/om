@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM Frame Viewer for Crystallography.
+OM's Frame Viewer for Crystallography.
 
 This module contains the implementation of a graphical interface that displays detector
 data frames in crystallography experiments.
@@ -46,13 +46,17 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         """
         OM frame viewer for crystallography.
 
-        See documentation of the corresponding function in the base class. This viewer
-        receives detector frame data from an OM crystallography monitor when it is
-        tagged with the 'omdetectordata' label. It receives processed detector frames,
-        together with information on any Bragg peak detected in them. The viewer
-        displays the frames and the position of the detected peaks. A data buffer
-        allows the viewer to stop receiving data from the monitor but still keep in
-        memory the last 10 displayed frames for inspection.
+        This class implements a frame viewer for crystallography experiments. It is
+        a subclass of the OmGui base class.
+
+        The viewer receives detector frame data from an OnDA Monitor for
+        Crystallography when it is tagged with the 'omdetectordata' label. The received
+        data must include processed detector frames, together with information on any
+        Bragg peak detected in them.
+
+        The viewer displays the frames and the position of the detected peaks. A data
+        buffer allows the viewer to stop receiving data from the monitor but still keep
+        in memory the last 10 displayed frames for inspection.
 
         Arguments:
 
@@ -161,7 +165,11 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         """
         Updates the elements of the Crystallography Frame Viewer.
 
-        See documentation of the function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function stores the data received from OM, and calls the internal
+        functions that update the displayed detector frame and the detected peaks.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
@@ -221,17 +229,21 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
 @click.argument("url", type=str, required=False)
 def main(url: str) -> None:
     """
-    OM Frame Viewer for Crystallography. This program must connect to a running OM
-    monitor for crystallography. If the monitor broadcasts detector frame data, this
+    OM Frame Viewer for Crystallography. This program must connect to a running OnDA
+    Monitor for Crystallography. If the monitor broadcasts detector frame data, this
     viewer will display it. The viewer will also show, overlayed on the frame data,
-    any found Bragg peak. The data stream from the monitor can also be temporarily
-    paused, and any of the last 10 displayed detector frames can be recalled for
+    any detected Bragg peak. The data stream from the monitor can also be temporarily
+    paused, and any of 10 most recently displayed detector frames can be recalled for
     inspection.
 
-    URL: the URL at which the GUI will connect and listen for data. This is a string in
-    the format used by the ZeroMQ Protocol. Optional: if not provided, it defaults to
-    tcp://127.0.0.1:12321
+    The viewer connects to and OnDA Monitor running at the IP address (or hostname)
+    specified by the URL string. This is a string in the format used by the ZeroMQ
+    Protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321" and the viewer connects, using the tcp protocol, to a
+    monitor running on the local machine at port 12321.
     """
+    # This function is turned into a script by the Click library. The docstring
+    # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     if url is None:

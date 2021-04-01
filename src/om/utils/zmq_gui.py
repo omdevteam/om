@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-ZMQ utilities to receive data from OM monitors.
+ZMQ utilities to receive data from OnDA Monitors.
 
 This module contains classes and functions that allow external programs to receive
-data broadcasted by an OM monitor over a network connection.
+data broadcasted by an OnDA Monitor over a network connection.
 """
 from builtins import str as unicode_str
 from typing import Any, Dict
@@ -36,9 +36,10 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
 
     zmqmessage: Any = QtCore.pyqtSignal(dict)
     """
-    A Qt signal emitted when a message is received by the GUI.
+    Qt signal emitted when a message is received by the GUI.
 
-    This signal brings the received data as payload.
+    This signal is emitted when the GUI receives data from an OnDA Monitor. It brings
+    the received data as payload.
     """
 
     def __init__(
@@ -47,23 +48,21 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
         tag: str,
     ) -> None:
         """
-        ZMQ-based data receiving socket for OM GUIs.
+        ZMQ-based data receiving socket for OM's graphical user interfaces.
 
         This class implements a ZMQ SUB socket that can be used to receive data from
-        an OM monitor. The socket accepts only data tagged with a specified label.
+        an OnDA Monitor. The socket accepts only data tagged with a specified label.
         Every time a message is received, this class emits a custom Qt signal that
         carries the received data as payload. This class is designed to be run in a
         separate Qt thread.
 
         Arguments:
 
-            url (str): the URL where the socket will listen for data. It must be a
-                string in the format used by ZeroMQ.
+            url: The URL where the socket will listen for data. It must be a string in
+                the format used by ZeroMQ.
 
-            port(int): the port at which the socket will listen for data.
-
-            tag (str): the label used by the socket to filter incoming data. Only data
-                whose label matches this argument will be accepted and received.
+            tag: The label used by the socket to filter incoming data. Only data whose
+                label matches this argument will be accepted and received.
         """
         QtCore.QObject.__init__(self)
 
@@ -81,6 +80,9 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
     def start_listening(self) -> None:
         """
         Connects to a PUB socket and starts listening for data.
+
+        This function connects the SUB socket to the URL specified when the class is
+        instantiated.
         """
         print("Connecting to {0}".format(self._url))
         self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)
@@ -109,6 +111,9 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
     def stop_listening(self) -> None:
         """
         Stops listening to a PUB socket and disconnects.
+
+        This function completely disconnects the SUB socket. It needs to be reconnected
+        (using the :func:`start_listening` function) to start receiving data again.
         """
         self._listening_timer.stop()
         print("Disconnecting from {0}".format(self._url))

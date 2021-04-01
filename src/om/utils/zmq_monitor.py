@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-ZMQ utilities for broadcasting data from an OM monitor.
+ZMQ utilities to broadcast data from an OnDA Monitor.
 
-This module contains classes and functions that allow OM monitors to broadcast data
+This module contains classes and functions that allow OnDA Monitors to broadcast data
 to external programs over a network connection.
 """
 import socket
@@ -34,8 +34,8 @@ def get_current_machine_ip() -> str:
     """
     Retrieves the IP address of the local machine.
 
-    This function uses the python socket module to autodetect the IP addess of the
-    the machine on which it is invoked.
+    This function uses the python 'socket' module to autodetect the IP addess of the
+    the machine where it is invoked.
 
     Returns:
 
@@ -60,12 +60,13 @@ class ZmqDataBroadcaster:
 
     def __init__(self, url: Union[str, None]) -> None:
         """
-        ZMQ-based data-broadcasting socket for OM monitors.
+        ZMQ-based data-broadcasting socket for OnDA Monitors.
 
-        This class implements a ZMQ PUB socket that can be used to broadcast data. The
-        data is tagged with a label. The socket supports multiple clients but has no
-        queuing system: data that has not been picked up by the clients will be lost
-        to them when the next broadcast takes place.
+        This class implements a ZMQ PUB socket that can be used to broadcast data from
+        an OnDA Monitor. The data must be tagged with a label when broadcast. The
+        socket supports multiple simultaneous clients, but has no queuing system:
+        broadcast data will be lost to the clients if not received before the next
+        transmission takes place.
 
         Args:
 
@@ -101,12 +102,12 @@ class ZmqDataBroadcaster:
         """
         Broadcasts data from the ZMQ PUB socket.
 
-        This function broadcasts data in the format of a python dictionary. The
-            data is tagged with the specified tag label.
+        This function broadcasts data in the format of a python dictionary. The data is
+        tagged with the specified label when broadcast.
 
         Arguments:
 
-            tag: The label that will be attached to the broadcasted data.
+            tag: The label that will be attached to the data.
 
             message: A dictionary, where the keys are names of information elements to
                 be broadcasted through the broadcasting socket, and the corresponding

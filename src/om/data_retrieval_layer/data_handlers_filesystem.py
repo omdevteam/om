@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval and handling of data events from the filesystem.
+Retrieval and handling of data events from a filesystem.
 
-This module contains DataEventHandlers for files read from a filesystem (a physical or
-virtual disk).
+This module contains Data Event Handlers for files saved in a filesystem (on a physical
+or virtual disk).
 """
 import pathlib
 import re
@@ -40,11 +40,11 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        Base DataEventHandler for events retrieved from files.
+        Base Data Event Handler class for events retrieved from files.
 
-        See documentation of the corresponding function in the base class. This class
-        generically handles events retrieved from files. It should be subclassed to
-        work with specific file types.
+        This is the base class for Data Event Handlers that deal with files. It is a
+        subclass of the more generic OmDataEventHandler base class, and should in turn
+        be subclassed to implement Data Event Handlers for specific file types.
 
         Arguments:
 
@@ -64,8 +64,11 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         Initializes file event handling on the collecting node.
 
-        See documentation of the corresponding function in the base class. There is
-        usually no need to initialize a file source, so this function does nothing.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        There is usually no need to initialize a file-based data source on the
+        collecting node, so this function actually does nothing.
 
         Arguments:
 
@@ -91,10 +94,15 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        DataEventHandler for Pilatus files from a filesystem.
+        Data Event Handler for Pilatus files.
 
-        See documentation of the corresponding function in the base class. This class
-        handles files written by a 1M Pilatus detector in CBF format.
+        This Data Event Handler deals with files written by a 1M Pilatus detector in
+        CBF format. It is a subclass of the FilesBaseDataEventHandler class.
+
+        The source string for this Data Event Handler is a path to a file containing a
+        list of CBF files to process, one per line, with their absolute or relative
+        path. Each retrieved event corresponds to the content of one CBF file, which
+        usually stores a single detector data frame.
 
         Arguments:
 
@@ -115,12 +123,13 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Retrieves the Data Extraction Functions for Pilatus file events.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Returns:
 
-            A dictionary storing the implementations of the Data Extraction functions
-            available to the current DataEventHandler.
+            A dictionary storing the Data Extraction functions available to the current
+            Data Event Handler.
 
             * Each dictionary key defines the name of a function.
 
@@ -141,7 +150,8 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Initializes Pilatus file event handling on the processing nodes.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Arguments:
 
@@ -212,12 +222,15 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves Pilatus file events from a filesystem.
+        Retrieves Pilatus file events.
 
-        See documentation of the corresponding function in the base class. Each
-        processing node retrieves the same number of files from the data source, with
-        the exception of the last node, which might retrieve fewer files depending on
-        how evenly the total number of files can be split.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This Data Event Handler distributes the files from the data source as evenly as
+        possible across all the processing nodes. Each node ideally retrieves the same
+        number of files from the source. Only the last node might retrieve fewer files,
+        depending on how evenly the total number can be split.
 
         Arguments:
 
@@ -272,10 +285,11 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Opens a Pilatus file event.
 
-        See documentation of the corresponding function in the base class. For Pilatus
-        data files, an event corresponds to the content of a single Pilatus CBF file.
-        This function opens the file and associates its content with the 'data' key of
-        the 'event' dictionary.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function opens each CBF file and associates its content with the 'data'
+        key of the 'event' dictionary.
 
         Arguments:
 
@@ -287,9 +301,10 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Closes a Pilatus file event.
 
-        See documentation of the corresponding function in the base class. For Pilatus
-        data files, an event corresponds to the content of a single Pilatus CBF file,
-        which does not need to be closed. Therefore this function does nothing.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        CBF files don't need to be closed, therefore this function does nothing.
 
         Arguments:
 
@@ -301,10 +316,11 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Gets the number of frames in a Pilatus file  event.
 
-        See documentation of the corresponding function in the base class. For Pilatus
-        data files, an event corresponds to the content of a single CBF data file.
-        Since the Pilatus detector writes one frame per file, this function always
-        returns 1.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since a Pilatus detector usually writes only one frame per file, this function
+        always returns 1.
 
         Arguments:
 
@@ -326,10 +342,15 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        DataEventHandler for Jungfrau 1M files from a filesystem.
+        Data Event Handler for Jungfrau 1M files.
 
-        See documentation of the corresponding function in the base class. This event
-        handler deals with files written by a Jungfrau 1M detector in HDF5 format.
+        This Data Event Handler deals with files written by a Jungfrau 1M detector in
+        HDF5 format. It is a subclass of the FilesBaseDataEventHandler class.
+
+        The source string for this Data Event Handler is a path to a file containing a
+        list of HDF5 files to process, one per line, with their absolute or relative
+        path. Each file stores multiple detector data frames. Each retrieved event
+        corresponds to a single frame from a file.
 
         Arguments:
 
@@ -350,12 +371,13 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Retrieves the Data Extraction Functions for Jungfrau 1M file events.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Returns:
 
-            A dictionary storing the implementations of the Data Extraction functions
-            available to the current DataEventHandler.
+            A dictionary storing the Data Extraction functions available to the current
+            Data Event Handler.
 
             * Each dictionary key defines the name of a function.
 
@@ -376,7 +398,8 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Initializes Jungfrau 1M file event handling on the processing nodes.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Arguments:
 
@@ -388,12 +411,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
         Returns:
 
-            A dictionary storing the implementations of the Data Extraction functions
-            available to the current DataEventHandler.
-
-            * Each dictionary key defines the name of a function.
-
-            * The corresponding dictionary value stores the function implementation.
+        An optional initialization token.
         """
         required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
@@ -467,13 +485,16 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves Jungfrau 1M file events from a filesystem.
+        Retrieves Jungfrau 1M file events.
 
-        See documentation of the corresponding function in the base class. In the
-        current implementation, each detector frame in a file is considered a separate
-        event. Each processing node retrieves the same number of frames from the data
-        source, with the exception of the last node, which might retrieve fewer frames
-        depending on how evenly the total number of frames can be split.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This Event Data Handler considers each detector frame, not each file, a
+        separate event. The frames retrieved from the data source are split as evenly
+        as possible across all the processing nodes. Each node ideally retrieves the
+        same number of frames from the source. Only the last node might retrieve fewer
+        frames, depending on how evenly the total number can be split.
 
         Arguments:
 
@@ -572,10 +593,12 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Opens a Jungfrau 1M file event.
 
-        See documentation of the corresponding function in the base class. In the
-        current implementation, each detector frame in a file is considered a separate
-        event, and the event generator takes care of opening the file. This function
-        therefore does nothing.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since each detector frame in a file is considered a separate event, the event
+        generator, which splits the frames across the processing nodes, takes care of
+        opening and closing the files. This function therefore does nothing.
 
         Arguments:
 
@@ -587,10 +610,13 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Closes a Jungfrau 1M file event.
 
-        See documentation of the corresponding function in the base class. In the
-        current implementation, each detector frame in a file is considered a separate
-        event, and the event generator takes care of closing the file. This function
-        therefore does nothing.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since each detector frame in a file is considered a separate event, the event
+        generator, which splits the frames across the processing nodes, takes care of
+        opening and closing the files. This function therefore does nothing.
+
 
         Arguments:
 
@@ -602,9 +628,12 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         Gets the number of frames in a Jungfrau 1M file event.
 
-        See documentation of the corresponding function in the base class. In the
-        current implementation, each frame in a file is considered a separate event,
-        therefore this function always returns 1.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+
+        Since each frame in a file is considered a separate event, this function always
+        returns 1.
 
         Arguments:
 

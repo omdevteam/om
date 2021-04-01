@@ -16,5 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-The Processing Layer package.
+OM's Processing Layer.
+
+This package contains OM's Processing Layer. This is where the pipeline of scientific
+data analysis for all kind of monitors is defined. Each module in this package contains
+the implementation of a different type of OnDA Monitor.
 """

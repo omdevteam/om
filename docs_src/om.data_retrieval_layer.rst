@@ -1,4 +1,4 @@
-[:doc:`Back to top of code documentation <om>`]
+:hide-toc:
 
 The data\_retrieval\_layer Package
 ==================================
@@ -9,12 +9,14 @@ The data\_retrieval\_layer Package
     :show-inheritance:
 
 .. toctree::
+   :maxdepth: 1
 
     base <om.data_retrieval_layer.base>
     data_handlers_filesystem <om.data_retrieval_layer.data_handlers_filesystem>
     data_handlers_hidra <om.data_retrieval_layer.data_handlers_hidra>
     data_handlers_psana <om.data_retrieval_layer.data_handlers_psana>
     functions_cspad <om.data_retrieval_layer.functions_cspad>
+    functions_epix10ka <om.data_retrieval_layer.functions_epix10ka>
     functions_jungfrau1M <om.data_retrieval_layer.functions_jungfrau1M>
     functions_jungfrau4M <om.data_retrieval_layer.functions_jungfrau4M>
     functions_pilatus <om.data_retrieval_layer.functions_pilatus>

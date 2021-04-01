@@ -46,6 +46,7 @@ peakfinder8_ext = Extension(
     ],
     language="c++",
 )
+peakfinder8_ext.cython_directives = {"embedsignature": True}
 
 if OM_USE_CYTHON:
     from Cython.Build import cythonize
@@ -68,7 +69,7 @@ setup(
     long_description=(
         """
         OM (OnDA Monitor) is a software framework for the development of
-        programs that can monitor of X-ray imaging experiments in real-time.
+        programs that can monitor of x-ray imaging experiments in real-time.
 
         It is the spiritual successor of the OnDA project and it is mantained mostly
         by the same team of developers.

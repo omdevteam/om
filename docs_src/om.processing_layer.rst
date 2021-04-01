@@ -1,4 +1,4 @@
-[:doc:`Back to top of code documentation <om>`]
+:hide-toc:
 
 The processing\_layer Package
 =============================
@@ -9,6 +9,7 @@ The processing\_layer Package
     :show-inheritance:
 
 .. toctree::
+   :maxdepth: 1
 
    base <om.processing_layer.base>
    crystallography <om.processing_layer.crystallography>

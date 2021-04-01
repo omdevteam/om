@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM GUI for Crystallography.
+OM's GUI for Crystallography.
 
 This module contains the implementation of a graphical interface that displays reduced
 and aggregated data in crystallography experiments.
@@ -45,11 +45,16 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         """
         OM graphical user interface for crystallography.
 
-        See documentation of the corresponding function in the base class. This
-        graphical user interface receives reduced and aggregated data from an OM
-        crystallography monitor when it is tagged with the 'omdata' label. It displays
-        a plot showing the evolution of the hit rate over time, plus a real-time
-        virtual powder pattern created using the detected Bragg peaks.
+        This class implements a graphical user interface for crystallography
+        experiments. It is a subclass of the OmGui base class.
+
+        This GUI receives reduced and aggregated data from an OnDA Monitor for
+        Crystallography when it is tagged with the 'omdata' label. The data must
+        contain information about peaks detected in the frames recently processed by
+        the monitor and information about the current hit rate.
+
+        The GUI displays a plot showing the evolution of the hit rate over time, plus a
+        virtual powder pattern created using the detected peaks.
 
         Arguments:
 
@@ -216,8 +221,8 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             )
         except TypeError:
             print(
-                "Beam energy or detector distance are not available. Resolution "
-                "rings cannot be computed."
+                "Beam energy or detector distance information is not available. "
+                "Resolution rings cannot be drawn."
             )
             self._resolution_rings_check_box.setChecked(False)
         else:
@@ -245,7 +250,11 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         """
         Updates the elements of the Crystallography GUI.
 
-        See documentation of the function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function stores the data received from OM, and calls the internal
+        functions that update the hit rate history plot and the virtual power pattern.
         """
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
@@ -330,16 +339,20 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
 @click.argument("url", type=str, required=False)
 def main(url: str) -> None:
     """
-    OM graphical user interface for crystallography. This program must connect to a
-    running OM monitor for crystallography. If the monitor broadcasts the necessary
-    information, this GUI will display the evolution of the crystallography hit rate
-    over time, plus a real-time virtual powder pattern created using the detected
-    peaks.
+    OM Graphical User Interface for Crystallography. This program must connect to a
+    running OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
+    information, this GUI will display the evolution of the hit rate over time, plus a
+    real-time virtual powder pattern created using the peaks detected in detector
+    frames processed by the monitor.
 
-    URL: the URL at which the GUI will connect and listen for data. This is a string in
-    the format used by the ZeroMQ Protocol. Optional: if not provided, it defaults to
-    tcp://127.0.0.1:12321
+    The GUI connects to and OnDA Monitor running at the IP address (or hostname)
+    specified by the URL string. This is a string in the format used by the ZeroMQ
+    Protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321" and the viewer connects, using the tcp protocol, to a
+    monitor running on the local machine at port 12321.
     """
+    # This function is turned into a script by the Click library. The docstring
+    # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     if url is None:

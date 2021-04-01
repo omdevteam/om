@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Parallelization engine base class.
+Parallelization Layer's base classes.
 
-This module contains base abstract classes for the Data Parallelization Layer of OM.
+This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Union
@@ -40,28 +40,36 @@ class OmParallelizationEngine(ABC):
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        The base class for an OM Parallelization Engine.
+        Base class for an OM's Parallelization Engine.
 
-        The Parallelization Engine manages a set of processing nodes and a
-        collecting node, and take care of the communication between them. An instance of
-        a DataEventHandler class (a subclass of
-        :class:`~om.data_retrieval_layer.base.DataEventHandleBase`) and an instance of
-        an OmMonitor class (a subclass of :class:`~om.processing_layer.base.OmMonitor`)
-        are attached to the engine during its instantiation. The engine initializes
-        several processing nodes and a single collecting node.
+        Parallelization Engines orchestrate OM's processing and collecting nodes, and
+        take care of the communication between them.
 
-        * On each processing node, the engine retrieves one data event from a source by
-          calling the relevant DataEventHandler methods. It then invokes the
-          appropriate OM Monitor methods to process every frame in the retrieved event.
-          The engine also makes sure that the processed data is transferred to the
+        This class is the base abstract class for all of OM's Parallelization Engines,
+        and it should be subclassed to implement every Engine. All its methods are
+        abstract: derived classes are expected to provide their own functions that
+        implement a specific Parallelization Engine.
+
+        * When OM start, each Parallelization Engine initializes several processing
+          nodes and a single collecting node. A Data Event Handler (an instance of a
+          class derived from
+          :class:`~om.data_retrieval_layer.base.OmDataEventHandler`) and a Monitor (an
+          instance of a class derived from
+          :class:`~om.processing_layer.base.OmMonitor`) must be provided to its
+          constructor.
+
+        * On each processing node, the Engine retrieves one data event from a source by
+          calling the relevant Data Event Handler methods. It then invokes the
+          appropriate Monitor methods to process every frame in the retrieved event.
+          The Engine also makes sure that the processed data is transferred to the
           collecting node.
 
-        * On the collecting node, the engine invokes the relevant OM monitor methods to
+        * On the collecting node, the Engine invokes the relevant Monitor methods to
           aggregate data received from the processing nodes.
 
-        * When all events from the source have been processed, the engine performs
-          some final clean-up tasks defined in the DataEventHandler, then it shuts
-          down.
+        * When all events from the source have been processed, the Engine performs
+          some final clean-up tasks defined in the Data Event Handler, then it shuts
+          all the nodes down.
 
         Arguments:
 
@@ -103,8 +111,7 @@ class OmParallelizationEngine(ABC):
         """
         Starts the parallelization engine.
 
-        This function starts the operations of both the processing and collecting
-        nodes.
+        This function begins operations on the processing and collecting nodes.
 
         * When this function is called on a processing node, the node starts retrieving
           data events and processing them.
@@ -119,7 +126,7 @@ class OmParallelizationEngine(ABC):
         """
         Shuts down the parallelization engine.
 
-        This function stops the operations of both the processing and collecting nodes.
+        This function stops the processing and collecting nodes.
 
         * When this function is called on a processing node, the processing node
           communicates to the collecting node that it is shutting down, then shuts
@@ -127,7 +134,7 @@ class OmParallelizationEngine(ABC):
 
         * When this function is called on the collecting node, the collecting node
           tells each processing node to shut down, waits for all the processing nodes
-          to confirm that they have obliged, then shuts itself down.
+          to confirm that they have stopped operating, then shuts itself down.
 
         Arguments:
 

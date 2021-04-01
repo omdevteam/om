@@ -16,8 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM utility functions and classes.
+OM's utility functions and classes.
 
-This package contains several functions and classes that perform tasks needed by other
-parts of OM.
+This package contains several helper functions and classes. They perform tasks needed
+by other parts of OM. They are grouped into several categories, each corresponding to a
+separate module.
 """

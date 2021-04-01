@@ -1,102 +1,195 @@
-<!DOCTYPE html>
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="The data_handlers_hidra Module" href="om.data_retrieval_layer.data_handlers_hidra.html" /><link rel="prev" title="The base Module" href="om.data_retrieval_layer.base.html" />
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The data_handlers_filesystem Module &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="The data_handlers_hidra Module" href="om.data_retrieval_layer.data_handlers_hidra.html" />
-    <link rel="prev" title="The base Module" href="om.data_retrieval_layer.base.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+    <meta name="generator" content="sphinx-3.5.1, furo 2021.02.28.beta28"/>
+        <title>The data_handlers_filesystem Module - om documentation</title>
+      <link rel="stylesheet" href="_static/styles/furo.css?digest=be5985a4059b5c2cd56ed0804790452beca62674">
+    <link rel="stylesheet" href="_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
+    
 
-  </head><body>
 
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="index.html">
-          OM</a>
-        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0dev</b></span>
-      </div>
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
 
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
-            
-                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
-                <li><a href="documentation_running_om.html">Running OM</a></li>
-                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
-                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
-            
-            
-              
-              
-            
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
 
-          
-            
-<form class="navbar-form navbar-right" action="search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
-          
-        </div>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
     </div>
-  </div>
-
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
+    <div class="header-center">
+      <a href="index.html"><div class="brand">om  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
       
-  <p>[<a class="reference internal" href="om.html"><span class="doc">Back to top of code documentation</span></a>]</p>
-<div class="section" id="module-om.data_retrieval_layer.data_handlers_filesystem">
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/OMLogo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">om  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption"><span class="caption-text">Content:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="om.html"> om</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.algorithms.html"> algorithms</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.calibration_algorithms.html"> calibration_algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.crystallography_algorithms.html"> crystallography_algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.generic_algorithms.html"> generic_algorithms</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="om.data_retrieval_layer.html"> data_retrieval_layer</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.base.html"> base</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#"> data_handlers_filesystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_hidra.html"> data_handlers_hidra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_psana.html"> data_handlers_psana</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_cspad.html"> functions_cspad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_epix10ka.html"> functions_epix10ka</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_jungfrau1M.html"> functions_jungfrau1M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_jungfrau4M.html"> functions_jungfrau4M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_pilatus.html"> functions_pilatus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_psana.html"> functions_psana</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.graphical_interfaces.html"> graphical_interfaces</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label for="toctree-checkbox-4"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.base.html"> base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_frame_viewer.html"> crystallography_frame_viewer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_gui.html"> crystallography_gui</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_parameter_tweaker.html"> crystallography_parameter_tweaker</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.lib.html"> lib</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label for="toctree-checkbox-5"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.lib.peakfinder8_extension.html"> peakfinder8_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.monitor.html"> monitor</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.parallelization_layer.html"> parallelization_layer</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label for="toctree-checkbox-6"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.parallelization_layer.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.parallelization_layer.mpi.html">mpi</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.processing_layer.html"> processing_layer</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label for="toctree-checkbox-7"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.processing_layer.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.processing_layer.crystallography.html">crystallography</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.utils.html"> utils</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/><label for="toctree-checkbox-8"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.crystfel_geometry.html">crystfel_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.exceptions.html">exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.parameters.html">parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.zmq_gui.html">zmq_gui</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.zmq_monitor.html">zmq_monitor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <div class="section" id="module-om.data_retrieval_layer.data_handlers_filesystem">
 <span id="the-data-handlers-filesystem-module"></span><h1>The data_handlers_filesystem Module<a class="headerlink" href="#module-om.data_retrieval_layer.data_handlers_filesystem" title="Permalink to this headline">¶</a></h1>
-<p>Retrieval and handling of data events from the filesystem.</p>
-<p>This module contains DataEventHandlers for files read from a filesystem (a physical or
-virtual disk).</p>
+<p>Retrieval and handling of data events from a filesystem.</p>
+<p>This module contains Data Event Handlers for files saved in a filesystem (on a physical
+or virtual disk).</p>
 <dl class="py class">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler">
-<em class="property">class </em><code class="sig-name descname">FilesBaseDataEventHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_parameters</span></em>, <em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#FilesBaseDataEventHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">FilesBaseDataEventHandler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monitor_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="om.data_retrieval_layer.base.html#om.data_retrieval_layer.base.OmDataEventHandler" title="om.data_retrieval_layer.base.OmDataEventHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.data_retrieval_layer.base.OmDataEventHandler</span></code></a></p>
-<p>Base DataEventHandler for events retrieved from files.</p>
-<p>See documentation of the corresponding function in the base class. This class
-generically handles events retrieved from files. It should be subclassed to
-work with specific file types.</p>
+<p>Base Data Event Handler class for events retrieved from files.</p>
+<p>This is the base class for Data Event Handlers that deal with files. It is a
+subclass of the more generic OmDataEventHandler base class, and should in turn
+be subclassed to implement Data Event Handlers for specific file types.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -108,10 +201,12 @@ configuration file.</p></li>
 </dl>
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler.initialize_event_handling_on_collecting_node">
-<code class="sig-name descname">initialize_event_handling_on_collecting_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#FilesBaseDataEventHandler.initialize_event_handling_on_collecting_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler.initialize_event_handling_on_collecting_node" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">initialize_event_handling_on_collecting_node</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_pool_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler.initialize_event_handling_on_collecting_node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes file event handling on the collecting node.</p>
-<p>See documentation of the corresponding function in the base class. There is
-usually no need to initialize a file source, so this function does nothing.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>There is usually no need to initialize a file-based data source on the
+collecting node, so this function actually does nothing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -129,16 +224,18 @@ processing nodes and the collecting node.</p></li>
 </dd>
 </dl>
 </dd></dl>
-
 </dd></dl>
-
 <dl class="py class">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler">
-<em class="property">class </em><code class="sig-name descname">PilatusFilesDataEventHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_parameters</span></em>, <em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">PilatusFilesDataEventHandler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monitor_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler" title="om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler</span></code></a></p>
-<p>DataEventHandler for Pilatus files from a filesystem.</p>
-<p>See documentation of the corresponding function in the base class. This class
-handles files written by a 1M Pilatus detector in CBF format.</p>
+<p>Data Event Handler for Pilatus files.</p>
+<p>This Data Event Handler deals with files written by a 1M Pilatus detector in
+CBF format. It is a subclass of the FilesBaseDataEventHandler class.</p>
+<p>The source string for this Data Event Handler is a path to a file containing a
+list of CBF files to process, one per line, with their absolute or relative
+path. Each retrieved event corresponds to the content of one CBF file, which
+usually stores a single detector data frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -150,16 +247,17 @@ configuration file.</p></li>
 </dl>
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.data_extraction_funcs">
-<em class="property">property </em><code class="sig-name descname">data_extraction_funcs</code><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">data_extraction_funcs</span></code><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the Data Extraction Functions for Pilatus file events.</p>
-<p>See documentation of the corresponding function in the base class.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><p>A dictionary storing the implementations of the Data Extraction functions
-available to the current DataEventHandler.</p>
+<dd class="field-even"><p><p>A dictionary storing the Data Extraction functions available to the current
+Data Event Handler.</p>
 <ul class="simple">
 <li><p>Each dictionary key defines the name of a function.</p></li>
 <li><p>The corresponding dictionary value stores the function implementation.</p></li>
@@ -168,12 +266,12 @@ available to the current DataEventHandler.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.initialize_event_handling_on_processing_node">
-<code class="sig-name descname">initialize_event_handling_on_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.initialize_event_handling_on_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.initialize_event_handling_on_processing_node" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">initialize_event_handling_on_processing_node</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_pool_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.initialize_event_handling_on_processing_node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes Pilatus file event handling on the processing nodes.</p>
-<p>See documentation of the corresponding function in the base class.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -191,15 +289,16 @@ processing nodes and the collecting node.</p></li>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.event_generator">
-<code class="sig-name descname">event_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves Pilatus file events from a filesystem.</p>
-<p>See documentation of the corresponding function in the base class. Each
-processing node retrieves the same number of files from the data source, with
-the exception of the last node, which might retrieve fewer files depending on
-how evenly the total number of files can be split.</p>
+<code class="sig-name descname"><span class="pre">event_generator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_pool_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves Pilatus file events.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>This Data Event Handler distributes the files from the data source as evenly as
+possible across all the processing nodes. Each node ideally retrieves the same
+number of files from the source. Only the last node might retrieve fewer files,
+depending on how evenly the total number can be split.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -217,15 +316,14 @@ processing nodes and the collecting node.</p></li>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.open_event">
-<code class="sig-name descname">open_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.open_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">open_event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
 <dd><p>Opens a Pilatus file event.</p>
-<p>See documentation of the corresponding function in the base class. For Pilatus
-data files, an event corresponds to the content of a single Pilatus CBF file.
-This function opens the file and associates its content with the ‘data’ key of
-the ‘event’ dictionary.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>This function opens each CBF file and associates its content with the ‘data’
+key of the ‘event’ dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
@@ -235,14 +333,13 @@ the ‘event’ dictionary.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.close_event">
-<code class="sig-name descname">close_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.close_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">close_event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
 <dd><p>Closes a Pilatus file event.</p>
-<p>See documentation of the corresponding function in the base class. For Pilatus
-data files, an event corresponds to the content of a single Pilatus CBF file,
-which does not need to be closed. Therefore this function does nothing.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>CBF files don’t need to be closed, therefore this function does nothing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
@@ -252,14 +349,163 @@ which does not need to be closed. Therefore this function does nothing.</p>
 </dd>
 </dl>
 </dd></dl>
-
 <dl class="py method">
 <dt id="om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.get_num_frames_in_event">
-<code class="sig-name descname">get_num_frames_in_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#PilatusFilesDataEventHandler.get_num_frames_in_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_num_frames_in_event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.PilatusFilesDataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets the number of frames in a Pilatus file  event.</p>
-<p>See documentation of the corresponding function in the base class. For Pilatus
-data files, an event corresponds to the content of a single CBF data file.
-Since the Pilatus detector writes one frame per file, this function always
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>Since a Pilatus detector usually writes only one frame per file, this function
+always returns 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The number of frames in the event.</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Jungfrau1MFilesDataEventHandler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monitor_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler" title="om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler</span></code></a></p>
+<p>Data Event Handler for Jungfrau 1M files.</p>
+<p>This Data Event Handler deals with files written by a Jungfrau 1M detector in
+HDF5 format. It is a subclass of the FilesBaseDataEventHandler class.</p>
+<p>The source string for this Data Event Handler is a path to a file containing a
+list of HDF5 files to process, one per line, with their absolute or relative
+path. Each file stores multiple detector data frames. Each retrieved event
+corresponds to a single frame from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>monitor_parameters</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – An object storing the OM monitor parameters from the
+configuration file.</p></li>
+<li><p><strong>source</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – A string describing the data source.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.data_extraction_funcs">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">data_extraction_funcs</span></code><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the Data Extraction Functions for Jungfrau 1M file events.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A dictionary storing the Data Extraction functions available to the current
+Data Event Handler.</p>
+<ul class="simple">
+<li><p>Each dictionary key defines the name of a function.</p></li>
+<li><p>The corresponding dictionary value stores the function implementation.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.initialize_event_handling_on_processing_node">
+<code class="sig-name descname"><span class="pre">initialize_event_handling_on_processing_node</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_pool_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.initialize_event_handling_on_processing_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes Jungfrau 1M file event handling on the processing nodes.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns:</p>
+<p>An optional initialization token.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.event_generator">
+<code class="sig-name descname"><span class="pre">event_generator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_pool_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves Jungfrau 1M file events.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>This Event Data Handler considers each detector frame, not each file, a
+separate event. The frames retrieved from the data source are split as evenly
+as possible across all the processing nodes. Each node ideally retrieves the
+same number of frames from the source. Only the last node might retrieve fewer
+frames, depending on how evenly the total number can be split.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
+function.</p></li>
+<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
+processing nodes and the collecting node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p>A dictionary storing the event data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.open_event">
+<code class="sig-name descname"><span class="pre">open_event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a Jungfrau 1M file event.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>Since each detector frame in a file is considered a separate event, the event
+generator, which splits the frames across the processing nodes, takes care of
+opening and closing the files. This function therefore does nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.close_event">
+<code class="sig-name descname"><span class="pre">close_event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes a Jungfrau 1M file event.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>Since each detector frame in a file is considered a separate event, the event
+generator, which splits the frames across the processing nodes, takes care of
+opening and closing the files. This function therefore does nothing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.get_num_frames_in_event">
+<code class="sig-name descname"><span class="pre">get_num_frames_in_event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the number of frames in a Jungfrau 1M file event.</p>
+<p>This method overrides the corresponding method of the base class: please also
+refer to the documentation of that class for more information.</p>
+<p>Since each frame in a file is considered a separate event, this function always
 returns 1.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -273,182 +519,61 @@ returns 1.</p>
 </dd>
 </dl>
 </dd></dl>
-
 </dd></dl>
-
-<dl class="py class">
-<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler">
-<em class="property">class </em><code class="sig-name descname">Jungfrau1MFilesDataEventHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">monitor_parameters</span></em>, <em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#Jungfrau1MFilesDataEventHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler" title="om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler"><code class="xref py py-class docutils literal notranslate"><span class="pre">om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler</span></code></a></p>
-<p>DataEventHandler for Jungfrau 1M files from a filesystem.</p>
-<p>See documentation of the corresponding function in the base class. This event
-handler deals with files written by a Jungfrau 1M detector in HDF5 format.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>monitor_parameters</strong> (<a class="reference internal" href="om.utils.parameters.html#om.utils.parameters.MonitorParams" title="om.utils.parameters.MonitorParams"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonitorParams</span></code></a>) – An object storing the OM monitor parameters from the
-configuration file.</p></li>
-<li><p><strong>source</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – A string describing the data source.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.data_extraction_funcs">
-<em class="property">property </em><code class="sig-name descname">data_extraction_funcs</code><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.data_extraction_funcs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the Data Extraction Functions for Jungfrau 1M file events.</p>
-<p>See documentation of the corresponding function in the base class.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]], <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><p>A dictionary storing the implementations of the Data Extraction functions
-available to the current DataEventHandler.</p>
-<ul class="simple">
-<li><p>Each dictionary key defines the name of a function.</p></li>
-<li><p>The corresponding dictionary value stores the function implementation.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.initialize_event_handling_on_processing_node">
-<code class="sig-name descname">initialize_event_handling_on_processing_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#Jungfrau1MFilesDataEventHandler.initialize_event_handling_on_processing_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.initialize_event_handling_on_processing_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes Jungfrau 1M file event handling on the processing nodes.</p>
-<p>See documentation of the corresponding function in the base class.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
-function.</p></li>
-<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
-processing nodes and the collecting node.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><p>A dictionary storing the implementations of the Data Extraction functions
-available to the current DataEventHandler.</p>
-<ul class="simple">
-<li><p>Each dictionary key defines the name of a function.</p></li>
-<li><p>The corresponding dictionary value stores the function implementation.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.event_generator">
-<code class="sig-name descname">event_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_rank</span></em>, <em class="sig-param"><span class="n">node_pool_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#Jungfrau1MFilesDataEventHandler.event_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.event_generator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves Jungfrau 1M file events from a filesystem.</p>
-<p>See documentation of the corresponding function in the base class. In the
-current implementation, each detector frame in a file is considered a separate
-event. Each processing node retrieves the same number of frames from the data
-source, with the exception of the last node, which might retrieve fewer frames
-depending on how evenly the total number of frames can be split.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>node_rank</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The rank, in the OM pool, of the processing node calling the
-function.</p></li>
-<li><p><strong>node_pool_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The total number of nodes in the OM pool, including all the
-processing nodes and the collecting node.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Yields</dt>
-<dd class="field-even"><p>A dictionary storing the event data.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.open_event">
-<code class="sig-name descname">open_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#Jungfrau1MFilesDataEventHandler.open_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.open_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Opens a Jungfrau 1M file event.</p>
-<p>See documentation of the corresponding function in the base class. In the
-current implementation, each detector frame in a file is considered a separate
-event, and the event generator takes care of opening the file. This function
-therefore does nothing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.close_event">
-<code class="sig-name descname">close_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#Jungfrau1MFilesDataEventHandler.close_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.close_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Closes a Jungfrau 1M file event.</p>
-<p>See documentation of the corresponding function in the base class. In the
-current implementation, each detector frame in a file is considered a separate
-event, and the event generator takes care of closing the file. This function
-therefore does nothing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.get_num_frames_in_event">
-<code class="sig-name descname">get_num_frames_in_event</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/om/data_retrieval_layer/data_handlers_filesystem.html#Jungfrau1MFilesDataEventHandler.get_num_frames_in_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#om.data_retrieval_layer.data_handlers_filesystem.Jungfrau1MFilesDataEventHandler.get_num_frames_in_event" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the number of frames in a Jungfrau 1M file event.</p>
-<p>See documentation of the corresponding function in the base class. In the
-current implementation, each frame in a file is considered a separate event,
-therefore this function always returns 1.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>event</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]) – A dictionary storing the event data.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The number of frames in the event.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="om.data_retrieval_layer.data_handlers_hidra.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">The data_handlers_hidra Module</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="om.data_retrieval_layer.base.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">The base Module</div>
+                
+              </div>
+            </a>
+        </div>
 
+        <div class="related-information">
+              Copyright &#169; 2021, Author
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="_sources/om.data_retrieval_layer.data_handlers_filesystem.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
     </div>
+    <aside class="toc-drawer no-toc">
       
-  </div>
+      
+      
+    </aside>
+  </main>
 </div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
-    <p>
-        &copy; Copyright 
-    2020 SLAC National Accelerator Laboratory -
-    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
-    a research centre of the Helmholtz Association
-.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
-    </p>
-  </div>
-</footer>
-  </body>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>

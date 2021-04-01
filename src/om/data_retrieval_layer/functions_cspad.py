@@ -16,9 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of CSPAD detector data.
+Retrieval of CSPAD detector data from psana.
 
-This module contains functions that retrieve data from a CSPAD x-ray detector.
+This module contains functions that retrieve CSPAD detector data from the psana
+software framework (used at the LCLS facility).
 """
 from typing import Any, Dict
 
@@ -29,7 +30,10 @@ from om.utils import exceptions
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one CSPAD detector data frame from psana.
+    Retrieves a CSPAD detector data frame from psana.
+
+    This function retrieves a single CSPAD detector frame from psana. It returns the
+    frame as a 2D array storing pixel data.
 
     Arguments:
 

@@ -16,11 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM configuration parameter object.
+OM's configuration parameter management.
 
-This module contains a class that stores a set of configuration parameters read from a
-file. Configuration parameters can be retrieved from this class and optionally
-validated.
+This module contains a class that can be used to manage and validate a set of
+configuration parameters read from a file.
 """
 from typing import Any, TextIO
 
@@ -39,9 +38,9 @@ class MonitorParams:
         """
         Storage, retrieval and validation of OM monitor parameters.
 
-        This class stores a set of parameters, subdivided in groups, read from YAML
-        format OM configuration file. It features methods to retrieve and optionally
-        validate configuration parameter values.
+        This class stores a set of parameters, subdivided in groups, read from an OM
+        configuration file written in YAML format. This class has methods to retrieve,
+        and optionally validate, configuration parameters.
 
         Arguments:
 
@@ -103,12 +102,12 @@ class MonitorParams:
                 type of the retrieved parameter will be validated. Defaults to None.
 
             required: True if the parameter is strictly required and must be present
-                present in the configuration file, False otherwise. Defaults to False.
+                in the configuration file, False otherwise. Defaults to False.
 
         Returns:
 
             The value of the requested parameter, or None, if the parameter was not
-                found in the configuration file (and it is not required).
+            found in the configuration file (and it is not required).
 
         Raises:
 

@@ -95,13 +95,7 @@ class OmMissingDataExtractionFunctionError(OmException):
 
 class OmMissingDependencyError(OmException):
     """
-    Raised if one of the dependencies of a module is not found on the system.
-    """
-
-
-class OmMissingEventHandlingFunctionError(OmException):
-    """
-    Raised if an Event Handling Function is not defined.
+    Raised if one of the python module dependencies is not found on the system.
     """
 
 
@@ -125,13 +119,13 @@ class OmMissingParameterGroupError(OmException):
 
 class OmMissingPsanaInitializationFunctionError(OmException):
     """
-    Raised if a psana Detector Interface Initialization Function is not defined.
+    Raised if a psana Detector interface initialization Function is not defined.
     """
 
 
 class OmWrongParameterTypeError(OmException):
     """
-    Raised if the type of the configuration parameter does not match the requested one.
+    Raised if the type of a configuration parameter does not match the requested type.
     """
 
 
@@ -141,7 +135,7 @@ def om_exception_handler(parameter_type, value, traceback_):  # type: ignore
 
     This function should never be called directly. Instead it should be used as a
     replacement for the standard exception handler. For all OM exceptions, this
-    handler adds a label to the Exception and hides the stacktrace. All non-OM
+    handler adds a label to the exception and hides the stacktrace. All non-OM
     exceptions are instead reported normally.
 
     Arguments:

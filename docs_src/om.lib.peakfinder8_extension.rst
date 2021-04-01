@@ -1,4 +1,4 @@
-[:doc:`Back to top of code documentation <om>`]
+:hide-toc:
 
 The peakfinder8\_extension Module
 =================================
@@ -7,3 +7,4 @@ The peakfinder8\_extension Module
     :members:
     :undoc-members:
     :show-inheritance:
+

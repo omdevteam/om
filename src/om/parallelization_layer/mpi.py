@@ -16,9 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-MPI-based parallelization engine for OM.
+MPI-based Parallelization Engine for OM.
 
-This module contains an MPI-based parallelization engine for OM.
+This module contains a Parallelization Engine for OM which uses the MPI communication
+rotocol to manage the communication between the nodes.
 """
 import sys
 from typing import Any, Dict, Tuple, Union
@@ -48,13 +49,14 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        An MPI-based parallelization engine for OM.
+        MPI-based Parallelization Engine for OM.
 
-        See documentation of the corresponding function in the base class. In the MPI
-        implementation of the parallelization engine, the nodes communicate with each
-        other using the MPI protocol.
+        This class implements a Parallelization Engine based on the MPI protocol. It is
+        a subclass of the OmParallelizationEngine class. In this Engine, the nodes
+        communicate with each other using an implementation of the the MPI protocol
+        supported by the Python language.
 
-         Arguments:
+        Arguments:
 
             source: A string describing a source of event data. The exact format of the
                 string depends on the specific DataEventHandler class being used.
@@ -91,7 +93,13 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         """
         Starts the MPI parallelization engine.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function sets up the communication between OM's collecting and processing
+        nodes using the MPI protocol. Additionally, it manages the interaction between
+        the nodes while OM is running, receiving and dispatching data and control
+        commands over MPI channels.
         """
         if self._rank == 0:
             print(
@@ -214,7 +222,12 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         """
         Shuts down the MPI parallelization engine.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        When OM stops, this function closes the communication between the processing
+        and collecting nodes, and manages a controlled shutdown of OM's resources,
+        terminating the MPI processes in an orderly fashion.
 
         Arguments:
 

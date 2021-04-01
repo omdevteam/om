@@ -1,197 +1,285 @@
-<!DOCTYPE html>
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="The om Package" href="om.html" />
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OM: Online Data Analysis for X-Ray Imaging &#8212; OM 20.08.0.0dev documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="_static/my-styles.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" />
+    <meta name="generator" content="sphinx-3.5.1, furo 2021.02.28.beta28"/>
+        <title>Home - om documentation</title>
+      <link rel="stylesheet" href="_static/styles/furo.css?digest=be5985a4059b5c2cd56ed0804790452beca62674">
+    <link rel="stylesheet" href="_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
+    
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="#"><div class="brand">om  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand centered" href="#">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/OMLogo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">om  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption"><span class="caption-text">Content:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="om.html"> om</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.algorithms.html"> algorithms</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.calibration_algorithms.html"> calibration_algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.crystallography_algorithms.html"> crystallography_algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.generic_algorithms.html"> generic_algorithms</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.data_retrieval_layer.html"> data_retrieval_layer</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.base.html"> base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_filesystem.html"> data_handlers_filesystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_hidra.html"> data_handlers_hidra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_psana.html"> data_handlers_psana</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_cspad.html"> functions_cspad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_epix10ka.html"> functions_epix10ka</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_jungfrau1M.html"> functions_jungfrau1M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_jungfrau4M.html"> functions_jungfrau4M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_pilatus.html"> functions_pilatus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_psana.html"> functions_psana</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.graphical_interfaces.html"> graphical_interfaces</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label for="toctree-checkbox-4"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.base.html"> base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_frame_viewer.html"> crystallography_frame_viewer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_gui.html"> crystallography_gui</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_parameter_tweaker.html"> crystallography_parameter_tweaker</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.lib.html"> lib</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label for="toctree-checkbox-5"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.lib.peakfinder8_extension.html"> peakfinder8_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.monitor.html"> monitor</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.parallelization_layer.html"> parallelization_layer</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label for="toctree-checkbox-6"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.parallelization_layer.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.parallelization_layer.mpi.html">mpi</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.processing_layer.html"> processing_layer</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label for="toctree-checkbox-7"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.processing_layer.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.processing_layer.crystallography.html">crystallography</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="om.utils.html"> utils</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/><label for="toctree-checkbox-8"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.crystfel_geometry.html">crystfel_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.exceptions.html">exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.parameters.html">parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.zmq_gui.html">zmq_gui</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.zmq_monitor.html">zmq_monitor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <div class="section" id="welcome-to-om-s-documentation">
+<h1>Welcome to OM’s documentation!<a class="headerlink" href="#welcome-to-om-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Content:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="om.html"> om</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="om.algorithms.html"> algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.calibration_algorithms.html"> calibration_algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.crystallography_algorithms.html"> crystallography_algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.algorithms.generic_algorithms.html"> generic_algorithms</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.data_retrieval_layer.html"> data_retrieval_layer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.base.html"> base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_filesystem.html"> data_handlers_filesystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_hidra.html"> data_handlers_hidra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.data_handlers_psana.html"> data_handlers_psana</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_cspad.html"> functions_cspad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_epix10ka.html"> functions_epix10ka</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_jungfrau1M.html"> functions_jungfrau1M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_jungfrau4M.html"> functions_jungfrau4M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_pilatus.html"> functions_pilatus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.data_retrieval_layer.functions_psana.html"> functions_psana</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.graphical_interfaces.html"> graphical_interfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.base.html"> base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_frame_viewer.html"> crystallography_frame_viewer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_gui.html"> crystallography_gui</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.graphical_interfaces.crystallography_parameter_tweaker.html"> crystallography_parameter_tweaker</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.lib.html"> lib</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.lib.peakfinder8_extension.html"> peakfinder8_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.monitor.html"> monitor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="om.parallelization_layer.html"> parallelization_layer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.parallelization_layer.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.parallelization_layer.mpi.html">mpi</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.processing_layer.html"> processing_layer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.processing_layer.base.html">base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.processing_layer.crystallography.html">crystallography</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="om.utils.html"> utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.crystfel_geometry.html">crystfel_geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.exceptions.html">exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.parameters.html">parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.zmq_gui.html">zmq_gui</a></li>
+<li class="toctree-l3"><a class="reference internal" href="om.utils.zmq_monitor.html">zmq_monitor</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="om.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">The om Package</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2021, Author
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="_sources/index.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </main>
+</div>
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
-    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
-    <script src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="What Is An OM Monitor?" href="documentation_what_is_an_om_monitor.html" />
-<meta charset='utf-8'>
-<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
-
-  </head><body>
-
-  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <div class="navbar-header">
-        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#">
-          OM</a>
-        <span class="navbar-text navbar-version pull-left"><b>20.08.0.0dev</b></span>
-      </div>
-
-        <div class="collapse navbar-collapse nav-collapse">
-          <ul class="nav navbar-nav">
-            
-                <li><a href="documentation_what_is_an_om_monitor.html">What is OM?</a></li>
-                <li><a href="documentation_running_om.html">Running OM</a></li>
-                <li><a href="documentation_advanced_documentation.html">Advanced Documentation</a></li>
-                <li><a href="https://github.com/omdevteam/om">Source Code</a></li>
-            
-            
-              
-              
-            
-            
-            
-            
-            
-              <li class="hidden-sm"></li>
-            
-          </ul>
-
-          
-            
-<form class="navbar-form navbar-right" action="search.html" method="get">
- <div class="form-group">
-  <input type="text" name="q" class="form-control" placeholder="Search" />
- </div>
-  <input type="hidden" name="check_keywords" value="yes" />
-  <input type="hidden" name="area" value="default" />
-</form>
-          
-        </div>
-    </div>
-  </div>
-
-<div class="container">
-  <div class="row">
-    <div class="body col-md-12 content" role="main">
-      
-  <div class="section" id="om-online-data-analysis-for-x-ray-imaging">
-<h1>OM: Online Data Analysis for X-Ray Imaging<a class="headerlink" href="#om-online-data-analysis-for-x-ray-imaging" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-</div>
-<div class="section" id="your-data-live-in-the-moment">
-<h2><em>“Your data, live in the moment…”</em><a class="headerlink" href="#your-data-live-in-the-moment" title="Permalink to this headline">¶</a></h2>
-<a class=""
-               data-lightbox="group-8ef5e2c8-31ef-4d7f-b852-d21b2e8a922d"
-               href="_images/OndaScreenshot1.jpg"
-               title=""
-               data-title=""
-               ><img src="_images/OndaScreenshot1.jpg"
-                     class=""
-                     width="60%"
-                     height="auto"
-                     alt=""/>
-                </a></div>
-<div class="section" id="what-is-om">
-<h2>What is OM?<a class="headerlink" href="#what-is-om" title="Permalink to this headline">¶</a></h2>
-<p><strong>OM</strong> (<strong>O</strong>nda <strong>M</strong>onitor) is a software tool for the the <strong>development</strong> of
-programs that can monitor of X-ray imaging experiments in <strong>real-time</strong>, and also a set
-of <strong>monitoring programs</strong> ready for use.</p>
-<p>It is the spiritual successor of the <strong>OnDA</strong> project and it is maintained mostly by
-the same team of developers.</p>
-<p>OM provides users with a set of stable and efficient real-time monitors for the most
-common types of x-ray imaging experiments. These <strong>can be used immediately</strong> without
-modifications or <strong>can be easily adapted</strong> to meet the users’ requirements. In
-addition, the project provides a set of modules that can be used to easily develop
-other monitoring programs tailored to the characteristics of specific experiments.</p>
-<p>OM can process imaging data in the broadest sense: multidimensional and
-multiple-pixel data (for example, a diffraction pattern or a photoemission spectrum,
-but also an image coming from a camera or a microscope), and any kind of digital output
-from an instrument or sensor (for example, a temperature readout, beam and pulse
-energies, etc.).</p>
-<p>OM focuses on <strong>scalability and portability</strong>, in order to facilitate its adoption
-for a wide array of current and future instruments. It also strives for <strong>stability and
-performance</strong>. In order to achieve these goals, OM implements a multi-node
-parallelization paradigm using free and open-source libraries and protocols.</p>
-<p>OM is written in Python. The use of the Python programming language, which is
-particularly suited to prototyping and rapid development, makes OM easy to modify and
-to adapt to the requirements of specific experiments.</p>
-<p>OM also aims to keep the code base <strong>simple and as small as possible</strong>. The focus is
-on providing a core set of functions, while allowing the framework to be expanded with
-external software when possible, avoiding the need to reimplement already optimized
-algorithms.</p>
-</div>
-<div class="section" id="recommended-citation">
-<h2>Recommended Citation<a class="headerlink" href="#recommended-citation" title="Permalink to this headline">¶</a></h2>
-<p>If you use OM in your experiment, please keep citing the original OnDA paper until a
-new publication for OM is available:</p>
-<blockquote>
-<div><p>Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O’Grady C., Kuhn M., Aplin
-S., Koglin J., Barty A., Chapman H.N., <strong>OnDA: online data analysis and feedback for
-serial X-ray imaging.</strong>, J. <em>Appl. Crystallogr.</em> 2016 May 23;49(Pt 3):1073-1080.
-(<a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/27275150">https://www.ncbi.nlm.nih.gov/pubmed/27275150</a>)</p>
-</div></blockquote>
-</div>
-<div class="section" id="authors">
-<h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
-<p>OM is currently developed at the Linac Coherent Light Source facility of the SLAC
-National Accelerator Laboratory (<a class="reference external" href="https://lcls.slac.stanford.edu">https://lcls.slac.stanford.edu</a>).</p>
-<p>Many people from different institutions worldwide contribute code, testing and support
-to the project:</p>
-<ul class="simple">
-<li><p><strong>Valerio Mariani</strong> (corresponding author: <a class="reference external" href="mailto:valmar&#37;&#52;&#48;slac&#46;stanford&#46;edu">valmar<span>&#64;</span>slac<span>&#46;</span>stanford<span>&#46;</span>edu</a>)</p></li>
-<li><p>Anton Barty</p></li>
-<li><p>Thomas Grant</p></li>
-<li><p>Jason Koglin</p></li>
-<li><p>Thomas J. Lane</p></li>
-<li><p>Andrew Morgan</p></li>
-<li><p>Christopher O’Grady</p></li>
-<li><p>Kanupriya Pande</p></li>
-<li><p>Alexandra Tolstikova</p></li>
-<li><p>Thomas A. White</p></li>
-<li><p>Chun Hong Yoon</p></li>
-</ul>
-</div>
-<div class="section" id="documentation">
-<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
-<p>Guidelines on how to install, configure and run OM at several facilities all over
-the world or on your local computer can be found <a class="reference internal" href="documentation_running_om.html"><span class="doc">here</span></a>.</p>
-<p>For advanced documentation, see <a class="reference internal" href="documentation_advanced_documentation.html"><span class="doc">this page</span></a>.</p>
-</div>
-<div class="section" id="source-code">
-<h2>Source Code<a class="headerlink" href="#source-code" title="Permalink to this headline">¶</a></h2>
-<p>The source code of OM can be found on GitHub: <a class="reference external" href="https://github.com/omdevteam/om">https://github.com/omdevteam/om</a></p>
-<p>Autogenerated, formatted code documentation can instead be found <a class="reference internal" href="om.html"><span class="doc">here</span></a>.</p>
-</div>
-</div>
-
-
-    </div>
-      
-  </div>
-</div>
-<footer class="footer">
-  <div class="container">
-    <p class="pull-right">
-      <a href="#">Back to top</a>
-      
-    </p>
-    <p>
-        &copy; Copyright 
-    2020 SLAC National Accelerator Laboratory -
-    Based on OnDA: Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
-    a research centre of the Helmholtz Association
-.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
-    </p>
-  </div>
-</footer>
-  </body>
+    <script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>

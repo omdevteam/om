@@ -1,4 +1,4 @@
-[:doc:`Back to top of code documentation <om>`]
+:hide-toc:
 
 The algorithms Package
 ======================
@@ -9,8 +9,8 @@ The algorithms Package
     :show-inheritance:
 
 .. toctree::
+   :maxdepth: 1
 
     calibration_algorithms <om.algorithms.calibration_algorithms>
     crystallography_algorithms <om.algorithms.crystallography_algorithms>
     generic_algorithms <om.algorithms.generic_algorithms>
-    peakfinder8_extension <om.lib.peakfinder8_extension>

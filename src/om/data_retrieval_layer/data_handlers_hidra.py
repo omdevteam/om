@@ -18,7 +18,8 @@
 """
 Retrieval and handling of data events from HiDRA.
 
-This module contains DataEventHandlers for events retrieved from the HiDRA framework.
+This module contains Data Event Handlers for events retrieved from the HiDRA software
+framework (used at the Petra III facility).
 """
 import io
 import pathlib
@@ -98,11 +99,18 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
-        DataEventHandler for events retrieved from HiDRA at P11 (PETRA III).
+        Data Event Handler for events retrieved from HiDRA at P11 (PETRA III).
 
-        See documentation of the corresponding function in the base class. This class
-        handles Pilatus detector data events retrieved from HiDRA at the P11 beamline
-        of the PETRA III facility.
+        This Data Event Handler deals with events retrieved from the HiDRA software
+        framework at the P11 beamline of the Petra III facility. It is a subclass of
+        the generic OmDataEventHandler base class.
+
+        The source string for this Data Event Handler is the host name or IP address of
+        the machine where the HiDRA server is running. HiDRA streams events based on
+        files written by detectors, with each event usually corresponding to the
+        content of one file. At P11, the x-ray detector is a 1M Pilatus. This detector
+        writes files in CBF format. Each HiDRA event therefore corresponds to the
+        content of a single CBF file, which usually stores 1 detector frame.
 
         Arguments:
 
@@ -123,12 +131,13 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         Retrieves the Data Extraction Functions for HiDRA events at P11.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         Returns:
 
-            A dictionary storing the implementations of the Data Extraction Functions
-            available to the current DataEventHandler.
+            A dictionary storing the Data Extraction functions available to the current
+            Data Event Handler.
 
             * Each dictionary key defines the name of a function.
 
@@ -149,9 +158,11 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         Initializes P11 HiDRA event handling on the collecting node.
 
-        See documentation of the corresponding function in the base class. This
-        function announces OM to HiDRA at P11 and configures HiDRA to send data event
-        to the processing nodes.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function announces OM to the HiDRA server. It configures HiDRA to send
+        data events to the processing nodes.
 
         Arguments:
 
@@ -167,7 +178,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
         Raises:
 
-            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
+            :class:`~om.utils.exceptions.OmHidraAPIError`: If the initial connection to
                 HiDRA fails.
         """
         print("Announcing OM to HiDRA.")
@@ -195,8 +206,11 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         Initializes P11 HiDRA event handling on the processing nodes.
 
-        See documentation of the corresponding function in the base class. This
-        function configures each processing node to receive events from HiDRA at P11.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function configures each processing node to receive events from the HiDRA
+        server.
 
         Arguments:
 
@@ -251,9 +265,12 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         Retrieves HiDRA events at P11.
 
-        See documentation of the corresponding function in the base class. This
-        function retrieves events from HiDRA at P11. Each HiDRA event contains data
-        from a single CBF file written by a Pilatus detector.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves events from the HiDRA server. At the P11 beamline of
+        the Petra III facility, each HiDRA event corresponds to the content of a single
+        CBF file written by a Pilatus 1M detector.
 
         Arguments:
 
@@ -269,7 +286,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
         Raises:
 
-            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
+            :class:`~om.utils.exceptions.OmHidraAPIError`: If the initial connection to
                 HiDRA fails.
         """
         hidra_info: Dict[str, Any] = _create_hidra_info(
@@ -316,10 +333,12 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         Opens a P11 HiDRA event.
 
-        See documentation of the corresponding function in the base class. At P11, each
-        HiDRA event contains data from a single Pilatus CBF data file. This function
-        opens the file and associates its binary content to the 'data' key of the
-        'event' dictionary.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        At P11, each HiDRA event contains data from a single CBF file from a 1M Pilatus
+        detector. This function associates the content of the CBF file to the 'data'
+        key of the 'event' dictionary.
 
         Arguments:
 
@@ -337,9 +356,11 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         Closes a P11 HiDRA data event.
 
-        See documentation of the corresponding function in the base class. At P11, each
-        HiDRA event contains data from a single Pilatus CBF data file. The file does
-        not need to be closed, therefore this function does nothing,
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        An event recovered from HiDRA at P11 does not need to be closed, therefore this
+        function does nothing..
 
         Arguments:
 
@@ -351,9 +372,12 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         Gets the number of frames in a P11 HiDRA data event.
 
-        See documentation of the corresponding function in the base class. At P11, each
-        HiDRA event contains data from a single Pilatus CBF data file. The file usually
-        contains just one frame, therefore this function always returns 1.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        At P11, each HiDRA event contains data from a single CBF file from a 1M Pilatus
+        detector. These files usually store just one detector frame. This function
+        therefore always returns 1.
 
         Arguments:
 

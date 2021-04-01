@@ -16,9 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of EPIX 2M detector data.
+Retrieval of EPIX 2M detector data from psana.
 
-This module contains functions that retrieve data from a EPIX 10K 2M x-ray detector.
+This module contains functions that retrieve EPIX 10K 2M detector data from the psana
+software framework (used at the LCLS facility).
 """
 from typing import Any, Dict
 
@@ -29,7 +30,10 @@ from om.utils import exceptions
 
 def epixka2m_detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one Epix10KA detector data frame from psana.
+    Retrieves a Epix10KA 2M detector data frame from psana.
+
+    This function retrieves a single EPIX10KA 2M detector frame from psana. It returns
+    the frame as a 2D array storing pixel data.
 
     Arguments:
 

@@ -16,5 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-The Parallelization Layer package.
+OM's Parallelization Layer.
+
+This package contains OM's Parallelization Layer, which manages the communication
+between the processing and collecting nodes. It is split in several modules, each
+corresponding to a different inter-node communication protocol.
 """

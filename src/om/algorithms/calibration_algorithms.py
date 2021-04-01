@@ -18,7 +18,8 @@
 """
 Algorithms for detector calibration.
 
-This module contains algorithms that apply calibration to raw detector data.
+This module contains algorithms that can be used to calibrate raw detector data. Each
+algorithm deals with a specific detector.
 """
 from typing import Any, BinaryIO, List
 
@@ -88,8 +89,8 @@ class Jungfrau1MCalibration:
         """
         Applies the calibration to a detector data frame.
 
-        This function determines the gain stage of each pixel in the data frame, and
-        applies the relevant gain and offset corrections.
+        This function determines the gain stage of each pixel in the provided data
+        frame, and applies the relevant gain and offset corrections.
 
         Arguments:
 

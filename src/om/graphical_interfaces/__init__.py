@@ -22,7 +22,8 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM GUI graphical interfaces.
+OM's graphical user interfaces.
 
-This package contains functions and classes that implement the OM GUIs for the desktop.
+This package contains OM's Qt-based graphical user interfaces for the desktop. One
+module is dedicated to each GUI or viewer.
 """

@@ -19,19 +19,25 @@
 Algorithms for the processing of crystallography data.
 
 This module contains algorithms that perform crystallography-related data processing
-(peak finding, etc.).
+(peak finding, etc.). In addition, it also contains several typed dictionaries that
+store data needed or produced by these algorithms.
 """
 from typing import List, Tuple, Union
 
 import numpy  # type: ignore
 from mypy_extensions import TypedDict
 
-from om.lib.peakfinder8_extension import peakfinder_8
+from om.lib.peakfinder8_extension import peakfinder_8  # type: ignore
 
 
 class TypePeakfinder8Info(TypedDict, total=True):
     """
-    A dictionary storing information about the data layout in a detector data frame.
+    Detector layout information for the peakfinder8 algorithm.
+
+    This typed dictionary is used to store information about the data layout in a
+    detector data frame, in the format needed by the :class:`Peakfinder8PeakDetection`
+    algorithm.  This information is usually retrieved via the
+    :func:`get_peakfinder8_info` function.
     """
 
     asic_nx: int
@@ -57,7 +63,10 @@ class TypePeakfinder8Info(TypedDict, total=True):
 
 class TypePeakList(TypedDict, total=True):
     """
-    A dictionary storing information about peaks detected in a data frame.
+    Detected peaks information.
+
+    This typed dictionary is used to store information about a set of peaks that
+    were detected in a data frame.
     """
 
     num_peaks: int
@@ -67,12 +76,12 @@ class TypePeakList(TypedDict, total=True):
 
     fs: List[float]
     """
-    A list of fractional fs indexes locating the detected peaks in the data frame.
+    A list of fractional fs indexes that locate the detected peaks in the data frame.
     """
 
     ss: List[float]
     """
-    A list of fractional ss indexes locating the detected peaks in the data frame.
+    A list of fractional ss indexes that locate the detected peaks in the data frame.
     """
 
     intensity: List[float]
@@ -98,21 +107,23 @@ class TypePeakList(TypedDict, total=True):
 
 def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
     """
-    Retrieves the data layout information required by the peakfinder8 algorithm for any
-    supported detector.
+    Gets the peakfinder8 information for a detector.
+
+    This function retrieves, for a supported detector type, the data layout information
+    required by the :class:`Peakfinder8PeakDetection` algorithm.
 
     Arguments:
 
         detector_type: The type of detector for which the information needs to be
-            retrieved. The detector currently supported are:
+            retrieved. The following detector types are currently supported:
 
-            * 'cspad': The CSPAD detector used at the CXI beamtime of the LCLS facility
+            * 'cspad': The CSPAD detector used at the CXI beamline of the LCLS facility
               before 2020.
 
-            * 'pilatus': The Pilatus detector used at the P11 beamtime of the LCLS
+            * 'pilatus': The Pilatus detector used at the P11 beamline of the PETRA III
               facility.
 
-            * 'jungfrau1M': The 1M version of the Jungfrau detector used at the Petra
+            * 'jungfrau1M': The 1M version of the Jungfrau detector used at the PETRA
               III facility.
 
             * 'jungfrau4M': The 4M version of the Jungfrau detector used at the CXI
@@ -195,13 +206,13 @@ class Peakfinder8PeakDetection:
         Peakfinder8 algorithm for peak detection.
 
         This algorithm stores the parameters required to find peaks in a detector data
-        frame using the 'peakfinder8' strategy. It also performs peak finding on a data
+        frame using the 'peakfinder8' strategy, and performs peak finding on a data
         frame upon request. The 'peakfinder8' peak detection strategy is described in
         the following publication:
 
         A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
         and H. N. Chapman, "Cheetah: software for high-throughput reduction and
-        analysis of serial femtosecond X-ray diffraction data", J Appl  Crystallogr,
+        analysis of serial femtosecond x-ray diffraction data", J Appl  Crystallogr,
         vol. 47, pp. 1118-1131 (2014).
 
         Arguments:
@@ -209,13 +220,17 @@ class Peakfinder8PeakDetection:
             max_num_peaks: The maximum number of peaks that will be retrieved from each
                 data frame. Additional peaks will be ignored.
 
-            asic_nx: The fs size in pixels of each detector panel in the data frame.
+            asic_nx: The fs size in pixels of each detector panel in the data frame
+                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
 
-            asic_ny: The ss size in pixels of each detector panel in the data frame.
+            asic_ny: The ss size in pixels of each detector panel in the data frame
+                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
 
-            nasics_x: The number of panels along the fs axis of the data frame.
+            nasics_x: The number of panels along the fs axis of the data frame
+                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
 
-            nasics_y: The number of panels along the ss axis of the data frame.
+            nasics_y: The number of panels along the ss axis of the data frame
+                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
 
             adc_threshold: The minimum ADC threshold for peak detection.
 
@@ -232,10 +247,10 @@ class Peakfinder8PeakDetection:
 
             max_res: The maximum resolution for a peak in pixels.
 
-            bad_pixel_map: An array storing a bad pixel map. The map should mark areas
-                of the data frame that must be excluded from the peak search. If this
-                argument is None, no area will be excluded from the search. Defaults
-                to None.
+            bad_pixel_map: An array storing a bad pixel map. The map can be used to
+                mark areas of the data frame that must be excluded from the peak
+                search. If the value of this argument is None, no area will be excluded
+                from the search. Defaults to None.
 
                 * The map must be a numpy array of the same shape as the data frame on
                   which the algorithm will be applied.
@@ -253,9 +268,10 @@ class Peakfinder8PeakDetection:
                 * The array must have the same shape as the data frame on which the
                   algorithm will be applied.
 
-                * Each element of the array must store the distance in pixels from
-                  the center of the detector of the corresponding pixel in the data
-                  frame.
+                * Each element of the array must store, for the corresponding pixel in
+                  the data frame, the distance in pixels from the origin
+                  of the detector reference system (usually the center of the
+                  detector).
         """
         self._max_num_peaks: int = max_num_peaks
         self._asic_nx: int = asic_nx

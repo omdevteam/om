@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM real-time Parameter Tweaker.
+OM's real-time Parameter Tweaker.
 
 This module contains the implementation of a graphical interface that can be used in
 crystallography experiments to test peak-finding parameters in real time.
@@ -32,13 +32,11 @@ import click
 import h5py  # type: ignore
 import numpy  # type: ignore
 import pyqtgraph  # type: ignore
-
 from om.algorithms import crystallography_algorithms as cryst_algs
-from om.utils import crystfel_geometry, parameters
-from om.graphical_interfaces import base as graph_interfaces_base
-from om.utils.crystfel_geometry import TypePixelMaps
 from om.algorithms.crystallography_algorithms import TypePeakfinder8Info
-
+from om.graphical_interfaces import base as graph_interfaces_base
+from om.utils import crystfel_geometry, parameters
+from om.utils.crystfel_geometry import TypePixelMaps
 from PyQt5 import QtCore, QtGui  # type: ignore
 
 
@@ -51,16 +49,20 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         """
         OM Parameter Tweaker for Crystallography.
 
-        See documentation of the corresponding function in the base class. This GUI
-        receives detector frame data from an OM crystallography monitor, when it is
-        tagged with the 'omdetectordata' label. It allows the users to choose a set
-        of peakfinding parameters that it then applies on-the-fly to each received
-        detector frame. The GUI then displays the detector frame, and the detected
-        Bragg peaks. A data buffer allows the GUI to stop receiving data from the
-        monitor but still keep in memory the last 10 received frames to inspect and
-        operate on. The purpose of this GUI is to allow the user to experiment with the
-        peak finding parameters without interfering with the processing carried out by
-        the OM monitor.
+        This class implements a graphical user interface that can be used to test new
+        peak finding parameters in real time. It is a subclass of the OmGui base class.
+
+        This GUI receives detector frame data from an OndA Monitor for Crystallography
+        when it is tagged with the 'omdetectordata' label.  The received data must
+        include processed detector frames.
+
+        The GUI allows the user to choose a set of peak-finding parameters. It then
+        applies the
+        :class:`om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection`
+        algorithm on the fly to each received frame. FInally, it displays the frame
+        together with the detected peaks. A data buffer allows the GUI to stop
+        receiving data from the monitor but still keep in memory the last 10 received
+        frames to inspect and operate on.
 
         Arguments:
 
@@ -500,7 +502,12 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         """
         Updates the elements of the Crystallography Parameter Tweaker.
 
-        See documentation of the function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function stores the data received from OM, and calls the internal
+        functions that initially perform the hit finding with the current chosen
+        parameters, and then display the detector frame and the detected peaks.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
@@ -568,21 +575,24 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
 @click.argument("url", type=str, required=False)
 def main(url: str, config: str) -> None:
     """
-    OM Parameter Tweaker for Crystallography. This program must connect to a running OM
-    Monitor for Crystallography. If the monitor broadcasts detector frame data, this
-    graphical interface will receive it. The user will be allowed to choose a set
-    of peakfinding parameters that the graphical interface will apply on each received
-    detector frame. The interface will then display each detector frame with its
-    detected Bragg peaks. The data stream from the monitor can also be temporarily
-    paused, and any of the last 10 displayed detector frames can be recalled and
-    operated on. The purpose of this GUI is to allow the user to experiment with the
-    peak finding parameters without interfering with the processing carried out by the
-    OM monitor.
+    OM Parameter Tweaker for Crystallography. This program must connect to a running
+    OnDA Monitor for Crystallography. If the monitor broadcasts detector frame data,
+    this graphical interface will receive it. The user will be allowed to choose a set
+    of peakfinding parameters which will then be applied to each received detector
+    frame. Each frame will be displayed with its detected peaks. The data stream
+    from the monitor can also be temporarily paused, and any of the last 10 displayed
+    detector frames can be recalled and operated on. The purpose of this GUI is to
+    allow the user to refine the peak finding parameters without interfering with
+    with the OnDA Monitor observing the experiment.
 
-    URL: the URL at which the GUI will connect and listen for data. This is a string in
-    the format used by the ZeroMQ Protocol. Optional: if not provided, it defaults to
-    tcp://127.0.0.1:12321
+    The GUI conects to and OnDA Monitor running at the IP address (or hostname)
+    specified by the URL string. This is a string in the format used by the ZeroMQ
+    Protocol. The URL string is optional. If not provided, URL defaults to
+    tcp://127.0.0.1:12321 and the GUI connects, using the tcp protocol, to a monitor
+    running on the local machine at port 12321.
     """
+    # This function is turned into a script by the Click library. The docstring
+    # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     if url is None:

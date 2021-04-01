@@ -1,4 +1,4 @@
-[:doc:`Back to top of code documentation <om>`]
+:hide-toc:
 
 The monitor Module
 ==================
@@ -7,3 +7,7 @@ The monitor Module
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. click:: om.monitor:main
+    :prog: om_monitor.py
+    :nested: full
