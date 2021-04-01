@@ -11,7 +11,7 @@ Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 <https://www.ondamonitor.com>
 
 **OM** (\ **O**\ nda \ **M**\ onitor) is a software tool for the the **development** of
-programs that can monitor of X-ray imaging experiments in **real-time**, and also a set
+programs that can monitor of x-ray imaging experiments in **real-time**, and also a set
 of **monitoring programs** ready for use.
 
 It is the spiritual successor of the **OnDA** project and it is maintained mostly by
@@ -52,7 +52,7 @@ new publication for OM is available:
 
   Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O'Grady C., Kuhn M., Aplin
   S., Koglin J., Barty A., Chapman H.N., **OnDA: online data analysis and feedback for
-  serial X-ray imaging.**, J. *Appl. Crystallogr.* 2016 May 23;49(Pt 3):1073-1080.
+  serial x-ray imaging.**, J. *Appl. Crystallogr.* 2016 May 23;49(Pt 3):1073-1080.
   (https://www.ncbi.nlm.nih.gov/pubmed/27275150)
 
 
