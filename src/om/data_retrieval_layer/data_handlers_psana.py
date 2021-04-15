@@ -479,7 +479,7 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
         }
 
 
-class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
+class MfxLclsRayonixDataEventHandler(LclsBaseDataEventHandler):
     """
     See documentation of the `__init__` function.
 
@@ -494,8 +494,8 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
         Data Event Handler for events retrieved from psana at MFX (LCLS).
 
         This Data Event Handler deals with events retrieved from psana at the MFX
-        beamline of the LCLS facility, with an Epix10KA as the main x-ray detector. It
-        is a subclass of the [LclsBaseDataEventHandler]
+        beamline of the LCLS facility, with a Rayonixas the main x-ray detector. It is
+        a subclass of the [LclsBaseDataEventHandler]
         [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler] class.
 
         Arguments:
@@ -506,7 +506,7 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
 
             source: A string describing the data source.
         """
-        super(MfxLclsDataEventHandler, self).__init__(
+        super(MfxLclsRayonixDataEventHandler, self).__init__(
             monitor_parameters=monitor_parameters, source=source
         )
 
@@ -529,7 +529,69 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
         """
         return {
             "timestamp": functions_psana.timestamp,
-            "detector_data": functions_epix10ka.epixka2m_detector_data,
+            "detector_data": functions_rayonix.epixka2m_detector_data,
+            "beam_energy": functions_psana.beam_energy,
+            "detector_distance": functions_psana.detector_distance,
+            "timetool_data": functions_psana.timetool_data,
+            "digitizer_data": functions_psana.digitizer_data,
+            "opal_data": functions_psana.opal_data,
+            "optical_laser_active": functions_psana.optical_laser_active,
+            "xrays_active": functions_psana.xrays_active,
+        }
+
+
+class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`LclsBaseDataEventHandler`]
+    [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler]
+    """
+
+    def __init__(self, monitor_parameters: parameters.MonitorParams, source: str):
+        """
+        Data Event Handler for events retrieved from psana at CXI with CSPAD (LCLS).
+
+        This Data Event Handler deals with events retrieved from psana at the CXI
+        beamline of the LCLS facility before 2020, when a CSPAD was the main x-ray
+        detector. Is is a subclass of the  [LclsBaseDataEventHandler]
+        [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler] class.
+
+        Arguments:
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+
+            source: A string describing the data source.
+        """
+        super(CxiLclsCspadDataEventHandler, self).__init__(
+            monitor_parameters=monitor_parameters,
+            source=source,
+        )
+
+    @property
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
+        """
+        Retrieves the Data Extraction Functions for CXI psana events (CSPAD).
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Returns:
+
+            A dictionary storing the implementations of the Data Extraction functions
+            available to the current DataEventHandler.
+
+            * Each dictionary key defines the name of a function.
+
+            * The corresponding dictionary value stores the function implementation.
+        """
+        return {
+            "timestamp": functions_psana.timestamp,
+            "detector_data": functions_cspad.detector_data,
             "beam_energy": functions_psana.beam_energy,
             "detector_distance": functions_psana.detector_distance,
             "timetool_data": functions_psana.timetool_data,

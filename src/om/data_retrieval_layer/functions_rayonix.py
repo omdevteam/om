@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of Jungfrau 4M detector data from psana.
+Retrieval of Rayonix detector data from psana.
 
-This module contains functions that retrieve Jungfrau 4M detector data from the psana
+This module contains functions that retrieve Rayonix detector data from the psana
 software framework (used at the LCLS facility).
 """
 from typing import Any, Dict
@@ -30,9 +30,9 @@ from om.utils import exceptions
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one Jungfrau 4M detector data frame from psana.
+    Retrieves one Rayonix 4M detector data frame from psana.
 
-    This function retrieves a single Jungfrau 4M detector frame from psana. It returns
+    This function retrieves a single Rayonix detector frame from psana. It returns
     the frame as a 2D array storing pixel data.
 
     Arguments:
@@ -43,15 +43,12 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
 
         One frame of detector data.
     """
-    jungfrau_psana: numpy.ndarray = event["additional_info"][
-        "psana_detector_interface"
-    ]["detector_data"].calib(event["data"])
-    if jungfrau_psana is None:
+    rayonix_psana: numpy.ndarray = event["additional_info"]["psana_detector_interface"][
+        "detector_data"
+    ].calib(event["data"])
+    if rayonix_psana is None:
         raise exceptions.OmDataExtractionError(
             "Could not retrieve detector data from psana."
         )
 
-    # Rearranges the data into 'slab' format.
-    jungfrau_reshaped: numpy.ndarray = jungfrau_psana.reshape(8 * 512, 1024)
-
-    return jungfrau_reshaped
+    return rayonix_psana

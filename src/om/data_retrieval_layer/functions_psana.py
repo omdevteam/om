@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of of data from the psana framework.
+Retrieval of data from the psana framework.
 
 This module contains functions that retrieve data from the psana software framework
 (used at the LCLS facility) using the psana Detector interface. It also contains

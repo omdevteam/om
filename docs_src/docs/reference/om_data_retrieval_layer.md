@@ -11,4 +11,5 @@
   * [functions_jungfrau1M](om_data_retrieval_layer_functions_jungfrau1M.md)
   * [functions_jungfrau4M](om_data_retrieval_layer_functions_jungfrau4M.md)
   * [functions_pilatus](om_data_retrieval_layer_functions_pilatus.md)
+  * [functions_rayonix](om_data_retrieval_layer_functions_rayonix.md)
   * [functions_psana](om_data_retrieval_layer_functions_psana.md)

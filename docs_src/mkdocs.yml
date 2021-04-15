@@ -43,6 +43,7 @@ nav:
         - functions_jungfrau1M: reference/om_data_retrieval_layer_functions_jungfrau1M.md
         - functions_jungfrau4M: reference/om_data_retrieval_layer_functions_jungfrau4M.md
         - functions_pilatus: reference/om_data_retrieval_layer_functions_pilatus.md
+        - functions_rayonix: reference/om_data_retrieval_layer_functions_rayonix.md
         - functions_psana: reference/om_data_retrieval_layer_functions_psana.md
       - graphical_interfaces:
         - __init__: reference/om_graphical_interfaces.md
