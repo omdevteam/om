@@ -28,7 +28,7 @@ from om.utils import parameters
 
 class OmMonitor(ABC):
     """
-    See documentation for the '__init__' function.
+    See documentation for the `__init__` function.
     """
 
     def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
@@ -48,8 +48,9 @@ class OmMonitor(ABC):
 
         Arguments:
 
-            monitor_params: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
         """
         self._monitor_params = monitor_parameters
 
@@ -57,6 +58,8 @@ class OmMonitor(ABC):
     def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
         """
         Initializes an OM processing node.
+
+        This is an abstract method.
 
         This function is invoked on each processing node when OM starts and it prepares
         the node to begin retrieveing and processing data events: it reads additional
@@ -76,6 +79,8 @@ class OmMonitor(ABC):
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
         Initializes an OM collecting node.
+
+        This is an abstract method.
 
         This function is invoked on the collecting node when OM starts and it prepares
         the node for the aggregation of data received from the processing nodes: it
@@ -101,6 +106,8 @@ class OmMonitor(ABC):
     ) -> Tuple[Dict[str, Any], int]:
         """
         Processes a single frame in a data event.
+
+        This is an abstract method.
 
         This function is invoked on each processing node for every detector data frame
         in a data event. It receives a dictionary storing the raw frame data as input,
@@ -142,6 +149,8 @@ class OmMonitor(ABC):
     ) -> None:
         """
         Collects processed data from a processing node.
+
+        This is an abstract method.
 
         This function is invoked on the collecting node every time data is transferred
         from a processing node. The function accepts as input the data received from

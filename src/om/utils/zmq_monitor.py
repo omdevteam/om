@@ -55,7 +55,7 @@ def get_current_machine_ip() -> str:
 
 class ZmqDataBroadcaster:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(self, url: Union[str, None]) -> None:
@@ -70,11 +70,11 @@ class ZmqDataBroadcaster:
 
         Args:
 
-            hostname: The hostname or IP address where the socket will be opened. If
-                None it will be autodetected. Defaults to None.
-
-            port: The port where the socket will be opened. If None, the socket will be
-                opened at port 12321. Defaults to None.
+            url: The URL where the socket will be opened. It must be a string in
+                the format used by ZeroMQ, or None. If the value of this argument is
+                None, the IP address of the local machine will be autodetected, and the
+                socket will be opened at port 1231 using the 'tcp://' protocol.
+                Defaults to None.
         """
         self._context: Any = zmq.Context()
         self._sock: Any = self._context.socket(zmq.PUB)

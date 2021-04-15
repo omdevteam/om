@@ -39,7 +39,10 @@ _DEADTAG: int = 1000
 
 class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`OmParallelizationEngine`]
+    [om.parallelization_layer.base.OmParallelizationEngine]
     """
 
     def __init__(
@@ -52,22 +55,21 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         MPI-based Parallelization Engine for OM.
 
         This class implements a Parallelization Engine based on the MPI protocol. It is
-        a subclass of the OmParallelizationEngine class. In this Engine, the nodes
-        communicate with each other using an implementation of the the MPI protocol
-        supported by the Python language.
+        a subclass of the [OmParallelizationEngine]
+        [om.parallelization_layer.base.OmParallelizationEngine] base class. In this
+        Engine, the nodes communicate with each other using an implementation of the
+        MPI protocol supported by the Python language.
 
         Arguments:
 
-            source: A string describing a source of event data. The exact format of the
-                string depends on the specific DataEventHandler class being used.
-
-            event_data_handler: A class defining how data events are retrieved and
+            data_event_handler: A class defining how data events are retrieved and
                 handled.
 
             monitor: A class defining the how the retrieved data must be processed.
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
         """
         super(MpiProcessingCollectingEngine, self).__init__(
             data_event_handler=data_event_handler,

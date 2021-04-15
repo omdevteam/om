@@ -37,421 +37,330 @@ from om.utils import exceptions
 class TypeBeam(TypedDict):
     """
     A dictionary storing information about the x-ray beam.
+
+    Base class : TypedDict
+
+    Attributes:
+
+        photon_energy: The photon energy of the beam in eV.
+
+        photon_energy_from: The location of the photon energy information in an HDF5
+            data file, in case the beam energy information is extracted from a file.
+
+        photon_energy_scale: The scaling factor to be applied to the photon energy, in
+            case the provided energy value is not in eV.
     """
 
     photon_energy: float
-    """
-    The photon energy of the beam in eV.
-    """
-
     photon_energy_from: str
-    """
-    The location of the photon energy information in an HDF5 data file, in case the
-    beam energy information is extracted from a file.
-    """
-
     photon_energy_scale: float
-    """
-    The scaling factor to be applied to the photon energy, in case the provided energy
-    value is not in eV.
-    """
 
 
 class TypePanel(TypedDict, total=True):
     """
     A dictionary storing information about detector panels.
+
+    Base class : TypedDict
+
+    Attributes:
+
+        cnx: The x location of the corner of the panel in the detector reference
+            system.
+
+        cny: The y location of the corner of the panel in the detector reference
+            system.
+
+        clen: The distance, as reported by the facility, of the sample interaction
+            point from the corner of the first pixel in the panel.
+
+        clen_from: The location of the 'clen' information in an HDF5 data file, in case
+            the detector distance is extracted from a file.
+
+        coffset: The offset to be applied to the nominal clen value reported by the
+            facility in order to determine the real distance of the panel from the
+            interaction point.
+
+        mask: The location of the mask data for the panel in an HDF5 data file.
+
+        mask_file: The name of the HDF5 data file in which the mask data for the panel
+            can be found.
+
+        satmap: The location of the per-pixel saturation map for the panel in an HDF5
+            data file.
+
+        satmap_file: The name of the HDF5 data file in which the per-pixel saturation
+            map for the panel can be found.
+
+        res: The resolution of the panel in pixels per meter.
+
+        badrow: The readout direction for the panel, for filtering out clusters of
+            peaks. The value corresponding to this key is either 'x' or 'y'.
+
+        no_index: Wether the panel should be considered entirely bad. The panel will be
+            considered bad if the value corresponding to this key is non-zero.
+
+        adu_per_photon: The number of detector intensity units per photon for the
+            panel.
+
+        max_adu: The detector intensity unit value above which a pixel of the panel
+            should be considered unreliable.
+
+        data: The location, in an HDF5 data file, of the data block where the panel
+            data is stored.
+
+        adu_per_eV: The number of detector intensity units per eV of photon energy for
+            the panel.
+
+        dim_structure: A description of the layout of the data block for the panel. The
+            value corresponding to this key is a list of strings describing the meaning
+            of each axis in the data block. See the
+            [crystfel_geometry](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
+            man page for a detailed explanation.
+
+        fsx: The fs->x component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        fsy: The fs->y component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        fsz: The fs->z component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        ssx: The ss->x component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        ssy: The ss->y component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        ssz: The ss->z component of the matrix used to transform pixel indexes into
+            detector reference system coordinates.
+
+        rail_x: The x component, in the detector reference system, of the direction of
+            the rail along which the detector moves.
+
+        rail_y: The y component, in the detector reference system, of the direction of
+            the rail along which the detector moves.
+
+        rail_z: The z component, in the detector reference system, of the direction of
+            the rail along which the detector moves.
+
+        clen_for_centering: The distance from the interation point, as reported by the
+            facility, of the origin of the detector reference system.
+
+        xfs: The x->fs component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        yfs: The y->fs component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        xss: The x->ss component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        yss: The y->ss component of the matrix used to transform detector reference
+            system coordinates into pixel indexes.
+
+        orig_min_fs: The initial fs index of the panel data in the data block where it
+            is stored.
+
+        orig_max_fs: The final (inclusive) fs index of the panel data in the data block
+            where it is stored.
+
+        orig_min_ss: The initial ss index of the panel data in the data block where it
+            is stored.
+
+        orig_max_ss: The final (inclusive) fs index of the panel data in the data block
+            where it is stored.
+
+        w: The width of the panel in pixels.
+
+        h: The height of the panel in pixels.
     """
 
     cnx: float
-    """
-    The x location of the corner of the panel in the detector reference system.
-    """
-
     cny: float
-    """
-    The y location of the corner of the panel in the detector reference system.
-    """
-
     clen: float
-    """
-    The distance, as reported by the facility, of the sample interaction point from the
-    corner of the first pixel in the panel.
-    """
-
     clen_from: str
-    """
-    The location of the 'clen' information in an HDF5 data file, in case the detector
-    distance is extracted from a file.
-    """
-
     coffset: float
-    """
-    The offset to be applied to the nominal clen value reported by the facility in
-    order to determine the real distance of the panel from the interaction point.
-    """
-
     mask: str
-    """
-    The location of the mask data for the panel in an HDF5 data file.
-    """
-
     mask_file: str
-    """
-    The name of the HDF5 data file in which the mask data for the panel can be found.
-    """
-
     satmap: str
-    """
-    The location of the per-pixel saturation map for the panel in an HDF5 data file.
-    """
-
     satmap_file: str
-    """
-    The name of the HDF5 data file in which the per-pixel saturation map for the panel
-    can be found.
-    """
-
     res: float
-    """
-    The resolution of the panel in pixels per meter.
-    """
-
     badrow: str
-    """
-    The readout direction for the panel, for filtering out clusters of peaks. The value
-    corresponding to this key is either 'x' or 'y'.
-    """
-
     no_index: bool
-    """
-    Wether the panel should be considered entirely bad. The panel will be considered
-    bad if the value corresponding to this key is non-zero.
-    """
-
     adu_per_photon: float
-    """
-    The number of detector intensity units per photon for the panel.
-    """
-
     max_adu: float
-    """
-    The detector intensity unit value above which a pixel of the panel should be
-    considered unreliable.
-    """
-
     data: str
-    """
-    The location, in an HDF5 data file, of the data block where the panel data is
-    stored.
-    """
-
     adu_per_eV: float
-    """
-    The number of detector intensity units per eV of photon energy for the panel.
-    """
-
     dim_structure: List[Union[int, str, None]]
-    """
-    A description of the layout of the data block for the panel. The value
-    corresponding to this key is a list of strings describing the meaning of each axis
-    in the data block. See the `crystfel_geometry \
-    <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_ man page for
-    a detailed explanation.
-    """
-
     fsx: float
-    """
-    The fs->x component of the matrix used to transform pixel indexes into detector
-    reference system coordinates.
-    """
-
     fsy: float
-    """
-    The fs->y component of the matrix used to transform pixel indexes into detector
-    reference system coordinates.
-    """
-
     fsz: float
-    """
-    The fs->z component of the matrix used to transform pixel indexes into detector
-    reference system coordinates.
-    """
-
     ssx: float
-    """
-    The ss->x component of the matrix used to transform pixel indexes into detector
-    reference system coordinates.
-      """
-
     ssy: float
-    """
-    The ss->y component of the matrix used to transform pixel indexes into detector
-    reference system coordinates.
-    """
-
     ssz: float
-    """
-    The ss->z component of the matrix used to transform pixel indexes into detector
-    reference system coordinates.
-    """
     rail_x: float
-    """
-    The x component, in the detector reference system, of the direction of the rail
-    along which the detector moves.
-    """
-
     rail_y: float
-    """
-    The y component, in the detector reference system, of the direction of the rail
-    along which the detector moves.
-    """
-
     rail_z: float
-    """
-    The z component, in the detector reference system, of the direction of the rail
-    along which the detector moves.
-    """
-
     clen_for_centering: float
-    """
-    The distance from the interation point, as reported by the facility, of the origin
-    of the detector reference system.
-    """
-
     xfs: float
-    """
-    The x->fs component of the matrix used to transform detector reference system
-    coordinates into pixel indexes.
-    """
-
     yfs: float
-    """
-    The y->fs component of the matrix used to transform detector reference system
-    coordinates into pixel indexes.
-    """
-
     xss: float
-    """
-    The x->ss component of the matrix used to transform detector reference system
-    coordinates into pixel indexes.
-    """
-
     yss: float
-    """
-    The y->ss component of the matrix used to transform detector reference system
-    coordinates into pixel indexes.
-    """
-
     orig_min_fs: int
-    """
-    The initial fs index of the panel data in the data block where it is stored.
-    """
-
     orig_max_fs: int
-    """
-    The final (inclusive) fs index of the panel data in the data block where it is
-    stored.
-    """
-
     orig_min_ss: int
-    """
-    The initial ss index of the panel data in the data block where it is stored.
-    """
-
     orig_max_ss: int
-    """
-    The final (inclusive) fs index of the panel data in the data block where it is
-    stored.
-    """
-
     w: int
-    """
-    The width of the panel in pixels.
-    """
-
     h: int
-    """
-    The height of the panel in pixels.
-    """
 
 
 class TypeBadRegion(TypedDict, total=True):
     """
     A dictionary storing information about bad regions in a detector.
+
+    Base class : TypedDict
+
+    Attributes:
+
+        panel: The name of the panel in which the bad region lies.
+
+        min_x: The initial x coordinate of the bad region in the detector reference
+            system.
+
+        max_x: The final x coordinate of the bad region in the detector reference
+            system.
+
+        min_y: The initial y coordinate of the bad region in the detector reference
+            system.
+
+        max_y: The final y coordinate of the bad region in the detector reference
+            system.
+
+        min_fs: The initial fs index of the bad region in the block where the panel
+            data is stored.
+
+        max_fs: The final (inclusive) fs index of the bad region in the block where the
+            panel data is stored.
+
+        min_ss: The initial ss index of the bad region in the block where the panel
+            data is stored.
+
+        max_ss: The final (inclusive) ss index of the bad region in the block where the
+            panel data is stored.
+
+        is_fsss: Whether the fs,ss definition of the bad region (as opposed to the
+            x,y-based one) should be considered. If the value corresponding to this key
+            is 1, the fs,ss-based definition of the bad region is considered the valid
+            one. Otherwise, the definition in x,y coordinates is taken as valid.
     """
 
     panel: str
-    """
-    The name of the panel in which the bad region lies.
-    """
-
     min_x: float
-    """
-    The initial x coordinate of the bad region in the detector reference system.
-    """
-
     max_x: float
-    """
-    The final x coordinate of the bad region in the detector reference system.
-    """
-
     min_y: float
-    """
-    The initial y coordinate of the bad region in the detector reference system.
-    """
-
     max_y: float
-    """
-    The final y coordinate of the bad region in the detector reference system.
-    """
-
     min_fs: int
-    """
-    The initial fs index of the bad region in the block where the panel data is stored.
-    """
-
     max_fs: int
-    """
-    The final (inclusive) fs index of the bad region in the block where the panel data
-    is stored.
-    """
-
     min_ss: int
-    """
-    The initial ss index of the bad region in the block where the panel data is stored.
-    """
-
     max_ss: int
-    """
-    The final (inclusive) ss index of the bad region in the block where the panel data
-    is stored.
-    """
-
     is_fsss: int
-    """
-    Whether the fs,ss definition of the bad region (as opposed to the x,y-based one)
-    should be considered. If the value corresponding to this key is 1, the fs,ss-based
-    definition of the bad region is considered the valid one. Otherwise, the definition
-    in x,y coordinates is taken as valid.
-    """
 
 
 class TypeDetector(TypedDict):
     """
     A dictionary storing information about a detector.
+
+    Base class : TypedDict
+
+    Attributes:
+
+        panels: The panels in the detector. The value corresponding to this key is a
+            dictionary containing information about the panels that make up the
+            detector. In the dictionary, the keys are the panel names, and the values
+            are [TypePanel][om.utils.crystfel_geometry.TypePanel] dictionaries.
+
+        bad: The bad regions in the detector. The value corresponding to this key is a
+            dictionary containing information about the bad regions in the detector. In
+            the dictionary, the keys are the bad region names, and the values are
+            additional [TypeBadRegion][om.utils.crystfel_geometry.TypeBadRegion]
+            dictionaries.
+
+        mask_bad: The value used in a bad pixel mask to label a pixel as bad.
+
+        mask_good: The value used in a bad pixel mask to label a pixel as good.
+
+        rigid_groups: The rigid groups of panels in the detector. The value
+            corresponding to this key is a dictionary containing information about the
+            rigid groups. In the dictionary, the keys are the names of the rigid groups
+            and the values are lists storing the names of the panels belonging to each
+            group.
+
+        rigid_group_collections: The collections of rigid groups of panels in the
+            detector. The value corresponding to this key is a dictionary containing
+            information about the rigid group collections. In the dictionary, the keys
+            are the names of the rigid group collections and the values are lists
+            storing the names of the rigid groups belonging to the collections.
+
+        furthest_out_panel: The name of the panel where the furthest away pixel from
+            the center of the detector reference system can be found.
+
+        furthest_out_fs: The fs coordinate, within its panel, of the furthest away
+            pixel from the center of the detector reference system.
+
+        furthest_out_ss: The ss coordinate, within its panel, of the furthest away
+            pixel from the center of the detector reference system.
+
+        furthest_in_panel: The name of the panel where the closest pixel to the center
+            of the detector reference system can be found.
+
+        furthest_in_fs: The fs coordinate, within its panel, of the closest pixel to
+            the center of the detector reference system.
+
+        furthest_in_ss: The ss coordinate, within its panel, of the closest pixel to
+            the center of the detector reference system.
     """
 
     panels: Dict[str, TypePanel]
-    """
-    The panels in the detector. The value corresponding to this key is a dictionary
-    containing information about the panels that make up the detector. In the
-    dictionary, the keys are the panel names, and the values are :class:`TypePanel`
-    dictionaries.
-    """
-
     bad: Dict[str, TypeBadRegion]
-    """
-    The bad regions in the detector. The value corresponding to this key is a
-    dictionary containing information about the bad regions in the detector. In the
-    dictionary, the keys are the bad region names, and the values are additional
-    :class:`TypeBadRegion` dictionaries.
-    """
-
     mask_bad: int
-    """
-    The value used in a bad pixel mask to label a pixel as bad.
-    """
-
     mask_good: int
-    """
-    The value used in a bad pixel mask to label a pixel as good.
-    """
-
     rigid_groups: Dict[str, List[str]]
-    """
-    The rigid groups of panels in the detector. The value corresponding to this key is
-    a dictionary containing information about the rigid groups. In the dictionary, the
-    keys are the names of the rigid groups and the values are lists storing the names
-    of the panels belonging to each group.
-    """
-
     rigid_group_collections: Dict[str, List[str]]
-    """
-    The collections of rigid groups of panels in the detector. The value corresponding
-    to this key is a dictionary containing information about the rigid group
-    collections. In the dictionary, the keys are the names of the rigid group
-    collections and the values are lists storing the names of the rigid groups
-    belonging to the collections.
-    """
-
     furthest_out_panel: str
-    """
-    The name of the panel where the furthest away pixel from the center of the
-    detector reference system can be found.
-    """
-
     furthest_out_fs: float
-    """
-    The fs coordinate, within its panel, of the furthest away pixel from the center of
-    the detector reference system.
-    """
-
     furthest_out_ss: float
-    """
-    The ss coordinate, within its panel, of the furthest away pixel from the center of
-    the detector reference system.
-    """
-
     furthest_in_panel: str
-    """
-    The name of the panel where the closest pixel to the center of the detector
-    reference system can be found.
-    """
-
     furthest_in_fs: float
-    """
-    The fs coordinate, within its panel, of the closest pixel to the center of the
-    detector reference system.
-    """
-
     furthest_in_ss: float
-    """
-    The ss coordinate, within its panel, of the closest pixel to the center of the
-    detector reference system.
-    """
 
 
 class TypePixelMaps(TypedDict):
     """
     A dictionary storing a set of pixel maps.
+
+    Base class : TypedDict
+
+    Attributes:
+
+        x: A pixel map for the x coordinate.
+
+        y: A pixel map for the y coordinate.
+
+        z: A pixel map for the z coordinate.
+
+        radius: A pixel map storing the distance of each pixel from the center of the
+            detector reference system.
+
+        phi: A pixel map storing, for each pixel, the amplitude of the angle drawn by
+            the pixel, the center of the detector reference system, and the x axis.
     """
 
     x: numpy.ndarray
-    """
-    A pixel map for the x coordinate.
-    """
-
     y: numpy.ndarray
-    """
-    A pixel map for the y coordinate.
-    """
-
     z: Union[numpy.ndarray, None]
-    """
-    A pixel map for the z coordinate.
-    """
-
     radius: Union[numpy.ndarray, None]
-    """
-    A pixel map storing the distance of each pixel from the center of the detector
-    reference system.
-    """
-
     phi: Union[numpy.ndarray, None]
-    """
-    A pixel map storing, for each pixel, the amplitude of the angle drawn by the pixel,
-    the center of the detector reference system, and the x axis.
-    """
 
 
 def _assplode_algebraic(value: str) -> List[str]:
@@ -805,7 +714,7 @@ def load_crystfel_geometry(  # noqa: C901
     This function is a re-implementation of the get_detector_geometry_2 function from
     CrystFEL. It reads information from a CrystFEL geometry file, which uses a
     key/value language format, fully documented in the relevant
-    `man page <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_.
+    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html).
     This function returns a set of nested dictionaries whose content matches CrystFEL's
     internal representation of the information in the file (see the
     libcrystfel/src/detector.h and the libcrystfel/src/image.c files from CrystFEL's
@@ -822,11 +731,13 @@ def load_crystfel_geometry(  # noqa: C901
 
         A tuple with the information loaded from the file.
 
-        * The first entry in the tuple is a :class:`TypeDetector` dictionary storing
+        * The first entry in the tuple is a
+          [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
           information related to the detector geometry.
 
-        * The second entry in the tuple is a :class:`TypeBeam` dictionary storing the
-          beam properties.
+        * The second entry in the tuple is a
+          [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing the beam
+          properties.
 
         * The third entry is the location, within an HDF5 file, where Bragg peak
           information for the current detector can be found. If the CrystFEL geometry
@@ -1175,12 +1086,15 @@ def compute_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
 
     Arguments:
 
-        geometry: A dictionary returned by the :func:`load_crystfel_geometry` function,
-            storing the detector geometry information.
+        geometry: A [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary
+            returned by the [load_crystfel_geometry]
+            [om.utils.crystfel_geometry.load_crystfel_geometry] function, storing the
+            detector geometry information.
 
     Returns:
 
-        A dictionary storing the the pixel maps.
+        A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] dictionary storing
+        the pixel maps.
     """
     max_fs_in_slab: int = numpy.array(
         [geometry["panels"][k]["orig_max_fs"] for k in geometry["panels"]]
@@ -1281,10 +1195,10 @@ def compute_visualization_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
     """
     Computes pixel maps for data visualization from CrystFEL geometry information.
 
-    This function takes as input the geometry information read from a `CrystFEL
-    <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_ geometry
-    file, and returns a set of pre-computed pixel maps that can be used to display data
-    in a Qt ImageView widget (from the `PyQtGraph <http://pyqtgraph.org/>`_ library).
+    This function takes as input the geometry information read from a [CrystFEL
+    geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    and returns a set of pre-computed pixel maps that can be used to display data
+    in a Qt ImageView widget (from the [PyQtGraph](http://pyqtgraph.org) library).
 
     These pixel maps are different from the ones generated by the
     :func:`~compute_pix_maps` function. The main differences are:
@@ -1292,18 +1206,21 @@ def compute_visualization_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
     * The origin of the reference system is not the beam interaction point, but the top
       left corner of the array used to visualize the data.
 
-    * Only the x and y pixel maps are available. The other keys in the retruned typed
+    * Only the x and y pixel maps are available. The other keys in the returned typed
       dictionary (z, r and phi) have a value of None.
 
     Arguments:
 
-        geometry: A dictionary returned by the :func:`load_crystfel_geometry` function,
-            storing the detector geometry information.
+        geometry: A [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary
+            returned by the [load_crystfel_geometry]
+            [om.utils.crystfel_geometry.load_crystfel_geometry] function, storing the
+            detector geometry information.
 
     Returns:
 
-        A dictionary storing the the pixel maps. Only the values corresponding to the
-        'x' and 'y' keys are defined. All other dictionary values are set to None.
+        A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] dictionary storing
+        the pixel maps. Only the values corresponding to the 'x' and 'y' keys are
+        defined. All other dictionary values are set to None.
     """
     # Shifts the origin of the reference system from the beam position to the top-left
     # of the image that will be displayed. Computes the size of the array needed to
@@ -1359,7 +1276,8 @@ def apply_geometry_to_data(
 
         data: The data on which the geometry information should be applied.
 
-        geometry: A dictionary storing the detector geometry information.
+        geometry: A [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary
+            storing the detector geometry information.
 
     Returns:
 

@@ -38,7 +38,9 @@ from PyQt5 import QtCore, QtGui  # type: ignore
 
 class CrystallographyGui(graph_interfaces_base.OmGui):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, url: str) -> None:
@@ -46,7 +48,8 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         OM graphical user interface for crystallography.
 
         This class implements a graphical user interface for crystallography
-        experiments. It is a subclass of the OmGui base class.
+        experiments. It is a subclass of the [OmGui]
+        [om.graphical_interfaces.base.OmGui] base class.
 
         This GUI receives reduced and aggregated data from an OnDA Monitor for
         Crystallography when it is tagged with the 'omdata' label. The data must

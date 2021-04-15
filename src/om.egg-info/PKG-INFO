@@ -1,0 +1,52 @@
+Metadata-Version: 2.1
+Name: om
+Version: 20.8.0.0.dev0
+Summary: Real-time monitoring of x-ray imaging experiments
+Home-page: https://www.ondamonitor.com
+Author: OM Dev Team
+Author-email: valmar@slac.stanford.edu
+License: GNU General Public License v3.0
+Description: 
+                OM (OnDA Monitor) is a software framework for the development of
+                programs that can monitor of x-ray imaging experiments in real-time.
+        
+                It is the spiritual successor of the OnDA project and it is mantained mostly
+                by the same team of developers.
+        
+                OM provides users with a set of stable and efficient real-time monitors for
+                the most common types of x-ray imaging experiments. These can be used
+                immediately without modifications or can be easily adapted to meet the users'
+                requirements. In addition, the project provides a set of modules that can be
+                used to easily develop other monitoring programs tailored to the
+                characteristics of specific experiments.
+        
+                OM can process imaging data in the broadest sense: multidimensional and
+                multiple-pixel data (for example, a diffraction pattern or a photoemission
+                spectrum, but also an image coming from a camera or a microscope), but also
+                any kind of digital output from an instrument or sensor (for example, a
+                temperature readout, beam and pulse energies, etc.).
+        
+                OM focuses on scalability and portability, in order to facilitate its
+                adoption for a wide array of current and future instruments. It also strives
+                for stability and performance. In order to achieve these goals, OM
+                uses free and open-source libraries and protocols.
+        
+                OM is written in Python. The use of the Python programming language, which
+                is particularly suited to prototyping and rapid development, makes OM easy
+                to modify and to adapt to the requirements of specific experiments.
+        
+                OM also aims to keep the code base simple and as small as possible. The
+                focus is on providing a core set of functions, while allowing the framework to
+                be expanded with external software when possible, avoiding the need to
+                reimplement already optimized algorithms.
+                
+Platform: any
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 2
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Natural Language :: English
+Classifier: Intended Audience :: Science/Research
+Provides-Extra: qt

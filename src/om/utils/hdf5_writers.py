@@ -30,13 +30,13 @@ import h5py  # type: ignore
 import numpy  # type: ignore
 from typing_extensions import Literal
 
-from om.algorithms import crystallography_algorithms as cryst_algs
+from om.algorithms import crystallography as cryst_algs
 from om.utils.crystfel_geometry import TypeDetector
 
 
 class HDF5Writer:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(  # noqa: C901
@@ -161,7 +161,9 @@ class HDF5Writer:
                 dtype=h5py.special_dtype(vlen=str),
             )
         if "optical_laser_active" in hdf5_fields.keys():
-            self._resizable_datasets["optical_laser_active"] = self._h5file.create_dataset(
+            self._resizable_datasets[
+                "optical_laser_active"
+            ] = self._h5file.create_dataset(
                 name=hdf5_fields["optical_laser_active"],
                 shape=(0,),
                 maxshape=(None,),
@@ -318,7 +320,7 @@ class HDF5Writer:
 
 class SumHDF5Writer:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(

@@ -29,13 +29,19 @@ import fabio  # type: ignore
 import h5py  # type: ignore
 import numpy  # type: ignore
 
-from om.algorithms import calibration_algorithms as calib_algs
+from om.algorithms import calibration as calib_algs
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_jungfrau1M, functions_pilatus
 from om.utils import parameters
 
 
 class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler]
+    """
+
     def __init__(
         self, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
@@ -43,13 +49,15 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
         Base Data Event Handler class for events retrieved from files.
 
         This is the base class for Data Event Handlers that deal with files. It is a
-        subclass of the more generic OmDataEventHandler base class, and should in turn
-        be subclassed to implement Data Event Handlers for specific file types.
+        subclass of the more generic [OmDataEventHandler]
+        [om.data_retrieval_layer.base.OmDataEventHandler] base class, and should in
+        turn be subclassed to implement Data Event Handlers for specific file types.
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """
@@ -87,7 +95,10 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
 
 class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`FilesBaseDataEventHandler`]
+    [om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler]
     """
 
     def __init__(
@@ -97,7 +108,9 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         Data Event Handler for Pilatus files.
 
         This Data Event Handler deals with files written by a 1M Pilatus detector in
-        CBF format. It is a subclass of the FilesBaseDataEventHandler class.
+        CBF format. It is a subclass of the [FilesBaseDataEventHandler]
+        [om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler]
+        class.
 
         The source string for this Data Event Handler is a path to a file containing a
         list of CBF files to process, one per line, with their absolute or relative
@@ -106,8 +119,9 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """
@@ -232,6 +246,9 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         number of files from the source. Only the last node might retrieve fewer files,
         depending on how evenly the total number can be split.
 
+        This generator function yields a dictionary storing the data for the current
+        event.
+
         Arguments:
 
             node_rank: The rank, in the OM pool, of the processing node calling the
@@ -239,10 +256,6 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
-
-        Yields:
-
-            A dictionary storing the event data.
         """
         # Computes how many files the current processing node should process. Splits
         # the files as equally as possible amongst the processing nodes with the last
@@ -335,7 +348,10 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
 
 class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`FilesBaseDataEventHandler`]
+    [om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler]
     """
 
     def __init__(
@@ -345,7 +361,9 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         Data Event Handler for Jungfrau 1M files.
 
         This Data Event Handler deals with files written by a Jungfrau 1M detector in
-        HDF5 format. It is a subclass of the FilesBaseDataEventHandler class.
+        HDF5 format. It is a subclass of the [`FilesBaseDataEventHandler`]
+        [om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler]
+        class.
 
         The source string for this Data Event Handler is a path to a file containing a
         list of HDF5 files to process, one per line, with their absolute or relative
@@ -354,8 +372,9 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """
@@ -496,6 +515,9 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         same number of frames from the source. Only the last node might retrieve fewer
         frames, depending on how evenly the total number can be split.
 
+        This generator function yields a dictionary storing the data for the current
+        event.
+
         Arguments:
 
             node_rank: The rank, in the OM pool, of the processing node calling the
@@ -503,10 +525,6 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
-
-        Yields:
-
-            A dictionary storing the event data.
         """
         # Computes how many events the current processing node should process. Splits
         # the events as equally as possible amongst the processing nodes with the last

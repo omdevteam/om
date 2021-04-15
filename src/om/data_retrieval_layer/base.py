@@ -31,7 +31,9 @@ from om.utils import exceptions, parameters
 
 class OmDataEventHandler(ABC):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: `ABC`
     """
 
     def __init__(
@@ -50,13 +52,15 @@ class OmDataEventHandler(ABC):
         This class is the base abstract class from which every Data Event Handler
         should inherit. All its methods are abstract. Each derived class must provide
         his own specific implementation that deals with a specific facility, detector
-        or software framework. The only exception is the :func:`extract_data` method,
-        which works the same way in all Data Event Handlers.
+        or software framework. The only exception is the [extract_data]
+        [om.data_retrieval_layer.base.OmDataEventHandler.extract_data] which works the
+        same way in all Data Event Handlers.
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file..
 
             source: A string describing the data source.
 
@@ -172,7 +176,8 @@ class OmDataEventHandler(ABC):
 
         This function processes a data event in such a way that the content of the
         event is retrievable by OM. OM calls this function on each processing node
-        before the :func:`extract_data` function.
+        before the [extract_data]
+        [om.data_retrieval_layer.base.OmDataEventHandler.extract_data] function.
 
         Arguments:
 
@@ -187,7 +192,8 @@ class OmDataEventHandler(ABC):
 
         This function processes a data event in such a way that the event is ready to
         be discared by OM. OM calls this function on each processing node after the
-        :func:`extract_data` function.
+        [extract_data][om.data_retrieval_layer.base.OmDataEventHandler.extract_data]
+        function.
 
         Arguments:
 

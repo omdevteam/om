@@ -30,9 +30,9 @@ from typing import Any, Deque, Dict, List, TextIO, Tuple, Union
 import h5py  # type: ignore
 import numpy  # type: ignore
 
-from om.algorithms import crystallography_algorithms as cryst_algs
-from om.algorithms import generic_algorithms as gen_algs
-from om.algorithms.crystallography_algorithms import TypePeakfinder8Info
+from om.algorithms import crystallography as cryst_algs
+from om.algorithms import generic as gen_algs
+from om.algorithms.crystallography import TypePeakfinder8Info
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypePixelMaps
@@ -40,7 +40,7 @@ from om.utils.crystfel_geometry import TypePixelMaps
 
 class Cheetah(process_layer_base.OmMonitor):
     """
-    See documentation for the '__init__' function.
+    See documentation for the `__init__` function.
     """
 
     def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:

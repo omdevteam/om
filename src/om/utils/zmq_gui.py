@@ -31,7 +31,7 @@ from PyQt5 import QtCore  # type: ignore
 
 class ZmqDataListener(QtCore.QObject):  # type: ignore
     """
-    See documentation for the '__init__' function.
+    See documentation for the `__init__` function.
     """
 
     zmqmessage: Any = QtCore.pyqtSignal(dict)

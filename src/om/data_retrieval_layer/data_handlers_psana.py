@@ -59,7 +59,9 @@ def _psana_offline_event_generator(
 
 class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler]
     """
 
     def __init__(
@@ -72,8 +74,9 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
         This is the base class for Data Event Handlers that deal with events retrieved
         from the psana software framework at the LCLS facility. It is a subclass of the
-        more generic OmDataEventHandler base class and should in turn be subclassed to
-        work with specific detectors or beamlines.
+        more generic [OmDataEventHandler]
+        [om.data_retrieval_layer.base.OmDataEventHandler] base class and should in turn
+        be subclassed to work with specific detectors or beamlines.
 
         The source string for this Data Event Handler is a string of the type used by
         the psana framework to identify specific runs, experiments, or live data
@@ -81,8 +84,9 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """
@@ -229,6 +233,9 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         of  data, the last reported value at the time the frame is collected is
         associated with it.
 
+        This generator function yields a dictionary storing the data for the current
+        event.
+
         Arguments:
 
             node_rank: The rank, in the OM pool, of the processing node calling the
@@ -236,10 +243,6 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
-
-        Yields:
-
-            A dictionary storing the event data.
         """
         # TODO: Check types of Generator
         # Detects if data is being read from an online or offline source.
@@ -355,7 +358,10 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
 class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`LclsBaseDataEventHandler`]
+    [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler]
     """
 
     def __init__(self, monitor_parameters: parameters.MonitorParams, source: str):
@@ -364,12 +370,14 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
 
         This Data Event Handler deals with events retrieved from psana at the CXI
         beamline of the LCLS facility before 2020, when a CSPAD was the main x-ray
-        detector. Is is a subclass of the LclsBaseDataEventHandler class.
+        detector. Is is a subclass of the  [LclsBaseDataEventHandler]
+        [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler] class.
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """
@@ -412,7 +420,10 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
 
 class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`LclsBaseDataEventHandler`]
+    [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler]
     """
 
     def __init__(
@@ -423,12 +434,14 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
 
         This Data Event Handler deals with events retrieved from psana at the CXI
         beamline of the LCLS facility from 2020, with a Jungfrau 4M as the main x-ray
-        detector. Is is a subclass of the LclsBaseDataEventHandler class.
+        detector. Is is a subclass of the [LclsBaseDataEventHandler]
+        [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler] class.
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """
@@ -468,7 +481,10 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
 
 class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`LclsBaseDataEventHandler`]
+    [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler]
     """
 
     def __init__(
@@ -479,12 +495,14 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
 
         This Data Event Handler deals with events retrieved from psana at the MFX
         beamline of the LCLS facility, with an Epix10KA as the main x-ray detector. It
-        is a subclass of the LclsBaseDataEventHandler class.
+        is a subclass of the [LclsBaseDataEventHandler]
+        [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler] class.
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """

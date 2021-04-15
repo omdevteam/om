@@ -99,9 +99,10 @@ def frame_id(event: Dict[str, Any]) -> str:
     frame currently being processed.
 
     For the Jungfrau 1M detector, each event corresponds to a single detector frame.
-    The event label (returned by the :func:`event_id` function) is therefore sufficient
-    to unambiguously identify each frame. Because of this, this function always returns
-    the string "0".
+    The event label (returned by the [event_id]
+    [om.data_retrieval_layer.functions_jungfrau1M.event_id] function) is therefore
+    sufficient to unambiguously identify each frame. Because of this, this function
+    always returns the string "0".
 
     Arguments:
 

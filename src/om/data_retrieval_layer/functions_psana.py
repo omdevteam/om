@@ -30,7 +30,7 @@ import psana  # type: ignore
 from om.utils import exceptions, parameters
 
 
-def detector_data_init(monitor_params: parameters.MonitorParams) -> Any:
+def detector_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for x-ray detector data at LCLS.
 
@@ -40,15 +40,16 @@ def detector_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_params.get_param(
+        monitor_parameters.get_param(
             group="data_retrieval_layer",
             parameter="psana_detector_name",
             parameter_type=str,
@@ -57,7 +58,7 @@ def detector_data_init(monitor_params: parameters.MonitorParams) -> Any:
     )
 
 
-def timestamp_init(monitor_params: parameters.MonitorParams) -> None:
+def timestamp_init(monitor_parameters: parameters.MonitorParams) -> None:
     """
     Initializes the psana Detector interface for timestamp data at LCLS.
 
@@ -66,8 +67,9 @@ def timestamp_init(monitor_params: parameters.MonitorParams) -> None:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
     """
     # The event timestamp gets recovered in other ways by the event recovery code. No
     # need to initialize the psana interface: the timestamp will already be in the
@@ -75,7 +77,7 @@ def timestamp_init(monitor_params: parameters.MonitorParams) -> None:
     return None
 
 
-def detector_distance_init(monitor_params: parameters.MonitorParams) -> Any:
+def detector_distance_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for detector distance data at LCLS.
 
@@ -87,15 +89,16 @@ def detector_distance_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_params.get_param(
+        monitor_parameters.get_param(
             group="data_retrieval_layer",
             parameter="psana_detector_distance_epics_name",
             parameter_type=str,
@@ -104,7 +107,7 @@ def detector_distance_init(monitor_params: parameters.MonitorParams) -> Any:
     )
 
 
-def beam_energy_init(monitor_params: parameters.MonitorParams) -> Any:
+def beam_energy_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for beam energy data at LCLS.
 
@@ -113,8 +116,9 @@ def beam_energy_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
@@ -124,7 +128,7 @@ def beam_energy_init(monitor_params: parameters.MonitorParams) -> Any:
     return psana.Detector("SIOC:SYS0:ML00:AO192")
 
 
-def timetool_data_init(monitor_params: parameters.MonitorParams) -> Any:
+def timetool_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for timetool data at LCLS.
 
@@ -135,15 +139,16 @@ def timetool_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_params.get_param(
+        monitor_parameters.get_param(
             group="data_retrieval_layer",
             parameter="psana_timetool_epics_name",
             parameter_type=str,
@@ -152,7 +157,7 @@ def timetool_data_init(monitor_params: parameters.MonitorParams) -> Any:
     )
 
 
-def digitizer_data_init(monitor_params: parameters.MonitorParams) -> Any:
+def digitizer_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for digitizer data at LCLS.
 
@@ -162,15 +167,16 @@ def digitizer_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_params.get_param(
+        monitor_parameters.get_param(
             group="data_retrieval_layer",
             parameter="psana_digitizer_name",
             parameter_type=str,
@@ -179,7 +185,7 @@ def digitizer_data_init(monitor_params: parameters.MonitorParams) -> Any:
     )
 
 
-def opal_data_init(monitor_params: parameters.MonitorParams) -> Any:
+def opal_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for Opal camera data at LCLS.
 
@@ -189,15 +195,16 @@ def opal_data_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_params.get_param(
+        monitor_parameters.get_param(
             group="data_retrieval_layer",
             parameter="psana_opal_name",
             parameter_type=str,
@@ -206,7 +213,7 @@ def opal_data_init(monitor_params: parameters.MonitorParams) -> Any:
     )
 
 
-def optical_laser_active_init(monitor_params: parameters.MonitorParams) -> Any:
+def optical_laser_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for an optical laser at LCLS.
 
@@ -217,14 +224,15 @@ def optical_laser_active_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
         A psana object that can be used later to retrieve the data.
     """
-    evr_source_name = monitor_params.get_param(
+    evr_source_name = monitor_parameters.get_param(
         group="data_retrieval_layer",
         parameter="psana_evr_source_name",
         parameter_type=str,
@@ -234,7 +242,7 @@ def optical_laser_active_init(monitor_params: parameters.MonitorParams) -> Any:
     return psana.Detector(evr_source_name)
 
 
-def xrays_active_init(monitor_params: parameters.MonitorParams) -> Any:
+def xrays_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
@@ -245,14 +253,15 @@ def xrays_active_init(monitor_params: parameters.MonitorParams) -> Any:
 
     Arguments:
 
-        monitor_params: An object storing the OM monitor parameters from the
-            configuration file.
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
 
     Returns:
 
         A psana object that can be used later to retrieve the data.
     """
-    evr_source_name = monitor_params.get_param(
+    evr_source_name = monitor_parameters.get_param(
         group="data_retrieval_layer",
         parameter="psana_evr_source_name",
         parameter_type=str,

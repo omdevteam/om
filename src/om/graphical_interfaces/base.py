@@ -33,6 +33,8 @@ class QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore
     """
     Metaclass for ABC classes with Qt inheritance.
 
+    Base class: `type(QtCore.QObject)`, `ABCMeta`
+
     This metaclass is used internally to resolve an issue with classes that inherit
     from Qt and non-Qt classes at the same time.
     """
@@ -42,7 +44,11 @@ class QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore
 
 class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
+
+    Base class: `QtWidgets.QMainWindow`
+
+    Metaclass: [`QtMetaclass`][om.graphical_interfaces.base.QtMetaclass]
     """
 
     # Signals to connect or disconnect from an OM monitor.
@@ -63,9 +69,10 @@ class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
         elements.
 
         Derived classes should always call the constructor of this class to perform the
-        GUI initialization. Furthermore, please  notice that the :func:`update_gui`
-        method of this class is abstract: each derived graphical interface is supposed
-        to provide its own implementation to update its own specific widgets and plots.
+        GUI initialization. Furthermore, please  notice that the [update_gui]
+        [om.graphical_interfaces.base.OmGui.update_gui] method of this class is
+        abstract: each derived graphical interface is supposed to provide its own
+        implementation to update its own specific widgets and plots.
 
         Arguments:
 
@@ -143,6 +150,8 @@ class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
     def update_gui(self) -> None:
         """
         Updates GUI elements.
+
+        This is an abstract method.
 
         This function is called at regular intervals and updates the elements of the
         GUI as required.

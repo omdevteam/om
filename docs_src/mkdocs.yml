@@ -1,0 +1,71 @@
+site_name: OnDA Monitor
+extra_css:
+  - extra.css
+theme:
+  name: material
+markdown_extensions:
+  - mkdocs-click
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          rendering:
+            show_root_heading: true
+            show_root_full_path: false
+            show_root_toc_entry: false
+            show_source: false
+            heading_level: 1
+          setup_commands:
+            - import sys
+            - from unittest.mock import MagicMock as mock
+            - sys.modules["psana"] = mock()
+            - sys.modules["mpi4py"] = mock()
+            - sys.modules["hidra_api"] = mock()
+
+nav:
+  - Home: index.md
+  - Code Reference:
+    - om:
+      - __init__: reference/om.md
+      - algorithms:
+        - __init__: reference/om_algorithms.md
+        - calibration: reference/om_algorithms_calibration.md
+        - crystallography: reference/om_algorithms_crystallography.md
+        - generic: reference/om_algorithms_generic.md
+      - data_retrieval_layer:
+        - __init__: reference/om_data_retrieval_layer.md
+        - base: reference/om_data_retrieval_layer_base.md
+        - data_handlers_filesystem: reference/om_data_retrieval_layer_data_handlers_filesystem.md
+        - data_handlers_hidra: reference/om_data_retrieval_layer_data_handlers_hidra.md
+        - data_handlers_psana: reference/om_data_retrieval_layer_data_handlers_psana.md
+        - functions_cspad: reference/om_data_retrieval_layer_functions_cspad.md
+        - functions_epix10ka: reference/om_data_retrieval_layer_functions_epix10ka.md
+        - functions_jungfrau1M: reference/om_data_retrieval_layer_functions_jungfrau1M.md
+        - functions_jungfrau4M: reference/om_data_retrieval_layer_functions_jungfrau4M.md
+        - functions_pilatus: reference/om_data_retrieval_layer_functions_pilatus.md
+        - functions_psana: reference/om_data_retrieval_layer_functions_psana.md
+      - graphical_interfaces:
+        - __init__: reference/om_graphical_interfaces.md
+        - base: reference/om_graphical_interfaces_base.md
+        - crystallography_frame_viewer: reference/om_graphical_interfaces_crystallography_frame_viewer.md
+        - crystallography_gui: reference/om_graphical_interfaces_crystallography_gui.md
+        - crystallography_parameter_tweaker: reference/om_graphical_interfaces_crystallography_parameter_tweaker.md
+      - lib:
+        - __init__: reference/om_lib.md
+        - peakfinder8_extension: reference/om_lib_peakfinder8_extension.md
+      - parallelization_layer:
+        - __init__: reference/om_parallelization_layer.md
+        - base: reference/om_parallelization_layer_base.md
+        - mpi: reference/om_parallelization_layer_mpi.md
+      - processing_layer:
+        - __init__: reference/om_processing_layer.md
+        - base: reference/om_processing_layer_base.md
+        - crystallography: reference/om_processing_layer_crystallography.md
+      - utils:
+        - __init__: reference/om_utils.md
+        - crystfel_geometry: reference/om_utils_crystfel_geometry.md
+        - exceptions: reference/om_utils_exceptions.md
+        - parameters: reference/om_utils_parameters.md
+        - zmq_gui: reference/om_utils_zmq_gui.md
+        - zmq_monitor: reference/om_utils_zmq_monitor.md
+      - monitor: reference/om_monitor.md

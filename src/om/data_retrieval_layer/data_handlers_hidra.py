@@ -92,7 +92,9 @@ def _create_hidra_info(
 
 class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler]
     """
 
     def __init__(
@@ -103,7 +105,8 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
         This Data Event Handler deals with events retrieved from the HiDRA software
         framework at the P11 beamline of the Petra III facility. It is a subclass of
-        the generic OmDataEventHandler base class.
+        the generic [OmDataEventHandler]
+        [om.data_retrieval_layer.base.OmDataEventHandler] base class.
 
         The source string for this Data Event Handler is the host name or IP address of
         the machine where the HiDRA server is running. HiDRA streams events based on
@@ -114,8 +117,9 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
         Arguments:
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
 
             source: A string describing the data source.
         """
@@ -178,8 +182,8 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
         Raises:
 
-            :class:`~om.utils.exceptions.OmHidraAPIError`: If the initial connection to
-                HiDRA fails.
+            OmHidraAPIError: A [OmHidraAPIError][om.utils.exceptions.OmHidraAPIError]
+                exception is raised if the initial connection to HiDRA fails.
         """
         print("Announcing OM to HiDRA.")
         sys.stdout.flush()
@@ -222,8 +226,8 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
         Raises:
 
-            :class:`~om.utils.exceptions.OmHidraAPIError`: if the initial connection to
-                HiDRA fails.
+            OmHidraAPIError: A [OmHidraAPIError][om.utils.exceptions.OmHidraAPIError]
+                exception is raised if the initial connection to HiDRA fails.
         """
         required_data: List[str] = self._monitor_params.get_param(
             group="data_retrieval_layer",
@@ -272,6 +276,9 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         the Petra III facility, each HiDRA event corresponds to the content of a single
         CBF file written by a Pilatus 1M detector.
 
+        This generator function yields a dictionary storing the data for the current
+        event.
+
         Arguments:
 
             node_rank: The rank, in the OM pool, of the processing node calling the
@@ -280,14 +287,10 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-        Yields:
-
-            A dictionary storing the event data.
-
         Raises:
 
-            :class:`~om.utils.exceptions.OmHidraAPIError`: If the initial connection to
-                HiDRA fails.
+            OmHidraAPIError: A [OmHidraAPIError][om.utils.exceptions.OmHidraAPIError]
+                exception is raised if the initial connection to HiDRA fails.
         """
         hidra_info: Dict[str, Any] = _create_hidra_info(
             source=self._source,

@@ -39,7 +39,9 @@ from PyQt5 import QtGui  # type: ignore
 
 class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, url: str):
@@ -47,7 +49,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         OM frame viewer for crystallography.
 
         This class implements a frame viewer for crystallography experiments. It is
-        a subclass of the OmGui base class.
+        a subclass of the [OmGui][om.graphical_interfaces.base.OmGui] base class.
 
         The viewer receives detector frame data from an OnDA Monitor for
         Crystallography when it is tagged with the 'omdetectordata' label. The received

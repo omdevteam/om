@@ -28,17 +28,19 @@ from typing import Any, Deque, Dict, List, Tuple, Union
 import h5py  # type: ignore
 import numpy  # type: ignore
 
-from om.algorithms import crystallography_algorithms as cryst_algs
-from om.algorithms import generic_algorithms as gen_algs
+from om.algorithms import crystallography as cryst_algs
+from om.algorithms import generic as gen_algs
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
-from om.algorithms.crystallography_algorithms import TypePeakfinder8Info
+from om.algorithms.crystallography import TypePeakfinder8Info
 
 
 class CrystallographyMonitor(process_layer_base.OmMonitor):
     """
-    See documentation for the '__init__' function.
+    See documentation for the `__init__` function.
+
+    Base class: [`OmMonitor`][om.processing_layer.base.OmMonitor]
     """
 
     def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
@@ -55,10 +57,14 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         other programs. This OnDA Monitor can also optionally broadcast calibrated and
         corrected detector data frames to be displayed by an external program.
 
+        This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
+        base class.
+
         Arguments:
 
-            monitor_params: An object storing the OM monitor parameters from the
-                configuration file.
+          monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
         """
         super(CrystallographyMonitor, self).__init__(
             monitor_parameters=monitor_parameters
@@ -602,7 +608,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             self._old_time = now_time
 
     def end_processing_on_processing_node(
-        self, node_rank: int, rank_pool_size: int
+        self, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing actions on the processing nodes.
@@ -631,7 +637,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def end_processing_on_collecting_node(
-        self, node_rank: int, rank_pool_size: int
+        self, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing on the collecting node.

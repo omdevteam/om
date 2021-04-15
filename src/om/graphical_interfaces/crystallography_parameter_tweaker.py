@@ -32,8 +32,8 @@ import click
 import h5py  # type: ignore
 import numpy  # type: ignore
 import pyqtgraph  # type: ignore
-from om.algorithms import crystallography_algorithms as cryst_algs
-from om.algorithms.crystallography_algorithms import TypePeakfinder8Info
+from om.algorithms import crystallography as cryst_algs
+from om.algorithms.crystallography import TypePeakfinder8Info
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import crystfel_geometry, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
@@ -42,7 +42,9 @@ from PyQt5 import QtCore, QtGui  # type: ignore
 
 class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, url: str, monitor_parameters: parameters.MonitorParams):
@@ -50,19 +52,20 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         OM Parameter Tweaker for Crystallography.
 
         This class implements a graphical user interface that can be used to test new
-        peak finding parameters in real time. It is a subclass of the OmGui base class.
+        peak finding parameters in real time. It is a subclass of the [OmGui]
+        [om.graphical_interfaces.base.OmGui] base class.
 
         This GUI receives detector frame data from an OndA Monitor for Crystallography
         when it is tagged with the 'omdetectordata' label.  The received data must
         include processed detector frames.
 
         The GUI allows the user to choose a set of peak-finding parameters. It then
-        applies the
-        :class:`om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection`
-        algorithm on the fly to each received frame. FInally, it displays the frame
-        together with the detected peaks. A data buffer allows the GUI to stop
-        receiving data from the monitor but still keep in memory the last 10 received
-        frames to inspect and operate on.
+        applies the [Peakfinder8PeakDetection]
+        [om.algorithms.crystallography.Peakfinder8PeakDetection] algorithm on the fly
+        to each received frame. FInally, it displays the frame together with the
+        detected peaks. A data buffer allows the GUI to stop receiving data from the
+        monitor but still keep in memory the last 10 received frames to inspect and
+        operate on.
 
         Arguments:
 

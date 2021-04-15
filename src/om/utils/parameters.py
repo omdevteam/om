@@ -24,14 +24,13 @@ configuration parameters read from a file.
 from typing import Any, TextIO
 
 import yaml
-from past.builtins import basestring  # type: ignore
 
 from om.utils import exceptions
 
 
 class MonitorParams:
     """
-    See documentation for the '__init__' function.
+    See documentation for the `__init__` function.
     """
 
     def __init__(self, config: str) -> None:
@@ -48,8 +47,9 @@ class MonitorParams:
 
         Raises:
 
-            :class:`~om.utils.exceptions.OMConfigurationFileSyntaxError`: If there
-                is a syntax error in theconfiguration file.
+            OMConfigurationFileSyntaxError: A [OmConfigurationFileSyntaxError]
+                [om.utils.exceptions.OmConfigurationFileSyntaxError] is raised if there
+                is a syntax error in the configuration file.
         """
 
         self._monitor_params: Any = {}
@@ -111,15 +111,20 @@ class MonitorParams:
 
         Raises:
 
-            :class:`~om.utils.exceptions.OmMissingParameterGroupError`: If the
-                requested parameter group is not present in the configuration file.
+            OmMissingParameterGroupError: A [OmMissingParameterGroupError]
+                [om.utils.exceptions.OmMissingParameterGroupError] exception is raised
+                if the requested parameter group is not present in the configuration
+                file.
 
-            :class:`~om.utils.exceptions.OmMissingParameterError`: If the parameter
-                is required but cannot be found in the configuration file.
+            OmMissingParameterError: A [OmMissingParameterError]
+                [om.utils.exceptions.OmMissingParameterError] exception is raised if
+                the parameter is required but cannot be found in the configuration
+                file.
 
-            :class:`~om.utils.exceptions.OmWrongParameterTypeError`: If the requested
-                parameter type does not match the type of the parameter in the
-                configuration file.
+            OmWrongParameterTypeError: A [OmWrongParameterTypeError]
+                [om.utils.exceptions.OmWrongParameterTypeError] exception is raised if
+                the requested parameter type does not match the type of the parameter
+                in the configuration file.
         """
         # TODO: check types
         if group not in self._monitor_params:
@@ -135,7 +140,7 @@ class MonitorParams:
                 )
             if ret is not None and parameter_type is not None:
                 if parameter_type is str:
-                    if not isinstance(ret, basestring):
+                    if not isinstance(ret, str):
                         raise exceptions.OmWrongParameterTypeError(
                             "Wrong type for parameter {0}: should be {1}, is "
                             "{2}.".format(

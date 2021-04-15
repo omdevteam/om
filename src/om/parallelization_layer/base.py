@@ -30,7 +30,9 @@ from om.utils import parameters
 
 class OmParallelizationEngine(ABC):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: `ABC`
     """
 
     def __init__(
@@ -53,9 +55,9 @@ class OmParallelizationEngine(ABC):
         * When OM start, each Parallelization Engine initializes several processing
           nodes and a single collecting node. A Data Event Handler (an instance of a
           class derived from
-          :class:`~om.data_retrieval_layer.base.OmDataEventHandler`) and a Monitor (an
-          instance of a class derived from
-          :class:`~om.processing_layer.base.OmMonitor`) must be provided to its
+          [OmDataEventHandler][om.data_retrieval_layer.base.OmDataEventHandler]) and a
+          Monitor (an instance of a class derived from
+          [OmMonitor][om.processing_layer.base.OmMonitor]) must be provided to its
           constructor.
 
         * On each processing node, the Engine retrieves one data event from a source by
@@ -73,16 +75,14 @@ class OmParallelizationEngine(ABC):
 
         Arguments:
 
-            source: A string describing a source of event data. The exact format of the
-                string depends on the specific DataEventHandler class being used.
-
-            event_data_handler: A class defining how data events are retrieved and
+            data_event_handler: A class defining how data events are retrieved and
                 handled.
 
             monitor: A class defining the how the retrieved data must be processed.
 
-            monitor_parameters: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
         """
         self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
             data_event_handler
