@@ -29,7 +29,7 @@ import numpy  # type: ignore
 
 class Jungfrau1MCalibration:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(

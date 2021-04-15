@@ -34,31 +34,29 @@ class TypePeakfinder8Info(TypedDict, total=True):
     """
     Detector layout information for the peakfinder8 algorithm.
 
+    Base class: `TypedDict`
+
     This typed dictionary is used to store information about the data layout in a
-    detector data frame, in the format needed by the :class:`Peakfinder8PeakDetection`
-    algorithm.  This information is usually retrieved via the
-    :func:`get_peakfinder8_info` function.
+    detector data frame, in the format needed by the [Peakfinder8PeakDetection]
+    [om.algorithms.crystallography.Peakfinder8PeakDetection] algorithm. This
+    information is usually retrieved via the [get_peakfinder8_info]
+    [om.algorithms.crystallography.get_peakfinder8_info] function.
+
+    Attributes:
+
+        asic_nx: The fs size in pixels of each detector panel in the data frame.
+
+        asic_ny: The ss size in pixels of each detector panel in the data frame.
+
+        nasics_x: The number of detector panels along the fs axis of the data frame.
+
+        nasics_y: The number of detector panels along the ss axis of the data frame.
     """
 
     asic_nx: int
-    """
-    The fs size in pixels of each detector panel in the data frame.
-    """
-
     asic_ny: int
-    """
-    The ss size in pixels of each detector panel in the data frame.
-    """
-
     nasics_x: int
-    """
-    The number of detector panels along the fs axis of the data frame.
-    """
-
     nasics_y: int
-    """
-    The number of detector panels along the ss axis of the data frame.
-    """
 
 
 class TypePeakList(TypedDict, total=True):
@@ -67,42 +65,35 @@ class TypePeakList(TypedDict, total=True):
 
     This typed dictionary is used to store information about a set of peaks that
     were detected in a data frame.
+
+    Attributes:
+
+        num_peaks: The number of peaks that were detected in the data frame.
+
+        fs: A list of fractional fs indexes that locate the detected peaks in the data
+            frame.
+
+        ss: A list of fractional ss indexes that locate the detected peaks in the data
+            frame.
+
+        intensity: A list of integrated intensities for the detected peaks.
+
+        num_pixels: A list storing the number of pixels that make up each detected
+            peak.
+
+        max_pixel_intensity: A list storing, for each peak, the value of the pixel with
+            the maximum intensity.
+
+        snr: A list storing  the signal-to-noise ratio of each detected peak.
     """
 
     num_peaks: int
-    """
-    The number of peaks that were detected in the data frame.
-    """
-
     fs: List[float]
-    """
-    A list of fractional fs indexes that locate the detected peaks in the data frame.
-    """
-
     ss: List[float]
-    """
-    A list of fractional ss indexes that locate the detected peaks in the data frame.
-    """
-
     intensity: List[float]
-    """
-    A list of integrated intensities for the detected peaks.
-    """
-
     num_pixels: List[float]
-    """
-    A list storing the number of pixels that make up each detected peak.
-    """
-
     max_pixel_intensity: List[float]
-    """
-    A list storing, for each peak, the value of the pixel with the maximum intensity.
-    """
-
     snr: List[float]
-    """
-    A list storing  the signal-to-noise ratio of each detected peak.
-    """
 
 
 def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
@@ -110,7 +101,8 @@ def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
     Gets the peakfinder8 information for a detector.
 
     This function retrieves, for a supported detector type, the data layout information
-    required by the :class:`Peakfinder8PeakDetection` algorithm.
+    required by the [Peakfinder8PeakDetection]
+    [om.algorithms.crystallography.Peakfinder8PeakDetection] algorithm.
 
     Arguments:
 
@@ -134,7 +126,8 @@ def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
 
     Returns:
 
-        A dictionary storing the data layout information.
+        A [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+        dictionary storing the data layout information.
     """
     if detector_type == "cspad":
         peakfinder8_info: TypePeakfinder8Info = {
@@ -182,7 +175,7 @@ def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
 
 class Peakfinder8PeakDetection:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(
@@ -221,16 +214,20 @@ class Peakfinder8PeakDetection:
                 data frame. Additional peaks will be ignored.
 
             asic_nx: The fs size in pixels of each detector panel in the data frame
-                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
+                (Can be retrieved from a [TypePeakfinder8Info]
+                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
 
             asic_ny: The ss size in pixels of each detector panel in the data frame
-                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
+                (Can be retrieved from a [TypePeakfinder8Info]
+                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
 
             nasics_x: The number of panels along the fs axis of the data frame
-                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
+                (Can be retrieved from a [TypePeakfinder8Info]
+                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
 
             nasics_y: The number of panels along the ss axis of the data frame
-                (Can be retrieved from a :class:`TypePeakfinder8Info` dictionary).
+                (Can be retrieved from a [TypePeakfinder8Info]
+                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
 
             adc_threshold: The minimum ADC threshold for peak detection.
 
@@ -302,7 +299,8 @@ class Peakfinder8PeakDetection:
 
         Returns:
 
-            A dictionary with information about the detected peaks.
+            A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
+            with information about the detected peaks.
         """
         if not self._mask_initialized:
             if self._mask is None:

@@ -33,7 +33,7 @@ from om.utils import exceptions
 
 class Correction:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(  # noqa: C901
@@ -212,7 +212,7 @@ class Correction:
 
 class DataAccumulator:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(self, num_events_to_accumulate: int) -> None:
