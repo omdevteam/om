@@ -124,6 +124,9 @@ def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
             * 'epix10k2M': The 2M version of the Epix10KA detector used at the MFX
               beamline of the LCLS facility.
 
+            * 'rayonix': The Rayonix detector used at the MFX beamline of the LCLS
+              facility.
+
     Returns:
 
         A [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
@@ -163,6 +166,13 @@ def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
             "asic_ny": 352,
             "nasics_x": 1,
             "nasics_y": 16,
+        }
+    elif detector_type == "rayonix":
+        peakfinder8_info = {
+            "asic_nx": 1920,
+            "asic_ny": 1920,
+            "nasics_x": 1,
+            "nasics_y": 1,
         }
     else:
         raise RuntimeError(
