@@ -88,7 +88,7 @@ def _import_class(layer: str, layer_filename: str, class_name: str) -> Type[T]:
         "debugging."
     ),
 )
-@click.argument("source_string", type=str)
+@click.argument("source", type=str)
 def main(source: str, config: str, debug: bool) -> None:
     """
     OnDA Monitor. This script starts a online data analysis monitor that behaves
