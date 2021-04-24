@@ -94,17 +94,6 @@ class OmParallelizationEngine(ABC):
             parameter="num_frames_in_event_to_process",
             parameter_type=int,
         )
-        frames_in_event_to_skip: List[int] = self._monitor_params.get_param(
-            group="data_retrieval_layer",
-            parameter="num_frames_in_event_to_process",
-            parameter_type=list,
-        )
-        if frames_in_event_to_skip is not None:
-            self._frames_in_event_to_skip: Tuple[int, ...] = tuple(
-                frames_in_event_to_skip
-            )
-        else:
-            self._frames_in_event_to_skip = tuple()
 
     @abstractmethod
     def start(self) -> None:
