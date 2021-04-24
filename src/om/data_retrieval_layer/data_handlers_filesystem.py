@@ -203,15 +203,6 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
             required=True,
         )
         self._event_info_to_append["calibration"] = calibration
-        if calibration is True:
-            calibration_info_filename: str = self._monitor_params.get_param(
-                group="data_retrieval_layer",
-                parameter="calibration_filename",
-                parameter_type=str,
-            )
-            self._event_info_to_append[
-                "calibration_info_filename"
-            ] = calibration_info_filename
 
         if "beam_energy" in required_data:
             self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(

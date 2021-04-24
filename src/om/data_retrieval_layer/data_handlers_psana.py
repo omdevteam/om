@@ -198,10 +198,19 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         self._event_info_to_append: Dict[str, Any] = {}
         if "optical_laser_active" in required_data:
             self._event_info_to_append[
-                "active_laser_evr_code"
+                "active_optical_laser_evr_code"
             ] = self._monitor_params.get_param(
                 group="data_retrieval_layer",
                 parameter="active_optical_laser_evr_code",
+                parameter_type=int,
+                required=True,
+            )
+        if "xray_active" in required_data:
+            self._event_info_to_append[
+                "active_xray_evr_code"
+            ] = self._monitor_params.get_param(
+                group="data_retrieval_layer",
+                parameter="active_xray_evr_code",
                 parameter_type=int,
                 required=True,
             )
