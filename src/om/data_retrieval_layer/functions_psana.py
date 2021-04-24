@@ -35,7 +35,7 @@ def detector_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     Initializes the psana Detector interface for x-ray detector data at LCLS.
 
     This function initializes the Detector interface for the detector identified by the
-    'psana_detector_name' entry in the 'DataRetrievalLayer' parameter group of the
+    'psana_detector_name' entry in the 'data_retrieval_layer' parameter group of the
     configuration file.
 
     Arguments:
@@ -134,8 +134,8 @@ def timetool_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
 
     At LCLS, timetool data is recovered from an Epics variable. This function
     initializes the timetool Detector interface using the Epics variable identified by
-    the 'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' parameter group
-    of the configuration file.
+    the 'psana_timetools_epics_name' entry in the 'data_retrieval_layer' parameter
+    group of the configuration file.
 
     Arguments:
 
@@ -162,8 +162,8 @@ def digitizer_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     Initializes the psana Detector interface for digitizer data at LCLS.
 
     This function initializes the Detector interface for the digitizer identified by
-    the 'psana_digitizer_name' entry in the 'DataRetrievalLayer' parameter group of the
-    configuration file.
+    the 'psana_digitizer_name' entry in the 'data_retrieval_layer' parameter group of
+    the configuration file.
 
     Arguments:
 
@@ -190,7 +190,7 @@ def opal_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     Initializes the psana Detector interface for Opal camera data at LCLS.
 
     This function initialize the Detector interface for the Opal camera identified by
-    the 'psana_opal_name' entry in the 'DataRetrievalLayer' parameter group of the
+    the 'psana_opal_name' entry in the 'data_retrieval_layer' parameter group of the
     configuration file.
 
     Arguments:
@@ -219,7 +219,7 @@ def optical_laser_active_init(monitor_parameters: parameters.MonitorParams) -> A
 
     At LCLS, the status of an optical laser is determined by monitoring an EVR event
     source. This function initializes the Detector interface for the EVR event source
-    identified by the 'psana_evr_source_name' entry in the 'DataRetrievalLayer'
+    identified by the 'psana_evr_source_name' entry in the 'data_retrieval_layer'
     parameter group of the configuration file.
 
     Arguments:
@@ -248,7 +248,7 @@ def xrays_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
 
     At LCLS, the status of the x-ray beam is determined by monitoring an EVR event
     source. This function initializes the Detector interface for the EVR event source
-    identified by the 'psana_evr_source_name' entry in the 'DataRetrievalLayer'
+    identified by the 'psana_evr_source_name' entry in the 'data_retrieval_layer'
     parameter group of the configuration file.
 
     Arguments:
@@ -303,7 +303,7 @@ def detector_distance(event: Dict[str, Any]) -> float:
 
     At LCLS, detector distance information is retrieved from an Epics variable. This
     function retrieves the information from the Epics variable identified by the
-    'psana_detector_distance_epics_name' entry in the 'DataRetrievalLayer'
+    'psana_detector_distance_epics_name' entry in the 'data_retrieval_ayer'
     parameter group of the configuration file.
 
     Arguments:
@@ -331,7 +331,7 @@ def beam_energy(event: Dict[str, Any]) -> float:
 
     At LCLS, detector beam energy information is retrieved from an Epics variable. This
     function retrieves the information from the Epics variable identified by the
-    'psana_detector_distance_epics_name' entry in the 'DataRetrievalLayer'
+    'psana_detector_distance_epics_name' entry in the 'data_retrieval_layer'
     parameter group of the configuration file.
 
 
@@ -370,7 +370,7 @@ def timetool_data(event: Dict[str, Any]) -> float:
 
     At LCLS, timetool data is recovered from an Epics variable. This function retrieves
     the information from the Epics variable identified by the
-    'psana_timetools_epics_name' entry in the 'DataRetrievalLayer' parameter group of
+    'psana_timetools_epics_name' entry in the 'data_retrieval_layer' parameter group of
     the configuration file.
 
     Arguments:
@@ -398,7 +398,7 @@ def digitizer_data(event: Dict[str, Any]) -> numpy.ndarray:
     Get digitizer data for an event retrieved from psana at LCLS.
 
     This function retrieves data from the digitizer identified by the
-    'psana_digitizer_name' entry in the 'DataRetrievalLayer' parameter group of the
+    'psana_digitizer_name' entry in the 'data_retrieval_layer' parameter group of the
     configuration file.
 
     Arguments:
@@ -426,7 +426,7 @@ def opal_data(event: Dict[str, Any]) -> numpy.ndarray:
     Gets Opal camera data for an event retrieved from psana at LCLS.
 
     This function retrieves data from the Opal camera identified by the
-    'psana_opal_name' entry in the 'DataRetrievalLayer' parameter group of the
+    'psana_opal_name' entry in the 'data_retrieval_layer' parameter group of the
     configuration file  .
 
     Arguments:
@@ -457,7 +457,7 @@ def optical_laser_active(event: Dict[str, Any]) -> bool:
     source provides a specific event code for the current frame.
 
     * The name of the event source must be specified in the 'psana_evr_source_name'
-      entry in the 'DataRetrievalLayer' parameter group of the configuration file.
+      entry in the 'data_retrieval_layer' parameter group of the configuration file.
 
     * The EVR event code that signals an active optical laser must be provided in
       the 'psana_evr_code_for_active_optical_laser' entry in the same parameter group.
@@ -494,7 +494,7 @@ def xrays_active(event: Dict[str, Any]) -> bool:
     EVR source provides a specific event code for the current frame.
 
     * The name of the event source must be specified in the 'psana_evr_source_name'
-      entry of the 'DataRetrievalLayer' parameter group of the configuration file.
+      entry of the 'data_retrieval_layer' parameter group of the configuration file.
 
     * The EVR event code that signals an active x-ray beam must be provided in the
       'psana_evr_code_for_active_xray_beam" entry in the same parameter group.
@@ -518,9 +518,4 @@ def xrays_active(event: Dict[str, Any]) -> bool:
             "Could not retrieve event codes from psana."
         )
 
-    return (
-        event["additional_info"]["psana_detector_interface"][
-            "xrays_active"
-        ].active_laser_evr_code
-        in current_evr_codes
-    )
+    return event["additional_info"]["active_xrays_evr_code"] in current_evr_codes

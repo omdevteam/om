@@ -1,0 +1,112 @@
+# Installing OM
+
+
+## OM at Facilities
+
+OM comes pre-installed at some beamlines and facilties.
+
+At the **LCLS** facility, OM in already installed at the following beamlines:
+
+  - MFX beamline
+  - CXI beamline
+
+There is no need to perform any installation to use OM at these beamlines and
+facilities. However, the beamline scientists of each facility should always be notified
+in advance by the users of their intention to use OM during an experiment.
+
+
+## OM on a Laptop/Desktop
+
+There are three ways to instal OM on a standalone Deskop/Laptop computer
+
+
+### Installation from PyPI
+
+OM is available on PiPY:
+
+* [OM on PyPI](https://fill.in.url) 
+
+It can be installed using the `pip` command:
+
+``` bash
+pip install ondamonitor
+```
+
+### Installation from CondaForge
+
+OM is available in the [CondaForge](https://conda-forge.org) package collection and can
+be installed using the `conda install` command:
+
+``` bash
+conda install -c conda-forge ondamonitor
+```
+
+### Installation from Source
+
+OM can be also be installed from source. As a first step, the source code should be
+retrieved from GitHub. A compressed code archive for each stable release can be found
+the following page:
+
+* [OM's release archives](https://github.com/omdevteam/om-internal/releases)
+
+Alternatively, the source code can be retrieved directly from the GitHub repository
+using the `git clone` command:
+
+``` bash
+git clone https://github.com/omdevteam/om
+```
+
+OM can then be installed using the `pip` command from the root directory of the
+retrieved source code (the directory that contains the `setup.py` file):
+
+``` bash
+pip install --prefix=<INSTALLATION PATH> .
+```
+
+In this command,`<INSTALLATION PATH>` is a relative or absolute path to the directory
+where OM should be installed. A Python development-style installation can also be
+peformed using the `pip` command:
+
+``` bash
+pip install --editable --prefix=<INSTALLATION PATH> .
+```
+
+When OM is installed from source, some additional configuration is needed for the local 
+operating system to subsequently find the installation directory. Typically, on Linux,
+the following environment variables need to be set:
+
+```bash
+export PATH=<INSTALLATION PATH>/bin
+export PYTHONPATH=<INSTALLATION PATH>/lib/python<PYVER>/site-pacakges
+```
+
+Here `<INSTALLATION_DIR>` is the directory where OM has been installed, and `<PYVER>`
+is the version of python used by the system (but only limited to the major and minor
+components of the version number).
+
+The python version number can be obtained using the `python -V` command, which outputs
+a string in the following format: `Python X.Y.Z`. The `<PYVER>` entry in the command
+above corresponds to the `X.Y` part of this string.
+
+
+## MPI Framework
+
+When using OM's MPI Processing Engine (the default one), an installation of one of the
+MPI frameworks must be present on the computer where OM will run. The most popular
+choices are OpenMPI and MPICH:
+
+* [OpenMPI](https://www.open-mpi.org)
+* [MPICH](https://www.mpich.org)
+
+The precise instructions for the installation of these frameworks are system-specific,
+and outside of the scope of this documentation. Please notice that in addition to one
+of the MPI frameworks being available on the system, the corresponding `mpi4py` module
+must also be installed for the Python interpreter used by OM.
+
+
+
+
+
+
+
+
