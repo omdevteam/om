@@ -25,8 +25,14 @@ from builtins import str as unicode_str
 from typing import Any, Dict
 
 import zmq  # type: ignore
+from om.utils import exceptions
 
-from PyQt5 import QtCore  # type: ignore
+try:
+    from PyQt5 import QtCore  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PyQt5"
+    )
 
 
 class ZmqDataListener(QtCore.QObject):  # type: ignore

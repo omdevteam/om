@@ -29,7 +29,15 @@ from typing import Any, Callable, Dict, Generator, List, cast
 
 import fabio  # type: ignore
 import numpy  # type: ignore
-from hidra_api import Transfer, transfer  # type: ignore
+from om.utils import exceptions
+
+try:
+    from hidra_api import Transfer, transfer  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: hidra_api"
+    )
+
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_pilatus

@@ -25,8 +25,14 @@ import copy
 from abc import ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, List, Union  # noqa: F401
 
-from om.utils import zmq_gui
-from PyQt5 import QtCore, QtWidgets  # type: ignore
+from om.utils import exceptions, zmq_gui
+
+try:
+    from PyQt5 import QtCore, QtWidgets  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PyQt5"
+    )
 
 
 class QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore

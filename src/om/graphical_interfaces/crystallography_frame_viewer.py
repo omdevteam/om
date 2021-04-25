@@ -30,11 +30,22 @@ from typing import Any, Deque, Dict, Union
 
 import click
 import numpy  # type: ignore
-import pyqtgraph  # type: ignore
-
 from om.graphical_interfaces import base as graph_interfaces_base
+from om.utils import exceptions
 
-from PyQt5 import QtGui  # type: ignore
+try:
+    from PyQt5 import QtGui  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PyQt5"
+    )
+
+try:
+    import pyqtgraph  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: pyqtgraph"
+    )
 
 
 class CrystallographyFrameViewer(graph_interfaces_base.OmGui):

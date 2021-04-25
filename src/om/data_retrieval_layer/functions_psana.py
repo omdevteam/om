@@ -25,9 +25,14 @@ functions that initialize the Detector interface itself.
 from typing import Any, Dict, List, Union
 
 import numpy  # type: ignore
-import psana  # type: ignore
-
 from om.utils import exceptions, parameters
+
+try:
+    import psana  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: psana"
+    )
 
 
 def detector_data_init(monitor_parameters: parameters.MonitorParams) -> Any:

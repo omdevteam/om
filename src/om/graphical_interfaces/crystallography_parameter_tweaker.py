@@ -31,13 +31,25 @@ from typing import Any, Deque, Dict, List, Tuple, Union
 import click
 import h5py  # type: ignore
 import numpy  # type: ignore
-import pyqtgraph  # type: ignore
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms.crystallography import TypePeakfinder8Info
 from om.graphical_interfaces import base as graph_interfaces_base
-from om.utils import crystfel_geometry, parameters
+from om.utils import crystfel_geometry, exceptions, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
-from PyQt5 import QtCore, QtGui  # type: ignore
+
+try:
+    from PyQt5 import QtCore, QtGui  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PyQt5"
+    )
+
+try:
+    import pyqtgraph  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: pyqtgraph"
+    )
 
 
 class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):

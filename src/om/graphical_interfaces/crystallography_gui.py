@@ -28,12 +28,23 @@ from typing import Any, Dict, List, Tuple, Union
 
 import click
 import numpy  # type: ignore
-import pyqtgraph  # type: ignore
+from om.graphical_interfaces import base as graph_interfaces_base
+from om.utils import exceptions
 from scipy import constants  # type: ignore
 
-from om.graphical_interfaces import base as graph_interfaces_base
+try:
+    from PyQt5 import QtCore, QtGui  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PyQt5"
+    )
 
-from PyQt5 import QtCore, QtGui  # type: ignore
+try:
+    import pyqtgraph  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: pyqtgraph"
+    )
 
 
 class CrystallographyGui(graph_interfaces_base.OmGui):
