@@ -5,19 +5,19 @@
 
 OM comes pre-installed at some beamlines and facilties.
 
-At the **LCLS** facility, OM in already installed at the following beamlines:
+At the **LCLS** facility, OM is already installed at the following beamlines:
 
   - MFX beamline
   - CXI beamline
 
-There is no need to perform any installation to use OM at these beamlines and
-facilities. However, the beamline scientists of each facility should always be notified
-in advance by the users of their intention to use OM during an experiment.
+OM can be used directly at at these beamlines and facilities. However, the beamline
+scientists at each facility should always be notified in advance by the users of their
+intention to use OM during an experiment.
 
 
 ## OM on a Laptop/Desktop
 
-There are three ways to instal OM on a standalone Deskop/Laptop computer
+There are three ways to instal OM on a standalone Deskop/Laptop computer.
 
 
 ### Installation from PyPI
@@ -80,27 +80,25 @@ export PATH=<INSTALLATION PATH>/bin
 export PYTHONPATH=<INSTALLATION PATH>/lib/python<PYVER>/site-pacakges
 ```
 
-Here `<INSTALLATION_DIR>` is the directory where OM has been installed, and `<PYVER>`
-is the version of python used by the system (but only limited to the major and minor
-components of the version number).
-
-The python version number can be obtained using the `python -V` command, which outputs
-a string in the following format: `Python X.Y.Z`. The `<PYVER>` entry in the command
-above corresponds to the `X.Y` part of this string.
+Here,  `<INSTALLATION_DIR>` is the directory where OM has been installed, and `<PYVER>`
+is the version of Python used by the system (only the major and minor components of the
+version number). The Python version number can be obtained using the `python -V`
+command, which outputs a string in the following format: `Python X.Y.Z`. The `<PYVER>`
+entry in the command above corresponds to the `X.Y` part of this string.
 
 
-## MPI Framework
+## MPI
 
-When using OM's MPI Processing Engine (the default one), an installation of one of the
-MPI frameworks must be present on the computer where OM will run. The most popular
-choices are OpenMPI and MPICH:
+When using OM's MPI Parallelization Engine (the default Parallelization Engine), an MPI
+framework must be installed on the system where OM is launched. The most popular
+choices are OpenMPI and MPICH.
 
 * [OpenMPI](https://www.open-mpi.org)
 * [MPICH](https://www.mpich.org)
 
-The precise instructions for the installation of these frameworks are system-specific,
-and outside of the scope of this documentation. Please notice that in addition to one
-of the MPI frameworks being available on the system, the corresponding `mpi4py` module
+The precise instructions for the installation of these frameworks are complex,
+operating system-dependent, and outside of the scope of this documentation. Please
+notice that in addition to one of the MPI frameworks, the corresponding `mpi4py` module
 must also be installed for the Python interpreter used by OM.
 
 

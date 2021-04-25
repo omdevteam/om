@@ -1,14 +1,15 @@
 # OM's Configuration Parameters
 
 
-The following is a list of all of OM's configuration parameters, sorted by parameter
-group, with a brief description of each.
+This document provides a list of all of OM's configuration parameters, sorted by
+parameter group, with a brief description of each.
 
 
 ## correction
 
-This parameter group contains information used by OM when applying corrections on
-detector    frames (using the [`Correction`][om.algorithms.generic.Correction] algorithm).
+This parameter group contains parameters that control how OM applies corrections on
+detector data frames using the [`Correction`][om.algorithms.generic.Correction]
+algorithm.
 
 **dark_filename (str or None)**
 :  The relative or absolute path to an HDF5 file containing a dark data frame. If this
@@ -41,10 +42,10 @@ detector    frames (using the [`Correction`][om.algorithms.generic.Correction] a
 
 **mask_filename (str or None)**
 :  The relative or absolute path to an HDF5 file containing a mask. If this and the
-   `mask_hdf5_path` parameters are not *None*, the mask is loaded and later applied to
-   the detector frame. The pixels in the mask must have a value of either 0, meaning
-   that the corresponding pixel in the detector frame must be set to 0, or 1, meaning
-   that the value of the corresponding pixel must be left alone.
+   `mask_hdf5_path` parameters are not *None*, the mask is loaded and applied to the
+   detector frame. The pixels in the mask must have a value of either 0, meaning that
+   the corresponding pixel in the detector frame must be set to 0, or 1, meaning that
+   the value of the corresponding pixel must be left alone.
 
      Example: `files/run18_mask.h5`
 
@@ -58,17 +59,15 @@ detector    frames (using the [`Correction`][om.algorithms.generic.Correction] a
 
 ## crystallography
 
-This group contains parameters used specifically by the OnDA Monitor for
+This parameter group contains parameters used specifically by the OnDA Monitor for
 Crystallography.
 
 **data_broadcast_url (str or None)**
-:  The URL of the socket where the monitor broadcasts data to external programs. The
-   parameter should be in a format accepted by the ZeroMQ library. Typically, the
-   parameter either has the format `tcp://hostname:port` or the format
-   `ipc:///path/to/socket`, depending on the protocol used for the broadcast.
-   If the value of this parameter is *None*, the TCP protocol is used by default, the
-   IP address of the host  is detected automatically and the broadcast URL is set to
-   `tcp://<IP_ADDRESS>:12321`.
+:  The URL of the socket where OM broadcasts data to external programs. The parameter
+   should have the format `tcp://hostname:port` or the format `ipc:///path/to/socket`,
+   depending on the protocol used for the broadcast. If the value of this parameter is
+   *None*, the TCP protocol is used by default, the IP address of the host is detected
+   automatically and the broadcast URL is set to `tcp://<IP_ADDRESS>:12321`.
 
      Example: `tcp://127.0.0.1:8080`
 
@@ -146,10 +145,11 @@ Crystallography.
 
 ## data_retrieval_layer
 
-This parameter group contains information that influence OM's Data Retrieval Layer,
-influencing the way OM retrieves data events from their source (file, a facility
-framework, etc.). Some parameters apply to all Data Event Handlers, while others
-only apply to a subset, or have different meaning for different Handlers.
+This parameter group contains parameters that control OM's Data Retrieval Layer,
+influencing the way OM retrieves data events from the data source (a file, a facility
+framework, etc.). Please note that some parameters apply to all Data Event Handlers,
+while others only apply to a subset of Handlers, or have different meaning for
+different Handlers.
 
 
 !!! warning
@@ -166,9 +166,9 @@ The parameters in this subsection apply to all Data Event Handlers
 : The data that the current monitor should retrieve for each event. For each type of
   data listed here, a corresponding Data Extraction Function must be defined for the
   Data Event Layer that OM is currently using. If this condition is met, the data will
-  be retrieved by OM made available for processing, otherwise an error will be raised
-  an OM will stop running. For a list of Data Extraction Functions that are available
-  for each Data Event Handler, please see the following document:
+  be retrieved by OM and made available for processing, otherwise an error will be
+  raised an OM will stop running. For a list of Data Extraction Functions that are
+  available for each Data Event Handler, please see the following document:
 
     * [List of Data Extraction Functions available for each Data Event Handler](data_extraction_functions.md)
 
@@ -194,7 +194,7 @@ specifically:
 
 **active_xray_evr_code (int)**
 :  EVR event code corresponding to the x-rays being active. To determine if the x-rays
-   are active, OM checks if the code provided by this parameter marches one of the
+   are active, OM checks if the code provided by this parameter matches one of the
    EVR event codes associated with the current event.
 
      Example: `42`
@@ -206,9 +206,10 @@ specifically:
      Example: `true`
 
 **psana_calibration_directory (str)**
-:  Text here
+:  The path to the directory where psana stores all calibration information for the
+   experiment currently being processed.
 
-     Example: `/path/to/hey`
+     Example: `/reg/d/psdm/mfx/mfxc00118/calib`
 
 **psana_detector_name (str)**
 :  The name of the main x-ray detector from which psana retrieves data.
@@ -216,7 +217,7 @@ specifically:
      Example: `DscCsPad`
 
 **psana_detector_distance_epics_name (str)**
-:  The name of the Epics variable from which the psana retrieves detector distance
+:  The name of the Epics variable from which psana retrieves detector distance
    information for the main x-ray detector.
 
      Example: `CXI:DS1:MMS:06.RBV`
@@ -239,7 +240,7 @@ specifically:
 **psana_timetool_epics_name (str)**
 :  The name of the Epics variable from which psana retrieves timetool information.
 
-    Example: `Time0`
+    Example: `CXI:DS1:MMS:06.RBV`
 
 
 ### Filesystem-based Data Event Handlers
@@ -255,9 +256,9 @@ specifically to the following Handlers:
    files, the calibration of the detector data is usually performed by OM. OM often
    needs external information to perform the calibration, and retrieves it from a set
    of files defined by the `calibration_dark_filenames` and
-   'calibration_gain_filenames` parameters. In some cases, further parameters (for
-   example `calibration_photon_energy_kev`) are also needed to provide even deeper
-   information about the calibration process.
+   `calibration_gain_filenames` parameters. In some cases, additional parameters (for
+   example `calibration_photon_energy_kev`) must also be provided to further define the
+   calibration process.
    
      Example: `true`
 
@@ -282,10 +283,10 @@ specifically to the following Handlers:
 **calibration_photon_energy_kev (float)**
 :  The photon energy for which the x-ray detector data should be calibrated.
    The exact values of the calibration constants for a detector often depend on the
-   photon energy at which the detector is opeated. If a calibration algorithm needs
-   this the information, OM will take the value provided by this parameter.  If,
-   however, the calibration is not performed or if the Data Event Handler does not need
-   this kind of information for the calibration, this parameter is ignored.
+   photon energy at which the detector is operated. If a calibration algorithm needs
+   this information, OM will take the value provided by this parameter.  If, however,
+   the calibration is not performed or if the Data Event Handler does not need this
+   kind of information for the calibration, this parameter is ignored.
 
      Example: `9.1`
 
@@ -302,12 +303,12 @@ specifically to the following Handlers:
      Example: `250`
 
 **num_frames_in_event_to_process (int)**
-:  The number of frames in an event that OM should process. Often data event contain
-   multiple frames OM does not need to process them all. This parameter specifies
-   how many frames OM should consider. Please notice that OM will give precedence to
-   frames collected closer to the current event in time, so if, for example, this
-   parameter specifies that OM should process n frames, OM will process the *last* n
-   frames in the event.
+:  The number of frames in an event that OM should process. Sometimes data events
+   contain multiple frames but OM does not need to process them all. This parameter
+   specifies how many frames OM should consider. Please note that OM will give
+   precedence to the frames in the event that were collected more recently. If, for
+   example, this parameter specifies that OM should process n frames, OM will process
+   the *last* n frames in the event.
 
      Example: `1`
 
@@ -330,7 +331,7 @@ specifically to the following Handlers:
 :  The name of the python module with the implementation of the Data Retrieval Layer
    currently used by OM.
 
-     Example: `data_handers_psana`
+     Example: `data_handlers_psana`
 
 **monitor (str)**
 :  The name of the class implementing the Monitor currently used by OM. The class
@@ -361,9 +362,10 @@ specifically to the following Handlers:
 
 ## peakfinder8_peak_detection
 
-This parameter group contains parameters used by OM to perform peak finding on a
-detector data frame, using the (using the [`Peakfinder8PeakDetection`][ 
-om.algorithms.crystallography_algorithms.Peakfinder8PeakDetection] algorithm).
+This parameter group contains parameters that control how OM performs peak finding on a
+detector data frame using the
+[`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+algorithm.
 
 * **adc_threshold (float)**
 :  The minimum ADC threshold for peak detection.

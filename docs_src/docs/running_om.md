@@ -6,7 +6,7 @@
 
 ### The `run_om.sh` File
 
-At the MFX and CXI beamines of the LCLS facility, OM must be run on a specific set of
+At the MFX and CXI beamlines of the LCLS facility, OM must be run on a specific set of
 machines known as *monitoring nodes*. Only on these machines the data stream can be
 accessed in real time. The monitoring nodes have hostnames that match the following
 scheme:
@@ -34,15 +34,15 @@ echo '# run_om.sh script, please do not' >> $(pwd)/monitor_wrapper.sh
 echo '# edit directly.' >> $(pwd)/monitor_wrapper.sh
 echo 'source <OM> >> $(pwd)/monitor_wrapper.sh
 echo "om_monitor.py 'shmem=psana.0:stop=no'" >> $(pwd)/monitor_wrapper.sh
- chmod +x $(pwd)/monitor_wrapper.sh
+chmod +x $(pwd)/monitor_wrapper.sh
 $(which mpirun) --oversubscribe --map-by ppr:X:node \
                 --host Y $(pwd)/monitor_wrapper.sh
 ```
 
 In the last two lines, `X` must be replaced with the number of processes that OM should
-start on each monitoring node, and `Y` with a comma-separated list of hostnames for
-machines on which OM should be launched (This information is usually provided by the
-beamline scientists).
+start on each monitoring node, and `Y` with a comma-separated list of hostnames or IP
+addresses of machines on which OM should be launched (This information is usually
+provided by the beamline scientists).
 
 Examples of `run_om.sh` files for the MFX and CXI beamlines can be found at the
 following links:
@@ -51,8 +51,8 @@ following links:
   * [Example `run_om.sh` script for the CXI beamline](files/cxi/run_om.sh)
 
 !!! warning
-    Please note that these files are good starting points, but are *just examples*.
-    They might need to be tweaked for specific experiments.
+    Please note that these files are are *just examples*. They might need to be
+    modified before being used for some specific experiments.
 
 ### The `monitor.yaml` File
 
@@ -67,11 +67,11 @@ links:
   * [Example `monitor.yaml` file for the CXI beamline](files/cxi/monitor.yaml)
 
 !!! warning
-    Please note that these files are good starting points, but are *just examples*.
-    They might need to be tweaked for specific experiments. This is particularly true
-    for the entries that define the *calibration directory*, the *detector name* and
-    the *epics variables* associated with beam energy and detector distance. These
-    entries are all experiment-dependent.
+    Please note that these files are *just examples*. They might need to be modified
+    before being used for some specific experiments. This is particularly true for
+    the entries in the file that define the *calibration directory* and the *detector
+    name*, and for the ones that define the *epics variables* associated with beam
+    energy and detector distance. These are usually all experiment-dependent.
 
 
 
@@ -95,34 +95,35 @@ links:
 
 ### Running OM
 
-Once everything is setup, OM is launched by simply running the `run_om.sh` script from
-a terminal. Please notice that the script should be launched from a monitoring node
-machine, or from a computer that has a direct connection to the monitoring nodes. At
-the MFX beamine, for example, `mfx-daq` and `mfx-monitor` are suitable hosts, as are
+Once everything is setup, OM can be launched by simply running the `run_om.sh` script
+from a terminal. Please note that the script should be launched from a monitoring node
+machine, or from a computer that has a direct connection to all the monitoring nodes.
+At the MFX beamline, for example, `mfx-daq` and `mfx-monitor` are suitable hosts, as are
 `cxi-daq` and `cxi-monitor` at the CXI beamline.
 
-After OM has been started, please see this
-[paragraph](#running-oms-graphical-interfaces) on how to run OM's graphical interfaces.
+After OM has been started, please see
+[this paragraph](#running-oms-graphical-interfaces) on how to run OM's graphical
+interfaces.
 
 
 ## Running OM on a Laptop/Desktop
 
 ### Introduction
 
-When running OM on an a standalone computer, it is often very hard or impossible to
+When OM is launched on an a standalone computer, it is often very hard or impossible to
 connect to a facility's framework to retrieve data. Therefore, in the following
-example, OM will process data coming from files stored on a disk, rather than real-time
+example, OM will process data coming from files stored on disk, rather than real-time
 data from a facility. Specifically, this example will deal with files written by a
 Pilatus x-ray detector in CBF format. These files have been chosen because they are
 relatively small in size and easy to copy from one machine to the other.
 
-This setup, processing data coming from files rather than from a facility's framework,
-is a very good solution for testing and debugging purposes.
+This setup, where OM processes data coming from files rather than from a facility's
+framework, is a very good solution for testing and debugging purposes.
 
 !!! note
-    Although it is possible to run OM on a local machine, it should be noted that OM
-    is not designed or optimized for the limited resources of a laptop or a small
-    desktop computer.
+    Although it is possible to run OM on a small standalone computer, it should be
+    noted that OM is not designed or optimized for the limited resources of a laptop or
+    a small desktop computer.
 
 
 ### The Data Files
@@ -133,9 +134,9 @@ files have been deposited in the
 [Coherent X-ray Imaging Data Bank](http://cxidb.org/id-82.html), an online database of
 data from Serial Crystallography experiments.
 
-The following paragraphs assume that the file `data8.tar.gz`     has been downloaded from
+The following paragraphs assume that the file `data8.tar.gz` has been downloaded from
 [here](http://portal.nersc.gov/archive/home/projects/cxidb/www/82/raw-data/data8.tar.gz)
-and unpacked on a folder on the local computer.
+and unpacked in a folder on the local computer.
 
 !!! warning
     Beware of storage space limitation and long download times: the data, even
@@ -153,7 +154,7 @@ file can be used for the dataset in this example:
 
 !!! warning
     This configuration file has been adapted to the dataset in this example. Please
-    notice that a completely different configuration file might be needed for other
+    note that a completely different configuration file might be needed for other
     datasets. Please consult the documentation linked above for a detailed explanation
     of each entry in the file. Also notice that all the files mentioned in the
     configuration file (geometry files, masks, etc.) must be present and readable on
@@ -178,11 +179,11 @@ However, for the current example, just a Pilatus detector geometry file is neede
 
 ### Running OM
 
-In order to let OM work on data from files, it is necessary to let the program know
+In order to have OM work on data from files, it is necessary to let the program know
 which files should be processed, and where to find them on the local computer. A list
 of files that OM must process needs to be generated. Each file must be listed on a
 separate line, each with its own full absolute or relative path. The list must then be
-saved in yet another file. 
+saved into yet another file. 
 
 For this example, the list file can easily be created using the UNIX `find` command:
 
@@ -215,10 +216,11 @@ mpirun -n <NUM NODES> om_monitor.py files.lst
 In this command, `<NUM NODES>` must be replaced with the total number of nodes that
 OM should use (several processing nodes and a collecting node). For a standalone
 computer, and for testing purposes, a value of 3 (just 2 processing + 1 collecting
-nodes) is advised.
+nodes) is recommended.
 
-After OM has been started, please see this
-[paragraph](#running-oms-graphical-interfaces) on how to run OM's graphical interfaces.
+After OM has been started, please see
+[this paragraph](#running-oms-graphical-interfaces) on how to run OM's graphical
+interfaces.
 
 
 ## Running OM's Graphical Interfaces
@@ -232,10 +234,10 @@ string:
 Broadcasting data at <URL>
 ```
 
-Where `<URL>` is a string of the form `protocol://location`. The string
-describes the protocol used by OM to broadcast the data (TCP or IPC), and the
-location where the data is being broadcast. With the TCP protocol, the location is
-usually an IP address and a port separated by a colon (`XXX.XXX.XXX.XXX:port`). When
+In this message, `<URL>` is a string of the form `protocol://location`, and it
+describes the protocol used by OM to broadcast the data (TCP or IPC), in addition to
+the location where the data is being broadcast. With the TCP protocol, the location is
+usually an IP address plus a port separated by a colon (`XXX.XXX.XXX.XXX:port`). When
 the IPC protocol is used, the location is usually the absolute path to a filesystem
 socket (`/path/to/socket`). 
 
@@ -266,7 +268,7 @@ Frame Viewer, could be launched with the following commands:
     om_crystallography_gui.py ipc://mfxopr/om_socket
     ```
 
-And:
+and
 
 === "TCP Protocol"
 
@@ -284,23 +286,23 @@ And:
 In general OM's graphical interfaces do not need to be launched on the same computer
 where OM is running. However, the location where the data is broadcast should be
 visible and reachable from the computer where the GUIs are running. Furthermore, some
-specifical graphical interfaces might need access to files or information that is only
+specific graphical interfaces might need access to files or information that is only
 present on the machine where OM is running. For example, OM's Crystallography Parameter
 Tweaker needs to access the `monitor.yaml` file, so it must either be run from the same
-computer and filesystem folder as OM, or the file must be copied over to the machine
-where the GUI is running.
+computer and folder as OM, or the file must be copied over to the machine where the GUI
+is running.
 
 
 ## Error Messages
 
 When something does not work as expected, OM emits error messages.  Errors can be
-fatal, in which case the monitor stops, or not, in which case the monitor just reports
-the error and continues processing data.
+fatal, in which case the monitor stops, or not, in which case OM just reports the error
+and continues processing data.
 
-OM errors are not reported as normal python errors. They are clearly labelled as coming
+OM errors are not reported as normal Python errors. They are clearly labelled as coming
 from the monitor, and their traceback information is removed. The `--debug` option to 
 the `om_monitor.py` script disables this behavior and forces OM to report all errors as
-normal python errors.
+normal Python errors.
 
 When the OM's Parallelization Engine is used, OM fatal errors are often reported
 multiple times before the monitor finishes operating: it can happen that multiple nodes

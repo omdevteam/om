@@ -5,38 +5,37 @@
 
 ## What is OM?
 
-**OM** (**O**nDA **M**onitor) is a software tool for the the **development** of
-programs that can monitor X-ray imaging experiments in **real-time**. It is also a set
-of ready-to-use **monitoring programs**.
+**OM** (**O**nDA **M**onitor) is a framework for the development of programs that can
+**monitor** x-ray imaging **experiments** in **real-time**. It is also a set of
+ready-to-use monitoring programs.
 
-It is the spiritual successor of the **OnDA** project and it is maintained mostly by
+It is the spiritual successor of the **OnDA Project** and it is maintained mostly by
 the same team of developers.
 
-OM provides users with a set of stable and efficient real-time monitors for the most
+OM offers a set of stable and efficient **real-time monitoring programs** for the most
 common types of x-ray imaging experiments. These **can be used immediately** without
 modifications or **can be easily adapted** to meet the users’ requirements. In
 addition, the project provides a set of modules that can be used to **easily develop**
 other monitoring programs, tailored to the characteristics of specific experiments.
 
-OM can process imaging data in the broadest sense: multidimensional and
-multiple-pixel data (for example, a diffraction pattern or a photoemission spectrum,
-but also an image coming from a camera or a microscope), and any kind of digital output
-from an instrument or sensor (for example, a temperature readout, beam and pulse
-energies, etc.).
+OM can process imaging data in the **broadest sense**: multidimensional pixel-based
+data (for example: diffraction patterns, photoemission spectrums, images from cameras,
+microscopes or x-ray detectors), but also any kind of digital output from an
+instrument or sensor (temperature readouts, beam and pulse energies, etc.).
 
 OM focuses on **scalability and portability**, in order to facilitate its adoption
-for a wide array of current and future instruments. It also strives for
-**stability and performance**. In order to achieve these goals, OM implements a
-multi-node parallelization paradigm using free and open-source libraries and protocols.
+for a wide array of facilities and instruments. It also strives for **stability and
+performance**. To achieve these goals, OM processes data in a multi-node parallel
+environment, using free and open-source libraries and protocols.
 
-OM is written in Python. The use of the Python programming language, which is
-particularly suited to prototyping and rapid development, makes OM easy to modify and
-to adapt to the requirements of specific experiments.
+OM is written in **Python**. The use of the Python programming language, which is
+particularly suited to rapid development, makes OM **easy to modify** and to adapt to
+the requirements of specific experiments.
 
-OM also aims to keep the code base **simple and as small as possible**. The focus is
-on providing a core set of functions, while allowing the framework to be expanded with
-external software when possible, avoiding the need to reimplement already optimized
-algorithms.
+OM also aims to keep its code base **simple and as small**. The focus is on providing
+useful core functionality, while allowing the framework to be expanded with external
+software. The goal is to avoid the need to reimplement algorithms that are already
+optimized in other software packages.
 
 
 ## Recommended Citation

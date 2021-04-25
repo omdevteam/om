@@ -34,14 +34,14 @@ the experiment is taking place. Broadly:
 * **LCLS**: When OM runs at the LCLS facility, the source string is a psana-style
   DataSource string.
 
-    Example source string: `shmem=psana.0:stop=no`
+    Example: `shmem=psana.0:stop=no`
 
 * **Local Desktop/Laptop**: When OM processes data from files, the source string is
   usually the relative or absolute path to a file containing a list of data files that
-  OM should process. The data files to process must belisted one per line in the file,
-  with their full relative or absolute path. 
+  OM should process. The data files must be listed one per line in the list file, each
+  with its full relative or absolute path. 
 
-    Example source string: `files.lst`
+    Example: `files.lst`
 
 ## The Configuration File
 
@@ -55,12 +55,12 @@ specified:
 om_monitor.py --config <PATH_TO_THE_CONFIGURATION_FILE> <SOURCE_STRING>
 ```
 
-The parameters in the configuration file must be enconded following the rules of the
+The parameters in the configuration file must be encoded following the rules of the
 [YAML 1.2](https://yaml.org) language.
 
-Additionally, the parameters are divided into groups. Each group contains a set of
-parameters that are either related to each other (because they control related features
-of OM) or apply to the same data processing algorithm. For example:
+The parameters are divided into groups. Each group contains a set of parameters that
+are either related to each other (because they control related features in OM) or apply
+to the same data processing algorithm. For example:
 
 ```YAML
 crystallography:
@@ -81,18 +81,18 @@ OM parameters can be **required** or **optional**.
   optional parameter is not listed in the configuration file, its  default value is
   usually assumed to be *false* or *null*.
  
-An alphabetical list of all the parameters that can appearin the configuration file,
-grouped by parameter group, is provided in a separate deocument:
+An alphabetical list of all the parameters that can appear in the configuration file,
+grouped by parameter group, is provided in a separate document:
 
 * [List of all parameters and parameters groups](parameters.md)
 
-A brief description is provided for each parameter, indicating if the parameter is
-required or optional.
+A brief description is provided for each parameter. The description clearly states if
+the parameter is optional or required.
 
-Please be aware that depending on which OM monitor is being run,
-not all the parameter groups need to be present in the file at the same time.
-Conversely, custom OM monitors might introduce additional parameter and even parameter
-groups not described in the linked document.
+Please be aware that depending on which OM monitor is being run, not all the parameter
+groups need to be present in the configuration file at the same time. Conversely,
+custom OM monitors might introduce additional parameter and even parameter groups that
+are not described in the linked document.
 
 A missing parameter or parameter group, or the wrong choice of a value for a parameter
 can cause OM to emit error messages. Please see

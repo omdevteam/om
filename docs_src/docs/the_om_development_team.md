@@ -46,7 +46,7 @@ of OM.
 
 ### Version Control
 
-* OM is developed using the Git version control system.
+* OM is developed using the [Git](https://git-scm.com/) version control system.
 
 * OM's versioning scheme follows the [Calendar Versioning](https://calver.org) system.
   Specifically, OM's version number uses the following format: `YY.MM.MINOR.[MICRO]`
