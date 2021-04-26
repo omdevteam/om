@@ -5,11 +5,11 @@
 
 OM's focus is on real-time (or quasi-real time) processing of experimental data.
 Real-time monitoring programs retrieve data from a facility as soon as possible, often
-immediately after data is collected and before is is saved to disk. Some fast, simple
-analysis is usually performed on the data. The goal is to provide enough information to
-take quick decisions to the people running an experiment. These decisions can often
-change the direction of the experiment itself while it is still running, adapting it to
-new conditions and circumstances.
+immediately after data has been collected, before it is saved to disk. Some fast,
+simple analysis is usually performed on the data. The goal is to provide enough
+information to take quick decisions to the people running an experiment. These
+decisions can often change the direction of the experiment itself while it is still
+running, adapting it to new conditions and circumstances.
 
 Usually, it is not necessary to process all the data being collected in order to
 provide enough information for the decision making. For example, the hit rate for a
@@ -22,7 +22,7 @@ of OM is strictly to provide quick information to the people running the experim
 not any long-term analysis of the data: after the information is delivered, the data is
 discarded without being saved to disk, and new data is retrieved.
 
-In order to reach a high speed in data processing, OM takes advantage of a multi-node
+In order to achieve high speed in data processing, OM takes advantage of a multi-node
 parallel architecture. Several processing units (**processing nodes** in OM
 terminology) retrieve data events (a single frame or a collection of frames presented
 as a single unit) from a facility, and process them. A **collecting node** aggregates
@@ -65,8 +65,8 @@ The first two layers are usually different for each facility or beamline. The la
 layer, however, encodes the logic of the scientific processing of the data. When the
 same type of monitor is run at different facilities, the same Processing Layer code is
 run. The interface between the Processing Layer and the other layers is very clearly
-defined, and the latter can be swapped for different implementations without affecting
-the former.
+defined, and the latter layers can be swapped for different implementations without
+affecting the former.
 
 This clean separation is the reason why a developer who wants to write a monitoring
 program for a supported facility does not need to worry how data is retrieved, or
@@ -103,10 +103,10 @@ the dictionary as an argument.
 When the function finishes running and processing the data, the processing node
 transmits the returned Python tuple to the collecting node. How the nodes communicate
 with each other, and which protocol they use to do so (MPI, ZMQ, etc.) is determined by
-the Parallelization Engine, retrieved by each node from the Processing Layer at
+the Parallelization Engine, retrieved on each node from the Processing Layer at
 startup.
 
-Once it has transferred the data to the collecting node, each processing node retrieves
+Once a processing node  has transferred the data to the collecting node, it retrieves
 the next data event and the cycle begins again.
 
 The collecting node executes the `collect_data` function implemented by the Monitor
@@ -127,8 +127,8 @@ subclass of the [OmMonitor][om.processing_layer.base.OmMonitor] abstract class.
 
 The Monitor class must implement all the methods that are abstract in the base class.
 A developer just needs to write the implementation for these methods, but it never
-needs to call any of them. When the OM runs, the methods are automatically called
-when appropriate, according to the logic described in the 
+needs to call any of them. When OM runs, the methods are automatically called
+at the right moment, according to the logic described in the
 [Workflow section](#oms-workflow).
 
 The methods are:
@@ -179,7 +179,7 @@ printing a final summary, etc.). Please note that if OM processes an endless str
 data (for example, most live data streams) these functions are never called.
 
   * **end_processing_on_processing_node**: this function is executed on the processing
-    node when OM finishes processing all the data in the event source.
+    node when OM finishes processing all the data in the data source.
 
     The default implementation of this function just prints a message to the console
     and exits. However, a developer can provide his own implementation, with a
@@ -190,7 +190,7 @@ data (for example, most live data streams) these functions are never called.
     down.
 
 5. **end_processing_on_collection_node**: this function is executed on the collecting
-   node when OM finished processing all data in the input stream.
+   node when OM finishes processing all data in the data source.
 
     The default implementation of this function just prints a message to the console
     and exits, but a developer can override the default behavior. This function is
@@ -226,16 +226,16 @@ update it each time a new detector frame is processed.
 
 Algorithms should be used mainly for two types of data processing operations:
 
-1. Operations where an action defined by the same set of parameters is applied to each
-   data item retrieved by the monitor. In this case, the internal state can be used to
-   store the set of parameters. A good example of this case is a peak finding
-   algorithm, which is initialized with a set of parameters and then applied to each
-   frame data retrieved by the monitor. Another good example is a a dark frame
-   correction algorithm, where the same dark calibration data (with which the algorithm
-   is initialized) is applied to each retrieved detector frame.
+1. Operations in which an action defined by the same set of parameters is applied to
+   each data item retrieved by the monitor. In this case, the internal state can be
+   used tostore the parameters. A good example of this case is a peak finding
+   algorithm, which is initialized with some parameters and then applied to each frame
+   data retrieved by the monitor. Another good example is a a dark frame correction
+   algorithm, where the same dark calibration data (loaded when the algorithm is
+   initialized) is applied to each retrieved detector frame.
 
-2. Operations where an action applied to each data item updates the internal state. A
-   good example of this case is an algorithm that computes a running average: every
+2. Operations in which an action applied to each data item updates the internal state.
+   A good example of this case is an algorithm that computes a running average: every
    time the algorithm is applied to some new data, the current average, stored in the
    internal state, is updated.
 
@@ -244,9 +244,9 @@ finding, data accumulation, etc.) in the [`algorithms`][om.algorithms] sub-packa
 
 **Tips and Tricks**
 
-For data processing actions that don't fall in the two cases described above, and do
-not need to keep track of an internal state, functions can often be used in place of
-algorithms. For example, the computation of an autocorrelation, the sum of the
+For data processing operations that don't fall in the two cases described above, and
+do not need to keep track of an internal state, functions can often be used in place
+of algorithms. For example, the computation of an autocorrelation, the sum of the
 intensity observed in a detector frame, are both operations that do not need to store
 any persistent information when applied multiple times. They can be implemented as
 simple functions instead of algorithms.

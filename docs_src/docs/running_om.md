@@ -52,7 +52,7 @@ following links:
 
 !!! warning
     Please note that these files are are *just examples*. They might need to be
-    modified before being used for some specific experiments.
+    modified before being used for specific experiments.
 
 ### The `monitor.yaml` File
 
@@ -68,8 +68,8 @@ links:
 
 !!! warning
     Please note that these files are *just examples*. They might need to be modified
-    before being used for some specific experiments. This is particularly true for
-    the entries in the file that define the *calibration directory* and the *detector
+    before being used for specific experiments. This is particularly true for the
+    entries in the file that define the *calibration directory* and the *detector
     name*, and for the ones that define the *epics variables* associated with beam
     energy and detector distance. These are usually all experiment-dependent.
 
@@ -77,7 +77,8 @@ links:
 
 ### The Geometry File
 
-In most cases, the `monitor.yaml` file will instruct OM to look for a CrystFEL geometry
+In most cases, the `monitor.yaml` file will instruct OM to look for a
+[CrystFEL geometry](https://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
 file for the x-ray detector used at the beamline.
 
 Example geometry files for several detectors used at the LCLS facility can be found at
@@ -86,8 +87,7 @@ the following link:
 * [Example geometry files for LCLS detectors](files/geometry/index.md)
 
 In their default setup, the MFX and CXI beamlines use the Epix10ka and Jungfrau1M
-detectors. Example geometry files for these detectors can be found at the following
-links:
+detectors. Example geometry files for these detectors can be found here:
 
   * [Epix10ka geometry file for the MFX beamline](files/geometry/epix10ka.geom)
   * [Jungfrau4M geometry file for the CXI beamline](files/geometry/jungfrau4M.geom)
@@ -156,8 +156,8 @@ file can be used for the dataset in this example:
     This configuration file has been adapted to the dataset in this example. Please
     note that a completely different configuration file might be needed for other
     datasets. Please consult the documentation linked above for a detailed explanation
-    of each entry in the file. Also notice that all the files mentioned in the
-    configuration file (geometry files, masks, etc.) must be present and readable on
+    of each entry in the file. Also note that all the files mentioned in the
+    configuration file (geometry file, masks, etc.) must be present and readable on
     the local computer for OM to work properly.
 
 

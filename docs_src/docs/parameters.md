@@ -87,7 +87,7 @@ Crystallography.
 
 **hit_frame_sending_interval (int or None)**
 :  This parameter determines how often the monitor sends *full detector frames*  (as
-   opposed to reduced data) to external programs. It applies only to frames that have
+   opposed to reduced data) to external programs. It only applies to frames that have
    not been labelled as hits. If the value of this parameter is *None*, no hit frames
    are ever sent. If the value is a number, it is the number of hit frames that
    *each processing node* skips before sending the next frame to the collecting node to
@@ -110,12 +110,12 @@ Crystallography.
 
 **non_hit_frame_sending_interval (int or None)**
 :  This parameter determines how often the monitor sends *full detector frames*  (as
-   opposed to reduced data) to external programs. It applies only to frames that have
+   opposed to reduced data) to external programs. It only applies to frames that have
    not been labelled as hits. If the value of this parameter is *None*, no non-hit
    frames are ever sent. If value is a number, it is the number of non-hit frames that
    *each processing node* skips before sending the next frame to the collecting node to
-   be broadcast. If, for example, the value of this parameter is 100, each worker sends
-   every 100th non-hit frame to the collecting node for broadcasting.
+   be broadcast. If, for example, the value of this parameter is 100, each processing
+   node sends every 100th non-hit frame to the collecting node for broadcasting.
 
      Example: `1000`
 
@@ -207,7 +207,7 @@ specifically:
 
 **psana_calibration_directory (str)**
 :  The path to the directory where psana stores all calibration information for the
-   experiment currently being processed.
+   current experiment.
 
      Example: `/reg/d/psdm/mfx/mfxc00118/calib`
 
@@ -414,7 +414,7 @@ algorithm.
 
      Example: `3`
 
-* **max_pixel_count (int)**
+**max_pixel_count (int)**
 :  The maximum size of a peak in pixels.
 
     Example: `10`
@@ -434,7 +434,7 @@ algorithm.
   
      Example: `5.0`
 
-* **min_res (int):**
+**min_res (int):**
 :  The minimum resolution for a peak in pixels.
 
      Example: `20`

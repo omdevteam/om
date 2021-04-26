@@ -10,14 +10,18 @@ At the **LCLS** facility, OM is already installed at the following beamlines:
   - MFX beamline
   - CXI beamline
 
-OM can be used directly at at these beamlines and facilities. However, the beamline
-scientists at each facility should always be notified in advance by the users of their
+OM can be used directly at at these beamlines and facilities. However, the users
+should always notify in advance the beamline scientists at each facility of their
 intention to use OM during an experiment.
 
 
 ## OM on a Laptop/Desktop
 
 There are three ways to instal OM on a standalone Deskop/Laptop computer.
+
+!!! warning
+    It will only be possible to insall OM on a standalone computer after the first
+    stable release, which is currently being prepared.
 
 
 ### Installation from PyPI
@@ -98,8 +102,8 @@ choices are OpenMPI and MPICH.
 
 The precise instructions for the installation of these frameworks are complex,
 operating system-dependent, and outside of the scope of this documentation. Please
-notice that in addition to one of the MPI frameworks, the corresponding `mpi4py` module
-must also be installed for the Python interpreter used by OM.
+note that in addition to one of the MPI frameworks, the corresponding `mpi4py` module
+for the Python interpreter used by OM must also be installed.
 
 
 

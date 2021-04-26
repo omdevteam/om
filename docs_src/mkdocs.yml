@@ -1,14 +1,11 @@
 site_name: OnDA Monitor
+site_dir: ../docs/html
 extra_css:
   - extra.css
 theme:
   name: material
   features:
-    - navigation.indexes
     - navigation.top
-    - search.highlight
-    - search.share
-    - search.suggest
   icon:
     repo: fontawesome/brands/github
 markdown_extensions:

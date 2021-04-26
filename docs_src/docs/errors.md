@@ -7,7 +7,7 @@ discussion of each.
 
 `OmConfigurationFileReadingError`
 :  There was a problem finding or reading the configuration file. The file should exist
-   and be readable. OM looks by default for a file called *monitor.yaml* in the current
+   and be readable. OM looks by default for a file called `monitor.yaml` in the current
    working directory.
 
 
@@ -40,7 +40,7 @@ discussion of each.
 
 `OmMissingDependencyError`
 :  One of the optional Python module needed by OM is not installed. This error often
-   happens with python modules that are tied to specific to facility frameworks (for
+   happens with python modules that are tied to a specific facility's framework (for
    example, the `psana` module). One of the core developers should be contacted.
 
 

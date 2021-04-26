@@ -71,18 +71,18 @@ crystallography:
 
 In this example, `crystallography` is the name of the parameter group, while
 `broadcast_ip`, `broadcast_port` and `speed_report_interval` are all parameter names.
-OM parameters can be **required** or **optional**.
+OM's configuration parameters can be **required** or **optional**.
 
 * **Required parameters** are mandatory and must always be provided. OM usually shows
   an error and stops if a required parameter is not present in the   configuration file.
 
-* **Optional parameters** usually control fine behavior of OM or its data processing
-  algorithms, and are not required to be present in the configuration file. When an
-  optional parameter is not listed in the configuration file, its  default value is
-  usually assumed to be *false* or *null*.
+* **Optional parameters** usually control finer behavior of OM or its data processing
+  algorithms and are not strictly required in the configuration file. When an
+  optional parameter is not listed in the file, its  default value is usually assumed
+  to be *false* or *null*.
  
-An alphabetical list of all the parameters that can appear in the configuration file,
-grouped by parameter group, is provided in a separate document:
+An alphabetical list of all the configuration parameters, grouped by parameter group,
+is provided in the following document:
 
 * [List of all parameters and parameters groups](parameters.md)
 
