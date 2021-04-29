@@ -25,14 +25,20 @@ import pathlib
 import re
 from typing import Any, Callable, Dict, Generator, List, TextIO, Tuple
 
-import fabio  # type: ignore
 import h5py  # type: ignore
 import numpy  # type: ignore
 
 from om.algorithms import calibration as calib_algs
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_jungfrau1M, functions_pilatus
-from om.utils import parameters
+from om.utils import exceptions, parameters
+
+try:
+    import fabio  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: fabio"
+    )
 
 
 class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
