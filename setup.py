@@ -104,8 +104,6 @@ setup(
     ),
     install_requires=[
         "click",
-        "fabio",
-        "future",
         "h5py",
         "mypy-extensions",
         "numpy",
@@ -115,8 +113,8 @@ setup(
         "typing_extensions",
     ],
     extras_require={
-        ":python_version < '3.4'": ["pathlib"],
-        "qt": ["pyqt5", "pyqtgraph>"],
+        "qt": ["pyqt5", "pyqtgraph"],
+        "docs": ["mkdocs", "mkdocstring", "mkdocs-click", "mkdocs-material"]
     },
     entry_points={
         "console_scripts": ["om_monitor.py=om.monitor:main"],
