@@ -31,9 +31,16 @@ import numpy  # type: ignore
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
 from om.processing_layer import base as process_layer_base
-from om.utils import crystfel_geometry, parameters, zmq_monitor
+from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
 from om.algorithms.crystallography import TypePeakfinder8Info
+
+try:
+    import msgpack  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: msgpack"
+    )
 
 
 class CrystallographyMonitor(process_layer_base.OmMonitor):
@@ -322,14 +329,16 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             required=True,
         )
         geometry: TypeDetector
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
+        self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            geometry_filename
+        )
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(self._geometry)
 
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
         # of the whole detector.
-        self._pixel_size: float = geometry["panels"][
-            tuple(geometry["panels"].keys())[0]
+        self._pixel_size: float = self._geometry["panels"][
+            tuple(self._geometry["panels"].keys())[0]
         ]["res"]
 
         self._running_average_window_size: int = self._monitor_params.get_param(
@@ -380,8 +389,10 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             visual_img_shape, dtype=numpy.float32
         )
 
-        first_panel: str = list(geometry["panels"].keys())[0]
-        self._first_panel_coffset: float = geometry["panels"][first_panel]["coffset"]
+        first_panel: str = list(self._geometry["panels"].keys())[0]
+        self._first_panel_coffset: float = self._geometry["panels"][first_panel][
+            "coffset"
+        ]
 
         data_broadcast_url: Union[str, None] = self._monitor_params.get_param(
             group="crystallography", parameter="data_broadcast_url", parameter_type=str
@@ -390,9 +401,20 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             data_broadcast_url = "tcp://{0}:12321".format(
                 zmq_monitor.get_current_machine_ip()
             )
+        responding_url: Union[str, None] = self._monitor_params.get_param(
+            group="crystallography", parameter="responding_url", parameter_type=str
+        )
+        if responding_url is None:
+            responding_url = "tcp://{0}:12322".format(
+                zmq_monitor.get_current_machine_ip()
+            )
 
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
             zmq_monitor.ZmqDataBroadcaster(url=data_broadcast_url)
+        )
+
+        self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
+            url=responding_url
         )
 
         self._num_events: int = 0
@@ -518,6 +540,21 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         """
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
+
+        request: Union[str, None] = self._responding_socket.get_request()
+        if request is not None:
+            if request == "next":
+                message: Any = msgpack.packb(
+                    {
+                        "peak_list": received_data["peak_list"],
+                        "beam_energy": received_data["beam_energy"],
+                        "detector_distance": received_data["detector_distance"],
+                    },
+                    use_bin_type=True,
+                )
+                self._responding_socket.send_data(message)
+            else:
+                print("OM Warning: Could not understand request '{}'.")
 
         self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
         avg_hit_rate: float = (
