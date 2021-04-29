@@ -37,7 +37,7 @@ _DIETAG: int = 999
 _DEADTAG: int = 1000
 
 
-class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
+class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
     """
     See documentation of the `__init__` function.
 
@@ -71,7 +71,7 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        super(MpiProcessingCollectingEngine, self).__init__(
+        super(MpiParallelizationEngine, self).__init__(
             data_event_handler=data_event_handler,
             monitor=monitor,
             monitor_parameters=monitor_parameters,
@@ -176,8 +176,6 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                 frame_offset: int
                 for frame_offset in range(-num_frames_to_process, 0):
                     current_frame: int = n_frames_in_evt + frame_offset
-                    if current_frame in self._frames_in_event_to_skip:
-                        continue
                     event["current_frame"] = current_frame
                     try:
                         data: Dict[str, Any] = self._data_event_handler.extract_data(
