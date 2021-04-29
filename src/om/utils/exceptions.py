@@ -99,6 +99,14 @@ class OmInvalidDataBroadcastUrl(OmException):
     """
 
 
+class OmInvalidRespondingUrl(OmException):
+    """
+    Raised if the format of the responding socket's URL is not valid.
+
+    Base class: [`OmException`][om.utils.exceptions.OmException]
+    """
+
+
 class OmMissingDataEventHandlerError(OmException):
     """
     Raised if the implementation of a data event handler cannot be found on the system.
