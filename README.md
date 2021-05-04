@@ -1,83 +1,80 @@
-OnDA
-====
+# OM (OnDA Monitor): Online Data Analysis for X-Ray Imaging
 
-Real-time monitoring of x-ray imaging experiments
+## What is OM?
 
-Copyright 2020 SLAC National Accelerator Laboratory
+**OM** (**O**nDA **M**onitor) is a framework for the development of programs that can
+**monitor** x-ray imaging **experiments** in **real-time**. It is also a set of
+ready-to-use monitoring programs.
 
-Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
-                a research centre of the Helmholtz Association.
-
-<https://www.ondamonitor.com>
-
-**OM** (\ **O**\ nda \ **M**\ onitor) is a software tool for the the **development** of
-programs that can monitor of x-ray imaging experiments in **real-time**, and also a set
-of **monitoring programs** ready for use.
-
-It is the spiritual successor of the **OnDA** project and it is maintained mostly by
+It is the spiritual successor of the **OnDA Project** and it is maintained mostly by
 the same team of developers.
 
-OM provides users with a set of stable and efficient real-time monitors for the most
+OM offers a set of stable and efficient **real-time monitoring programs** for the most
 common types of x-ray imaging experiments. These **can be used immediately** without
 modifications or **can be easily adapted** to meet the users’ requirements. In
-addition, the project provides a set of modules that can be used to easily develop
-other monitoring programs tailored to the characteristics of specific experiments.
+addition, the project provides a set of modules that can be used to **easily develop**
+other monitoring programs, tailored to the characteristics of specific experiments.
 
-OM can process imaging data in the broadest sense: multidimensional and
-multiple-pixel data (for example, a diffraction pattern or a photoemission spectrum,
-but also an image coming from a camera or a microscope), and any kind of digital output
-from an instrument or sensor (for example, a temperature readout, beam and pulse
-energies, etc.).
+OM can process imaging data in the **broadest sense**: multidimensional pixel-based
+data (for example: diffraction patterns, photoemission spectrums, images from cameras,
+microscopes or x-ray detectors), but also any kind of digital output from an
+instrument or sensor (temperature readouts, beam and pulse energies, etc.).
 
 OM focuses on **scalability and portability**, in order to facilitate its adoption
-for a wide array of current and future instruments. It also strives for **stability and
-performance**. In order to achieve these goals, OM implements a multi-node
-parallelization paradigm using free and open-source libraries and protocols.
+for a wide array of facilities and instruments. It also strives for **stability and
+performance**. To achieve these goals, OM processes data in a multi-node parallel
+environment, using free and open-source libraries and protocols.
 
-OM is written in Python. The use of the Python programming language, which is
-particularly suited to prototyping and rapid development, makes OM easy to modify and
-to adapt to the requirements of specific experiments.
+OM is written in **Python**. The use of the Python programming language, which is
+particularly suited to rapid development, makes OM **easy to modify** and to adapt to
+the requirements of specific experiments.
 
-OM also aims to keep the code base **simple and as small as possible**. The focus is
-on providing a core set of functions, while allowing the framework to be expanded with
-external software when possible, avoiding the need to reimplement already optimized
-algorithms.
+OM also aims to keep its code base **simple and as small**. The focus is on providing
+useful core functionality, while allowing the framework to be expanded with external
+software. The goal is to avoid reimplementing algorithms that are already better
+optimized in other software packages.
 
 
-Recommended Citation
---------------------
+## Recommended Citation
 
 If you use OM in your experiment, please keep citing the original OnDA paper until a
 new publication for OM is available:
 
   Mariani V., Morgan A., Yoon C.H., Lane T.J., White T.A., O'Grady C., Kuhn M., Aplin
   S., Koglin J., Barty A., Chapman H.N., **OnDA: online data analysis and feedback for
-  serial x-ray imaging.**, J. *Appl. Crystallogr.* 2016 May 23;49(Pt 3):1073-1080.
+  serial X-ray imaging.**, J. *Appl. Crystallogr.* 2016 May 23;49(Pt 3):1073-1080.
   (https://www.ncbi.nlm.nih.gov/pubmed/27275150)
 
 
-Authors
--------
+## The OM Development Team
 
-OM is currently developed at the Linac Coherent Light Source facility of the SLAC
-National Accelerator Laboratory (https://lcls.slac.stanford.edu).
+OM is currently developed at the Linac Coherent Light Source facility
+[(LCLS)](https://lcls.slac.stanford.edu) of the SLAC National Accelerator Laboratory.
 
-Many people from different institutions worldwide contribute code, testing and support
-to the project:
+However, several collaborators from different institutions all over the world
+contribute code, testing and support to the project.
 
-* **Valerio Mariani** ([Corresponding author](https://github.com/valmar)
+The current core development team includes the following people:
+
+* **Valerio Mariani** (corresponding developer:
+  [valmar@slac.stanford.edu](mailto:valmar@slac.stanford.edu))
 * Anton Barty
 * Thomas Grant
+* Alexandra Tolstikova
+
+Several people have, over the years, contributed to the development and testing of OM
+with code, bug reports, ideas, etc. Some still do, occasionally. The following list
+might not be exhaustive:
+
+* Steve Aplin
+* Henry Chapman
 * Jason Koglin
+* Manuela Kuhn
+* Luca Gelisio
+* Mia Lahey-Rudolph
 * Thomas J. Lane
 * Andrew Morgan
 * Christopher O'Grady
 * Kanupriya Pande
-* Alexandra Tolstikova
 * Thomas A. White
 * Chun Hong Yoon
-
-Support
--------
-
-  * Report issues on the [GitHub issue tracker](https://github.com/ondateam/onda/issues)
