@@ -1,4 +1,4 @@
-# exit when any command fails
+# Exit when any command fails
 set -e
 
 # Set up default parameters
@@ -6,6 +6,7 @@ om_develop=""
 om_deps=""
 om_prefix=`pwd`/install
 
+# Check that the script is run from the right directory
 if [ ! -f "./setup.py" ]
 then
   echo "ERROR: Please run this script from the root folder of OM's repository:"
@@ -13,7 +14,7 @@ then
   exit 1
 fi  
 
-
+# Parse CLI arguments
 function print_usage() {
   echo "Usage: sh tools/scripts/install.sh <arguments>        Install OM"      
   echo "   Or: source tools/scripts/install.sh <arguments>    Install OM"      
@@ -25,7 +26,6 @@ function print_usage() {
   echo "   -h         print this help"      
 }
 
-# Parse CLI arguments
 while getopts ":p:enh" opt; do
   case $opt in
     p)
@@ -49,7 +49,8 @@ while getopts ":p:enh" opt; do
   esac
 done
 
-echo "Installing OM at "${om_prefix}
+# Start installation
+echo "Installing OM at ${om_prefix}"
 
 # Create sitecustomize.py file if needed
 mkdir -p ${om_prefix}
@@ -59,7 +60,7 @@ if [ "${om_develop}" == "--editable" ]
 then
   mkdir -p ${om_prefix}/lib/python${om_pyver}/site-packages
   echo "Editable installation detected"
-  echo "Creating sitecustomize.py file in '${om_prefix}/lib/python${om_pyver}/site-packages/'"
+  echo "Creating sitecustomize.py file at ${om_prefix}/lib/python${om_pyver}/site-packages/sitecustomize.py"
 cat << EOF > ${om_prefix}/lib/python${om_pyver}/site-packages/sitecustomize.py
 import site
 
@@ -67,6 +68,19 @@ site.addsitedir('${om_prefix}/lib/python${om_pyver}/site-packages')
 EOF
 fi
 
+# Perform the installation
 echo "Running: 'pip install ${om_develop} ${om_deps} --prefix=${om_prefix} .'"
+pip install ${om_develop} ${om_deps} --prefix=${om_prefix} .
 
+
+# Create activation file
+echo "Creating activation script at ${om_prefix}/bin/activate"
+cat << EOF > ${om_prefix}/bin/activate
+echo "Activating OM installation at ${om_prefix}"
+export PATH=${om_prefix}/bin:\$PATH
+export PYTHONPATH=${om_prefix}/lib/python${om_pyver}/site-packages:\$PYTHONPATH
+export PYTHONPATH=${om_prefix}/lib64/python${om_pyver}/site-packages:\$PYTHONPATH
+EOF
+
+# Do not exit if any command fails
 set +e
