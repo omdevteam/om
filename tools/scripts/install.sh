@@ -69,9 +69,15 @@ EOF
 fi
 
 # Perform the installation
-echo "Running: 'pip install ${om_develop} ${om_deps} --prefix=${om_prefix} .'"
-pip install ${om_develop} ${om_deps} --prefix=${om_prefix} .
 
+if [ "${om_develop}" == "--editable" ]
+then
+  echo "Running: 'python setup.py develop ${om_deps} --prefix=${om_prefix}'"
+  PYTHONPATH=${om_prefix}/lib/python${om_pyver}/site-packages:$PYTHONPATH python setup.py develop ${om_deps} --prefix=${om_prefix}
+else
+  echo "Running: 'pip install ${om_deps} --prefix=${om_prefix} .'"
+  pip install ${om_deps} --prefix=${om_prefix} .
+fi
 
 # Create activation file
 echo "Creating activation script at ${om_prefix}/bin/activate"

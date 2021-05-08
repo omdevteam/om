@@ -128,8 +128,8 @@ setup(
         ],
     },
     ext_modules=extensions,
+    packages=["om"],
     package_dir={"": "src"},
-    packages=find_packages(where="src"),
     include_package_data=True,
     platforms="any",
     classifiers=[
