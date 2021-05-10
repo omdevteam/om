@@ -128,7 +128,7 @@ setup(
         ],
     },
     ext_modules=extensions,
-    packages=["om"],
+    packages=find_packages(where="src"),
     package_dir={"": "src"},
     include_package_data=True,
     platforms="any",
