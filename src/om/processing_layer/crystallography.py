@@ -545,11 +545,13 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         if request is not None:
             if request == "next":
                 message: Any = msgpack.packb(
-                    {
-                        "peak_list": received_data["peak_list"],
-                        "beam_energy": received_data["beam_energy"],
-                        "detector_distance": received_data["detector_distance"],
-                    },
+                    [
+                        {
+                            "peak_list": received_data["peak_list"],
+                            "beam_energy": received_data["beam_energy"],
+                            "detector_distance": received_data["detector_distance"],
+                        }
+                    ],
                     use_bin_type=True,
                 )
                 self._responding_socket.send_data(message)
