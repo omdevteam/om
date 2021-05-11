@@ -553,6 +553,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                         "detector_distance": received_data["detector_distance"],
                         "event_id": received_data["event_id"],
                         "frame_id": received_data["frame_id"],
+                        "timestamp": received_data["timestamp"],
                     },
                     use_bin_type=True,
                 )
