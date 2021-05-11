@@ -113,6 +113,8 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
                         functions_psana.optical_laser_active_init
                     ),
                     "xrays_active_init": functions_psana.xrays_active_init,
+                    "event_id_init": functions_psana.event_id_init,
+                    "frame_id_init": functions_psana.frame_id_init,
                 }
             },
         )
@@ -431,6 +433,8 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
             "opal_data": functions_psana.opal_data,
             "optical_laser_active": functions_psana.optical_laser_active,
             "xrays_active": functions_psana.xrays_active,
+            "event_id": functions_psana.event_id,
+            "frame_id": functions_psana.frame_id,
         }
 
 
@@ -492,6 +496,8 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
             "opal_data": functions_psana.opal_data,
             "optical_laser_active": functions_psana.optical_laser_active,
             "xrays_active": functions_psana.xrays_active,
+            "event_id": functions_psana.event_id,
+            "frame_id": functions_psana.frame_id,
         }
 
 
@@ -553,6 +559,8 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
             "opal_data": functions_psana.opal_data,
             "optical_laser_active": functions_psana.optical_laser_active,
             "xrays_active": functions_psana.xrays_active,
+            "event_id": functions_psana.event_id,
+            "frame_id": functions_psana.frame_id,
         }
 
 
@@ -614,4 +622,6 @@ class MfxLclsRayonixDataEventHandler(LclsBaseDataEventHandler):
             "opal_data": functions_psana.opal_data,
             "optical_laser_active": functions_psana.optical_laser_active,
             "xrays_active": functions_psana.xrays_active,
+            "event_id": functions_psana.event_id,
+            "frame_id": functions_psana.frame_id,
         }

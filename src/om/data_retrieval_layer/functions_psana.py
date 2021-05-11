@@ -22,7 +22,7 @@ This module contains functions that retrieve data from the psana software framew
 (used at the LCLS facility) using the psana Detector interface. It also contains
 functions that initialize the Detector interface itself.
 """
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, cast
 
 import numpy  # type: ignore
 from om.utils import exceptions, parameters
@@ -276,6 +276,43 @@ def xrays_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
     return psana.Detector(evr_source_name)
 
 
+def event_id_init(monitor_parameters: parameters.MonitorParams) -> None:
+    """
+    Initializes the psana Detector interface for the event identifier at LCLS.
+
+    This function initializes the event identifier Detector interface, preparing it to
+    retrieve a label that unambiguosly identifies the event being processed.
+
+    Arguments:
+
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
+    """
+    # No need to initialize the psana Detector interface: the event_id is extracted
+    # directly from the even by the relevant Data Extraction Function.
+    return None
+
+
+def frame_id_init(monitor_parameters: parameters.MonitorParams) -> None:
+    """
+    Initializes the psana Detector interface for the frame identifier at LCLS.
+
+    This function initializes the frame identifier Detector interface, preparing it to
+    retrieve a label that unambiguosly identifies, within the current event, the frame
+    being processed.
+
+    Arguments:
+
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
+    """
+    # No need to initialize the psana Detector interface: the frame_id is extracted
+    # directly from the even by the relevant Data Extraction Function.
+    return None
+
+
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of an event retrieved from psana at LCLS.
@@ -524,3 +561,46 @@ def xrays_active(event: Dict[str, Any]) -> bool:
         )
 
     return event["additional_info"]["active_xrays_evr_code"] in current_evr_codes
+
+
+def event_id(event: Dict[str, Any]) -> str:
+    """
+    Gets a unique identifier for an event retrieved from a Pilatus detector.
+
+    This function returns a label that unambiguously identifies, within an experiment,
+    the event currently being processed. For the LCLS facility, three numbers are
+    needed to unambigously identify an event: the portion of the event timestamp that
+    corresponds to seconds, the portion of the timestamp that corresponds to
+    nanoseconds, and a fiducial number. The event label at LCLS is a string which
+    unifies these three numbers separating them with dashes.
+
+    Arguments:
+
+        event: A dictionary storing the event data.
+
+    Returns:
+
+        A unique event identifier.
+    """
+    event_id: Any = event["data"].get(psana.EventId)
+    event_time: Any = event_id.time()
+    return "{0}-{1}-{2}".format(event_time[0], event_time[1], event_id.fiducials())
+
+
+def frame_id(event: Dict[str, Any]) -> str:
+    """
+    Gets a unique identifier for a Pilatus detector data frame.
+
+    This function returns a label that unambiguously identifies, within an event, the
+    frame currently being processed. Each psana event only contains one detector frame,
+    therefore this function always returns the string "0".
+
+    Arguments:
+
+        event: A dictionary storing the event data.
+
+    Returns:
+
+        A unique frame identifier (within an event).
+    """
+    return str(0)
