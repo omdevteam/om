@@ -543,23 +543,24 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
 
-        request: Union[str, None] = self._responding_socket.get_request()
-        if request is not None:
-            if request == "next":
-                message: Any = msgpack.packb(
-                    {
-                        "peak_list": received_data["peak_list"],
-                        "beam_energy": received_data["beam_energy"],
-                        "detector_distance": received_data["detector_distance"],
-                        "event_id": received_data["event_id"],
-                        "frame_id": received_data["frame_id"],
-                        "timestamp": received_data["timestamp"],
-                    },
-                    use_bin_type=True,
-                )
-                self._responding_socket.send_data(message)
-            else:
-                print("OM Warning: Could not understand request '{}'.")
+        if received_data["frame_is_hit"] is True:
+            request: Union[str, None] = self._responding_socket.get_request()
+            if request is not None:
+                if request == "next":
+                    message: Any = msgpack.packb(
+                        {
+                            "peak_list": received_data["peak_list"],
+                            "beam_energy": received_data["beam_energy"],
+                            "detector_distance": received_data["detector_distance"],
+                            "event_id": received_data["event_id"],
+                            "frame_id": received_data["frame_id"],
+                            "timestamp": received_data["timestamp"],
+                        },
+                        use_bin_type=True,
+                    )
+                    self._responding_socket.send_data(message)
+                else:
+                    print("OM Warning: Could not understand request '{}'.")
 
         self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
         avg_hit_rate: float = (
