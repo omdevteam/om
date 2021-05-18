@@ -10,4 +10,4 @@ echo 'source <OM>' >> $(pwd)/monitor_wrapper.sh
 echo "om_monitor.py 'shmem=psana.0:stop=no'" >> $(pwd)/monitor_wrapper.sh
 chmod +x $(pwd)/monitor_wrapper.sh
 $(which mpirun) --oversubscribe --map-by ppr:4:node 
-                --host daq-mfx-mon02,daq-mfx-mon03,daq-mfx-mon04,daq-mfx-mon05 $(pwd)/monitor_wrapper.sh
+                --host daq-cxi-mon01,daq-cxi-mon18,daq-cxi-mon19 $(pwd)/monitor_wrapper.sh

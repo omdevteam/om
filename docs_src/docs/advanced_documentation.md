@@ -228,7 +228,7 @@ Algorithms should be used mainly for two types of data processing operations:
 
 1. Operations in which an action defined by the same set of parameters is applied to
    each data item retrieved by the monitor. In this case, the internal state can be
-   used tostore the parameters. A good example of this case is a peak finding
+   used to store the parameters. A good example of this case is a peak finding
    algorithm, which is initialized with some parameters and then applied to each frame
    data retrieved by the monitor. Another good example is a a dark frame correction
    algorithm, where the same dark calibration data (loaded when the algorithm is

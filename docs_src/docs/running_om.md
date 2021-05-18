@@ -89,7 +89,7 @@ the following link:
 In their default setup, the MFX and CXI beamlines use the Epix10ka and Jungfrau1M
 detectors. Example geometry files for these detectors can be found here:
 
-  * [Epix10ka geometry file for the MFX beamline](files/geometry/epix10ka.geom)
+  * [Epix10ka geometry file for the MFX beamline](files/geometry/epix10ka2m.geom)
   * [Jungfrau4M geometry file for the CXI beamline](files/geometry/jungfrau4M.geom)
 
 

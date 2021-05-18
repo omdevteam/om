@@ -367,7 +367,7 @@ detector data frame using the
 [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
 algorithm.
 
-* **adc_threshold (float)**
+**adc_threshold (float)**
 :  The minimum ADC threshold for peak detection.
 
      Example: `200`

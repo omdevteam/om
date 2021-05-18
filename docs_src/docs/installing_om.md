@@ -3,7 +3,7 @@
 
 ## OM at Facilities
 
-OM comes pre-installed at some beamlines and facilties.
+OM comes pre-installed at some beamlines and facilities.
 
 At the **LCLS** facility, OM is already installed at the following beamlines:
 
@@ -17,10 +17,10 @@ intention to use OM during an experiment.
 
 ## OM on a Laptop/Desktop
 
-There are three ways to instal OM on a standalone Deskop/Laptop computer.
+There are three ways to instal OM on a standalone Desktop/Laptop computer.
 
 !!! warning
-    It will only be possible to insall OM on a standalone computer after the first
+    It will only be possible to install OM on a standalone computer after the first
     stable release, which is currently being prepared.
 
 
@@ -69,7 +69,7 @@ pip install --prefix=<INSTALLATION PATH> .
 
 In this command,`<INSTALLATION PATH>` is a relative or absolute path to the directory
 where OM should be installed. A Python development-style installation can also be
-peformed using the `pip` command:
+performed using the `pip` command:
 
 ``` bash
 pip install --editable --prefix=<INSTALLATION PATH> .
@@ -79,9 +79,9 @@ When OM is installed from source, some additional configuration is needed for th
 operating system to subsequently find the installation directory. Typically, on Linux,
 the following environment variables need to be set:
 
-```bash
-export PATH=<INSTALLATION PATH>/bin
-export PYTHONPATH=<INSTALLATION PATH>/lib/python<PYVER>/site-pacakges
+``` bash
+export PATH=<INSTALLATION PATH>/bin:$PATH
+export PYTHONPATH=<INSTALLATION PATH>/lib/python<PYVER>/site-packages:$PYTHONPATH
 ```
 
 Here,  `<INSTALLATION_DIR>` is the directory where OM has been installed, and `<PYVER>`
@@ -89,6 +89,27 @@ is the version of Python used by the system (only the major and minor components
 version number). The Python version number can be obtained using the `python -V`
 command, which outputs a string in the following format: `Python X.Y.Z`. The `<PYVER>`
 entry in the command above corresponds to the `X.Y` part of this string.
+
+OM can also be installed from source using the script that is provided with the source
+code"
+
+``` bash
+sh tools/script/install.sh
+```
+
+The script allows the installation of OM at a custom path, and supports editable Python
+installations. OM can be installed with all its base dependencies or, if a Python
+environment already provides them, the script can also install just OM. A list of all
+options supported by the script can be obtained using the following command:
+
+``` bash
+sh tools/script/install.sh -h
+```
+
+In addition to installing OM, the script also creates a script that can be used to
+activate the installation and set all the needed environment variables. If OM has been
+installed using the `install.sh` script, the installation can be A specific
+installation of OM can be activated using th
 
 
 ## MPI

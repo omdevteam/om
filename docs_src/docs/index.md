@@ -34,7 +34,7 @@ the requirements of specific experiments.
 
 OM also aims to keep its code base **simple and as small**. The focus is on providing
 useful core functionality, while allowing the framework to be expanded with external
-software. The goal is to avoid reimplementing algorithms that are already better
+software. The goal is to avoid re-implementing algorithms that are already better
 optimized in other software packages.
 
 
