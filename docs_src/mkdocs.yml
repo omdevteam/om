@@ -91,3 +91,8 @@ nav:
         - zmq_gui: reference/om/utils/zmq_gui.md
         - zmq_monitor: reference/om/utils/zmq_monitor.md
       - monitor: reference/om/monitor.md
+  - Quick Links:
+    - OM's Configuration Parameters: parameters.md
+    - OM's Error Messages: errors.md
+    - Available Data Types For Each Data Event Handler: data.md
+    - Example Geometry Files: geometry.md   

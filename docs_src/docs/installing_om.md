@@ -19,11 +19,6 @@ intention to use OM during an experiment.
 
 There are three ways to instal OM on a standalone Desktop/Laptop computer.
 
-!!! warning
-    It will only be possible to install OM on a standalone computer after the first
-    stable release, which is currently being prepared.
-
-
 ### Installation from PyPI
 
 OM is available on PiPY:
