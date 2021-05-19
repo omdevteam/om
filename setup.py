@@ -105,6 +105,7 @@ setup(
     install_requires=[
         "click",
         "h5py",
+        "msgpack",
         "mypy-extensions",
         "numpy",
         "pyyaml",
