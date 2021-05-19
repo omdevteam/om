@@ -22,7 +22,7 @@ setup.py file for OM
 import os
 
 import numpy
-from setuptools import Extension, find_packages, setup
+from setuptools import Extension, find_packages, setup, sic
 
 OM_USE_CYTHON = os.getenv("OM_USE_CYTHON")
 
@@ -60,7 +60,7 @@ version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
 version_fh.close()
 setup(
     name="om",
-    version=version,
+    version=sic(version),
     url="https://www.ondamonitor.com",
     license="GNU General Public License v3.0",
     author="OM Dev Team",
