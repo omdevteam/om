@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
@@ -115,7 +115,7 @@ setup(
     ],
     extras_require={
         "qt": ["pyqt5", "pyqtgraph"],
-        "docs": ["mkdocs", "mkdocstring", "mkdocs-click", "mkdocs-material"]
+        "docs": ["mkdocs", "mkdocstring", "mkdocs-click", "mkdocs-material"],
     },
     entry_points={
         "console_scripts": ["om_monitor.py=om.monitor:main"],
