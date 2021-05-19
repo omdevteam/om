@@ -1,8 +1,8 @@
-# Data Extraction Functions for each Data Event Handler
+# Data Types Available For Each Data Event Handler
 
 ## CxiLclsCspadDataEventHandler
 
-Available Data Extraction Functions:
+Available data types:
 
   * `beam_energy`
   * `detector_distance`
@@ -19,7 +19,7 @@ Available Data Extraction Functions:
 
 ## CxiLclsDataEventHandler
 
-Available Data Extraction Functions:
+Available data types:
 
   * `beam_energy`
   * `detector_distance`
@@ -36,7 +36,7 @@ Available Data Extraction Functions:
 
 ## Jungfrau1MFilesDataEventHandler
 
-Available Data Extraction Functions:
+Available data types:
 
   * `beam_energy`
   * `detector_data`
@@ -48,7 +48,7 @@ Available Data Extraction Functions:
 
 ## MfxLclsDataEventHandler
 
-Available Data Extraction Functions:
+Available data types:
 
   * `beam_energy`
   * `detector_distance`
@@ -65,7 +65,7 @@ Available Data Extraction Functions:
 
 ## MfxLclsRayonixEventHandler
 
-Available Data Extraction Functions:
+Available data types:
 
   * `beam_energy`
   * `detector_distance`
@@ -82,7 +82,7 @@ Available Data Extraction Functions:
 
 ## PilatusFilesDataEventHandler
 
-Available Data Extraction Functions:
+Available data types:
 
   * `beam_energy`
   * `detector_data`
@@ -90,5 +90,3 @@ Available Data Extraction Functions:
   * `event_id`
   * `frame_id`
   * `timestamp`
-
-

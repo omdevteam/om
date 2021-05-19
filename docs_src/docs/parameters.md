@@ -164,13 +164,13 @@ The parameters in this subsection apply to all Data Event Handlers
 
 **required_data (List[str])**
 : The data that the current monitor should retrieve for each event. For each type of
-  data listed here, a corresponding Data Extraction Function must be defined for the
-  Data Event Layer that OM is currently using. If this condition is met, the data will
-  be retrieved by OM and made available for processing, otherwise an error will be
-  raised an OM will stop running. For a list of Data Extraction Functions that are
-  available for each Data Event Handler, please see the following document:
+  data listed here, an extraction function must be available for the Data Event Handler
+  that OM is currently using. If this condition is met, the data will be retrieved
+  and made available for processing, otherwise an error will be raised an OM will stop
+  running. For a list of all data types that each Data Event Handler can currently
+  retrieve, please see the following document:
 
-    * [List of Data Extraction Functions available for each Data Event Handler](data_extraction_functions.md)
+    * [List of data types available for each Data Event Handler](data.md)
 
     Example: [detector_data, detector_distance, beam_energy, timestamp]
 
