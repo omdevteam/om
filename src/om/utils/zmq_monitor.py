@@ -68,7 +68,7 @@ class ZmqDataBroadcaster:
         broadcast data will be lost to the clients if not received before the next
         transmission takes place.
 
-        Args:
+        Arguments:
 
             url: The URL where the socket will be opened. It must be a string in
                 the format used by ZeroMQ, or None. If the value of this argument is
@@ -131,7 +131,7 @@ class ZmqResponder:
         requests from ZMQ REQ sockets and send, in response, data in the format of a
         python dictionary.
 
-        Args:
+        Arguments:
 
             url: The URL where the socket will be opened. It must be a string in
                 the format used by ZeroMQ, or None. If the value of this argument is
@@ -171,7 +171,7 @@ class ZmqResponder:
         If the socket received a request, this function returns it. Otherwise the
         function returns None. This function is non-blocking.
 
-        Arguments:
+        Returns:
 
             request: A string containing the request, or None if no request has been
             received by the socket.

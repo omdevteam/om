@@ -1,12 +1,13 @@
-site_name: OnDA Monitor
+site_name: OnDA Monitor - v21.05.0
 site_dir: ../docs/html
 extra_css:
-  - extra.css
+  - assets/css/extra.css
 theme:
   name: material
   features:
     - navigation.top
   icon:
+    logo: material/alpha-o-box-outline
     repo: fontawesome/brands/github
 markdown_extensions:
   - admonition

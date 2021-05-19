@@ -47,12 +47,12 @@ provided by the beamline scientists).
 Examples of `run_om.sh` files for the MFX and CXI beamlines can be found at the
 following links:
 
-  * [Example `run_om.sh` script for the MFX beamline](files/mfx/run_om.sh)
-  * [Example `run_om.sh` script for the CXI beamline](files/cxi/run_om.sh)
+  * [Example `run_om.sh` script for the MFX beamline](files/lcls/mfx/run_om.sh)
+  * [Example `run_om.sh` script for the CXI beamline](files/lcls/cxi/run_om.sh)
 
 !!! warning
-    Please note that these files are are *just examples*. They might need to be
-    modified before being used for specific experiments.
+    Please note that these files aree *just examples*. They might need to be modified
+    before being used for specific experiments.
 
 ### The `monitor.yaml` File
 
@@ -63,8 +63,8 @@ discussion of the format and content of the configuration file).
 Example configuration files for the MFX and CXI beamlines can be found at the following
 links:
 
-  * [Example `monitor.yaml` file for the MFX beamline](files/mfx/monitor.yaml)
-  * [Example `monitor.yaml` file for the CXI beamline](files/cxi/monitor.yaml)
+  * [Example `monitor.yaml` file for the MFX beamline](files/lcls/mfx/monitor.yaml)
+  * [Example `monitor.yaml` file for the CXI beamline](files/lcls/cxi/monitor.yaml)
 
 !!! warning
     Please note that these files are *just examples*. They might need to be modified
@@ -81,16 +81,19 @@ In most cases, the `monitor.yaml` file will instruct OM to look for a
 [CrystFEL geometry](https://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
 file for the x-ray detector used at the beamline.
 
-Example geometry files for several detectors used at the LCLS facility can be found at
-the following link:
+Example geometry files for several x-ray detectors can be found at the following link:
 
-* [Example geometry files for LCLS detectors](files/geometry/index.md)
+  * [Example geometry files for x-ray detectors](geometry.md)
 
 In their default setup, the MFX and CXI beamlines use the Epix10ka and Jungfrau1M
 detectors. Example geometry files for these detectors can be found here:
 
-  * [Epix10ka geometry file for the MFX beamline](files/geometry/epix10ka2m.geom)
-  * [Jungfrau4M geometry file for the CXI beamline](files/geometry/jungfrau4M.geom)
+  * [Example Epix10ka@M geometry file for the MFX beamline](files/lcls/mfx/epix10k2M.geom)
+  * [Example Jungfrau4M geometry file for the CXI beamline](files/lcls/cxi/jungfrau4M.geom)
+
+!!! warning
+    Please note that these files are *just examples*. They might need to be modified
+    before being used for specific experiments.
 
 
 ### Running OM
@@ -150,7 +153,7 @@ computer (See [this section](configuring_om.md#the-configuration-file) for a ful
 discussion of the format and content of the configuration file). The following
 file can be used for the dataset in this example:
 
-  * [Example `monitor.yaml` file for Ti-Yen Lan's dataset](files/local/monitor.yaml)
+  * [Example `monitor.yaml` file for Ti-Yen Lan's dataset](files/local/pilatus/monitor.yaml)
 
 !!! warning
     This configuration file has been adapted to the dataset in this example. Please
@@ -166,15 +169,19 @@ file can be used for the dataset in this example:
 The `monitor.yaml` file linked above instructs OM to load a CrystFEL geometry file for
 the x-ray detector used during the experiment.
 
-Examples of geometry files for several detectors used at various facilities and
+Examples geometry files for several detectors used at various facilities and
 beamlines can be found at the following link:
 
-* [Example geometry files for various x-ray detectors](files/geometry/index.md)
+  * [Example geometry files for x-ray detectors](geometry.md)
 
 However, for the current example, just a Pilatus detector geometry file is needed:
 
+  * [Example Pilatus geometry file](files/local/pilatus/pilatus.geom)
 
-  * [Pilatus geometry file](files/geometry/pilatus.geom)
+!!! warning
+    Please note that this files is  *just an example*. It works well for this example
+    but might need to be modified to process data from another experiment, even if the
+    same detector was used.
 
 
 ### Running OM

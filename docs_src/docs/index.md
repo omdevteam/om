@@ -1,6 +1,6 @@
 # OM: Online Data Analysis for X-Ray Imaging
 
-![OM](OndaScreenshot1.jpg)
+![OM](assets/images/OnDAScreenshot.jpg)
 
 
 ## What is OM?
