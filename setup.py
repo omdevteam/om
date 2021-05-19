@@ -104,6 +104,7 @@ setup(
     ),
     install_requires=[
         "click",
+        "fabio",
         "h5py",
         "msgpack",
         "mypy-extensions",
