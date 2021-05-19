@@ -59,7 +59,7 @@ version_fh = open("src/om/__init__.py", "r")
 version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
 version_fh.close()
 setup(
-    name="om",
+    name="ondamonitor",
     version=version,
     url="https://www.ondamonitor.com",
     license="GNU General Public License v3.0",
