@@ -16,3 +16,4 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 include lib_src/peakfinder8_extension/peakfinder8.hh
+include LICENSE
