@@ -276,8 +276,6 @@ class RadialProfile:
         else:
             self._mask = bad_pixel_map.astype(bool)
 
-        self._first_time: bool = True
-
     def calculate_profile(self, data: numpy.ndarray) -> numpy.ndarray:
         """
         Calculate the radial profile of a detector data frame.
