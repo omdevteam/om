@@ -45,16 +45,30 @@ class Cheetah(process_layer_base.OmMonitor):
 
     def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        Cheetah
+        Cheetah processing layer for serial crystallography experiments.
 
-        See documentation of the corresponding function in the base class.
+        This class contains Cheetah hit-finding backend that processes detector data
+        frames, optionally applying detector calibration, dark correction and gain
+        correction. The processing layer then detects Bragg peaks in each detector frame
+        using the 'peakfinder8' peak detection algorithm. It retrieves information about
+        the location, size, intensity, SNR and the maximum pixel value of each peak. It
+        then saves the calibrated and corrected detector data, experiment information 
+        retrieved from the facility and the list of the detected Bragg peaks in the 
+        multi-event HDF5 files. Additionally, it can write sums of frames identified as
+        hits and non-hits, and corresponding virtual powder patterns into respective sum
+        HDF5 files.
+        This processing layer can also optionally broadcast detector data, Bragg peaks
+        and hit-rate information over a network socket for monitoring and visualization
+        by other programs, copying the functionality of OnDA Monitor.
 
-        TODO: Add description
+        This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
+        base class.
 
         Arguments:
 
-            monitor_params: An object storing the OM monitor parameters from the
-                configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
         """
         super(Cheetah, self).__init__(monitor_parameters=monitor_parameters)
 
@@ -62,9 +76,11 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Initializes the OM processing nodes for Cheetah.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-        TODO: Add description
+        This function initializes the correction and peak finding algorithms, the HDF5 
+        file writer plus some internal counters.
 
         Arguments:
 
@@ -354,9 +370,13 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Initializes the OM collecting node for Cheetah.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-        # TODO: Add description
+        This function initializes the data accumulation algorithms, the storage buffers
+        used to compute statistics on the detected Bragg peaks and, optionally, the sum
+        file writers. Additionally, it prepares the data broadcasting socket to send 
+        data to external programs.
 
         Arguments:
 
@@ -548,11 +568,17 @@ class Cheetah(process_layer_base.OmMonitor):
         self, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
-        Processes a detector data frame.
+        Processes a detector data frame, extracts Bragg peak information and saves the
+        data to HDF5 file.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-        TODO: Add description
+        This function performs calibration and correction of a detector data frame and
+        extracts Bragg peak information. It then saves the frame in the output HDF5
+        file if it is identified as hit. Finally, it prepares the Bragg peak data (and
+        optionally, the detector frame data and accumulated sums of hits and non-hits)
+        for transmission to the collecting node.
 
         Arguments:
 
@@ -566,7 +592,7 @@ class Cheetah(process_layer_base.OmMonitor):
                 processed.
 
                 * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' configuration parameter group.
+                  list found in the 'om' parameter group in the configuration file.
 
                 * The corresponding dictionary values must store the retrieved data.
 
@@ -670,13 +696,21 @@ class Cheetah(process_layer_base.OmMonitor):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> None:
         """
-        Computes statistics on aggregated data and broadcasts them via a network socket.
+        Computes aggregated Bragg peak data and broadcasts it over the network.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-        TODO: Add description
+        This function collects the Bragg peak information and accumulated sums of frames
+        from the processing nodes. It then computes the total sums of hits and non-hits
+        as well as the corresponding virtual powder patterns, and saves them to HDF5
+        files. It also optionally writes the number of processed events, number of found
+        hits and the elapsed time in the status file that the Cheetah GUI can inspect.
+        Additionally, it broadcasts the information about the average hit rate and 
+        accumulated virtual powder pattern over a network socket for visualization by
+        external programs.
 
-            Arguments:
+        Arguments:
 
             node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
@@ -841,13 +875,15 @@ class Cheetah(process_layer_base.OmMonitor):
         node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
         """
-        Executes end-of-processing actions.
+        Ends processing actions on the processing nodes.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-        TODO: Add description
+        This function prints a message on the console, closes output HDF5 file and ends
+        the processing.
 
-         Arguments:
+        Arguments:
 
             node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
@@ -857,9 +893,10 @@ class Cheetah(process_layer_base.OmMonitor):
 
         Returns:
 
-            Union[Dict[str, Any], None]: A dictionary storing information to be sent
-            to the processing node (Optional: if this function returns nothing, no
-            information is transferred to the processing node.
+            A dictionary storing information to be sent to the processing node
+            (Optional: if this function returns nothing, no information is transferred
+            to the processing node.
+
         """
         print(
             "Processing finished. OM node {0} has processed {1} events in "
@@ -881,11 +918,13 @@ class Cheetah(process_layer_base.OmMonitor):
         self, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Executes end-of-processing actions.
+        Ends processing on the collecting node.
 
-        See documentation of the corresponding function in the base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-        TODO: Add description
+        This function prints a message on the console, writes the final information in 
+        the status and sums HDF5 files, closes the files and ends the processing.
 
         Arguments:
 

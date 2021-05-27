@@ -54,7 +54,12 @@ class HDF5Writer:
         max_num_peaks: Union[int, None] = None,
     ) -> None:
         """
-        TODO: Write documentation.
+        HDF5 file writer for Cheetah hit-finding backend.
+
+        This class creates an HDF5 file to store the hits found by Cheetah processing
+        layer. For each frame, it can save detector data, list of found Bragg peaks and
+        various diagnostic information provided by the facility (timestamp, beam energy,
+        detector distance, pump laser state).
 
         Arguments:
 
@@ -68,8 +73,8 @@ class HDF5Writer:
                 :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
                 storing the geometry information.
 
-            compression: Whether compression should be applied to the data in the
-                output file.
+            compression: Compression filter to be applied to the data in the output
+                file.
 
             detector_data_type: The numpy type of the detector data that will be
                 written to the output files.
@@ -128,7 +133,7 @@ class HDF5Writer:
         )
 
         # TODO: fix cxiview (or even better, rewrite it)
-        # Too get pixel size required for cxiview:
+        # To get pixel size required for cxiview:
         self._pixel_size: float = (
             1 / geometry["panels"][tuple(geometry["panels"].keys())[0]]["res"]
         )
@@ -231,6 +236,13 @@ class HDF5Writer:
         self._num_frames: int = 0
 
     def write_frame(self, processed_data: Dict[str, Any]) -> None:
+        """
+        Writes one data frame to the HDF5 file.
+
+        Arguments:
+
+            processed_data: A dictionary containing the data to write in the HDF5 file.
+        """
         self._resize_datasets()
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
@@ -333,7 +345,8 @@ class SumHDF5Writer:
         """
         HDF5 writer for sum of frames.
 
-        TODO: Add documentation
+        This class writes an HDF5 file containing the sum of frames and a corresponding
+        virtual powder pattern.
 
         Arguments:
 
@@ -383,9 +396,8 @@ class SumHDF5Writer:
         virtual_powder_pattern: numpy.ndarray,
     ) -> None:
         """
-        Writes accumulated frames and detected peaks into the output file.
-
-        TODO: Add description
+        Writes accumulated sum of frames and a virtual powder pattern into the output 
+        file.
 
         Arguments:
 
