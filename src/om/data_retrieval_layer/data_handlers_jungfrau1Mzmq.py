@@ -26,7 +26,7 @@ from typing import Any, Callable, Dict, Generator, List, TextIO, Tuple
 import zmq  # type: ignore
 import numpy  # type: ignore
 
-from om.algorithms import calibration_algorithms as calib_algs
+from om.algorithms import calibration as calib_algs
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import functions_jungfrau1Mzmq
 from om.utils import parameters
