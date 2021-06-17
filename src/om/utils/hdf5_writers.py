@@ -104,7 +104,10 @@ class HDF5Writer:
                 applied. This is argument is considered only if the 'compression'
                 argument is True, otherwise, the argument is ignored. Optional. If the
                 value of this argument is None, the compression level will be set to 4.
-                Defaults to None
+                Defaults to None.
+
+            compression_shuffle: Whether the shuffle filter is applied (True/False). If
+                the value is None the shuffle filter is not applied. Defaults to None.
 
             max_num_peaks: The maximum number of detected Bragg peaks that should be
                 written in the HDF5 for each frame. Optional. If the value of this

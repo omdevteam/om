@@ -142,6 +142,134 @@ Crystallography.
 
      Example: `120`
 
+## cheetah
+
+This parameter group contains parameters used specifically by Cheetah processing layer.
+
+**processed_directory (str)**
+:  A relative or absolute path to the directory where the output files with the
+   processed data are written.
+
+     Example: `/experiment/data/processed/`
+
+**processed_filename_prefix (str or None)**
+:  A string that is prepended to the name of the output files. If the value of this
+   argument is *None*, the string `processed_` is used as prefix.
+
+     Example: `run0001`
+
+**processed_filename_extension (str or None)**
+:  A string that is appended to the name of the output files. If the value of this
+   argument is *None*, the string `h5` is used as extension.
+
+     Example: `cxi`
+
+**write_class_sums (bool)**
+:  Whether class sum HDF5 files are written. Class sum files contain sums of frames
+   belonging to different powder classes (`0` for non-hits and `1` for hits) and
+   corresponding virtual powder patterns. They can be inspected in the
+   [Cheetah GUI](https://www.desy.de/~barty/cheetah/Cheetah/GUI.html) during the
+   processing.
+
+     Example: `true`
+
+**class_sum_filename_prefix (str or None)**
+:  A string that will be prepended to the name of the output files. If the value of this
+   argument is *None*, the string `processed_` will be used as prefix.
+
+     Example: `run0001`
+
+**class_sums_sending_interval (int or None)**
+:  This parameter determines how often processing nodes send accumulated class sums to
+   the collecting node. If the value of this parameter is *None*, no class sums are ever
+   sent. If the value is a number, it is the number of frames that *each processing
+   node* sums up before sending the accumulated sums to the collecting node to be saved
+   in the class sum HDF5 files.
+
+     Example: `100`
+
+**class_sums_update_interval (int)**
+:  This parameter determines how often collecting node writes class sums to the output
+   files. This parameter is considered only if `write_class_sums` parameter is *True*.
+   The value is the number of times collecting node receives accumulated sums of
+   frames from the processing nodes before writing them to files. For example, if the
+   value of this parameter is 5 and the value of `class_sums_sending_interval` is 100,
+   the collecting node updates ouput files every 5 times it receives the accumuilated
+   sum of 100 frames from the processing nodes, i.e. every 500 processed frames.
+
+     Example: `5`
+
+**status_file_update_interval (int or None)**
+:  This parameter determines how often collecting node updates `status.txt` file which
+   [Cheetah GUI](https://www.desy.de/~barty/cheetah/Cheetah/GUI.html) can inspect. If
+   the value of this parameter is *None*, the status file is not written.
+
+     Example: `100`
+
+**hdf5_file_data_type (str or None)**
+:  The numpy type of the detector data that will be written to the output files. If the
+   value of this parameter is *None*, the data is written in `float32`.
+
+     Example: `int16`
+
+**hdf5_file_compression (str or None)**
+:  Compression filter to be applied to the data in the output file. If the value of this
+   parameter is *None*, no compression is applied. The value of this parameter is passed
+   to [h5py.Group.create_dataset](https://docs.h5py.org/en/stable/high/group.html#h5py.Group.create_dataset).
+   For the list of compression filters available with every installation of HDF5 please
+   see [h5py documentation](https://docs.h5py.org/en/stable/high/dataset.html#lossless-compression-filters).
+
+     Example: `gzip`
+
+**hdf5_file_compression_opts (int or None)**
+:  The compression level to be used if data compression is applied. This parameter is
+   considered only if the `hdf5_file_compression` is not *None*. If the value of this
+   argument is *None*, the compression level will be set to 4. The value of this
+   parameter is passed to [h5py.Group.create_dataset](https://docs.h5py.org/en/stable/high/group.html#h5py.Group.create_dataset).
+
+     Example: `6`
+
+**hdf5_file_compression_shuffle (bool or None)**
+:  Whether the shuffle filter is applied. If the value of this parameter is *None* the
+   shuffle filter is not applied. The value of this parameter is passed to 
+   [h5py.Group.create_dataset](https://docs.h5py.org/en/stable/high/group.html#h5py.Group.create_dataset).
+  
+     Example: `true`
+
+**hdf5_file_max_num_peaks (int or None)**
+:  The maximum number of detected Bragg peaks that should be written in the HDF5 file
+   for each frame. Optional. If the value of this parameter is *None*, only the first
+   1024 detected peaks will be written in the output file for each frame.
+
+     Example: `2000`
+
+**hdf5_fields (dict)**
+:  A dictionary storing information about the internal HDF5 path where each data entry
+   will be written.
+   * The keys in the dictionary must store the names of data entries to
+     write.
+   * The corresponding dictionary values must contain the internal HDF5
+     paths where the entries will be written.
+
+     Example:
+
+         detector_data: "/data/data"
+         event_id: "/data/event_id"
+         beam_energy: "/data/photon_energy_eV"
+         detector_distance: "/data/detector_distance"
+         timestamp: "/data/timestamp"
+         peak_list: "/data/peaks"
+
+     Example for `.cxi` files compatible with [cxiview](https://www.desy.de/~barty/cheetah/Cheetah/cxiview.html):
+
+         detector_data: "/entry_1/data_1/data"
+         event_id: "/LCLS/fiducial"
+         beam_energy: "/LCLS/photon_energy_eV"
+         detector_distance: "/LCLS/detector_1/EncoderValue"
+         timestamp: "/LCLS/timestamp"
+         peak_list: "/entry_1/result_1"
+         pixel_size: "/entry_1/instrument_1/detector_1/x_pixel_size"
+
 
 ## data_retrieval_layer
 
