@@ -139,8 +139,8 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
 
     file_creation_time: float = event["additional_info"]["file_creation_time"]
     jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
-    # Jungfrau internal clock frequency in Hz (may not be entirely correct)
-    jf_clock_frequency: int = 9721700
+    # Jungfrau internal clock frequency in Hz
+    jf_clock_frequency: int = 10000000
     return file_creation_time + jf_clock_value / jf_clock_frequency
 
 
