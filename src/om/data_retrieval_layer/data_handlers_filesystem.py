@@ -553,9 +553,15 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
             h5_data_path: str = "/data_" + re.findall(r"_(f\d+)_", filename)[0]
 
-            frame_numbers: List[numpy.ndarray] = [
-                h5file["/frameNumber"][:] for h5file in h5files
-            ]
+            try:
+                frame_numbers: List[numpy.ndarray] = [
+                    h5file["/frameNumber"][:] for h5file in h5files
+                ]
+            except KeyError:
+                frame_numbers: List[numpy.ndarray] = [
+                    h5file["/frame number"][:] for h5file in h5files
+                ]
+
             ind0: int
             frame_number: numpy.ndarray
             for ind0, frame_number in enumerate(frame_numbers[0]):
