@@ -22,9 +22,10 @@ This module contains functions that retrieve data from the psana software framew
 (used at the LCLS facility) using the psana Detector interface. It also contains
 functions that initialize the Detector interface itself.
 """
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Dict, List, Union
 
 import numpy  # type: ignore
+
 from om.utils import exceptions, parameters
 
 try:
@@ -281,7 +282,7 @@ def event_id_init(monitor_parameters: parameters.MonitorParams) -> None:
     Initializes the psana Detector interface for the event identifier at LCLS.
 
     This function initializes the event identifier Detector interface, preparing it to
-    retrieve a label that unambiguosly identifies the event being processed.
+    retrieve a label that unambiguously identifies the event being processed.
 
     Arguments:
 
@@ -299,7 +300,7 @@ def frame_id_init(monitor_parameters: parameters.MonitorParams) -> None:
     Initializes the psana Detector interface for the frame identifier at LCLS.
 
     This function initializes the frame identifier Detector interface, preparing it to
-    retrieve a label that unambiguosly identifies, within the current event, the frame
+    retrieve a label that unambiguously identifies, within the current event, the frame
     being processed.
 
     Arguments:
@@ -311,6 +312,73 @@ def frame_id_init(monitor_parameters: parameters.MonitorParams) -> None:
     # No need to initialize the psana Detector interface: the frame_id is extracted
     # directly from the even by the relevant Data Extraction Function.
     return None
+
+
+def lcls_extra_init(monitor_parameters: parameters.MonitorParams) -> Any:
+    """
+    Initializes the psana Detector interface for the retrieval of LCLS-specific data.
+
+    This function initializes the Detector interface for the retrieval of the
+    LCLS facility-specific data listed in the 'lcls_extra' entry in the
+    'data_retrieval_layer' parameter group of the configuration file.
+
+    * The 'lcls_extra' entry must contain the list of data items to retrieve. For each
+      item, the entry should provide three pieces of information: the type of data, the
+      data identifier in the LCLS's data system (digitizer name, epics variable name),
+      and the name to use for the recovered data.
+
+    * The following type of data are currently supported: "wave8_total_intensity" and
+      "epics_pv".
+
+    Arguments:
+
+        monitor_parameters: A [MonitorParams]
+            [om.utils.parameters.MonitorParams] object storing the OM monitor
+            parameters from the configuration file.
+
+    Returns:
+
+        A psana object that can be used later to retrieve the data.
+    """
+    lcls_extra_entry: List[List[str]] = monitor_parameters.get_param(
+        group="data_retrieval_layer",
+        parameter="lcls_extra",
+        parameter_type=list,
+        required=True,
+    )
+
+    detector_interfaces: List[Any] = []
+    data_types: List[str] = []
+    names: List[str] = []
+
+    data_item: list[str]
+    for data_item in lcls_extra_entry:
+        if not isinstance(data_item, list) or len(data_item) != 3:
+            raise exceptions.OmWrongParameterTypeError(
+                "The 'lcls_extra' entry in the 'data_retrieval_layer' group of the "
+                "configuration file is not formatted correctly."
+            )
+        for entry in data_item:
+            if not isinstance(entry, str):
+                raise exceptions.OmWrongParameterTypeError(
+                    "The 'lcls_extra' entry in the 'data_retrieval_layer' group of the "
+                    "configuration file is not formatted correctly."
+                )
+            data_type: str
+            identifier: str
+            name: str
+            data_type, identifier, name = data_item
+
+            if data_type not in ("epics_pv, " "wave8_total_intensity"):
+                raise exceptions.OmWrongParameterTypeError(
+                    "The requested '{}' LCLS-specific data type is not supported."
+                )
+
+            detector_interfaces.append(psana.Detector(identifier))
+            data_types.append(data_type)
+            names.append(name)
+
+    return (detector_interfaces, data_types, names)
 
 
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
@@ -569,7 +637,7 @@ def event_id(event: Dict[str, Any]) -> str:
 
     This function returns a label that unambiguously identifies, within an experiment,
     the event currently being processed. For the LCLS facility, three numbers are
-    needed to unambigously identify an event: the portion of the event timestamp that
+    needed to unambiguously identify an event: the portion of the event timestamp that
     corresponds to seconds, the portion of the timestamp that corresponds to
     nanoseconds, and a fiducial number. The event label at LCLS is a string which
     unifies these three numbers separating them with dashes.
@@ -604,3 +672,54 @@ def frame_id(event: Dict[str, Any]) -> str:
         A unique frame identifier (within an event).
     """
     return str(0)
+
+
+def lcls_extra(event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Retrieves LCLS-specific data from psana.
+
+    This function retrieves LCLS facility-specific from psana. It retrieves the data
+    listed in the 'lcls_extra' entry in the 'data_retrieval_layer' parameter group of
+    the configuration file.
+
+    * The 'lcls_extra' entry must contain the list of data items to retrieve. For each
+      item, the entry should provide three pieces of information: the type of data, the
+      data identifier in the LCLS's data system (digitizer name, epics variable name),
+      and the name to use for the recovered data.
+
+    * The following type of data are currently supported: "wave8_total_intensity" and
+      "epics_pv".
+
+    * The function returns a dictionary storing the retrieved data.
+
+    Arguments:
+
+        event: A dictionary storing the event data.
+
+    Returns:
+
+        A dictionary whose keys are the names specified for the retrieved data items in
+        the 'lcls_extra' entry of the configuration file, andwhose corresponding values
+        are the retrieved data items themselves.
+    """
+    detector_interfaces: List[Any]
+    data_types: List[str]
+    names: List[str]
+    detector_interfaces, data_types, names = event["additional_info"][
+        "psana_detector_interface"
+    ]["lcls_extra"]
+    lcls_extra: Dict[str, Any] = {}
+    for detector_interface, data_type, name in zip(
+        detector_interfaces, data_types, names
+    ):
+        if data_type == "epics_pv":
+            data_value: Any = detector_interface()
+        elif data_type == "wave8_total_intensity":
+            data_value = detector_interface.get(event["data"]).TotalIntensity()
+        if data_value is None:
+            raise exceptions.OmDataExtractionError(
+                "Could not retrieve event codes from psana."
+            )
+        lcls_extra[name] = data_value
+
+    return lcls_extra
