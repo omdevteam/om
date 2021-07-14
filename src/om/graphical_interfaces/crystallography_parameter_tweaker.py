@@ -28,9 +28,10 @@ import sys
 import time
 from typing import Any, Deque, Dict, List, Tuple, Union
 
-import click
+import click  # type: ignore
 import h5py  # type: ignore
 import numpy  # type: ignore
+
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms.crystallography import TypePeakfinder8Info
 from om.graphical_interfaces import base as graph_interfaces_base

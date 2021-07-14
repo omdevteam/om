@@ -23,7 +23,6 @@ This module contains an OnDA Monitor that can be used for testing purposes.
 import sys
 import time
 from typing import Any, Dict, Tuple, Union
-from om.data_retrieval_layer.functions_psana import beam_energy, timestamp
 
 from om.processing_layer import base as process_layer_base
 from om.utils import parameters, zmq_monitor

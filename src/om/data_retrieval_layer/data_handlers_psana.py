@@ -24,6 +24,7 @@ framework (used at the LCLS facility).
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
+
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import (
     functions_cspad,
