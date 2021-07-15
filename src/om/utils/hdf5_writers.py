@@ -57,10 +57,11 @@ class HDF5Writer:
         """
         HDF5 file writer for Cheetah hit-finding backend.
 
-        This class creates an HDF5 file to store the hits found by Cheetah processing
-        layer. For each frame, it can save detector data, list of found Bragg peaks and
-        various diagnostic information provided by the facility (timestamp, beam energy,
-        detector distance, pump laser state).
+        This class creates an HDF5 file to store the detector data frames processed
+        by the Cheetah software package. For each frame, this class can save into the
+        file the processed detector data frame, the list of found Bragg peaks and
+        additional diagnostic information provided by the facility (timestamp, beam
+        energy, detector distance, pump laser state).
 
         Arguments:
 
@@ -74,7 +75,7 @@ class HDF5Writer:
                 :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
                 storing the geometry information.
 
-            compression: Compression filter to be applied to the data in the output
+            compression: The compression filter to be applied to the data in the output
                 file.
 
             detector_data_type: The numpy type of the detector data that will be
@@ -96,18 +97,20 @@ class HDF5Writer:
                 the output files. Optional. If the value of this argument is None, the
                 string 'processed_' will be used as prefix. Defaults to None.
 
-            processed_filename_extension: A string that will appended to the name of
-                the output files. Optional. If the value of this argument is None, the
-                string 'h5' will be used as extension. Defaults to None.
+            processed_filename_extension: An extension string that will appended to the
+                name of the output files. Optional. If the value of this argument is
+                None, the string 'h5' will be used as extension. Defaults to None.
 
             compression_opts: The compression level to be used if data compression is
                 applied. This is argument is considered only if the 'compression'
-                argument is True, otherwise, the argument is ignored. Optional. If the
-                value of this argument is None, the compression level will be set to 4.
-                Defaults to None.
+                argument is not None, otherwise, the argument is ignored. Optional. If
+                the value of this argument is None, the compression level will be set
+                to 4. Defaults to None.
 
-            compression_shuffle: Whether the shuffle filter is applied (True/False). If
-                the value is None the shuffle filter is not applied. Defaults to None.
+            compression_shuffle: Whether the shuffle filter is applied. If the value of
+                this argument is True, the shuffle filter is applied, otherwise it is
+                not. Specifically, if the value of this argument is None, the shuffle
+                filter is not applied. Defaults to None.
 
             max_num_peaks: The maximum number of detected Bragg peaks that should be
                 written in the HDF5 for each frame. Optional. If the value of this
@@ -322,7 +325,7 @@ class HDF5Writer:
 
     def get_num_written_frames(self) -> int:
         """
-        Retrieves the number of frames already written.
+        Retrieves the number of already written frames.
 
         Returns:
 
@@ -353,8 +356,8 @@ class SumHDF5Writer:
         """
         HDF5 writer for sum of frames.
 
-        This class writes an HDF5 file containing the sum of frames and a corresponding
-        virtual powder pattern.
+        This class creates an HDF5 file to store the sum of a set of processed detector
+        data frames, together with the corresponding virtual powder pattern.
 
         Arguments:
 
@@ -404,8 +407,7 @@ class SumHDF5Writer:
         virtual_powder_pattern: numpy.ndarray,
     ) -> None:
         """
-        Writes accumulated sum of frames and a virtual powder pattern into the output 
-        file.
+        Writes the sum of detector data frames and the virtual powder pattern.
 
         Arguments:
 

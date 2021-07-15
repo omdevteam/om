@@ -47,19 +47,21 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         Cheetah processing layer for serial crystallography experiments.
 
-        This class contains Cheetah hit-finding backend that processes detector data
-        frames, optionally applying detector calibration, dark correction and gain
-        correction. The processing layer then detects Bragg peaks in each detector frame
-        using the 'peakfinder8' peak detection algorithm. It retrieves information about
-        the location, size, intensity, SNR and the maximum pixel value of each peak. It
-        then saves the calibrated and corrected detector data, experiment information 
-        retrieved from the facility and the list of the detected Bragg peaks in the 
-        multi-event HDF5 files. Additionally, it can write sums of frames identified as
-        hits and non-hits, and corresponding virtual powder patterns into respective sum
-        HDF5 files.
-        This processing layer can also optionally broadcast detector data, Bragg peaks
-        and hit-rate information over a network socket for monitoring and visualization
-        by other programs, copying the functionality of OnDA Monitor.
+        This class contains the implementation of the Cheetah software package. Cheetah
+        processes detector data frames, optionally applying detector calibration, dark
+        correction and gain correction. It then detects Bragg peaks in each detector
+        frame using the 'peakfinder8' peak detection algorithm. It retrieves
+        information about the location, size, intensity, SNR and the maximum pixel
+        value of each peak. Cheetah then saves the calibrated and corrected detector
+        data, plus all the experiment-related information retrieved from the facility
+        or extracted from the data in multi-event HDF5 files. In addition to saving
+        individual frames, Cheetah can write compute and save sums of frames identified
+        as hits and non-hits, together with virtual powder patterns,  into separate
+        HDF5 "sum files".
+
+        Cheetah can also optionally broadcast detector data, Bragg peaks and hit-rate
+        information over a network socket for monitoring and visualization by other
+        programs, mimicking the functionality of a regular real-time OnDA Monitor.
 
         This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
         base class.
@@ -79,7 +81,7 @@ class Cheetah(process_layer_base.OmMonitor):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function initializes the correction and peak finding algorithms, the HDF5 
+        This function initializes the correction and peak finding algorithms, the HDF5
         file writer plus some internal counters.
 
         Arguments:
@@ -320,10 +322,14 @@ class Cheetah(process_layer_base.OmMonitor):
             parameter_type=int,
         )
         compression_shuffle: Union[bool, None] = self._monitor_params.get_param(
-            group="cheetah", parameter="hdf5_file_compression_shuffle", parameter_type=bool,
+            group="cheetah",
+            parameter="hdf5_file_compression_shuffle",
+            parameter_type=bool,
         )
         hdf5_file_max_num_peaks: Union[int, None] = self._monitor_params.get_param(
-            group="cheetah", parameter="hdf5_file_max_num_peaks", parameter_type=int,
+            group="cheetah",
+            parameter="hdf5_file_max_num_peaks",
+            parameter_type=int,
         )
         hdf5_fields: Dict[str, str] = self._monitor_params.get_all_parameters()[
             "cheetah"
@@ -381,7 +387,7 @@ class Cheetah(process_layer_base.OmMonitor):
 
         This function initializes the data accumulation algorithms, the storage buffers
         used to compute statistics on the detected Bragg peaks and, optionally, the sum
-        file writers. Additionally, it prepares the data broadcasting socket to send 
+        file writers. Additionally, it prepares the data broadcasting socket to send
         data to external programs.
 
         Arguments:
@@ -574,8 +580,7 @@ class Cheetah(process_layer_base.OmMonitor):
         self, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
-        Processes a detector data frame, extracts Bragg peak information and saves the
-        data to HDF5 file.
+        Processes a detector data frame and saves the extracted data to HDF5 file.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -707,14 +712,17 @@ class Cheetah(process_layer_base.OmMonitor):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function collects the Bragg peak information and accumulated sums of frames
-        from the processing nodes. It then computes the total sums of hits and non-hits
-        as well as the corresponding virtual powder patterns, and saves them to HDF5
-        files. It also optionally writes the number of processed events, number of found
-        hits and the elapsed time in the status file that the Cheetah GUI can inspect.
-        Additionally, it broadcasts the information about the average hit rate and 
-        accumulated virtual powder pattern over a network socket for visualization by
-        external programs.
+        This function collects the Bragg peak information and accumulated sums of
+        frames from the processing nodes. It then computes the total sums of hits and
+        non-hits detector frames as well as the corresponding virtual powder patterns,
+        saving them to HDF5 files. It also optionally writes the number of
+        processed events, number of found hits and the elapsed time in a status file.
+        External programs can inspect the status file to determine the advancement of
+        the processing work.
+
+        This method additionally broadcasts the information about the average hit rate
+        and accumulated virtual powder pattern over a network socket for visualization
+        by external programs.
 
         Arguments:
 
@@ -929,7 +937,7 @@ class Cheetah(process_layer_base.OmMonitor):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function prints a message on the console, writes the final information in 
+        This function prints a message on the console, writes the final information in
         the status and sums HDF5 files, closes the files and ends the processing.
 
         Arguments:
