@@ -6,7 +6,7 @@ echo '#!/bin/bash' > $(pwd)/monitor_wrapper.sh
 echo '# File automatically created by the' >> $(pwd)/monitor_wrapper.sh
 echo '# run_om.sh script, please do not' >> $(pwd)/monitor_wrapper.sh
 echo '# edit directly.' >> $(pwd)/monitor_wrapper.sh
-echo 'source <OM>' >> $(pwd)/monitor_wrapper.sh
+echo 'source /cds/sw/package/om/setup.sh' >> $(pwd)/monitor_wrapper.sh
 echo "om_monitor.py 'shmem=psana.0:stop=no'" >> $(pwd)/monitor_wrapper.sh
 chmod +x $(pwd)/monitor_wrapper.sh
 $(which mpirun) --oversubscribe --map-by ppr:4:node 

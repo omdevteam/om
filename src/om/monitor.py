@@ -27,7 +27,7 @@ import sys
 from types import ModuleType
 from typing import Type, TypeVar
 
-import click
+import click  # type: ignore
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.parallelization_layer import base as parallel_layer_base

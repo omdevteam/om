@@ -32,7 +32,6 @@ from om.processing_layer import base as process_layer_base
 from om.utils import exceptions, parameters
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
-_NOMORE: int = 998
 _DIETAG: int = 999
 _DEADTAG: int = 1000
 

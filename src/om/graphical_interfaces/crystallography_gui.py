@@ -26,11 +26,12 @@ import sys
 import time
 from typing import Any, Dict, List, Tuple, Union
 
-import click
+import click  # type: ignore
 import numpy  # type: ignore
+from scipy import constants  # type: ignore
+
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
-from scipy import constants  # type: ignore
 
 try:
     from PyQt5 import QtCore, QtGui  # type: ignore

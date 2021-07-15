@@ -25,6 +25,7 @@ from builtins import str as unicode_str
 from typing import Any, Dict
 
 import zmq  # type: ignore
+
 from om.utils import exceptions
 
 try:

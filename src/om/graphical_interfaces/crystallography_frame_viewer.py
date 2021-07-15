@@ -28,8 +28,9 @@ import sys
 import time
 from typing import Any, Deque, Dict, Union
 
-import click
+import click  # type: ignore
 import numpy  # type: ignore
+
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 

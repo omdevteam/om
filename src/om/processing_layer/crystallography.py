@@ -30,10 +30,10 @@ import numpy  # type: ignore
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
+from om.algorithms.crystallography import TypePeakfinder8Info
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
-from om.algorithms.crystallography import TypePeakfinder8Info
 
 try:
     import msgpack  # type: ignore

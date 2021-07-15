@@ -24,6 +24,7 @@ framework (used at the LCLS facility).
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
+
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import (
     functions_cspad,
@@ -115,6 +116,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
                     "xrays_active_init": functions_psana.xrays_active_init,
                     "event_id_init": functions_psana.event_id_init,
                     "frame_id_init": functions_psana.frame_id_init,
+                    "lcls_extra_init": functions_psana.lcls_extra_init,
                 }
             },
         )
@@ -435,6 +437,7 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
             "xrays_active": functions_psana.xrays_active,
             "event_id": functions_psana.event_id,
             "frame_id": functions_psana.frame_id,
+            "lcls_extra": functions_psana.lcls_extra,
         }
 
 
@@ -498,6 +501,7 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
             "xrays_active": functions_psana.xrays_active,
             "event_id": functions_psana.event_id,
             "frame_id": functions_psana.frame_id,
+            "lcls_extra": functions_psana.lcls_extra,
         }
 
 
@@ -561,6 +565,7 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
             "xrays_active": functions_psana.xrays_active,
             "event_id": functions_psana.event_id,
             "frame_id": functions_psana.frame_id,
+            "lcls_extra": functions_psana.lcls_extra,
         }
 
 
@@ -624,4 +629,5 @@ class MfxLclsRayonixDataEventHandler(LclsBaseDataEventHandler):
             "xrays_active": functions_psana.xrays_active,
             "event_id": functions_psana.event_id,
             "frame_id": functions_psana.frame_id,
+            "lcls_extra": functions_psana.lcls_extra,
         }

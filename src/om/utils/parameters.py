@@ -23,7 +23,7 @@ configuration parameters read from a file.
 """
 from typing import Any, TextIO
 
-import yaml
+import yaml  # type: ignore
 
 from om.utils import exceptions
 

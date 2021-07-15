@@ -29,6 +29,7 @@ from typing import Any, Callable, Dict, Generator, List, cast
 
 import fabio  # type: ignore
 import numpy  # type: ignore
+
 from om.utils import exceptions
 
 try:

@@ -21,7 +21,7 @@ Parallelization Layer's base classes.
 This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Union
+from typing import Union
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.processing_layer import base as process_layer_base
@@ -130,4 +130,5 @@ class OmParallelizationEngine(ABC):
             msg: Reason for shutting down the parallelization engine. Defaults to
                 "Reason not provided".
         """
+
         pass
