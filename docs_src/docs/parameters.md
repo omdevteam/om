@@ -58,7 +58,7 @@ software package.
      ```
      
      Example for `.cxi` files (compatible with 
-     [cxiview](https://www.desy.de/~barty/cheetah/Cheetah/cxiview.html):
+     [cxiview](https://www.desy.de/~barty/cheetah/Cheetah/cxiview.html)):
 
      ```
      detector_data: "/entry_1/data_1/data"
