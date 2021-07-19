@@ -242,9 +242,70 @@ class HDF5Writer:
                     ),
                 }
             )
+        self._extra_groups: Dict[str, Any] = {}
+        if "lcls_extra" in hdf5_fields.keys():
+            self._extra_groups["lcls_extra"] = self._h5file.create_group(
+                hdf5_fields["lcls_extra"]
+            )
         self._requested_datasets: Set[str] = set(hdf5_fields.keys())
 
         self._num_frames: int = 0
+
+    def _create_extra_datasets(
+        self,
+        group_name: str,
+        extra_data: Dict[str, Any]
+    ) -> None:
+        # Creates empty dataset in the extra data group for each item in extra_data dict
+        # using dict keys as dataset names. Supported data types: numpy.ndarray, str,
+        # float, int and bool
+        key: str
+        value: Any
+        for key, value in extra_data.items():
+            if isinstance(value, numpy.ndarray):
+                self._resizable_datasets[
+                    group_name + "/" + key
+                ] = self._extra_groups[group_name].create_dataset(
+                    name=key,
+                    shape=(0, *value.shape),
+                    maxshape=(None, *value.shape),
+                    dtype=value.dtype,
+                )
+            elif isinstance(value, str):
+                self._resizable_datasets[
+                    group_name + "/" + key
+                ] = self._extra_groups[group_name].create_dataset(
+                    name=key,
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=h5py.special_dtype(vlen=str),
+                )
+            elif (
+                numpy.issubdtype(type(value), numpy.integer) or
+                numpy.issubdtype(type(value), numpy.floating) or
+                numpy.issubdtype(type(value), numpy.bool_)
+            ):
+                self._resizable_datasets[
+                    group_name + "/" + key
+                ] = self._extra_groups[group_name].create_dataset(
+                    name=key,
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=type(value),
+                )
+            else:
+                # TODO: raise exception?
+                pass
+
+    def _write_extra_data(
+        self,
+        group_name: str,
+        extra_data: Dict[str, Any]
+    ) -> None:
+        key: str
+        value: Any
+        for key, value in extra_data.items():
+            self._extra_groups[group_name][key][self._num_frames - 1] = extra_data[key]
 
     def write_frame(self, processed_data: Dict[str, Any]) -> None:
         """
@@ -254,10 +315,19 @@ class HDF5Writer:
 
             processed_data: A dictionary containing the data to write in the HDF5 file.
         """
-        self._resize_datasets()
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
 
+        extra_group_name: str
+        if self._num_frames == 0:
+            for extra_group_name in self._extra_groups:
+                if extra_group_name in fields:
+                    self._create_extra_datasets(
+                        extra_group_name,
+                        processed_data[extra_group_name]
+                    )
+
+        self._resize_datasets()
         frame_num: int = self._num_frames - 1
         dataset_dict_keys_to_write: List[
             Literal[
@@ -300,6 +370,13 @@ class HDF5Writer:
                 self._resizable_datasets[peak_dict_key][
                     frame_num, :n_peaks
                 ] = peak_list[peak_dict_key][:n_peaks]
+
+        for extra_group_name in self._extra_groups:
+            if extra_group_name in fields:
+                self._write_extra_data(
+                    extra_group_name,
+                    processed_data[extra_group_name],
+                )
 
     def close(self) -> None:
         """
