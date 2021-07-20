@@ -294,7 +294,7 @@ class HDF5Writer:
             else:
                 raise exceptions.OmHdf5UnsupportedDataFormat(
                     "Cannot write the '{}' data entry into the output HDF5: "
-                    "its format is not supported."
+                    "its format is not supported.".format(key)
                 )
 
     def _write_extra_data(self, group_name: str, extra_data: Dict[str, Any]) -> None:
