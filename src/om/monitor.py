@@ -11,14 +11,14 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM main function.
+OM's main function.
 
-This module contains the main function that instantiates an OM monitor.
+This module contains the main function that instantiates an OnDA Monitor when called.
 """
 
 import importlib
@@ -27,7 +27,7 @@ import sys
 from types import ModuleType
 from typing import Type, TypeVar
 
-import click
+import click  # type: ignore
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.parallelization_layer import base as parallel_layer_base
@@ -74,8 +74,8 @@ def _import_class(layer: str, layer_filename: str, class_name: str) -> Type[T]:
     "-c",
     default="monitor.yaml",
     type=click.Path(),
-    help="configuration file (default: monitor.yaml file in the current working "
-    "directory",
+    help="The path to a configuration file (default: monitor.yaml file in the current "
+    "working directory)",
 )
 @click.option(
     "--debug",
@@ -83,19 +83,23 @@ def _import_class(layer: str, layer_filename: str, class_name: str) -> Type[T]:
     default=False,
     type=bool,
     is_flag=True,
-    help="Disable custom OM error handler",
+    help=(
+        "Disable the custom OM error handler for OM-related exceptions. Useful for "
+        "debugging."
+    ),
 )
 @click.argument("source", type=str)
 def main(source: str, config: str, debug: bool) -> None:
     """
-    OM monitor. This script starts a monitor that runs according to the provided
-    configuration file and retrieves data from the specified source. When the 'mpi'
-    Parallelization Layer is used, this script should be launched via the 'mpirun' or
-    'mpiexec' commands.
-
-    SOURCE: the source of data for the OM monitor. The exact format of this string
-    depends on the specific Data Extraction Layer currently used (see documentation).
+    OnDA Monitor. This script starts a online data analysis monitor that behaves
+    according to the parameters defined in the provided configuration file. The monitor
+    retrieves data from the source specified by SOURCE_STRING. The exact format of
+    SOURCE_STRING depends on the specific Data Extraction Layer currently used by the
+    monitor (see the relevant documentation). When the 'mpi' Parallelization Layer is
+    used, this script should be launched via the 'mpirun' or 'mpiexec' commands.
     """
+    # This function is turned into a script by the Click library. The docstring
+    # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     # Sets a custom exception handler to deal with OM-specific exceptions.
@@ -151,7 +155,10 @@ def main(source: str, config: str, debug: bool) -> None:
         monitor_parameters=monitor_parameters
     )
     data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-        data_event_handler_class(monitor_parameters=monitor_parameters, source=source,)
+        data_event_handler_class(
+            monitor_parameters=monitor_parameters,
+            source=source,
+        )
     )
     parallelization_engine: parallel_layer_base.OmParallelizationEngine = (
         parallelization_engine_class(

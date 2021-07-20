@@ -1,0 +1,100 @@
+site_name: OnDA Monitor - v21.5.0
+site_dir: ../docs/html
+extra_css:
+  - assets/css/extra.css
+theme:
+  name: material
+  features:
+    - navigation.top
+  icon:
+    logo: material/alpha-o-box-outline
+    repo: fontawesome/brands/github
+markdown_extensions:
+  - admonition
+  - def_list
+  - mkdocs-click
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+copyright: Copyright &copy; 2020-2021 OM Development Team
+repo_url: https://github.com/omdevteam/om
+edit_uri: ''
+repo_name: omdevteam/om
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          rendering:
+            show_root_heading: true
+            show_root_full_path: false
+            show_root_toc_entry: false
+            show_source: false
+            heading_level: 1
+          setup_commands:
+            - import sys
+            - from unittest.mock import MagicMock as mock
+            - sys.modules["psana"] = mock()
+            - sys.modules["mpi4py"] = mock()
+            - sys.modules["hidra_api"] = mock()
+  - search
+
+nav:
+  - What is OM?: index.md
+  - Installing OM: installing_om.md
+  - Running OM: running_om.md
+  - Configuring OM: configuring_om.md
+  - Advanced Documentation: advanced_documentation.md
+  - The OM Development Team: the_om_development_team.md
+  - Code Reference:
+    - om:
+      - __init__: reference/om/index.md
+      - algorithms:
+        - __init__: reference/om/algorithms/index.md
+        - calibration: reference/om/algorithms/calibration.md
+        - crystallography: reference/om/algorithms/crystallography.md
+        - generic: reference/om/algorithms/generic.md
+      - data_retrieval_layer:
+        - __init__: reference/om/data_retrieval_layer/index.md
+        - base: reference/om/data_retrieval_layer/base.md
+        - data_handlers_filesystem: reference/om/data_retrieval_layer/data_handlers_filesystem.md
+        - data_handlers_hidra: reference/om/data_retrieval_layer/data_handlers_hidra.md
+        - data_handlers_psana: reference/om/data_retrieval_layer/data_handlers_psana.md
+        - functions_cspad: reference/om/data_retrieval_layer/functions_cspad.md
+        - functions_epix10ka: reference/om/data_retrieval_layer/functions_epix10ka.md
+        - functions_jungfrau1M: reference/om/data_retrieval_layer/functions_jungfrau1M.md
+        - functions_jungfrau4M: reference/om/data_retrieval_layer/functions_jungfrau4M.md
+        - functions_pilatus: reference/om/data_retrieval_layer/functions_pilatus.md
+        - functions_rayonix: reference/om/data_retrieval_layer/functions_rayonix.md
+        - functions_psana: reference/om/data_retrieval_layer/functions_psana.md
+      - graphical_interfaces:
+        - __init__: reference/om/graphical_interfaces/index.md
+        - base: reference/om/graphical_interfaces/base.md
+        - crystallography_frame_viewer: reference/om/graphical_interfaces/crystallography_frame_viewer.md
+        - crystallography_gui: reference/om/graphical_interfaces/crystallography_gui.md
+        - crystallography_parameter_tweaker: reference/om/graphical_interfaces/crystallography_parameter_tweaker.md
+      - lib:
+        - __init__: reference/om/lib/index.md
+        - peakfinder8_extension: reference/om/lib/peakfinder8_extension.md
+      - parallelization_layer:
+        - __init__: reference/om/parallelization_layer/index.md
+        - base: reference/om/parallelization_layer/base.md
+        - mpi: reference/om/parallelization_layer/mpi.md
+      - processing_layer:
+        - __init__: reference/om/processing_layer/index.md
+        - base: reference/om/processing_layer/base.md
+        - crystallography: reference/om/processing_layer/crystallography.md
+        - cheetah: reference/om/processing_layer/cheetah.md
+      - utils:
+        - __init__: reference/om/utils/index.md
+        - crystfel_geometry: reference/om/utils/crystfel_geometry.md
+        - exceptions: reference/om/utils/exceptions.md
+        - hdf5_writers: reference/om/utils/hdf5_writers.md
+        - parameters: reference/om/utils/parameters.md
+        - zmq_gui: reference/om/utils/zmq_gui.md
+        - zmq_monitor: reference/om/utils/zmq_monitor.md
+      - monitor: reference/om/monitor.md
+  - Quick Links:
+    - OM's Configuration Parameters: parameters.md
+    - OM's Error Messages: errors.md
+    - Available Data Types For Each Data Event Handler: data.md
+    - Example Geometry Files: geometry.md   

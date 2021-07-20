@@ -11,15 +11,14 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Data extraction layer base classes.
+Data Extraction Layer's base classes.
 
-This module contains the abstract classes for the Data Extraction Layer of an OM
-monitor parallelization.
+This module contains base abstract classes for OM's Data Extraction Layer.
 """
 import sys
 from abc import ABC, abstractmethod, abstractproperty
@@ -32,7 +31,9 @@ from om.utils import exceptions, parameters
 
 class OmDataEventHandler(ABC):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: `ABC`
     """
 
     def __init__(
@@ -42,21 +43,29 @@ class OmDataEventHandler(ABC):
         additional_info: Dict[str, Any] = {},
     ) -> None:
         """
-        The base class for an OM DataEventHandler.
+        Base class for an OM's Data Event Handler.
 
-        The event handler deals with event and event sources, and implements functions
-        to initialize the sources, recover events from them, opening and closing event,
-        and investigate the event content.
+        Data Event Handlers are classes that deal with data events and data event
+        sources in OM. They have methods to initialize sources, retrieve events from
+        them, open and close events, and examine their content.
+
+        This class is the base abstract class from which every Data Event Handler
+        should inherit. All its methods are abstract. Each derived class must provide
+        his own specific implementation that deals with a specific facility, detector
+        or software framework. The only exception is the [extract_data]
+        [om.data_retrieval_layer.base.OmDataEventHandler.extract_data] which works the
+        same way in all Data Event Handlers.
 
         Arguments:
 
-            monitor_params (:class:`~om.utils.parameters.MonitorParams`): an object
-                storing the OM monitor parameters from the configuration file.
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file..
 
-            source (str): a string describing the data source.
+            source: A string describing the data source.
 
-            additional_info (Dict[str, Any]): Dictionary story any additional
-                information needed by the Data Event Handler.
+            additional_info: A dictionary storing any additional information needed for
+                the initialization of the Data Event Handler.
         """
         self._monitor_params: parameters.MonitorParams = monitor_parameters
         self._source: str = source
@@ -67,21 +76,19 @@ class OmDataEventHandler(ABC):
         self,
     ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
         """
-        Retrieves Data Extraction Functions for the current Data Handler.
+        Data Extraction Functions for the Data Event Handler.
 
-        This functions retrieves the Data Retrieval Functions that are available for
-        the current Event Data Handler.
+        This property can be used to retrieve the Data Extractions Functions that are
+        available to the Data Event Handler.
 
         Returns:
 
-            Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]: a dictionary
-            storing the implementations of the Data Extraction functions available to
-            the current Data Event Handler.
+            A dictionary storing the Data Extraction Functions available to the current
+            Data Event Handler.
 
             * Each dictionary key defines the name of a function.
 
-            * The corresponding dictionary value stores the function
-              implementation.
+            * The corresponding dictionary value stores the function implementation.
         """
         pass
 
@@ -92,16 +99,21 @@ class OmDataEventHandler(ABC):
         """
         Initializes event handling on the collecting node.
 
-        This function is called on the collecting node at start up and initializes the
-        data event handling on the node.
+        This function is called on the collecting node when OM starts, and initializes
+        the data event handling on the node. The function can return a initialization
+        token if the data source requires it.
 
         Arguments:
 
-            node_rank (int): the rank, in the OM pool, of the processing node calling
-                the function.
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            An optional initialization token.
         """
         pass
 
@@ -110,44 +122,50 @@ class OmDataEventHandler(ABC):
         self, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes event handling on the processing node.
+        Initializes event handling on a processing node.
 
-        This function is called on the processing node at start up and initializes the
+        This function is called on a processing node when OM starts and initializes the
         data event handling on the node.
 
         Arguments:
 
-            node_rank (int): the rank, in the OM pool, of the processing node calling
-                the function.
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
-                all the processing nodes and the collecting node.
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            An optional initialization token.
         """
         pass
 
     @abstractmethod
     def event_generator(
-        self, node_rank: int, node_pool_size: int,
+        self,
+        node_rank: int,
+        node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves events to process.
+        Retrieves events from the source.
 
-        This function initializes the retrieval of events on a processing node and
-        starts retrieveing the events. The function is a generator and it returns an
-        iterator over the events that the calling node must process.
+        This function retrieves data events from a source. OM calls this function on
+        each processing node when it starts to  retrieve events. The function is a
+        generator and it returns an iterator over the events that the calling node
+        should process.
 
         Arguments:
 
-            node_rank (int): the rank, in the OM pool, of the processing node calling
-                the function.
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
 
-            node_pool_size (int): the total number of nodes in the OM pool, including
+            node_pool_size: The total number of nodes in the OM pool, including
                 all the processing nodes and the collecting node.
 
         Yields:
 
-            :class:`~om.utils.Dict[str, Dict[str,Any]]`: a dictionary storing the event
-            data.
+            A dictionary storing the data for the current event.
         """
         pass
 
@@ -156,12 +174,14 @@ class OmDataEventHandler(ABC):
         """
         Opens an event.
 
-        Processes an event in such a way that the data content of the event is
-        retrievable by OM (opens files, unpacks binary content, etc.)
+        This function processes a data event in such a way that the content of the
+        event is retrievable by OM. OM calls this function on each processing node
+        before the [extract_data]
+        [om.data_retrieval_layer.base.OmDataEventHandler.extract_data] function.
 
         Arguments:
 
-            event (Dict[str, Any]): a dictionary storing the event data.
+            event: A dictionary storing the event data.
         """
         pass
 
@@ -170,58 +190,62 @@ class OmDataEventHandler(ABC):
         """
         Closes an event.
 
-        Processes an event in such a way that the event is ready to be discared by OM
-            (closes files, frees memory, etc.)
+        This function processes a data event in such a way that the event is ready to
+        be discared by OM. OM calls this function on each processing node after the
+        [extract_data][om.data_retrieval_layer.base.OmDataEventHandler.extract_data]
+        function.
 
         Arguments:
 
-            event (Dict[str, Any]): a dictionary storing the event data.
+            event: A dictionary storing the event data.
         """
         pass
 
     @abstractmethod
     def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in an event.
+        Gets the number of detector frames in an event.
 
-        Returns the number of detector data frames in a data event.
+        This function returns the number of detector frames stored in a data event. OM
+        calls it after each data event is retrieved to determine how many frames it
+        contains.
 
         Arguments:
 
-            event (Dict[str, Any]): a dictionary storing the event data.
+            event: A dictionary storing the event data.
 
         Returns:
 
-            int: the number of frames in the event.
+            The number of frames in the event.
         """
         pass
 
     @final
-    def extract_data(self, event: Dict[str, Any],) -> Dict[str, Any]:
+    def extract_data(
+        self,
+        event: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """
-        Extracts data from an event.
+        Extracts data from a frame stored in an event.
 
-        This function calls in sequence all the Data Extraction functions, passing the
-        event to event as input to each of them. The function then returns the
-        extracted data.
+        This function extracts data from a frame stored in an event. It works by
+        calling, one after the other, all the Data Extraction Functions associated
+        with the event, passing the event itself as input to each of them. The data
+        extracted by each function is collected and returned to the caller.
+
+        After retrieving a data event, OM calls this function on each frame in the
+        event in sequence. The function is invoked each time on the full event: an
+        internal flag keeps track of which frame should be processed in any given call.
 
         Arguments:
 
-            data_extraction_funcs \
-(Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]):
-                a dictionary containing the Data Extraction functions to be called.
-
-                * Each dictionary key must define the name of a function.
-
-                * The corresponding dictionary value must store a function
-                  implementation.
+            event: A dictionary storing the event data.
 
         Returns:
 
-            Dict[str, Any]: a dictionary storing the values returned by the Data
-            Extraction functions.
+            A dictionary storing the data returned by the Data Extraction Functions.
 
-            * Each dictionary key identifies the Data Extraction function used to
+            * Each dictionary key identifies the Data Extraction Function used to
               extract the data.
 
             * The corresponding dictionary value stores the data returned by the
@@ -253,28 +277,37 @@ def filter_data_extraction_funcs(
     required_data: List[str],
 ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
     """
-    Filters the list of data extraction functions based on the required data.
+    Filters the list of Data Extraction Functions based on the required data.
 
-    This function requires as input a dictionary storing all the data extraction
-    functions supported by the Data Event Handler. It returns a smaller dictionary
-    containing only a subset of functions based on data required by the monitor.
+    This function takes a dictionary with a set of Data Extraction Functions as input,
+    in addition to a list of required data entries. It returns a dictionary containing
+    only the mimimal subset of Data Extraction Functions needed to retrieve the
+    required data.
 
     Arguments:
 
-        data_extraction_funcs (Dict[str, Callable[[Dict[str, Dict[str,Any]]], Any]]):
-            a dictionary containing the Data Extraction functions supported by the
-            Data Event Handler.
+        data_extraction_funcs: A dictionary containing a set of Data Extraction
+            Functions.
 
             * Each dictionary key must define the name of a function.
 
-            * The corresponding dictionary value must store a function implementation.
+            * The corresponding dictionary value must store the function
+              implementation.
 
-        required_data: (List[str]): a list of data items required by the monitor, used
-            to select the required Data Extraction functions.
+        required_data: A list of required data entries, used to select the necessary
+            Data Extraction Functions.
+
+    Returns:
+
+        A dictionary containing only the required Data Extraction Functions.
+
+        * Each dictionary key defines the name of a function.
+
+        * The corresponding dictionary value stores the function implementation.
     """
     required_data_extraction_funcs: Dict[
         str, Callable[[Dict[str, Dict[str, Any]]], Any]
-    ] = ({})
+    ] = {}
     func_name: str
     for func_name in required_data:
         try:

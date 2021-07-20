@@ -11,11 +11,14 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-The main OM package, which contains the whole framework.
+OM: OnDA Monitor.
+
+This is the main OnDA Monitor package. It contains the full implementation of the
+OM framework, which is subdivided into several different subpackages.
 """
-__version__ = "20.08.0.0dev"
+__version__ = "21.5.0"

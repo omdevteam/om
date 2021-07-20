@@ -11,47 +11,45 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM configuration parameter object.
+OM's configuration parameter management.
 
-This module contains a class that stores a set of configuration parameters read from a
-file. Configuration parameters can be retrieved from this class and optionally
-validated.
+This module contains a class that can be used to manage and validate a set of
+configuration parameters read from a file.
 """
 from typing import Any, TextIO
 
-import yaml
-from past.builtins import basestring  # type: ignore
+import yaml  # type: ignore
 
 from om.utils import exceptions
 
 
 class MonitorParams:
     """
-    See documentation for the '__init__' function.
+    See documentation for the `__init__` function.
     """
 
     def __init__(self, config: str) -> None:
         """
         Storage, retrieval and validation of OM monitor parameters.
 
-        This class stores a set of OM configuration parameters read from a file in
-        YAML format. The parameters are grouped together in groups and can be retrieved
-        and optionally validated.
+        This class stores a set of parameters, subdivided in groups, read from an OM
+        configuration file written in YAML format. This class has methods to retrieve,
+        and optionally validate, configuration parameters.
 
         Arguments:
 
-            config (str): the absolute or relative path to a YAML-format configuration
-                file.
+            config: The absolute or relative path to a YAML-format configuration file.
 
         Raises:
 
-            :class:`~om.utils.exceptions.OMConfigurationFileSyntaxError`: if there
-                is a syntax error in theconfiguration file.
+            OMConfigurationFileSyntaxError: A [OmConfigurationFileSyntaxError]
+                [om.utils.exceptions.OmConfigurationFileSyntaxError] is raised if there
+                is a syntax error in the configuration file.
         """
 
         self._monitor_params: Any = {}
@@ -95,35 +93,38 @@ class MonitorParams:
 
         Arguments:
 
-            group (str): the name of the parameter group in which the parameter to
-                retrieve is located.
+            group: The name of the parameter group in which the parameter to retrieve
+                is located.
 
-            parameter (str): the name of the parameter to retrieve.
+            parameter (str): The name of the parameter to retrieve.
 
-            parameter_type (Any): the type of the parameter. If a type is specified
-                here, the type of the retrieved parameter will be validated. Defaults
-                to None.
+            parameter_type: The type of the parameter. If a type is specified here, the
+                type of the retrieved parameter will be validated. Defaults to None.
 
-            required (bool): True if the parameter is strictly required and must be
-                present in the configuration file, False otherwise. Defaults to False.
+            required: True if the parameter is strictly required and must be present
+                in the configuration file, False otherwise. Defaults to False.
 
         Returns:
 
-            Any: the value of the requested parameter, or None, if the
-            parameter was not found in the configuration file (and it is not
-            required).
+            The value of the requested parameter, or None, if the parameter was not
+            found in the configuration file (and it is not required).
 
         Raises:
 
-            :class:`~om.utils.exceptions.OmMissingParameterGroupError`: if the
-                requested parameter group is not present in the configuration file.
+            OmMissingParameterGroupError: A [OmMissingParameterGroupError]
+                [om.utils.exceptions.OmMissingParameterGroupError] exception is raised
+                if the requested parameter group is not present in the configuration
+                file.
 
-            :class:`~om.utils.exceptions.OmMissingParameterError`: if the parameter
-                is required but cannot be found in the configuration file.
+            OmMissingParameterError: A [OmMissingParameterError]
+                [om.utils.exceptions.OmMissingParameterError] exception is raised if
+                the parameter is required but cannot be found in the configuration
+                file.
 
-            :class:`~om.utils.exceptions.OmWrongParameterTypeError`: if the
-                requested parameter type does not match the type of the parameter in
-                the configuration file.
+            OmWrongParameterTypeError: A [OmWrongParameterTypeError]
+                [om.utils.exceptions.OmWrongParameterTypeError] exception is raised if
+                the requested parameter type does not match the type of the parameter
+                in the configuration file.
         """
         # TODO: check types
         if group not in self._monitor_params:
@@ -139,7 +140,7 @@ class MonitorParams:
                 )
             if ret is not None and parameter_type is not None:
                 if parameter_type is str:
-                    if not isinstance(ret, basestring):
+                    if not isinstance(ret, str):
                         raise exceptions.OmWrongParameterTypeError(
                             "Wrong type for parameter {0}: should be {1}, is "
                             "{2}.".format(
@@ -178,8 +179,7 @@ class MonitorParams:
 
         Returns:
 
-            Any: a dictionary containing the parameters read from the
-            configuration file.
+            A dictionary containing the parameters read from the configuration file.
         """
         # TODO: check types
         return self._monitor_params

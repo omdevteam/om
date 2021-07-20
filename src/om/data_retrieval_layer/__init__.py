@@ -11,10 +11,15 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-The Data Retrieval Layer package.
+OM's ta Retrieval Layer package.
+
+This package contains OM's Data Retrieval Layer, with Data Event Handlers and Data
+Extraction Functions supporting several facilities. Functions and classes for different
+detectors and software frameworks are implemented in separate modules that are imported
+on-demand when OM starts.
 """

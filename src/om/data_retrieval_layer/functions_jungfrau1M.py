@@ -11,14 +11,15 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of Jungfrau 1M detector data.
+Retrieval of Jungfrau 1M detector data from files.
 
-This module contains functions that retrieve data from a Jungfrau 1M x-ray detector.
+This module contains functions that retrieve Jungfrau 1M detector data from HDF5 files
+written by the detector itself.
 """
 from typing import Any, Dict, Tuple, cast
 
@@ -27,11 +28,18 @@ import numpy  # type: ignore
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Jungfrau detector data from files.
+    Retrieves one Jungfrau 1M detector data frame from files.
+
+    This function retrieves a single Jungfrau 1M frame from a set of HDF5 files written
+    by the detector itself. It returns the frame as a 2D array storing pixel data.
+
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        numpy.ndarray: one frame of detector data.
+
+        One frame of detector data.
     """
     # Returns the data from the Jungfrau HDF5 files
     h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
@@ -53,17 +61,27 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
 
 def event_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for an event retrieved from Jungfrau.
-    Returns a label that unambiguously identifies, within an experiment, the event
-    currently being processed. For the Jungfrau detector, event identifier consists of
-    the full path to the raw data file of the first detector panel (d0) and an index of
-    the event in this file, separated by " //".
+    Gets a unique identifier for an event retrieved from a Jungfrau 1M detector.
+
+    This function returns a label that unambiguously identifies, within an experiment,
+    the data event currently being processed.
+
+    For the Jungfrau 1M detector, the label is constructed by joining the following
+    elements:
+
+    - The full path to the file containing the data for the first detector panel (d0)
+
+    - The index of the current frame within the file itself.
+
+    The two parts of the label are separated by the "//" symbol.
 
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
 
     Returns:
-        str: a unique event identifier.
+
+        A unique event identifier.
     """
     return " // ".join(
         (
@@ -75,58 +93,73 @@ def event_id(event: Dict[str, Any]) -> str:
 
 def frame_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for a Jungfrau data frame.
-    Returns a label that unambiguously identifies, within an event, the frame currently
-    being processed.
+    Gets a unique identifier for a Jungfrau 1M detector data frame.
 
-    # TODO: Add documentations.
+    This function returns a label that unambiguously identifies, within an event, the
+    frame currently being processed.
+
+    For the Jungfrau 1M detector, each event corresponds to a single detector frame.
+    The event label (returned by the [event_id]
+    [om.data_retrieval_layer.functions_jungfrau1M.event_id] function) is therefore
+    sufficient to unambiguously identify each frame. Because of this, this function
+    always returns the string "0".
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: a dictionary storing the event data.
 
     Returns:
 
-        str: a unique frame identifier (within an event).
+        A unique frame identifier (within an event).
     """
     return str(0)
 
 
 def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
-    Gets the timestamp of a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files.
-    The timestamp for an event is calculated as the creation time of the file that the
-    Jungfrau detector writes plus the time which passed between the event currently
-    being processed and the first event in the file determined from the Jungfrau
-    internal 10MHz clock.
+    Gets the timestamp of a Jungfrau 1M event.
+
+    For the Jungfrau 1M detector, the timestamp for an event, which corresponds to a
+    single detector frame, is defined according to the the creation times of the files
+    from which the frame originates. The HDF5 file containing the data for the first
+    detector panel (d0) is taken as reference. Its creation time is added to to the
+    relative timestamp difference between the first frame in the file and the one
+    being processed. The timestamp differences are determined by the detector's
+    internal clock and stored in the HDF5 files themselves.
 
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        numpy.float64: the timestamp of the event in seconds from the Epoch.
+
+        The timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
 
     file_creation_time: float = event["additional_info"]["file_creation_time"]
     jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
-    # Jungfrau internal clock frequency in Hz (may not be entirely correct)
-    jf_clock_frequency: int = 9721700
+    # Jungfrau internal clock frequency in Hz
+    jf_clock_frequency: int = 10000000
     return file_creation_time + jf_clock_value / jf_clock_frequency
 
 
 def beam_energy(event: Dict[str, Any]) -> float:
     """
-    Gets the beam energy for a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files, which do not
-    provide beam energy information. OM uses the value provided for the
-    'fallback_beam_energy_in_eV' entry in the configuration file, in the
-    'data_retrieval_layer' parameter group.
+    Gets the beam energy for a Jungfrau 1M event.
+
+    The files written by the Jungfrau 1M detector do not provide beam energy
+    information. Therefore OM uses the value provided for the
+    'fallback_beam_energy_in_eV' entry in the 'data_retrieval_layer' parameter group of
+    the configuration file.
 
     Arguments:
-        event (Dict[str, Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        float: the energy of the beam in eV.
+
+        The energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
     return cast(float, event["additional_info"]["beam_energy"])
@@ -134,15 +167,20 @@ def beam_energy(event: Dict[str, Any]) -> float:
 
 def detector_distance(event: Dict[str, Any]) -> float:
     """
-    Gets the detector distance for a Jungfrau data event.
-    OM currently supports Jungfrau data events originating from files which do not
-    provide detector distance information. OM uses the value provided for the
-    'fallback_detector_distance_in_mm' entry in the configuration file, in the
-    'data_retrieval_layer' parameter group.
+    Gets the detector distance for a Jungfrau 1M event.
+
+    The files written by the Jungfrau 1M detector do not provide detector distance
+    information. Therefore OM uses the value provided for the
+    'fallback_detector_distance_in_mm' entry in the 'data_retrieval_layer' parameter
+    group of the configuration file.
+
     Arguments:
-        event (Dict[str,Any]): a dictionary storing the event data.
+
+        event: A dictionary storing the event data.
+
     Returns:
-        float: the detector distance in mm.
+
+        The detector distance in mm.
     """
     # Returns the value previously stored in the event.
     return cast(float, event["additional_info"]["detector_distance"])

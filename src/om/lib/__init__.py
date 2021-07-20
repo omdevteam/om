@@ -11,10 +11,13 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-The peakfinder8 Cython extension.
+OM's C/C++ extensions.
+
+This package contains OM's C/C++-language extensions. Each module in this package is an
+extension compiled into a dynamic libray together with its Cython wrapper.
 """

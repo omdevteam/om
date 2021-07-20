@@ -11,14 +11,15 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-MPI-based parallelization engine for OM.
+MPI-based Parallelization Engine for OM.
 
-This module contains an MPI-based parallelization engine for OM.
+This module contains a Parallelization Engine for OM which uses the MPI communication
+rotocol to manage the communication between the nodes.
 """
 import sys
 from typing import Any, Dict, Tuple, Union
@@ -31,14 +32,16 @@ from om.processing_layer import base as process_layer_base
 from om.utils import exceptions, parameters
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
-_NOMORE: int = 998
 _DIETAG: int = 999
 _DEADTAG: int = 1000
 
 
-class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
+class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
     """
-    See documentation of the __init__ function.
+    See documentation of the `__init__` function.
+
+    Base class: [`OmParallelizationEngine`]
+    [om.parallelization_layer.base.OmParallelizationEngine]
     """
 
     def __init__(
@@ -48,14 +51,26 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        An MPI-based parallelization engine for OM.
+        MPI-based Parallelization Engine for OM.
 
-        See documentation of the constructor of the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.__init__` .
-        In the MPI implementation of the parallelization engine, the nodes communicate
-        with each other using the MPI protocol.
+        This class implements a Parallelization Engine based on the MPI protocol. It is
+        a subclass of the [OmParallelizationEngine]
+        [om.parallelization_layer.base.OmParallelizationEngine] base class. In this
+        Engine, the nodes communicate with each other using an implementation of the
+        MPI protocol supported by the Python language.
+
+        Arguments:
+
+            data_event_handler: A class defining how data events are retrieved and
+                handled.
+
+            monitor: A class defining the how the retrieved data must be processed.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
         """
-        super(MpiProcessingCollectingEngine, self).__init__(
+        super(MpiParallelizationEngine, self).__init__(
             data_event_handler=data_event_handler,
             monitor=monitor,
             monitor_parameters=monitor_parameters,
@@ -79,8 +94,13 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         """
         Starts the MPI parallelization engine.
 
-        See documentation of the function in the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.start` .
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function sets up the communication between OM's collecting and processing
+        nodes using the MPI protocol. Additionally, it manages the interaction between
+        the nodes while OM is running, receiving and dispatching data and control
+        commands over MPI channels.
         """
         if self._rank == 0:
             print(
@@ -131,7 +151,8 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
             # Flag used to make sure that the MPI messages have been processed.
             req = None
             events = self._data_event_handler.event_generator(
-                node_rank=self._rank, node_pool_size=self._mpi_size,
+                node_rank=self._rank,
+                node_pool_size=self._mpi_size,
             )
 
             event: Dict[str, Any]
@@ -154,8 +175,6 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
                 frame_offset: int
                 for frame_offset in range(-num_frames_to_process, 0):
                     current_frame: int = n_frames_in_evt + frame_offset
-                    if current_frame in self._frames_in_event_to_skip:
-                        continue
                     event["current_frame"] = current_frame
                     try:
                         data: Dict[str, Any] = self._data_event_handler.extract_data(
@@ -202,8 +221,17 @@ class MpiProcessingCollectingEngine(par_layer_base.OmParallelizationEngine):
         """
         Shuts down the MPI parallelization engine.
 
-        See documentation of the function in the base class:
-        :func:`~om.parallelization_layer.base.OmParallelizationEngine.shutdown` .
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        When OM stops, this function closes the communication between the processing
+        and collecting nodes, and manages a controlled shutdown of OM's resources,
+        terminating the MPI processes in an orderly fashion.
+
+        Arguments:
+
+            msg: Reason for shutting down the parallelization engine. Defaults to
+                "Reason not provided".
         """
         print("Shutting down:", msg)
         sys.stdout.flush()

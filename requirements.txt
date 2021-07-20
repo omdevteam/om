@@ -1,28 +1,10 @@
-# This file is part of OM.
-#
-# OM is free software: you can redistribute it and/or modify it under the terms of
-# the GNU General Public License as published by the Free Software Foundation, either
-# version 3 of the License, or (at your option) any later version.
-#
-# OM is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-# PURPOSE.  See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with OnDA.
-# If not, see <http://www.gnu.org/licenses/>.
-#
-# Copyright 2020 SLAC National Accelerator Laboratory
-#
-# Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
-# a research centre of the Helmholtz Association.
-click>=7.0
-fabio>=0.9.0
-future>=0.17.1
-h5py>=2.7.0
-mypy-extensions>=0.4.3
-numpy>=1.11.3
-pyyaml>=5.1.2
-pyzmq>=18.0.2
-scipy>=1.2.1
-typing_extensions>=3.7.4.1
-pathlib>=1.0.1;python_version<"3.4"
+click
+fabio
+h5py
+msgpack
+mypy-extensions
+numpy
+pyyaml
+pyzmq
+scipy
+typing_extensions

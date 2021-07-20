@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
@@ -32,7 +32,7 @@ else:
     ext = ".c"
 
 peakfinder8_ext = Extension(
-    name="om.lib.peakfinder8_extension.peakfinder8_extension",
+    name="om.lib.peakfinder8_extension",
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
     sources=[
@@ -46,6 +46,7 @@ peakfinder8_ext = Extension(
     ],
     language="c++",
 )
+peakfinder8_ext.cython_directives = {"embedsignature": True}
 
 if OM_USE_CYTHON:
     from Cython.Build import cythonize
@@ -58,7 +59,7 @@ version_fh = open("src/om/__init__.py", "r")
 version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
 version_fh.close()
 setup(
-    name="om",
+    name="ondamonitor",
     version=version,
     url="https://www.ondamonitor.com",
     license="GNU General Public License v3.0",
@@ -68,7 +69,7 @@ setup(
     long_description=(
         """
         OM (OnDA Monitor) is a software framework for the development of
-        programs that can monitor of X-ray imaging experiments in real-time.
+        programs that can monitor of x-ray imaging experiments in real-time.
 
         It is the spiritual successor of the OnDA project and it is mantained mostly
         by the same team of developers.
@@ -102,24 +103,35 @@ setup(
         """
     ),
     install_requires=[
-        "click>=7.0",
-        "fabio>=0.9.0",
-        "future>=0.17.1",
-        "h5py>=2.7.0",
-        "msgpack-python>=0.4.8",
-        "msgpack-numpy>=0.4.1",
-        "mypy-extensions>=0.4.3",
-        "numpy>=1.11.3",
-        "pyyaml>=5.1.2",
-        "pyzmq>=18.0.2",
-        "scipy>=1.2.1",
-        "typing_extensions>=3.7.4.1",
+        "click",
+        "fabio",
+        "h5py",
+        "msgpack",
+        "mypy-extensions",
+        "numpy",
+        "pyyaml",
+        "pyzmq",
+        "scipy",
+        "typing_extensions",
     ],
-    extras_require={":python_version < '3.4'": ["pathlib>=1.0.1"]},
-    entry_points={"console_scripts": ["om_monitor.py=om.monitor:main"]},
+    extras_require={
+        "qt": ["pyqt5", "pyqtgraph"],
+        "docs": ["mkdocs", "mkdocstring", "mkdocs-click", "mkdocs-material"],
+    },
+    entry_points={
+        "console_scripts": ["om_monitor.py=om.monitor:main"],
+        "gui_scripts": [
+            "om_crystallography_gui.py=om.graphical_interfaces."
+            "crystallography_gui:main",
+            "om_crystallography_frame_viewer.py=om.graphical_interfaces."
+            "crystallography_frame_viewer:main",
+            "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
+            "crystallography_parameter_tweaker:main",
+        ],
+    },
     ext_modules=extensions,
-    package_dir={"": "src"},
     packages=find_packages(where="src"),
+    package_dir={"": "src"},
     include_package_data=True,
     platforms="any",
     classifiers=[

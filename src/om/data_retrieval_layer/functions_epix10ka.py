@@ -11,14 +11,15 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of EPIX 2M detector data.
+Retrieval of EPIX 2M detector data from psana.
 
-This module contains functions that retrieve data from a EPIX 2M x-ray detector.
+This module contains functions that retrieve EPIX 10K 2M detector data from the psana
+software framework (used at the LCLS facility).
 """
 from typing import Any, Dict
 
@@ -29,15 +30,18 @@ from om.utils import exceptions
 
 def epixka2m_detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of CSPAD detector data from psana.
+    Retrieves a Epix10KA 2M detector data frame from psana.
+
+    This function retrieves a single EPIX10KA 2M detector frame from psana. It returns
+    the frame as a 2D array storing pixel data.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        One frame of detector data.
     """
     epixka2m_psana: numpy.ndarray = event["additional_info"][
         "psana_detector_interface"

@@ -11,14 +11,16 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 SLAC National Accelerator Laboratory
+# Copyright 2020 -2021 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of Pilatus detector data.
+Retrieval of Pilatus detector data from files or HiDRA.
 
-This module contains functions that retrieve data from a Pilatus x-ray detector.
+This module contains functions that retrieve Pilatus detector data from CBF files
+written by the detector itself, or from the HiDRA software framework (used at the Petra
+III facility).
 """
 from typing import Any, Dict, cast
 
@@ -27,15 +29,18 @@ import numpy  # type: ignore
 
 def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     """
-    Retrieves one frame of Pilatus detector data from files (or HiDRA).
+    Retrieves one Pilatus detector data frame from files or HiDRA.
+
+    This function retrieves a single Pilatus detector frame from files or HiDRA. It
+    returns the frame as a 2D array storing pixel data.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.ndarray: one frame of detector data.
+        One frame of detector data.
     """
     # Returns the data from the fabio cbf_obj object previously stored in the event.
     return event["data"].data
@@ -43,39 +48,39 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
 
 def event_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for an event retrieved from Pilatus.
+    Gets a unique identifier for an event retrieved from a Pilatus detector.
 
-    Returns a label that unambiguously identifies, within an experiment, the event
-    currently being processed. For the Pilatus detector, an event corresponds to a
-    single CBF file, and the full path to the file is used as identifier.
+    This function returns a label that unambiguously identifies, within an experiment,
+    the event currently being processed. For the Pilatus detector, each HiDRA or file
+    event corresponds to a single CBF data file and the full path to the file is used
+    as a label.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        str: a unique event identifier.
+        A unique event identifier.
     """
     return cast(str, event["additional_info"]["full_path"])
 
 
 def frame_id(event: Dict[str, Any]) -> str:
     """
-    Gets a unique identifier for a Pilatus data frame.
+    Gets a unique identifier for a Pilatus detector data frame.
 
-    Returns a label that unambiguously identifies, within an event, the frame currently
-    being processed. For the Pilatus detector, the index of the frame within the event
-    is used as identifier. However, each Pilatus event only contains one frame, so this
-    function always returns the string "0".
+    This function returns a label that unambiguously identifies, within an event, the
+    frame currently being processed. Each Pilatus event only contains one frame,
+    therefore this function always returns the string "0".
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        str: a unique frame identifier (within an event).
+        A unique frame identifier (within an event).
     """
     return str(0)
 
@@ -84,18 +89,17 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of a Pilatus data event.
 
-    OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. In both cases, the creation
-    date and time of data file that the Pilatus detector writes is used as timestamp
-    for the event.
+    For the Pilatus detector, each HiDRA or file event corresponds to a single CBF data
+    file: the creation time of the file, retrieved from the filesystem or HiDRA, is
+    used as a timestamp for the event.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        numpy.float64: the timestamp of the event in seconds from the Epoch.
+        The timestamp of the event in seconds from the Epoch.
     """
     # Returns the file creation time previously stored in the event.
     return cast(numpy.float64, event["additional_info"]["file_creation_time"])
@@ -103,20 +107,20 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
 
 def beam_energy(event: Dict[str, Any]) -> float:
     """
-    Gets the beam energy for a Pilatus data event.
+    Gets the beam energy for a Pilatus event.
 
-    OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. Neither provide beam energy
-    information. OM uses the value provided for the 'fallback_beam_energy_in_eV' entry
-    in the configuration file, in the 'data_retrieval_layer' parameter group.
+    Files written by the Pilatus detector and Pilatus data events retrieved from HiDRA
+    usually do not provide beam energy information. OM uses the value provided for the
+    'fallback_beam_energy_in_eV' entry in the 'data_retrieval_layer' parameter group of
+    the configuration file.
 
     Arguments:
 
-        event (Dict[str, Any]): a dictionary storing the event data.
+        event: A dictionary storing the event data.
 
     Returns:
 
-        float: the energy of the beam in eV.
+        The energy of the beam in eV.
     """
     # Returns the value previously stored in the event.
     return cast(float, event["additional_info"]["beam_energy"])
@@ -126,11 +130,10 @@ def detector_distance(event: Dict[str, Any]) -> float:
     """
     Gets the detector distance for a Pilatus data event.
 
-    OM currently supports Pilatus data events originating from files or recovered from
-    HiDRA at the P11 beamline of the Petra III facility. Neither provide detector
-    distance information. OM uses the value provided for the
-    'fallback_detector_distance_in_mm' entry in the configuration file, in the
-    'data_retrieval_layer' parameter group.
+    Files written by the Pilatus detector and Pilatus data events retrieved from HiDRA
+    usually do not provide beam energy information.  OM uses the value provided for the
+    'fallback_detector_distance_in_mm' entry in the 'data_retrieval_layer' parameter
+    group of the configuration file.
 
     Arguments:
 
