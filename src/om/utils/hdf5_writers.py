@@ -31,7 +31,7 @@ import numpy  # type: ignore
 from typing_extensions import Literal
 
 from om.algorithms import crystallography as cryst_algs
-from om.utils.crystfel_geometry import TypeDetector
+from om.utils import crystfel_geometry, exceptions
 
 
 class HDF5Writer:
@@ -43,7 +43,7 @@ class HDF5Writer:
         self,
         directory_for_processed_data: str,
         node_rank: int,
-        geometry: TypeDetector,
+        geometry: crystfel_geometry.TypeDetector,
         compression: Union[str, None],
         detector_data_type: Union[str, None],
         detector_data_shape: Tuple[int, int],
@@ -252,9 +252,7 @@ class HDF5Writer:
         self._num_frames: int = 0
 
     def _create_extra_datasets(
-        self,
-        group_name: str,
-        extra_data: Dict[str, Any]
+        self, group_name: str, extra_data: Dict[str, Any]
     ) -> None:
         # Creates empty dataset in the extra data group for each item in extra_data dict
         # using dict keys as dataset names. Supported data types: numpy.ndarray, str,
@@ -263,45 +261,43 @@ class HDF5Writer:
         value: Any
         for key, value in extra_data.items():
             if isinstance(value, numpy.ndarray):
-                self._resizable_datasets[
-                    group_name + "/" + key
-                ] = self._extra_groups[group_name].create_dataset(
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
                     name=key,
                     shape=(0, *value.shape),
                     maxshape=(None, *value.shape),
                     dtype=value.dtype,
                 )
             elif isinstance(value, str):
-                self._resizable_datasets[
-                    group_name + "/" + key
-                ] = self._extra_groups[group_name].create_dataset(
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
                     name=key,
                     shape=(0,),
                     maxshape=(None,),
                     dtype=h5py.special_dtype(vlen=str),
                 )
             elif (
-                numpy.issubdtype(type(value), numpy.integer) or
-                numpy.issubdtype(type(value), numpy.floating) or
-                numpy.issubdtype(type(value), numpy.bool_)
+                numpy.issubdtype(type(value), numpy.integer)
+                or numpy.issubdtype(type(value), numpy.floating)
+                or numpy.issubdtype(type(value), numpy.bool_)
             ):
-                self._resizable_datasets[
-                    group_name + "/" + key
-                ] = self._extra_groups[group_name].create_dataset(
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
                     name=key,
                     shape=(0,),
                     maxshape=(None,),
                     dtype=type(value),
                 )
             else:
-                # TODO: raise exception?
-                pass
+                raise exceptions.OmHdf5UnsupportedDataFormat(
+                    "Cannot write the '{}' data entry into the output HDF5: "
+                    "its format is not supported."
+                )
 
-    def _write_extra_data(
-        self,
-        group_name: str,
-        extra_data: Dict[str, Any]
-    ) -> None:
+    def _write_extra_data(self, group_name: str, extra_data: Dict[str, Any]) -> None:
         key: str
         value: Any
         for key, value in extra_data.items():
@@ -323,8 +319,7 @@ class HDF5Writer:
             for extra_group_name in self._extra_groups:
                 if extra_group_name in fields:
                     self._create_extra_datasets(
-                        extra_group_name,
-                        processed_data[extra_group_name]
+                        extra_group_name, processed_data[extra_group_name]
                     )
 
         self._resize_datasets()

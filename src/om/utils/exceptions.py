@@ -67,6 +67,14 @@ class OmHdf5FileReadingError(OmException):
     """
 
 
+class OmHdf5UnsupportedDataFormat(OmException):
+    """
+    Raised when trying to write an unsupported data format into an HDF5 file.
+
+    Base class: [`OmException`][om.utils.exceptions.OmException]
+    """
+
+
 class OmHdf5PathError(OmException):
     """
     Raised if an internal HDF5 path is not found.
