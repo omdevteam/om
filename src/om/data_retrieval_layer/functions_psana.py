@@ -163,62 +163,6 @@ def timetool_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     )
 
 
-def digitizer_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
-    """
-    Initializes the psana Detector interface for digitizer data at LCLS.
-
-    This function initializes the Detector interface for the digitizer identified by
-    the 'psana_digitizer_name' entry in the 'data_retrieval_layer' parameter group of
-    the configuration file.
-
-    Arguments:
-
-        monitor_parameters: A [MonitorParams]
-            [om.utils.parameters.MonitorParams] object storing the OM monitor
-            parameters from the configuration file.
-
-    Returns:
-
-        A psana object that can be used later to retrieve the data.
-    """
-    return psana.Detector(
-        monitor_parameters.get_param(
-            group="data_retrieval_layer",
-            parameter="psana_digitizer_name",
-            parameter_type=str,
-            required=True,
-        )
-    )
-
-
-def opal_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
-    """
-    Initializes the psana Detector interface for Opal camera data at LCLS.
-
-    This function initialize the Detector interface for the Opal camera identified by
-    the 'psana_opal_name' entry in the 'data_retrieval_layer' parameter group of the
-    configuration file.
-
-    Arguments:
-
-        monitor_parameters: A [MonitorParams]
-            [om.utils.parameters.MonitorParams] object storing the OM monitor
-            parameters from the configuration file.
-
-    Returns:
-
-        A psana object that can be used later to retrieve the data.
-    """
-    return psana.Detector(
-        monitor_parameters.get_param(
-            group="data_retrieval_layer",
-            parameter="psana_opal_name",
-            parameter_type=str,
-            required=True,
-        )
-    )
-
-
 def optical_laser_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for an optical laser at LCLS.
@@ -327,8 +271,8 @@ def lcls_extra_init(monitor_parameters: parameters.MonitorParams) -> Any:
       data identifier in the LCLS's data system (digitizer name, epics variable name),
       and the name to use for the recovered data.
 
-    * The following type of data are currently supported: "wave8_total_intensity" and
-      "epics_pv".
+    * The following types of data are currently supported: "wave8_total_intensity",
+      "acqiris_waveform" and "epics_pv".
 
     Arguments:
 
@@ -369,9 +313,14 @@ def lcls_extra_init(monitor_parameters: parameters.MonitorParams) -> Any:
             name: str
             data_type, identifier, name = data_item
 
-            if data_type not in ("epics_pv, " "wave8_total_intensity"):
+            if data_type not in (
+                "acqiris_waveform",
+                "epics_pv",
+                "wave8_total_intensity",
+            ):
                 raise exceptions.OmWrongParameterTypeError(
-                    "The requested '{}' LCLS-specific data type is not supported."
+                    "The requested '{}' LCLS-specific data type is not "
+                    "supported.".format(data_type)
                 )
 
             detector_interfaces.append(psana.Detector(identifier))
@@ -501,61 +450,6 @@ def timetool_data(event: Dict[str, Any]) -> float:
         )
 
     return time_tl
-
-
-def digitizer_data(event: Dict[str, Any]) -> numpy.ndarray:
-    """
-    Get digitizer data for an event retrieved from psana at LCLS.
-
-    This function retrieves data from the digitizer identified by the
-    'psana_digitizer_name' entry in the 'data_retrieval_layer' parameter group of the
-    configuration file.
-
-    Arguments:
-
-        event: A dictionary storing the event data.
-
-    Returns:
-
-        The waveform from the digitizer.
-    """
-    # TODO: Determine return type
-    digit_data: Union[numpy.ndarray, None] = event["additional_info"][
-        "psana_detector_interface"
-    ]["digitizer_data"].waveform(event["data"])
-    if digit_data is None:
-        raise exceptions.OmDataExtractionError(
-            "Could not retrieve digitizer data from psana."
-        )
-
-    return digit_data
-
-
-def opal_data(event: Dict[str, Any]) -> numpy.ndarray:
-    """
-    Gets Opal camera data for an event retrieved from psana at LCLS.
-
-    This function retrieves data from the Opal camera identified by the
-    'psana_opal_name' entry in the 'data_retrieval_layer' parameter group of the
-    configuration file  .
-
-    Arguments:
-
-        event: A dictionary storing the event data.
-
-    Returns:
-
-        A 2D array containing the image from the Opal camera.
-    """
-    op_data: Union[numpy.ndarray, None] = event["additional_info"][
-        "psana_detector_interface"
-    ]["opal_data"].calib(event["data"])
-    if op_data is None:
-        raise exceptions.OmDataExtractionError(
-            "Could not retrieve Opel camera data from psana."
-        )
-
-    return op_data
 
 
 def optical_laser_active(event: Dict[str, Any]) -> bool:
@@ -716,9 +610,13 @@ def lcls_extra(event: Dict[str, Any]) -> Dict[str, Any]:
             data_value: Any = detector_interface()
         elif data_type == "wave8_total_intensity":
             data_value = detector_interface.get(event["data"]).TotalIntensity()
+        elif data_type == "acqiris_waveform":
+            data_value = detector_interface.waveform(event["data"])
         if data_value is None:
             raise exceptions.OmDataExtractionError(
-                "Could not retrieve event codes from psana."
+                "Could not retrieve the '{}' LCLS-specific data from psana.".format(
+                    name
+                )
             )
         lcls_extra[name] = data_value
 
