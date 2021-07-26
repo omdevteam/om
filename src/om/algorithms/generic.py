@@ -23,7 +23,7 @@ operations that are not tied to a specific experimental technique (e.g.: detecto
 masking and correction, data accumulation, etc.).
 """
 import sys
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Tuple
 
 import h5py  # type:ignore
 import numpy  # type: ignore
@@ -261,3 +261,47 @@ class DataAccumulator:
             return data_to_return
 
         return None
+
+
+class RadialAverage:
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        radius_pixel_map: numpy.ndarray,
+        mask: Union[numpy.ndarray, None],
+        bin_size: float = 1,
+    ) -> None:
+        """
+        
+        """
+        if mask is None:
+            mask = numpy.ones(radius_pixel_map.shape, dtype=numpy.int)
+
+        self._radii: numpy.ndarray = numpy.arange(
+            0,
+            radius_pixel_map.max() + bin_size,
+            bin_size
+        )
+        r: float
+        self._where_bins: List[Tuple[numpy.ndarray, ...]] = [
+            numpy.where(
+                (radius_pixel_map > r - bin_size/2) &
+                (radius_pixel_map <= r + bin_size/2) &
+                (mask == 1)
+            ) for r in self._radii
+        ]
+
+    def calculate(
+        self,
+        data: numpy.ndarray
+    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        """
+
+        """
+        radial_average: List[float] = [numpy.mean(data[w]) for w in self._where_bins]
+        return numpy.array(radial_average), self._radii
+
+    
