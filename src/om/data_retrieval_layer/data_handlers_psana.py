@@ -24,6 +24,7 @@ framework (used at the LCLS facility).
 from typing import Any, Callable, Dict, Generator, List
 
 import numpy  # type: ignore
+from mypy_extensions import NamedArg
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import (
@@ -44,7 +45,7 @@ except ImportError:
 
 
 def _psana_offline_event_generator(
-    psana_source: Any, node_rank: int, mpi_pool_size: int
+    *, psana_source: Any, node_rank: int, mpi_pool_size: int
 ) -> Any:
     # Computes how many events the current processing node should process. Splits the
     # events as equally as possible amongst the processing nodes. If the number of
@@ -74,6 +75,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
     def __init__(
         self,
+        *,
         monitor_parameters: parameters.MonitorParams,
         source: str,
     ) -> None:
@@ -120,7 +122,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         )
 
     def initialize_event_handling_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes psana event handling on the collecting node.
@@ -180,7 +182,8 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         )
 
         self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
-            self.data_extraction_funcs, required_data
+            data_extraction_funcs=self.data_extraction_funcs,
+            required_data=required_data,
         )
 
         self._required_psana_detector_init_funcs: Dict[
@@ -225,6 +228,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
     def event_generator(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
@@ -298,7 +302,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         for f_name, func in self._required_psana_detector_init_funcs.items():
             data_event["additional_info"]["psana_detector_interface"][
                 f_name.split("_init")[0]
-            ] = func(self._monitor_params)
+            ] = func(monitor_parameters=self._monitor_params)
 
         # Initializes the psana event source and starts retrieving events.
         if offline:
@@ -323,7 +327,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
             yield data_event
 
-    def open_event(self, event: Dict[str, Any]) -> None:
+    def open_event(self, *, event: Dict[str, Any]) -> None:
         """
         Opens a psana event.
 
@@ -338,7 +342,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         pass
 
-    def close_event(self, event: Dict[str, Any]) -> None:
+    def close_event(self, *, event: Dict[str, Any]) -> None:
         """
         Closes a psana event.
 
@@ -353,7 +357,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         """
         pass
 
-    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
+    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in a psana event.
 
@@ -382,7 +386,7 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
     [om.data_retrieval_layer.data_handlers_psana.LclsBaseDataEventHandler]
     """
 
-    def __init__(self, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
         """
         Data Event Handler for events retrieved from psana at CXI with CSPAD (LCLS).
 
@@ -407,7 +411,7 @@ class CxiLclsCspadDataEventHandler(LclsBaseDataEventHandler):
     @property
     def data_extraction_funcs(
         self,
-    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
+    ) -> Dict[str, Callable[[NamedArg(Dict[str, Any], "event")], Any]]:
         """
         Retrieves the Data Extraction Functions for CXI psana events (CSPAD).
 
@@ -446,7 +450,7 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str
+        self, *, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
         Data Event Handler for events retrieved from psana at CXI (LCLS).
@@ -469,7 +473,9 @@ class CxiLclsDataEventHandler(LclsBaseDataEventHandler):
         )
 
     @property
-    def data_extraction_funcs(self) -> Dict[str, Callable[[Dict[str, Any]], Any]]:
+    def data_extraction_funcs(
+        self,
+    ) -> Dict[str, Callable[[NamedArg(Dict[str, Any], "event")], Any]]:
         """
         Retrieves the Data Extraction Functions for CXI psana events.
 
@@ -508,7 +514,7 @@ class MfxLclsDataEventHandler(LclsBaseDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str
+        self, *, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
         Data Event Handler for events retrieved from psana at MFX (LCLS).
@@ -570,7 +576,7 @@ class MfxLclsRayonixDataEventHandler(LclsBaseDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str
+        self, *, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
         Data Event Handler for events retrieved from psana at MFX with Rayonix (LCLS).

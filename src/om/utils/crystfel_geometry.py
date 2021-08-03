@@ -363,7 +363,7 @@ class TypePixelMaps(TypedDict):
     phi: Union[numpy.ndarray, None]
 
 
-def _assplode_algebraic(value: str) -> List[str]:
+def _assplode_algebraic(*, value: str) -> List[str]:
     # Re-implementation of assplode_algebraic from
     # /src/detector.c.
     items: List[str] = [
@@ -375,7 +375,7 @@ def _assplode_algebraic(value: str) -> List[str]:
 
 
 def _dir_conv(
-    direction_x: float, direction_y: float, direction_z: float, value: str
+    *, direction_x: float, direction_y: float, direction_z: float, value: str
 ) -> List[float]:
     # Re-implementation of dir_conv from libcrystfel/src/detector.c.
     direction: List[float] = [
@@ -383,7 +383,7 @@ def _dir_conv(
         direction_y,
         direction_z,
     ]
-    items: List[str] = _assplode_algebraic(value)
+    items: List[str] = _assplode_algebraic(value=value)
     if not items:
         raise RuntimeError("Invalid direction: {}.".format(value))
     item: str
@@ -407,7 +407,7 @@ def _dir_conv(
     return direction
 
 
-def _set_dim_structure_entry(key: str, value: str, panel: TypePanel) -> None:
+def _set_dim_structure_entry(*, key: str, value: str, panel: TypePanel) -> None:
     # Re-implementation of set_dim_structure_entry from libcrystfel/src/events.c.
     if panel["dim_structure"] is not None:
         dim: List[Union[int, str, None]] = panel["dim_structure"]
@@ -432,6 +432,7 @@ def _set_dim_structure_entry(key: str, value: str, panel: TypePanel) -> None:
 
 
 def _parse_field_for_panel(  # noqa: C901
+    *,
     key: str,
     value: str,
     panel: TypePanel,
@@ -546,6 +547,7 @@ def _parse_field_for_panel(  # noqa: C901
 
 
 def _parse_toplevel(  # noqa: C901
+    *,
     key: str,
     value: str,
     detector: TypeDetector,
@@ -589,7 +591,7 @@ def _parse_toplevel(  # noqa: C901
     return hdf5_peak_path
 
 
-def _check_bad_fsss(bad_region: TypeBadRegion, is_fsss: int) -> None:
+def _check_bad_fsss(*, bad_region: TypeBadRegion, is_fsss: int) -> None:
     # Re-implementation of check_bad_fsss from libcrystfel/src/detector.c.
     if bad_region["is_fsss"] == 99:
         bad_region["is_fsss"] = is_fsss
@@ -599,7 +601,7 @@ def _check_bad_fsss(bad_region: TypeBadRegion, is_fsss: int) -> None:
         raise RuntimeError("You can't mix x/y and fs/ss in a bad region")
 
 
-def _parse_field_bad(key: str, value: str, bad: TypeBadRegion) -> None:
+def _parse_field_bad(*, key: str, value: str, bad: TypeBadRegion) -> None:
     # Re-implementation of parse_field_bad from libcrystfel/src/detector.c.
     if key == "min_x":
         bad["min_x"] = float(value)
@@ -632,6 +634,7 @@ def _parse_field_bad(key: str, value: str, bad: TypeBadRegion) -> None:
 
 
 def _check_point(
+    *,
     panel_name: str,
     panel: TypePanel,
     fs: int,
@@ -660,7 +663,7 @@ def _check_point(
     return min_d, max_d
 
 
-def _find_min_max_d(detector: TypeDetector) -> None:
+def _find_min_max_d(*, detector: TypeDetector) -> None:
     # Re-implementation of find_min_max_d from libcrystfel/src/detector.c.
     min_d: float = float("inf")
     max_d: float = 0.0
@@ -706,6 +709,7 @@ def _find_min_max_d(detector: TypeDetector) -> None:
 
 
 def load_crystfel_geometry(  # noqa: C901
+    *,
     filename: str,
 ) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
     """
@@ -1049,7 +1053,7 @@ def load_crystfel_geometry(  # noqa: C901
                 panel["yfs"] = panel["ssx"] / d
                 panel["xss"] = panel["fsy"] / d
                 panel["yss"] = panel["fsx"] / d
-            _find_min_max_d(detector)
+            _find_min_max_d(detector=detector)
     except (IOError, OSError) as exc:
         # TODO: Fix type check
         exc_type, exc_value = sys.exc_info()[:2]
@@ -1065,7 +1069,7 @@ def load_crystfel_geometry(  # noqa: C901
     return detector, beam, hdf5_peak_path
 
 
-def compute_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
+def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     """
     Computes pixel maps from CrystFEL geometry information.
 
@@ -1191,7 +1195,7 @@ def compute_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
     }
 
 
-def compute_visualization_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
+def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     """
     Computes pixel maps for data visualization from CrystFEL geometry information.
 
@@ -1226,7 +1230,7 @@ def compute_visualization_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
     # of the image that will be displayed. Computes the size of the array needed to
     # display the data, then use this information to estimate the magnitude of the
     # shift.
-    pixel_maps: TypePixelMaps = compute_pix_maps(geometry)
+    pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
     x_map: numpy.ndarray
     y_map: numpy.ndarray
     x_map, y_map = (
@@ -1253,7 +1257,7 @@ def compute_visualization_pix_maps(geometry: TypeDetector) -> TypePixelMaps:
 
 
 def apply_geometry_to_data(
-    data: numpy.ndarray, geometry: TypeDetector
+    *, data: numpy.ndarray, geometry: TypeDetector
 ) -> numpy.ndarray:
     """
     Applies CrystFEL geometry information to some data.
@@ -1283,7 +1287,7 @@ def apply_geometry_to_data(
 
         An array containing the data with the geometry information applied.
     """
-    pixel_maps: TypePixelMaps = compute_pix_maps(geometry)
+    pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
     x_map: numpy.ndarray
     y_map: numpy.ndarray
     x_map, y_map = (
@@ -1294,7 +1298,7 @@ def apply_geometry_to_data(
     x_minimum: int = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
     min_shape: Tuple[int, int] = (y_minimum, x_minimum)
     visualization_array: numpy.ndarray = numpy.zeros(min_shape, dtype=float)
-    visual_pixel_maps: TypePixelMaps = compute_visualization_pix_maps(geometry)
+    visual_pixel_maps: TypePixelMaps = compute_visualization_pix_maps(geometry=geometry)
     visualization_array[
         visual_pixel_maps["y"].flatten(), visual_pixel_maps["x"].flatten()
     ] = data.ravel().astype(visualization_array.dtype)

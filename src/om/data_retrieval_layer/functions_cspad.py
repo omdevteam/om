@@ -28,7 +28,7 @@ import numpy  # type: ignore
 from om.utils import exceptions
 
 
-def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
+def detector_data(*, event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves a CSPAD detector data frame from psana.
 

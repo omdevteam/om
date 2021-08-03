@@ -24,9 +24,9 @@ import sys
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Any, Callable, Dict, Generator, List
 
-from typing_extensions import final
-
+from mypy_extensions import NamedArg
 from om.utils import exceptions, parameters
+from typing_extensions import final
 
 
 class OmDataEventHandler(ABC):
@@ -38,6 +38,7 @@ class OmDataEventHandler(ABC):
 
     def __init__(
         self,
+        *,
         source: str,
         monitor_parameters: parameters.MonitorParams,
         additional_info: Dict[str, Any] = {},
@@ -74,7 +75,7 @@ class OmDataEventHandler(ABC):
     @abstractproperty
     def data_extraction_funcs(
         self,
-    ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
+    ) -> Dict[str, Callable[[NamedArg(Dict[str, Any], "event")], Any]]:
         """
         Data Extraction Functions for the Data Event Handler.
 
@@ -94,7 +95,7 @@ class OmDataEventHandler(ABC):
 
     @abstractmethod
     def initialize_event_handling_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes event handling on the collecting node.
@@ -119,7 +120,7 @@ class OmDataEventHandler(ABC):
 
     @abstractmethod
     def initialize_event_handling_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes event handling on a processing node.
@@ -144,6 +145,7 @@ class OmDataEventHandler(ABC):
     @abstractmethod
     def event_generator(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
@@ -170,7 +172,7 @@ class OmDataEventHandler(ABC):
         pass
 
     @abstractmethod
-    def open_event(self, event: Dict[str, Any]) -> None:
+    def open_event(self, *, event: Dict[str, Any]) -> None:
         """
         Opens an event.
 
@@ -186,7 +188,7 @@ class OmDataEventHandler(ABC):
         pass
 
     @abstractmethod
-    def close_event(self, event: Dict[str, Any]) -> None:
+    def close_event(self, *, event: Dict[str, Any]) -> None:
         """
         Closes an event.
 
@@ -202,7 +204,7 @@ class OmDataEventHandler(ABC):
         pass
 
     @abstractmethod
-    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
+    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
         """
         Gets the number of detector frames in an event.
 
@@ -223,6 +225,7 @@ class OmDataEventHandler(ABC):
     @final
     def extract_data(
         self,
+        *,
         event: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
@@ -256,7 +259,7 @@ class OmDataEventHandler(ABC):
         func: Callable[[Dict[str, Dict[str, Any]]], Any]
         for f_name, func in event["data_extraction_funcs"].items():
             try:
-                data[f_name] = func(event)
+                data[f_name] = func(event=event)
             # One should never do the following, but it is not possible to anticipate
             # every possible error raised by the facility frameworks.
             except Exception:
@@ -273,6 +276,7 @@ class OmDataEventHandler(ABC):
 
 
 def filter_data_extraction_funcs(
+    *,
     data_extraction_funcs: Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]],
     required_data: List[str],
 ) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:

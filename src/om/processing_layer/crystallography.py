@@ -50,7 +50,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
     Base class: [`OmMonitor`][om.processing_layer.base.OmMonitor]
     """
 
-    def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
         OnDA real-time Monitor for serial x-ray crystallography experiments.
 
@@ -77,7 +77,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             monitor_parameters=monitor_parameters
         )
 
-    def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the OM processing nodes for the Crystallography Monitor.
 
@@ -104,8 +106,12 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         geometry: crystfel_geometry.TypeDetector
         _: Any
         __: Any
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(geometry)
+        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            filename=geometry_filename
+        )
+        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(
+            geometry=geometry
+        )
 
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
@@ -138,7 +144,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         )
 
         pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
-            self._monitor_params.get_param(
+            detector_type=self._monitor_params.get_param(
                 group="peakfinder8_peak_detection",
                 parameter="detector_type",
                 parameter_type=str,
@@ -282,7 +288,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         print("Processing node {0} starting.".format(node_rank))
         sys.stdout.flush()
 
-    def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the OM collecting node for the Crystallography Monitor.
 
@@ -330,9 +338,9 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         )
         geometry: TypeDetector
         self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
-            geometry_filename
+            filename=geometry_filename
         )
-        self._pixelmaps = crystfel_geometry.compute_pix_maps(self._geometry)
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
 
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
@@ -425,7 +433,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def process_data(
-        self, node_rank: int, node_pool_size: int, data: Dict[str, Any]
+        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
         Processes a detector data frame and extracts Bragg peak information.
@@ -465,7 +473,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             data=data["detector_data"]
         )
         peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
-            corrected_detector_data
+            data=corrected_detector_data
         )
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
@@ -511,6 +519,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
     def collect_data(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
@@ -558,7 +567,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                         },
                         use_bin_type=True,
                     )
-                    self._responding_socket.send_data(message)
+                    self._responding_socket.send_data(message=message)
                 else:
                     print("OM Warning: Could not understand request '{}'.")
 
@@ -617,7 +626,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 )
 
                 self._data_broadcast_socket.send_data(
-                    tag=u"view:omframedata",
+                    tag="view:omframedata",
                     message={
                         "frame_data": self._frame_data_img,
                         "timestamp": received_data["timestamp"],
@@ -626,7 +635,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                     },
                 )
                 self._data_broadcast_socket.send_data(
-                    tag=u"view:omtweakingdata",
+                    tag="view:omtweakingdata",
                     message={
                         "detector_data": received_data["detector_data"],
                         "timestamp": received_data["timestamp"],
@@ -651,7 +660,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             self._old_time = now_time
 
     def end_processing_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing actions on the processing nodes.
@@ -680,7 +689,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def end_processing_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing on the collecting node.

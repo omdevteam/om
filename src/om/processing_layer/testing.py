@@ -35,7 +35,7 @@ class TestMonitor(process_layer_base.OmMonitor):
     Base class: [`OmMonitor`][om.processing_layer.base.OmMonitor]
     """
 
-    def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
         OnDA real-time Test Monitor.
 
@@ -53,7 +53,9 @@ class TestMonitor(process_layer_base.OmMonitor):
         """
         super(TestMonitor, self).__init__(monitor_parameters=monitor_parameters)
 
-    def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the OM processing nodes for the Test Monitor.
 
@@ -74,7 +76,9 @@ class TestMonitor(process_layer_base.OmMonitor):
         print("Processing node {0} starting.".format(node_rank))
         sys.stdout.flush()
 
-    def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the OM collecting node for the Test Monitor.
 
@@ -127,7 +131,7 @@ class TestMonitor(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def process_data(
-        self, node_rank: int, node_pool_size: int, data: Dict[str, Any]
+        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
         Processes a data event.
@@ -172,6 +176,7 @@ class TestMonitor(process_layer_base.OmMonitor):
 
     def collect_data(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
@@ -232,7 +237,7 @@ class TestMonitor(process_layer_base.OmMonitor):
             self._old_time = now_time
 
     def end_processing_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing actions on the processing nodes.
@@ -261,7 +266,7 @@ class TestMonitor(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def end_processing_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing on the collecting node.

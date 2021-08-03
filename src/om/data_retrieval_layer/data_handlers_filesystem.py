@@ -49,7 +49,7 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str
+        self, *, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
         Base Data Event Handler class for events retrieved from files.
@@ -73,7 +73,7 @@ class FilesBaseDataEventHandler(drl_base.OmDataEventHandler):
         )
 
     def initialize_event_handling_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes file event handling on the collecting node.
@@ -108,7 +108,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str
+        self, *, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
         Data Event Handler for Pilatus files.
@@ -165,7 +165,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         }
 
     def initialize_event_handling_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes Pilatus file event handling on the processing nodes.
@@ -195,7 +195,8 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         self._required_data_extraction_funcs: Dict[
             str, Callable[[Dict[str, Dict[str, Any]]], Any]
         ] = drl_base.filter_data_extraction_funcs(
-            self.data_extraction_funcs, required_data
+            data_extraction_funcs=self.data_extraction_funcs,
+            required_data=required_data,
         )
 
         # Fills the event info dictionary with static data that will be retrieved
@@ -229,6 +230,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
 
     def event_generator(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
@@ -291,7 +293,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
 
             yield data_event
 
-    def open_event(self, event: Dict[str, Any]) -> None:
+    def open_event(self, *, event: Dict[str, Any]) -> None:
         """
         Opens a Pilatus file event.
 
@@ -307,7 +309,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         event["data"] = fabio.open(event["additional_info"]["full_path"])
 
-    def close_event(self, event: Dict[str, Any]) -> None:
+    def close_event(self, *, event: Dict[str, Any]) -> None:
         """
         Closes a Pilatus file event.
 
@@ -322,7 +324,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         pass
 
-    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
+    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in a Pilatus file  event.
 
@@ -352,7 +354,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str
+        self, *, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M files.
@@ -409,7 +411,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         }
 
     def initialize_event_handling_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes Jungfrau 1M file event handling on the processing nodes.
@@ -439,7 +441,8 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         self._required_data_extraction_funcs: Dict[
             str, Callable[[Dict[str, Dict[str, Any]]], Any]
         ] = drl_base.filter_data_extraction_funcs(
-            self.data_extraction_funcs, required_data
+            data_extraction_funcs=self.data_extraction_funcs,
+            required_data=required_data,
         )
 
         self._event_info_to_append: Dict[str, Any] = {}
@@ -473,9 +476,9 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
             self._event_info_to_append[
                 "calibration_algorithm"
             ] = calib_algs.Jungfrau1MCalibration(
-                calibration_dark_filenames,
-                calibration_gain_filenames,
-                calibration_photon_energy_kev,
+                dark_filenames=calibration_dark_filenames,
+                gain_filenames=calibration_gain_filenames,
+                photon_energy_kev=calibration_photon_energy_kev,
             )
 
         if "beam_energy" in required_data:
@@ -497,6 +500,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
     def event_generator(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
@@ -558,9 +562,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
                     h5file["/frameNumber"][:] for h5file in h5files
                 ]
             except KeyError:
-                frame_numbers: List[numpy.ndarray] = [
-                    h5file["/frame number"][:] for h5file in h5files
-                ]
+                frame_numbers = [h5file["/frame number"][:] for h5file in h5files]
 
             ind0: int
             frame_number: numpy.ndarray
@@ -610,7 +612,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
             yield data_event
 
-    def open_event(self, event: Dict[str, Any]) -> None:
+    def open_event(self, *, event: Dict[str, Any]) -> None:
         """
         Opens a Jungfrau 1M file event.
 
@@ -627,7 +629,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         pass
 
-    def close_event(self, event: Dict[str, Any]) -> None:
+    def close_event(self, *, event: Dict[str, Any]) -> None:
         """
         Closes a Jungfrau 1M file event.
 
@@ -645,7 +647,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         """
         pass
 
-    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
+    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in a Jungfrau 1M file event.
 

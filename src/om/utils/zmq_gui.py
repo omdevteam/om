@@ -22,7 +22,7 @@ This module contains classes and functions that allow external programs to recei
 data broadcasted by an OnDA Monitor over a network connection.
 """
 from builtins import str as unicode_str
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import zmq  # type: ignore
 
@@ -51,8 +51,10 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
 
     def __init__(
         self,
+        *,
         url: str,
         tag: str,
+        parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
         ZMQ-based data receiving socket for OM's graphical user interfaces.

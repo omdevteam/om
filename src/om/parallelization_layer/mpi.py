@@ -46,6 +46,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
 
     def __init__(
         self,
+        *,
         data_event_handler: data_ret_layer_base.OmDataEventHandler,
         monitor: process_layer_base.OmMonitor,
         monitor_parameters: parameters.MonitorParams,
@@ -81,13 +82,13 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
 
         if self._rank == 0:
             self._data_event_handler.initialize_event_handling_on_collecting_node(
-                self._rank, self._mpi_size
+                node_rank=self._rank, node_pool_size=self._mpi_size
             )
             self._num_nomore: int = 0
             self._num_collected_events: int = 0
         else:
             self._data_event_handler.initialize_event_handling_on_processing_node(
-                self._rank, self._mpi_size
+                node_rank=self._rank, node_pool_size=self._mpi_size
             )
 
     def start(self) -> None:  # noqa: C901
@@ -107,7 +108,9 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                 "You are using an OM real-time monitor. Please cite: "
                 "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
             )
-            self._monitor.initialize_collecting_node(self._rank, self._mpi_size)
+            self._monitor.initialize_collecting_node(
+                node_rank=self._rank, node_pool_size=self._mpi_size
+            )
 
             while True:
                 try:
@@ -127,14 +130,16 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                             print("Shutting down.")
                             sys.stdout.flush()
                             self._monitor.end_processing_on_collecting_node(
-                                self._rank, self._mpi_size
+                                node_rank=self._rank, node_pool_size=self._mpi_size
                             )
                             MPI.Finalize()
                             exit(0)
                         else:
                             continue
                     self._monitor.collect_data(
-                        self._rank, self._mpi_size, received_data
+                        node_rank=self._rank,
+                        node_pool_size=self._mpi_size,
+                        processed_data=received_data,
                     )
                     self._num_collected_events += 1
                 except KeyboardInterrupt as exc:
@@ -146,7 +151,9 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                     sys.stdout.flush()
                     sys.exit(0)
         else:
-            self._monitor.initialize_processing_node(self._rank, self._mpi_size)
+            self._monitor.initialize_processing_node(
+                node_rank=self._rank, node_pool_size=self._mpi_size
+            )
 
             # Flag used to make sure that the MPI messages have been processed.
             req = None
@@ -159,11 +166,11 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
             for event in events:
                 # Listens for requests to shut down.
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
-                    self.shutdown("Shutting down RANK: {0}.".format(self._rank))
+                    self.shutdown(msg="Shutting down RANK: {0}.".format(self._rank))
 
-                self._data_event_handler.open_event(event)
+                self._data_event_handler.open_event(event=event)
                 n_frames_in_evt: int = self._data_event_handler.get_num_frames_in_event(
-                    event
+                    event=event
                 )
                 if self._num_frames_in_event_to_process is not None:
                     num_frames_to_process: int = min(
@@ -178,7 +185,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                     event["current_frame"] = current_frame
                     try:
                         data: Dict[str, Any] = self._data_event_handler.extract_data(
-                            event
+                            event=event
                         )
                     except exceptions.OmDataExtractionError as exc:
                         print(exc)
@@ -186,14 +193,16 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                         continue
                     processed_data: Tuple[
                         Dict[str, Any], int
-                    ] = self._monitor.process_data(self._rank, self._mpi_size, data)
+                    ] = self._monitor.process_data(
+                        node_rank=self._rank, node_pool_size=self._mpi_size, data=data
+                    )
                     if req:
                         req.Wait()
                     req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=0)
                 # Makes sure that the last MPI message has processed.
                 if req:
                     req.Wait()
-                self._data_event_handler.close_event(event)
+                self._data_event_handler.close_event(event=event)
 
             # After finishing iterating over the events to process, calls the
             # end_processing function, and if the function returns something, sends it
@@ -201,7 +210,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
             final_data: Union[
                 Dict[str, Any], None
             ] = self._monitor.end_processing_on_processing_node(
-                self._rank, self._mpi_size
+                node_rank=self._rank, node_pool_size=self._mpi_size
             )
             if final_data is not None:
                 req = MPI.COMM_WORLD.isend((final_data, self._rank), dest=0, tag=0)
@@ -217,7 +226,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
             MPI.Finalize()
             exit(0)
 
-    def shutdown(self, msg: Union[str, None] = "Reason not provided.") -> None:
+    def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
         """
         Shuts down the MPI parallelization engine.
 

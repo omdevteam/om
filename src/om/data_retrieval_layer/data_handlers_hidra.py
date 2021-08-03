@@ -46,7 +46,7 @@ from om.utils import exceptions, parameters
 
 
 def _create_hidra_info(
-    source: str, node_pool_size: int, monitor_params: parameters.MonitorParams
+    source: str, *, node_pool_size: int, monitor_params: parameters.MonitorParams
 ) -> Dict[str, Any]:
     # Creates the HidraInfo object needed to initialize the HiDRA event source.
 
@@ -107,7 +107,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
     """
 
     def __init__(
-        self, monitor_parameters: parameters.MonitorParams, source: str
+        self, *, monitor_parameters: parameters.MonitorParams, source: str
     ) -> None:
         """
         Data Event Handler for events retrieved from HiDRA at P11 (PETRA III).
@@ -166,7 +166,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         }
 
     def initialize_event_handling_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes P11 HiDRA event handling on the collecting node.
@@ -214,7 +214,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         return hidra_info
 
     def initialize_event_handling_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
         Initializes P11 HiDRA event handling on the processing nodes.
@@ -247,7 +247,8 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         self._required_data_extraction_funcs: Dict[
             str, Callable[[Dict[str, Dict[str, Any]]], Any]
         ] = drl_base.filter_data_extraction_funcs(
-            self.data_extraction_funcs, required_data
+            data_extraction_funcs=self.data_extraction_funcs,
+            required_data=required_data,
         )
 
         # Fills the event info dictionary with static data that will be retrieved
@@ -272,6 +273,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
     def event_generator(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
@@ -341,7 +343,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
 
             yield data_event
 
-    def open_event(self, event: Dict[str, Any]) -> None:
+    def open_event(self, *, event: Dict[str, Any]) -> None:
         """
         Opens a P11 HiDRA event.
 
@@ -364,7 +366,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         cbf_image: Any = fabio.cbfimage.CbfImage()
         event["data"] = cbf_image.read(byio_data)
 
-    def close_event(self, event: Dict[str, Any]) -> None:
+    def close_event(self, *, event: Dict[str, Any]) -> None:
         """
         Closes a P11 HiDRA data event.
 
@@ -380,7 +382,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         """
         pass
 
-    def get_num_frames_in_event(self, event: Dict[str, Any]) -> int:
+    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
         """
         Gets the number of frames in a P11 HiDRA data event.
 

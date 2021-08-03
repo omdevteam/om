@@ -37,6 +37,7 @@ class OmParallelizationEngine(ABC):
 
     def __init__(
         self,
+        *,
         data_event_handler: data_ret_layer_base.OmDataEventHandler,
         monitor: process_layer_base.OmMonitor,
         monitor_parameters: parameters.MonitorParams,
@@ -111,7 +112,7 @@ class OmParallelizationEngine(ABC):
         pass
 
     @abstractmethod
-    def shutdown(self, msg: Union[str, None] = "Reason not provided.") -> None:
+    def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
         """
         Shuts down the parallelization engine.
 

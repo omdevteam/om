@@ -190,7 +190,7 @@ class Correction:
             # True here is equivalent to an all-one map.
             self._gain_map = True
 
-    def apply_correction(self, data: numpy.ndarray) -> numpy.ndarray:
+    def apply_correction(self, *, data: numpy.ndarray) -> numpy.ndarray:
         """
         Applies the correction to a detector data frame.
 
@@ -216,9 +216,11 @@ class RadialProfile:
 
     def __init__(
         self,
+        *,
         radius_pixel_map: numpy.ndarray,
         bad_pixel_map: Union[numpy.ndarray, None],
         radius_step: float = 1.0,
+        parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
         Algorithm for calculation of radial average.
@@ -258,6 +260,57 @@ class RadialProfile:
             radius_step: The width (in pixels) of each step of the radial average.
                 Defaults to 1.0 pixels.
         """
+        if parameters is not None:
+            bad_pixel_map_fname: str = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="bad_pixel_map_filename",
+                parameter_type=str,
+            )
+            if bad_pixel_map_fname is not None:
+                bad_pixel_map_hdf5_path: Union[
+                    str, None
+                ] = param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="bad_pixel_map_hdf5_path",
+                    parameter_type=str,
+                    required=True,
+                )
+            else:
+                bad_pixel_map_hdf5_path = None
+
+            if bad_pixel_map_fname is not None:
+                try:
+                    map_hdf5_file_handle: Any
+                    with h5py.File(bad_pixel_map_fname, "r") as map_hdf5_file_handle:
+                        bad_pixel_map = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
+                except (IOError, OSError, KeyError) as exc:
+                    exc_type, exc_value = sys.exc_info()[:2]
+                    # TODO: Fix type check
+                    raise RuntimeError(
+                        "The following error occurred while reading the {0} field from"
+                        "the {1} bad pixel map HDF5 file:"
+                        "{2}: {3}".format(
+                            bad_pixel_map_fname,
+                            bad_pixel_map_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ) from exc
+            else:
+                bad_pixel_map = None
+            radius_step = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="radius_step",
+                parameter_type=float,
+            )
+        else:
+            print(
+                "OM Warning: Initializing the RadialProfile algorithm with individual "
+                "parameters (radius_pixel_map, bad_pixel_map and radius_step) is"
+                "deprecated and will be removed in a future version of OM. Please use "
+                "the new parameter group-based initialization interface (which "
+                "requires only the parameters and radius_pixel_map arguments)."
+            )
 
         # Calculate radial bins
         num_bins: int = int(radius_pixel_map.max() / radius_step)
@@ -276,7 +329,7 @@ class RadialProfile:
         else:
             self._mask = bad_pixel_map.astype(bool)
 
-    def calculate_profile(self, data: numpy.ndarray) -> numpy.ndarray:
+    def calculate_profile(self, *, data: numpy.ndarray) -> numpy.ndarray:
         """
         Calculate the radial profile of a detector data frame.
 
@@ -311,7 +364,12 @@ class DataAccumulator:
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, num_events_to_accumulate: int) -> None:
+    def __init__(
+        self,
+        *,
+        num_events_to_accumulate: int,
+        parameters: Union[Dict[str, Any], None] = None,
+    ) -> None:
         """
         Data accumulation and bulk retrieval.
 
@@ -325,11 +383,26 @@ class DataAccumulator:
             num_events_to_accumulate (int): the number of data entries that can be
                 added to the accumulator before the collected data is returned.
         """
+        if parameters is not None:
+            num_events_to_accumulate = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="num_events_to_accumulate",
+                parameter_type=int,
+            )
+        else:
+            print(
+                "OM Warning: Initializing the DataAccumulator algorithm with "
+                "individual parameters (num_events_to_accumulate) is deprecated and "
+                "will be removed in a future version of OM. Please use the new "
+                "parameter group-based initialization interface (which requires only "
+                "the parameters argument)."
+            )
+
         self._num_events_to_accumulate: int = num_events_to_accumulate
         self._accumulator: List[Dict[str, Any]] = []
         self._num_events_in_accumulator: int = 0
 
-    def add_data(self, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
+    def add_data(self, *, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
         """
         Adds data to the accumulator.
 

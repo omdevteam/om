@@ -36,7 +36,7 @@ except ImportError:
     )
 
 
-def detector_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
+def detector_data_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for x-ray detector data at LCLS.
 
@@ -64,7 +64,7 @@ def detector_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     )
 
 
-def timestamp_init(monitor_parameters: parameters.MonitorParams) -> None:
+def timestamp_init(*, monitor_parameters: parameters.MonitorParams) -> None:
     """
     Initializes the psana Detector interface for timestamp data at LCLS.
 
@@ -83,7 +83,7 @@ def timestamp_init(monitor_parameters: parameters.MonitorParams) -> None:
     return None
 
 
-def detector_distance_init(monitor_parameters: parameters.MonitorParams) -> Any:
+def detector_distance_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for detector distance data at LCLS.
 
@@ -113,7 +113,7 @@ def detector_distance_init(monitor_parameters: parameters.MonitorParams) -> Any:
     )
 
 
-def beam_energy_init(monitor_parameters: parameters.MonitorParams) -> Any:
+def beam_energy_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for beam energy data at LCLS.
 
@@ -134,7 +134,7 @@ def beam_energy_init(monitor_parameters: parameters.MonitorParams) -> Any:
     return psana.Detector("SIOC:SYS0:ML00:AO192")
 
 
-def timetool_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
+def timetool_data_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for timetool data at LCLS.
 
@@ -163,7 +163,7 @@ def timetool_data_init(monitor_parameters: parameters.MonitorParams) -> Any:
     )
 
 
-def optical_laser_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
+def optical_laser_active_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for an optical laser at LCLS.
 
@@ -192,7 +192,7 @@ def optical_laser_active_init(monitor_parameters: parameters.MonitorParams) -> A
     return psana.Detector(evr_source_name)
 
 
-def xrays_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
+def xrays_active_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
@@ -221,7 +221,7 @@ def xrays_active_init(monitor_parameters: parameters.MonitorParams) -> Any:
     return psana.Detector(evr_source_name)
 
 
-def event_id_init(monitor_parameters: parameters.MonitorParams) -> None:
+def event_id_init(*, monitor_parameters: parameters.MonitorParams) -> None:
     """
     Initializes the psana Detector interface for the event identifier at LCLS.
 
@@ -239,7 +239,7 @@ def event_id_init(monitor_parameters: parameters.MonitorParams) -> None:
     return None
 
 
-def frame_id_init(monitor_parameters: parameters.MonitorParams) -> None:
+def frame_id_init(*, monitor_parameters: parameters.MonitorParams) -> None:
     """
     Initializes the psana Detector interface for the frame identifier at LCLS.
 
@@ -258,7 +258,7 @@ def frame_id_init(monitor_parameters: parameters.MonitorParams) -> None:
     return None
 
 
-def lcls_extra_init(monitor_parameters: parameters.MonitorParams) -> Any:
+def lcls_extra_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
     """
     Initializes the psana Detector interface for the retrieval of LCLS-specific data.
 
@@ -330,7 +330,7 @@ def lcls_extra_init(monitor_parameters: parameters.MonitorParams) -> Any:
     return (detector_interfaces, data_types, names)
 
 
-def timestamp(event: Dict[str, Any]) -> numpy.float64:
+def timestamp(*, event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of an event retrieved from psana at LCLS.
 
@@ -356,7 +356,7 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
     return timest
 
 
-def detector_distance(event: Dict[str, Any]) -> float:
+def detector_distance(*, event: Dict[str, Any]) -> float:
     """
     Gets the detector distance for an event retrieved from psana at LCLS.
 
@@ -384,7 +384,7 @@ def detector_distance(event: Dict[str, Any]) -> float:
     return det_dist
 
 
-def beam_energy(event: Dict[str, Any]) -> float:
+def beam_energy(*, event: Dict[str, Any]) -> float:
     """
     Gets the beam energy for an event retrieved from psana at LCLS.
 
@@ -423,7 +423,7 @@ def beam_energy(event: Dict[str, Any]) -> float:
     # return beam_en
 
 
-def timetool_data(event: Dict[str, Any]) -> float:
+def timetool_data(*, event: Dict[str, Any]) -> float:
     """
     Gets timetool data for an event retrieved from psana at LCLS.
 
@@ -452,7 +452,7 @@ def timetool_data(event: Dict[str, Any]) -> float:
     return time_tl
 
 
-def optical_laser_active(event: Dict[str, Any]) -> bool:
+def optical_laser_active(*, event: Dict[str, Any]) -> bool:
     """
     Gets the status of an optical laser for an event retrieved from psana at LCLS.
 
@@ -489,7 +489,7 @@ def optical_laser_active(event: Dict[str, Any]) -> bool:
     return event["additional_info"]["active_laser_evr_code"] in current_evr_codes
 
 
-def xrays_active(event: Dict[str, Any]) -> bool:
+def xrays_active(*, event: Dict[str, Any]) -> bool:
     """
     Initializes the psana Detector interface for the x-ray beam status at LCLS.
 
@@ -525,7 +525,7 @@ def xrays_active(event: Dict[str, Any]) -> bool:
     return event["additional_info"]["active_xrays_evr_code"] in current_evr_codes
 
 
-def event_id(event: Dict[str, Any]) -> str:
+def event_id(*, event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for an event retrieved from a Pilatus detector.
 
@@ -549,7 +549,7 @@ def event_id(event: Dict[str, Any]) -> str:
     return "{0}-{1}-{2}".format(event_time[0], event_time[1], event_id.fiducials())
 
 
-def frame_id(event: Dict[str, Any]) -> str:
+def frame_id(*, event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for a Pilatus detector data frame.
 
@@ -568,7 +568,7 @@ def frame_id(event: Dict[str, Any]) -> str:
     return str(0)
 
 
-def lcls_extra(event: Dict[str, Any]) -> Dict[str, Any]:
+def lcls_extra(*, event: Dict[str, Any]) -> Dict[str, Any]:
     """
     Retrieves LCLS-specific data from psana.
 

@@ -26,7 +26,7 @@ from typing import Any, Dict, Tuple, cast
 import numpy  # type: ignore
 
 
-def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
+def detector_data(*, event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves one Jungfrau 1M detector data frame from files.
 
@@ -59,7 +59,7 @@ def detector_data(event: Dict[str, Any]) -> numpy.ndarray:
     return calibrated_data
 
 
-def event_id(event: Dict[str, Any]) -> str:
+def event_id(*, event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for an event retrieved from a Jungfrau 1M detector.
 
@@ -91,7 +91,7 @@ def event_id(event: Dict[str, Any]) -> str:
     )
 
 
-def frame_id(event: Dict[str, Any]) -> str:
+def frame_id(*, event: Dict[str, Any]) -> str:
     """
     Gets a unique identifier for a Jungfrau 1M detector data frame.
 
@@ -115,7 +115,7 @@ def frame_id(event: Dict[str, Any]) -> str:
     return str(0)
 
 
-def timestamp(event: Dict[str, Any]) -> numpy.float64:
+def timestamp(*, event: Dict[str, Any]) -> numpy.float64:
     """
     Gets the timestamp of a Jungfrau 1M event.
 
@@ -144,7 +144,7 @@ def timestamp(event: Dict[str, Any]) -> numpy.float64:
     return file_creation_time + jf_clock_value / jf_clock_frequency
 
 
-def beam_energy(event: Dict[str, Any]) -> float:
+def beam_energy(*, event: Dict[str, Any]) -> float:
     """
     Gets the beam energy for a Jungfrau 1M event.
 
@@ -165,7 +165,7 @@ def beam_energy(event: Dict[str, Any]) -> float:
     return cast(float, event["additional_info"]["beam_energy"])
 
 
-def detector_distance(event: Dict[str, Any]) -> float:
+def detector_distance(*, event: Dict[str, Any]) -> float:
     """
     Gets the detector distance for a Jungfrau 1M event.
 

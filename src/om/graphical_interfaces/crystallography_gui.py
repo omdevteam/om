@@ -55,7 +55,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
     Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
-    def __init__(self, url: str) -> None:
+    def __init__(self, *, url: str) -> None:
         """
         OM graphical user interface for crystallography.
 
@@ -122,11 +122,11 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._resolution_rings_validator: Any = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
 
-        self._resolution_rings_check_box: Any = QtGui.QCheckBox(
+        self._resolution_rings_check_box: Any = QtWidgets.QCheckBox(
             text="Show Resolution Rings", checked=True
         )
         self._resolution_rings_check_box.setEnabled(True)
-        self._resolution_rings_lineedit: Any = QtGui.QLineEdit()
+        self._resolution_rings_lineedit: Any = QtWidgets.QLineEdit()
         self._resolution_rings_lineedit.setValidator(self._resolution_rings_validator)
         self._resolution_rings_lineedit.setText(
             ",".join(str(x) for x in self._resolution_rings_in_a)
@@ -149,16 +149,16 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             self._update_resolution_rings_status
         )
 
-        horizontal_layout: Any = QtGui.QHBoxLayout()
+        horizontal_layout: Any = QtWidgets.QHBoxLayout()
         horizontal_layout.addWidget(self._resolution_rings_check_box)
         horizontal_layout.addWidget(self._resolution_rings_lineedit)
-        splitter_0: Any = QtGui.QSplitter()
+        splitter_0: Any = QtWidgets.QSplitter()
         splitter_0.addWidget(self._image_view)
         splitter_0.addWidget(self._hit_rate_plot_widget)
-        vertical_layout: Any = QtGui.QVBoxLayout()
+        vertical_layout: Any = QtWidgets.QVBoxLayout()
         vertical_layout.addWidget(splitter_0)
         vertical_layout.addLayout(horizontal_layout)
-        self._central_widget: Any = QtGui.QWidget()
+        self._central_widget: Any = QtWidgets.QWidget()
         self._central_widget.setLayout(vertical_layout)
         self.setCentralWidget(self._central_widget)
         self.show()
@@ -215,7 +215,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         if self._resolution_rings_enabled is False:
             return
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         try:
             lambda_: float = (
@@ -259,7 +259,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
                     self._img_center_y,
                 )
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
     def update_gui(self) -> None:
         """
@@ -306,7 +306,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         else:
             self._virt_powd_plot_img = local_data["virtual_powder_plot"]
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         if local_data["geometry_is_optimized"]:
             if not self._resolution_rings_check_box.isEnabled():
@@ -319,13 +319,13 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             if self._resolution_rings_check_box.isChecked() is True:
                 self._resolution_rings_check_box.setChecked(False)
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._hit_rate_plot.setData(
             tuple(range(-5000, 0)), local_data["hit_rate_history"]
         )
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         if self._virt_powd_plot_img is not None:
             self._image_view.setImage(
@@ -337,7 +337,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
 
         self._draw_resolution_rings()
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
@@ -352,7 +352,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
 
 @click.command()
 @click.argument("url", type=str, required=False)
-def main(url: str) -> None:
+def main(*, url: str) -> None:
     """
     OM Graphical User Interface for Crystallography. This program must connect to a
     running OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
@@ -372,6 +372,6 @@ def main(url: str) -> None:
 
     if url is None:
         url = "tcp://127.0.0.1:12321"
-    app: Any = QtGui.QApplication(sys.argv)
-    _ = CrystallographyGui(url)
+    app: Any = QtWidgets.QApplication(sys.argv)
+    _ = CrystallographyGui(url=url)
     sys.exit(app.exec_())

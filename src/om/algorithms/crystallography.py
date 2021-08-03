@@ -96,7 +96,7 @@ class TypePeakList(TypedDict, total=True):
     snr: List[float]
 
 
-def get_peakfinder8_info(detector_type: str) -> TypePeakfinder8Info:
+def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
     """
     Gets the peakfinder8 information for a detector.
 
@@ -190,6 +190,7 @@ class Peakfinder8PeakDetection:
 
     def __init__(
         self,
+        *,
         max_num_peaks: int,
         asic_nx: int,
         asic_ny: int,
@@ -204,6 +205,7 @@ class Peakfinder8PeakDetection:
         max_res: int,
         bad_pixel_map: Union[numpy.ndarray, None],
         radius_pixel_map: numpy.ndarray,
+        parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
@@ -280,6 +282,118 @@ class Peakfinder8PeakDetection:
                   of the detector reference system (usually the center of the
                   detector).
         """
+        if parameters is not None:
+            detector_info = get_peakfinder8_info(
+                detector_type=param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="detector_type",
+                    parameter_type=str,
+                    required=True,
+                )
+            )
+            asic_nx = detector_info["asic_nx"]
+            asic_ny = detector_info["asic_ny"]
+            nasics_x = detector_info["nasics_x"]
+            nasics_y = detector_info["nasics_y"]
+
+            max_num_peaks = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="max_num_peaks",
+                parameter_type=int,
+                required=True,
+            )
+            adc_threshold = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="adc_threshold",
+                parameter_type=float,
+                required=True,
+            )
+            minimum_snr = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="minimum_snr",
+                parameter_type=float,
+                required=True,
+            )
+            min_pixel_count = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="min_pixel_count",
+                parameter_type=int,
+                required=True,
+            )
+            max_pixel_count = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="max_pixel_count",
+                parameter_type=int,
+                required=True,
+            )
+            local_bg_radius = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="local_bg_radius",
+                parameter_type=int,
+                required=True,
+            )
+            min_res = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="min_res",
+                parameter_type=int,
+                required=True,
+            )
+            max_res = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="max_res",
+                parameter_type=int,
+                required=True,
+            )
+            bad_pixel_map_fname: str = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="bad_pixel_map_filename",
+                parameter_type=str,
+            )
+            if bad_pixel_map_fname is not None:
+                bad_pixel_map_hdf5_path: Union[
+                    str, None
+                ] = param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="bad_pixel_map_hdf5_path",
+                    parameter_type=str,
+                    required=True,
+                )
+            else:
+                bad_pixel_map_hdf5_path = None
+
+            if bad_pixel_map_fname is not None:
+                try:
+                    map_hdf5_file_handle: Any
+                    with h5py.File(bad_pixel_map_fname, "r") as map_hdf5_file_handle:
+                        bad_pixel_map = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
+                except (IOError, OSError, KeyError) as exc:
+                    exc_type, exc_value = sys.exc_info()[:2]
+                    # TODO: Fix type check
+                    raise RuntimeError(
+                        "The following error occurred while reading the {0} field from"
+                        "the {1} bad pixel map HDF5 file:"
+                        "{2}: {3}".format(
+                            bad_pixel_map_fname,
+                            bad_pixel_map_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ) from exc
+            else:
+                bad_pixel_map = None
+
+        else:
+            print(
+                "OM Warning: Initializing the Peakfinder8PeakDetection algorithm with "
+                "individual parameters (max_num_peaks, asic_nx, asic_ny, nasics_x, "
+                "nasics_y, adc_threshold, minimum_snr, min_pixel_count, "
+                "max_pixel_count, local_bg_radius, min_res, max_res, bad_pixel_map "
+                "and radius_pixel_map) is deprecated and will be removed in a future "
+                "version of OM. Please use the new parameter group-based "
+                "initialization interface (which requires only the parameters and "
+                "photon_energy_kev arguments)."
+            )
+
         self._max_num_peaks: int = max_num_peaks
         self._asic_nx: int = asic_nx
         self._asic_ny: int = asic_ny
@@ -290,13 +404,13 @@ class Peakfinder8PeakDetection:
         self._min_pixel_count: int = min_pixel_count
         self._max_pixel_count: int = max_pixel_count
         self._local_bg_radius: int = local_bg_radius
-        self._radius_pixel_map: numpy.ndarray = radius_pixel_map
         self._min_res: int = min_res
         self._max_res: int = max_res
         self._mask: numpy.ndarray = bad_pixel_map
         self._mask_initialized: bool = False
+        self._radius_pixel_map: numpy.ndarray = radius_pixel_map
 
-    def find_peaks(self, data: numpy.ndarray) -> TypePeakList:
+    def find_peaks(self, *, data: numpy.ndarray) -> TypePeakList:
         """
         Finds peaks in a detector data frame.
 
@@ -321,6 +435,7 @@ class Peakfinder8PeakDetection:
             res_mask: numpy.ndarray = numpy.ones(
                 shape=self._mask.shape, dtype=numpy.int8
             )
+
             res_mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             res_mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
             self._mask *= res_mask

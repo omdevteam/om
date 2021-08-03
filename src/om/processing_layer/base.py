@@ -31,7 +31,7 @@ class OmMonitor(ABC):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
         Base class for an OM's Monitor.
 
@@ -55,7 +55,9 @@ class OmMonitor(ABC):
         self._monitor_params = monitor_parameters
 
     @abstractmethod
-    def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes an OM processing node.
 
@@ -76,7 +78,9 @@ class OmMonitor(ABC):
         pass
 
     @abstractmethod
-    def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes an OM collecting node.
 
@@ -100,6 +104,7 @@ class OmMonitor(ABC):
     @abstractmethod
     def process_data(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
         data: Dict[str, Any],
@@ -143,6 +148,7 @@ class OmMonitor(ABC):
     @abstractmethod
     def collect_data(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
@@ -174,7 +180,7 @@ class OmMonitor(ABC):
         pass
 
     def end_processing_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
         """
         Executes end-of-processing actions on a processing node.
@@ -202,7 +208,7 @@ class OmMonitor(ABC):
         return None
 
     def end_processing_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Executes end-of-processing actions on the collecting node.

@@ -60,7 +60,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
     Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
-    def __init__(self, url: str, monitor_parameters: parameters.MonitorParams):
+    def __init__(self, *, url: str, monitor_parameters: parameters.MonitorParams):
         """
         OM Parameter Tweaker for Crystallography.
 
@@ -87,7 +87,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         """
         super(CrystallographyParameterTweaker, self).__init__(
             url=url,
-            tag=u"view:omtweakingdata",
+            tag="view:omtweakingdata",
         )
 
         self._img: Union[numpy.array, None] = None
@@ -105,8 +105,12 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         )
 
         geometry: crystfel_geometry.TypeDetector
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(geometry)
+        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            filename=geometry_filename
+        )
+        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(
+            geometry=geometry
+        )
 
         y_minimum: int = (
             2
@@ -155,7 +159,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
             self._pf8_bad_pixel_map_hdf5_path = None
 
         self._pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
-            self._monitor_params.get_param(
+            detector_type=self._monitor_params.get_param(
                 group="peakfinder8_peak_detection",
                 parameter="detector_type",
                 parameter_type=str,
@@ -260,13 +264,13 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._image_view.ui.roiBtn.hide()
         self._image_view.getView().addItem(self._peak_canvas)
 
-        self._back_button: Any = QtGui.QPushButton(text="Back")
+        self._back_button: Any = QtWidgets.QPushButton(text="Back")
         self._back_button.clicked.connect(self._back_button_clicked)
 
-        self._forward_button: Any = QtGui.QPushButton(text="Forward")
+        self._forward_button: Any = QtWidgets.QPushButton(text="Forward")
         self._forward_button.clicked.connect(self._forward_button_clicked)
 
-        self._play_pause_button: Any = QtGui.QPushButton(text="Pause")
+        self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
         self._float_regex: Any = QtCore.QRegExp(r"[0-9.,]+")
@@ -277,97 +281,97 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._int_validator: Any = QtGui.QRegExpValidator()
         self._int_validator.setRegExp(self._int_regex)
 
-        self._param_label: Any = QtGui.QLabel(self)
+        self._param_label: Any = QtWidgets.QLabel(self)
         self._param_label.setText("<b>Peakfinder Parameters:</b>")
 
-        self._adc_threshold_label: Any = QtGui.QLabel(self)
+        self._adc_threshold_label: Any = QtWidgets.QLabel(self)
         self._adc_threshold_label.setText("adc_threshold")
-        self._adc_threshold_lineedit: Any = QtGui.QLineEdit(self)
+        self._adc_threshold_lineedit: Any = QtWidgets.QLineEdit(self)
         self._adc_threshold_lineedit.setText(str(pf8_adc_threshold))
         self._adc_threshold_lineedit.setValidator(self._float_validator)
         self._adc_threshold_lineedit.editingFinished.connect(
             self._update_peak_detection
         )
-        self._horizontal_layout2: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout2: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout2.addWidget(self._adc_threshold_label)
         self._horizontal_layout2.addWidget(self._adc_threshold_lineedit)
 
-        self._min_snr_label: Any = QtGui.QLabel(self)
+        self._min_snr_label: Any = QtWidgets.QLabel(self)
         self._min_snr_label.setText("minmum_snr")
-        self._min_snr_lineedit: Any = QtGui.QLineEdit(self)
+        self._min_snr_lineedit: Any = QtWidgets.QLineEdit(self)
         self._min_snr_lineedit.setText(str(pf8_minimum_snr))
         self._min_snr_lineedit.setValidator(self._float_validator)
         self._min_snr_lineedit.editingFinished.connect(self._update_peak_detection)
-        self._horizontal_layout3: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout3: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout3.addWidget(self._min_snr_label)
         self._horizontal_layout3.addWidget(self._min_snr_lineedit)
 
-        self._min_pixel_count_label: Any = QtGui.QLabel(self)
+        self._min_pixel_count_label: Any = QtWidgets.QLabel(self)
         self._min_pixel_count_label.setText("min_pixel_count")
-        self._min_pixel_count_lineedit: Any = QtGui.QLineEdit(self)
+        self._min_pixel_count_lineedit: Any = QtWidgets.QLineEdit(self)
         self._min_pixel_count_lineedit.setText(str(pf8_min_pixel_count))
         self._min_pixel_count_lineedit.setValidator(self._int_validator)
         self._min_pixel_count_lineedit.editingFinished.connect(
             self._update_peak_detection
         )
-        self._horizontal_layout4: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout4: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout4.addWidget(self._min_pixel_count_label)
         self._horizontal_layout4.addWidget(self._min_pixel_count_lineedit)
 
-        self._max_pixel_count_label: Any = QtGui.QLabel(self)
+        self._max_pixel_count_label: Any = QtWidgets.QLabel(self)
         self._max_pixel_count_label.setText("max_pixel_count")
-        self._max_pixel_count_lineedit: Any = QtGui.QLineEdit(self)
+        self._max_pixel_count_lineedit: Any = QtWidgets.QLineEdit(self)
         self._max_pixel_count_lineedit.setText(str(pf8_max_pixel_count))
         self._max_pixel_count_lineedit.setValidator(self._int_validator)
         self._max_pixel_count_lineedit.editingFinished.connect(
             self._update_peak_detection
         )
-        self._horizontal_layout5: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout5: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout5.addWidget(self._max_pixel_count_label)
         self._horizontal_layout5.addWidget(self._max_pixel_count_lineedit)
 
-        self._local_bg_radius_label: Any = QtGui.QLabel(self)
+        self._local_bg_radius_label: Any = QtWidgets.QLabel(self)
         self._local_bg_radius_label.setText("local_bg_radius")
-        self._local_bg_radius_lineedit: Any = QtGui.QLineEdit(self)
+        self._local_bg_radius_lineedit: Any = QtWidgets.QLineEdit(self)
         self._local_bg_radius_lineedit.setText(str(pf8_local_bg_radius))
         self._local_bg_radius_lineedit.setValidator(self._int_validator)
         self._local_bg_radius_lineedit.editingFinished.connect(
             self._update_peak_detection
         )
-        self._horizontal_layout6: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout6: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout6.addWidget(self._local_bg_radius_label)
         self._horizontal_layout6.addWidget(self._local_bg_radius_lineedit)
 
-        self._min_res_label: Any = QtGui.QLabel(self)
+        self._min_res_label: Any = QtWidgets.QLabel(self)
         self._min_res_label.setText("min_res")
-        self._min_res_lineedit: Any = QtGui.QLineEdit(self)
+        self._min_res_lineedit: Any = QtWidgets.QLineEdit(self)
         self._min_res_lineedit.setText(str(pf8_min_res))
         self._min_res_lineedit.setValidator(self._int_validator)
         self._min_res_lineedit.editingFinished.connect(self._update_peak_detection)
-        self._horizontal_layout7: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout7: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout7.addWidget(self._min_res_label)
         self._horizontal_layout7.addWidget(self._min_res_lineedit)
 
-        self._max_res_label: Any = QtGui.QLabel(self)
+        self._max_res_label: Any = QtWidgets.QLabel(self)
         self._max_res_label.setText("max_res")
-        self._max_res_lineedit: Any = QtGui.QLineEdit(self)
+        self._max_res_lineedit: Any = QtWidgets.QLineEdit(self)
         self._max_res_lineedit.setText(str(pf8_max_res))
         self._max_res_lineedit.setValidator(self._int_validator)
         self._max_res_lineedit.editingFinished.connect(self._update_peak_detection)
-        self._horizontal_layout8: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout8: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout8.addWidget(self._max_res_label)
         self._horizontal_layout8.addWidget(self._max_res_lineedit)
 
-        self._splitter: Any = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        self._horizontal_layout1: Any = QtGui.QHBoxLayout()
+        self._splitter: Any = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        self._horizontal_layout1: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout1.addWidget(self._back_button)
         self._horizontal_layout1.addWidget(self._forward_button)
         self._horizontal_layout1.addWidget(self._play_pause_button)
-        self._vertical_layout_0: Any = QtGui.QVBoxLayout()
+        self._vertical_layout_0: Any = QtWidgets.QVBoxLayout()
         self._vertical_layout_0.addWidget(self._image_view)
         self._vertical_layout_0.addLayout(self._horizontal_layout1)
 
-        self._vertical_layout_1: Any = QtGui.QVBoxLayout()
+        self._vertical_layout_1: Any = QtWidgets.QVBoxLayout()
         self._vertical_layout_1.insertLayout(0, self._horizontal_layout8)
         self._vertical_layout_1.insertLayout(0, self._horizontal_layout7)
         self._vertical_layout_1.insertLayout(0, self._horizontal_layout6)
@@ -377,9 +381,9 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._vertical_layout_1.insertLayout(0, self._horizontal_layout2)
         self._vertical_layout_1.insertWidget(0, self._param_label)
         self._vertical_layout_1.addStretch(1)
-        self._vertical_layout_0_widget: Any = QtGui.QWidget()
+        self._vertical_layout_0_widget: Any = QtWidgets.QWidget()
         self._vertical_layout_0_widget.setLayout(self._vertical_layout_0)
-        self._vertical_layout_1_widget: Any = QtGui.QWidget()
+        self._vertical_layout_1_widget: Any = QtWidgets.QWidget()
         self._vertical_layout_1_widget.setLayout(self._vertical_layout_1)
 
         self._splitter.addWidget(self._vertical_layout_0_widget)
@@ -393,11 +397,12 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
 
     def _update_peaks(
         self,
+        *,
         peak_list_x_in_frame: numpy.ndarray,
         peak_list_y_in_frame: numpy.ndarray,
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._peak_canvas.setData(
             x=peak_list_y_in_frame,
@@ -448,7 +453,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         )
 
         peak_list: cryst_algs.TypePeakList = peak_detection.find_peaks(
-            current_data["detector_data"]
+            data=current_data["detector_data"]
         )
 
         peak_list_x_in_frame: List[float] = []
@@ -485,7 +490,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
             # If the framebuffer is empty, returns without drawing anything.
             return
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._assembled_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
             current_data["detector_data"].ravel().astype(self._assembled_img.dtype)
@@ -498,11 +503,11 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
             autoHistogramRange=False,
         )
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._update_peak_detection()
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
@@ -589,7 +594,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
     "directory",
 )
 @click.argument("url", type=str, required=False)
-def main(url: str, config: str) -> None:
+def main(*, url: str, config: str) -> None:
     """
     OM Parameter Tweaker for Crystallography. This program must connect to a running
     OnDA Monitor for Crystallography. If the monitor broadcasts detector frame data,
@@ -616,6 +621,6 @@ def main(url: str, config: str) -> None:
 
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(config)
 
-    app: Any = QtGui.QApplication(sys.argv)
+    app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyParameterTweaker(url=url, monitor_parameters=monitor_parameters)
     sys.exit(app.exec_())

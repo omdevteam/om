@@ -43,7 +43,7 @@ class Cheetah(process_layer_base.OmMonitor):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
         Cheetah processing layer for serial crystallography experiments.
 
@@ -74,7 +74,9 @@ class Cheetah(process_layer_base.OmMonitor):
         """
         super(Cheetah, self).__init__(monitor_parameters=monitor_parameters)
 
-    def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the OM processing nodes for Cheetah.
 
@@ -99,8 +101,12 @@ class Cheetah(process_layer_base.OmMonitor):
             required=True,
         )
         geometry: crystfel_geometry.TypeDetector
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(geometry)
+        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            filename=geometry_filename
+        )
+        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(
+            geometry=geometry
+        )
         self._data_shape: Tuple[int, int] = self._pixelmaps["x"].shape
 
         # TODO: Type this dictionary
@@ -149,7 +155,7 @@ class Cheetah(process_layer_base.OmMonitor):
         )
 
         pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
-            self._monitor_params.get_param(
+            detector_type=self._monitor_params.get_param(
                 group="peakfinder8_peak_detection",
                 parameter="detector_type",
                 parameter_type=str,
@@ -331,10 +337,12 @@ class Cheetah(process_layer_base.OmMonitor):
             parameter="hdf5_file_max_num_peaks",
             parameter_type=int,
         )
-        hdf5_fields: Dict[str, str] = self._monitor_params.get_all_parameters()[
-            "cheetah"
-        ]["hdf5_fields"]
-
+        hdf5_fields: Dict[str, str] = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="hd5_fields",
+            parameter_type=dict,
+            required=True,
+        )
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
             directory_for_processed_data=processed_directory,
             node_rank=node_rank,
@@ -355,6 +363,7 @@ class Cheetah(process_layer_base.OmMonitor):
 
     def _write_status_file(
         self,
+        *,
         status: str = "",
         num_frames: int = 0,
         num_hits: int = 0,
@@ -424,8 +433,10 @@ class Cheetah(process_layer_base.OmMonitor):
             required=True,
         )
         geometry: crystfel_geometry.TypeDetector
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry)
+        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            filename=geometry_filename
+        )
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=geometry)
         self._data_shape = self._pixelmaps["x"].shape
 
         # Theoretically, the pixel size could be different for every module of the
@@ -577,7 +588,7 @@ class Cheetah(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def process_data(  # noqa: C901
-        self, node_rank: int, node_pool_size: int, data: Dict[str, Any]
+        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
         Processes a detector data frame and saves the extracted data to HDF5 file.
@@ -618,7 +629,7 @@ class Cheetah(process_layer_base.OmMonitor):
             data=data["detector_data"]
         )
         peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
-            corrected_detector_data
+            data=corrected_detector_data
         )
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
@@ -653,7 +664,7 @@ class Cheetah(process_layer_base.OmMonitor):
         if frame_is_hit:
             data_to_write = {"detector_data": corrected_detector_data}
             data_to_write.update(processed_data)
-            self._file_writer.write_frame(data_to_write)
+            self._file_writer.write_frame(processed_data=data_to_write)
             processed_data["filename"] = self._file_writer.get_current_filename()
             processed_data["index"] = self._file_writer.get_num_written_frames()
 
@@ -704,6 +715,7 @@ class Cheetah(process_layer_base.OmMonitor):
 
     def collect_data(  # noqa: C901
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
@@ -852,7 +864,7 @@ class Cheetah(process_layer_base.OmMonitor):
                 )
 
                 self._data_broadcast_socket.send_data(
-                    tag=u"view:omframedata",
+                    tag="view:omframedata",
                     message={
                         "frame_data": self._frame_data_img,
                         "timestamp": received_data["timestamp"],
@@ -861,7 +873,7 @@ class Cheetah(process_layer_base.OmMonitor):
                     },
                 )
                 self._data_broadcast_socket.send_data(
-                    tag=u"view:omtweakingdata",
+                    tag="view:omtweakingdata",
                     message={
                         "detector_data": received_data["detector_data"],
                         "timestamp": received_data["timestamp"],
@@ -887,6 +899,7 @@ class Cheetah(process_layer_base.OmMonitor):
 
     def end_processing_on_processing_node(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
@@ -931,7 +944,7 @@ class Cheetah(process_layer_base.OmMonitor):
             return None
 
     def end_processing_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing on the collecting node.
@@ -964,7 +977,9 @@ class Cheetah(process_layer_base.OmMonitor):
         frame_list: List[Tuple[Any, ...]] = sorted(self._frame_list)
         if self._status_file_update_interval is not None:
             self._write_status_file(
-                "Finished", self._num_events, self._total_sums[1]["num_frames"]
+                status="Finished",
+                num_frames=self._num_events,
+                num_hits=self._total_sums[1]["num_frames"],
             )
         fh: TextIO
         with open(self._frames_filename, "w") as fh:

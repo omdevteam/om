@@ -28,7 +28,7 @@ import numpy  # type: ignore
 from om.utils import exceptions
 
 
-def epixka2m_detector_data(event: Dict[str, Any]) -> numpy.ndarray:
+def epixka2m_detector_data(*, event: Dict[str, Any]) -> numpy.ndarray:
     """
     Retrieves a Epix10KA 2M detector data frame from psana.
 

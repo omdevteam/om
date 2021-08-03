@@ -37,7 +37,7 @@ from om.utils import exceptions, parameters
 T = TypeVar("T")
 
 
-def _import_class(layer: str, layer_filename: str, class_name: str) -> Type[T]:
+def _import_class(*, layer: str, layer_filename: str, class_name: str) -> Type[T]:
     try:
         imported_layer: ModuleType = importlib.import_module(name=layer_filename)
     except ImportError:
@@ -89,7 +89,7 @@ def _import_class(layer: str, layer_filename: str, class_name: str) -> Type[T]:
     ),
 )
 @click.argument("source", type=str)
-def main(source: str, config: str, debug: bool) -> None:
+def main(*, source: str, config: str, debug: bool) -> None:
     """
     OnDA Monitor. This script starts a online data analysis monitor that behaves
     according to the parameters defined in the provided configuration file. The monitor

@@ -34,9 +34,11 @@ class Jungfrau1MCalibration:
 
     def __init__(
         self,
+        *,
         dark_filenames: List[str],
         gain_filenames: List[str],
         photon_energy_kev: float,
+        parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
         Calibration of the Jungfrau 1M detector.
@@ -54,6 +56,29 @@ class Jungfrau1MCalibration:
 
             photon_energy_kev: the photon energy at which the detector will be operated.
         """
+        if parameters is not None:
+            dark_filenames = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="dark_filenames",
+                parameter_type=list,
+                required=True,
+            )
+            gain_filenames = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="gain_filenames",
+                parameter_type=list,
+                required=True,
+            )
+        else:
+            print(
+                "OM Warning: Initializing the Jungfrau1MCalibration algorithm with "
+                "individual parameters (dark_filenames, gain_filenames and "
+                "photon_energy_kev) is deprecated and will be removed in a future "
+                "version of OM. Please use the new parameter group-based "
+                "initialization interface (which requires only the parameters and "
+                "photon_energy_kev arguments)."
+            )
+
         # 2 for Jungfrau 1M
         num_panels: int = len(dark_filenames)
 
@@ -85,7 +110,7 @@ class Jungfrau1MCalibration:
         # TODO: Energy should be in eV
         self._photon_energy_kev: float = photon_energy_kev
 
-    def apply_calibration(self, data: numpy.ndarray) -> numpy.ndarray:
+    def apply_calibration(self, *, data: numpy.ndarray) -> numpy.ndarray:
         """
         Applies the calibration to a detector data frame.
 

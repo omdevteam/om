@@ -27,6 +27,7 @@ import numpy  # type: ignore
 
 
 def peakfinder_8(
+    *,
     max_num_peaks: int,
     data: numpy.ndarray,
     mask: numpy.ndarray,
