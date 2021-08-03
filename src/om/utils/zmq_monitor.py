@@ -28,6 +28,7 @@ from typing import Any, Dict, Union
 import zmq  # type: ignore
 
 from om.utils import exceptions
+from om.utils import parameters as param_utils
 
 
 def get_current_machine_ip() -> str:

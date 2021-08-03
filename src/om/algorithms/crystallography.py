@@ -22,12 +22,15 @@ This module contains algorithms that perform crystallography-related data proces
 (peak finding, etc.). In addition, it also contains several typed dictionaries that
 store data needed or produced by these algorithms.
 """
-from typing import List, Tuple, Union
+import sys
+from typing import Any, Dict, List, Tuple, Union
 
+import h5py  # type: ignore
 import numpy  # type: ignore
-from mypy_extensions import TypedDict
+from typing_extensions import TypedDict
 
 from om.lib.peakfinder8_extension import peakfinder_8  # type: ignore
+from om.utils import parameters as param_utils
 
 
 class TypePeakfinder8Info(TypedDict, total=True):

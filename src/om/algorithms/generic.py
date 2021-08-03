@@ -27,7 +27,9 @@ from typing import Any, Dict, List, Union
 
 import h5py  # type:ignore
 import numpy  # type: ignore
+
 from om.utils import exceptions
+from om.utils import parameters as param_utils
 
 
 class Correction:
@@ -37,12 +39,14 @@ class Correction:
 
     def __init__(  # noqa: C901
         self,
+        *,
         dark_filename: Union[str, None] = None,
         dark_hdf5_path: Union[str, None] = None,
         mask_filename: Union[str, None] = None,
         mask_hdf5_path: Union[str, None] = None,
         gain_filename: Union[str, None] = None,
         gain_hdf5_path: Union[str, None] = None,
+        parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
         Detector data frame correction.
@@ -106,6 +110,35 @@ class Correction:
                 * If the 'gain_filename' argument is not None, this argument must also
                   be provided, and cannot be None. Otherwise it is ignored.
         """
+        if parameters is not None:
+            dark_filename = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="dark_filename", parameter_type=str
+            )
+            dark_hdf5_path = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="dark_hdf5_path", parameter_type=str
+            )
+            mask_filename = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="mask_filename", parameter_type=str
+            )
+            mask_hdf5_path = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="mask_hdf5_path", parameter_type=str
+            )
+            gain_filename = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="gain_filename", parameter_type=str
+            )
+            gain_hdf5_path = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="gain_hdf5_path", parameter_type=str
+            )
+        else:
+            print(
+                "OM Warning: Initializing the Correction algorithm with individual "
+                "parameters (dark_filename, dark_hdf5_path, mask_filename, "
+                "mask_hdf5_path, gain_filename and gain_hdf5_path) is deprecated and "
+                "will be removed in a future version of OM. Please use the new "
+                "parameter group-based initialization interface (which requires only "
+                "the parameters argument)."
+            )
+
         if mask_filename is not None:
             if mask_hdf5_path is not None:
                 try:

@@ -21,10 +21,12 @@ Algorithms for detector calibration.
 This module contains algorithms that can be used to calibrate raw detector data. Each
 algorithm deals with a specific detector.
 """
-from typing import Any, BinaryIO, List
+from typing import Any, BinaryIO, Dict, List, Union
 
 import h5py  # type: ignore
 import numpy  # type: ignore
+
+from om.utils import parameters as param_utils
 
 
 class Jungfrau1MCalibration:
