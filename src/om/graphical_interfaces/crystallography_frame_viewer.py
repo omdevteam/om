@@ -35,7 +35,7 @@ from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtGui  # type: ignore
+    from PyQt5 import QtWidgets  # type: ignore
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"

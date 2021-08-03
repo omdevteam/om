@@ -39,7 +39,7 @@ from om.utils import crystfel_geometry, exceptions, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
 
 try:
-    from PyQt5 import QtCore, QtGui  # type: ignore
+    from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
