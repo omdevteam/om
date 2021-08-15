@@ -292,18 +292,47 @@ class Peakfinder8PeakDetection:
                   detector).
         """
         if parameters is not None:
-            detector_info = get_peakfinder8_info(
-                detector_type=param_utils.get_parameter_from_parameter_group(
-                    group=parameters,
-                    parameter="detector_type",
-                    parameter_type=str,
-                    required=True,
-                )
+            detector_type = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="detector_type",
+                parameter_type=str,
+                required=True,
             )
-            asic_nx = detector_info["asic_nx"]
-            asic_ny = detector_info["asic_ny"]
-            nasics_x = detector_info["nasics_x"]
-            nasics_y = detector_info["nasics_y"]
+            if detector_type == "cspad":
+                asic_nx = 194
+                asic_ny = 185
+                nasics_x = 8
+                nasics_y = 8
+            elif detector_type == "pilatus":
+                asic_nx = 2463
+                asic_ny = 2527
+                nasics_x = 1
+                nasics_y = 1
+            elif detector_type == "jungfrau1M":
+                asic_nx = 1024
+                asic_ny = 512
+                nasics_x = 1
+                nasics_y = 2
+            elif detector_type == "jungfrau4M":
+                asic_nx = 1024
+                asic_ny = 512
+                nasics_x = 1
+                nasics_y = 8
+            elif detector_type == "epix10k2M":
+                asic_nx = 384
+                asic_ny = 352
+                nasics_x = 1
+                nasics_y = 16
+            elif detector_type == "rayonix":
+                asic_nx = 1920
+                asic_ny = 1920
+                nasics_x = 1
+                nasics_y = 1
+            else:
+                raise RuntimeError(
+                    "The Peakfinder8PeakDetection algorithm does not support the {0} "
+                    "detector/"
+                )
 
             max_num_peaks = param_utils.get_parameter_from_parameter_group(
                 group=parameters,
@@ -403,21 +432,240 @@ class Peakfinder8PeakDetection:
                 "photon_energy_kev arguments)."
             )
 
-        self._max_num_peaks: int = max_num_peaks
-        self._asic_nx: int = asic_nx
-        self._asic_ny: int = asic_ny
-        self._nasics_x: int = nasics_x
-        self._nasics_y: int = nasics_y
-        self._adc_thresh: float = adc_threshold
-        self._minimum_snr: float = minimum_snr
-        self._min_pixel_count: int = min_pixel_count
-        self._max_pixel_count: int = max_pixel_count
-        self._local_bg_radius: int = local_bg_radius
-        self._min_res: int = min_res
-        self._max_res: int = max_res
-        self._mask: numpy.ndarray = bad_pixel_map
-        self._mask_initialized: bool = False
+        if (
+            max_num_peaks is None
+            or asic_nx is None
+            or asic_ny is None
+            or nasics_x is None
+            or nasics_y is None
+            or adc_threshold is None
+            or minimum_snr is None
+            or min_pixel_count is None
+            or max_pixel_count is None
+            or min_res is None
+            or max_res is None
+        ):
+            raise RuntimeError(
+                "OM ERROR: Some parameters required for the initialization of the "
+                "Peakfinder8PeakDetection algorithm have not been defined. Please "
+                "check the command used to initialize the algorithm."
+            )
+
+        self._max_num_peaks: Union[int, None] = max_num_peaks
+        self._asic_nx: Union[int, None] = asic_nx
+        self._asic_ny: Union[int, None] = asic_ny
+        self._nasics_x: Union[int, None] = nasics_x
+        self._nasics_y: Union[int, None] = nasics_y
+        self._adc_thresh: Union[float, None] = adc_threshold
+        self._minimum_snr: Union[float, None] = minimum_snr
+        self._min_pixel_count: Union[int, None] = min_pixel_count
+        self._max_pixel_count: Union[int, None] = max_pixel_count
+        self._local_bg_radius: Union[int, None] = local_bg_radius
+        self._min_res: Union[int, None] = min_res
+        self._max_res: Union[int, None] = max_res
+        self._bad_pixel_mask: Union[numpy.ndarray, None] = bad_pixel_map
+        self._mask: Union[numpy.ndarray, None] = None
         self._radius_pixel_map: numpy.ndarray = radius_pixel_map
+
+    def get_adc_thresh(self) -> Union[float, None]:
+        """
+        Gets the minimum ADC threshold for peak detection.
+
+        This function returns the minimum ADC threshold currently used by the algorithm
+        for peak detection.
+
+        Returns:
+
+            The minimum singal-to-noise ratio currently used by the algorithm.
+        """
+        return self._minimum_snr
+
+    def set_adc_thresh(self, adc_thresh: float) -> None:
+        """
+        Sets the minimum ADC threshold for peak detection.
+
+        This function sets the minimum ADC threshold used by the algorithm for peak
+        detection. Any future call to the
+        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use the value provided here for this specific parameter.
+
+        Arguments:
+
+            adc_threshold: The new value of the minimum singal-to-noise ratio for peak
+            detection.
+        """
+        self._adc_thresh = adc_thresh
+
+    def get_minimum_snr(self) -> Union[float, None]:
+        """
+        Gets the minimum signal-to-noise ratio for peak detection.
+
+        This function returns the minimum signal-to-noise ratio currently used by
+        the algorithm for peak detection.
+
+        Returns:
+
+            The minimum singal-to-noise ratio currently used by the algorithm.
+        """
+        return self._minimum_snr
+
+    def set_minimum_snr(self, minimum_snr: float) -> None:
+        """
+        Sets the minimum signal-to-noise ratio for peak detection.
+
+        This function sets the minimum signal-to-noise ratio used by the algorithm for
+        peak detection. Any future call to the
+        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use the value provided here for this specific parameter.
+
+        Arguments:
+
+            minimum_snr: The new value of the minimum singal-to-noise ratio for peak
+            detection.
+        """
+        self._minimum_snr = minimum_snr
+
+    def get_min_pixel_count(self) -> Union[int, None]:
+        """
+        Gets the minimum size for a peak in pixels.
+
+        This function returns the current minimum size in pixels that allows a peak
+        to be detected by the algorithm.
+
+        Returns:
+
+            The minimum size in pixels for a peak.
+        """
+        return self._min_pixel_count
+
+    def set_min_pixel_count(self, min_pixel_count: int) -> None:
+        """
+        Sets the minimum size for a peak in pixels.
+
+        This function sets the minimum size in pixels that allows a peak to be
+        detected by the algorithm. Any future call to the
+        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use the value provided here for this specific parameter.
+
+        Arguments:
+
+            min_pixel_count: The new minimum size in pixels for a peak.
+        """
+        self._min_pixel_count = min_pixel_count
+
+    def get_max_pixel_count(self) -> Union[int, None]:
+        """
+        Gets the maximum size for a peak in pixels.
+
+        This function returns the current maximum size in pixels that allows a peak
+        to be detected by the algorithm.
+
+        Returns:
+
+            The maximum size in pixels for a peak.
+        """
+        return self._max_pixel_count
+
+    def set_max_pixel_count(self, max_pixel_count: int) -> None:
+        """
+        Sets the maximum size for a peak in pixels.
+
+        This function sets the maximum size in pixels that allows a peak to be
+        detected by the algorithm. Any future call to the
+        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use the value provided here for this specific parameter.
+
+        Arguments:
+
+            max_pixel_count: The new minimum size in pixels for a peak.
+        """
+        self._max_pixel_count = max_pixel_count
+
+    def get_local_bg_radius(self) -> Union[int, None]:
+        """
+        Gets the radius in pixels for the estimation of the local background.
+
+        This function returns the radius in pixels currently used by the algorithm to
+        estimate the background.
+
+        Returns:
+
+            The radius in pixels for the estimation of the local background.
+        """
+        return self._local_bg_radius
+
+    def set_local_bg_radius(self, local_bg_radius: int) -> None:
+        """
+        Sets the radius in pixels for the estimation of the local background.
+
+        This function sets the radius in pixels used by the algorithm to estimate the
+        local background. Any future call to the
+        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use the value provided here for this specific parameter.
+
+        Arguments:
+
+            max_pixel_count: The new minimum size in pixels for a peak.
+        """
+        self._local_bg_radius = local_bg_radius
+
+    def get_min_res(self) -> Union[int, None]:
+        """
+        Gets the minimum resolution for a peak in pixels.
+
+        This function returns the current minimum resolution in pixels that allows a
+        peak to be detected by the algorithm.
+
+        Returns:
+
+            The minimum resolution in pixels for a peak.
+        """
+        return self._min_res
+
+    def set_min_res(self, min_res: int) -> None:
+        """
+        Sets the minimum resolution for a peak in pixels.
+
+        This function sets the minimum resolution in pixels that allows a peak to be
+        detected by the algorithm. Any future call to the
+        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use the value provided here for this specific parameter.
+
+        Arguments:
+
+            max_res: The new maximum resolution in pixels for a peak.
+        """
+        self._min_res = min_res
+        self._mask = None
+
+    def get_max_res(self) -> Union[int, None]:
+        """
+        Gets the maximum resolution a peak in pixels.
+
+        This function returns the current maximum resolution in pixels that allows a
+        peak to be detected by the algorithm.
+
+        Returns:
+
+            The maximum resolution in pixels for a peak.
+        """
+        return self._max_res
+
+    def set_max_res(self, max_res: int) -> None:
+        """
+        Sets the maximum resolution for a peak in pixels.
+
+        This function sets the maximum resolution in pixels that allows a peak to be
+        detected by the algorithm. Any future call to the
+        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use the value provided here for this specific parameter.
+
+        Arguments:
+
+            max_res: The new maximum resolution in pixels for a peak.
+        """
+        self._max_res = max_res
+        self._mask = None
 
     def find_peaks(self, *, data: numpy.ndarray) -> TypePeakList:
         """
@@ -435,19 +683,14 @@ class Peakfinder8PeakDetection:
             A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
             with information about the detected peaks.
         """
-        if not self._mask_initialized:
-            if self._mask is None:
+        if self._mask is None:
+            if self._bad_pixel_mask is None:
                 self._mask = numpy.ones_like(data, dtype=numpy.int8)
             else:
-                self._mask = self._mask.astype(numpy.int8)
+                self._mask = self._bad_pixel_mask.astype(numpy.int8)
 
-            res_mask: numpy.ndarray = numpy.ones(
-                shape=self._mask.shape, dtype=numpy.int8
-            )
-
-            res_mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
-            res_mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
-            self._mask *= res_mask
+            self._mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
+            self._mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
 
         peak_list: Tuple[List[float], ...] = peakfinder_8(
             self._max_num_peaks,

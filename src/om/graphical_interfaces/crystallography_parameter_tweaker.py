@@ -29,11 +29,9 @@ import time
 from typing import Any, Deque, Dict, List, Tuple, Union
 
 import click  # type: ignore
-import h5py  # type: ignore
 import numpy  # type: ignore
 
 from om.algorithms import crystallography as cryst_algs
-from om.algorithms.crystallography import TypePeakfinder8Info
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import crystfel_geometry, exceptions, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
@@ -97,19 +95,15 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
 
         self._received_data: Dict[str, Any] = {}
 
-        geometry_filename: str = self._monitor_params.get_param(
-            group="crystallography",
-            parameter="geometry_file",
-            parameter_type=str,
-            required=True,
-        )
-
-        geometry: crystfel_geometry.TypeDetector
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
-            filename=geometry_filename
-        )
-        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(
-            geometry=geometry
+        self._pixelmaps: TypePixelMaps = (
+            crystfel_geometry.pixel_maps_from_geometry_file(
+                filename=self._monitor_params.get_parameter(
+                    group="crystallography",
+                    parameter="geometry_file",
+                    parameter_type=str,
+                    required=True,
+                )
+            )
         )
 
         y_minimum: int = (
@@ -139,120 +133,14 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
             shape=visual_img_shape, dtype=numpy.float32
         )
 
-        self._pf8_bad_pixel_map_fname: Union[
-            str, None
-        ] = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if self._pf8_bad_pixel_map_fname is not None:
-            self._pf8_bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            self._pf8_bad_pixel_map_hdf5_path = None
-
-        self._pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
-            detector_type=self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="detector_type",
-                parameter_type=str,
-                required=True,
+        self._peak_detection: cryst_algs.Peakfinder8PeakDetection = (
+            cryst_algs.Peakfinder8PeakDetection(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="peakfinder8_peak_detection"
+                ),
+                radius_pixel_map=self._pixelmaps["radius"],
             )
         )
-        self._pf8_max_num_peaks: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_num_peaks",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_adc_threshold: float = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="adc_threshold",
-            parameter_type=float,
-            required=True,
-        )
-        pf8_minimum_snr: float = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="minimum_snr",
-            parameter_type=float,
-            required=True,
-        )
-        pf8_min_pixel_count: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="min_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_max_pixel_count: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_local_bg_radius: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="local_bg_radius",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_min_res: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="min_res",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_max_res: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_res",
-            parameter_type=int,
-            required=True,
-        )
-
-        pf8_bad_pixel_map_fname: Union[str, None] = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if pf8_bad_pixel_map_fname is not None:
-            pf8_bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            pf8_bad_pixel_map_hdf5_path = None
-
-        if pf8_bad_pixel_map_fname is not None:
-            try:
-                hdf5_file_handle: Any
-                with h5py.File(pf8_bad_pixel_map_fname, "r") as hdf5_file_handle:
-                    self._pf8_bad_pixel_map: Union[
-                        numpy.ndarray, None
-                    ] = hdf5_file_handle[pf8_bad_pixel_map_hdf5_path][:]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                raise RuntimeError(
-                    "The following error occurred while reading the {0} field"
-                    "from the {1} bad pixel map HDF5 file:"
-                    "{2}: {3}".format(
-                        pf8_bad_pixel_map_fname,
-                        pf8_bad_pixel_map_hdf5_path,
-                        exc_type.__name__,  # type: ignore
-                        exc_value,
-                    )
-                ) from exc
-        else:
-            self._pf8_bad_pixel_map = None
 
         pyqtgraph.setConfigOption("background", 0.2)
 
@@ -287,10 +175,10 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._adc_threshold_label: Any = QtWidgets.QLabel(self)
         self._adc_threshold_label.setText("adc_threshold")
         self._adc_threshold_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._adc_threshold_lineedit.setText(str(pf8_adc_threshold))
+        self._adc_threshold_lineedit.setText(str(self._peak_detection.get_adc_thresh()))
         self._adc_threshold_lineedit.setValidator(self._float_validator)
         self._adc_threshold_lineedit.editingFinished.connect(
-            self._update_peak_detection
+            self._update_peak_detection_parameters
         )
         self._horizontal_layout2: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout2.addWidget(self._adc_threshold_label)
@@ -299,9 +187,11 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._min_snr_label: Any = QtWidgets.QLabel(self)
         self._min_snr_label.setText("minmum_snr")
         self._min_snr_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._min_snr_lineedit.setText(str(pf8_minimum_snr))
+        self._min_snr_lineedit.setText(str(self._peak_detection.get_minimum_snr()))
         self._min_snr_lineedit.setValidator(self._float_validator)
-        self._min_snr_lineedit.editingFinished.connect(self._update_peak_detection)
+        self._min_snr_lineedit.editingFinished.connect(
+            self._update_peak_detection_parameters
+        )
         self._horizontal_layout3: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout3.addWidget(self._min_snr_label)
         self._horizontal_layout3.addWidget(self._min_snr_lineedit)
@@ -309,10 +199,12 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._min_pixel_count_label: Any = QtWidgets.QLabel(self)
         self._min_pixel_count_label.setText("min_pixel_count")
         self._min_pixel_count_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._min_pixel_count_lineedit.setText(str(pf8_min_pixel_count))
+        self._min_pixel_count_lineedit.setText(
+            str(self._peak_detection.get_min_pixel_count())
+        )
         self._min_pixel_count_lineedit.setValidator(self._int_validator)
         self._min_pixel_count_lineedit.editingFinished.connect(
-            self._update_peak_detection
+            self._update_peak_detection_parameters
         )
         self._horizontal_layout4: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout4.addWidget(self._min_pixel_count_label)
@@ -321,10 +213,12 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._max_pixel_count_label: Any = QtWidgets.QLabel(self)
         self._max_pixel_count_label.setText("max_pixel_count")
         self._max_pixel_count_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._max_pixel_count_lineedit.setText(str(pf8_max_pixel_count))
+        self._max_pixel_count_lineedit.setText(
+            str(self._peak_detection.get_max_pixel_count())
+        )
         self._max_pixel_count_lineedit.setValidator(self._int_validator)
         self._max_pixel_count_lineedit.editingFinished.connect(
-            self._update_peak_detection
+            self._update_peak_detection_parameters
         )
         self._horizontal_layout5: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout5.addWidget(self._max_pixel_count_label)
@@ -333,10 +227,12 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._local_bg_radius_label: Any = QtWidgets.QLabel(self)
         self._local_bg_radius_label.setText("local_bg_radius")
         self._local_bg_radius_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._local_bg_radius_lineedit.setText(str(pf8_local_bg_radius))
+        self._local_bg_radius_lineedit.setText(
+            str(self._peak_detection.get_local_bg_radius())
+        )
         self._local_bg_radius_lineedit.setValidator(self._int_validator)
         self._local_bg_radius_lineedit.editingFinished.connect(
-            self._update_peak_detection
+            self._update_peak_detection_parameters
         )
         self._horizontal_layout6: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout6.addWidget(self._local_bg_radius_label)
@@ -345,9 +241,11 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._min_res_label: Any = QtWidgets.QLabel(self)
         self._min_res_label.setText("min_res")
         self._min_res_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._min_res_lineedit.setText(str(pf8_min_res))
+        self._min_res_lineedit.setText(str(self._peak_detection.get_min_res()))
         self._min_res_lineedit.setValidator(self._int_validator)
-        self._min_res_lineedit.editingFinished.connect(self._update_peak_detection)
+        self._min_res_lineedit.editingFinished.connect(
+            self._update_peak_detection_parameters
+        )
         self._horizontal_layout7: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout7.addWidget(self._min_res_label)
         self._horizontal_layout7.addWidget(self._min_res_lineedit)
@@ -355,9 +253,11 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._max_res_label: Any = QtWidgets.QLabel(self)
         self._max_res_label.setText("max_res")
         self._max_res_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._max_res_lineedit.setText(str(pf8_max_res))
+        self._max_res_lineedit.setText(str(self._peak_detection.get_max_res()))
         self._max_res_lineedit.setValidator(self._int_validator)
-        self._max_res_lineedit.editingFinished.connect(self._update_peak_detection)
+        self._max_res_lineedit.editingFinished.connect(
+            self._update_peak_detection_parameters
+        )
         self._horizontal_layout8: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout8.addWidget(self._max_res_label)
         self._horizontal_layout8.addWidget(self._max_res_lineedit)
@@ -414,14 +314,9 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
             pxMode=False,
         )
 
-    def _update_peak_detection(self) -> None:
-        # Performs peak detection with the current parameters
+    def _update_peak_detection_parameters(self) -> None:
+        # Updates the peak detection parameters
 
-        try:
-            current_data: numpy.ndarray = self._frame_list[self._current_frame_index]
-        except IndexError:
-            # If the framebuffer is empty, returns without drawing anything.
-            return
         try:
             pf8_adc_threshold: float = float(self._adc_threshold_lineedit.text())
             pf8_minimum_snr: float = float(self._min_snr_lineedit.text())
@@ -433,26 +328,26 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         except ValueError:
             return
 
-        peak_detection: cryst_algs.Peakfinder8PeakDetection = (
-            cryst_algs.Peakfinder8PeakDetection(
-                max_num_peaks=self._pf8_max_num_peaks,
-                asic_nx=self._pf8_detector_info["asic_nx"],
-                asic_ny=self._pf8_detector_info["asic_ny"],
-                nasics_x=self._pf8_detector_info["nasics_x"],
-                nasics_y=self._pf8_detector_info["nasics_y"],
-                adc_threshold=pf8_adc_threshold,
-                minimum_snr=pf8_minimum_snr,
-                min_pixel_count=pf8_min_pixel_count,
-                max_pixel_count=pf8_max_pixel_count,
-                local_bg_radius=pf8_local_bg_radius,
-                min_res=pf8_min_res,
-                max_res=pf8_max_res,
-                bad_pixel_map=self._pf8_bad_pixel_map,
-                radius_pixel_map=self._pixelmaps["radius"],
-            )
-        )
+        self._peak_detection.set_adc_thresh(pf8_adc_threshold)
+        self._peak_detection.set_minimum_snr(pf8_minimum_snr)
+        self._peak_detection.set_min_pixel_count(pf8_min_pixel_count)
+        self._peak_detection.set_max_pixel_count(pf8_max_pixel_count)
+        self._peak_detection.set_local_bg_radius(pf8_local_bg_radius)
+        self._peak_detection.set_min_res(pf8_min_res)
+        self._peak_detection.set_max_res(pf8_max_res)
 
-        peak_list: cryst_algs.TypePeakList = peak_detection.find_peaks(
+        self._detect_peaks()
+
+    def _detect_peaks(self) -> None:
+        # Performs peak detection with the current parameters
+
+        try:
+            current_data: numpy.ndarray = self._frame_list[self._current_frame_index]
+        except IndexError:
+            # If the framebuffer is empty, returns without drawing anything.
+            return
+
+        peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
             data=current_data["detector_data"]
         )
 
@@ -505,7 +400,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
 
         QtWidgets.QApplication.processEvents()
 
-        self._update_peak_detection()
+        self._detect_peaks()
 
         QtWidgets.QApplication.processEvents()
 
