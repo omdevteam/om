@@ -62,7 +62,7 @@ class ZmqDataBroadcaster:
     def __init__(
         self,
         *,
-        url: Union[str, None],
+        url: Union[str, None] = None,
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
@@ -98,8 +98,9 @@ class ZmqDataBroadcaster:
         self._context: Any = zmq.Context()
         self._sock: Any = self._context.socket(zmq.PUB)
         # TODO: Fix types
+
         if url is None:
-            url = "tcp://127.0.0.1:12321"
+            url = "tcp://{}:12321".format(get_current_machine_ip())
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -144,7 +145,7 @@ class ZmqResponder:
     def __init__(
         self,
         *,
-        url: Union[str, None],
+        url: Union[str, None] = None,
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
@@ -179,8 +180,9 @@ class ZmqResponder:
         self._context: Any = zmq.Context()
         self._sock: Any = self._context.socket(zmq.REP)
         # TODO: Fix types
+
         if url is None:
-            url = "tcp://127.0.0.1:12322"
+            url = "tcp://{}:12322".format(get_current_machine_ip())
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
