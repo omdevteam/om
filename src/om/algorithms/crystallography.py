@@ -182,7 +182,13 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
             "The peakfinder8 information for the {0} detector "
             "cannot be retrieved: detector type unknown"
         )
-
+    print(
+        "OM Warning: Using the get_peakfinder8_info function is deprecated. The "
+        "function will be removed in a future version of OM. Please initialize the "
+        "Peakfinder8PeakDetection algorithm directly, using the new parameter "
+        "group-based interface (which requires only the parameters and "
+        "photon_energy_kev arguments)."
+    )
     return peakfinder8_info
 
 
@@ -194,20 +200,20 @@ class Peakfinder8PeakDetection:
     def __init__(
         self,
         *,
-        max_num_peaks: int,
-        asic_nx: int,
-        asic_ny: int,
-        nasics_x: int,
-        nasics_y: int,
-        adc_threshold: float,
-        minimum_snr: float,
-        min_pixel_count: int,
-        max_pixel_count: int,
-        local_bg_radius: int,
-        min_res: int,
-        max_res: int,
-        bad_pixel_map: Union[numpy.ndarray, None],
         radius_pixel_map: numpy.ndarray,
+        max_num_peaks: Union[int, None] = None,
+        asic_nx: Union[int, None] = None,
+        asic_ny: Union[int, None] = None,
+        nasics_x: Union[int, None] = None,
+        nasics_y: Union[int, None] = None,
+        adc_threshold: Union[float, None] = None,
+        minimum_snr: Union[float, None] = None,
+        min_pixel_count: Union[int, None] = None,
+        max_pixel_count: Union[int, None] = None,
+        local_bg_radius: Union[int, None] = None,
+        min_res: Union[int, None] = None,
+        max_res: Union[int, None] = None,
+        bad_pixel_map: Union[numpy.ndarray, None] = None,
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """

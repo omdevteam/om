@@ -55,7 +55,7 @@ def detector_data_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_parameters.get_param(
+        monitor_parameters.get_parameter(
             group="data_retrieval_layer",
             parameter="psana_detector_name",
             parameter_type=str,
@@ -104,7 +104,7 @@ def detector_distance_init(*, monitor_parameters: parameters.MonitorParams) -> A
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_parameters.get_param(
+        monitor_parameters.get_parameter(
             group="data_retrieval_layer",
             parameter="psana_detector_distance_epics_name",
             parameter_type=str,
@@ -154,7 +154,7 @@ def timetool_data_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
         A psana object that can be used later to retrieve the data.
     """
     return psana.Detector(
-        monitor_parameters.get_param(
+        monitor_parameters.get_parameter(
             group="data_retrieval_layer",
             parameter="psana_timetool_epics_name",
             parameter_type=str,
@@ -182,7 +182,7 @@ def optical_laser_active_init(*, monitor_parameters: parameters.MonitorParams) -
 
         A psana object that can be used later to retrieve the data.
     """
-    evr_source_name = monitor_parameters.get_param(
+    evr_source_name = monitor_parameters.get_parameter(
         group="data_retrieval_layer",
         parameter="psana_evr_source_name",
         parameter_type=str,
@@ -211,7 +211,7 @@ def xrays_active_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
 
         A psana object that can be used later to retrieve the data.
     """
-    evr_source_name = monitor_parameters.get_param(
+    evr_source_name = monitor_parameters.get_parameter(
         group="data_retrieval_layer",
         parameter="psana_evr_source_name",
         parameter_type=str,
@@ -284,7 +284,7 @@ def lcls_extra_init(*, monitor_parameters: parameters.MonitorParams) -> Any:
 
         A psana object that can be used later to retrieve the data.
     """
-    lcls_extra_entry: List[List[str]] = monitor_parameters.get_param(
+    lcls_extra_entry: List[List[str]] = monitor_parameters.get_parameter(
         group="data_retrieval_layer",
         parameter="lcls_extra",
         parameter_type=list,

@@ -90,7 +90,7 @@ class OmParallelizationEngine(ABC):
         )
         self._monitor: process_layer_base.OmMonitor = monitor
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._num_frames_in_event_to_process: int = self._monitor_params.get_param(
+        self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="num_frames_in_event_to_process",
             parameter_type=int,

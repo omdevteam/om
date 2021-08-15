@@ -174,7 +174,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
             An optional initialization token.
         """
-        required_data: List[str] = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
@@ -210,7 +210,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         if "optical_laser_active" in required_data:
             self._event_info_to_append[
                 "active_optical_laser_evr_code"
-            ] = self._monitor_params.get_param(
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="active_optical_laser_evr_code",
                 parameter_type=int,
@@ -219,7 +219,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
         if "xray_active" in required_data:
             self._event_info_to_append[
                 "active_xray_evr_code"
-            ] = self._monitor_params.get_param(
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="active_xray_evr_code",
                 parameter_type=int,
@@ -277,7 +277,7 @@ class LclsBaseDataEventHandler(drl_base.OmDataEventHandler):
 
         # If the psana calibration directory is provided in the configuration file, it
         # is added as an option to psana before the DataSource is set.
-        psana_calib_dir: str = self._monitor_params.get_param(
+        psana_calib_dir: str = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="psana_calibration_directory",
             parameter_type=str,

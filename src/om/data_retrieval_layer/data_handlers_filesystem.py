@@ -185,7 +185,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
 
             An optional initialization token.
         """
-        required_data: List[str] = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
@@ -203,7 +203,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         # later.
         self._event_info_to_append: Dict[str, Any] = {}
 
-        calibration: bool = self._monitor_params.get_param(
+        calibration: bool = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="calibration",
             parameter_type=bool,
@@ -212,7 +212,9 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         self._event_info_to_append["calibration"] = calibration
 
         if "beam_energy" in required_data:
-            self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
+            self._event_info_to_append[
+                "beam_energy"
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="fallback_beam_energy_in_eV",
                 parameter_type=float,
@@ -221,7 +223,7 @@ class PilatusFilesDataEventHandler(FilesBaseDataEventHandler):
         if "detector_distance" in required_data:
             self._event_info_to_append[
                 "detector_distance"
-            ] = self._monitor_params.get_param(
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="fallback_detector_distance_in_mm",
                 parameter_type=float,
@@ -431,7 +433,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
         An optional initialization token.
         """
-        required_data: List[str] = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
@@ -447,7 +449,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
 
         self._event_info_to_append: Dict[str, Any] = {}
 
-        calibration: bool = self._monitor_params.get_param(
+        calibration: bool = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="calibration",
             parameter_type=bool,
@@ -455,19 +457,19 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         )
         self._event_info_to_append["calibration"] = calibration
         if calibration is True:
-            calibration_dark_filenames: List[str] = self._monitor_params.get_param(
+            calibration_dark_filenames: List[str] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="calibration_dark_filenames",
                 parameter_type=list,
                 required=True,
             )
-            calibration_gain_filenames: List[str] = self._monitor_params.get_param(
+            calibration_gain_filenames: List[str] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="calibration_gain_filenames",
                 parameter_type=list,
                 required=True,
             )
-            calibration_photon_energy_kev: float = self._monitor_params.get_param(
+            calibration_photon_energy_kev: float = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="calibration_photon_energy_kev",
                 parameter_type=float,
@@ -482,7 +484,9 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
             )
 
         if "beam_energy" in required_data:
-            self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
+            self._event_info_to_append[
+                "beam_energy"
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="fallback_beam_energy_in_eV",
                 parameter_type=float,
@@ -491,7 +495,7 @@ class Jungfrau1MFilesDataEventHandler(FilesBaseDataEventHandler):
         if "detector_distance" in required_data:
             self._event_info_to_append[
                 "detector_distance"
-            ] = self._monitor_params.get_param(
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="fallback_detector_distance_in_mm",
                 parameter_type=float,

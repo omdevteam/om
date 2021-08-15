@@ -108,23 +108,23 @@ def main(*, source: str, config: str, debug: bool) -> None:
 
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(config)
 
-    data_retrieval_layer_filename: str = monitor_parameters.get_param(
+    data_retrieval_layer_filename: str = monitor_parameters.get_parameter(
         group="om", parameter="data_retrieval_layer", parameter_type=str, required=True
     )
-    data_event_handler_name: str = monitor_parameters.get_param(
+    data_event_handler_name: str = monitor_parameters.get_parameter(
         group="om", parameter="data_event_handler", parameter_type=str, required=True
     )
-    parallelization_layer_filename: str = monitor_parameters.get_param(
+    parallelization_layer_filename: str = monitor_parameters.get_parameter(
         group="om", parameter="parallelization_layer", parameter_type=str, required=True
     )
-    processing_layer_filename: str = monitor_parameters.get_param(
+    processing_layer_filename: str = monitor_parameters.get_parameter(
         group="om", parameter="processing_layer", parameter_type=str, required=True
     )
-    monitor_name = monitor_parameters.get_param(
+    monitor_name = monitor_parameters.get_parameter(
         group="om", parameter="monitor", parameter_type=str, required=True
     )
 
-    parallelization_engine_name: str = monitor_parameters.get_param(
+    parallelization_engine_name: str = monitor_parameters.get_parameter(
         group="om",
         parameter="parallelization_engine",
         parameter_type=str,

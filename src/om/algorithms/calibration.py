@@ -37,8 +37,8 @@ class Jungfrau1MCalibration:
     def __init__(
         self,
         *,
-        dark_filenames: List[str],
-        gain_filenames: List[str],
+        dark_filenames: Union[List[str], None] = None,
+        gain_filenames: Union[List[str], None] = None,
         photon_energy_kev: float,
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
@@ -79,6 +79,13 @@ class Jungfrau1MCalibration:
                 "version of OM. Please use the new parameter group-based "
                 "initialization interface (which requires only the parameters and "
                 "photon_energy_kev arguments)."
+            )
+
+        if dark_filenames is None or gain_filenames is None:
+            raise RuntimeError(
+                "OM ERROR: Some parameters required for the initialization of the "
+                "Jungfrau1MCalibration algorithm have not been defined. Please check"
+                "the command used to initialize the algorithm."
             )
 
         # 2 for Jungfrau 1M

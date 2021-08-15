@@ -57,7 +57,7 @@ def _create_hidra_info(
     query_text: str = "QUERY_NEXT"
     data_base_path: str = ""
 
-    base_port: int = monitor_params.get_param(
+    base_port: int = monitor_params.get_parameter(
         group="data_retrieval_layer",
         parameter="hidra_base_port",
         parameter_type=int,
@@ -67,7 +67,7 @@ def _create_hidra_info(
     # Search the configuration file for a HiDRA selection string. If the selection
     # string is not found, use the file extensions from the detector layer as
     # selection string.
-    hidra_selection_string: str = monitor_params.get_param(
+    hidra_selection_string: str = monitor_params.get_parameter(
         group="data_retrieval_layer",
         parameter="hidra_selection_string",
         parameter_type=str,
@@ -238,7 +238,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
             OmHidraAPIError: A [OmHidraAPIError][om.utils.exceptions.OmHidraAPIError]
                 exception is raised if the initial connection to HiDRA fails.
         """
-        required_data: List[str] = self._monitor_params.get_param(
+        required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="required_data",
             parameter_type=list,
@@ -255,7 +255,9 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         # later.
         self._event_info_to_append: Dict[str, Any] = {}
         if "beam_energy" in required_data:
-            self._event_info_to_append["beam_energy"] = self._monitor_params.get_param(
+            self._event_info_to_append[
+                "beam_energy"
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="fallback_beam_energy_in_eV",
                 parameter_type=float,
@@ -264,7 +266,7 @@ class P11Petra3DataEventHandler(drl_base.OmDataEventHandler):
         if "detector_distance" in required_data:
             self._event_info_to_append[
                 "detector_distance"
-            ] = self._monitor_params.get_param(
+            ] = self._monitor_params.get_parameter(
                 group="data_retrieval_layer",
                 parameter="fallback_detector_distance_in_mm",
                 parameter_type=float,

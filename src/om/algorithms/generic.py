@@ -110,6 +110,7 @@ class Correction:
                 * If the 'gain_filename' argument is not None, this argument must also
                   be provided, and cannot be None. Otherwise it is ignored.
         """
+
         if parameters is not None:
             dark_filename = param_utils.get_parameter_from_parameter_group(
                 group=parameters, parameter="dark_filename", parameter_type=str
@@ -129,15 +130,6 @@ class Correction:
             gain_hdf5_path = param_utils.get_parameter_from_parameter_group(
                 group=parameters, parameter="gain_hdf5_path", parameter_type=str
             )
-        else:
-            print(
-                "OM Warning: Initializing the Correction algorithm with individual "
-                "parameters (dark_filename, dark_hdf5_path, mask_filename, "
-                "mask_hdf5_path, gain_filename and gain_hdf5_path) is deprecated and "
-                "will be removed in a future version of OM. Please use the new "
-                "parameter group-based initialization interface (which requires only "
-                "the parameters argument)."
-            )
 
         if mask_filename is not None:
             if mask_hdf5_path is not None:
@@ -151,8 +143,8 @@ class Correction:
                     exc_type, exc_value = sys.exc_info()[:2]
                     # TODO: Fix types
                     raise RuntimeError(
-                        "The following error occurred while reading the {0} field from "
-                        "the {1} gain map HDF5 file: {2}: {3}".format(
+                        "The following error occurred while reading the {0} field "
+                        "from the {1} gain map HDF5 file: {2}: {3}".format(
                             mask_filename,
                             mask_hdf5_path,
                             exc_type.__name__,  # type: ignore
@@ -223,7 +215,7 @@ class Correction:
             # True here is equivalent to an all-one map.
             self._gain_map = True
 
-    def apply_correction(self, *, data: numpy.ndarray) -> numpy.ndarray:
+    def apply_correction(self, data: numpy.ndarray) -> numpy.ndarray:
         """
         Applies the correction to a detector data frame.
 
@@ -251,8 +243,8 @@ class RadialProfile:
         self,
         *,
         radius_pixel_map: numpy.ndarray,
-        bad_pixel_map: Union[numpy.ndarray, None],
-        radius_step: float = 1.0,
+        bad_pixel_map: Union[numpy.ndarray, None] = None,
+        radius_step: Union[float, None] = None,
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
@@ -291,13 +283,10 @@ class RadialProfile:
                   detector).
 
             radius_step: The width (in pixels) of each step of the radial average.
-                Defaults to 1.0 pixels.
         """
         if parameters is not None:
-            bad_pixel_map_fname: str = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="bad_pixel_map_filename",
-                parameter_type=str,
+            bad_pixel_map_fname = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="bad_pixel_map_filename", parameter_type=str
             )
             if bad_pixel_map_fname is not None:
                 bad_pixel_map_hdf5_path: Union[
@@ -331,6 +320,7 @@ class RadialProfile:
                     ) from exc
             else:
                 bad_pixel_map = None
+
             radius_step = param_utils.get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="radius_step",
@@ -338,11 +328,18 @@ class RadialProfile:
             )
         else:
             print(
-                "OM Warning: Initializing the RadialProfile algorithm with individual "
-                "parameters (radius_pixel_map, bad_pixel_map and radius_step) is"
-                "deprecated and will be removed in a future version of OM. Please use "
-                "the new parameter group-based initialization interface (which "
+                "OM Warning: Initializing the RadialProfile algorithm with "
+                "individual parameters (radius_pixel_map, bad_pixel_map, radius_step) "
+                "is deprecated and will be removed in a future version of OM. Please "
+                "use the new parameter group-based initialization interface (which "
                 "requires only the parameters and radius_pixel_map arguments)."
+            )
+
+        if radius_step is None:
+            raise RuntimeError(
+                "OM ERROR: Some parameters required for the initialization of the "
+                "RadialProfile algorithm have not been defined. Please check the "
+                "command used to initialize the algorithm."
             )
 
         # Calculate radial bins
@@ -362,7 +359,7 @@ class RadialProfile:
         else:
             self._mask = bad_pixel_map.astype(bool)
 
-    def calculate_profile(self, *, data: numpy.ndarray) -> numpy.ndarray:
+    def calculate_profile(self, data: numpy.ndarray) -> numpy.ndarray:
         """
         Calculate the radial profile of a detector data frame.
 
@@ -392,7 +389,7 @@ class RadialProfile:
         return radial_average
 
 
-class DataAccumulator:
+class DataAccumulation:
     """
     See documentation of the `__init__` function.
     """
@@ -400,7 +397,7 @@ class DataAccumulator:
     def __init__(
         self,
         *,
-        num_events_to_accumulate: int,
+        num_events_to_accumulate: Union[int, None],
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
@@ -424,18 +421,25 @@ class DataAccumulator:
             )
         else:
             print(
-                "OM Warning: Initializing the DataAccumulator algorithm with "
+                "OM Warning: Initializing the DataAccumulation algorithm with "
                 "individual parameters (num_events_to_accumulate) is deprecated and "
                 "will be removed in a future version of OM. Please use the new "
                 "parameter group-based initialization interface (which requires only "
                 "the parameters argument)."
             )
 
+        if num_events_to_accumulate is None:
+            raise RuntimeError(
+                "OM ERROR: Some parameters required for the initialization of the "
+                "DataAccumulation algorithm have not been defined. Please check the "
+                "command used to initialize the algorithm."
+            )
+
         self._num_events_to_accumulate: int = num_events_to_accumulate
         self._accumulator: List[Dict[str, Any]] = []
         self._num_events_in_accumulator: int = 0
 
-    def add_data(self, *, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
+    def add_data(self, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
         """
         Adds data to the accumulator.
 

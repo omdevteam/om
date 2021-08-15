@@ -42,13 +42,13 @@ class HDF5Writer:
     def __init__(  # noqa: C901
         self,
         *,
-        directory_for_processed_data: str,
-        node_rank: int,
-        geometry: crystfel_geometry.TypeDetector,
-        compression: Union[str, None],
-        detector_data_type: Union[str, None],
-        detector_data_shape: Tuple[int, int],
-        hdf5_fields: Dict[str, str],
+        directory_for_processed_data: Union[str, None] = None,
+        node_rank: Union[int, None] = None,
+        geometry: Union[crystfel_geometry.TypeDetector, None] = None,
+        compression: Union[str, None] = None,
+        detector_data_type: Union[str, None] = None,
+        detector_data_shape: Union[Tuple[int, int], None] = None,
+        hdf5_fields: Union[Dict[str, str], None] = None,
         processed_filename_prefix: Union[str, None] = None,
         processed_filename_extension: Union[str, None] = None,
         compression_opts: Union[int, None] = None,
@@ -180,6 +180,26 @@ class HDF5Writer:
                 "max_num_peaks is deprecated and will be removed in a future version "
                 "of OM. Please use the new parameter group-based initialization "
                 "interface (which requires only the parameters argument)."
+            )
+
+        if (
+            directory_for_processed_data is None
+            or node_rank is None
+            or geometry is None
+            or compression is None
+            or detector_data_type is None
+            or detector_data_shape is None
+            or hdf5_fields is None
+            or processed_filename_prefix is None
+            or processed_filename_extension is None
+            or compression_opts is None
+            or compression_shuffle is None
+            or max_num_peaks is None
+        ):
+            raise RuntimeError(
+                "OM ERROR: Some parameters required for the initialization of the "
+                "HDF5Writer class have not been defined. Please check the command "
+                "to initialize the algorithm."
             )
 
         if processed_filename_prefix is None:
