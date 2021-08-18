@@ -182,13 +182,7 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
             "The peakfinder8 information for the {0} detector "
             "cannot be retrieved: detector type unknown"
         )
-    print(
-        "OM Warning: Using the get_peakfinder8_info function is deprecated. The "
-        "function will be removed in a future version of OM. Please initialize the "
-        "Peakfinder8PeakDetection algorithm directly, using the new parameter "
-        "group-based interface (which requires only the parameters and "
-        "photon_energy_kev arguments)."
-    )
+
     return peakfinder8_info
 
 
@@ -292,48 +286,14 @@ class Peakfinder8PeakDetection:
                   detector).
         """
         if parameters is not None:
-            detector_type = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="detector_type",
-                parameter_type=str,
-                required=True,
-            )
-            if detector_type == "cspad":
-                asic_nx = 194
-                asic_ny = 185
-                nasics_x = 8
-                nasics_y = 8
-            elif detector_type == "pilatus":
-                asic_nx = 2463
-                asic_ny = 2527
-                nasics_x = 1
-                nasics_y = 1
-            elif detector_type == "jungfrau1M":
-                asic_nx = 1024
-                asic_ny = 512
-                nasics_x = 1
-                nasics_y = 2
-            elif detector_type == "jungfrau4M":
-                asic_nx = 1024
-                asic_ny = 512
-                nasics_x = 1
-                nasics_y = 8
-            elif detector_type == "epix10k2M":
-                asic_nx = 384
-                asic_ny = 352
-                nasics_x = 1
-                nasics_y = 16
-            elif detector_type == "rayonix":
-                asic_nx = 1920
-                asic_ny = 1920
-                nasics_x = 1
-                nasics_y = 1
-            else:
-                raise RuntimeError(
-                    "The Peakfinder8PeakDetection algorithm does not support the {0} "
-                    "detector/"
+            peakfinder8_info: TypePeakfinder8Info = get_peakfinder8_info(
+                detector_type=param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="detector_type",
+                    parameter_type=str,
+                    required=True,
                 )
-
+            )
             max_num_peaks = param_utils.get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="max_num_peaks",
@@ -452,10 +412,10 @@ class Peakfinder8PeakDetection:
             )
 
         self._max_num_peaks: Union[int, None] = max_num_peaks
-        self._asic_nx: Union[int, None] = asic_nx
-        self._asic_ny: Union[int, None] = asic_ny
-        self._nasics_x: Union[int, None] = nasics_x
-        self._nasics_y: Union[int, None] = nasics_y
+        self._asic_nx: Union[int, None] = peakfinder8_info["asic_nx"]
+        self._asic_ny: Union[int, None] = peakfinder8_info["asic_ny"]
+        self._nasics_x: Union[int, None] = peakfinder8_info["nasics_x"]
+        self._nasics_y: Union[int, None] = peakfinder8_info["nasics_y"]
         self._adc_thresh: Union[float, None] = adc_threshold
         self._minimum_snr: Union[float, None] = minimum_snr
         self._min_pixel_count: Union[int, None] = min_pixel_count
