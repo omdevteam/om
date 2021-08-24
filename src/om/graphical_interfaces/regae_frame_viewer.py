@@ -26,15 +26,26 @@ import copy
 import signal
 import sys
 import time
-from typing import Any, Deque, Dict, Union, List
+from typing import Any, Deque, Dict, Union
 
 import click
 import numpy  # type: ignore
-import pyqtgraph  # type: ignore
+from om.graphical_interfaces import base as graph_interfaces_base
+from om.utils import exceptions
 
-from om_gui_desktop.graphical_interfaces import base as graph_interfaces_base
+try:
+    from PyQt5 import QtGui, QtCore  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PyQt5"
+    )
 
-from PyQt5 import QtGui, QtCore  # type: ignore
+try:
+    import pyqtgraph  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: pyqtgraph"
+    )
 
 from scipy.optimize import curve_fit
 
