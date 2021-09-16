@@ -294,6 +294,10 @@ class Peakfinder8PeakDetection:
                     required=True,
                 )
             )
+            asic_nx = peakfinder8_info["asic_nx"]
+            asic_ny = peakfinder8_info["asic_ny"]
+            nasics_x = peakfinder8_info["nasics_x"]
+            nasics_y = peakfinder8_info["nasics_y"]
             max_num_peaks = param_utils.get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="max_num_peaks",
@@ -412,10 +416,10 @@ class Peakfinder8PeakDetection:
             )
 
         self._max_num_peaks: Union[int, None] = max_num_peaks
-        self._asic_nx: Union[int, None] = peakfinder8_info["asic_nx"]
-        self._asic_ny: Union[int, None] = peakfinder8_info["asic_ny"]
-        self._nasics_x: Union[int, None] = peakfinder8_info["nasics_x"]
-        self._nasics_y: Union[int, None] = peakfinder8_info["nasics_y"]
+        self._asic_nx: Union[int, None] = asic_nx
+        self._asic_ny: Union[int, None] = asic_ny
+        self._nasics_x: Union[int, None] = nasics_x
+        self._nasics_y: Union[int, None] = nasics_y
         self._adc_thresh: Union[float, None] = adc_threshold
         self._minimum_snr: Union[float, None] = minimum_snr
         self._min_pixel_count: Union[int, None] = min_pixel_count
