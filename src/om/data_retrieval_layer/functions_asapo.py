@@ -92,7 +92,7 @@ def beam_energy(*, event: Dict[str, Any]) -> float:
 
         The energy of the beam in eV.
     """
-    wavelength: float = event["additional_info"]["stream_metadata"]["entry"]["instrument"]["beam"]["incident_wavelength"]["()"]
+    wavelength: float = 1e-10*event["additional_info"]["stream_metadata"]["entry"]["instrument"]["beam"]["incident_wavelength"]["()"]
     
     return cast(float, constants.h * constants.c / (wavelength * constants.e))
 

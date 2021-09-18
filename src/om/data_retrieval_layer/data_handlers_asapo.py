@@ -168,11 +168,8 @@ class Petra3AsapoEventHandler(drl_base.OmDataEventHandler):
                     stream_metadata: Dict[str, Any] = consumer.get_stream_meta(last_stream)
                     last_processed_event_id: int = -1000
                 continue
-            if event_id < 0:
+            if event_id <= 0:
                 continue
-
-            print(node_rank, last_stream, event_id)
-            sys.stdout.flush()
             last_processed_event_id = event_id
             event_data: numpy.ndarray
             event_metadata: Dict[str, Any]
