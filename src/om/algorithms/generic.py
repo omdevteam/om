@@ -28,9 +28,10 @@ from typing import Any, Dict, List, Union
 import h5py  # type:ignore
 import numpy  # type: ignore
 
+from om.algorithms import crystallography as cryst_algs
 from om.utils import exceptions
 from om.utils import parameters as param_utils
-
+from om.utils.crystfel_geometry import TypePixelMaps
 
 class Correction:
     """
@@ -467,3 +468,196 @@ class DataAccumulation:
             return data_to_return
 
         return None
+
+
+class Binning:
+    """
+    See documentation of the '__init__' function.
+    """
+
+    def __init__(  # noqa: C901
+        self,
+        *,
+        parameters: Union[Dict[str, Any], None] = None,
+    ) -> None:
+        """
+        """
+        if parameters is not None:        
+            self._layout_info: cryst_algs.TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
+                detector_type=param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="detector_type",
+                    parameter_type=str,
+                    required=True,
+                )
+            )
+            self._bin_size: int = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="bin_size",
+                parameter_type=int,
+                required=True,
+            )
+            bad_pixel_map_fname: str = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="bad_pixel_map_filename",
+                parameter_type=str,
+            )
+            if bad_pixel_map_fname is not None:
+                bad_pixel_map_hdf5_path: Union[
+                    str, None
+                ] = param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="bad_pixel_map_hdf5_path",
+                    parameter_type=str,
+                    required=True,
+                )
+            else:
+                bad_pixel_map_hdf5_path = None
+
+            if bad_pixel_map_fname is not None:
+                try:
+                    map_hdf5_file_handle: Any
+                    with h5py.File(bad_pixel_map_fname, "r") as map_hdf5_file_handle:
+                        bad_pixel_map = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
+                except (IOError, OSError, KeyError) as exc:
+                    exc_type, exc_value = sys.exc_info()[:2]
+                    # TODO: Fix type check
+                    raise RuntimeError(
+                        "The following error occurred while reading the {0} field from"
+                        "the {1} bad pixel map HDF5 file:"
+                        "{2}: {3}".format(
+                            bad_pixel_map_fname,
+                            bad_pixel_map_hdf5_path,
+                            exc_type.__name__,  # type: ignore
+                            exc_value,
+                        )
+                    ) from exc
+            else:
+                bad_pixel_map = None
+
+            min_good_pix_count: Union[
+                int,None
+            ] = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="min_good_pix_count",
+                parameter_type=int,
+            )
+            self._bad_pixel_value: Union[
+                int,float,None
+            ] = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="bad_pixel_value",
+                parameter_type=int,
+            )
+        else:
+            raise RuntimeError(
+                "OM ERROR: Some parameters required for the initialization of the "
+                "Binning algorithm have not been defined. Please check the command "
+                "used to initialize the algorithm."
+            )
+
+        self._original_asic_nx: int = self._layout_info["asic_ny"]
+        self._original_asic_ny: int = self._layout_info["asic_nx"]
+        self._original_nx: int = self._layout_info["asic_ny"] * self._layout_info["nasics_y"]
+        self._original_ny: int = self._layout_info["asic_nx"] * self._layout_info["nasics_x"]
+
+        self._extended_asic_nx: int = int(numpy.ceil(self._original_asic_nx / self._bin_size)) * self._bin_size
+        self._extended_asic_ny: int = int(numpy.ceil(self._original_asic_ny / self._bin_size)) * self._bin_size
+        self._extended_nx: int = self._extended_asic_nx * self._layout_info["nasics_y"]
+        self._extended_ny: int = self._extended_asic_ny * self._layout_info["nasics_x"]
+    
+        self._binned_asic_nx: int = self._extended_asic_nx // self._bin_size
+        self._binned_asic_ny: int = self._extended_asic_ny // self._bin_size
+        self._binned_nx: int = self._extended_nx // self._bin_size
+        self._binned_ny: int = self._extended_ny // self._bin_size
+
+        if bad_pixel_map is None:
+            self._mask: numpy.ndarray = numpy.ones((self._original_nx, self._original_ny), dtype=numpy.int)
+        else:
+            self._mask: numpy.ndarray = bad_pixel_map
+
+        # Binned mask = num good pixels per bin
+        self._binned_mask: numpy.ndarray = self._bin_data_array(self._mask)
+
+        if min_good_pix_count is None:
+            self._min_good_pix_count: int = self._bin_size ** 2
+        else:
+            self._min_good_pix_count: int = min_good_pix_count
+
+    def _extend_data_array(self, data: numpy.ndarray) -> numpy.ndarray:
+        # Extends original data array with zeros making asic size divisible by bin_size
+        # Returns new array of the size (self._extended_nx, self._extended_ny)
+        extended_data: numpy.ndarray = numpy.zeros((self._extended_nx, self._extended_ny))
+        i: int
+        j: int
+        for i in range(self._layout_info["nasics_x"]):
+            for j in range(self._layout_info["nasics_y"]):
+                extended_data[
+                    i * self._extended_asic_nx : i * self._extended_asic_nx + self._original_asic_nx,
+                    j * self._extended_asic_ny : j * self._extended_asic_ny + self._original_asic_ny
+                ] = data[
+                    i * self._original_asic_nx : (i + 1) * self._original_asic_nx,
+                    j * self._original_asic_ny : (j + 1) * self._original_asic_ny
+                ]
+        return extended_data
+
+    def _bin_data_array(self, data: numpy.ndarray) -> numpy.ndarray:
+        extended_data: numpy.ndarray = self._extend_data_array(data)
+        binned_data: numpy.ndarray = extended_data.reshape(
+            self._binned_nx, 
+            self._bin_size,
+            self._binned_ny, 
+            self._bin_size
+        ).sum(3).sum(1)
+        return binned_data
+
+    def get_binned_layout_info(self) -> cryst_algs.TypePeakfinder8Info:
+        return {
+            "asic_nx": self._binned_asic_ny,
+            "asic_ny": self._binned_asic_nx,
+            "nasics_x": self._layout_info["nasics_x"],
+            "nasics_y": self._layout_info["nasics_y"],
+        }
+
+    def apply_binning(self, data: numpy.ndarray) -> numpy.ndarray:
+        """
+        """
+
+        # Set bad pixels to zero:
+        data = data * self._mask
+        # Bin data and scale to the number of good pixels per bin:
+        binned_data = self._bin_data_array(data) / self._binned_mask * self._bin_size ** 2
+
+        data_type: numpy.dtype = data.dtype
+        if numpy.issubdtype(data_type, numpy.integer):
+            if self._bad_pixel_value is None:
+                self._bad_pixel_value = numpy.iinfo(data_type).max
+            binned_data[numpy.where(binned_data > self._bad_pixel_value)] = self._bad_pixel_value
+        elif self._bad_pixel_value is None:
+            self._bad_pixel_value = numpy.nan
+
+        binned_data[numpy.where(self._binned_mask < self._min_good_pix_count)] = self._bad_pixel_value
+
+        return binned_data
+
+    def bin_bad_pixel_mask(self, mask: Union[numpy.ndarray, None]):
+        if mask is None:
+            return None
+        else:
+            return self._bin_data_array(mask) // self._bin_size**2
+
+    def bin_pixel_maps(self, pixel_maps: TypePixelMaps):
+        binned_pixel_maps: TypePixelMaps = {}
+        key: str
+        for key in "x", "y", "z", "radius":
+            binned_pixel_maps[key] = self._bin_data_array(
+                pixel_maps[key]
+            ) / self._bin_size**3
+        binned_pixel_maps["phi"] = self._bin_data_array(
+            pixel_maps["phi"]
+        ) / self._bin_size**2
+
+        return binned_pixel_maps
+
+    def get_bin_size(self) -> int:
+        return self._bin_size
