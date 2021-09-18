@@ -120,6 +120,33 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             )
         )
 
+        binning: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning",
+            parameter_type=bool,
+            required=False,
+        )
+        self._binning: Union[gen_algs.Binning, None]
+        if binning:
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="binning"
+                ),
+            )
+            self._peak_detection.set_peakfinder8_info(
+                self._binning.get_binned_layout_info()
+            )
+            self._peak_detection.set_bad_pixel_mask(
+                self._binning.bin_bad_pixel_mask(
+                    self._peak_detection.get_bad_pixel_mask()
+                )
+            )
+            self._peak_detection.set_radius_pixel_map(
+                self._binning.bin_pixel_maps(self._pixelmaps)["radius"]
+            )
+        else:
+            self._binning = None
+
         self._min_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="min_num_peaks_for_hit",
@@ -206,12 +233,31 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         )
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
 
-        # Theoretically, the pixel size anc coffsetcould be different for every panel
+        binning: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning",
+            parameter_type=bool,
+            required=False,
+        )
+        self._binning: Union[gen_algs.Binning, None]
+        if binning:
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="binning"
+                ),
+            )
+            self._pixelmaps = self._binning.bin_pixel_maps(self._pixelmaps)
+        else:
+            self._binning = None
+
+        # Theoretically, the pixel size and coffset could be different for every panel
         # of the detector. Currently, the pixel size and coffset of the first module
         # are taken as the pixel size and coffset of the whole detector.
         self._pixel_size: float = self._geometry["panels"][
             tuple(self._geometry["panels"].keys())[0]
         ]["res"]
+        if self._binning is not None:
+            self._pixel_size /= self._binning.get_bin_size()
         self._first_panel_coffset: float = self._geometry["panels"][
             list(self._geometry["panels"].keys())[0]
         ]["coffset"]
@@ -323,8 +369,12 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
             data=data["detector_data"]
         )
+        if self._binning is not None:
+            binned_detector_data = self._binning.apply_binning(corrected_detector_data)
+        else:
+            binned_detector_data = corrected_detector_data
         peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
-            data=corrected_detector_data
+            data=binned_detector_data
         )
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
@@ -338,7 +388,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["event_id"] = data["event_id"]
         processed_data["frame_id"] = data["frame_id"]
-        processed_data["data_shape"] = data["detector_data"].shape
+        processed_data["data_shape"] = binned_detector_data.shape
         if frame_is_hit:
             processed_data["peak_list"] = peak_list
             if self._hit_frame_sending_interval is not None:
@@ -348,7 +398,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                     # attribute says that the detector frame data should be sent to
                     # the collecting node, adds the data to the 'processed_data'
                     # dictionary (and resets the counter).
-                    processed_data["detector_data"] = corrected_detector_data
+                    processed_data["detector_data"] = binned_detector_data
                     self._hit_frame_sending_counter = 0
         else:
             # If the frame is not a hit, sends an empty peak list.
@@ -363,7 +413,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                     # attribute says that the detector frame data should be sent to
                     # the collecting node, adds the data to the 'processed_data'
                     # dictionary (and resets the counter).
-                    processed_data["detector_data"] = corrected_detector_data
+                    processed_data["detector_data"] = binned_detector_data
                     self._non_hit_frame_sending_counter = 0
 
         return (processed_data, node_rank)
@@ -467,7 +517,6 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             if "detector_data" in received_data:
                 # If detector frame data is found in the data received from the
                 # processing node, it must be broadcasted to visualization programs.
-
                 self._frame_data_img[
                     self._visual_pixelmap_y, self._visual_pixelmap_x
                 ] = (
