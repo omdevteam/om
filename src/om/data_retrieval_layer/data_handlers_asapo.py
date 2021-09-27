@@ -149,6 +149,7 @@ class Petra3AsapoEventHandler(drl_base.OmDataEventHandler):
         last_processed_event_timestamp: int = 0
         stream_list: List[Any] = []
         while len(stream_list) == 0:
+            time.sleep(1)
             stream_list = consumer.get_stream_list()
         last_stream: str = stream_list[-1]["name"]
         stream_metadata: Dict[str, Any] = consumer.get_stream_meta(last_stream)
@@ -156,7 +157,9 @@ class Petra3AsapoEventHandler(drl_base.OmDataEventHandler):
         while True:
             current_stream_size: int = consumer.get_current_size(stream=last_stream)
             event_id: int = (
-                current_stream_size // (node_pool_size - 1) * (node_pool_size - 1) - node_rank + 1
+                current_stream_size // (
+                    node_pool_size - 1
+                ) * (node_pool_size - 1) - node_pool_size + node_rank + 1
             )
             if event_id == last_processed_event_id:
                 stream_list = consumer.get_stream_list()
@@ -173,11 +176,15 @@ class Petra3AsapoEventHandler(drl_base.OmDataEventHandler):
             last_processed_event_id = event_id
             event_data: numpy.ndarray
             event_metadata: Dict[str, Any]
-            event_data, event_metadata = consumer.get_by_id(
-                event_id,
-                stream=last_stream,
-                meta_only=False,
-            )
+            try:
+                event_data, event_metadata = consumer.get_by_id(
+                    event_id,
+                    stream=last_stream,
+                    meta_only=False,
+                )
+            except asapo_consumer.AsapoNoDataError:
+                time.sleep(1)
+                continue
 
             data_event["data"] = event_data
             data_event["metadata"] = event_metadata

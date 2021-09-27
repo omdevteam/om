@@ -626,7 +626,8 @@ class Binning:
         # Set bad pixels to zero:
         data = data * self._mask
         # Bin data and scale to the number of good pixels per bin:
-        binned_data = self._bin_data_array(data) / self._binned_mask * self._bin_size ** 2
+        with numpy.errstate(divide="ignore", invalid="ignore"):
+            binned_data = self._bin_data_array(data) / self._binned_mask * self._bin_size ** 2
 
         data_type: numpy.dtype = data.dtype
         if numpy.issubdtype(data_type, numpy.integer):
