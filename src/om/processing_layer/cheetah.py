@@ -38,7 +38,7 @@ from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypePixelMaps
 
 
-class Cheetah(process_layer_base.OmMonitor):
+class Cheetah(process_layer_base.OmProcessing):
     """
     See documentation for the `__init__` function.
     """
@@ -63,8 +63,8 @@ class Cheetah(process_layer_base.OmMonitor):
         information over a network socket for monitoring and visualization by other
         programs, mimicking the functionality of a regular real-time OnDA Monitor.
 
-        This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
-        base class.
+        This class is a subclass of the
+        [OmProcessing][om.processing_layer.base.OmProcessing] base class.
 
         Arguments:
 

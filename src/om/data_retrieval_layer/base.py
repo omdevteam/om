@@ -20,13 +20,10 @@ Data Extraction Layer's base classes.
 
 This module contains base abstract classes for OM's Data Extraction Layer.
 """
-import sys
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Any, Callable, Dict, Generator, List
+from typing import Any, Dict, Generator, List
 
-from mypy_extensions import NamedArg
 from om.utils import exceptions, parameters
-from typing_extensions import final
 
 
 class OmDataEventHandler(ABC):
@@ -53,9 +50,7 @@ class OmDataEventHandler(ABC):
         This class is the base abstract class from which every Data Event Handler
         should inherit. All its methods are abstract. Each derived class must provide
         his own specific implementation that deals with a specific facility, detector
-        or software framework. The only exception is the [extract_data]
-        [om.data_retrieval_layer.base.OmDataEventHandler.extract_data] which works the
-        same way in all Data Event Handlers.
+        or software framework.
 
         Arguments:
 
@@ -67,29 +62,6 @@ class OmDataEventHandler(ABC):
 
             additional_info: A dictionary storing any additional information needed for
                 the initialization of the Data Event Handler.
-        """
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._source: str = source
-        self._additional_info: Dict[str, Any] = additional_info
-
-    @abstractproperty
-    def data_extraction_funcs(
-        self,
-    ) -> Dict[str, Callable[[NamedArg(Dict[str, Any], "event")], Any]]:
-        """
-        Data Extraction Functions for the Data Event Handler.
-
-        This property can be used to retrieve the Data Extractions Functions that are
-        available to the Data Event Handler.
-
-        Returns:
-
-            A dictionary storing the Data Extraction Functions available to the current
-            Data Event Handler.
-
-            * Each dictionary key defines the name of a function.
-
-            * The corresponding dictionary value stores the function implementation.
         """
         pass
 
@@ -222,7 +194,7 @@ class OmDataEventHandler(ABC):
         """
         pass
 
-    @final
+    @abstractmethod
     def extract_data(
         self,
         *,
@@ -232,13 +204,14 @@ class OmDataEventHandler(ABC):
         Extracts data from a frame stored in an event.
 
         This function extracts data from a frame stored in an event. It works by
-        calling, one after the other, all the Data Extraction Functions associated
-        with the event, passing the event itself as input to each of them. The data
-        extracted by each function is collected and returned to the caller.
+        calling, one after the other, all the required Data Extraction Functions,
+        passing the event as input to each of them. The data extracted by each function
+        is collected and returned to the caller.
 
-        After retrieving a data event, OM calls this function on each frame in the
-        event in sequence. The function is invoked each time on the full event: an
-        internal flag keeps track of which frame should be processed in any given call.
+        For data events with multiple frames, OM calls this function on each frame in
+        the event in sequence. The function always passes the full event to each Data
+        Extraction Function every time one is called: an internal flag keeps track of
+        which frame should processed in any particular call.
 
         Arguments:
 
@@ -254,39 +227,140 @@ class OmDataEventHandler(ABC):
             * The corresponding dictionary value stores the data returned by the
               function.
         """
-        data: Dict[str, Any] = {}
-        f_name: str
-        func: Callable[[Dict[str, Dict[str, Any]]], Any]
-        for f_name, func in event["data_extraction_funcs"].items():
-            try:
-                data[f_name] = func(event=event)
-            # One should never do the following, but it is not possible to anticipate
-            # every possible error raised by the facility frameworks.
-            except Exception:
-                exc_type, exc_value = sys.exc_info()[:2]
-                if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
-                        "OM Warning: Cannot interpret {0} event data due to the "
-                        "following error: {1}: {2}".format(
-                            func.__name__, exc_type.__name__, exc_value
-                        )
-                    )
+        pass
 
-        return data
+
+class OmDataSource(ABC):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: `ABC`
+    """
+
+    @abstractmethod
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: parameters.MonitorParams,
+    ) -> None:
+        """
+        Base class for an OM's Data Source.
+
+        Data sources are classes that perform all the operations need to retrieve data
+        form any data-generating sensor in OM, from simple diodes, to wave digitizers,
+        to big x-ray or optical detectors. Data Source classes always provide one
+        method that prepares OM to read data from the sensor, and another that
+        retrieves data for each event.
+
+        This class is the base abstract class from which every Data Source class should
+        inherit. All its methods are abstract. Each derived class must provide his own
+        detector-specific implementation.
+
+        Arguments:
+
+            source_name: the name of the current data source, used to identify the
+                source when needed (communication with the user, retrieval of
+                initialization parameters.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        pass
+
+    @abstractmethod
+    def initialize_data_source(
+        self,
+    ) -> None:
+        """
+        Data source initialization.
+
+        This method prepares OM to retrieve data from the sensor or detector, after
+        reading all the necessary configuration parameters and retrieving any
+        additional required external data.
+        """
+
+    @abstractmethod
+    def get_data(
+        self,
+        *,
+        event: Dict[str, Any],
+    ) -> Any:  # noqa: F821
+        """
+        Data Retrieval.
+
+        This function retrieves from a sensor all the data related to the provided
+        event.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            Data from the sensor.
+        """
+        pass
+
+
+class OmDataRetrieval(ABC):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: `ABC`
+    """
+
+    @abstractmethod
+    def __init__(
+        self,
+        *,
+        source: str,
+        monitor_parameters: parameters.MonitorParams,
+    ) -> None:
+        """
+        Base class for an OM's Data Retrieval.
+
+        Data Retrieval Classes implement the data retrieval layer for a specific
+        beamline or experiment. They get initialized with a set of data extraction
+        functions, which are used to retrieve data from the facility, and with a
+        Data Event Handler that determines how data events are manipulated.
+
+        This class is the base abstract class from which every Data Retrieval class
+        should inherit. All its methods are abstract. Each derived class must provide
+        his own beamline or experiment-specific implementation.
+
+        Arguments:
+
+            source_name: the name of the current data source, used to identify the
+                source when needed (communication with the user, retrieval of
+                initialization parameters.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        pass
+
+    @abstractproperty
+    def data_event_handler(self) -> OmDataEventHandler:
+        """
+        Retrieves the Data Event Handler for the current Data Retrieval layer.
+
+        Returns:
+
+            The Data Event Handler currently associated with the Data Retrieval Layer.
+        """
+        pass
 
 
 def filter_data_extraction_funcs(
     *,
-    data_extraction_funcs: Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]],
+    data_extraction_funcs: Dict[str, OmDataSource],
     required_data: List[str],
-) -> Dict[str, Callable[[Dict[str, Dict[str, Any]]], Any]]:
+) -> List[str]:
     """
-    Filters the list of Data Extraction Functions based on the required data.
-
-    This function takes a dictionary with a set of Data Extraction Functions as input,
-    in addition to a list of required data entries. It returns a dictionary containing
-    only the mimimal subset of Data Extraction Functions needed to retrieve the
-    required data.
+    TODO: Docs
 
     Arguments:
 
@@ -309,16 +383,16 @@ def filter_data_extraction_funcs(
 
         * The corresponding dictionary value stores the function implementation.
     """
-    required_data_extraction_funcs: Dict[
-        str, Callable[[Dict[str, Dict[str, Any]]], Any]
-    ] = {}
+    required_data_extraction_funcs: List[str] = []
     func_name: str
     for func_name in required_data:
-        try:
-            required_data_extraction_funcs[func_name] = data_extraction_funcs[func_name]
-        except AttributeError as exc:
-            raise exceptions.OmMissingDataExtractionFunctionError(
-                "Data extraction function {0} not defined".format(func_name)
-            ) from exc
-
+        if func_name in data_extraction_funcs:
+            required_data_extraction_funcs.append(func_name)
+        else:
+            if func_name == "timestamp":
+                continue
+            else:
+                raise exceptions.OmMissingDataExtractionFunctionError(
+                    f"Data extraction function {func_name} is not defined"
+                )
     return required_data_extraction_funcs

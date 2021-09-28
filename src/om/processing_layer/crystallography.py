@@ -41,11 +41,11 @@ except ImportError:
     )
 
 
-class CrystallographyMonitor(process_layer_base.OmMonitor):
+class CrystallographyProcessing(process_layer_base.OmProcessing):
     """
     See documentation for the `__init__` function.
 
-    Base class: [`OmMonitor`][om.processing_layer.base.OmMonitor]
+    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
@@ -62,8 +62,8 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         other programs. This OnDA Monitor can also optionally broadcast calibrated and
         corrected detector data frames to be displayed by an external program.
 
-        This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
-        base class.
+        This class is a subclass of the
+        [OmProcessing][om.processing_layer.base.OmProcessing] base class.
 
         Arguments:
 
@@ -71,9 +71,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        super(CrystallographyMonitor, self).__init__(
-            monitor_parameters=monitor_parameters
-        )
+        self._monitor_params = monitor_parameters
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int

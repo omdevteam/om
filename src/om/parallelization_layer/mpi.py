@@ -36,7 +36,7 @@ _DIETAG: int = 999
 _DEADTAG: int = 1000
 
 
-class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
+class MpiParallelization(par_layer_base.OmParallelization):
     """
     See documentation of the `__init__` function.
 
@@ -47,8 +47,8 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
     def __init__(
         self,
         *,
-        data_event_handler: data_ret_layer_base.OmDataEventHandler,
-        monitor: process_layer_base.OmMonitor,
+        data_retrieval_layer: data_ret_layer_base.OmDataRetrieval,
+        processing_layer: process_layer_base.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -71,10 +71,16 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        super(MpiParallelizationEngine, self).__init__(
-            data_event_handler=data_event_handler,
-            monitor=monitor,
-            monitor_parameters=monitor_parameters,
+        self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
+            data_retrieval_layer.data_event_handler
+        )
+        self._processing_layer: process_layer_base.OmProcessing = processing_layer
+        self._monitor_params: parameters.MonitorParams = monitor_parameters
+
+        self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="num_frames_in_event_to_process",
+            parameter_type=int,
         )
 
         self._mpi_size: int = MPI.COMM_WORLD.Get_size()
@@ -108,7 +114,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                 "You are using an OM real-time monitor. Please cite: "
                 "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
             )
-            self._monitor.initialize_collecting_node(
+            self._processing_layer.initialize_collecting_node(
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
 
@@ -129,14 +135,14 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                             print("All processing nodes have run out of events.")
                             print("Shutting down.")
                             sys.stdout.flush()
-                            self._monitor.end_processing_on_collecting_node(
+                            self._processing_layer.end_processing_on_collecting_node(
                                 node_rank=self._rank, node_pool_size=self._mpi_size
                             )
                             MPI.Finalize()
                             exit(0)
                         else:
                             continue
-                    self._monitor.collect_data(
+                    self._processing_layer.collect_data(
                         node_rank=self._rank,
                         node_pool_size=self._mpi_size,
                         processed_data=received_data,
@@ -151,7 +157,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                     sys.stdout.flush()
                     sys.exit(0)
         else:
-            self._monitor.initialize_processing_node(
+            self._processing_layer.initialize_processing_node(
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
 
@@ -193,7 +199,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
                         continue
                     processed_data: Tuple[
                         Dict[str, Any], int
-                    ] = self._monitor.process_data(
+                    ] = self._processing_layer.process_data(
                         node_rank=self._rank, node_pool_size=self._mpi_size, data=data
                     )
                     if req:
@@ -209,7 +215,7 @@ class MpiParallelizationEngine(par_layer_base.OmParallelizationEngine):
             # to the processing node.
             final_data: Union[
                 Dict[str, Any], None
-            ] = self._monitor.end_processing_on_processing_node(
+            ] = self._processing_layer.end_processing_on_processing_node(
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
             if final_data is not None:

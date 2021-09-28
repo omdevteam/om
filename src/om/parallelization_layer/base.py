@@ -28,18 +28,19 @@ from om.processing_layer import base as process_layer_base
 from om.utils import parameters
 
 
-class OmParallelizationEngine(ABC):
+class OmParallelization(ABC):
     """
     See documentation of the `__init__` function.
 
     Base class: `ABC`
     """
 
+    @abstractmethod
     def __init__(
         self,
         *,
-        data_event_handler: data_ret_layer_base.OmDataEventHandler,
-        monitor: process_layer_base.OmMonitor,
+        data_retrieval_layer: data_ret_layer_base.OmDataRetrieval,
+        processing_layer: process_layer_base.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -56,9 +57,9 @@ class OmParallelizationEngine(ABC):
         * When OM start, each Parallelization Engine initializes several processing
           nodes and a single collecting node. A Data Event Handler (an instance of a
           class derived from
-          [OmDataEventHandler][om.data_retrieval_layer.base.OmDataEventHandler]) and a
+          [OmDataRetrieval][om.data_retrieval_layer.base.OmDataRetrieval]) and a
           Monitor (an instance of a class derived from
-          [OmMonitor][om.processing_layer.base.OmMonitor]) must be provided to its
+          [OmProcessing][om.processing_layer.base.OmProcessing]) must be provided to its
           constructor.
 
         * On each processing node, the Engine retrieves one data event from a source by
@@ -85,16 +86,7 @@ class OmParallelizationEngine(ABC):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-            data_event_handler
-        )
-        self._monitor: process_layer_base.OmMonitor = monitor
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="num_frames_in_event_to_process",
-            parameter_type=int,
-        )
+        pass
 
     @abstractmethod
     def start(self) -> None:

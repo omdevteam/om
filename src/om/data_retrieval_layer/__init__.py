@@ -23,3 +23,20 @@ Extraction Functions supporting several facilities. Functions and classes for di
 detectors and software frameworks are implemented in separate modules that are imported
 on-demand when OM starts.
 """
+from om.data_retrieval_layer.data_retrieval_filesystem import (
+    Jungfrau1MFilesDataRetrieval,
+    PilatusFilesDataRetrieval,
+)
+from om.data_retrieval_layer.data_retrieval_psana import (
+    CxiLclsCspadDataRetrieval,
+    CxiLclsDataRetrieval,
+    MfxLclsDataRetrieval,
+    MfxLclsRayonixDataRetrieval,
+)
+
+MfxLclsDataEventHandler = MfxLclsDataRetrieval
+MfxLclsRayonixDataEventHandler = MfxLclsRayonixDataRetrieval
+CxiLclsDataEventHandler = CxiLclsDataRetrieval
+CxiLclsCspadDataEventHandler = CxiLclsCspadDataRetrieval
+PilatusFilesDataEventHandler = PilatusFilesDataRetrieval
+Jungfrau1MFilesDataEventHandler = Jungfrau1MFilesDataRetrieval

@@ -25,44 +25,37 @@ import importlib
 import signal
 import sys
 from types import ModuleType
-from typing import Type, TypeVar
+from typing import Type, TypeVar, Union, cast
 
-import click  # type: ignore
+import click
 
-from om.data_retrieval_layer import base as data_ret_layer_base
-from om.parallelization_layer import base as parallel_layer_base
-from om.processing_layer import base as process_layer_base
+from om.data_retrieval_layer import base as drl_base
+from om.parallelization_layer import base as pa_base
+from om.processing_layer import base as pr_base
 from om.utils import exceptions, parameters
 
 T = TypeVar("T")
 
 
-def _import_class(*, layer: str, layer_filename: str, class_name: str) -> Type[T]:
+def _import_class(*, layer: str, class_name: str) -> Type[T]:
     try:
-        imported_layer: ModuleType = importlib.import_module(name=layer_filename)
+        imported_layer: ModuleType = importlib.import_module(name=layer)
     except ImportError:
         try:
-            imported_layer = importlib.import_module(
-                "om.{0}.{1}".format(layer, layer_filename)
-            )
+            imported_layer = importlib.import_module(f"om.{layer}")
         except ImportError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
             # TODO: Fix types
             if exc_type is not None:
                 raise exceptions.OmInvalidDataBroadcastUrl(
-                    "The python module file {0}.py with the implementation of the "
-                    "{1} cannot be found or loaded due to the following error: "
-                    "{2}: {3}.".format(
-                        layer_filename, layer, exc_type.__name__, exc_value
-                    )
+                    f"The python module file {layer}.py cannot be found or loaded due "
+                    f"to the following error: {exc_type.__name__}: {exc_value}"
                 ) from exc
     try:
         imported_class: Type[T] = getattr(imported_layer, class_name)
     except AttributeError:
         raise exceptions.OmMissingDataEventHandlerError(
-            "The {0} class cannot be found in the {1} file.".format(
-                class_name, layer_filename
-            )
+            f"The {class_name} class cannot be found in the {layer} file."
         )
 
     return imported_class
@@ -108,64 +101,80 @@ def main(*, source: str, config: str, debug: bool) -> None:
 
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(config)
 
-    data_retrieval_layer_filename: str = monitor_parameters.get_parameter(
-        group="om", parameter="data_retrieval_layer", parameter_type=str, required=True
+    data_retrieval_layer_class_name: Union[
+        str, None
+    ] = monitor_parameters.get_parameter(
+        group="om",
+        parameter="data_event_handler",
+        parameter_type=str,
     )
-    data_event_handler_name: str = monitor_parameters.get_parameter(
-        group="om", parameter="data_event_handler", parameter_type=str, required=True
-    )
-    parallelization_layer_filename: str = monitor_parameters.get_parameter(
-        group="om", parameter="parallelization_layer", parameter_type=str, required=True
-    )
-    processing_layer_filename: str = monitor_parameters.get_parameter(
-        group="om", parameter="processing_layer", parameter_type=str, required=True
-    )
-    monitor_name = monitor_parameters.get_parameter(
-        group="om", parameter="monitor", parameter_type=str, required=True
-    )
+    if not data_retrieval_layer_class_name:
+        data_retrieval_layer_class_name = cast(
+            str,
+            monitor_parameters.get_parameter(
+                group="om",
+                parameter="data_retrieval_layer",
+                parameter_type=str,
+                required=True,
+            ),
+        )
 
-    parallelization_engine_name: str = monitor_parameters.get_parameter(
+    parallelization_layer_class_name: Union[
+        str, None
+    ] = monitor_parameters.get_parameter(
         group="om",
         parameter="parallelization_engine",
         parameter_type=str,
-        required=True,
     )
+    if not parallelization_layer_class_name:
+        parallelization_layer_class_name = cast(
+            str,
+            monitor_parameters.get_parameter(
+                group="om",
+                parameter="parallelization_layer",
+                parameter_type=str,
+                required=True,
+            ),
+        )
 
-    parallelization_engine_class: Type[
-        parallel_layer_base.OmParallelizationEngine
-    ] = _import_class(
+    processing_layer_class_name: Union[str, None] = monitor_parameters.get_parameter(
+        group="om", parameter="monitor", parameter_type=str
+    )
+    if not processing_layer_class_name:
+        processing_layer_class_name = cast(
+            str,
+            monitor_parameters.get_parameter(
+                group="om",
+                parameter="processing_layer",
+                parameter_type=str,
+                required=True,
+            ),
+        )
+
+    parallelization_layer_class: Type[pa_base.OmParallelization] = _import_class(
         layer="parallelization_layer",
-        layer_filename=parallelization_layer_filename,
-        class_name=parallelization_engine_name,
+        class_name=parallelization_layer_class_name,
     )
-    data_event_handler_class: Type[
-        data_ret_layer_base.OmDataEventHandler
-    ] = _import_class(
+    data_retrieval_layer_class: Type[drl_base.OmDataRetrieval] = _import_class(
         layer="data_retrieval_layer",
-        layer_filename=data_retrieval_layer_filename,
-        class_name=data_event_handler_name,
+        class_name=data_retrieval_layer_class_name,
     )
-    monitor_class: Type[process_layer_base.OmMonitor] = _import_class(
+    processing_layer_class: Type[pr_base.OmProcessing] = _import_class(
         layer="processing_layer",
-        layer_filename=processing_layer_filename,
-        class_name=monitor_name,
+        class_name=processing_layer_class_name,
     )
 
-    monitor: process_layer_base.OmMonitor = monitor_class(
+    processing_layer: pr_base.OmProcessing = processing_layer_class(
         monitor_parameters=monitor_parameters
     )
-    data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-        data_event_handler_class(
-            monitor_parameters=monitor_parameters,
-            source=source,
-        )
+    data_retrieval_layer: drl_base.OmDataRetrieval = data_retrieval_layer_class(
+        monitor_parameters=monitor_parameters,
+        source=source,
     )
-    parallelization_engine: parallel_layer_base.OmParallelizationEngine = (
-        parallelization_engine_class(
-            data_event_handler=data_event_handler,
-            monitor=monitor,
-            monitor_parameters=monitor_parameters,
-        )
+    parallelization_layer: pa_base.OmParallelization = parallelization_layer_class(
+        data_retrieval_layer=data_retrieval_layer,
+        processing_layer=processing_layer,
+        monitor_parameters=monitor_parameters,
     )
 
-    parallelization_engine.start()
+    parallelization_layer.start()

@@ -26,11 +26,12 @@ from typing import Any, Dict, Tuple, Union
 from om.utils import parameters
 
 
-class OmMonitor(ABC):
+class OmProcessing(ABC):
     """
     See documentation for the `__init__` function.
     """
 
+    @abstractmethod
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
         Base class for an OM's Monitor.
@@ -52,7 +53,7 @@ class OmMonitor(ABC):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        self._monitor_params = monitor_parameters
+        pass
 
     @abstractmethod
     def initialize_processing_node(
