@@ -43,14 +43,14 @@ class OmDataEventHandler(ABC):
         """
         Base class for an OM's Data Event Handler.
 
-        Data Event Handlers are classes that deal with data events and data event
-        sources in OM. They have methods to initialize sources, retrieve events from
-        them, open and close events, and examine their content.
+        Data Event Handlers are classes that deal with data events and their sources
+        in OM. They have methods to initialize sources, retrieve events from them,
+        open and close events, and examine their content.
 
         This class is the base abstract class from which every Data Event Handler
         should inherit. All its methods are abstract. Each derived class must provide
-        his own specific implementation that deals with a specific facility, detector
-        or software framework.
+        its own specific implementations tailored to a particular facility, detector or
+        software framework.
 
         Arguments:
 
@@ -73,8 +73,7 @@ class OmDataEventHandler(ABC):
         Initializes event handling on the collecting node.
 
         This function is called on the collecting node when OM starts, and initializes
-        the data event handling on the node. The function can return a initialization
-        token if the data source requires it.
+        the data event handling on the node.
 
         Arguments:
 
@@ -125,7 +124,7 @@ class OmDataEventHandler(ABC):
         Retrieves events from the source.
 
         This function retrieves data events from a source. OM calls this function on
-        each processing node when it starts to  retrieve events. The function is a
+        each processing node when it starts to retrieve events. The function is a
         generator and it returns an iterator over the events that the calling node
         should process.
 
@@ -210,8 +209,8 @@ class OmDataEventHandler(ABC):
 
         For data events with multiple frames, OM calls this function on each frame in
         the event in sequence. The function always passes the full event to each Data
-        Extraction Function every time one is called: an internal flag keeps track of
-        which frame should processed in any particular call.
+        Extraction Function at every call: an internal flag keeps track of which frame
+        should be processed in for each particular call.
 
         Arguments:
 
@@ -219,13 +218,13 @@ class OmDataEventHandler(ABC):
 
         Returns:
 
-            A dictionary storing the data returned by the Data Extraction Functions.
+            A dictionary storing the extracted data.
 
-            * Each dictionary key identifies the Data Extraction Function used to
-              extract the data.
+            * Each dictionary key identifies the Data Source from which the data has
+              been retrieved.
 
-            * The corresponding dictionary value stores the data returned by the
-              function.
+            * The corresponding dictionary value stores the data that was extracted
+              from the Data Source for the provided event.
         """
         pass
 
@@ -247,20 +246,21 @@ class OmDataSource(ABC):
         """
         Base class for an OM's Data Source.
 
-        Data sources are classes that perform all the operations need to retrieve data
-        form any data-generating sensor in OM, from simple diodes, to wave digitizers,
-        to big x-ray or optical detectors. Data Source classes always provide one
-        method that prepares OM to read data from the sensor, and another that
-        retrieves data for each event.
+        Data sources are classes that perform all the operations needed in OM to
+        retrieve data form any sensor or detector, from simple diodes, to wave
+        digitizers, to big x-ray or optical detectors.
+
+        Data Source classes always provide one method that prepares OM to read data
+        from the sensor, and another that retrieves data for each event.
 
         This class is the base abstract class from which every Data Source class should
-        inherit. All its methods are abstract. Each derived class must provide his own
-        detector-specific implementation.
+        inherit. All its methods are abstract. Each derived class must provide its own
+        detector- or sensor-specific implementations.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -290,8 +290,8 @@ class OmDataSource(ABC):
         """
         Data Retrieval.
 
-        This function retrieves from a sensor all the data related to the provided
-        event.
+        This function retrieves all the data generated by the sensor or detector that
+        are related to the provided event.
 
         Arguments:
 
@@ -321,14 +321,17 @@ class OmDataRetrieval(ABC):
         """
         Base class for an OM's Data Retrieval.
 
-        Data Retrieval Classes implement the data retrieval layer for a specific
-        beamline or experiment. They get initialized with a set of data extraction
-        functions, which are used to retrieve data from the facility, and with a
-        Data Event Handler that determines how data events are manipulated.
+        Data Retrieval classes implement the data retrieval layer for a specific
+        beamline, experiment or facility.
+
+        At initialization, a Data Retrieval class must be provided with a set of
+        data sources, from which data will be retrieved, and with a Data Event Handler,
+        which will determine how data events are handled and manipulated.
 
         This class is the base abstract class from which every Data Retrieval class
         should inherit. All its methods are abstract. Each derived class must provide
-        his own beamline or experiment-specific implementation.
+        its own implementations tailored to a specific beamline, facility or
+        experiment.
 
         Arguments:
 
@@ -354,45 +357,38 @@ class OmDataRetrieval(ABC):
         pass
 
 
-def filter_data_extraction_funcs(
+def filter_data_sources(
     *,
-    data_extraction_funcs: Dict[str, OmDataSource],
+    data_sources: Dict[str, OmDataSource],
     required_data: List[str],
 ) -> List[str]:
     """
-    TODO: Docs
+    Selects only the data sources needed by the required data.
+
+    This function filters the list of all Data Sources associated with a
+    [`OmDataRetrieval`][om.data_retrieval_layer.base.OmDataSource] class down to only
+    the entries need to retrieve the required data.
 
     Arguments:
 
-        data_extraction_funcs: A dictionary containing a set of Data Extraction
-            Functions.
+        data_sources: A list containing the names of all data source available for the
+            Data Retrieval class.
 
-            * Each dictionary key must define the name of a function.
-
-            * The corresponding dictionary value must store the function
-              implementation.
-
-        required_data: A list of required data entries, used to select the necessary
-            Data Extraction Functions.
+        required_data: A list of required data items.
 
     Returns:
 
-        A dictionary containing only the required Data Extraction Functions.
-
-        * Each dictionary key defines the name of a function.
-
-        * The corresponding dictionary value stores the function implementation.
+        A list Data Source names containing only the required Data Sources.
     """
-    required_data_extraction_funcs: List[str] = []
-    func_name: str
-    for func_name in required_data:
-        if func_name in data_extraction_funcs:
-            required_data_extraction_funcs.append(func_name)
+    required_data_sources: List[str] = []
+    entry: str
+    for entry in required_data:
+        if entry == "timestamp":
+            continue
+        if entry in data_sources:
+            required_data_sources.append(entry)
         else:
-            if func_name == "timestamp":
-                continue
-            else:
-                raise exceptions.OmMissingDataExtractionFunctionError(
-                    f"Data extraction function {func_name} is not defined"
-                )
-    return required_data_extraction_funcs
+            raise exceptions.OmMissingDataExtractionFunctionError(
+                f"Data source {entry} is not defined"
+            )
+    return required_data_sources

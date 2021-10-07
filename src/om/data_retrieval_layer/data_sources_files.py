@@ -16,12 +16,11 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of Jungfrau 1M detector data from files.
+File-based data sources.
 
-This module contains functions that retrieve Jungfrau 1M detector data from HDF5 files
-written by the detector itself.
+This module contains Data Source classes that deal with data stored in files.
 """
-from typing import Any, BinaryIO, cast, Dict, List, Tuple, Union
+from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -32,6 +31,12 @@ from om.utils.parameters import MonitorParams
 
 
 class PilatusSingleFrameFiles(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
+    """
+
     def __init__(
         self,
         *,
@@ -39,38 +44,50 @@ class PilatusSingleFrameFiles(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Jungfrau 1M detector data from files.
+        Detector frame data from Pilatus single-frame files.
 
-        This class deals with the Jungfrau 1M x-ray detector data, operated in such a
-        way that data is written in HDF5 files. It is a subclass of the generic
-        [OmDetector][om.data_retrieval_layer.base.OmDetector] base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of detector frame data from single-frame
+        files written by a Pilatus detector in CBF format. It is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            detector_index: the index of the current detector in the list of detectors
-                used by the monitor (used to determine the detector name).
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
+                initialization parameters.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
-
-            additional_info: A dictionary storing any additional information needed for
-                the initialization of the Data Event Handler.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
-        # TODO: Docs
+        Initializes the Pilatus single-frame file data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve data from Pilatus single-frame files,
+        so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
         """
-        Retrieves a calibrated CSPAD detector data frame from psana.
+        Retrieves a Pilatus detector data frame.
 
-        #TODO: docs
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function extracts the detector frame information from the content of the
+        CBF file attached to the data event. It returns it as a 2D array storing pixel
+        data.
 
         Arguments:
 
@@ -84,6 +101,12 @@ class PilatusSingleFrameFiles(drl_base.OmDataSource):
 
 
 class Jungfrau1MFiles(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
+    """
+
     def __init__(
         self,
         *,
@@ -91,30 +114,42 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Jungfrau 1M detector data from files.
+        Detector frame data from Jungfrau 1M HDF5 files.
 
-        This class deals with the Jungfrau 1M x-ray detector data, operated in such a
-        way that data is written in HDF5 files. It is a subclass of the generic
-        [OmDetector][om.data_retrieval_layer.base.OmDetector] base class.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of Jungfrau 1M detector frame data from
+        files written by the detector in HDF5 format. It is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            detector_index: the index of the current detector in the list of detectors
-                used by the monitor (used to determine the detector name).
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
+                initialization parameters.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
-
-            additional_info: A dictionary storing any additional information needed for
-                the initialization of the Data Event Handler.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
-        # TODO: Docs
+        Initializes the Jungfrau 1M HDF5 data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves from OM's configuration parameters all the information
+        needed to initialize the data source. It looks at the parameter
+        `{data_source_name}_calibration` in the `data retrieval layer` parameter group
+        to determine if calibrated data needs to be retrieved from the Jungfrau 1M. In
+        the affirmative case, it reads the names of the files containing the required
+        calibration constants from the entries `dark_filenames` and `gain_filenames`
+        in the `calibration` parameter group.
         """
         self._calibrated_data_required: bool = ds_generic.get_calibration_request(
             source_base_name=self._data_source_name,
@@ -185,9 +220,13 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
         """
-        Retrieves a calibrated CSPAD detector data frame from psana.
+        Retrieves a Jungfrau 1M  detector data frame.
 
-        #TODO: docs
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function extracts the detector frame information from the content of the
+        data event, and returns the it as a 2D array storing pixel data.
 
         Arguments:
 
@@ -231,7 +270,7 @@ class TimestampFromFileModificationTime(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -241,12 +280,22 @@ class TimestampFromFileModificationTime(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Timestamp information from the modification date of files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of timestamp information for data files
+        which do not contain any timestamp information provided by a detector. It works
+        on the assumption that the modification date of the file is a good first
+        approximation of the timestamp of the data stored in it. This class is a
+        subclass of the [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
+        class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -258,18 +307,26 @@ class TimestampFromFileModificationTime(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the modification date timestamp data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve timestamp data from the modification
+        date of a file, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        Retrieves an Epics variable from psana.
+        Retrieves timestamp information from the modification date of a file.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of an Epics variable from psana.
+        This function retrieves the timestamp information for a file attached to an
+        event by extracing the file modification date as recorded by OM when the
+        event was opened.
 
         Arguments:
 
@@ -277,16 +334,16 @@ class TimestampFromFileModificationTime(drl_base.OmDataSource):
 
         Returns:
 
-            The value of the Epics variable.
+            The timestamp of the file-based data event.
         """
         return event["additional_info"]["file_modification_time"]
 
 
-class EventIdJungfrau1MFiles(drl_base.OmDataSource):
+class TimestampJungfrau1MFiles(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -296,12 +353,24 @@ class EventIdJungfrau1MFiles(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Timestamp information for Jungfrau 1M data files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of timestamp information for Jungfrau 1M
+        data files. The files written by this detector do not record any absolute
+        timestamp information. However, they store the readout of the internal detector
+        clock for every frame they contain. As a first approximation, this class takes
+        the modification time of the whole data file as the timestamp of the first
+        frame in it, and computes the timestamp of all other frames according to the
+        recorded internal clock time difference. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -313,13 +382,27 @@ class EventIdJungfrau1MFiles(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the Jungfrau 1M file timestamp data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve timestamp data for a Jungfrau 1M data
+        file, so this function actually does nothing.
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> str:
+    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        #TODO: docs
+        Retrieves timestamp information for a Jungfrau 1M data event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves the timestamp information for a Jungfrau 1M detector
+        data frame attached to an event, based on the file modification date and the
+        internal clock reading associated with the frame. Both values are recorded by
+        OM when the data event is opened.
 
         Arguments:
 
@@ -327,18 +410,21 @@ class EventIdJungfrau1MFiles(drl_base.OmDataSource):
 
         Returns:
 
-            A unique event identifier.
+            The timestamp of the Jungfrau 1M data event.
         """
-        filename: str = event["additional_info"]["h5files"][0].filename
-        index: str = event["additional_info"]["index"][0]
-        return f"{filename} // {index:04d}"
+
+        file_creation_time: float = event["additional_info"]["file_creation_time"]
+        jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
+        # Jungfrau internal clock frequency in Hz
+        jf_clock_frequency: int = 10000000
+        return file_creation_time + jf_clock_value / jf_clock_frequency
 
 
 class EventIdFromFilePath(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -348,12 +434,21 @@ class EventIdFromFilePath(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Event identifier from a file's full path.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a unique event identifier for file-based
+        data events that do not provide this information in any other way. It takes as
+        identifier the full path to the data file attached to the event. This class
+        is a subclass of the [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
+        class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -365,13 +460,25 @@ class EventIdFromFilePath(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the full path event identifier data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve an event identifier from a full
+        file path, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        #TODO: docs
+        Retrieves the event identifier from the full path of a file.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves a unique event identifier from the full path to the
+        file attached to a data event.
 
         Arguments:
 
@@ -384,11 +491,11 @@ class EventIdFromFilePath(drl_base.OmDataSource):
         return cast(str, event["additional_info"]["full_path"])
 
 
-class TimestampJungfrau1MFiles(drl_base.OmDataSource):
+class EventIdJungfrau1MFiles(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -398,12 +505,22 @@ class TimestampJungfrau1MFiles(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Event identifier for Jungfrau 1M data events.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a unique event identifier for
+        Jungfrau 1M data events. For this detector one event is equivalent to a single
+        stored in an HDF5 file. The combination of the full path to the data file
+        and the index of the frame within the file itself is used to generate an event
+        identifier. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -415,26 +532,32 @@ class TimestampJungfrau1MFiles(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the Jungfrau 1M event identifier data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve an event identifier for Jungfrau 1M
+        event data, so this function actually does nothing.
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+    def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Gets a unique identifier for an event retrieved from a Jungfrau 1M detector.
+        Retrieves an event identifier for a Jungfrau 1M data event.
 
-        This function returns a label that unambiguously identifies, within an
-        experiment, the data event currently being processed.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-        For the Jungfrau 1M detector, the label is constructed by joining the following
-        elements:
+        This function constructs the event identifier for an event by joining the
+        following elements in a single string:
 
-        - The full path to the file containing the data for the first detector panel
-          (d0)
+        - The full path to the file containing the data for the first panel of the
+          detector data frame (d0) .
 
         - The index of the current frame within the file itself.
 
-        The two parts of the label are separated by the "//" symbol.
+        The two parts of the are separated by the "//" symbol.
 
         Arguments:
 
@@ -444,8 +567,6 @@ class TimestampJungfrau1MFiles(drl_base.OmDataSource):
 
             A unique event identifier.
         """
-        file_creation_time: float = event["additional_info"]["file_creation_time"]
-        jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
-        # Jungfrau internal clock frequency in Hz
-        jf_clock_frequency: int = 10000000
-        return file_creation_time + jf_clock_value / jf_clock_frequency
+        filename: str = event["additional_info"]["h5files"][0].filename
+        index: str = event["additional_info"]["index"][0]
+        return f"{filename} // {index:04d}"

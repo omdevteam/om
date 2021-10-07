@@ -15,6 +15,11 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+"""
+Generic data sources.
+
+This module contains Data Source classes that work with data of any origin.
+"""
 from typing import Any, Dict, Union
 
 import numpy  # type: ignore
@@ -42,7 +47,7 @@ class TimestampFromEvent(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -52,12 +57,22 @@ class TimestampFromEvent(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Timestamp information from the data event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of timestamp information stored in the data
+        event itself. Several software frameworks provide timestamp information for
+        each data event, and store it in the event itself. OM retrieves this
+        information when the event is opened, and stores it in a way that allows it to
+        be retrieved by this class. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -69,18 +84,25 @@ class TimestampFromEvent(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the event timestamp data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve timestamp information from within a
+        data event, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        Retrieves an Epics variable from psana.
+        Retrieves timestamp information from a data event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of an Epics variable from psana.
+        This function retrieves the timestamp information for a data event, when it is
+        stored in the event itself.
 
         Arguments:
 
@@ -88,7 +110,7 @@ class TimestampFromEvent(drl_base.OmDataSource):
 
         Returns:
 
-            The value of the Epics variable.
+            The timestamp from the data event.
         """
         return event["additional_info"]["timestamp"]
 
@@ -97,7 +119,7 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -107,24 +129,42 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Numerical value from a configuration parameter.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a numerical value from an OM
+        configuration parameter in the `data_retrieval_layer` parameter group.
+        Specifically, this class retrieves the parameter whose name matches
+        `{data_source_name}`, treating it as a required parameter. It raises therefore
+        an exception if the parameter is not available. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
+
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the numerical configuration parameter data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves the `{data_source_name}` parameter from the
+        `data_retrieval_layer` OM configuration parameter group, and stores it for
+        a fast subsequent recall.
         """
         self._value: float = self._monitor_parameters.get_parameter(
             group="data_retrieval_layer",
@@ -135,12 +175,13 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
-        Retrieves an Epics variable from psana.
+        Retrieves the numerical value from a configuration parameter.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of an Epics variable from psana.
+        This function retrieves the value of the numerical configuration parameter that
+        is associated with the current data source.
 
         Arguments:
 
@@ -148,7 +189,7 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
 
         Returns:
 
-            The value of the Epics variable.
+            The value of the configuration parameter.
         """
         return self._value
 
@@ -157,7 +198,7 @@ class FrameIdZero(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -167,12 +208,22 @@ class FrameIdZero(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Frame identifier for single-frame data files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a unique frame identifier for
+        single-frame files that do not store any identifying information.
+        When no other information is available, OM labels a frame using the index
+        of the frame within the file which contains it. For single-frame files, the
+        frame identifier is therefore "0". This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -184,18 +235,24 @@ class FrameIdZero(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the single-frame file frame identifier data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve a frame identifier for a single-frame
+        data file, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> Any:
         """
-        Retrieves an Epics variable from psana.
+        Retrieves the frame identifier.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of an Epics variable from psana.
+        This function returns "0" as frame identifier for the current frame.
 
         Arguments:
 

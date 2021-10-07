@@ -15,7 +15,13 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
-from typing import Any, Callable, cast, Dict, List, Union
+"""
+Psana-related data sources.
+
+This module contains Data Source classes that deal with data retrieved from the psana
+software framework used at the LCLS facility.
+"""
+from typing import Any, Callable, Dict, List, Tuple, Union, cast
 
 import numpy  # type: ignore
 import psana  # type: ignore
@@ -29,33 +35,44 @@ from om.utils.parameters import MonitorParams
 def _get_psana_epics_name(
     *, source_base_name: str, monitor_parameters: MonitorParams
 ) -> str:
-    # Helper function to retrieve an epics variable's name from the monitor
-    # configuration parameters.
-    detector_name: str = monitor_parameters.get_parameter(
-        group="data_retrieval_layer",
-        parameter=f"psana_{source_base_name}_epics_name",
-        required=True,
-        parameter_type=str,
-    )
+    # Helper function that retrieves an epics variable's name from the monitor
+    # configuration parameters or from the source base name, if the name begins with
+    # the string "psana-"".
+    if source_base_name.startswith("psana-"):
+        detector_name: str = source_base_name.split("psana-")[1]
+    else:
+        detector_name = monitor_parameters.get_parameter(
+            group="data_retrieval_layer",
+            parameter=f"psana_{source_base_name}_epics_name",
+            parameter_type=str,
+        )
     return detector_name
 
 
 def _get_psana_detector_name(
     *, source_base_name: str, monitor_parameters: MonitorParams
 ) -> str:
-    # Helper function to retrieve a detector's name from the monitor configuration
-    # parameters.
-    detector_name: str = monitor_parameters.get_parameter(
-        group="data_retrieval_layer",
-        parameter=f"psana_{source_base_name}_name",
-        required=True,
-        parameter_type=str,
-    )
+    # Helper function that retrieves a detector's name from the monitor configuration
+    # parameters or from the source base name, if the name begins with the string
+    # "psana-"
+    if source_base_name.startswith("psana-"):
+        detector_name: str = source_base_name.split("psana-")[1]
+    else:
+        detector_name = monitor_parameters.get_parameter(
+            group="data_retrieval_layer",
+            parameter=f"psana_{source_base_name}_name",
+            required=True,
+            parameter_type=str,
+        )
     return detector_name
 
 
 def _get_psana_data_retrieval_function(
-    *, source_base_name: str, monitor_parameters: MonitorParams
+    # Helper function that  picks the right psana data retrieval function
+    # (raw or calib) depending on what is required.
+    *,
+    source_base_name: str,
+    monitor_parameters: MonitorParams,
 ) -> Callable[[Any], Any]:
     detector_name: str = _get_psana_detector_name(
         source_base_name=source_base_name, monitor_parameters=monitor_parameters
@@ -75,7 +92,7 @@ class CspadPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -85,19 +102,26 @@ class CspadPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        CSPAD Detector at the LCLS facility.
+        CSPAD detector frame data at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the CSPAD x-ray detector as used at the LCLS facility.
-        It is a subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] base class.
+        This class deals with the retrieval of CSPAD detector frame data from the psana
+        software framework. Data is normally retrieved for the detector whose psana
+        name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration parameter group. However, it is also
+        possible to provide the psana name of the detector directly in the
+        {source_base_name} argument, by prefixing it with the string "psana-". The
+        detector frame data can be retrieved in calibrated or non-calibrated form,
+        depending on the value of the `{source_base_name}_calibration` entry in the
+        `data_retrieval_layer` parameter group. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -109,7 +133,16 @@ class CspadPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the CSPAD detector frame data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the detector
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the detector with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
         """
         self._data_retrieval_function: Callable[
             [Any], Any
@@ -120,13 +153,16 @@ class CspadPsana(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
         """
-        Retrieves a calibrated CSPAD detector data frame from psana.
+        Retrieves a CSPAD detector data frame from psana.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves a single calibrated CSPAD detector frame from psana. It
-        returns the frame as a 2D array storing pixel data.
+        This function retrieves single detector data frame from psana. It returns the
+        frame as a 2D array storing the pixel data. The data is retrieved in calibrated
+        or non-calibrated form depending on the value of the
+        `{source_base_name}_calibration` entry in the `data_retrieval_layer` OM
+        configuration group.
 
         Arguments:
 
@@ -166,7 +202,7 @@ class Epix10kaPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -176,18 +212,26 @@ class Epix10kaPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Epix10KA 2M Detector at the LCLS facility.
+        Epix10KA 2M detector frame data at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        It is a subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] base class.
+        This class deals with the retrieval of Epix10KA 2M detector frame data from the
+        psana software framework. Data is normally retrieved for the detector whose
+        psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration parameter group. However, it is also
+        possible to provide the psana name of the detector directly in the
+        {source_base_name} argument, by prefixing it with the string "psana-". The
+        detector frame data can be retrieved in calibrated or non-calibrated form,
+        depending on the value of the `{source_base_name}_calibration` entry in the
+        `data_retrieval_layer` parameter group. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -199,7 +243,16 @@ class Epix10kaPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the Epix10KA 2M detector frame data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the detector
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the detector with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
         """
         self._data_retrieval_function: Callable[
             [Any], Any
@@ -210,13 +263,16 @@ class Epix10kaPsana(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
         """
-        Retrieves a calibrated Epix10KA 2M detector data frame from psana.
+        Retrieves a Epix10KA 2M detector data frame from psana.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves a single calibrated Epix10KA 2M detector frame from
-        psana. It returns the frame as a 2D array storing pixel data.
+        This function retrieves a single detector data frame from psana. It returns the
+        frame as a 2D array storing the pixel data. The data is retrieved in calibrated
+        or non-calibrated form depending on the value of the
+        `{source_base_name}_calibration` entry in the `data_retrieval_layer` OM
+        configuration group.
 
         Arguments:
 
@@ -242,7 +298,7 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -252,19 +308,26 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Jungfrau 4M Detector at the LCLS facility.
+        Jungfrau 4M detector frame data at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the Jungfrau 4M x-ray detector as used at the LCLS
-        facility. It is a subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] base class.
+        This class deals with the retrieval of Jungfrau 4M detector frame data from the
+        psana software framework. Data is normally retrieved for the detector whose
+        psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration parameter group. However, it is also
+        possible to provide the psana name of the detector directly in the
+        {source_base_name} argument, by prefixing it with the string "psana-". The
+        detector frame data can be retrieved in calibrated or non-calibrated form,
+        depending on the value of the `{source_base_name}_calibration` entry in the
+        `data_retrieval_layer` parameter group. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -276,7 +339,16 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the Jungfrau 4M detector frame data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the detector
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the detector with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
         """
         self._data_retrieval_function: Callable[
             [Any], Any
@@ -287,13 +359,16 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
         """
-        Retrieves a calibrated Jungfrau 4M detector data frame from psana.
+        Retrieves a Jungfrau 4M detector data frame from psana.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves a single calibrated  Jungfrau 4M detector frame from
-        psana. It returns the frame as a 2D array storing pixel data.
+        This function retrieves a single detector data frame from psana. It returns the
+        frame as a 2D array storing the pixel data. The data is retrieved in calibrated
+        or non-calibrated form depending on the value of the
+        `{source_base_name}_calibration` entry in the `data_retrieval_layer` OM
+        configuration group.
 
         Arguments:
 
@@ -319,7 +394,7 @@ class RayonixPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -329,19 +404,24 @@ class RayonixPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Rayonix Detector at the LCLS facility.
+        Rayonix detector frame data at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the Rayonix x-ray detector as used at the LCLS facility.
-        It is a subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] base class.
+        This class deals with the retrieval of Rayonix frame data from the psana
+        software framework. Data is normally retrieved for the detector whose psana
+        name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration parameter group. However, it is also
+        possible to provide the psana name of the detector directly in the
+        {source_base_name} argument, by prefixing it with the string "psana-". This
+        class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -354,24 +434,32 @@ class RayonixPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
-        """
-        self._data_retrieval_function: Callable[
-            [Any], Any
-        ] = _get_psana_data_retrieval_function(
-            source_base_name=self._data_source_name,
-            monitor_parameters=self._monitor_parameters,
-        )
-
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
-        """
-        Retrieves a calibrated Rayonix data frame from psana.
+        Initializes the Rayonix detector frame data source.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves a single calibrated  Rayonix 4M detector frame from
-        psana. It returns the frame as a 2D array storing pixel data.
+        This function initializes the psana Detector interface for the detector
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the detector with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
+        """
+        detector_name: str = _get_psana_detector_name(
+            source_base_name=self._data_source_name,
+            monitor_parameters=self._monitor_parameters,
+        )
+        self._detector_interface: Any = psana.Detector(detector_name)
+
+    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+        """
+        Retrieves a Rayonix detector data frame from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves a single detector data frame from psana. It returns the
+        frame as a 2D array storing the pixel data.
 
         Arguments:
 
@@ -381,7 +469,7 @@ class RayonixPsana(drl_base.OmDataSource):
 
             One frame of detector data.
         """
-        rayonix_psana: numpy.ndarray = self._data_retrieval_function(event["data"])
+        rayonix_psana: numpy.ndarray = self._detector_interface.calib(event["data"])
         if rayonix_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
@@ -394,7 +482,7 @@ class OpalPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -404,20 +492,23 @@ class OpalPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Opal Camera at the LCLS facility.
+        Opal camera frame data at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the Opal camera as used at the LCLS facility. It is a
-        subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
-        base class.
+        This class deals with the retrieval of Opal frame data from the psana software
+        framework. Data is normally retrieved for the camera whose psana name matches
+        the entry `psana_{source_base_name}_name` in the `data_retrieval_layer` OM
+        configuration parameter group. However, it is also possible to provide the
+        psana name of the camera directly in the {source_base_name} argument, by
+        prefixing it with the string "psana-". This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -429,14 +520,22 @@ class OpalPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the Opal camera frame data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the camera
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the camera with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
         """
-        self._data_retrieval_function: Callable[
-            [Any], Any
-        ] = _get_psana_data_retrieval_function(
+        detector_name: str = _get_psana_detector_name(
             source_base_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
+        self._detector_interface: Any = psana.Detector(detector_name)
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
         """
@@ -445,8 +544,8 @@ class OpalPsana(drl_base.OmDataSource):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves a single Opal camera frame from psana. It returns the
-        frame as a 2D array storing pixel data.
+        This function retrieves a single camera data frame from psana. It returns the
+        frame as a 2D array storing the pixel data.
 
         Arguments:
 
@@ -454,9 +553,9 @@ class OpalPsana(drl_base.OmDataSource):
 
         Returns:
 
-            One frame of detector data.
+            One frame of camera data.
         """
-        opal_psana: numpy.ndarray = self._data_retrieval_function(event["data"])
+        opal_psana: numpy.ndarray = self._detector_interface.calib(event["data"])
         if opal_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
@@ -465,11 +564,11 @@ class OpalPsana(drl_base.OmDataSource):
         return opal_psana
 
 
-class TimestampPsana(drl_base.OmDataSource):
+class AcqirisDetector(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -479,12 +578,24 @@ class TimestampPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Acqiris time/voltage waverform data at the LCLS facility.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of waveform data from an Acqiris
+        time/voltage detector at the LCLS facility. Data is normally retrieved for the
+        Acqiris detector whose psana name matches the entry
+        `psana_{source_base_name}_name` in the `data_retrieval_layer` OM configuration
+        parameter group. However, it is also possible to provide the psana name of the
+        Acqiris detector directly in the {source_base_name} argument, by prefixing it
+        with the string "psana-". This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -496,18 +607,39 @@ class TimestampPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
-        """
-        pass
-
-    def get_data(self, *, event: Dict[str, Any]) -> Any:
-        """
-        Retrieves an Epics variable from psana.
+        Initializes the Acqiris waveform data source.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of an Epics variable from psana.
+        This function initializes the psana Detector interface for the Acqiris detector
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the detector with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
+        """
+        detector_name: str = _get_psana_detector_name(
+            source_base_name=self._data_source_name,
+            monitor_parameters=self._monitor_parameters,
+        )
+        self._detector_interface: Any = psana.Detector(detector_name)
+
+    def get_data(self, *, event: Dict[str, Any]) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        """
+        Retrieves Acqiris waveform data from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves waveform data for all of the detector's channels at the
+        same time. The data is retrieved in the format of a tuple with tho entries:
+
+        - The first entry in the tuple is a numpy array storing information about the
+          time points at which the waveform data was digitized.
+
+        - The second entry is a 2D numpy array that stores the waveform information
+          from the different channels. The first axis of the array encodes the
+          channel number, the second one indexes the digitized data for each channel.
 
         Arguments:
 
@@ -515,7 +647,160 @@ class TimestampPsana(drl_base.OmDataSource):
 
         Returns:
 
-            The value of the Epics variable.
+            Digitized waveform data from the Acqiris detector.
+        """
+        return (
+            self._detector_interface.waveform(event["data"]),
+            self._detector_interface.wftime(event["data"]),
+        )
+
+
+class Wave8Detector(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Wave8 detector data at the LCLS facility.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of data from a Wave8 detector at the LCLS
+        facility. Data is normally retrieved for the Wave8 detector whose psana name
+        matches the entry `psana_{source_base_name}_name` in the `data_retrieval_layer`
+        OM configuration parameter group. However, it is also possible to provide the
+        psana name of the Wave8 detector directly in the {source_base_name} argument,
+        by prefixing it with the string "psana-". It is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
+                initialization parameters.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Wave8 data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the Wave8 detector
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the detector with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
+        """
+        detector_name: str = _get_psana_detector_name(
+            source_base_name=self._data_source_name,
+            monitor_parameters=self._monitor_parameters,
+        )
+        self._detector_interface: Any = psana.Detector(detector_name)
+
+    def get_data(self, *, event: Dict[str, Any]) -> float:
+        """
+        Retrieves Wave8 total intensity data from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves the total intensity recorded by Wave8 the detector for
+        an event.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The total intensity recorded by the Wave detector.
+        """
+        return cast(float, self._detector_interface.get(event["data"]).TotalIntensity())
+
+
+class TimestampPsana(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Timestamp information from psana at the LCLS facility.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of timestamp information from the psana
+        software framework, which provides this information for each event with a
+        nanosecond-level precision. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
+                initialization parameters.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the psana timestamp data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve timestamp information from psana,
+        so this function actually does nothing.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
+        """
+        Retrieves timestamp information from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves the timestamp information provided for an event by
+        psana.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The timestamp for the data event.
         """
         psana_event_id: Any = event["data"].get(psana.EventId)
         timestamp_epoch_format: Any = psana_event_id.time()
@@ -528,7 +813,7 @@ class EventIdPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -538,12 +823,26 @@ class EventIdPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        #TODO: docs
+        Data event identifier at the LCLS facility.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a unique event identifier for
+        psana-based data events. In OM, a psana-based data event corresponds to the
+        content of a single psana event. The psana software framework provides
+        timestamp information with nanosecond-level precision for each event, plus a
+        specific fiducial string form more detailed identification. This class uses a
+        combination of these two items to generate a unique event identifier with the
+        following format:
+        `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`. This class
+        is a subclass of the [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
+        class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -555,18 +854,27 @@ class EventIdPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the psana event identifier data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is required to retrieve an event identifier for a psana-based
+        data event, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> Any:
         """
-        Retrieves an Epics variable from psana.
+        Retrieves the psana-based event identifier for an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of an Epics variable from psana.
+        This function retrieves a unique identifier for a psana-based data event. The
+        identifier is generated by combining the timestamp and fiducial information
+        that psana provides for the event. It has the following format:
+        `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`.
 
         Arguments:
 
@@ -586,7 +894,7 @@ class EpicsVariablePsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -596,20 +904,24 @@ class EpicsVariablePsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        An Epics variable at the LCLS facility.
+        Epics variable value at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with Epics variables are retrieved at the LCLS facility. It is
-        a subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
-        base class.
+        This class deals with the retrieval of an Epics variable's value from the
+        psana software framework. It retrieves the value of the variable whose psana
+        name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration parameter group. However, it is also
+        possible to provide the psana name of the variable directly in the
+        {source_base_name} argument, by prefixing it with the string "psana-". This
+        class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -621,22 +933,37 @@ class EpicsVariablePsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the Epics variable value data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the variable whose
+        psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the Epics variable with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
         """
         epics_variable_name: str = _get_psana_epics_name(
             source_base_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
+        if not epics_variable_name:
+            epics_variable_name = _get_psana_detector_name(
+                source_base_name=self._data_source_name,
+                monitor_parameters=self._monitor_parameters,
+            )
         self._detector_interface: Any = psana.Detector(epics_variable_name)
 
     def get_data(self, *, event: Dict[str, Any]) -> Any:
         """
-        Retrieves an Epics variable from psana.
+        Retrieves an Epics variable's value from psana.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of an Epics variable from psana.
+        This function retrieves from psana an Epics variable's value associated
+        with a data event.
 
         Arguments:
 
@@ -663,20 +990,20 @@ class BeamEnergyPsana(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Beam energy at the LCLS facility.
+        Beam energy information at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the retrieval of the beam energy information at the LCLS
-        facility. It is a subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
-        base class.
+        This class deals with the retrieval of beam energy information at the LCLS
+        facility. Psana provides this information for each event. This class is a
+        subclass of the [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
+        class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -688,19 +1015,25 @@ class BeamEnergyPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the beam energy data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the retrieval of
+        the beam energy information.
         """
         self._detector_interface: Any = psana.Detector("EBeam")
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
-        Retrieves the beam energy from psana.
+        Retrieves beam energy information from psana.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of the beam energy from psana by reading a
-        multicast variable.
+        This function retrieves the beam energy information for an event, as provided
+        by psana.
 
         Arguments:
 
@@ -719,7 +1052,7 @@ class EvrCodesPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataSource]
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -734,15 +1067,18 @@ class EvrCodesPsana(drl_base.OmDataSource):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the retrieval and detection of EVR event codes at the LCLS
-        facility. It is a subclass of the generic
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
-        base class.
+        This class deals with the retrieval and detection of EVR events at the LCLS
+        facility. It gathers the information needed to determine if the event code
+        specified by the `{data_source_name}_evr_code` entry in the
+        `data_retrieval_layer` has been emitted for a specific event by the EVR source
+        specified by the `psana_evr_source_name` entry in the same group. It is a
+        subclass of the [OmDataSource][om.data_retrieval_layer.base.OmDataSource]
+        class.
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
             monitor_parameters: A [MonitorParams]
@@ -754,7 +1090,14 @@ class EvrCodesPsana(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        #TODO: Docs
+        Initializes the EVR event code data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the EVR event source
+        specified by the `psana_evr_source_name` entry in the `Data Retrieval Layer`
+        OM parameter group.
         """
         evr_source_name: str = self._monitor_parameters.get_parameter(
             group="data_retrieval_layer",
@@ -773,12 +1116,15 @@ class EvrCodesPsana(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> bool:
         """
-        Checks for events codes in the current event.
+        Checks for EVR events codes in the current event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function checks the current events features a predefined EVR event code.
+        This function checks if the event code specified by the
+        `{data_source_name}_evr_code` entry in the `data_retrieval_layer` OM
+        configuration group is present in the set of EVR Event codes attached to an
+        event.
 
         Arguments:
 
@@ -786,7 +1132,8 @@ class EvrCodesPsana(drl_base.OmDataSource):
 
         Returns:
 
-            The beam energy.
+            Whether the requested event code is amongst the ones attached to the
+            current event.
         """
         current_evr_codes: Union[List[int], None] = self._detector_interface.eventCodes(
             event["data"]

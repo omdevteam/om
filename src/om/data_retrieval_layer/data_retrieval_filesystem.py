@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval and handling of data events from a filesystem.
+Retrieval and handling of data from files.
 
-This module contains Data Event Handlers for files saved in a filesystem (on a physical
-or virtual disk).
+This module contains Data Event Handlers and Data Retrieval classes that deal with data
+retrieved from files.
 """
 import pathlib
 import re
@@ -53,34 +53,36 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_extraction_functions: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_base.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        Base Data Event Handler class for Pilatus single-frame files.
+        Data Event Handler for Pilatus single-frame files.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This class handles data events originating from single-frame CBF files written
         by a Pilatus detector. It is a subclass of the
-        [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler] class.
+        [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler] base
+        class.
 
-        The source string for this Data Event Handler is a path to a file containing a
-        list of CBF files to process, one per line, with their absolute or relative
-        path.
+        For this Event Handler, a data event corresponds to the content of an
+        individual single-frame CBF file. The source string is the path to a file
+        containing a list of CBF files to process, one per line, with their absolute or
+        relative path.
 
         Arguments:
 
             source: A string describing the data source.
 
-            data_extraction_funcs: A dictionary containing a set of Data Extraction
-                Functions.
+            data_sources: A dictionary containing a set of Data Sources.
 
-                * Each dictionary key must define the name of a function.
+                * Each dictionary key must define the name of a data source.
 
-                * The corresponding dictionary value must store the function
-                implementation.
+                * The corresponding dictionary value must store an instance of the
+                  corresponding
+                  [Data Source][om.data_retrieval_layer.base.OmDataSource] class.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
@@ -88,9 +90,7 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_extraction_functions: Dict[
-            str, drl_base.OmDataSource
-        ] = data_extraction_functions
+        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -146,8 +146,8 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
-            data_extraction_funcs=self._data_extraction_functions,
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
             required_data=required_data,
         )
 
@@ -158,7 +158,7 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves single-frame file events.
+        Retrieves PIlatus single-frame file events.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -168,8 +168,11 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         retrieves the same number of files. Only the last node might retrieve fewer
         files, depending on how evenly the total number can be split.
 
+        Each retrieved event corresponds to the content of an individual single-frame
+        CBF file.
+
         This generator function yields a dictionary storing the data for the current
-        data event (corresponding to a file).
+        event.
 
         Arguments:
 
@@ -198,10 +201,10 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
             ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
         ]
 
-        func_name: str
-        self._data_extraction_functions["timestamp"].initialize_data_source()
-        for func_name in self._required_data_extraction_funcs:
-            self._data_extraction_functions[func_name].initialize_data_source()
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Dict[str, Any]] = {}
         data_event["additional_info"] = {}
@@ -217,9 +220,9 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
                 pathlib.Path(stripped_entry).stat().st_mtime
             )
 
-            data_event["additional_info"][
+            data_event["additional_info"]["timestamp"] = self._data_sources[
                 "timestamp"
-            ] = self._data_extraction_functions["timestamp"].get_data(event=data_event)
+            ].get_data(event=data_event)
 
             yield data_event
 
@@ -230,8 +233,8 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function opens each CBF file and associates its content with the 'data'
-        key of the 'event' dictionary.
+        This function opens the CBF file associated with the data event and store its
+        content with the 'data' key of the 'event' dictionary.
 
         Arguments:
 
@@ -256,7 +259,7 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
 
     def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in a Pilatus file event.
+        Gets the number of frames in a Pilatus single-frame file event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -291,20 +294,20 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
 
         Returns:
 
-            A dictionary storing the data returned by the Data Extraction Functions.
+            A dictionary storing the extracted data.
 
-            * Each dictionary key identifies the Data Extraction Function used to
-              extract the data.
+            * Each dictionary key identifies the Data Source from which the data has
+              been retrieved.
 
-            * The corresponding dictionary value stores the data returned by the
-              function.
+            * The corresponding dictionary value stores the data that was extracted
+              from the Data Source for the provided event.
         """
         data: Dict[str, Any] = {}
-        f_name: str
+        source_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
-        for f_name in self._required_data_extraction_funcs:
+        for source_name in self._required_data_sources:
             try:
-                data[f_name] = self._data_extraction_functions[f_name].get_data(
+                data[source_name] = self._data_sources[source_name].get_data(
                     event=event
                 )
             # One should never do the following, but it is not possible to anticipate
@@ -313,8 +316,8 @@ class _PilatusFilesEventHandler(drl_base.OmDataEventHandler):
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
-                        f"OM Warning: Cannot interpret {f_name} event data due to the "
-                        "following error: {exc_type.__name__}: {exc_value}"
+                        f"OM Warning: Cannot interpret {source_name} event data due "
+                        "to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data
@@ -324,15 +327,14 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
 
-    Base class: [`FilesBaseDataEventHandler`]
-    [om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler]
+    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler]
     """
 
     def __init__(
         self,
         *,
         source: str,
-        data_extraction_functions: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_base.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -341,27 +343,27 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This Data Event Handler deals with files written by a Jungfrau 1M detector in
-        HDF5 format. It is a subclass of the [`FilesBaseDataEventHandler`]
-        [om.data_retrieval_layer.data_handlers_filesystem.FilesBaseDataEventHandler]
+        This Data Event Handler deals with events originating from files written by a
+        Jungfrau 1M detector in HDF5 format. It is a subclass of the
+        [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler] base
         class.
 
-        The source string for this Data Event Handler is a path to a file containing a
+        For this Event Handler, a data event corresponds to an individual frame
+        stored in an HDF5 file. The source string is the path to a file containing a
         list of HDF5 files to process, one per line, with their absolute or relative
-        path. Each file stores multiple detector data frames. Each retrieved event
-        corresponds to a single frame from a file.
+        path. Each file stores multiple detector data frames.
 
         Arguments:
 
             source: A string describing the data source.
 
-            data_extraction_funcs: A dictionary containing a set of Data Extraction
-                Functions.
+            data_sources: A dictionary containing a set of Data Sources.
 
-                * Each dictionary key must define the name of a function.
+                * Each dictionary key must define the name of a data source.
 
-                * The corresponding dictionary value must store the function
-                implementation.
+                * The corresponding dictionary value must store an instance of the
+                  corresponding
+                  [Data Source][om.data_retrieval_layer.base.OmDataSource] class.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
@@ -369,9 +371,7 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_extraction_functions: Dict[
-            str, drl_base.OmDataSource
-        ] = data_extraction_functions
+        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -427,8 +427,8 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_extraction_funcs = drl_base.filter_data_extraction_funcs(
-            data_extraction_funcs=self._data_extraction_functions,
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
             required_data=required_data,
         )
 
@@ -444,14 +444,14 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This Event Data Handler considers each detector frame, not each file, a
-        separate event. The frames retrieved from the data source are split as evenly
-        as possible across all the processing nodes. Each node ideally retrieves the
-        same number of frames from the source. Only the last node might retrieve fewer
-        frames, depending on how evenly the total number can be split.
+        Each retrieved event corresponds to a single detector frame stored in an HDF5
+        file. The detector frames are split as evenly as possible across all the
+        processing nodes. Each node ideally retrieves the same number of
+        frames. Only the last node might retrieve fewer frames, depending on how
+        evenly the total number can be split.
 
         This generator function yields a dictionary storing the data for the current
-        event (corresponding to a single detector frame).
+        event.
 
         Arguments:
 
@@ -532,10 +532,10 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
 
         print("Num frames current node:", node_rank, num_frames_curr_node)
 
-        func_name: str
-        self._data_extraction_functions["timestamp"].initialize_data_source()
-        for func_name in self._required_data_extraction_funcs:
-            self._data_extraction_functions[func_name].initialize_data_source()
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
 
         data_event: Dict[str, Dict[str, Any]] = {}
         data_event["additional_info"] = {}
@@ -547,9 +547,9 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 frames_curr_node
             )
 
-            data_event["additional_info"][
+            data_event["additional_info"]["timestamp"] = self._data_sources[
                 "timestamp"
-            ] = self._data_extraction_functions["timestamp"].get_data(event=data_event)
+            ].get_data(event=data_event)
 
             yield data_event
 
@@ -560,9 +560,9 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        Since each detector frame in a file is considered a separate event, the event
-        generator, which splits the frames across the processing nodes, takes care of
-        opening and closing the files. This function therefore does nothing.
+        Since each detector frame in each HDF5 file is considered as a separate event,
+        the event generator, which splits the frames across the processing nodes, takes
+        care of opening and closing the files. This function therefore does nothing.
 
         Arguments:
 
@@ -577,9 +577,9 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        Since each detector frame in a file is considered a separate event, the event
-        generator, which splits the frames across the processing nodes, takes care of
-        opening and closing the files. This function therefore does nothing.
+        Since each detector frame in each HDF5 file is considered as a separate event,
+        the event generator, which splits the frames across the processing nodes, takes
+        care of opening and closing the files. This function therefore does nothing.
 
         Arguments:
 
@@ -594,8 +594,8 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        Since each frame in a file is considered a separate event, this function always
-        returns 1.
+        Since each frame in each HDF5 file is considered as a separate event, this
+        function always returns 1.
 
         Arguments:
 
@@ -635,9 +635,9 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         data: Dict[str, Any] = {}
         f_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
-        for f_name in self._required_data_extraction_funcs:
+        for source_name in self._required_data_sources:
             try:
-                data[f_name] = self._data_extraction_functions[f_name].get_data(
+                data[source_name] = self._data_sources[source_name].get_data(
                     event=event
                 )
             # One should never do the following, but it is not possible to anticipate
@@ -646,8 +646,8 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
-                        f"OM Warning: Cannot interpret {f_name} event data due to the "
-                        "following error: {exc_type.__name__}: {exc_value}"
+                        f"OM Warning: Cannot interpret {source_name} event data due "
+                        "to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data
@@ -657,7 +657,7 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
 
-    TODO: Docs
+    Base class: [`OmDataRetrieval`][om.data_retrieval_layer.base.OmDataRetrieval]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
@@ -670,19 +670,17 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
         This class implements the operations needed to retrieve data from a set of
         single-frame files written by a Pilatus detector in CBF format.
 
-        This class considers a data event equivalent to the content of a single
-        Pilatus CBF file. The full path to the CBF file is used as event identifier.
-        Since Pilatus files do not contain any timestamp information, the modification
-        time of each file is taken as a first approximation of the timestamp of the
-        data it contains. Futhermore, since Pilatus files do not contain any detector
-        distance or beam energy information, their values need to be provided to OM
-        through its configuration parameters (the `fallback_detector_distance_in_mm`
-        and `fallback_beam_energy_in_eV` parameters in the `data_retrieval_layer`
-        parameter group).
-
-        The source string for this Data Retrieval class is a path to a file containing
-        a list of CBF files to process, one per line, with their absolute or relative
-        path.
+        This class considers an individual data event as equivalent to the content of a
+        single Pilatus CBF file. The full path to the CBF file is used as the event
+        identifier. Since Pilatus files do not contain any timestamp information, the
+        modification time of the file is taken as a first approximation of the
+        timestamp of the data it contains. Futhermore, since Pilatus files do not
+        contain any detector distance or beam energy information, their values need to
+        be provided to OM through its configuration parameters (specifically, the
+        `fallback_detector_distance_in_mm` and `fallback_beam_energy_in_eV` entries
+        in the `data_retrieval_layer` parameter group). The source string for this
+        Data Retrieval class is a path to a file containing a list of CBF files to
+        process, one per line, with their absolute or relative path.
 
         Arguments:
 
@@ -693,7 +691,7 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
             source: A string describing the data source.
         """
 
-        data_extraction_funcs: Dict[str, drl_base.OmDataSource] = {
+        data_sources: Dict[str, drl_base.OmDataSource] = {
             "timestamp": ds_files.TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -720,7 +718,7 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
             _PilatusFilesEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
-                data_extraction_functions=data_extraction_funcs,
+                data_sources=data_sources,
             )
         )
 
@@ -733,14 +731,34 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
 
-    TODO: Docs
+    Base class: [`OmDataRetrieval`][om.data_retrieval_layer.base.OmDataRetrieval]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
         """
-        Data Event Handler for events retrieved from psana at CXI (LCLS).
+        Data Retrieval for Jungfrau 1M HDF5 files.
 
-        TODO: Docs
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class implements the operations needed to retrieve data from a set of
+        files written by a Jungfrau 1M detector in HDF5 format.
+
+        This class considers an individual data event as equivalent to an single
+        detector frame stored in an HDF5 file. The full path to the file containing
+        the frame, together with the index of the frame in the file, is taken as
+        the event identifier. Jungfrau 1M files do not contain any absolute timestamp
+        information, but they store the readout of the internal detector clock for
+        every frame. As a first approximation, the modification time of the file
+        is taken as the timestamp of the first frame it contains, and the timestamp
+        of all other frames is computed according to the internal clock difference.
+        Futhermore, Jungfrau 1M files do not contain any detector distance or beam
+        energy information: their values need to be provided to OM through its
+        configuration parameters (specifically, the `fallback_detector_distance_in_mm`
+        and `fallback_beam_energy_in_eV` entries in the `data_retrieval_layer`
+        parameter group). The source string for this Data Retrieval class is the path
+        to a file containing a list of HDF5 files to process, one per line, with their
+        absolute or relative path.
 
         Arguments:
 
@@ -751,7 +769,7 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
             source: A string describing the data source.
         """
 
-        data_extraction_funcs: Dict[str, drl_base.OmDataSource] = {
+        data_sources: Dict[str, drl_base.OmDataSource] = {
             "timestamp": ds_files.TimestampJungfrau1MFiles(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -778,7 +796,7 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
             _Jungfrau1MFilesDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
-                data_extraction_functions=data_extraction_funcs,
+                data_sources=data_sources,
             )
         )
 
