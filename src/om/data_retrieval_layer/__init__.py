@@ -23,20 +23,35 @@ Extraction Functions supporting several facilities. Functions and classes for di
 detectors and software frameworks are implemented in separate modules that are imported
 on-demand when OM starts.
 """
-from om.data_retrieval_layer.data_retrieval_filesystem import (
-    Jungfrau1MFilesDataRetrieval,
-    PilatusFilesDataRetrieval,
-)
-from om.data_retrieval_layer.data_retrieval_psana import (
-    CxiLclsCspadDataRetrieval,
-    CxiLclsDataRetrieval,
-    MfxLclsDataRetrieval,
-    MfxLclsRayonixDataRetrieval,
-)
 
-MfxLclsDataEventHandler = MfxLclsDataRetrieval
-MfxLclsRayonixDataEventHandler = MfxLclsRayonixDataRetrieval
-CxiLclsDataEventHandler = CxiLclsDataRetrieval
-CxiLclsCspadDataEventHandler = CxiLclsCspadDataRetrieval
-PilatusFilesDataEventHandler = PilatusFilesDataRetrieval
-Jungfrau1MFilesDataEventHandler = Jungfrau1MFilesDataRetrieval
+try:
+    import fabio  # type: ignore  # noqa: F401
+    import h5py  # type: ignore  # noqa: F401
+
+    from om.data_retrieval_layer.data_retrieval_filesystem import (
+        Jungfrau1MFilesDataRetrieval,
+        PilatusFilesDataRetrieval,
+    )
+    print("OM Message: activating file-based data retrieval")
+    PilatusFilesDataEventHandler = PilatusFilesDataRetrieval
+    Jungfrau1MFilesDataEventHandler = Jungfrau1MFilesDataRetrieval
+except ModuleNotFoundError:
+    pass
+
+try:
+    import psana  # type: ignore  # noqa: F401
+
+    from om.data_retrieval_layer.data_retrieval_psana import (
+        CxiLclsCspadDataRetrieval,
+        CxiLclsDataRetrieval,
+        MfxLclsDataRetrieval,
+        MfxLclsRayonixDataRetrieval,
+    )
+    print("OM Message: activating psana data retrieval")
+    MfxLclsDataEventHandler = MfxLclsDataRetrieval
+    MfxLclsRayonixDataEventHandler = MfxLclsRayonixDataRetrieval
+    CxiLclsDataEventHandler = CxiLclsDataRetrieval
+    CxiLclsCspadDataEventHandler = CxiLclsCspadDataRetrieval
+
+except ModuleNotFoundError:
+    pass
