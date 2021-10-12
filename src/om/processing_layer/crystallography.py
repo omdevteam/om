@@ -29,7 +29,7 @@ import numpy  # type: ignore
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
 
@@ -41,7 +41,7 @@ except ImportError:
     )
 
 
-class CrystallographyProcessing(process_layer_base.OmProcessing):
+class CrystallographyProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
 
@@ -374,7 +374,7 @@ class CrystallographyProcessing(process_layer_base.OmProcessing):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> None:
         """
-        Computes aggregated Bragg peak data and broadcasts it over the network.
+        Computes statistics on aggregated Bragg peak data broadcasts them.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
