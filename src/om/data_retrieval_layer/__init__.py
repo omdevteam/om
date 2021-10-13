@@ -31,10 +31,12 @@ try:
     from om.data_retrieval_layer.data_retrieval_filesystem import (
         Jungfrau1MFilesDataRetrieval,
         PilatusFilesDataRetrieval,
+        Eiger16MFilesDataRetrieval,
     )
     print("OM Message: activating file-based data retrieval")
     PilatusFilesDataEventHandler = PilatusFilesDataRetrieval
     Jungfrau1MFilesDataEventHandler = Jungfrau1MFilesDataRetrieval
+    Eiger16MFilesDataEventHandler = Eiger16MFilesDataRetrieval
 except ModuleNotFoundError:
     pass
 

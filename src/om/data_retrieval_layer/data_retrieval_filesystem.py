@@ -653,6 +653,291 @@ class _Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         return data
 
 
+class _Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler]
+    """
+
+    def __init__(
+        self,
+        *,
+        source: str,
+        data_sources: Dict[str, drl_base.OmDataSource],
+        monitor_parameters: parameters.MonitorParams,
+    ) -> None:
+        """
+        Data Event Handler for Eiger 16M files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This Data Event Handler deals with events originating from files written by a
+        Eiger 16M detector in HDF5 format. It is a subclass of the
+        [`OmDataEventHandler`][om.data_retrieval_layer.base.OmDataEventHandler] base
+        class.
+
+        For this Event Handler, a data event corresponds to an individual frame
+        stored in an HDF5 file. The source string is the path to a file containing a
+        list of HDF5 files to process, one per line, with their absolute or relative
+        path. Each file stores multiple detector data frames.
+
+        Arguments:
+
+            source: A string describing the data source.
+
+            data_sources: A dictionary containing a set of Data Sources.
+
+                * Each dictionary key must define the name of a data source.
+
+                * The corresponding dictionary value must store an instance of the
+                  corresponding
+                  [Data Source][om.data_retrieval_layer.base.OmDataSource] class.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        self._source: str = source
+        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+
+    def initialize_event_handling_on_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> Any:
+        """
+        Initializes file event handling on the collecting node.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        There is usually no need to initialize a file-based data source on the
+        collecting node, so this function actually does nothing.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            An optional initialization token.
+        """
+        pass
+
+    def initialize_event_handling_on_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> Any:
+        """
+        Initializes Eiger 16M file event handling on the processing nodes.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+        An optional initialization token.
+        """
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+
+    def event_generator(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
+        """
+        Retrieves Eiger 16M file events.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Each retrieved event corresponds to a single detector frame stored in an HDF5
+        file. The HDF5 files are split as evenly as possible across all the processing
+        nodes. Each node ideally processes the same number of files. Only the last node
+        might retrieve fewer frames, depending on how evenly the total number can be
+        split.
+
+        This generator function yields a dictionary storing the data for the current
+        event.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # Computes how many files the current processing node should process. Splits
+        # the files as equally as possible amongst the processing nodes with the last
+        # processing node getting a smaller number of files if the number of files to
+        # be processed cannot be exactly divided by the number of processing nodes.
+        try:
+            fhandle: TextIO
+            with open(self._source, "r") as fhandle:
+                filelist: List[str] = fhandle.readlines()  # type
+        except (IOError, OSError) as exc:
+            raise RuntimeError(
+                "Error reading the {0} source file.".format(self._source)
+            ) from exc
+        num_files_curr_node: int = int(
+            numpy.ceil(len(filelist) / float(node_pool_size - 1))
+        )
+        files_curr_node: List[str] = filelist[
+            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
+        ]
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
+        data_event: Dict[str, Dict[str, Any]] = {}
+        data_event["additional_info"] = {}
+
+        entry: str
+        for entry in files_curr_node:
+            filename: str = entry.strip()
+            h5file: Any = h5py.File(filename, "r")
+            num_frames: int = h5file["/entry/data/data"].shape[0]
+            data_event["additional_info"]["h5file"] = h5file
+            data_event["additional_info"]["full_path"] = str(
+                pathlib.Path(filename).resolve()
+            )
+            data_event["additional_info"]["file_modification_time"] = numpy.float64(
+                pathlib.Path(filename).stat().st_mtime
+            )
+            data_event["additional_info"]["timestamp"] = self._data_sources[
+                "timestamp"
+            ].get_data(event=data_event)
+            index: int
+            for index in range(num_frames):
+                data_event["additional_info"]["index"] = index
+                yield data_event
+
+    def open_event(self, *, event: Dict[str, Any]) -> None:
+        """
+        Opens a Eiger 16M file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since each detector frame in each HDF5 file is considered as a separate event,
+        the event generator, which splits the frames across the processing nodes, takes
+        care of opening and closing the files. This function therefore does nothing.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+        """
+        pass
+
+    def close_event(self, *, event: Dict[str, Any]) -> None:
+        """
+        Closes a Eiger 16M file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since each detector frame in each HDF5 file is considered as a separate event,
+        the event generator, which splits the frames across the processing nodes, takes
+        care of opening and closing the files. This function therefore does nothing.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+        """
+        pass
+
+    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
+        """
+        Gets the number of frames in a Eiger 16M file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since each frame in each HDF5 file is considered as a separate event, this
+        function always returns 1.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The number of frames in the event.
+        """
+        return 1
+
+    def extract_data(
+        self,
+        *,
+        event: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Extracts data from a Jungfrau 1M file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            A dictionary storing the data returned by the Data Extraction Functions.
+
+            * Each dictionary key identifies the Data Extraction Function used to
+              extract the data.
+
+            * The corresponding dictionary value stores the data returned by the
+              function.
+        """
+        data: Dict[str, Any] = {}
+        f_name: str
+        data["timestamp"] = event["additional_info"]["timestamp"]
+        for source_name in self._required_data_sources:
+            try:
+                data[source_name] = self._data_sources[source_name].get_data(
+                    event=event
+                )
+            # One should never do the following, but it is not possible to anticipate
+            # every possible error raised by the facility frameworks.
+            except Exception:
+                exc_type, exc_value = sys.exc_info()[:2]
+                if exc_type is not None:
+                    raise exceptions.OmDataExtractionError(
+                        f"OM Warning: Cannot interpret {source_name} event data due "
+                        "to the following error: {exc_type.__name__}: {exc_value}"
+                    )
+
+        return data
+
+
 class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
@@ -794,6 +1079,81 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
 
         self._data_event_handler: drl_base.OmDataEventHandler = (
             _Jungfrau1MFilesDataEventHandler(
+                source=source,
+                monitor_parameters=monitor_parameters,
+                data_sources=data_sources,
+            )
+        )
+
+    @property
+    def data_event_handler(self) -> drl_base.OmDataEventHandler:
+        return self._data_event_handler
+
+
+class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataRetrieval`][om.data_retrieval_layer.base.OmDataRetrieval]
+    """
+
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+        """
+        Data Retrieval for Eiger 16M HDF5 files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class implements the operations needed to retrieve data from a set of
+        files written by a Eiger 16M detector in HDF5 format.
+
+        This class considers an individual data event as equivalent to an single
+        detector frame stored in an HDF5 file. The full path to the file containing
+        the frame, together with the index of the frame in the file, is taken as
+        the event identifier. Eiger 16M files do not contain any absolute timestamp
+        information, the modification time of the file is taken as a first approximation
+        of the timestamp of the data it contains. Futhermore, Eiger 16M files do not
+        contain any detector distance or beam energy information: their values need to
+        be provided to OM through its configuration parameters (specifically, the
+        `fallback_detector_distance_in_mm` and `fallback_beam_energy_in_eV` entries in
+        the `data_retrieval_layer` parameter group). The source string for this Data
+        Retrieval class is the path to a file containing a list of HDF5 files to
+        process, one per line, with their absolute or relative path.
+
+        Arguments:
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+
+            source: A string describing the data source.
+        """
+
+        data_sources: Dict[str, drl_base.OmDataSource] = {
+            "timestamp": ds_files.TimestampFromFileModificationTime(
+                data_source_name="timestamp", monitor_parameters=monitor_parameters
+            ),
+            "event_id": ds_files.EventIdEiger16MFiles(
+                data_source_name="eventid", monitor_parameters=monitor_parameters
+            ),
+            "frame_id": ds_generic.FrameIdZero(
+                data_source_name="frameid", monitor_parameters=monitor_parameters
+            ),
+            "detector_data": ds_files.Eiger16MFiles(
+                data_source_name="detector", monitor_parameters=monitor_parameters
+            ),
+            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+                data_source_name="fallback_beam_energy",
+                monitor_parameters=monitor_parameters,
+            ),
+            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+                data_source_name="fallback_detector_distance",
+                monitor_parameters=monitor_parameters,
+            ),
+        }
+
+        self._data_event_handler: drl_base.OmDataEventHandler = (
+            _Eiger16MFilesDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
                 data_sources=data_sources,
