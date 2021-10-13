@@ -38,9 +38,11 @@ from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypePixelMaps
 
 
-class Cheetah(process_layer_base.OmProcessing):
+class CheetahProcessing(process_layer_base.OmProcessing):
     """
     See documentation for the `__init__` function.
+
+    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
@@ -72,7 +74,7 @@ class Cheetah(process_layer_base.OmProcessing):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        super(Cheetah, self).__init__(monitor_parameters=monitor_parameters)
+        self._monitor_params = monitor_parameters
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int

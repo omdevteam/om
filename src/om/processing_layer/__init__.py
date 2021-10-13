@@ -23,5 +23,7 @@ data analysis for all kind of monitors is defined. Each module in this package c
 the implementation of a different type of OnDA Monitor.
 """
 from om.processing_layer.crystallography import CrystallographyProcessing
+from om.processing_layer.cheetah import CheetahProcessing
 
 CrystallographyMonitor = CrystallographyProcessing
+Cheetah = CheetahProcessing
