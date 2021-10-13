@@ -187,15 +187,8 @@ class HDF5Writer:
             directory_for_processed_data is None
             or node_rank is None
             or geometry is None
-            or compression is None
-            or detector_data_type is None
             or detector_data_shape is None
             or hdf5_fields is None
-            or processed_filename_prefix is None
-            or processed_filename_extension is None
-            or compression_opts is None
-            or compression_shuffle is None
-            or max_num_peaks is None
         ):
             raise RuntimeError(
                 "OM ERROR: Some parameters required for the initialization of the "
