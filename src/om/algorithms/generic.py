@@ -23,7 +23,7 @@ operations that are not tied to a specific experimental technique (e.g.: detecto
 masking and correction, radial averaging, data accumulation, etc.).
 """
 import sys
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Tuple
 
 import h5py  # type:ignore
 import numpy  # type: ignore
@@ -618,6 +618,9 @@ class Binning:
             "nasics_x": self._layout_info["nasics_x"],
             "nasics_y": self._layout_info["nasics_y"],
         }
+
+    def get_binned_data_shape(self) -> Tuple[int, int]:
+        return self._extended_nx // self._bin_size, self._extended_ny // self._bin_size
 
     def apply_binning(self, data: numpy.ndarray) -> numpy.ndarray:
         """

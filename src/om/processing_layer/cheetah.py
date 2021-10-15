@@ -35,7 +35,7 @@ from om.algorithms import generic as gen_algs
 from om.algorithms.crystallography import TypePeakfinder8Info
 from om.processing_layer import base as process_layer_base
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
-from om.utils.crystfel_geometry import TypePixelMaps
+from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
 
 
 class CheetahProcessing(process_layer_base.OmProcessing):
@@ -108,21 +108,6 @@ class CheetahProcessing(process_layer_base.OmProcessing):
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
         self._data_shape: Tuple[int, int] = self._pixelmaps["x"].shape
 
-        # TODO: Type this dictionary
-        self._total_sums: List[Dict[str, Any]] = [
-            {
-                "num_frames": 0,
-                "sum_frames": numpy.zeros(self._data_shape, dtype=numpy.float64),
-            }
-            for class_number in range(2)
-        ]
-        self._sum_sending_interval: Union[int, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="class_sums_sending_interval",
-            parameter_type=int,
-        )
-        self._sum_sending_counter: int = 0
-
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
 
@@ -138,6 +123,58 @@ class CheetahProcessing(process_layer_base.OmProcessing):
                 radius_pixel_map=self._pixelmaps["radius"],
             )
         )
+
+        binning: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning",
+            parameter_type=bool,
+            required=False,
+        )
+        self._binning_before_peakfinding: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning_before_peakfinding",
+            parameter_type=bool,
+            required=False,
+        )
+        if self._binning_before_peakfinding is None:
+            self._binning_before_peakfinding = True
+        self._binning: Union[gen_algs.Binning, None]
+        if binning:
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="binning"
+                ),
+            )
+            if self._binning_before_peakfinding:
+                self._peak_detection.set_peakfinder8_info(
+                    self._binning.get_binned_layout_info()
+                )
+                self._peak_detection.set_bad_pixel_mask(
+                    self._binning.bin_bad_pixel_mask(
+                        self._peak_detection.get_bad_pixel_mask()
+                    )
+                )
+                self._peak_detection.set_radius_pixel_map(
+                    self._binning.bin_pixel_maps(self._pixelmaps)["radius"]
+                )
+            self._data_shape = self._binning.get_binned_data_shape()
+        else:
+            self._binning = None
+        
+        # TODO: Type this dictionary
+        self._total_sums: List[Dict[str, Any]] = [
+            {
+                "num_frames": 0,
+                "sum_frames": numpy.zeros(self._data_shape, dtype=numpy.float64),
+            }
+            for class_number in range(2)
+        ]
+        self._sum_sending_interval: Union[int, None] = self._monitor_params.get_parameter(
+            group="cheetah",
+            parameter="class_sums_sending_interval",
+            parameter_type=int,
+        )
+        self._sum_sending_counter: int = 0
 
         self._min_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
@@ -166,53 +203,6 @@ class CheetahProcessing(process_layer_base.OmProcessing):
             parameter_type=int,
         )
 
-        processed_directory: str = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="processed_directory",
-            parameter_type=str,
-            required=True,
-        )
-        processed_filename_prefix: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="processed_filename_prefix",
-            parameter_type=str,
-        )
-        processed_filename_extension: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="processed_filename_extension",
-            parameter_type=str,
-        )
-        data_type: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_data_type",
-            parameter_type=str,
-        )
-        compression: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_compression",
-            parameter_type=str,
-        )
-        compression_opts: Union[int, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_compression_opts",
-            parameter_type=int,
-        )
-        compression_shuffle: Union[bool, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_compression_shuffle",
-            parameter_type=bool,
-        )
-        hdf5_file_max_num_peaks: Union[int, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_max_num_peaks",
-            parameter_type=int,
-        )
-        hdf5_fields: Dict[str, str] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_fields",
-            parameter_type=dict,
-            required=True,
-        )
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
             parameters=self._monitor_params.get_parameter_group(
                 group="cheetah"
@@ -302,12 +292,32 @@ class CheetahProcessing(process_layer_base.OmProcessing):
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
         self._data_shape = self._pixelmaps["x"].shape
 
+        binning: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning",
+            parameter_type=bool,
+            required=False,
+        )
+        self._binning: Union[gen_algs.Binning, None]
+        if binning:
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="binning"
+                ),
+            )
+            self._pixelmaps = self._binning.bin_pixel_maps(self._pixelmaps)
+            self._data_shape = self._binning.get_binned_data_shape()
+        else:
+            self._binning = None
+
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
         # of the whole detector.
         self._pixel_size: float = self._geometry["panels"][
             tuple(self._geometry["panels"].keys())[0]
         ]["res"]
+        if self._binning is not None:
+            self._pixel_size /= self._binning.get_bin_size()
         self._first_panel_coffset: float = self._geometry["panels"][
             list(self._geometry["panels"].keys())[0]
         ]["coffset"]
@@ -487,9 +497,23 @@ class CheetahProcessing(process_layer_base.OmProcessing):
         corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
             data=data["detector_data"]
         )
+        if self._binning is not None and self._binning_before_peakfinding:
+            binned_detector_data = self._binning.apply_binning(corrected_detector_data)
+        else:
+            binned_detector_data = corrected_detector_data
+
         peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
-            data=corrected_detector_data
+            data=binned_detector_data
         )
+
+        if self._binning is not None and not self._binning_before_peakfinding:
+            binned_detector_data = self._binning.apply_binning(corrected_detector_data)
+            i: int
+            bin_size: int = self._binning.get_bin_size()
+            for i in range(peak_list["num_peaks"]):
+                peak_list["fs"][i] /= bin_size
+                peak_list["ss"][i] /= bin_size
+
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
             < len(peak_list["intensity"])
@@ -506,7 +530,7 @@ class CheetahProcessing(process_layer_base.OmProcessing):
             processed_data["beam_energy"] = data["beam_energy"]
         else:
             processed_data["beam_energy"] = 10000
-        processed_data["data_shape"] = data["detector_data"].shape
+        processed_data["data_shape"] = binned_detector_data.shape
         if "event_id" in data.keys():
             processed_data["event_id"] = data["event_id"]
         else:
@@ -521,7 +545,7 @@ class CheetahProcessing(process_layer_base.OmProcessing):
         processed_data["filename"] = "---"
         processed_data["index"] = -1
         if frame_is_hit:
-            data_to_write = {"detector_data": corrected_detector_data}
+            data_to_write = {"detector_data": binned_detector_data}
             data_to_write.update(processed_data)
             self._file_writer.write_frame(processed_data=data_to_write)
             processed_data["filename"] = self._file_writer.get_current_filename()
@@ -534,7 +558,7 @@ class CheetahProcessing(process_layer_base.OmProcessing):
                     # attribute says that the detector frame data should be sent to
                     # the collecting node, adds the data to the 'processed_data'
                     # dictionary (and resets the counter).
-                    processed_data["detector_data"] = corrected_detector_data
+                    processed_data["detector_data"] = binned_detector_data
                     self._hit_frame_sending_counter = 0
         else:
             if self._non_hit_frame_sending_interval is not None:
@@ -547,11 +571,11 @@ class CheetahProcessing(process_layer_base.OmProcessing):
                     # attribute says that the detector frame data should be sent to
                     # the collecting node, adds the data to the 'processed_data'
                     # dictionary (and resets the counter).
-                    processed_data["detector_data"] = corrected_detector_data
+                    processed_data["detector_data"] = binned_detector_data
                     self._non_hit_frame_sending_counter = 0
 
         self._total_sums[frame_is_hit]["num_frames"] += 1
-        self._total_sums[frame_is_hit]["sum_frames"] += corrected_detector_data
+        self._total_sums[frame_is_hit]["sum_frames"] += binned_detector_data
         if self._sum_sending_interval is not None:
             if self._sum_sending_counter == 0:
                 self._sum_to_send: List[Dict[str, Any]] = [
@@ -564,7 +588,7 @@ class CheetahProcessing(process_layer_base.OmProcessing):
                     for class_number in range(2)
                 ]
             self._sum_to_send[frame_is_hit]["num_frames"] += 1
-            self._sum_to_send[frame_is_hit]["sum_frames"] += corrected_detector_data
+            self._sum_to_send[frame_is_hit]["sum_frames"] += binned_detector_data
             self._sum_sending_counter += 1
             if self._sum_sending_counter == self._sum_sending_interval:
                 self._sum_sending_counter = 0
@@ -649,7 +673,6 @@ class CheetahProcessing(process_layer_base.OmProcessing):
 
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
-
         peak_fs: float
         peak_ss: float
         peak_value: float
