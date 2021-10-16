@@ -25,3 +25,4 @@ corresponding to a different inter-node communication protocol.
 from om.parallelization_layer.mpi import MpiParallelization
 
 MpiParallelizationEngine=MpiParallelization
+MpiProcessingCollectingEngine=MpiParallelization

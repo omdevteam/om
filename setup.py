@@ -127,6 +127,8 @@ setup(
             "crystallography_frame_viewer:main",
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
             "crystallography_parameter_tweaker:main",
+            "om_xes_gui.py=om.graphical_interfaces."
+            "xes_gui:main",
         ],
     },
     ext_modules=extensions,
