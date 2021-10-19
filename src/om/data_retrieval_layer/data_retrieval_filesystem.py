@@ -898,7 +898,7 @@ class _Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
         event: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
-        Extracts data from a Jungfrau 1M file event.
+        Extracts data from an Eiger 16M file event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -1107,7 +1107,7 @@ class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
         This class implements the operations needed to retrieve data from a set of
         files written by a Eiger 16M detector in HDF5 format.
 
-        This class considers an individual data event as equivalent to an single
+        This class considers an individual data event as equivalent to a single
         detector frame stored in an HDF5 file. The full path to the file containing
         the frame, together with the index of the frame in the file, is taken as
         the event identifier. Eiger 16M files do not contain any absolute timestamp

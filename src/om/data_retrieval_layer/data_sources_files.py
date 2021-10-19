@@ -683,19 +683,19 @@ class EventIdEiger16MFiles(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Jungfrau 1M event identifier data source.
+        Initializes the Eiger 16M event identifier data source.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        No initialization is needed to retrieve an event identifier for Jungfrau 1M
+        No initialization is needed to retrieve an event identifier for Eiger 16M
         event data, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for a Jungfrau 1M data event.
+        Retrieves an event identifier for a Eiger 16M data event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -703,8 +703,7 @@ class EventIdEiger16MFiles(drl_base.OmDataSource):
         This function constructs the event identifier for an event by joining the
         following elements in a single string:
 
-        - The full path to the file containing the data for the first panel of the
-          detector data frame (d0) .
+        - The full path to the file.
 
         - The index of the current frame within the file itself.
 

@@ -491,7 +491,8 @@ class Binning:
 
             detector_type: The type of detector on which binning will be applied.
                 For the detector types which are currently supported see the
-                documentation of :func:`~[om.algorithms.crystallography.get_peakfinder8_info` function)
+                documentation of [get_peakfinder8_info][om.algorithms.crystallography.get_peakfinder8_info]
+                function.
 
             bin_size: The bin size in pixels.
 
