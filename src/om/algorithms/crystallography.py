@@ -130,6 +130,9 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
             * 'rayonix': The Rayonix detector used at the MFX beamline of the LCLS
               facility.
 
+            * 'eiger16M': The 16M version of Eiger2 detector used at the PETRA III
+              facility.
+
     Returns:
 
         A [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]

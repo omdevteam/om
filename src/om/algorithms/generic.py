@@ -481,6 +481,42 @@ class Binning:
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
+        Algorithm for binning of the detector image.
+
+        This algorithm stores all the parameters needed to bin the detector data frame.
+        It also calculates binned detector image, binned bad pixel mask and binned
+        pixel maps upon request.
+
+        Arguments:
+
+            detector_type: The type of detector on which binning will be applied.
+                For the detector types which are currently supported see the
+                documentation of :func:`~[om.algorithms.crystallography.get_peakfinder8_info` function)
+
+            bin_size: The bin size in pixels.
+
+            bad_pixel_map: An array storing a bad pixel map. The map can be used to
+                mark areas of the data frame that must be excluded from the calculation
+                of the binned image. If the value of this argument is None, no area will
+                be excluded from the calculation. Defaults to None.
+
+                * The map must be a numpy array of the same shape as the data frame on
+                  which the algorithm will be applied.
+
+                * Each pixel in the map must have a value of either 0, meaning that
+                  the corresponding pixel in the data frame should be ignored, or 1,
+                  meaning that the corresponding pixel should be included in the
+                  calculation.
+
+            min_good_pix_count: The minimum number of good pixels (pixels where 
+                'bad_pixel_map' value is 1) in the bin required for the binned pixel to
+                be considered good. Defaults to 'bin_size' squared.
+
+            bad_pixel_value: The value written in the pixels of the binned detector
+                image which are considered bad. A binned pixel is considered bad if the
+                number of good pixels in the original bin is lower than
+                'min_good_pix_count'. Defaults to MAXINT if the input array type is
+                integer, otherwise defaults to numpy.nan.
         """
         if parameters is not None:        
             self._layout_info: cryst_algs.TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
@@ -536,7 +572,7 @@ class Binning:
                 bad_pixel_map = None
 
             min_good_pix_count: Union[
-                int,None
+                int, None
             ] = param_utils.get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="min_good_pix_count",
@@ -602,6 +638,8 @@ class Binning:
         return extended_data
 
     def _bin_data_array(self, data: numpy.ndarray) -> numpy.ndarray:
+        # Gets extended data array with the asics dimensions divisible by bin size and
+        # sums pixel values in the bins. Returns binned data array.
         extended_data: numpy.ndarray = self._extend_data_array(data)
         binned_data: numpy.ndarray = extended_data.reshape(
             self._binned_nx, 
@@ -612,6 +650,16 @@ class Binning:
         return binned_data
 
     def get_binned_layout_info(self) -> cryst_algs.TypePeakfinder8Info:
+        """
+        Gets binned detector layout information.
+
+        This function returns detector layout information of the image after binning.
+
+        Returns:
+
+            A [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+            dictionary storing the binned data layout information.
+        """
         return {
             "asic_nx": self._binned_asic_ny,
             "asic_ny": self._binned_asic_nx,
@@ -620,10 +668,35 @@ class Binning:
         }
 
     def get_binned_data_shape(self) -> Tuple[int, int]:
+        """
+        Gets binned data shape.
+
+        This function returns the dimensions of the detector data frame in pixels after
+        binning.
+
+        Returns:
+
+            A tuple containing the binned data array shape.
+        """
         return self._extended_nx // self._bin_size, self._extended_ny // self._bin_size
 
     def apply_binning(self, data: numpy.ndarray) -> numpy.ndarray:
         """
+        Applies binning to the detector data frame.
+
+        This function calculates binned detector image. First, it calculates the
+        average values of good pixels in each bin. Then it multiplies them by the total
+        number of pixels in the bin (i.e. 'bin_size' squared). Lastly, it sets the
+        values of the bins with fewer than 'min_good_pix_count' good pixels to
+        'bad_pixel_value'.
+
+        Arguments:
+
+            data: The detector data frame on which the binning must be performed.
+
+        Returns:
+
+            The binned data.
         """
 
         # Set bad pixels to zero:
@@ -645,12 +718,53 @@ class Binning:
         return binned_data
 
     def bin_bad_pixel_mask(self, mask: Union[numpy.ndarray, None]):
+        """
+        Applies binning to the bad pixel mask.
+
+        This function calculates the bad pixel mask applicable to the binned data from
+        the bad pixel mask of the original data shape. It returns a numpy array with
+        the same dimensions as the binned data. The values of the bins containing only
+        good pixels (pixels where mask value is 1) are set to 1, the values of all
+        the other bins, i.e. bins with at least one bad pixel, are set to 0.
+
+        Arguments:
+
+            mask: An array storing a bad pixel map.                
+
+                * The map must be a numpy array of the same shape as the data frame on
+                  which the binning algorithm is applied.
+
+                * Each pixel in the map must have a value of either 0, meaning that
+                  the corresponding pixel in the data frame should be considered bad,
+                  or 1, meaning that the corresponding pixel should be considered good.
+
+        Returns:
+
+            Either a numpy array containing the binned mask (if 'mask' is not None) or
+            None.
+        """
         if mask is None:
             return None
         else:
             return self._bin_data_array(mask) // self._bin_size**2
 
     def bin_pixel_maps(self, pixel_maps: TypePixelMaps):
+        """
+        Applies binning to the pixel maps.
+
+        This function calculates pixel maps applicable to the binned detector image.
+
+        Arguments:
+
+            pixel_maps: A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] 
+            dictionary storing the pixel maps.
+
+        Returns:
+
+            A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] 
+            dictionary storing binned pixel maps.
+        """
+
         binned_pixel_maps: TypePixelMaps = {}
         key: str
         for key in "x", "y", "z", "radius":
@@ -664,4 +778,11 @@ class Binning:
         return binned_pixel_maps
 
     def get_bin_size(self) -> int:
+        """
+        Gets the bin size.
+
+        Returns:
+
+            The bin size in pixels.
+        """
         return self._bin_size
