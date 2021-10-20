@@ -62,10 +62,10 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
         Arguments:
 
-            data_event_handler: A class defining how data events are retrieved and
-                handled.
+            data_retrieval_layer: A class defining how data and data events are
+                retrieved and handled.
 
-            monitor: A class defining the how the retrieved data must be processed.
+            processing_layer: A class defining how retrieved data is processed.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor

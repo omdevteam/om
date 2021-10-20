@@ -335,13 +335,11 @@ class OmDataRetrieval(ABC):
 
         Arguments:
 
-            source_name: the name of the current data source, used to identify the
-                source when needed (communication with the user, retrieval of
-                initialization parameters.
-
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
+
+            source: A string describing the data source.
         """
         pass
 
