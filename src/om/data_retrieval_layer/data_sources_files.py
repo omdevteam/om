@@ -333,7 +333,9 @@ class Eiger16MFiles(drl_base.OmDataSource):
 
             One frame of detector data.
         """
-        return event["additional_info"]["h5file"]["entry/data/data"][event["additional_info"]["index"]]
+        return event["additional_info"]["h5file"]["entry/data/data"][
+            event["additional_info"]["index"]
+        ]
 
 
 class TimestampFromFileModificationTime(drl_base.OmDataSource):

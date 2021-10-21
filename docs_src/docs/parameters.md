@@ -5,6 +5,64 @@ This document provides a list of all of OM's configuration parameters, sorted by
 parameter group, with a brief description of each.
 
 
+## binning
+
+This parameter group contains parameters that control how OM performs binning of a
+detector data frame using the [`Binning`][om.algorithms.generic.Binning] algorithm.
+
+**bad_pixel_map_filename (str or None)**
+:  The absolute or relative path to an HDF5 file containing a bad pixel map. The map is
+   used to mark areas of the data frame that must be excluded from the calculation of
+   the binned detector image. Each pixel in the map must have a value of either 0,
+   meaning that the corresponding pixel in the data frame must be ignored, or 1,
+   meaning that the corresponding pixel must be included in the calculation. 
+   If the value of these parameter is *None*, no area is excluded from the calculation.
+
+     Example: `bad_pixel_mask.h5`
+  
+**bad_pixel_map_hdf5_path (str or None)**
+:  The internal HDF5 path to the data block where the bad pixel map is stored. If the
+   value of the `bad_pixel_map_filename` parameter is not *None*, this parameter must
+   also be provided, and cannot be *None*. Otherwise it is ignored.
+
+     Example: `/data/data`
+
+**bad_pixel_value**
+:  The value written in the pixels of the binned detector image which are considered
+   "bad". A pixel of the binned image is considered "bad" if the number of "good"
+   pixels (pixels where the bad pixel map value is 1) in the original bin is lower than
+   `min_good_pix_count`.
+
+     Example: `-1`
+
+**bin_size**
+:  The bin size in pixels.
+
+     Example: `2`
+
+**detector_type (str)**
+:  The type of detector on which the binning algorithm will be applied. The detector
+   types currently supported are:
+
+     * `cspad`
+     * `pilatus`
+     * `jungfrau1M`
+     * `jungfrau4M`
+     * `epix10k2M`
+     * `rayonix`
+
+     Example: `eiger16M`
+
+**min_good_pix_count**
+:  The minimum number of "good" pixels (pixels where the bad pixel map value is 1) in
+   the bin required for the resulting pixel of the binned image to be considered
+   "good". The default vaule of this parameter is `bin_size` squared, i.e. all the
+   pixels in the bin must be "good" for the resulting pixel of the binned image to be
+   considered "good" by default. 
+
+     Example: `3`
+
+
 ## cheetah
 
 This parameter group contains parameters that control the behavior of the Cheetah
@@ -206,6 +264,17 @@ algorithm.
 This parameter group contains parameters used specifically by the OnDA Monitor for
 Crystallography.
 
+**binning**
+:  Whether to apply pixel binning to the detector data or not.
+
+     Example: `true`
+
+**binning_before_peakfinding**
+:  Whether detector data should be binned before the Bragg peak search or after. If the
+   value of the `binning` parameter is *False* this parameter will be ignored.
+
+     Example: `false`
+
 **data_broadcast_url (str or None)**
 :  The URL of the socket where OM broadcasts data to external programs. The parameter
    should have the format `tcp://hostname:port` or the format `ipc:///path/to/socket`,
@@ -394,10 +463,11 @@ The parameters in this section apply only to the file-based Data Event Handlers,
 specifically to the following Handlers:
 
 * `PilatusFilesDataEventHandler`
-* `JungFrau1MDataEventHandler`
+* `Jungfrau1MFilseDataEventHandler`
+* `Eiger16MFilesDataEventHandler`
 
 **calibration(bool)**
-:  Whether to calibrate the retrieved  x-ray detector data or not. When reading from
+:  Whether to calibrate the retrieved x-ray detector data or not. When reading from
    files, the calibration of the detector data is usually performed by OM. OM often
    needs external information to perform the calibration, and retrieves it from a set
    of files defined by the `calibration_dark_filenames` and
@@ -544,7 +614,8 @@ algorithm.
      * `jungfrau1M`
      * `jungfrau4M`
      * `epix10k2M`
-     * `Rayonix`
+     * `rayonix`
+     * `eiger16M`
 
      Example: `cspad` 
 
