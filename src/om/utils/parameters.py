@@ -281,7 +281,7 @@ class MonitorParams:
 
         WARNING: This function is deprecated and will be removed from a future version
         of OM. Please see the equivalent
-        [get_parameter][om.utils.parameters.get_parameter] function.
+        [get_parameter][om.utils.parameters.MonitorParams.get_parameter] function.
 
         Arguments:
 

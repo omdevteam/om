@@ -28,7 +28,7 @@ from mpi4py import MPI  # type: ignore
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.parallelization_layer import base as par_layer_base
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import exceptions, parameters
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
@@ -48,7 +48,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
         self,
         *,
         data_retrieval_layer: data_ret_layer_base.OmDataRetrieval,
-        processing_layer: process_layer_base.OmProcessing,
+        processing_layer: pl_base.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -62,10 +62,10 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
         Arguments:
 
-            data_event_handler: A class defining how data events are retrieved and
-                handled.
+            data_retrieval_layer: A class defining how data and data events are
+                retrieved and handled.
 
-            monitor: A class defining the how the retrieved data must be processed.
+            processing_layer: A class defining how retrieved data is processed.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
@@ -74,7 +74,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
         self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
             data_retrieval_layer.data_event_handler
         )
-        self._processing_layer: process_layer_base.OmProcessing = processing_layer
+        self._processing_layer: pl_base.OmProcessing = processing_layer
         self._monitor_params: parameters.MonitorParams = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(

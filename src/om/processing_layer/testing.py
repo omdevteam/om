@@ -24,11 +24,11 @@ import sys
 import time
 from typing import Any, Dict, Tuple, Union
 
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import parameters, zmq_monitor
 
 
-class TestMonitor(process_layer_base.OmMonitor):
+class TestMonitor(pl_base.OmMonitor):
     """
     See documentation for the `__init__` function.
 

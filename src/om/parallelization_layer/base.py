@@ -24,7 +24,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from om.data_retrieval_layer import base as data_ret_layer_base
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import parameters
 
 
@@ -40,7 +40,7 @@ class OmParallelization(ABC):
         self,
         *,
         data_retrieval_layer: data_ret_layer_base.OmDataRetrieval,
-        processing_layer: process_layer_base.OmProcessing,
+        processing_layer: pl_base.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -77,10 +77,10 @@ class OmParallelization(ABC):
 
         Arguments:
 
-            data_event_handler: A class defining how data events are retrieved and
-                handled.
+            data_retrieval_layer: A class defining how data and data events are
+                retrieved and handled.
 
-            monitor: A class defining the how the retrieved data must be processed.
+            processing_layer: A class defining how retrieved data is processed.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor

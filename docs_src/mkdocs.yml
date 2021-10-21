@@ -35,7 +35,6 @@ plugins:
             - from unittest.mock import MagicMock as mock
             - sys.modules["psana"] = mock()
             - sys.modules["mpi4py"] = mock()
-            - sys.modules["hidra_api"] = mock()
   - search
 
 nav:
@@ -50,22 +49,16 @@ nav:
       - __init__: reference/om/index.md
       - algorithms:
         - __init__: reference/om/algorithms/index.md
-        - calibration: reference/om/algorithms/calibration.md
         - crystallography: reference/om/algorithms/crystallography.md
         - generic: reference/om/algorithms/generic.md
       - data_retrieval_layer:
         - __init__: reference/om/data_retrieval_layer/index.md
         - base: reference/om/data_retrieval_layer/base.md
-        - data_handlers_filesystem: reference/om/data_retrieval_layer/data_handlers_filesystem.md
-        - data_handlers_hidra: reference/om/data_retrieval_layer/data_handlers_hidra.md
-        - data_handlers_psana: reference/om/data_retrieval_layer/data_handlers_psana.md
-        - functions_cspad: reference/om/data_retrieval_layer/functions_cspad.md
-        - functions_epix10ka: reference/om/data_retrieval_layer/functions_epix10ka.md
-        - functions_jungfrau1M: reference/om/data_retrieval_layer/functions_jungfrau1M.md
-        - functions_jungfrau4M: reference/om/data_retrieval_layer/functions_jungfrau4M.md
-        - functions_pilatus: reference/om/data_retrieval_layer/functions_pilatus.md
-        - functions_rayonix: reference/om/data_retrieval_layer/functions_rayonix.md
-        - functions_psana: reference/om/data_retrieval_layer/functions_psana.md
+        - data_retrieval_filesystem: reference/om/data_retrieval_layer/data_retrieval_filesystem.md
+        - data_retrieval_psana: reference/om/data_retrieval_layer/data_retrieval_psana.md
+        - data_sources_files: reference/om/data_retrieval_layer/data_sources_files.md
+        - data_sources_generic: reference/om/data_retrieval_layer/data_sources_generic.md
+        - data_sources_psana: reference/om/data_retrieval_layer/data_sources_psana.md
       - graphical_interfaces:
         - __init__: reference/om/graphical_interfaces/index.md
         - base: reference/om/graphical_interfaces/base.md

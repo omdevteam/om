@@ -64,9 +64,9 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         a subclass of the [OmGui][om.graphical_interfaces.base.OmGui] base class.
 
         The viewer receives detector frame data from an OnDA Monitor for
-        Crystallography when it is tagged with the 'omdetectordata' label. The received
-        data must include processed detector frames, together with information on any
-        Bragg peak detected in them.
+        Crystallography when it is tagged with the 'view:omframedata' label. The
+        receiveddata must include processed detector frames, together with information
+        on any Bragg peak detected in them.
 
         The viewer displays the frames and the position of the detected peaks. A data
         buffer allows the viewer to stop receiving data from the monitor but still keep

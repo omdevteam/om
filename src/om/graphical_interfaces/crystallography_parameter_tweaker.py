@@ -67,7 +67,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         [om.graphical_interfaces.base.OmGui] base class.
 
         This GUI receives detector frame data from an OndA Monitor for Crystallography
-        when it is tagged with the 'omdetectordata' label.  The received data must
+        when it is tagged with the 'view:omframedata' label.  The received data must
         include processed detector frames.
 
         The GUI allows the user to choose a set of peak-finding parameters. It then
@@ -85,7 +85,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         """
         super(CrystallographyParameterTweaker, self).__init__(
             url=url,
-            tag="view:omtweakingdata",
+            tag="view:omframedata",
         )
 
         self._img: Union[numpy.array, None] = None
