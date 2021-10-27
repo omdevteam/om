@@ -28,6 +28,7 @@ from typing import Any, Dict, Union
 import zmq  # type: ignore
 
 from om.utils import exceptions
+from om.utils import parameters as param_utils
 
 
 def get_current_machine_ip() -> str:
@@ -58,7 +59,12 @@ class ZmqDataBroadcaster:
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, url: Union[str, None]) -> None:
+    def __init__(
+        self,
+        *,
+        url: Union[str, None] = None,
+        parameters: Union[Dict[str, Any], None] = None,
+    ) -> None:
         """
         ZMQ-based data-broadcasting socket for OnDA Monitors.
 
@@ -76,11 +82,25 @@ class ZmqDataBroadcaster:
                 socket will be opened at port 12321 using the 'tcp://' protocol.
                 Defaults to None.
         """
+        if parameters is not None:
+            url = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="data_broadcast_url", parameter_type=str
+            )
+        else:
+            print(
+                "OM Warning: Initializing the ZmqDataBroadcaster class with "
+                "individual parameters (url) is deprecated and will be removed in a "
+                "future version of OM. Please use the new parameter group-based "
+                "initialization interface (which requires only the parameters "
+                "argument)."
+            )
+
         self._context: Any = zmq.Context()
         self._sock: Any = self._context.socket(zmq.PUB)
         # TODO: Fix types
+
         if url is None:
-            url = "tcp://127.0.0.1:12321"
+            url = "tcp://{}:12321".format(get_current_machine_ip())
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -98,7 +118,7 @@ class ZmqDataBroadcaster:
         print("Broadcasting data at {0}".format(url))
         sys.stdout.flush()
 
-    def send_data(self, tag: str, message: Dict[str, Any]) -> None:
+    def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
         """
         Broadcasts data from the ZMQ PUB socket.
 
@@ -122,7 +142,12 @@ class ZmqResponder:
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, url: Union[str, None]) -> None:
+    def __init__(
+        self,
+        *,
+        url: Union[str, None] = None,
+        parameters: Union[Dict[str, Any], None] = None,
+    ) -> None:
         """
         ZMQ-based responding socket for OnDA Monitors.
 
@@ -139,11 +164,25 @@ class ZmqResponder:
                 socket will be opened at port 12322 using the 'tcp://' protocol.
                 Defaults to None.
         """
+        if parameters is not None:
+            url = param_utils.get_parameter_from_parameter_group(
+                group=parameters, parameter="responding_url", parameter_type=str
+            )
+        else:
+            print(
+                "OM Warning: Initializing the ZmqResponder class with individual "
+                "parameters (url) is deprecated and will be removed in a future "
+                "version of OM. Please use the new parameter group-based "
+                "initialization interface (which requires only the parameters "
+                "argument)."
+            )
+
         self._context: Any = zmq.Context()
         self._sock: Any = self._context.socket(zmq.REP)
         # TODO: Fix types
+
         if url is None:
-            url = "tcp://127.0.0.1:12322"
+            url = "tcp://{}:12322".format(get_current_machine_ip())
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -183,7 +222,7 @@ class ZmqResponder:
             request = None
         return request
 
-    def send_data(self, message: Dict[str, Any]) -> None:
+    def send_data(self, *, message: Dict[str, Any]) -> None:
         """
         Send data from the ZMQ REP socket.
 

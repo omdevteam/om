@@ -25,15 +25,13 @@ import sys
 import time
 from typing import Any, Deque, Dict, List, Tuple, Union
 
-import h5py  # type: ignore
 import numpy  # type: ignore
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
-from om.algorithms.crystallography import TypePeakfinder8Info
 
 try:
     import msgpack  # type: ignore
@@ -43,14 +41,14 @@ except ImportError:
     )
 
 
-class CrystallographyMonitor(process_layer_base.OmMonitor):
+class CrystallographyProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
 
-    Base class: [`OmMonitor`][om.processing_layer.base.OmMonitor]
+    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
-    def __init__(self, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
         OnDA real-time Monitor for serial x-ray crystallography experiments.
 
@@ -64,8 +62,8 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         other programs. This OnDA Monitor can also optionally broadcast calibrated and
         corrected detector data frames to be displayed by an external program.
 
-        This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
-        base class.
+        This class is a subclass of the
+        [OmProcessing][om.processing_layer.base.OmProcessing] base class.
 
         Arguments:
 
@@ -73,11 +71,11 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        super(CrystallographyMonitor, self).__init__(
-            monitor_parameters=monitor_parameters
-        )
+        self._monitor_params = monitor_parameters
 
-    def initialize_processing_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the OM processing nodes for the Crystallography Monitor.
 
@@ -95,170 +93,38 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        geometry_filename: str = self._monitor_params.get_param(
-            group="crystallography",
-            parameter="geometry_file",
-            parameter_type=str,
-            required=True,
-        )
-        geometry: crystfel_geometry.TypeDetector
-        _: Any
-        __: Any
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(geometry_filename)
-        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(geometry)
 
-        self._hit_frame_sending_counter: int = 0
-        self._non_hit_frame_sending_counter: int = 0
+        self._pixelmaps: TypePixelMaps = (
+            crystfel_geometry.pixel_maps_from_geometry_file(
+                filename=self._monitor_params.get_parameter(
+                    group="crystallography",
+                    parameter="geometry_file",
+                    parameter_type=str,
+                    required=True,
+                )
+            )
+        )
 
-        dark_data_filename: str = self._monitor_params.get_param(
-            group="correction", parameter="dark_filename", parameter_type=str
-        )
-        dark_data_hdf5_path: str = self._monitor_params.get_param(
-            group="correction", parameter="dark_hdf5_path", parameter_type=str
-        )
-        mask_filename: str = self._monitor_params.get_param(
-            group="correction", parameter="mask_filename", parameter_type=str
-        )
-        mask_hdf5_path: str = self._monitor_params.get_param(
-            group="correction", parameter="mask_hdf5_path", parameter_type=str
-        )
-        gain_map_filename: str = self._monitor_params.get_param(
-            group="correction", parameter="gain_filename", parameter_type=str
-        )
-        gain_map_hdf5_path: str = self._monitor_params.get_param(
-            group="correction", parameter="gain_hdf5_path", parameter_type=str
-        )
         self._correction = gen_algs.Correction(
-            dark_filename=dark_data_filename,
-            dark_hdf5_path=dark_data_hdf5_path,
-            mask_filename=mask_filename,
-            mask_hdf5_path=mask_hdf5_path,
-            gain_filename=gain_map_filename,
-            gain_hdf5_path=gain_map_hdf5_path,
+            parameters=self._monitor_params.get_parameter_group(group="correction")
         )
-
-        pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
-            self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="detector_type",
-                parameter_type=str,
-                required=True,
-            )
-        )
-        pf8_max_num_peaks: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_num_peaks",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_adc_threshold: float = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="adc_threshold",
-            parameter_type=float,
-            required=True,
-        )
-        pf8_minimum_snr: float = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="minimum_snr",
-            parameter_type=float,
-            required=True,
-        )
-        pf8_min_pixel_count: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="min_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_max_pixel_count: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_local_bg_radius: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="local_bg_radius",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_min_res: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="min_res",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_max_res: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_res",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_bad_pixel_map_fname: Union[str, None] = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if pf8_bad_pixel_map_fname is not None:
-            pf8_bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            pf8_bad_pixel_map_hdf5_path = None
-
-        if pf8_bad_pixel_map_fname is not None:
-            try:
-                map_hdf5_file_handle: Any
-                with h5py.File(pf8_bad_pixel_map_fname, "r") as map_hdf5_file_handle:
-                    bad_pixel_map: Union[numpy.ndarray, None] = map_hdf5_file_handle[
-                        pf8_bad_pixel_map_hdf5_path
-                    ][:]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                # TODO: Fix type check
-                raise RuntimeError(
-                    "The following error occurred while reading the {0} field from"
-                    "the {1} bad pixel map HDF5 file:"
-                    "{2}: {3}".format(
-                        pf8_bad_pixel_map_fname,
-                        pf8_bad_pixel_map_hdf5_path,
-                        exc_type.__name__,  # type: ignore
-                        exc_value,
-                    )
-                ) from exc
-        else:
-            bad_pixel_map = None
 
         self._peak_detection: cryst_algs.Peakfinder8PeakDetection = (
             cryst_algs.Peakfinder8PeakDetection(
-                max_num_peaks=pf8_max_num_peaks,
-                asic_nx=pf8_detector_info["asic_nx"],
-                asic_ny=pf8_detector_info["asic_ny"],
-                nasics_x=pf8_detector_info["nasics_x"],
-                nasics_y=pf8_detector_info["nasics_y"],
-                adc_threshold=pf8_adc_threshold,
-                minimum_snr=pf8_minimum_snr,
-                min_pixel_count=pf8_min_pixel_count,
-                max_pixel_count=pf8_max_pixel_count,
-                local_bg_radius=pf8_local_bg_radius,
-                min_res=pf8_min_res,
-                max_res=pf8_max_res,
-                bad_pixel_map=bad_pixel_map,
+                parameters=self._monitor_params.get_parameter_group(
+                    group="peakfinder8_peak_detection"
+                ),
                 radius_pixel_map=self._pixelmaps["radius"],
             )
         )
 
-        self._min_num_peaks_for_hit: int = self._monitor_params.get_param(
+        self._min_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="min_num_peaks_for_hit",
             parameter_type=int,
             required=True,
         )
-        self._max_num_peaks_for_hit: int = self._monitor_params.get_param(
+        self._max_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="max_num_peaks_for_hit",
             parameter_type=int,
@@ -292,23 +158,28 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
         self._hit_frame_sending_interval: Union[
             int, None
-        ] = self._monitor_params.get_param(
+        ] = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="hit_frame_sending_interval",
             parameter_type=int,
         )
         self._non_hit_frame_sending_interval: Union[
             int, None
-        ] = self._monitor_params.get_param(
+        ] = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="non_hit_frame_sending_interval",
             parameter_type=int,
         )
 
+        self._hit_frame_sending_counter: int = 0
+        self._non_hit_frame_sending_counter: int = 0
+
         print("Processing node {0} starting.".format(node_rank))
         sys.stdout.flush()
 
-    def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
         """
         Initializes the OM collecting node for the Crystallography Monitor.
 
@@ -327,47 +198,49 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: int = self._monitor_params.get_param(
+        self._speed_report_interval: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="speed_report_interval",
             parameter_type=int,
             required=True,
         )
 
-        self._data_broadcast_interval: int = self._monitor_params.get_param(
+        self._data_broadcast_interval: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="data_broadcast_interval",
             parameter_type=int,
             required=True,
         )
 
-        self._geometry_is_optimized: bool = self._monitor_params.get_param(
+        self._geometry_is_optimized: bool = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="geometry_is_optimized",
             parameter_type=bool,
             required=True,
         )
 
-        geometry_filename: str = self._monitor_params.get_param(
-            group="crystallography",
-            parameter="geometry_file",
-            parameter_type=str,
-            required=True,
-        )
         geometry: TypeDetector
         self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
-            geometry_filename
+            filename=self._monitor_params.get_parameter(
+                group="crystallography",
+                parameter="geometry_file",
+                parameter_type=str,
+                required=True,
+            )
         )
-        self._pixelmaps = crystfel_geometry.compute_pix_maps(self._geometry)
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
 
-        # Theoretically, the pixel size could be different for every module of the
-        # detector. The pixel size of the first module is taken as the pixel size
-        # of the whole detector.
+        # Theoretically, the pixel size anc coffsetcould be different for every panel
+        # of the detector. Currently, the pixel size and coffset of the first module
+        # are taken as the pixel size and coffset of the whole detector.
         self._pixel_size: float = self._geometry["panels"][
             tuple(self._geometry["panels"].keys())[0]
         ]["res"]
+        self._first_panel_coffset: float = self._geometry["panels"][
+            list(self._geometry["panels"].keys())[0]
+        ]["coffset"]
 
-        self._running_average_window_size: int = self._monitor_params.get_param(
+        self._running_average_window_size: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="running_average_window_size",
             parameter_type=int,
@@ -415,32 +288,16 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             visual_img_shape, dtype=numpy.float32
         )
 
-        first_panel: str = list(self._geometry["panels"].keys())[0]
-        self._first_panel_coffset: float = self._geometry["panels"][first_panel][
-            "coffset"
-        ]
-
-        data_broadcast_url: Union[str, None] = self._monitor_params.get_param(
-            group="crystallography", parameter="data_broadcast_url", parameter_type=str
-        )
-        if data_broadcast_url is None:
-            data_broadcast_url = "tcp://{0}:12321".format(
-                zmq_monitor.get_current_machine_ip()
-            )
-        responding_url: Union[str, None] = self._monitor_params.get_param(
-            group="crystallography", parameter="responding_url", parameter_type=str
-        )
-        if responding_url is None:
-            responding_url = "tcp://{0}:12322".format(
-                zmq_monitor.get_current_machine_ip()
-            )
-
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-            zmq_monitor.ZmqDataBroadcaster(url=data_broadcast_url)
+            zmq_monitor.ZmqDataBroadcaster(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="crystallography"
+                )
+            )
         )
 
         self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
-            url=responding_url
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
         self._num_events: int = 0
@@ -451,7 +308,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def process_data(
-        self, node_rank: int, node_pool_size: int, data: Dict[str, Any]
+        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
         Processes a detector data frame and extracts Bragg peak information.
@@ -491,7 +348,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             data=data["detector_data"]
         )
         peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
-            corrected_detector_data
+            data=corrected_detector_data
         )
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
@@ -541,12 +398,13 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
     def collect_data(
         self,
+        *,
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
     ) -> None:
         """
-        Computes aggregated Bragg peak data and broadcasts it over the network.
+        Computes statistics on aggregated Bragg peak data broadcasts them.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -588,7 +446,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                         },
                         use_bin_type=True,
                     )
-                    self._responding_socket.send_data(message)
+                    self._responding_socket.send_data(message=message)
                 else:
                     print("OM Warning: Could not understand request '{}'.")
 
@@ -647,7 +505,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 )
 
                 self._data_broadcast_socket.send_data(
-                    tag=u"view:omframedata",
+                    tag="view:omframedata",
                     message={
                         "frame_data": self._frame_data_img,
                         "timestamp": received_data["timestamp"],
@@ -656,7 +514,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                     },
                 )
                 self._data_broadcast_socket.send_data(
-                    tag=u"view:omtweakingdata",
+                    tag="view:omtweakingdata",
                     message={
                         "detector_data": received_data["detector_data"],
                         "timestamp": received_data["timestamp"],
@@ -690,7 +548,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             self._old_time = now_time
 
     def end_processing_on_processing_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing actions on the processing nodes.
@@ -719,7 +577,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         sys.stdout.flush()
 
     def end_processing_on_collecting_node(
-        self, node_rank: int, node_pool_size: int
+        self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
         Ends processing on the collecting node.

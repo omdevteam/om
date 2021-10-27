@@ -26,6 +26,12 @@ discussion of each.
 :  An error has happened while reading an HDF5 file. The file should exists and be
    readable.
 
+`OmHdf5UnsupportedDataFormat`
+:  An OM-based program (Most likely the Cheetah software package) has tried to write
+   data with an unsupported format to an HDF5 file. Currently only the following data
+   formats can be written into the file: int, float, numpy array, string, and bool. One
+   of the core developers should be contacted.
+
 `OmInvalidDataBroadcastUrl`
 :  The format of the `data_broadcast_url` parameter in the `crystallography` section of
    the configuration file is not valid. The parameter should either have the format

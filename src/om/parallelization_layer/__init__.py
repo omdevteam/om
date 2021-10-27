@@ -22,3 +22,6 @@ This package contains OM's Parallelization Layer, which manages the communicatio
 between the processing and collecting nodes. It is split in several modules, each
 corresponding to a different inter-node communication protocol.
 """
+from om.parallelization_layer.mpi import MpiParallelization
+
+MpiParallelizationEngine=MpiParallelization

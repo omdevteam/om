@@ -51,7 +51,7 @@ peakfinder8_ext.cython_directives = {"embedsignature": True}
 if OM_USE_CYTHON:
     from Cython.Build import cythonize
 
-    extensions = cythonize(peakfinder8_ext)
+    extensions = cythonize(peakfinder8_ext, annotate=True)
 else:
     extensions = [peakfinder8_ext]
 

@@ -1,0 +1,4 @@
+{
+  "build": {"dockerfile": "Dockerfile"},
+  "runArgs": ["--security-opt", "label=disable"]
+}

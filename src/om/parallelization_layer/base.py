@@ -21,24 +21,26 @@ Parallelization Layer's base classes.
 This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Union
+from typing import Union
 
 from om.data_retrieval_layer import base as data_ret_layer_base
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import parameters
 
 
-class OmParallelizationEngine(ABC):
+class OmParallelization(ABC):
     """
     See documentation of the `__init__` function.
 
     Base class: `ABC`
     """
 
+    @abstractmethod
     def __init__(
         self,
-        data_event_handler: data_ret_layer_base.OmDataEventHandler,
-        monitor: process_layer_base.OmMonitor,
+        *,
+        data_retrieval_layer: data_ret_layer_base.OmDataRetrieval,
+        processing_layer: pl_base.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -55,9 +57,9 @@ class OmParallelizationEngine(ABC):
         * When OM start, each Parallelization Engine initializes several processing
           nodes and a single collecting node. A Data Event Handler (an instance of a
           class derived from
-          [OmDataEventHandler][om.data_retrieval_layer.base.OmDataEventHandler]) and a
+          [OmDataRetrieval][om.data_retrieval_layer.base.OmDataRetrieval]) and a
           Monitor (an instance of a class derived from
-          [OmMonitor][om.processing_layer.base.OmMonitor]) must be provided to its
+          [OmProcessing][om.processing_layer.base.OmProcessing]) must be provided to its
           constructor.
 
         * On each processing node, the Engine retrieves one data event from a source by
@@ -75,25 +77,16 @@ class OmParallelizationEngine(ABC):
 
         Arguments:
 
-            data_event_handler: A class defining how data events are retrieved and
-                handled.
+            data_retrieval_layer: A class defining how data and data events are
+                retrieved and handled.
 
-            monitor: A class defining the how the retrieved data must be processed.
+            processing_layer: A class defining how retrieved data is processed.
 
             monitor_parameters: A [MonitorParams]
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-            data_event_handler
-        )
-        self._monitor: process_layer_base.OmMonitor = monitor
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._num_frames_in_event_to_process: int = self._monitor_params.get_param(
-            group="data_retrieval_layer",
-            parameter="num_frames_in_event_to_process",
-            parameter_type=int,
-        )
+        pass
 
     @abstractmethod
     def start(self) -> None:
@@ -111,7 +104,7 @@ class OmParallelizationEngine(ABC):
         pass
 
     @abstractmethod
-    def shutdown(self, msg: Union[str, None] = "Reason not provided.") -> None:
+    def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
         """
         Shuts down the parallelization engine.
 
@@ -130,4 +123,5 @@ class OmParallelizationEngine(ABC):
             msg: Reason for shutting down the parallelization engine. Defaults to
                 "Reason not provided".
         """
+
         pass

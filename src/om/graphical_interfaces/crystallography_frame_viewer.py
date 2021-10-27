@@ -28,13 +28,14 @@ import sys
 import time
 from typing import Any, Deque, Dict, Union
 
-import click
+import click  # type: ignore
 import numpy  # type: ignore
+
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtGui  # type: ignore
+    from PyQt5 import QtWidgets  # type: ignore
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -55,7 +56,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
     Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
-    def __init__(self, url: str):
+    def __init__(self, *, url: str):
         """
         OM frame viewer for crystallography.
 
@@ -63,9 +64,9 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         a subclass of the [OmGui][om.graphical_interfaces.base.OmGui] base class.
 
         The viewer receives detector frame data from an OnDA Monitor for
-        Crystallography when it is tagged with the 'omdetectordata' label. The received
-        data must include processed detector frames, together with information on any
-        Bragg peak detected in them.
+        Crystallography when it is tagged with the 'view:omframedata' label. The
+        receiveddata must include processed detector frames, together with information
+        on any Bragg peak detected in them.
 
         The viewer displays the frames and the position of the detected peaks. A data
         buffer allows the viewer to stop receiving data from the monitor but still keep
@@ -78,7 +79,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         """
         super(CrystallographyFrameViewer, self).__init__(
             url=url,
-            tag=u"view:omframedata",
+            tag="view:omframedata",
         )
 
         self._img: Union[numpy.array, None] = None
@@ -97,23 +98,23 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         self._image_view.ui.roiBtn.hide()
         self._image_view.getView().addItem(self._peak_canvas)
 
-        self._back_button: Any = QtGui.QPushButton(text="Back")
+        self._back_button: Any = QtWidgets.QPushButton(text="Back")
         self._back_button.clicked.connect(self._back_button_clicked)
 
-        self._forward_button: Any = QtGui.QPushButton(text="Forward")
+        self._forward_button: Any = QtWidgets.QPushButton(text="Forward")
         self._forward_button.clicked.connect(self._forward_button_clicked)
 
-        self._play_pause_button: Any = QtGui.QPushButton(text="Pause")
+        self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
-        self._horizontal_layout: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout.addWidget(self._back_button)
         self._horizontal_layout.addWidget(self._forward_button)
         self._horizontal_layout.addWidget(self._play_pause_button)
-        self._vertical_layout: Any = QtGui.QVBoxLayout()
+        self._vertical_layout: Any = QtWidgets.QVBoxLayout()
         self._vertical_layout.addWidget(self._image_view)
         self._vertical_layout.addLayout(self._horizontal_layout)
-        self._central_widget: Any = QtGui.QWidget()
+        self._central_widget: Any = QtWidgets.QWidget()
         self._central_widget.setLayout(self._vertical_layout)
         self.setCentralWidget(self._central_widget)
 
@@ -121,11 +122,12 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
 
     def _update_peaks(
         self,
+        *,
         peak_list_x_in_frame: numpy.ndarray,
         peak_list_y_in_frame: numpy.ndarray,
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._peak_canvas.setData(
             x=peak_list_y_in_frame,
@@ -146,7 +148,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
             # If the framebuffer is empty, returns without drawing anything.
             return
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._image_view.setImage(
             current_data["frame_data"].T,
@@ -155,14 +157,14 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
             autoHistogramRange=False,
         )
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._update_peaks(
             peak_list_x_in_frame=current_data["peak_list_x_in_frame"],
             peak_list_y_in_frame=current_data["peak_list_y_in_frame"],
         )
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
@@ -240,7 +242,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
 
 @click.command()
 @click.argument("url", type=str, required=False)
-def main(url: str) -> None:
+def main(*, url: str) -> None:
     """
     OM Frame Viewer for Crystallography. This program must connect to a running OnDA
     Monitor for Crystallography. If the monitor broadcasts detector frame data, this
@@ -261,6 +263,6 @@ def main(url: str) -> None:
 
     if url is None:
         url = "tcp://127.0.0.1:12321"
-    app: Any = QtGui.QApplication(sys.argv)
-    _ = CrystallographyFrameViewer(url)
+    app: Any = QtWidgets.QApplication(sys.argv)
+    _ = CrystallographyFrameViewer(url=url)
     sys.exit(app.exec_())

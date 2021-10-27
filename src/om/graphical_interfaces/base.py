@@ -61,7 +61,7 @@ class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
     _listening_thread_start_processing: Any = QtCore.pyqtSignal()
     _listening_thread_stop_processing: Any = QtCore.pyqtSignal()
 
-    def __init__(self, url: str, tag: str):
+    def __init__(self, *, url: str, tag: str):
         """
         Base class for OM's graphical user interfaces.
 

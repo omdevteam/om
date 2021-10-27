@@ -8,4 +8,4 @@ _build
 dist
 onda.egg-info
 .mypy_cache
-.python-version
+.venv

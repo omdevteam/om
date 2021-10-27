@@ -25,13 +25,14 @@ import pathlib
 import sys
 import time
 from typing import Any, Dict, List, Set, Tuple, Union
+from typing_extensions import Literal
 
 import h5py  # type: ignore
 import numpy  # type: ignore
-from typing_extensions import Literal
 
 from om.algorithms import crystallography as cryst_algs
-from om.utils.crystfel_geometry import TypeDetector
+from om.utils import crystfel_geometry, exceptions
+from om.utils import parameters as param_utils
 
 
 class HDF5Writer:
@@ -41,25 +42,29 @@ class HDF5Writer:
 
     def __init__(  # noqa: C901
         self,
-        directory_for_processed_data: str,
-        node_rank: int,
-        geometry: TypeDetector,
-        compression: Union[str, None],
-        detector_data_type: Union[str, None],
-        detector_data_shape: Tuple[int, int],
-        hdf5_fields: Dict[str, str],
+        *,
+        directory_for_processed_data: Union[str, None] = None,
+        node_rank: Union[int, None] = None,
+        geometry: Union[crystfel_geometry.TypeDetector, None] = None,
+        compression: Union[str, None] = None,
+        detector_data_type: Union[str, None] = None,
+        detector_data_shape: Union[Tuple[int, int], None] = None,
+        hdf5_fields: Union[Dict[str, str], None] = None,
         processed_filename_prefix: Union[str, None] = None,
         processed_filename_extension: Union[str, None] = None,
         compression_opts: Union[int, None] = None,
+        compression_shuffle: Union[bool, None] = None,
         max_num_peaks: Union[int, None] = None,
+        parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
         HDF5 file writer for Cheetah hit-finding backend.
 
-        This class creates an HDF5 file to store the hits found by Cheetah processing
-        layer. For each frame, it can save detector data, list of found Bragg peaks and
-        various diagnostic information provided by the facility (timestamp, beam energy,
-        detector distance, pump laser state).
+        This class creates an HDF5 file to store the detector data frames processed
+        by the Cheetah software package. For each frame, this class can save into the
+        file the processed detector data frame, the list of found Bragg peaks and
+        additional diagnostic information provided by the facility (timestamp, beam
+        energy, detector distance, pump laser state).
 
         Arguments:
 
@@ -73,7 +78,7 @@ class HDF5Writer:
                 :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
                 storing the geometry information.
 
-            compression: Compression filter to be applied to the data in the output
+            compression: The compression filter to be applied to the data in the output
                 file.
 
             detector_data_type: The numpy type of the detector data that will be
@@ -95,21 +100,108 @@ class HDF5Writer:
                 the output files. Optional. If the value of this argument is None, the
                 string 'processed_' will be used as prefix. Defaults to None.
 
-            processed_filename_extension: A string that will appended to the name of
-                the output files. Optional. If the value of this argument is None, the
-                string 'h5' will be used as extension. Defaults to None.
+            processed_filename_extension: An extension string that will appended to the
+                name of the output files. Optional. If the value of this argument is
+                None, the string 'h5' will be used as extension. Defaults to None.
 
             compression_opts: The compression level to be used if data compression is
                 applied. This is argument is considered only if the 'compression'
-                argument is True, otherwise, the argument is ignored. Optional. If the
-                value of this argument is None, the compression level will be set to 4.
-                Defaults to None
+                argument is not None, otherwise, the argument is ignored. Optional. If
+                the value of this argument is None, the compression level will be set
+                to 4. Defaults to None.
+
+            compression_shuffle: Whether the shuffle filter is applied. If the value of
+                this argument is True, the shuffle filter is applied, otherwise it is
+                not. Specifically, if the value of this argument is None, the shuffle
+                filter is not applied. Defaults to None.
 
             max_num_peaks: The maximum number of detected Bragg peaks that should be
                 written in the HDF5 for each frame. Optional. If the value of this
                 argument is None, only the first 1024 detected peaks will be written in
                 the output file for each frame. Defaults to None.
         """
+        if parameters is not None:
+            directory_for_processed_data = (
+                param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="processed_directory",
+                    parameter_type=str,
+                    required=True,
+                )
+            )
+            processed_filename_prefix = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="processed_filename_prefix",
+                parameter_type=str,
+            )
+            processed_filename_extension = (
+                param_utils.get_parameter_from_parameter_group(
+                    group=parameters,
+                    parameter="processed_filename_extension",
+                    parameter_type=str,
+                )
+            )
+            detector_data_type = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="hdf5_file_data_type",
+                parameter_type=str,
+            )
+            compression = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="hdf5_file_compression",
+                parameter_type=str,
+            )
+            compression_opts = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="hdf5_file_compression_opts",
+                parameter_type=int,
+            )
+            compression_shuffle = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="hdf5_file_compression_shuffle",
+                parameter_type=bool,
+            )
+            max_num_peaks = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="hdf5_file_max_num_peaks",
+                parameter_type=int,
+            )
+            hdf5_fields = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="hdf5_fields",
+                parameter_type=dict,
+            )
+        else:
+            print(
+                "OM Warning: Initializing the Hdf5Writer class with individual "
+                "parameters (directory_for_processed_data, node_rank,  geometry, "
+                "compression, detector_data_type, detector_data_shape, hdf5_fields, "
+                "hdf5_fields, processed_filename_prefix, "
+                "processed_filename_extension, compression_opts, compression_shuffle "
+                "max_num_peaks is deprecated and will be removed in a future version "
+                "of OM. Please use the new parameter group-based initialization "
+                "interface (which requires only the parameters argument)."
+            )
+
+        if (
+            directory_for_processed_data is None
+            or node_rank is None
+            or geometry is None
+            or compression is None
+            or detector_data_type is None
+            or detector_data_shape is None
+            or hdf5_fields is None
+            or processed_filename_prefix is None
+            or processed_filename_extension is None
+            or compression_opts is None
+            or compression_shuffle is None
+            or max_num_peaks is None
+        ):
+            raise RuntimeError(
+                "OM ERROR: Some parameters required for the initialization of the "
+                "HDF5Writer class have not been defined. Please check the command "
+                "to initialize the algorithm."
+            )
 
         if processed_filename_prefix is None:
             processed_filename_prefix = "processed"
@@ -143,6 +235,9 @@ class HDF5Writer:
         elif compression_opts is None:
             compression_opts = 4
 
+        if compression_shuffle is None:
+            compression_shuffle = False
+
         # TODO: decide what to do if file exists
         self._h5file: Any = h5py.File(self._processed_filename, "w")
 
@@ -157,6 +252,7 @@ class HDF5Writer:
                 chunks=(1,) + detector_data_shape,
                 compression=compression,
                 compression_opts=compression_opts,
+                shuffle=compression_shuffle,
             )
         if "event_id" in hdf5_fields.keys():
             self._resizable_datasets["event_id"] = self._h5file.create_dataset(
@@ -231,11 +327,68 @@ class HDF5Writer:
                     ),
                 }
             )
+        self._extra_groups: Dict[str, Any] = {}
+        if "lcls_extra" in hdf5_fields.keys():
+            self._extra_groups["lcls_extra"] = self._h5file.create_group(
+                hdf5_fields["lcls_extra"]
+            )
         self._requested_datasets: Set[str] = set(hdf5_fields.keys())
 
         self._num_frames: int = 0
 
-    def write_frame(self, processed_data: Dict[str, Any]) -> None:
+    def _create_extra_datasets(
+        self, *, group_name: str, extra_data: Dict[str, Any]
+    ) -> None:
+        # Creates empty dataset in the extra data group for each item in extra_data dict
+        # using dict keys as dataset names. Supported data types: numpy.ndarray, str,
+        # float, int and bool
+        key: str
+        value: Any
+        for key, value in extra_data.items():
+            if isinstance(value, numpy.ndarray):
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
+                    name=key,
+                    shape=(0, *value.shape),
+                    maxshape=(None, *value.shape),
+                    dtype=value.dtype,
+                )
+            elif isinstance(value, str):
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
+                    name=key,
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=h5py.special_dtype(vlen=str),
+                )
+            elif (
+                numpy.issubdtype(type(value), numpy.integer)
+                or numpy.issubdtype(type(value), numpy.floating)
+                or numpy.issubdtype(type(value), numpy.bool_)
+            ):
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
+                    name=key,
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=type(value),
+                )
+            else:
+                raise exceptions.OmHdf5UnsupportedDataFormat(
+                    "Cannot write the '{}' data entry into the output HDF5: "
+                    "its format is not supported.".format(key)
+                )
+
+    def _write_extra_data(self, *, group_name: str, extra_data: Dict[str, Any]) -> None:
+        key: str
+        value: Any
+        for key, value in extra_data.items():
+            self._extra_groups[group_name][key][self._num_frames - 1] = extra_data[key]
+
+    def write_frame(self, *, processed_data: Dict[str, Any]) -> None:
         """
         Writes one data frame to the HDF5 file.
 
@@ -243,10 +396,19 @@ class HDF5Writer:
 
             processed_data: A dictionary containing the data to write in the HDF5 file.
         """
-        self._resize_datasets()
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
 
+        extra_group_name: str
+        if self._num_frames == 0:
+            for extra_group_name in self._extra_groups:
+                if extra_group_name in fields:
+                    self._create_extra_datasets(
+                        group_name=extra_group_name,
+                        extra_data=processed_data[extra_group_name],
+                    )
+
+        self._resize_datasets()
         frame_num: int = self._num_frames - 1
         dataset_dict_keys_to_write: List[
             Literal[
@@ -290,6 +452,13 @@ class HDF5Writer:
                     frame_num, :n_peaks
                 ] = peak_list[peak_dict_key][:n_peaks]
 
+        for extra_group_name in self._extra_groups:
+            if extra_group_name in fields:
+                self._write_extra_data(
+                    group_name=extra_group_name,
+                    extra_data=processed_data[extra_group_name],
+                )
+
     def close(self) -> None:
         """
         Closes the file being written.
@@ -314,7 +483,7 @@ class HDF5Writer:
 
     def get_num_written_frames(self) -> int:
         """
-        Retrieves the number of frames already written.
+        Retrieves the number of already written frames.
 
         Returns:
 
@@ -322,7 +491,7 @@ class HDF5Writer:
         """
         return self._num_frames - 1
 
-    def _resize_datasets(self, extension_size: int = 1) -> None:
+    def _resize_datasets(self, *, extension_size: int = 1) -> None:
         # Extends all resizable datasets by the specified extension size
         dataset: Any
         for dataset in self._resizable_datasets.values():
@@ -337,6 +506,7 @@ class SumHDF5Writer:
 
     def __init__(
         self,
+        *,
         directory_for_processed_data: str,
         powder_class: int,
         detector_data_shape: Tuple[int, int],
@@ -345,8 +515,8 @@ class SumHDF5Writer:
         """
         HDF5 writer for sum of frames.
 
-        This class writes an HDF5 file containing the sum of frames and a corresponding
-        virtual powder pattern.
+        This class creates an HDF5 file to store the sum of a set of processed detector
+        data frames, together with the corresponding virtual powder pattern.
 
         Arguments:
 
@@ -391,13 +561,13 @@ class SumHDF5Writer:
 
     def write_sums(
         self,
+        *,
         num_frames: int,
         sum_frames: numpy.ndarray,
         virtual_powder_pattern: numpy.ndarray,
     ) -> None:
         """
-        Writes accumulated sum of frames and a virtual powder pattern into the output 
-        file.
+        Writes the sum of detector data frames and the virtual powder pattern.
 
         Arguments:
 
