@@ -10,6 +10,7 @@ import click
 from collections import deque
 import threading
 
+
 def listen(url, data_buffer, max_buffer_len, panel_id):
     # Connect to socket
     context = zmq.Context()
@@ -18,19 +19,19 @@ def listen(url, data_buffer, max_buffer_len, panel_id):
     socket.connect(url)
 
     # Get first message, store timestamp and clock value
-    msg = socket.recv_multipart() 
+    msg = socket.recv_multipart()
     timestamp_start = time.time()
-    header = json.loads(msg[0]) 
-    clock_start = header['timestamp']
+    header = json.loads(msg[0])
+    clock_start = header["timestamp"]
 
-    clock_period = 1.e-7 # seconds
+    clock_period = 1.0e-7  # seconds
     i = 0
     while True:
         if len(msg) < 2:
             # JF is sending some BS
             msg = socket.recv_multipart()
             continue
-    
+
         # msg is a list of two strings: [header in json, data in binary]
         header = json.loads(msg[0])
         data = msg[1]
@@ -49,38 +50,39 @@ def listen(url, data_buffer, max_buffer_len, panel_id):
         # keep last max_buffer_len frames in buffer list
         if len(data_buffer) == max_buffer_len:
             data_buffer.pop(0)
-        data_buffer.append({
-            "data": data,
-            "timestamp": timestamp,
-            "acq_index": acq_index,
-            "frame_number": frame_number
+        data_buffer.append(
+            {
+                "data": data,
+                "timestamp": timestamp,
+                "acq_index": acq_index,
+                "frame_number": frame_number,
             }
         )
 
         # speed reporting
         i += 1
         if i % 100 == 0:
-            print("Worker %d: %d frames, %.1f s since start timestamp, %.2f s delay"%(
-                panel_id,
-                i, 
-                timestamp - timestamp_start, 
-                time.time() - timestamp
-                )
+            print(
+                "Worker %d: %d frames, %.1f s since start timestamp, %.2f s delay"
+                % (panel_id, i, timestamp - timestamp_start, time.time() - timestamp)
             )
 
         # Receive next message
-        msg = socket.recv_multipart() 
+        msg = socket.recv_multipart()
+
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.argument("input_url", 
-                nargs=2,
-                type=str,
-                metavar="INPUT_URL0 INPUT_URL1",
+@click.argument(
+    "input_url",
+    nargs=2,
+    type=str,
+    metavar="INPUT_URL0 INPUT_URL1",
 )
-@click.argument("output_url",
-                nargs=1,
-                type=str,
-                required=False,
+@click.argument(
+    "output_url",
+    nargs=1,
+    type=str,
+    required=False,
 )
 def main(input_url, output_url):
     """
@@ -104,8 +106,12 @@ def main(input_url, output_url):
     max_buffer_len = 10
 
     # Start listening process for each panel, process keeps last max_buffer_len frames in buffer list
-    p0 = threading.Thread(target=listen, args=(input_url[0], data_buffer_p0, max_buffer_len, 0))
-    p1 = threading.Thread(target=listen, args=(input_url[1], data_buffer_p1, max_buffer_len, 1))
+    p0 = threading.Thread(
+        target=listen, args=(input_url[0], data_buffer_p0, max_buffer_len, 0)
+    )
+    p1 = threading.Thread(
+        target=listen, args=(input_url[1], data_buffer_p1, max_buffer_len, 1)
+    )
     p0.start()
     p1.start()
 
@@ -113,22 +119,25 @@ def main(input_url, output_url):
     i = 0
     while True:
         time.sleep(0.05)
-        
+
         frames_p0 = data_buffer_p0[:]
         frames_p1 = data_buffer_p1[:]
 
         for fr0 in frames_p0:
             for fr1 in frames_p1:
-                if fr0["acq_index"] == fr1["acq_index"] and fr0["frame_number"] not in matched:
+                if (
+                    fr0["acq_index"] == fr1["acq_index"]
+                    and fr0["frame_number"] not in matched
+                ):
                     if i % 200 == 0:
-                        print("Master: last matched frame id %d, %.2f s delay"%(
-                            fr0["acq_index"],
-                            time.time() - fr0["timestamp"]
-                            )
+                        print(
+                            "Master: last matched frame id %d, %.2f s delay"
+                            % (fr0["acq_index"], time.time() - fr0["timestamp"])
                         )
                     i += 1
                     matched.append(fr0["frame_number"])
                     socket.send_pyobj((fr0, fr1))
+
 
 if __name__ == "__main__":
     main()
