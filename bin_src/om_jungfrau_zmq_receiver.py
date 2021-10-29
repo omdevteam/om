@@ -3,29 +3,30 @@
 import zmq
 import time
 import json
-import numpy
-import socket
 import click
-
-from collections import deque
 import threading
 
+from collections import deque
+from typing import Any, List, Dict, Deque
 
-def listen(url, data_buffer, max_buffer_len, panel_id):
+
+def listen(
+    url: str, data_buffer: List[Dict[str, Any]], max_buffer_len: int, panel_id: int
+):
     # Connect to socket
-    context = zmq.Context()
-    socket = context.socket(zmq.SUB)
+    context: Any = zmq.Context()
+    socket: Any = context.socket(zmq.SUB)
     socket.setsockopt_string(option=zmq.SUBSCRIBE, optval="")
     socket.connect(url)
 
     # Get first message, store timestamp and clock value
-    msg = socket.recv_multipart()
-    timestamp_start = time.time()
-    header = json.loads(msg[0])
-    clock_start = header["timestamp"]
+    msg: List[str] = socket.recv_multipart()
+    timestamp_start: float = time.time()
+    header: Dict[Any] = json.loads(msg[0])
+    clock_start: int = header["timestamp"]
 
-    clock_period = 1.0e-7  # seconds
-    i = 0
+    clock_period: float = 1.0e-7  # seconds
+    i: int = 0
     while True:
         if len(msg) < 2:
             # JF is sending some BS
@@ -34,18 +35,18 @@ def listen(url, data_buffer, max_buffer_len, panel_id):
 
         # msg is a list of two strings: [header in json, data in binary]
         header = json.loads(msg[0])
-        data = msg[1]
+        data: str = msg[1]
 
         # internal clock value
-        clock = header["timestamp"]
+        clock: int = header["timestamp"]
 
         # frame timestamp from internal clock value
         timestamp = timestamp_start + (clock - clock_start) * clock_period
 
         # seems like we need to match "acqIndex" to synchronize panels
-        acq_index = header["acqIndex"]
+        acq_index: int = header["acqIndex"]
 
-        frame_number = header["frameNumber"]
+        frame_number: int = header["frameNumber"]
 
         # keep last max_buffer_len frames in buffer list
         if len(data_buffer) == max_buffer_len:
@@ -84,7 +85,7 @@ def listen(url, data_buffer, max_buffer_len, panel_id):
     type=str,
     required=False,
 )
-def main(input_url, output_url):
+def main(input_url: str, output_url: str) -> None:
     """
     JUNGFRAU 1M ZMQ receiver. This script reads data from two ZMQ streams at INPUT_URL0
     and INPUT_URL1 produced by Jungfrau 1M detector (one stream for each detector
@@ -95,34 +96,35 @@ def main(input_url, output_url):
     if output_url is None:
         output_url = "tcp://127.0.0.1:12321"
 
-    context = zmq.Context()
-    socket = context.socket(zmq.PUSH)
+    context: Any = zmq.Context()
+    socket: Any = context.socket(zmq.PUSH)
     socket.setsockopt(zmq.CONFLATE, 1)
     socket.bind(output_url)
 
-    data_buffer_p0 = []
-    data_buffer_p1 = []
+    data_buffer_p0: List[Dict[str, Any]] = []
+    data_buffer_p1: List[Dict[str, Any]] = []
 
-    max_buffer_len = 10
+    max_buffer_len: int = 10
 
     # Start listening process for each panel, process keeps last max_buffer_len frames in buffer list
-    p0 = threading.Thread(
+    p0: Any = threading.Thread(
         target=listen, args=(input_url[0], data_buffer_p0, max_buffer_len, 0)
     )
-    p1 = threading.Thread(
+    p1: Any = threading.Thread(
         target=listen, args=(input_url[1], data_buffer_p1, max_buffer_len, 1)
     )
     p0.start()
     p1.start()
 
-    matched = deque(maxlen=1000)
-    i = 0
+    matched: Deque = deque(maxlen=1000)
+    i: int = 0
     while True:
         time.sleep(0.05)
+        frames_p0: List[Dict[str, Any]] = data_buffer_p0[:]
+        frames_p1: List[Dict[str, Any]] = data_buffer_p1[:]
 
-        frames_p0 = data_buffer_p0[:]
-        frames_p1 = data_buffer_p1[:]
-
+        fr0: Dict[str, Any]
+        fr1: Dict[str, Any]
         for fr0 in frames_p0:
             for fr1 in frames_p1:
                 if (
