@@ -185,9 +185,9 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
                 or gain_filenames is None
                 or photon_energy_kev is None
             ):
-                self._calbration_available: bool = False
+                self._calibration_available: bool = False
             else:
-                self._calbration_available = True
+                self._calibration_available = True
                 # 2 for Jungfrau 1M
                 num_panels: int = len(dark_filenames)
 
