@@ -32,10 +32,9 @@ import numpy  # type: ignore
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.algorithms.crystallography import TypePeakfinder8Info
 from om.processing_layer import base as pl_base
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
-from om.utils.crystfel_geometry import TypePixelMaps
+from om.utils.crystfel_geometry import TypeDetector
 
 
 class CheetahProcessing(pl_base.OmProcessing):
@@ -116,7 +115,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             }
             for class_number in range(2)
         ]
-        self._sum_sending_interval: Union[int, None] = self._monitor_params.get_parameter(
+        self._sum_sending_interval: Union[
+            int, None
+        ] = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="class_sums_sending_interval",
             parameter_type=int,
@@ -166,57 +167,8 @@ class CheetahProcessing(pl_base.OmProcessing):
             parameter_type=int,
         )
 
-        processed_directory: str = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="processed_directory",
-            parameter_type=str,
-            required=True,
-        )
-        processed_filename_prefix: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="processed_filename_prefix",
-            parameter_type=str,
-        )
-        processed_filename_extension: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="processed_filename_extension",
-            parameter_type=str,
-        )
-        data_type: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_data_type",
-            parameter_type=str,
-        )
-        compression: Union[str, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_compression",
-            parameter_type=str,
-        )
-        compression_opts: Union[int, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_compression_opts",
-            parameter_type=int,
-        )
-        compression_shuffle: Union[bool, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_compression_shuffle",
-            parameter_type=bool,
-        )
-        hdf5_file_max_num_peaks: Union[int, None] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_file_max_num_peaks",
-            parameter_type=int,
-        )
-        hdf5_fields: Dict[str, str] = self._monitor_params.get_parameter(
-            group="cheetah",
-            parameter="hdf5_fields",
-            parameter_type=dict,
-            required=True,
-        )
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
-            parameters=self._monitor_params.get_parameter_group(
-                group="cheetah"
-            ),
+            parameters=self._monitor_params.get_parameter_group(group="cheetah"),
             detector_data_shape=self._data_shape,
             node_rank=node_rank,
             geometry=self._geometry,
