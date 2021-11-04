@@ -675,6 +675,16 @@ class Binning:
         )
         return binned_data
 
+    def get_bin_size(self) -> int:
+        """
+        Gets the bin size.
+
+        Returns:
+
+            The bin size in pixels.
+        """
+        return self._bin_size
+
     def get_binned_layout_info(self) -> cryst_algs.TypePeakfinder8Info:
         """
         Gets binned detector layout information.
@@ -706,7 +716,7 @@ class Binning:
         """
         return self._extended_nx // self._bin_size, self._extended_ny // self._bin_size
 
-    def apply_binning(self, data: numpy.ndarray) -> numpy.ndarray:
+    def bin_detector_data(self, data: numpy.ndarray) -> numpy.ndarray:
         """
         Applies binning to the detector data frame.
 
@@ -810,13 +820,3 @@ class Binning:
         )
 
         return binned_pixel_maps
-
-    def get_bin_size(self) -> int:
-        """
-        Gets the bin size.
-
-        Returns:
-
-            The bin size in pixels.
-        """
-        return self._bin_size

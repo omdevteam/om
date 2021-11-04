@@ -129,7 +129,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             parameter_type=bool,
             required=False,
         )
-        self._binning_before_peakfinding: Union[bool, None] = self._monitor_params.get_parameter(
+        self._binning_before_peakfinding: Union[
+            bool, None
+        ] = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="binning_before_peakfinding",
             parameter_type=bool,
@@ -140,9 +142,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._binning: Union[gen_algs.Binning, None]
         if binning:
             self._binning = gen_algs.Binning(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="binning"
-                ),
+                parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
             if self._binning_before_peakfinding:
                 self._peak_detection.set_peakfinder8_info(
@@ -159,7 +159,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._data_shape = self._binning.get_binned_data_shape()
         else:
             self._binning = None
-        
+
         # TODO: Type this dictionary
         self._total_sums: List[Dict[str, Any]] = [
             {
@@ -168,7 +168,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             }
             for class_number in range(2)
         ]
-        self._sum_sending_interval: Union[int, None] = self._monitor_params.get_parameter(
+        self._sum_sending_interval: Union[
+            int, None
+        ] = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="class_sums_sending_interval",
             parameter_type=int,
@@ -203,9 +205,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         )
 
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
-            parameters=self._monitor_params.get_parameter_group(
-                group="cheetah"
-            ),
+            parameters=self._monitor_params.get_parameter_group(group="cheetah"),
             detector_data_shape=self._data_shape,
             node_rank=node_rank,
             geometry=self._geometry,
@@ -300,9 +300,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._binning: Union[gen_algs.Binning, None]
         if binning:
             self._binning = gen_algs.Binning(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="binning"
-                ),
+                parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
             self._pixelmaps = self._binning.bin_pixel_maps(self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
@@ -497,7 +495,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             data=data["detector_data"]
         )
         if self._binning is not None and self._binning_before_peakfinding:
-            binned_detector_data = self._binning.apply_binning(corrected_detector_data)
+            binned_detector_data = self._binning.bin_detector_data(
+                corrected_detector_data
+            )
         else:
             binned_detector_data = corrected_detector_data
 
@@ -506,7 +506,9 @@ class CheetahProcessing(pl_base.OmProcessing):
         )
 
         if self._binning is not None and not self._binning_before_peakfinding:
-            binned_detector_data = self._binning.apply_binning(corrected_detector_data)
+            binned_detector_data = self._binning.bin_detector_data(
+                corrected_detector_data
+            )
             i: int
             bin_size: int = self._binning.get_bin_size()
             for i in range(peak_list["num_peaks"]):
