@@ -127,17 +127,9 @@ setup(
             "crystallography_frame_viewer:main",
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
             "crystallography_parameter_tweaker:main",
-            "om_crystallography_ra_viewer.py=om.graphical_interfaces."
-            "crystallography_ra_viewer:main",
-            "om_regae_frame_viewer.py=om.graphical_interfaces."
-            "regae_frame_viewer:main",
-
         ],
     },
-    scripts=[
-        'bin_src/om_jungfrau_dark.py',
-        'bin_src/om_jungfrau_zmq_receiver.py'
-    ],
+    scripts=["bin_src/om_jungfrau_dark.py", "bin_src/om_jungfrau_zmq_receiver.py"],
     ext_modules=extensions,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
