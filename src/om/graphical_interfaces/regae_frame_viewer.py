@@ -26,7 +26,8 @@ import copy
 import signal
 import sys
 import time
-from typing import Any, Deque, Dict, Union
+from typing import Any, Deque, Dict, Union, List, Tuple
+import warnings
 
 import click
 import numpy  # type: ignore
@@ -34,7 +35,7 @@ from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtGui, QtCore  # type: ignore
+    from PyQt5 import QtGui, QtCore, QtWidgets  # type: ignore
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -51,15 +52,19 @@ from scipy.optimize import curve_fit
 
 from sortedcontainers import SortedDict
 
-def rotate(x, y, theta): 
-    return (x * numpy.cos(theta) - y * numpy.sin(theta), x * numpy.sin(theta) + y * numpy.cos(theta)) 
+
+def rotate(x, y, theta):
+    return (
+        x * numpy.cos(theta) - y * numpy.sin(theta),
+        x * numpy.sin(theta) + y * numpy.cos(theta),
+    )
 
 
-def gaussian2D(coord, a, cx, cy, sx, sy, theta): 
+def gaussian2D(coord, a, cx, cy, sx, sy, theta):
     x, y = coord
-    cx, cy = rotate(cx, cy, theta) 
+    cx, cy = rotate(cx, cy, theta)
     x, y = rotate(x, y, theta)
-    return a * numpy.exp(-(((x - cx) / sx)**2 + ((y - cy) / sy)**2) / 2) 
+    return a * numpy.exp(-(((x - cx) / sx) ** 2 + ((y - cy) / sy) ** 2) / 2)
 
 
 class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
@@ -83,7 +88,8 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
                 must be a string in the format used by the ZeroMQ Protocol.
         """
         super(RegaeFrameViewer, self).__init__(
-            url=url, tag=u"view:omframedata",
+            url=url,
+            tag=u"view:omframedata",
         )
 
         self._img: Union[numpy.array, None] = None
@@ -97,7 +103,9 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         self._ring_pen: Any = pyqtgraph.mkPen("r", width=2)
         self._peak_canvas: Any = pyqtgraph.ScatterPlotItem()
 
-        self._roi = pyqtgraph.RectROI([100, 100], [50, 50], pen=pyqtgraph.mkPen('b', width=2))
+        self._roi = pyqtgraph.RectROI(
+            [100, 100], [50, 50], pen=pyqtgraph.mkPen("b", width=2)
+        )
         self._roi.sigRegionChanged.connect(self._update_roi)
 
         self._image_view: Any = pyqtgraph.ImageView()
@@ -109,7 +117,7 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         self._image_hist.sigLevelsChanged.connect(self._update_roi)
 
         self._roi_view: Any = pyqtgraph.GraphicsView()
-        roi_layout: Any = pyqtgraph.GraphicsLayout(border=(100,100,100))
+        roi_layout: Any = pyqtgraph.GraphicsLayout(border=(100, 100, 100))
 
         self._roi_view.setCentralItem(roi_layout)
         self._vert_ave_roi_plot: Any = roi_layout.addPlot(title="AveX")
@@ -122,8 +130,10 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         self._roi_image_view.addItem(self._roi_image)
         self._horiz_ave_roi_plot: Any = roi_layout.addPlot(title="AveY", angle=-90)
         self._horiz_ave_roi_line: Any = self._horiz_ave_roi_plot.plot()
-        
-        self._peak_roi = pyqtgraph.EllipseROI([0, 0], [0.1, 0.1], pen=pyqtgraph.mkPen('r', width=1))
+
+        self._peak_roi = pyqtgraph.EllipseROI(
+            [0, 0], [0.1, 0.1], pen=pyqtgraph.mkPen("r", width=1)
+        )
         self._roi_image_view.addItem(self._peak_roi)
         self._peak_roi.sigRegionChanged.connect(self._update_peak_info)
 
@@ -136,24 +146,28 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         # self._roi_view.ui.menuBtn.hide()
         # self._roi_view.ui.roiBtn.hide()
 
-        self._time_plot_list = QtGui.QListWidget()
-        self._time_plot_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        
+        self._time_plot_list = QtWidgets.QListWidget()
+        self._time_plot_list.setSelectionMode(
+            QtWidgets.QAbstractItemView.ExtendedSelection
+        )
+
         self._time_plot_options: List[str] = [
-            "peakTotalIntensity", 
-            "peakSNR", 
-            "peakWidth", 
-            "peakLength", 
-            "peakPositionX", 
-            "peakPositionY"
+            "peakTotalIntensity",
+            "peakSNR",
+            "peakWidth",
+            "peakLength",
+            "peakPositionX",
+            "peakPositionY",
         ]
 
         self._time_plot_data: Dict[str, Any] = {}
         for option in self._time_plot_options:
-            self._time_plot_list.addItem(QtGui.QListWidgetItem(option))
+            self._time_plot_list.addItem(QtWidgets.QListWidgetItem(option))
             self._time_plot_data[option] = SortedDict()
 
-        self._time_plot_list.itemSelectionChanged.connect(self._time_plots_selection_changed)
+        self._time_plot_list.itemSelectionChanged.connect(
+            self._time_plots_selection_changed
+        )
         self._time_plot_widget: Any = pyqtgraph.PlotWidget()
         self._time_plot_widget.setXRange(-50, 0)
         self._time_plot_widget.getPlotItem().setClipToView(True)
@@ -161,46 +175,46 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         self._time_plot_widget.getPlotItem().addLegend()
         self._time_plots = {}
 
-        self._back_button: Any = QtGui.QPushButton(text="Back")
+        self._back_button: Any = QtWidgets.QPushButton(text="Back")
         self._back_button.clicked.connect(self._back_button_clicked)
 
-        self._forward_button: Any = QtGui.QPushButton(text="Forward")
+        self._forward_button: Any = QtWidgets.QPushButton(text="Forward")
         self._forward_button.clicked.connect(self._forward_button_clicked)
 
-        self._play_pause_button: Any = QtGui.QPushButton(text="Pause")
+        self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
-        self._fit_peak_check_box: Any = QtGui.QCheckBox(
-            text="Fit peak ", checked=True
+        self._fit_peak_check_box: Any = QtWidgets.QCheckBox(
+            text="Fit peak ", checked=False
         )
         self._fit_peak_check_box.setEnabled(True)
 
-        self._roi_widget: Any = QtGui.QWidget()
-        self._roi_layout: Any = QtGui.QVBoxLayout()
+        self._roi_widget: Any = QtWidgets.QWidget()
+        self._roi_layout: Any = QtWidgets.QVBoxLayout()
         self._roi_layout.addWidget(self._fit_peak_check_box)
         self._roi_layout.addWidget(self._roi_view)
         self._roi_widget.setLayout(self._roi_layout)
 
-        self._time_plot_view: Any = QtGui.QWidget()
-        self._time_plot_layout: Any = QtGui.QHBoxLayout()
+        self._time_plot_view: Any = QtWidgets.QWidget()
+        self._time_plot_layout: Any = QtWidgets.QHBoxLayout()
         self._time_plot_layout.addWidget(self._time_plot_widget)
         self._time_plot_layout.addWidget(self._time_plot_list)
         self._time_plot_view.setLayout(self._time_plot_layout)
-        
-        self._horizontal_layout: Any = QtGui.QHBoxLayout()
+
+        self._horizontal_layout: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout.addWidget(self._back_button)
         self._horizontal_layout.addWidget(self._forward_button)
         self._horizontal_layout.addWidget(self._play_pause_button)
-        splitter_1 = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter_1 = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         splitter_1.addWidget(self._roi_widget)
         splitter_1.addWidget(self._time_plot_view)
-        splitter_0: Any = QtGui.QSplitter()
+        splitter_0: Any = QtWidgets.QSplitter()
         splitter_0.addWidget(self._image_view)
         splitter_0.addWidget(splitter_1)
-        self._vertical_layout: Any = QtGui.QVBoxLayout()
+        self._vertical_layout: Any = QtWidgets.QVBoxLayout()
         self._vertical_layout.addWidget(splitter_0)
         self._vertical_layout.addLayout(self._horizontal_layout)
-        self._central_widget: Any = QtGui.QWidget()
+        self._central_widget: Any = QtWidgets.QWidget()
         self._central_widget.setLayout(self._vertical_layout)
         self.setCentralWidget(self._central_widget)
         self._current_image_timestamp = None
@@ -210,13 +224,14 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         if len(self._time_plot_list.selectedItems()) == 0:
             return
         timenow: float = time.time()
-        timestamps: List[float] = [t - timenow for t in self._time_plot_data["peakTotalIntensity"].keys()]
+        timestamps: List[float] = [
+            t - timenow for t in self._time_plot_data["peakTotalIntensity"].keys()
+        ]
         self._time_plot_widget.enableAutoRange("y")
         for item in self._time_plot_list.selectedItems():
             prop = item.text()
             self._time_plots[prop].setData(
-                timestamps,
-                list(self._time_plot_data[prop].values())
+                timestamps, list(self._time_plot_data[prop].values())
             )
 
     def _time_plots_selection_changed(self):
@@ -228,15 +243,20 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         self._update_time_plots()
 
     def _update_roi(self):
-        self._roi_region: Any = self._roi.getArrayRegion(self._current_image, self._image_view.getImageItem())[:, ::-1]
+        self._roi_region: Any = self._roi.getArrayRegion(
+            self._current_image, self._image_view.getImageItem()
+        )[:, ::-1]
         cmap: Any = self._image_view.ui.histogram.gradient.colorMap()
         self._roi_image.setImage(
             self._roi_region,
             levels=self._image_hist.getLevels(),
-            lut=cmap.getLookupTable()
+            lut=cmap.getLookupTable(),
         )
         self._vert_ave_roi_line.setData(numpy.mean(self._roi_region, axis=1))
-        self._horiz_ave_roi_line.setData(numpy.mean(self._roi_region, axis=0), numpy.arange(self._roi_region.shape[1]))
+        self._horiz_ave_roi_line.setData(
+            numpy.mean(self._roi_region, axis=0),
+            numpy.arange(self._roi_region.shape[1]),
+        )
         if self._fit_peak_check_box.isChecked():
             self._fit_roi_peak()
         else:
@@ -248,7 +268,9 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         ny, nx = self._roi_region.shape
         x: numpy.ndarray
         y: numpy.ndarray
-        x, y = numpy.meshgrid(numpy.linspace(0, nx - 1, nx), numpy.linspace(0, ny - 1, ny))
+        x, y = numpy.meshgrid(
+            numpy.linspace(0, nx - 1, nx), numpy.linspace(0, ny - 1, ny)
+        )
         popt: numpy.ndarray
         pcov: numpy.ndarray
 
@@ -259,7 +281,12 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         sigma_y: float
         theta: float
         try:
-            popt, pcov = curve_fit(gaussian2D, (x.ravel(), y.ravel()), self._roi_region.ravel(), p0=(1000, nx/2, ny/2, nx/4, ny/4, 1.))
+            popt, pcov = curve_fit(
+                gaussian2D,
+                (x.ravel(), y.ravel()),
+                self._roi_region.ravel(),
+                p0=(1000, nx / 2, ny / 2, nx / 4, ny / 4, 1.0),
+            )
             ampl, cx, cy, sigma_x, sigma_y, theta = popt
         except RuntimeError:
             ampl, cx, cy, sigma_x, sigma_y, theta = 0, 0, 0.1, 0.1, 0, 0
@@ -275,17 +302,21 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         self._peak_roi.setPos([pos_x, pos_y], update=False)
         self._peak_roi.setSize([size_x, size_y], update=False)
         self._peak_roi.setAngle(180 / numpy.pi * theta, center=[0.5, 0.5], update=True)
-        
+
     def _update_peak_info(self):
         peak_region = self._peak_roi.getArrayRegion(self._roi_region, self._roi_image)
 
         sl: Tuple[Tuple, Tuple]
-        sl, *_ = self._peak_roi.getArraySlice(self._roi_region, self._roi_image, returnSlice=False)
+        sl, *_ = self._peak_roi.getArraySlice(
+            self._roi_region, self._roi_image, returnSlice=False
+        )
 
         background: Any = self._roi_region.copy()
-        background[sl[0][0]:sl[0][1], sl[1][0]:sl[1][1]] = numpy.nan
-        background_mean: float = numpy.nanmean(background)
-        background_sigma: float = numpy.nanstd(background)
+        background[sl[0][0] : sl[0][1], sl[1][0] : sl[1][1]] = numpy.nan
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            background_mean: float = numpy.nanmean(background)
+            background_sigma: float = numpy.nanstd(background)
 
         peak_num_pix: int = len(numpy.where(peak_region != 0)[0])
         peak_max_value: float = peak_region.max()
@@ -296,39 +327,50 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
         width: float
         length: float
         width, length = sorted((abs(i) for i in size))
-        
+
         ellipse_pos: Tuple[float, float] = self._peak_roi.pos()
 
-        self._roi_label.setText("peakMaximumValue = %.2f <br> \
+        self._roi_label.setText(
+            "peakMaximumValue = %.2f <br> \
                                  peakTotalIntensity = %.2f <br> \
                                  peakSNR = %.2f <br> <br> \
                                  backgroundMean = %.2f <br> \
                                  backgroundSigma = %.2f <br> <br>\
-                                 peakEllipseSize: %.1f %.1f pixels"%(
-                                    peak_max_value, 
-                                    peak_total_intensity,
-                                    peak_snr,
-                                    background_mean,
-                                    background_sigma,
-                                    width, length,
-                                    )
-                                 )
+                                 peakEllipseSize: %.1f %.1f pixels"
+            % (
+                peak_max_value,
+                peak_total_intensity,
+                peak_snr,
+                background_mean,
+                background_sigma,
+                width,
+                length,
+            )
+        )
         if self._current_image_timestamp is None:
             return
         if numpy.isnan(peak_total_intensity) or numpy.isnan(peak_snr):
             return
-            
-        self._time_plot_data["peakTotalIntensity"][self._current_image_timestamp] = peak_total_intensity
+
+        self._time_plot_data["peakTotalIntensity"][
+            self._current_image_timestamp
+        ] = peak_total_intensity
         self._time_plot_data["peakSNR"][self._current_image_timestamp] = peak_snr
         self._time_plot_data["peakWidth"][self._current_image_timestamp] = width
         self._time_plot_data["peakLength"][self._current_image_timestamp] = length
-        #TODO: get real peak position from fitting
-        self._time_plot_data["peakPositionX"][self._current_image_timestamp] = ellipse_pos[0]
-        self._time_plot_data["peakPositionY"][self._current_image_timestamp] = ellipse_pos[1]
+        # TODO: get real peak position from fitting
+        self._time_plot_data["peakPositionX"][
+            self._current_image_timestamp
+        ] = ellipse_pos[0]
+        self._time_plot_data["peakPositionY"][
+            self._current_image_timestamp
+        ] = ellipse_pos[1]
         self._update_time_plots()
 
     def _update_peaks(
-        self, peak_list_x_in_frame: numpy.ndarray, peak_list_y_in_frame: numpy.ndarray,
+        self,
+        peak_list_x_in_frame: numpy.ndarray,
+        peak_list_y_in_frame: numpy.ndarray,
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
         QtGui.QApplication.processEvents()
@@ -352,7 +394,7 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
             # If the framebuffer is empty, returns without drawing anything.
             return
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._current_image: Any = current_data["frame_data"].T
 
@@ -363,7 +405,7 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
             autoHistogramRange=False,
         )
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # self._update_peaks(
         #     peak_list_x_in_frame=current_data["peak_list_x_in_frame"],
@@ -372,7 +414,7 @@ class RegaeFrameViewer(graph_interfaces_base.OmGui):  # type: ignore
 
         self._update_roi()
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
@@ -459,6 +501,6 @@ def main(url: str) -> None:
 
     if url is None:
         url = "tcp://127.0.0.1:12321"
-    app: Any = QtGui.QApplication(sys.argv)
+    app: Any = QtWidgets.QApplication(sys.argv)
     _ = RegaeFrameViewer(url)
     sys.exit(app.exec_())
