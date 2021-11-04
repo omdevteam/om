@@ -130,32 +130,24 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             parameter_type=int,
             required=True,
         )
-        
-        self._calculate_radial_average: Union[bool, None] = self._monitor_params.get_param(
+
+        self._calculate_radial_profile: Union[
+            bool, None
+        ] = self._monitor_params.get_param(
             group="crystallography",
-            parameter="calculate_radial_average",
+            parameter="calculate_radial_profile",
             parameter_type=bool,
             required=False,
         )
-        if self._calculate_radial_average is None:
-            self._calculate_radial_average = False
-        if self._calculate_radial_average:
-            radial_average_bin_size: Union[int, None] = self._monitor_params.get_param(
-                group="crystallography",
-                parameter="radial_average_binsize_in_pixles",
-                parameter_type=int,
-                required=False,
+        if self._calculate_radial_profile is None:
+            self._calculate_radial_profile = False
+        if self._calculate_radial_profile:
+            self._radial_profile: gen_algs.RadialProfile = gen_algs.RadialProfile(
+                radius_pixel_map=self._pixelmaps["radius"],
+                parameters=self._monitor_params.get_parameter_group(
+                    group="radial_profile"
+                ),
             )
-            if radial_average_bin_size is None:
-                radial_average_bin_size = 1
-            self._radial_average: gen_algs.RadialAverage = (
-                gen_algs.RadialAverage(
-                    radius_pixel_map=self._pixelmaps["radius"],
-                    mask=bad_pixel_map,
-                    bin_size=radial_average_bin_size,
-                )
-            )
-
         self._hit_frame_sending_interval: Union[
             int, None
         ] = self._monitor_params.get_parameter(
@@ -355,8 +347,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             < len(peak_list["intensity"])
             < self._max_num_peaks_for_hit
         )
-        if self._calculate_radial_average:
-            processed_data["radial_average"] = self._radial_average.calculate(
+        if self._calculate_radial_profile:
+            processed_data["radial_average"] = self._radial_profile.calculate_profile(
                 corrected_detector_data
             )
 
@@ -523,7 +515,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
 
             if "radial_average" in received_data:
                 self._data_broadcast_socket.send_data(
-                    tag=u"view:omradialaverage",
+                    tag="view:omradialaverage",
                     message={
                         "radial_average": received_data["radial_average"],
                         "timestamp": received_data["timestamp"],

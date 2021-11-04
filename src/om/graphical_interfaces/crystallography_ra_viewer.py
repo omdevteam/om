@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's Radial Average Viewer.
+OM's Radial Profile Viewer.
 
 
 """
@@ -33,7 +33,7 @@ from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtGui  # type: ignore
+    from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -82,23 +82,23 @@ class CrystallographyRAViewer(graph_interfaces_base.OmGui):
         self._plot = self._plot_widget.addPlot(title="Radial average")
         self._plot_line: Any = self._plot.plot()
 
-        self._back_button: Any = QtGui.QPushButton(text="Back")
+        self._back_button: Any = QtWidgets.QPushButton(text="Back")
         self._back_button.clicked.connect(self._back_button_clicked)
 
-        self._forward_button: Any = QtGui.QPushButton(text="Forward")
+        self._forward_button: Any = QtWidgets.QPushButton(text="Forward")
         self._forward_button.clicked.connect(self._forward_button_clicked)
 
-        self._play_pause_button: Any = QtGui.QPushButton(text="Pause")
+        self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
-        self._horizontal_layout: Any = QtGui.QHBoxLayout()
+        self._horizontal_layout: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout.addWidget(self._back_button)
         self._horizontal_layout.addWidget(self._forward_button)
         self._horizontal_layout.addWidget(self._play_pause_button)
-        self._vertical_layout: Any = QtGui.QVBoxLayout()
+        self._vertical_layout: Any = QtWidgets.QVBoxLayout()
         self._vertical_layout.addWidget(self._plot_widget)
         self._vertical_layout.addLayout(self._horizontal_layout)
-        self._central_widget: Any = QtGui.QWidget()
+        self._central_widget: Any = QtWidgets.QWidget()
         self._central_widget.setLayout(self._vertical_layout)
         self.setCentralWidget(self._central_widget)
 
@@ -113,14 +113,14 @@ class CrystallographyRAViewer(graph_interfaces_base.OmGui):
             # If the framebuffer is empty, returns without drawing anything.
             return
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         self._plot_line.setData(
-            current_data["radial_average"][1],
-            current_data["radial_average"][0]
+            numpy.arange(len(current_data["radial_average"])),
+            current_data["radial_average"],
         )
 
-        QtGui.QApplication.processEvents()
+        QtWidgets.QApplication.processEvents()
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
@@ -219,6 +219,6 @@ def main(url: str) -> None:
 
     if url is None:
         url = "tcp://127.0.0.1:12321"
-    app: Any = QtGui.QApplication(sys.argv)
+    app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyRAViewer(url)
     sys.exit(app.exec_())
