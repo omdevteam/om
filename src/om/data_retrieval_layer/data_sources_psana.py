@@ -390,6 +390,99 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
         return jungfrau_reshaped
 
 
+class Epix100Psana(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Epix100 detector frame data at the LCLS facility.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of Epix100 detector frame data from the
+        psana software framework. Data is normally retrieved for the detector whose
+        psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration parameter group. However, it is also
+        possible to provide the psana name of the detector directly in the
+        {source_base_name} argument, by prefixing it with the string "psana-". The
+        detector frame data can be retrieved in calibrated or non-calibrated form,
+        depending on the value of the `{source_base_name}_calibration` entry in the
+        `data_retrieval_layer` parameter group. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
+                initialization parameters.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Epix100 detector frame data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the detector
+        whose psana name matches the entry `psana_{source_base_name}_name` in the
+        `data_retrieval_layer` OM configuration group, or for the detector with
+        a given psana name, if the {source_base_name} has the format
+        `psana-{psana detector name}`.
+        """
+        self._data_retrieval_function: Callable[
+            [Any], Any
+        ] = _get_psana_data_retrieval_function(
+            source_base_name=self._data_source_name,
+            monitor_parameters=self._monitor_parameters,
+        )
+
+    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+        """
+        Retrieves a Epix100 detector data frame from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves a single detector data frame from psana. It returns the
+        frame as a 2D array storing the pixel data. The data is retrieved in calibrated
+        or non-calibrated form depending on the value of the
+        `{source_base_name}_calibration` entry in the `data_retrieval_layer` OM
+        configuration group.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            One frame of detector data.
+        """
+        epix_psana: numpy.ndarray = self._data_retrieval_function(event["data"])
+        if epix_psana is None:
+            raise exceptions.OmDataExtractionError(
+                "Could not retrieve detector data from psana."
+            )
+
+        return epix_psana
+
+
 class RayonixPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.

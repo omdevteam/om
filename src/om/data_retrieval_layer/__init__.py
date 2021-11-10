@@ -42,8 +42,9 @@ try:
     import psana  # type: ignore  # noqa: F401
 
     from om.data_retrieval_layer.data_retrieval_psana import (
-        CxiLclsCspadDataRetrieval,
         CxiLclsDataRetrieval,
+        CxiLclsCspadDataRetrieval,
+        CxiLclsEpix100DataRetrieval,
         MfxLclsDataRetrieval,
         MfxLclsRayonixDataRetrieval,
     )
@@ -52,6 +53,7 @@ try:
     MfxLclsRayonixDataEventHandler = MfxLclsRayonixDataRetrieval
     CxiLclsDataEventHandler = CxiLclsDataRetrieval
     CxiLclsCspadDataEventHandler = CxiLclsCspadDataRetrieval
+    CxiLclsEpix100DataEventHandler = CxiLclsEpix100DataRetrieval
 
 except ModuleNotFoundError:
     pass

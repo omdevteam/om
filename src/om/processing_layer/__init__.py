@@ -24,5 +24,7 @@ the implementation of a different type of OnDA Monitor.
 """
 from om.processing_layer.cheetah import Cheetah
 from om.processing_layer.crystallography import CrystallographyProcessing
+from om.processing_layer.xes import XESProcessing
 
 CrystallographyMonitor = CrystallographyProcessing
+XESMonitor = XESProcessing

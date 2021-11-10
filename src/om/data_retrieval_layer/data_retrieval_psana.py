@@ -402,6 +402,85 @@ class _PsanaDataEventHandler(drl_base.OmDataEventHandler):
         return data
 
 
+class CxiLclsDataRetrieval(drl_base.OmDataRetrieval):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataRetrieval`][om.data_retrieval_layer.base.OmDataRetrieval]
+    """
+
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+        """
+        Data Retrieval from psana at the CXI beamline (LCLS).
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class implements the operations needed to retrieve data at the CXI
+        beamline of the LCLS facility, using the Jungfrau 4M x-ray detector, currently
+        the main detector used at the CXI beamline.
+
+        This class considers an individual data event as equivalent to the content of a
+        psana event, which stores data related to a single detector frame. Psana
+        provides timestamp, beam energy and detector distance data for each event,
+        retrieved from various sensors in the system.
+
+        The source string for this Data Retrieval class is a string of the type used by
+        psana to identify specific runs, experiments, or live data streams.
+
+        Arguments:
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+
+            source: A string describing the data source.
+        """
+        data_sources: Dict[str, drl_base.OmDataSource] = {
+            "timestamp": ds_psana.TimestampPsana(
+                data_source_name="timestamp", monitor_parameters=monitor_parameters
+            ),
+            "event_id": ds_psana.EventIdPsana(
+                data_source_name="eventid", monitor_parameters=monitor_parameters
+            ),
+            "frame_id": ds_generic.FrameIdZero(
+                data_source_name="frameid", monitor_parameters=monitor_parameters
+            ),
+            "detector_data": ds_psana.Jungfrau4MPsana(
+                data_source_name="detector", monitor_parameters=monitor_parameters
+            ),
+            "beam_energy": ds_psana.BeamEnergyPsana(
+                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+            ),
+            "detector_distance": ds_psana.EpicsVariablePsana(
+                data_source_name="detector_distance",
+                monitor_parameters=monitor_parameters,
+            ),
+            "timetool_data": ds_psana.EpicsVariablePsana(
+                data_source_name="timetool", monitor_parameters=monitor_parameters
+            ),
+            "optical_laser_active": ds_psana.EvrCodesPsana(
+                data_source_name="active_optical_laser",
+                monitor_parameters=monitor_parameters,
+            ),
+            "xrays_active": ds_psana.EvrCodesPsana(
+                data_source_name="active_optical_laser",
+                monitor_parameters=monitor_parameters,
+            ),
+            # "lcls_extra": functions_psana.lcls_extra,
+        }
+
+        self._data_event_handler: drl_base.OmDataEventHandler = _PsanaDataEventHandler(
+            source=source,
+            monitor_parameters=monitor_parameters,
+            data_sources=data_sources,
+        )
+
+    @property
+    def data_event_handler(self) -> drl_base.OmDataEventHandler:
+        return self._data_event_handler
+
+
 class CxiLclsCspadDataRetrieval(drl_base.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
@@ -481,7 +560,7 @@ class CxiLclsCspadDataRetrieval(drl_base.OmDataRetrieval):
         return self._data_event_handler
 
 
-class CxiLclsDataRetrieval(drl_base.OmDataRetrieval):
+class CxiLclsEpix100DataRetrieval(drl_base.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
 
@@ -490,14 +569,14 @@ class CxiLclsDataRetrieval(drl_base.OmDataRetrieval):
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
         """
-        Data Retrieval from psana at the CXI beamline (LCLS).
+        Data Retrieval from psana at the CXI beamline (LCLS), with the ePix100 detector.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This class implements the operations needed to retrieve data at the CXI
-        beamline of the LCLS facility, using the Jungfrau 4M x-ray detector, currently
-        the main detector used at the CXI beamline.
+        beamline of the LCLS facility, using the ePix100 x-ray detector. This detector
+        is often used for XES experiments.
 
         This class considers an individual data event as equivalent to the content of a
         psana event, which stores data related to a single detector frame. Psana
@@ -525,7 +604,7 @@ class CxiLclsDataRetrieval(drl_base.OmDataRetrieval):
             "frame_id": ds_generic.FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_psana.Jungfrau4MPsana(
+            "detector_data": ds_psana.Epix100Psana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
             "beam_energy": ds_psana.BeamEnergyPsana(
