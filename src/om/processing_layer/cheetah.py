@@ -512,8 +512,8 @@ class CheetahProcessing(pl_base.OmProcessing):
             i: int
             bin_size: int = self._binning.get_bin_size()
             for i in range(peak_list["num_peaks"]):
-                peak_list["fs"][i] /= bin_size
-                peak_list["ss"][i] /= bin_size
+                peak_list["fs"][i] = (peak_list["fs"][i] + 0.5) / bin_size - 0.5
+                peak_list["ss"][i] = (peak_list["ss"][i] + 0.5) / bin_size - 0.5
 
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
