@@ -32,15 +32,16 @@ import numpy  # type: ignore
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.algorithms.crystallography import TypePeakfinder8Info
 from om.processing_layer import base as pl_base
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
-from om.utils.crystfel_geometry import TypePixelMaps
+from om.utils.crystfel_geometry import TypeDetector
 
 
-class Cheetah(pl_base.OmProcessing):
+class CheetahProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
+
+    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
@@ -72,7 +73,7 @@ class Cheetah(pl_base.OmProcessing):
                 [om.utils.parameters.MonitorParams] object storing the OM monitor
                 parameters from the configuration file.
         """
-        super(Cheetah, self).__init__(monitor_parameters=monitor_parameters)
+        self._monitor_params = monitor_parameters
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -94,20 +95,70 @@ class Cheetah(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        geometry_filename: str = self._monitor_params.get_param(
-            group="crystallography",
-            parameter="geometry_file",
-            parameter_type=str,
-            required=True,
+        self._geometry: TypeDetector
+        self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            filename=self._monitor_params.get_parameter(
+                group="crystallography",
+                parameter="geometry_file",
+                parameter_type=str,
+                required=True,
+            )
         )
-        geometry: crystfel_geometry.TypeDetector
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
-            filename=geometry_filename
-        )
-        self._pixelmaps: TypePixelMaps = crystfel_geometry.compute_pix_maps(
-            geometry=geometry
-        )
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
         self._data_shape: Tuple[int, int] = self._pixelmaps["x"].shape
+
+        self._hit_frame_sending_counter: int = 0
+        self._non_hit_frame_sending_counter: int = 0
+
+        self._correction = gen_algs.Correction(
+            parameters=self._monitor_params.get_parameter_group(group="correction")
+        )
+
+        self._peak_detection: cryst_algs.Peakfinder8PeakDetection = (
+            cryst_algs.Peakfinder8PeakDetection(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="peakfinder8_peak_detection"
+                ),
+                radius_pixel_map=self._pixelmaps["radius"],
+            )
+        )
+
+        binning: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning",
+            parameter_type=bool,
+            required=False,
+        )
+        self._binning_before_peakfinding: Union[
+            bool, None
+        ] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning_before_peakfinding",
+            parameter_type=bool,
+            required=False,
+        )
+        if self._binning_before_peakfinding is None:
+            self._binning_before_peakfinding = True
+        self._binning: Union[gen_algs.Binning, None]
+        if binning:
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(group="binning"),
+            )
+            if self._binning_before_peakfinding:
+                self._peak_detection.set_peakfinder8_info(
+                    self._binning.get_binned_layout_info()
+                )
+                self._peak_detection.set_bad_pixel_mask(
+                    self._binning.bin_bad_pixel_mask(
+                        self._peak_detection.get_bad_pixel_mask()
+                    )
+                )
+                self._peak_detection.set_radius_pixel_map(
+                    self._binning.bin_pixel_maps(self._pixelmaps)["radius"]
+                )
+            self._data_shape = self._binning.get_binned_data_shape()
+        else:
+            self._binning = None
 
         # TODO: Type this dictionary
         self._total_sums: List[Dict[str, Any]] = [
@@ -117,165 +168,22 @@ class Cheetah(pl_base.OmProcessing):
             }
             for class_number in range(2)
         ]
-        self._sum_sending_interval: Union[int, None] = self._monitor_params.get_param(
+        self._sum_sending_interval: Union[
+            int, None
+        ] = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="class_sums_sending_interval",
             parameter_type=int,
         )
         self._sum_sending_counter: int = 0
 
-        self._hit_frame_sending_counter: int = 0
-        self._non_hit_frame_sending_counter: int = 0
-
-        dark_data_filename: str = self._monitor_params.get_param(
-            group="correction", parameter="dark_filename", parameter_type=str
-        )
-        dark_data_hdf5_path: str = self._monitor_params.get_param(
-            group="correction", parameter="dark_hdf5_path", parameter_type=str
-        )
-        mask_filename: str = self._monitor_params.get_param(
-            group="correction", parameter="mask_filename", parameter_type=str
-        )
-        mask_hdf5_path: str = self._monitor_params.get_param(
-            group="correction", parameter="mask_hdf5_path", parameter_type=str
-        )
-        gain_map_filename: str = self._monitor_params.get_param(
-            group="correction", parameter="gain_filename", parameter_type=str
-        )
-        gain_map_hdf5_path: str = self._monitor_params.get_param(
-            group="correction", parameter="gain_hdf5_path", parameter_type=str
-        )
-        self._correction = gen_algs.Correction(
-            dark_filename=dark_data_filename,
-            dark_hdf5_path=dark_data_hdf5_path,
-            mask_filename=mask_filename,
-            mask_hdf5_path=mask_hdf5_path,
-            gain_filename=gain_map_filename,
-            gain_hdf5_path=gain_map_hdf5_path,
-        )
-
-        pf8_detector_info: TypePeakfinder8Info = cryst_algs.get_peakfinder8_info(
-            detector_type=self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="detector_type",
-                parameter_type=str,
-                required=True,
-            )
-        )
-        pf8_max_num_peaks: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_num_peaks",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_adc_threshold: float = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="adc_threshold",
-            parameter_type=float,
-            required=True,
-        )
-        pf8_minimum_snr: float = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="minimum_snr",
-            parameter_type=float,
-            required=True,
-        )
-        pf8_min_pixel_count: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="min_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_max_pixel_count: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_local_bg_radius: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="local_bg_radius",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_min_res: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="min_res",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_max_res: int = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="max_res",
-            parameter_type=int,
-            required=True,
-        )
-        pf8_bad_pixel_map_fname: Union[str, None] = self._monitor_params.get_param(
-            group="peakfinder8_peak_detection",
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if pf8_bad_pixel_map_fname is not None:
-            pf8_bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = self._monitor_params.get_param(
-                group="peakfinder8_peak_detection",
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            pf8_bad_pixel_map_hdf5_path = None
-
-        if pf8_bad_pixel_map_fname is not None:
-            try:
-                hdf5_file_handle: Any
-                with h5py.File(pf8_bad_pixel_map_fname, "r") as hdf5_file_handle:
-                    bad_pixel_map: Union[numpy.ndarray, None] = hdf5_file_handle[
-                        pf8_bad_pixel_map_hdf5_path
-                    ][:]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                # TODO: Fix type check
-                raise RuntimeError(
-                    "The following error occurred while reading the {0} field from"
-                    "the {1} bad pixel map HDF5 file:"
-                    "{2}: {3}".format(
-                        pf8_bad_pixel_map_fname,
-                        pf8_bad_pixel_map_hdf5_path,
-                        exc_type.__name__,  # type: ignore
-                        exc_value,
-                    )
-                ) from exc
-        else:
-            bad_pixel_map = None
-
-        self._peak_detection: cryst_algs.Peakfinder8PeakDetection = (
-            cryst_algs.Peakfinder8PeakDetection(
-                max_num_peaks=pf8_max_num_peaks,
-                asic_nx=pf8_detector_info["asic_nx"],
-                asic_ny=pf8_detector_info["asic_ny"],
-                nasics_x=pf8_detector_info["nasics_x"],
-                nasics_y=pf8_detector_info["nasics_y"],
-                adc_threshold=pf8_adc_threshold,
-                minimum_snr=pf8_minimum_snr,
-                min_pixel_count=pf8_min_pixel_count,
-                max_pixel_count=pf8_max_pixel_count,
-                local_bg_radius=pf8_local_bg_radius,
-                min_res=pf8_min_res,
-                max_res=pf8_max_res,
-                bad_pixel_map=bad_pixel_map,
-                radius_pixel_map=self._pixelmaps["radius"],
-            )
-        )
-
-        self._min_num_peaks_for_hit: int = self._monitor_params.get_param(
+        self._min_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="min_num_peaks_for_hit",
             parameter_type=int,
             required=True,
         )
-        self._max_num_peaks_for_hit: int = self._monitor_params.get_param(
+        self._max_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="max_num_peaks_for_hit",
             parameter_type=int,
@@ -283,79 +191,24 @@ class Cheetah(pl_base.OmProcessing):
         )
         self._hit_frame_sending_interval: Union[
             int, None
-        ] = self._monitor_params.get_param(
+        ] = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="hit_frame_sending_interval",
             parameter_type=int,
         )
         self._non_hit_frame_sending_interval: Union[
             int, None
-        ] = self._monitor_params.get_param(
+        ] = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="non_hit_frame_sending_interval",
             parameter_type=int,
         )
 
-        processed_directory: str = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="processed_directory",
-            parameter_type=str,
-            required=True,
-        )
-        processed_filename_prefix: Union[str, None] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="processed_filename_prefix",
-            parameter_type=str,
-        )
-        processed_filename_extension: Union[str, None] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="processed_filename_extension",
-            parameter_type=str,
-        )
-        data_type: Union[str, None] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="hdf5_file_data_type",
-            parameter_type=str,
-        )
-        compression: Union[str, None] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="hdf5_file_compression",
-            parameter_type=str,
-        )
-        compression_opts: Union[int, None] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="hdf5_file_compression_opts",
-            parameter_type=int,
-        )
-        compression_shuffle: Union[bool, None] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="hdf5_file_compression_shuffle",
-            parameter_type=bool,
-        )
-        hdf5_file_max_num_peaks: Union[int, None] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="hdf5_file_max_num_peaks",
-            parameter_type=int,
-        )
-        hdf5_fields: Dict[str, str] = self._monitor_params.get_param(
-            group="cheetah",
-            parameter="hd5_fields",
-            parameter_type=dict,
-            required=True,
-        )
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
-            directory_for_processed_data=processed_directory,
-            node_rank=node_rank,
-            geometry=geometry,
-            compression=compression,
-            detector_data_type=data_type,
+            parameters=self._monitor_params.get_parameter_group(group="cheetah"),
             detector_data_shape=self._data_shape,
-            hdf5_fields=hdf5_fields,
-            processed_filename_prefix=processed_filename_prefix,
-            processed_filename_extension=processed_filename_extension,
-            compression_opts=compression_opts,
-            compression_shuffle=compression_shuffle,
-            max_num_peaks=hdf5_file_max_num_peaks,
+            node_rank=node_rank,
+            geometry=self._geometry,
         )
 
         print("Processing node {0} starting.".format(node_rank))
@@ -407,46 +260,66 @@ class Cheetah(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: int = self._monitor_params.get_param(
+        self._speed_report_interval: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="speed_report_interval",
             parameter_type=int,
             required=True,
         )
-        self._data_broadcast_interval: int = self._monitor_params.get_param(
+        self._data_broadcast_interval: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="data_broadcast_interval",
             parameter_type=int,
             required=True,
         )
-        self._geometry_is_optimized: bool = self._monitor_params.get_param(
+        self._geometry_is_optimized: bool = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="geometry_is_optimized",
             parameter_type=bool,
             required=True,
         )
 
-        geometry_filename: str = self._monitor_params.get_param(
-            group="crystallography",
-            parameter="geometry_file",
-            parameter_type=str,
-            required=True,
+        self._geometry: TypeDetector
+        self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+            filename=self._monitor_params.get_parameter(
+                group="crystallography",
+                parameter="geometry_file",
+                parameter_type=str,
+                required=True,
+            )
         )
-        geometry: crystfel_geometry.TypeDetector
-        geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
-            filename=geometry_filename
-        )
-        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=geometry)
+        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
         self._data_shape = self._pixelmaps["x"].shape
+
+        binning: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="binning",
+            parameter_type=bool,
+            required=False,
+        )
+        self._binning: Union[gen_algs.Binning, None]
+        if binning:
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(group="binning"),
+            )
+            self._pixelmaps = self._binning.bin_pixel_maps(self._pixelmaps)
+            self._data_shape = self._binning.get_binned_data_shape()
+        else:
+            self._binning = None
 
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
         # of the whole detector.
-        self._pixel_size: float = geometry["panels"][
-            tuple(geometry["panels"].keys())[0]
+        self._pixel_size: float = self._geometry["panels"][
+            tuple(self._geometry["panels"].keys())[0]
         ]["res"]
+        if self._binning is not None:
+            self._pixel_size /= self._binning.get_bin_size()
+        self._first_panel_coffset: float = self._geometry["panels"][
+            list(self._geometry["panels"].keys())[0]
+        ]["coffset"]
 
-        self._running_average_window_size: int = self._monitor_params.get_param(
+        self._running_average_window_size: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="running_average_window_size",
             parameter_type=int,
@@ -494,29 +367,22 @@ class Cheetah(pl_base.OmProcessing):
             visual_img_shape, dtype=numpy.float32
         )
 
-        first_panel: str = list(geometry["panels"].keys())[0]
-        self._first_panel_coffset: float = geometry["panels"][first_panel]["coffset"]
-
-        data_broadcast_url: Union[str, None] = self._monitor_params.get_param(
-            group="crystallography", parameter="data_broadcast_url", parameter_type=str
-        )
-        if data_broadcast_url is None:
-            self._data_broadcast_url: str = "tcp://{0}:12321".format(
-                zmq_monitor.get_current_machine_ip()
-            )
-        else:
-            self._data_broadcast_url = data_broadcast_url
-
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-            zmq_monitor.ZmqDataBroadcaster(url=self._data_broadcast_url)
+            zmq_monitor.ZmqDataBroadcaster(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="crystallography"
+                )
+            )
         )
+        # temporary fix because of missing get_broadcast_url() method in ZmqDataBroadcaster
+        self._data_broadcast_url = None
 
         self._num_events = 0  # type: int
         self._num_hits = 0  # type: int
         self._old_time = time.time()  # type: float
         self._time = None  # type: Union[float, None]
 
-        processed_directory: str = self._monitor_params.get_param(
+        processed_directory: str = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="processed_directory",
             parameter_type=str,
@@ -535,7 +401,7 @@ class Cheetah(pl_base.OmProcessing):
             processed_directory_path.resolve() / "status.txt"
         )
         self._start_time: float = time.time()
-        self._status_file_update_interval: int = self._monitor_params.get_param(
+        self._status_file_update_interval: int = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="status_file_update_interval",
             parameter_type=int,
@@ -544,14 +410,14 @@ class Cheetah(pl_base.OmProcessing):
             self._write_status_file(status="Not finished")
 
         self._frame_list: List[Tuple[Any, ...]] = []
-        self._write_class_sums: bool = self._monitor_params.get_param(
+        self._write_class_sums: bool = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="write_class_sums",
             parameter_type=bool,
             required=True,
         )
         if self._write_class_sums is True:
-            sum_filename_prefix: Union[str, None] = self._monitor_params.get_param(
+            sum_filename_prefix: Union[str, None] = self._monitor_params.get_parameter(
                 group="cheetah",
                 parameter="class_sum_filename_prefix",
                 parameter_type=str,
@@ -567,7 +433,7 @@ class Cheetah(pl_base.OmProcessing):
                 )
                 for class_number in range(2)
             ]
-            self._class_sum_update_interval: int = self._monitor_params.get_param(
+            self._class_sum_update_interval: int = self._monitor_params.get_parameter(
                 group="cheetah",
                 parameter="class_sums_update_interval",
                 parameter_type=int,
@@ -628,9 +494,27 @@ class Cheetah(pl_base.OmProcessing):
         corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
             data=data["detector_data"]
         )
+        if self._binning is not None and self._binning_before_peakfinding:
+            binned_detector_data = self._binning.bin_detector_data(
+                corrected_detector_data
+            )
+        else:
+            binned_detector_data = corrected_detector_data
+
         peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
-            data=corrected_detector_data
+            data=binned_detector_data
         )
+
+        if self._binning is not None and not self._binning_before_peakfinding:
+            binned_detector_data = self._binning.bin_detector_data(
+                corrected_detector_data
+            )
+            i: int
+            bin_size: int = self._binning.get_bin_size()
+            for i in range(peak_list["num_peaks"]):
+                peak_list["fs"][i] /= bin_size
+                peak_list["ss"][i] /= bin_size
+
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
             < len(peak_list["intensity"])
@@ -647,7 +531,7 @@ class Cheetah(pl_base.OmProcessing):
             processed_data["beam_energy"] = data["beam_energy"]
         else:
             processed_data["beam_energy"] = 10000
-        processed_data["data_shape"] = data["detector_data"].shape
+        processed_data["data_shape"] = binned_detector_data.shape
         if "event_id" in data.keys():
             processed_data["event_id"] = data["event_id"]
         else:
@@ -662,7 +546,7 @@ class Cheetah(pl_base.OmProcessing):
         processed_data["filename"] = "---"
         processed_data["index"] = -1
         if frame_is_hit:
-            data_to_write = {"detector_data": corrected_detector_data}
+            data_to_write = {"detector_data": binned_detector_data}
             data_to_write.update(processed_data)
             self._file_writer.write_frame(processed_data=data_to_write)
             processed_data["filename"] = self._file_writer.get_current_filename()
@@ -675,7 +559,7 @@ class Cheetah(pl_base.OmProcessing):
                     # attribute says that the detector frame data should be sent to
                     # the collecting node, adds the data to the 'processed_data'
                     # dictionary (and resets the counter).
-                    processed_data["detector_data"] = corrected_detector_data
+                    processed_data["detector_data"] = binned_detector_data
                     self._hit_frame_sending_counter = 0
         else:
             if self._non_hit_frame_sending_interval is not None:
@@ -688,11 +572,11 @@ class Cheetah(pl_base.OmProcessing):
                     # attribute says that the detector frame data should be sent to
                     # the collecting node, adds the data to the 'processed_data'
                     # dictionary (and resets the counter).
-                    processed_data["detector_data"] = corrected_detector_data
+                    processed_data["detector_data"] = binned_detector_data
                     self._non_hit_frame_sending_counter = 0
 
         self._total_sums[frame_is_hit]["num_frames"] += 1
-        self._total_sums[frame_is_hit]["sum_frames"] += corrected_detector_data
+        self._total_sums[frame_is_hit]["sum_frames"] += binned_detector_data
         if self._sum_sending_interval is not None:
             if self._sum_sending_counter == 0:
                 self._sum_to_send: List[Dict[str, Any]] = [
@@ -705,7 +589,7 @@ class Cheetah(pl_base.OmProcessing):
                     for class_number in range(2)
                 ]
             self._sum_to_send[frame_is_hit]["num_frames"] += 1
-            self._sum_to_send[frame_is_hit]["sum_frames"] += corrected_detector_data
+            self._sum_to_send[frame_is_hit]["sum_frames"] += binned_detector_data
             self._sum_sending_counter += 1
             if self._sum_sending_counter == self._sum_sending_interval:
                 self._sum_sending_counter = 0
@@ -790,7 +674,6 @@ class Cheetah(pl_base.OmProcessing):
 
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
-
         peak_fs: float
         peak_ss: float
         peak_value: float

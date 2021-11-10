@@ -130,6 +130,9 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
             * 'rayonix': The Rayonix detector used at the MFX beamline of the LCLS
               facility.
 
+            * 'eiger16M': The 16M version of Eiger2 detector used at the PETRA III
+              facility.
+
     Returns:
 
         A [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
@@ -174,6 +177,13 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
         peakfinder8_info = {
             "asic_nx": 1920,
             "asic_ny": 1920,
+            "nasics_x": 1,
+            "nasics_y": 1,
+        }
+    elif detector_type == "eiger16M":
+        peakfinder8_info = {
+            "asic_nx": 4148,
+            "asic_ny": 4362,
             "nasics_x": 1,
             "nasics_y": 1,
         }
@@ -436,6 +446,21 @@ class Peakfinder8PeakDetection:
         self._bad_pixel_mask: Union[numpy.ndarray, None] = bad_pixel_map
         self._mask: Union[numpy.ndarray, None] = None
         self._radius_pixel_map: numpy.ndarray = radius_pixel_map
+
+    def set_peakfinder8_info(self, peakfinder8_info: TypePeakfinder8Info):
+        self._asic_nx = peakfinder8_info["asic_nx"]
+        self._asic_ny = peakfinder8_info["asic_ny"]
+        self._nasics_x = peakfinder8_info["nasics_x"]
+        self._nasics_y = peakfinder8_info["nasics_y"]
+
+    def get_bad_pixel_mask(self) -> Union[numpy.ndarray, None]:
+        return self._bad_pixel_mask
+
+    def set_bad_pixel_mask(self, bad_pixel_mask: Union[numpy.ndarray, None]):
+        self._bad_pixel_mask = bad_pixel_mask
+
+    def set_radius_pixel_map(self, radius_pixel_map: numpy.ndarray):
+        self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
 
     def get_adc_thresh(self) -> Union[float, None]:
         """

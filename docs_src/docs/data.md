@@ -34,6 +34,18 @@ Available data types:
   * `xrays_active`
 
 
+## Eiger16MFilesDataEventHandler
+
+Available data types:
+
+  * `beam_energy`
+  * `detector_data`
+  * `detector_distance`
+  * `event_id`
+  * `frame_id`
+  * `timestamp`
+
+
 ## Jungfrau1MFilesDataEventHandler
 
 Available data types:

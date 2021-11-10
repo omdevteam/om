@@ -266,6 +266,78 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
             return data
 
 
+class Eiger16MFiles(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Detector frame data from Eiger 16M HDF5 files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of Eiger 16M detector frame data from
+        files written by the detector in HDF5 format. It is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
+                initialization parameters.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Eiger 16M single-frame file data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve data from Eiger single-frame files,
+        so this function actually does nothing.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+        """
+        Retrieves a Eiger 16M detector data frame.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function extracts the detector frame information from the content of the
+        HDF5 file attached to the data event. It returns it as a 2D array storing pixel
+        data.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            One frame of detector data.
+        """
+        return event["additional_info"]["h5file"]["entry/data/data"][
+            event["additional_info"]["index"]
+        ]
+
+
 class TimestampFromFileModificationTime(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
@@ -569,4 +641,84 @@ class EventIdJungfrau1MFiles(drl_base.OmDataSource):
         """
         filename: str = event["additional_info"]["h5files"][0].filename
         index: str = event["additional_info"]["index"][0]
+        return f"{filename} // {index:04d}"
+
+
+class EventIdEiger16MFiles(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+
+    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Event identifier for Eiger 16M data events.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a unique event identifier for
+        Eiger 16M data events. For this detector one event is equivalent to a single
+        stored in an HDF5 file. The combination of the full path to the data file
+        and the index of the frame within the file itself is used to generate an event
+        identifier. This class is a subclass of the
+        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, for communication with the user or retrieval of
+                initialization parameters.
+
+            monitor_parameters: A [MonitorParams]
+                [om.utils.parameters.MonitorParams] object storing the OM monitor
+                parameters from the configuration file.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Eiger 16M event identifier data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve an event identifier for Eiger 16M
+        event data, so this function actually does nothing.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> str:
+        """
+        Retrieves an event identifier for a Eiger 16M data event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function constructs the event identifier for an event by joining the
+        following elements in a single string:
+
+        - The full path to the file.
+
+        - The index of the current frame within the file itself.
+
+        The two parts of the are separated by the "//" symbol.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            A unique event identifier.
+        """
+        filename: str = event["additional_info"]["full_path"]
+        index: str = event["additional_info"]["index"]
         return f"{filename} // {index:04d}"
