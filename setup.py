@@ -131,6 +131,7 @@ setup(
             "xes_gui:main",
         ],
     },
+    scripts=["bin_src/om_jungfrau_dark.py", "bin_src/om_jungfrau_zmq_receiver.py"],
     ext_modules=extensions,
     packages=find_packages(where="src"),
     package_dir={"": "src"},

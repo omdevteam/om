@@ -59,3 +59,15 @@ try:
 
 except ModuleNotFoundError:
     pass
+
+try:
+    import zmq  # type: ignore  # noqa: F401
+    import h5py  # type: ignore  # noqa: F401
+
+    from om.data_retrieval_layer.data_retrieval_zmq import (
+        Jungfrau1MZmqDataRetrieval,
+    )
+    print("OM Message: activating ZMQ data retrieval")
+    Jungfrau1MZmqDataEventHandler = Jungfrau1MZmqDataRetrieval
+except ModuleNotFoundError:
+    pass
