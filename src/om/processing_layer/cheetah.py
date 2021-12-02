@@ -237,8 +237,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             fh.write("Status: {}\n".format(status))
             fh.write("Frames processed: {}\n".format(num_frames))
             fh.write("Number of hits: {}\n".format(num_hits))
-            if status == "Not finished":
-                fh.write("ZMQ broadcast URL: {}\n".format(self._data_broadcast_url))
 
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
@@ -366,16 +364,20 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._frame_data_img: numpy.ndarray = numpy.zeros(
             visual_img_shape, dtype=numpy.float32
         )
-
-        self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-            zmq_monitor.ZmqDataBroadcaster(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="crystallography"
+        self._data_broadcast: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="data_broadcast",
+            parameter_type=bool,
+            required=False,
+        )
+        if self._data_broadcast:
+            self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
+                zmq_monitor.ZmqDataBroadcaster(
+                    parameters=self._monitor_params.get_parameter_group(
+                        group="crystallography"
+                    )
                 )
             )
-        )
-        # temporary fix because of missing get_broadcast_url() method in ZmqDataBroadcaster
-        self._data_broadcast_url = None
 
         self._num_events = 0  # type: int
         self._num_hits = 0  # type: int
@@ -718,7 +720,10 @@ class CheetahProcessing(pl_base.OmProcessing):
                 num_hits=self._num_hits,
             )
 
-        if self._num_events % self._data_broadcast_interval == 0:
+        if (
+            self._data_broadcast
+            and self._num_events % self._data_broadcast_interval == 0
+        ):
             self._data_broadcast_socket.send_data(
                 tag="view:omdata",
                 message={
