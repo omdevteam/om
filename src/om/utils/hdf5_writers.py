@@ -201,6 +201,8 @@ class HDF5Writer:
         if processed_filename_extension is None:
             processed_filename_extension = "h5"
 
+        self._processed_filename_extension = f".{processed_filename_extension}"
+
         if detector_data_type is None:
             self._data_type: numpy.ndarray = numpy.float32
         else:
@@ -214,7 +216,7 @@ class HDF5Writer:
         self._processed_filename: pathlib.Path = pathlib.Path(
             directory_for_processed_data
         ).resolve() / "{0}_{1}.{2}".format(
-            processed_filename_prefix, node_rank, processed_filename_extension
+            processed_filename_prefix, node_rank, "inprogress"
         )
 
         # TODO: fix cxiview (or even better, rewrite it)
@@ -457,6 +459,9 @@ class HDF5Writer:
         Closes the file being written.
         """
         self._h5file.close()
+        self._processed_filename = self._processed_filename.rename(
+            self._processed_filename.with_suffix(self._processed_filename_extension)
+        )
         print(
             "{0} frames saved in {1} file.".format(
                 self._num_frames, self._processed_filename
