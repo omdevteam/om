@@ -59,6 +59,14 @@ class OmDataExtractionError(OmException):
     """
 
 
+class OmEigerHttpInterfaceInitializationError(OmException):
+    """
+    Raised if an error happens during data extraction.
+
+    Base class: [`OmException`][om.utils.exceptions.OmException]
+    """
+
+
 class OmHdf5FileReadingError(OmException):
     """
     Raised if an error happens while reading an HDF5 file.
