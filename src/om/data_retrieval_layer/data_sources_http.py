@@ -22,6 +22,7 @@ This module contains Data Source classes that deal with data retrieved from http
 detector interface.
 """
 import numpy
+import time
 
 from datetime import datetime
 from PIL import Image  # type: ignore
@@ -175,6 +176,11 @@ class TimestampEiger16MHttp(drl_base.OmDataSource):
         """
         event["additional_info"]["image_file"].seek(162)
         time_str: str = event["additional_info"]["image_file"].read(29).decode()
+
+        # temporary fix to get some realistic delays in the GUI because Eiger gives
+        # the same timestamp for all images in the run:
+        return numpy.float64(time.time())
+
         return numpy.float64(
             datetime.strptime(
                 time_str[0:-3] + time_str[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
