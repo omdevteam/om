@@ -123,7 +123,7 @@ OM then shuts down.
 Writing a monitoring program consists mainly in writing a Python class (a *Monitor*
 class), that lives in the Processing Layer and implements a data analysis pipeline.
 The whole processing logic should be implemented in this class, which must be a
-subclass of the [OmMonitor][om.processing_layer.base.OmMonitor] abstract class.
+subclass of the [OmProcessing][om.processing_layer.base.OmProcessing] abstract class.
 
 The Monitor class must implement all the methods that are abstract in the base class.
 A developer just needs to write the implementation for these methods, but it never

@@ -16,8 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM monitor for x-ray emission spectroscopy.
-This module contains an OM monitor for x-ray emission spectroscopy experiments.
+OnDA Monitor for X-ray Emission Spectroscopy.
+
+This module contains an OnDA Monitor for x-ray emission spectroscopy experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -37,31 +38,28 @@ from om.utils.crystfel_geometry import TypePixelMaps
 class XESProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
-
-    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        An OM real-time monitor for x-ray emission spectroscopy experiments.
+        OnDA Monitor for X-ray Emission Spectroscopy.
 
-        This monitor contains an Onda Monitor that processes detector data frames,
+        This Processing class implements and OnDA Monitor for x-ray emission
+        spectroscopy experiments. The monitor processes detector data frames,
         optionally applying detector calibration, dark correction and gain correction.
-        and extracts 1D spectral information. It also calculates the evolution of the
-        hit rate over time and broadcasts all this information over a network socket
-        for visualization by other programs. This OnDA Monitor can also optionally
-        broadcast calibrated and corrected detector data frames to be displayed by
-        external programs. This monitor is designed to work with cameras or
-        simple single-module detectors. It will not work with a segmented detector.
+        It then extracts a 1D XES spectrum from each of the data frames. The monitor
+        computes smoothed and averaged spectral data information and broadcasts it to
+        external programs, like
+        [OM's XES GUI][om.graphical_interfaces.xes_gui.XesGui], for visualization. In
+        time resolved experiments, the monitor can process spectra for pumped and dark
+        events separately, and compute their difference.
 
-        This class is a subclass of the
-        [OmProcessing][om.processing_layer.base.OmProcessing] base class.
+        This monitor is designed to work with cameras or simple single-module
+        detectors. It will not work with a segmented detector.
 
         Arguments:
 
-          monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._monitor_params = monitor_parameters
 
@@ -69,13 +67,21 @@ class XESProcessing(pl_base.OmProcessing):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM processing nodes for the XES monitor.
+        Initializes the processing nodes for the XES Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function initializes the correction and spectrum extraction algorithms,
-        plus some internal counters.
+        This function initializes the correction algorithm and the spectrum extraction
+        algorithm, plus some internal counters.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
 
         self._pixelmaps: TypePixelMaps = (
@@ -128,14 +134,23 @@ class XESProcessing(pl_base.OmProcessing):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM collecting node for the XES monitor.
+        Initializes the collecting node for the XES Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function initializes the data accumulation algorithms and the storage
-        buffers used to compute statistics on aggregated spectrum data. Additionally,
-        it prepares the data broadcasting socket to send data to external programs.
+        buffers used to compute statistics on the aggregated spectral data.
+        Additionally, it prepares the data broadcasting socket to send data to
+        external programs.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
         """
         self._speed_report_interval: int = self._monitor_params.get_parameter(
             group="xes",
@@ -198,9 +213,34 @@ class XESProcessing(pl_base.OmProcessing):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function performs calibration and correction of a detector data frame and
-        extracts spectrum information. Finally, it prepares the spectrum data for
-        transmission to to the collecting node.
+        This function processes retrieved data events, calibrating and correcting
+        the detector data frames and extracting a XES spectrum from each of them. It
+        additionally prepares the spectral data for transmission to to the collecting
+        node.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
+
+                * The dictionary keys describe the Data Sources for which OM has
+                  retrieved data. The keys must match the source names listed in the
+                  `required_data` entry of OM's `om` configuration parameter group.
+
+                * The corresponding dictionary values must store the the data that OM
+                  retrieved for each of the Data Sources.
+
+        Returns:
+
+            A tuple with two entries. The first entry is a dictionary storing the
+            processed data that should be sent to the collecting node. The second entry
+            is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
         corrected_camera_data: numpy.ndarray = self._correction.apply_correction(
@@ -247,9 +287,22 @@ class XESProcessing(pl_base.OmProcessing):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function computes aggregated statistics on spectrum data received from the
-        processing nodes. It then broadcasts the results via a network socket (for
-        visualization by other programs) using the MessagePack protocol.
+        This function computes aggregated statistics on spectral data received from the
+        processing nodes. It then broadcasts the results via a ZMQ socket for
+        visualization by external programs.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+                dictionary storing the data received from a processing node, and whose
+                second entry is the OM rank number of the node that processed the
+                information.
         """
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
@@ -374,7 +427,7 @@ class XESProcessing(pl_base.OmProcessing):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> None:
+    ) -> Union[Dict[str, Any], None]:
         """
         Ends processing actions on the processing nodes.
 
@@ -384,14 +437,17 @@ class XESProcessing(pl_base.OmProcessing):
         This function prints a message on the console and ends the processing.
 
         Arguments:
+
             node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
+
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
+
         Returns:
-            A dictionary storing information to be sent to the processing node
-            (Optional: if this function returns nothing, no information is transferred
-            to the processing node.
+
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+            the processing node.
         """
         print("Processing node {0} shutting down.".format(node_rank))
         sys.stdout.flush()
@@ -408,8 +464,10 @@ class XESProcessing(pl_base.OmProcessing):
         This function prints a message on the console and ends the processing.
 
         Arguments:
+
             node_rank: The OM rank of the current node, which is an integer that
                 unambiguously identifies the current node in the OM node pool.
+
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """

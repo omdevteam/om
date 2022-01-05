@@ -18,12 +18,12 @@
 """
 ZMQ-based data sources.
 
-This module contains Data Source classes that deal with data stored in files.
+This module contains Data Source classes that deal with data from ZMQ data streams.
 """
 from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
 
-import h5py
-import numpy
+import h5py  # type: ignore
+import numpy  # type: ignore
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
@@ -33,8 +33,6 @@ from om.utils.parameters import MonitorParams
 class Jungfrau1MZmq(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -44,40 +42,40 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Detector frame data from Jungfrau 1M ZMQ message.
+        Detector data frames from a Jungfrau 1M ZMQ data stream.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the retrieval of Jungfrau 1M detector frame data from
-        the ZMQ messages sent by Jungfrau ZMQ receiver. It is a subclass of the
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        This class deals with the retrieval of a Jungfrau 1M    detector data frame from
+        a ZMQ stream broadcast by the detector. The detector data frame can be
+        retrieved in calibrated or non-calibrated form, depending on the value of the
+        `{source_base_name}_calibration` entry in the OM's `data_retrieval_layer`
+        configuration parameter group.
 
         Arguments:
 
             data_source_name: A name that identifies the current data source. It is
-                used, for example, for communication with the user or retrieval of
-                initialization parameters.
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Jungfrau 1M ZMQ data source.
+        Initializes the Jungfrau 1M detector frame data source for ZMQ data streams.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function retrieves from OM's configuration parameters all the information
         needed to initialize the data source. It looks at the parameter
-        `{data_source_name}_calibration` in the `data retrieval layer` parameter group
-        to determine if calibrated data needs to be retrieved from the Jungfrau 1M. In
-        the affirmative case, it reads the names of the files containing the required
+        `{data_source_name}_calibration` in OM's `data retrieval layer` configuration
+        parameter group to determine if calibrated data needs to be retrieved. In the
+        affirmative case, it reads the names of the files containing the required
         calibration constants from the entries `dark_filenames` and `gain_filenames`
         in the `calibration` parameter group.
         """
@@ -150,13 +148,13 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
         """
-        Retrieves a Jungfrau 1M detector data frame.
+        Retrieves a Jungfrau 1M detector data frame from a ZMQ data stream.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function extracts the detector frame information from the content of the
-        data event, and returns the it as a 2D array storing pixel data.
+        This function retrieves the detector data frame associated with the provided
+        ZMQ-based event. It returns the frame as a 2D array storing pixel information.
 
         Arguments:
 
@@ -164,7 +162,7 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
 
         Returns:
 
-            One frame of detector data.
+            One detector data frame.
         """
         msg: Tuple[Dict[str, Any], Dict[str, Any]] = event["data"]
         data: numpy.ndarray = numpy.concatenate(
@@ -199,8 +197,6 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
 class TimestampJungfrau1MZmq(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -210,14 +206,16 @@ class TimestampJungfrau1MZmq(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Timestamp information for Jungfrau 1M ZMQ event.
+        Timestamp information for Jungfrau 1M ZMQ-based events.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the retrieval of timestamp information from Jungfrau 1M
-        ZMQ stream. This class is a subclass of the
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        This class deals with the retrieval of timestamp information for Jungfrau 1M
+        data events originating from a ZMQ stream. For this detector, an individual
+        data event corresponds to a single data frame. In the ZMQ stream, a frame
+        timestamp is associated to each event. This class retrieves this timestamp
+        information.
 
         Arguments:
 
@@ -225,22 +223,22 @@ class TimestampJungfrau1MZmq(drl_base.OmDataSource):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: A [MonitorParams] [om.utils.parameters.MonitorParams]
+                object storing the OM monitor parameters from the configuration file.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Jungfrau 1M ZMQ timestamp data source.
+        Initializes the ZMQ Jungfrau 1M timestamp data source.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        No initialization is needed to retrieve timestamp data for a Jungfrau 1M ZMQ
-        event, so this function actually does nothing.
+        No initialization is needed to retrieve timestamp information for Jungfrau 1M
+        data events originating from a ZMQ stream, so this function actually does
+        nothing.
         """
         pass
 
@@ -251,8 +249,8 @@ class TimestampJungfrau1MZmq(drl_base.OmDataSource):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the timestamp information for a Jungfrau 1M detector
-        data frame from the Jungfrau ZMQ stream.
+        This function returns the timestamp information associated, in the ZMQ data
+        stream, to the provided event.
 
         Arguments:
 
@@ -263,14 +261,12 @@ class TimestampJungfrau1MZmq(drl_base.OmDataSource):
             The timestamp of the Jungfrau 1M ZMQ data event.
         """
 
-        return event["data"][0]["timestamp"]
+        return cast(numpy.float64, event["data"][0]["timestamp"])
 
 
 class EventIdJungfrau1MZmq(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -280,17 +276,16 @@ class EventIdJungfrau1MZmq(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Event identifier for Jungfrau 1M data events.
+        Event identifier for Jungfrau 1M ZMQ-based events.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the retrieval of a unique event identifier for
-        Jungfrau 1M data events. For this detector one event is equivalent to a single
-        stored in an HDF5 file. The combination of the full path to the data file
-        and the index of the frame within the file itself is used to generate an event
-        identifier. This class is a subclass of the
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        This class deals with the retrieval of a unique identifier for Jungfrau 1M
+        data events originating from a ZMQ stream. For this detector, an individual
+        data event corresponds to a single data frame. In the ZMQ stream, a frame
+        number is used to label each event. This class uses the frame number as event
+        identifier.
 
         Arguments:
 
@@ -307,13 +302,14 @@ class EventIdJungfrau1MZmq(drl_base.OmDataSource):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Jungfrau 1M event identifier data source.
+        Initializes the ZMQ Jungfrau 1M event identifier data source.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         No initialization is needed to retrieve an event identifier for Jungfrau 1M
-        event data, so this function actually does nothing.
+        data events originating from a ZMQ stream, so this function actually does
+        nothing.
         """
         pass
 
@@ -324,15 +320,8 @@ class EventIdJungfrau1MZmq(drl_base.OmDataSource):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function constructs the event identifier for an event by joining the
-        following elements in a single string:
-
-        - The full path to the file containing the data for the first panel of the
-          detector data frame (d0) .
-
-        - The index of the current frame within the file itself.
-
-        The two parts of the are separated by the "//" symbol.
+        This function returns the frame number associated, in the ZMQ data stream, to
+        the provided event.
 
         Arguments:
 

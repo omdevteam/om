@@ -18,8 +18,8 @@
 """
 ZMQ utilities to receive data from OnDA Monitors.
 
-This module contains classes and functions that allow external programs to receive
-data broadcasted by an OnDA Monitor over a network connection.
+This module contains classes and functions that allow external programs to receive data
+from an OnDA Monitor over a ZMQ socket.
 """
 from builtins import str as unicode_str
 from typing import Any, Dict, Union
@@ -43,10 +43,10 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
 
     zmqmessage: Any = QtCore.pyqtSignal(dict)
     """
-    Qt signal emitted when a message is received by the GUI.
+    Qt signal emitted when data is received.
 
-    This signal is emitted when the GUI receives data from an OnDA Monitor. It brings
-    the received data as payload.
+    This signal is emitted by this class when it receives data from an OnDA Monitor. It
+    brings the received data as payload.
     """
 
     def __init__(
@@ -57,18 +57,28 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
-        ZMQ-based data receiving socket for OM's graphical user interfaces.
+        Data receiving socket for external programs.
 
-        This class implements a ZMQ SUB socket that can be used to receive data from
-        an OnDA Monitor. The socket accepts only data tagged with a specified label.
-        Every time a message is received, this class emits a custom Qt signal that
-        carries the received data as payload. This class is designed to be run in a
-        separate Qt thread.
+        This class manages a listening socket that can receive data broadcast by an
+        OnDA Monitor. The class must be initialized with the URL address, in ZeroMQ
+        format, of the broadcasting socket of the monitor. It then creates a receiving
+        socket that listens for data, but only when is tagged with a specific label,
+        which is also provided to the class when it is initialized. Every time th
+        socket receives data, this class emits a signal. The signal carries the
+        received data as payload. This class is designed to be run in a separate thread
+        from the main data-receiving program. The main program can listen for the
+        signal emitted by this class to determine when new data has been received.
+
+        This class is designed to be executed in a Qt thread. It creates a ZMQ SUB
+        socket that connects to an OM's PUB socket, subscribing to a single specific
+        topic. When the socket receives data, this class emits a
+        [`zmqmessage`][om.utils.zmq_gui.ZmqDataListener.zmqmessage] Qt signal that
+        other threads can listen to. The signal carries the received data.
 
         Arguments:
 
-            url: The URL where the socket will listen for data. It must be a string in
-                the format used by ZeroMQ.
+            url: The URL to which the PUB socket will connect. It must be a URL string
+                in the format used by ZeroMQ.
 
             tag: The label used by the socket to filter incoming data. Only data whose
                 label matches this argument will be accepted and received.
@@ -88,10 +98,10 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
 
     def start_listening(self) -> None:
         """
-        Connects to a PUB socket and starts listening for data.
+        Connects to a OM's broadcasting socket and starts listening for data.
 
-        This function connects the SUB socket to the URL specified when the class is
-        instantiated.
+        This function connects the listening socket to the URL with which the class was
+        initialized. The socket starts receiving data immediately.
         """
         print("Connecting to {0}".format(self._url))
         self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)
@@ -119,10 +129,12 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
 
     def stop_listening(self) -> None:
         """
-        Stops listening to a PUB socket and disconnects.
+        Stops listening to an OM's broadcasting socket and disconnects.
 
-        This function completely disconnects the SUB socket. It needs to be reconnected
-        (using the :func:`start_listening` function) to start receiving data again.
+        This function completely disconnects the listening socket from the broadcasting
+        source. The socket needs to be reconnected (using the
+        [`start_listening`][om.utils.zmq_gui.ZmqDataListener.start_listening] function)
+        to start receiving data again.
         """
         self._listening_timer.stop()
         print("Disconnecting from {0}".format(self._url))

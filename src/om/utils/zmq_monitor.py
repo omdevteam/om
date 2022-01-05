@@ -19,7 +19,7 @@
 ZMQ utilities to broadcast data from an OnDA Monitor.
 
 This module contains classes and functions that allow OnDA Monitors to broadcast data
-to external programs over a network connection.
+to external programs over a ZMQ socket.
 """
 import socket
 import sys
@@ -35,7 +35,7 @@ def get_current_machine_ip() -> str:
     """
     Retrieves the IP address of the local machine.
 
-    This function uses the python 'socket' module to autodetect the IP addess of the
+    This function uses Python's `socket` module to autodetect the IP addess of the
     the machine where it is invoked.
 
     Returns:
@@ -66,13 +66,18 @@ class ZmqDataBroadcaster:
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
-        ZMQ-based data-broadcasting socket for OnDA Monitors.
+        Data-broadcasting socket for OnDA Monitors.
 
-        This class implements a ZMQ PUB socket that can be used to broadcast data from
-        an OnDA Monitor. The data must be tagged with a label when broadcast. The
-        socket supports multiple simultaneous clients, but has no queuing system:
-        broadcast data will be lost to the clients if not received before the next
-        transmission takes place.
+        This class manages a broadcasting socket that can be used by OnDA Monitors
+        to transmit data to outside programs. The class must be initialized with the
+        URL, in ZeroMQ format, were the socket should operate. Each data item broadcast
+        by the socket can be tagged with a different label, and external programs can
+        use this label to filter incoming data. The socket can transmit to multiple
+        clients at the same time but has no queuing system: broadcast data will be lost
+        to the clients if not received before the next transmission takes place.
+
+        This class creates a ZMQ PUB socket that accepts connections from ZMQ PUB
+        sockets.
 
         Arguments:
 
@@ -122,16 +127,21 @@ class ZmqDataBroadcaster:
         """
         Broadcasts data from the ZMQ PUB socket.
 
-        This function broadcasts data in the format of a python dictionary. The data is
-        tagged with the specified label when broadcast.
+        This function transmits the provided data from the broadcasting socket. The
+        data must have the format of a python dictionary. When broadcast, the data is
+        tagged with the specified label.
 
         Arguments:
 
-            tag: The label that will be attached to the data.
+            tag: The label that will be used to tag the data.
 
-            message: A dictionary, where the keys are names of information elements to
-                be broadcasted through the broadcasting socket, and the corresponding
-                values are the information elements to be sent (python objects).
+            message: A dictionary storing the data to be transmitted.
+
+                * The dictionary keys must store the names of the data units being
+                  broadcast.
+
+                * The corresponding dictionary values must store the data content to be
+                  transsmitted (strictly in the format of Python objects).
         """
         self._sock.send_string(tag, zmq.SNDMORE)
         self._sock.send_pyobj(message)
@@ -151,10 +161,14 @@ class ZmqResponder:
         """
         ZMQ-based responding socket for OnDA Monitors.
 
-        This class implements a ZMQ REP socket that an OnDA Monitor can use to respond
-        to requests from an external program. The responding socket can receive
-        requests from ZMQ REQ sockets and send, in response, data in the format of a
-        python dictionary.
+        This class manages a socket that can be used by an OnDA Monitor to receive
+        requests from external programs, and respond to them. The class must be
+        initialized with the URL, in ZeroMQ format, were the socket should operate.
+        The socket will then accept requests from external sources, and it can be used
+        to transmit data that satisfy the requests, if necessary.
+
+        This class creates a ZMQ REP socket that can accept requests from REQ sockets
+        in external programs and respond to them.
 
         Arguments:
 
@@ -204,11 +218,11 @@ class ZmqResponder:
 
     def get_request(self) -> Union[str, None]:
         """
-        Gets a request from the ZMQ REP socket if present.
+        Gets a request from the responding socket, if present.
 
-        This function checks if a request has been received by the responding socket.
-        If the socket received a request, this function returns it. Otherwise the
-        function returns None. This function is non-blocking.
+        This function checks if a request has been received by the socket. In the
+        affirmative case, it returns the content of the request, otherwise it returns
+        None. This function is non-blocking.
 
         Returns:
 
@@ -226,12 +240,12 @@ class ZmqResponder:
         """
         Send data from the ZMQ REP socket.
 
-        This function sends data to an external program that has previously sent a
+        This function transmits data to an external program that has previously sent a
         request to the socket. The response must have the format of a python
         dictionary.
 
         Arguments:
 
-            message: A dictionary containing information to be sent.
+            message: A dictionary containing information to be transmitted.
         """
         self._sock.send(message)

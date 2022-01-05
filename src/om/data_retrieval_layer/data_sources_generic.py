@@ -18,9 +18,9 @@
 """
 Generic data sources.
 
-This module contains Data Source classes that work with data of any origin.
+This module contains Data Source classes that deal with data of no specific origin.
 """
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, cast
 
 import numpy  # type: ignore
 
@@ -46,8 +46,6 @@ def get_calibration_request(
 class TimestampFromEvent(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -57,27 +55,23 @@ class TimestampFromEvent(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Timestamp information from the data event.
+        Timestamp information from data events.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the retrieval of timestamp information stored in the data
-        event itself. Several software frameworks provide timestamp information for
-        each data event, and store it in the event itself. OM retrieves this
-        information when the event is opened, and stores it in a way that allows it to
-        be retrieved by this class. This class is a subclass of the
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        This class deals with the retrieval of the timestamp information stored in a
+        data event. Several software frameworks provide direct timestamp information
+        about the events they generate. OM retrieves this information and stores it in
+        the data event structure, where it can be retrieved by this class.
 
         Arguments:
 
             data_source_name: A name that identifies the current data source. It is
-                used, for example, for communication with the user or retrieval of
-                initialization parameters.
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
@@ -89,8 +83,8 @@ class TimestampFromEvent(drl_base.OmDataSource):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        No initialization is needed to retrieve timestamp information from within a
-        data event, so this function actually does nothing.
+        No initialization is needed to retrieve timestamp information from a data
+        event, so this function actually does nothing.
         """
         pass
 
@@ -101,8 +95,8 @@ class TimestampFromEvent(drl_base.OmDataSource):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the timestamp information for a data event, when it is
-        stored in the event itself.
+        This function retrieves the timestamp information stored in the provided data
+        event.
 
         Arguments:
 
@@ -112,14 +106,12 @@ class TimestampFromEvent(drl_base.OmDataSource):
 
             The timestamp from the data event.
         """
-        return event["additional_info"]["timestamp"]
+        return cast(numpy.float64, event["additional_info"]["timestamp"])
 
 
 class FloatEntryFromConfiguration(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -129,28 +121,25 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
         monitor_parameters: MonitorParams,
     ):
         """
-        Numerical value from a configuration parameter.
+        Numerical values from configuration parameters.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class deals with the retrieval of a numerical value from an OM
-        configuration parameter in the `data_retrieval_layer` parameter group.
-        Specifically, this class retrieves the parameter whose name matches
-        `{data_source_name}`, treating it as a required parameter. It raises therefore
-        an exception if the parameter is not available. This class is a subclass of the
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        This class deals with the retrieval of a numerical value from one of OM's
+        configuration parameters. It retrieves the value of the `{data_source_name`}
+        entry from OM's `data_retrieval_layer` configuration parameter group. This
+        class treats the parameter as a required parameter (i.e.: it raises an
+        exception if the parameter is not available). Furthermore, it requires the
+        parameter value to be a float number.
 
         Arguments:
 
             data_source_name: A name that identifies the current data source. It is
-                used, for example, for communication with the user or retrieval of
-                initialization parameters.
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
-
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
@@ -162,9 +151,10 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the `{data_source_name}` parameter from the
-        `data_retrieval_layer` OM configuration parameter group, and stores it for
-        a fast subsequent recall.
+        This function retrieves the value of the `{data_source_name}` entry from OM's
+        `data_retrieval_layer` configuration parameter group, and stores it for fast
+        subsequent recall. It requires the entry to be present and to have a float
+        numerical value.
         """
         self._value: float = self._monitor_parameters.get_parameter(
             group="data_retrieval_layer",
@@ -175,13 +165,13 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
-        Retrieves the numerical value from a configuration parameter.
+        Retrieves the numerical value.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the value of the numerical configuration parameter that
-        is associated with the current data source.
+        This function returns the value of the numerical configuration parameter to
+        which the data source refers.
 
         Arguments:
 
@@ -197,8 +187,6 @@ class FloatEntryFromConfiguration(drl_base.OmDataSource):
 class FrameIdZero(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -214,11 +202,10 @@ class FrameIdZero(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This class deals with the retrieval of a unique frame identifier for
-        single-frame files that do not store any identifying information.
-        When no other information is available, OM labels a frame using the index
-        of the frame within the file which contains it. For single-frame files, the
-        frame identifier is therefore "0". This class is a subclass of the
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        single-frame files that do not store any frame-identifying information. When no
+        other information is available, OM labels a frame using the index of the frame
+        within the file that contains it. Since this class deals with single-frame
+        files, it always returns "0" as frame identifier.
 
         Arguments:
 
@@ -226,9 +213,7 @@ class FrameIdZero(drl_base.OmDataSource):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
@@ -245,14 +230,14 @@ class FrameIdZero(drl_base.OmDataSource):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> Any:
+    def get_data(self, *, event: Dict[str, Any]) -> str:
         """
         Retrieves the frame identifier.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function returns "0" as frame identifier for the current frame.
+        This function returns "0" as frame identifier.
 
         Arguments:
 
@@ -260,6 +245,6 @@ class FrameIdZero(drl_base.OmDataSource):
 
         Returns:
 
-            The value of the Epics variable.
+            The frame identifier.
         """
         return "0"

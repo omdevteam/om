@@ -24,6 +24,6 @@
 """
 OM's graphical user interfaces.
 
-This package contains OM's Qt-based graphical user interfaces for the desktop. One
-module is dedicated to each GUI or viewer.
+This package contains OM's Qt-based graphical user interfaces for the desktop. Each
+module in this package is dedicated to a single GUI or viewer.
 """

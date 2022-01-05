@@ -16,10 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-MPI-based Parallelization Engine for OM.
+MPI-based Parallelization Layer for OM.
 
-This module contains a Parallelization Engine for OM which uses the MPI communication
-rotocol to manage the communication between the nodes.
+This module contains a Parallelization Layer based on the MPI protocol.
 """
 import sys
 from typing import Any, Dict, Tuple, Union
@@ -39,9 +38,6 @@ _DEADTAG: int = 1000
 class MpiParallelization(par_layer_base.OmParallelization):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmParallelizationEngine`]
-    [om.parallelization_layer.base.OmParallelizationEngine]
     """
 
     def __init__(
@@ -52,13 +48,14 @@ class MpiParallelization(par_layer_base.OmParallelization):
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        MPI-based Parallelization Engine for OM.
+        MPI-based Parallelization Layer for OM.
 
-        This class implements a Parallelization Engine based on the MPI protocol. It is
-        a subclass of the [OmParallelizationEngine]
-        [om.parallelization_layer.base.OmParallelizationEngine] base class. In this
-        Engine, the nodes communicate with each other using an implementation of the
-        MPI protocol supported by the Python language.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class implements a Parallelization Layer based on the MPI protocol. The
+        nodes communicate with each other using an implementation of the MPI protocol
+        supported by the Python language (OpenMPI or MPICH).
 
         Arguments:
 
@@ -67,9 +64,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
             data_retrieval_layer.data_event_handler
@@ -99,15 +94,15 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
     def start(self) -> None:  # noqa: C901
         """
-        Starts the MPI parallelization engine.
+        Starts the MPI parallelization.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function sets up the communication between OM's collecting and processing
-        nodes using the MPI protocol. Additionally, it manages the interaction between
-        the nodes while OM is running, receiving and dispatching data and control
-        commands over MPI channels.
+        nodes using the MPI protocol. The function starts the nodes and manages all of
+        their interactions, organizing the receiving and dispatching of data and
+        control commands over MPI channels.
         """
         if self._rank == 0:
             print(
@@ -234,19 +229,18 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
     def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
         """
-        Shuts down the MPI parallelization engine.
+        Shuts down the MPI parallelization.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        When OM stops, this function closes the communication between the processing
-        and collecting nodes, and manages a controlled shutdown of OM's resources,
-        terminating the MPI processes in an orderly fashion.
+        This function stops OM, closing all the communication channels between the
+        nodes and managing a controlled shutdown of OM's resources. Additionally, it
+        terminates the MPI processes in an orderly fashion.
 
         Arguments:
 
-            msg: Reason for shutting down the parallelization engine. Defaults to
-                "Reason not provided".
+            msg: Reason for shutting down. Defaults to "Reason not provided".
         """
         print("Shutting down:", msg)
         sys.stdout.flush()

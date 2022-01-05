@@ -18,8 +18,8 @@
 """
 OM's Frame Viewer for Crystallography.
 
-This module contains the implementation of a graphical interface that displays detector
-data frames in crystallography experiments.
+This module contains a graphical interface that displays detector data frames and
+detected Bragg peaks in crystallography experiments.
 """
 import collections
 import copy
@@ -52,30 +52,24 @@ except ImportError:
 class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, *, url: str):
         """
         OM frame viewer for crystallography.
 
-        This class implements a frame viewer for crystallography experiments. It is
-        a subclass of the [OmGui][om.graphical_interfaces.base.OmGui] base class.
-
-        The viewer receives detector frame data from an OnDA Monitor for
-        Crystallography when it is tagged with the 'view:omframedata' label. The
-        receiveddata must include processed detector frames, together with information
-        on any Bragg peak detected in them.
-
-        The viewer displays the frames and the position of the detected peaks. A data
-        buffer allows the viewer to stop receiving data from the monitor but still keep
-        in memory the last 10 displayed frames for inspection.
+        This class implements a frame viewer for serial crystallography experiments.
+        The viewer receives data frames from an OnDA Monitor, but only when the data is
+        tagged with the `view:omframedata` label. The data must contain processed
+        detector frames, and information on any detected Bragg peak. The viewer will
+        then display the frame images, and the position of each peak. A data storage
+        buffer allows the viewer to stop receiving data from the OnDA Monitor, but
+        still keep in memory the last 10 displayed frames for re-inspection.
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI will connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
         """
         super(CrystallographyFrameViewer, self).__init__(
             url=url,
@@ -183,8 +177,10 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function stores the data received from OM, and calls the internal
-        functions that update the displayed detector frame and the detected peaks.
+        This method, which is executed at regular intervals, calls the internal
+        functions that update the displayed detector frame and Bragg peaks.
+        Additionally, this function manages the data storage buffer that allows the
+        last received frames to be re-inspected.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
@@ -245,16 +241,16 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
 def main(*, url: str) -> None:
     """
     OM Frame Viewer for Crystallography. This program must connect to a running OnDA
-    Monitor for Crystallography. If the monitor broadcasts detector frame data, this
-    viewer will display it. The viewer will also show, overlayed on the frame data,
+    Monitor for Crystallography. If the monitor broadcasts detector data frames, this
+    viewer will display them. The viewer will also show, overlayed on each frame,
     any detected Bragg peak. The data stream from the monitor can also be temporarily
     paused, and any of 10 most recently displayed detector frames can be recalled for
-    inspection.
+    re-inspection.
 
     The viewer connects to and OnDA Monitor running at the IP address (or hostname)
     specified by the URL string. This is a string in the format used by the ZeroMQ
-    Protocol. The URL string is optional. If not provided, it defaults to
-    "tcp://127.0.0.1:12321" and the viewer connects, using the tcp protocol, to a
+    protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321": the viewer will connect, using the tcp protocol, to a
     monitor running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring

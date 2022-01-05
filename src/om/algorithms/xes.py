@@ -16,8 +16,8 @@
 """
 Algorithms for the processing of x-ray emission spectroscopy data.
 
-This module contains algorithms that carry out x-ray emission spectroscopy-related data
-processing (spectrum generation, etc.).
+This module contains algorithms that perform data processing operations related to
+x-ray emission spectroscopy (beam energy spectrum retrieval, etc.).
 """
 
 from typing import Any, Dict, Union
@@ -30,7 +30,7 @@ from om.utils import parameters as param_utils
 
 class XESAnalysis:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(
@@ -43,28 +43,30 @@ class XESAnalysis:
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
-        XES algorithm for calculating spectra from 2D camera.
+        Beam energy spectrum retrieval.
 
-        This algorithm extracts spectrum information from a 2D camera image. The image
-        is rotated until the spectrum information is aligned to the vertical axis. The
-        image area containing the spectrum information is then integrated in a
-        direction parallel to the vertical axis. Optionally, this algorithm can apply
-        an intensity threshold to the data and consider only pixels whose value exceeds
-        the threshold.
+        This algorithm stores all the parameters needed to extract beam energy
+        spectra from camera data frames. It can then extract a beam energy spectrum
+        from a provided camera frame. The algorithm rotates the frame image until the
+        beam energy information is aligned with the vertical axis. The data from the
+        area containing the information is then integrated in a direction parallel to
+        the axis. Optionally, this algorithm can apply an ADU threshold to the camera
+        data, and use only the pixels whose values exceeds the threshold to compute the
+        spectrum.
 
         Arguments:
 
-            intensity_threshold: An intensity threshold, in ADU units, for spectrum
-                data for being considered.
+            intensity_threshold: An intensity threshold, in ADU units, for pixels in
+                the camera frame to be considered in the spectrum calculation.
 
-            rotation (int): The rotation in degrees that should be applied to align the
-                linear signal on 2D camera with vertical axis.
+            rotation (int): The rotation in degrees that should be applied to the
+                camera image to align the spectrum information to the vertical axis.
 
-            min_row (int): The minimum row index defining the region of integration for
-                the spectrum after the signal has been rotated.
+            min_row (int): The row index defining the start of the integration
+                region for the spectrum information.
 
-            max_row (int): The maximim row index defining the region of integration for
-                the spectrum after the signal has been rotated.
+            max_row (int): The row index defining the end of the integration region
+                for the spectrum information.
         """
         if parameters is not None:
             intensity_threshold = param_utils.get_parameter_from_parameter_group(
@@ -111,28 +113,31 @@ class XESAnalysis:
         self._min_row: Union[int, None] = min_row
         self._max_row: Union[int, None] = max_row
 
+    # TODO: Enforce return dict content for the function below
+
     def generate_spectrum(self, data: numpy.ndarray) -> Dict[str, numpy.ndarray]:
         """
-        Calculates spectrum information from camera image data.
+        Calculates beam energy spectrum information from a 2D camera data frame.
 
-        This function extracts spectrum information from a camera frame. It returns
-        the raw spectrum information together with a smoothed version.
+        This function extracts beam energy spectrum information from a provided camera
+        data frame. It returns the raw spectrum information, plus a smoother, filtered
+        version of it.
 
         Arguments:
 
-            data (numpy.ndarray): The camera image data from which the spectrum will be
-                generated.
+            data (numpy.ndarray): The camera data frame from which the spectrum
+                information must be extracted.
 
         Returns:
 
-            A dictionary with information about the XES spectrum extracted from the
-            camera image data. The dictionary has the following keys:
+            A dictionary storing the spectrum information extracted from the
+            camera frame.
 
-            - A key named "spectrum" whose value is a 1D array of storing the raw
-              spectral energy information.
+            - The value corresponding to the key named `spectrum` is a 1D array storing
+              the raw spectrum information.
 
-            - A key named "spectrum_smooth" whose value is a 1D array storing a
-              filtered, smoothed version of the spectral energy information.
+            - The value corresponding to the key named `spectrum_smooth` is a 1D array
+              storing a filtered, smoothed version of the spectrum.
         """
 
         # Apply a threshold

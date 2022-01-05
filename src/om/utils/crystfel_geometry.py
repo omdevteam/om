@@ -18,8 +18,8 @@
 """
 CrystFEL's geometry utilities.
 
-This module contains functions that manipulate geometry data encoded with the format
-used by the CrystFEL software package.
+This module contains functions that manipulate geometry information stored in the
+format used by the CrystFEL software package.
 """
 import collections
 import copy
@@ -38,14 +38,12 @@ class TypeBeam(TypedDict):
     """
     A dictionary storing information about the x-ray beam.
 
-    Base class : TypedDict
-
     Attributes:
 
         photon_energy: The photon energy of the beam in eV.
 
-        photon_energy_from: The location of the photon energy information in an HDF5
-            data file, in case the beam energy information is extracted from a file.
+        photon_energy_from: The internal path to the photon energy information in an
+            HDF5 data file, in case the beam energy information is extracted from it.
 
         photon_energy_scale: The scaling factor to be applied to the photon energy, in
             case the provided energy value is not in eV.
@@ -58,62 +56,59 @@ class TypeBeam(TypedDict):
 
 class TypePanel(TypedDict, total=True):
     """
-    A dictionary storing information about detector panels.
-
-    Base class : TypedDict
+    A dictionary storing information about a detector panel.
 
     Attributes:
 
-        cnx: The x location of the corner of the panel in the detector reference
+        cnx: The x coordinate of the corner of the panel in the detector reference
             system.
 
-        cny: The y location of the corner of the panel in the detector reference
+        cny: The y coordinate of the corner of the panel in the detector reference
             system.
 
-        clen: The distance, as reported by the facility, of the sample interaction
-            point from the corner of the first pixel in the panel.
+        clen: The perpendicular distance, as reported by the facility, of the sample
+            interaction point from the corner of the panel.
 
-        clen_from: The location of the 'clen' information in an HDF5 data file, in case
-            the detector distance is extracted from a file.
+        clen_from: The internal path to the `clen` information in an HDF5 data file, in
+            case the information is extracted from it.
 
-        coffset: The offset to be applied to the nominal clen value reported by the
-            facility in order to determine the real distance of the panel from the
+        coffset: The offset to be applied to the `clen` value reported by the facility
+            in order to determine the real perpendicular distance of the panel from the
             interaction point.
 
-        mask: The location of the mask data for the panel in an HDF5 data file.
+        mask: The internal path, in an HDF5 data file, to the mask data for the panel.
 
         mask_file: The name of the HDF5 data file in which the mask data for the panel
             can be found.
 
-        satmap: The location of the per-pixel saturation map for the panel in an HDF5
-            data file.
+        satmap: The internal path, in an HDF5 data file, to the per-pixel saturation
+            map for the panel.
 
         satmap_file: The name of the HDF5 data file in which the per-pixel saturation
             map for the panel can be found.
 
-        res: The resolution of the panel in pixels per meter.
+        res: The size of the pixels that make up the the panel (in pixels per meter).
 
         badrow: The readout direction for the panel, for filtering out clusters of
-            peaks. The value corresponding to this key is either 'x' or 'y'.
+            peaks. The value corresponding to this key must be either `x` or `y`.
 
         no_index: Wether the panel should be considered entirely bad. The panel will be
             considered bad if the value corresponding to this key is non-zero.
 
-        adu_per_photon: The number of detector intensity units per photon for the
-            panel.
+        adu_per_photon: The number of ADUs per photon for the panel.
 
-        max_adu: The detector intensity unit value above which a pixel of the panel
-            should be considered unreliable.
+        max_adu: The ADU value above which a pixel of the panel should be considered
+            unreliable.
 
-        data: The location, in an HDF5 data file, of the data block where the panel
-            data is stored.
+        data: The internal path, in an HDF5 data file, to the data block where the
+            panel data is stored.
 
-        adu_per_eV: The number of detector intensity units per eV of photon energy for
+        adu_per_eV: The number of ADUs per eV of photon energy for
             the panel.
 
-        dim_structure: A description of the layout of the data block for the panel. The
-            value corresponding to this key is a list of strings describing the meaning
-            of each axis in the data block. See the
+        dim_structure: A description of the internal layout of the data block storing
+            the panel's data. The value corresponding to this key is a list of strings
+            which define the role of each axis in the data block. See the
             [crystfel_geometry](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
             man page for a detailed explanation.
 
@@ -144,8 +139,8 @@ class TypePanel(TypedDict, total=True):
         rail_z: The z component, in the detector reference system, of the direction of
             the rail along which the detector moves.
 
-        clen_for_centering: The distance from the interation point, as reported by the
-            facility, of the origin of the detector reference system.
+        clen_for_centering: The perpendicular distance of the origin of the detector
+            reference system from the interation point, as reported by the facility,
 
         xfs: The x->fs component of the matrix used to transform detector reference
             system coordinates into pixel indexes.
@@ -159,8 +154,8 @@ class TypePanel(TypedDict, total=True):
         yss: The y->ss component of the matrix used to transform detector reference
             system coordinates into pixel indexes.
 
-        orig_min_fs: The initial fs index of the panel data in the data block where it
-            is stored.
+        orig_min_fs: The initial fs index of the panel data in the data block where
+            it is stored.
 
         orig_max_fs: The final (inclusive) fs index of the panel data in the data block
             where it is stored.
@@ -217,9 +212,7 @@ class TypePanel(TypedDict, total=True):
 
 class TypeBadRegion(TypedDict, total=True):
     """
-    A dictionary storing information about bad regions in a detector.
-
-    Base class : TypedDict
+    A dictionary storing information about a bad region of a detector.
 
     Attributes:
 
@@ -250,9 +243,11 @@ class TypeBadRegion(TypedDict, total=True):
             panel data is stored.
 
         is_fsss: Whether the fs,ss definition of the bad region (as opposed to the
-            x,y-based one) should be considered. If the value corresponding to this key
-            is 1, the fs,ss-based definition of the bad region is considered the valid
-            one. Otherwise, the definition in x,y coordinates is taken as valid.
+            x,y-based one) should be considered. In the first case, the min_fs, max_fs,
+            min_ss, and max_ss entries in this dictionary will define the bad region.
+            In the second case, the min_x, max_x, min_y, and max_y entries will. If the
+            value corresponding to this key is 1, the fs,ss-based definition will be
+            considered valid. Otherwise, the x,y definition will be used.
     """
 
     panel: str
@@ -271,20 +266,17 @@ class TypeDetector(TypedDict):
     """
     A dictionary storing information about a detector.
 
-    Base class : TypedDict
-
     Attributes:
 
-        panels: The panels in the detector. The value corresponding to this key is a
+        panels: The panels in the detector. The value corresponding to this key is
             dictionary containing information about the panels that make up the
             detector. In the dictionary, the keys are the panel names, and the values
             are [TypePanel][om.utils.crystfel_geometry.TypePanel] dictionaries.
 
         bad: The bad regions in the detector. The value corresponding to this key is a
             dictionary containing information about the bad regions in the detector. In
-            the dictionary, the keys are the bad region names, and the values are
-            additional [TypeBadRegion][om.utils.crystfel_geometry.TypeBadRegion]
-            dictionaries.
+            the dictionary, the keys are bad region names, and the values are
+            [TypeBadRegion][om.utils.crystfel_geometry.TypeBadRegion] dictionaries.
 
         mask_bad: The value used in a bad pixel mask to label a pixel as bad.
 
@@ -292,27 +284,26 @@ class TypeDetector(TypedDict):
 
         rigid_groups: The rigid groups of panels in the detector. The value
             corresponding to this key is a dictionary containing information about the
-            rigid groups. In the dictionary, the keys are the names of the rigid groups
-            and the values are lists storing the names of the panels belonging to each
-            group.
+            rigid groups. In the dictionary, the keys are names of rigid groups and the
+            values are lists storing the names of the panels belonging to each group.
 
         rigid_group_collections: The collections of rigid groups of panels in the
             detector. The value corresponding to this key is a dictionary containing
             information about the rigid group collections. In the dictionary, the keys
-            are the names of the rigid group collections and the values are lists
-            storing the names of the rigid groups belonging to the collections.
+            are names of rigid group collections and the values are lists storing the
+            names of the rigid groups belonging to the each collection.
 
-        furthest_out_panel: The name of the panel where the furthest away pixel from
-            the center of the detector reference system can be found.
+        furthest_out_panel: The name of the panel which contains the pixel that is the
+            furthest away from the center of the detector reference system.
 
-        furthest_out_fs: The fs coordinate, within its panel, of the furthest away
-            pixel from the center of the detector reference system.
+        furthest_out_fs: The fs coordinate, within its panel, of the pixel that is the
+            furthest away from the center of the detector reference system.
 
-        furthest_out_ss: The ss coordinate, within its panel, of the furthest away
-            pixel from the center of the detector reference system.
+        furthest_out_ss: The ss coordinate, within its panel, of the pixel that is the
+            furthest away from the center of the detector reference system.
 
-        furthest_in_panel: The name of the panel where the closest pixel to the center
-            of the detector reference system can be found.
+        furthest_in_panel: The name of the panel which contains the closest pixel to
+            the center of the detector reference system.
 
         furthest_in_fs: The fs coordinate, within its panel, of the closest pixel to
             the center of the detector reference system.
@@ -337,9 +328,7 @@ class TypeDetector(TypedDict):
 
 class TypePixelMaps(TypedDict):
     """
-    A dictionary storing a set of pixel maps.
-
-    Base class : TypedDict
+    A dictionary storing a set of pixel maps,
 
     Attributes:
 
@@ -715,21 +704,21 @@ def load_crystfel_geometry(  # noqa: C901
     """
     Loads a CrystFEL geometry file.
 
-    This function is a re-implementation of the get_detector_geometry_2 function from
-    CrystFEL. It reads information from a CrystFEL geometry file, which uses a
-    key/value language format, fully documented in the relevant
-    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html).
-    This function returns a set of nested dictionaries whose content matches CrystFEL's
-    internal representation of the information in the file (see the
-    libcrystfel/src/detector.h and the libcrystfel/src/image.c files from CrystFEL's
-    source code for more information).
+    This function is a Python re-implementation of the `get_detector_geometry_2` C
+    function from CrystFEL. It reads information from a CrystFEL geometry file (which
+    uses a format fully documented in the relevant
+    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),
+    and returns a set of nested dictionaries whose content matches CrystFEL's internal
+    representation of the information in the file (see the libcrystfel/src/detector.h
+    and the libcrystfel/src/image.c source code files from CrystFEL for more
+    information).
 
-    The code of this function is currently synchronized with the code of the function
-    'get_detector_geometry_2' in CrystFEL at commit cff9159b4bc6.
+    This function currently re-implements the `get_detector_geometry_2` function from
+    CrystFEL as it was at commit cff9159b4bc6.
 
     Arguments:
 
-        filename: the absolute or relative path to a CrystFEL geometry file.
+        filename: The absolute or relative path to a CrystFEL geometry file.
 
     Returns:
 
@@ -740,13 +729,14 @@ def load_crystfel_geometry(  # noqa: C901
           information related to the detector geometry.
 
         * The second entry in the tuple is a
-          [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing the beam
-          properties.
+          [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
+          information about the beam properties.
 
-        * The third entry is the location, within an HDF5 file, where Bragg peak
-          information for the current detector can be found. If the CrystFEL geometry
-          file does not provide this last piece information, this entry has the value
-          of an empty string.
+        * The third entry is the internal path, in an HDF5 data file, to the location
+          where Bragg peak information for the current detector can be found. This is
+          only used if CrystFEL extracts Bragg peak information from files. If the
+          geometry file does not provide this information, this entry has the value of
+          an empty string.
     """
     beam: TypeBeam = {
         "photon_energy": 0.0,
@@ -1073,14 +1063,16 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     """
     Computes pixel maps from CrystFEL geometry information.
 
-    This function takes as input the geometry information read from a `CrystFEL
-    <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_ geometry
-    file, and returns a set of pre-computed pixel maps.
+    This function takes as input the geometry information read from a
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    and returns a set of pixel maps. The pixel maps can be used to determine the
+    exact coordinates, in the detector reference system, of each pixel of the array
+    that stores the detector data.
 
     The origin and the orientation of the reference system for the pixel maps are set
     according to conventions used by CrystFEL:
 
-    * The center of the reference system is the beam interaction point.
+    * The center of the reference system is assumed to be the beam interaction point.
 
     * +z is the beam direction, and points along the beam (i.e. away from the source).
 
@@ -1090,15 +1082,13 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
 
     Arguments:
 
-        geometry: A [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary
-            returned by the [load_crystfel_geometry]
-            [om.utils.crystfel_geometry.load_crystfel_geometry] function, storing the
-            detector geometry information.
+        geometry: A dictionary returned by the
+            [load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
+            function, storing the detector geometry information.
 
     Returns:
 
-        A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] dictionary storing
-        the pixel maps.
+        A dictionary storing the pixel maps.
     """
     max_fs_in_slab: int = numpy.array(
         [geometry["panels"][k]["orig_max_fs"] for k in geometry["panels"]]
@@ -1199,33 +1189,30 @@ def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     """
     Computes pixel maps for data visualization from CrystFEL geometry information.
 
-    This function takes as input the geometry information read from a [CrystFEL
-    geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
-    and returns a set of pre-computed pixel maps that can be used to display data
-    in a Qt ImageView widget (from the [PyQtGraph](http://pyqtgraph.org) library).
-
-    These pixel maps are different from the ones generated by the
-    `[om.utils.crystfel_geometry.compute_pix_maps][om.utils.crystfel_geometry.compute_pix_maps]`
+    This function takes as input the geometry information read from a
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    and returns a set of pixel maps that can be used to display the detector data in a
+    Qt ImageView widget (from the [PyQtGraph](http://pyqtgraph.org) library). These
+    pixel maps are different from the ones generated by the
+    [`compute_pix_maps`][om.utils.crystfel_geometry.compute_pix_maps]
     function. The main differences are:
 
-    * The origin of the reference system is not the beam interaction point, but the top
-      left corner of the array used to visualize the data.
+    * The origin of the reference system is not the beam interaction point, but first
+      pixel of the array used to visualize the data.
 
-    * Only the x and y pixel maps are available. The other keys in the returned typed
-      dictionary (z, r and phi) have a value of None.
+    * Only the `x` and `y` pixel maps are available. The other keys in the returned
+      dictionary (`z`, `r` and `phi`) have a value of None.
 
     Arguments:
 
-        geometry: A [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary
-            returned by the [load_crystfel_geometry]
-            [om.utils.crystfel_geometry.load_crystfel_geometry] function, storing the
-            detector geometry information.
+        geometry: A dictionary returned by the
+            [load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
+            function, storing the detector geometry information.
 
     Returns:
 
-        A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] dictionary storing
-        the pixel maps. Only the values corresponding to the 'x' and 'y' keys are
-        defined. All other dictionary values are set to None.
+        A dictionary storing the pixel maps. Only the values corresponding to the `x`
+        and `y` keys are defined. The values for all other keys are set to None.
     """
     # Shifts the origin of the reference system from the beam position to the top-left
     # of the image that will be displayed. Computes the size of the array needed to
@@ -1264,9 +1251,11 @@ def pixel_maps_from_geometry_file(
     """
     Loads a CrystFEL geometry file and computes pixel maps.
 
-    This function reads information from a CrystFEL geometry file (
-    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html))
-    and returns a set of pre-computed pixel maps.
+    This function takes as input the absolute or relative path to a
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    and returns a set of pre-computed pixel maps. The pixel maps can be used to
+    determine the exact coordinates, in the detector reference system, of each pixel of
+    the detector data array.
 
     The origin and the orientation of the reference system for the pixel maps are set
     according to conventions used by CrystFEL:
@@ -1281,13 +1270,11 @@ def pixel_maps_from_geometry_file(
 
     Arguments:
 
-        filename: the absolute or relative path to a CrystFEL geometry file.
+        filename: The absolute or relative path to a CrystFEL geometry file.
 
     Returns:
 
-        A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] dictionary storing
-        the pixel maps. Only the values corresponding to the 'x' and 'y' keys are
-        defined. All other dictionary values are set to None.
+        A dictionary storing the pixel maps.
     """
     geometry: TypeDetector
     _: Any
@@ -1301,28 +1288,22 @@ def visualization_pixel_maps_from_geometry_file(
     filename: str,
 ) -> TypePixelMaps:
     """
-    Loads a CrystFEL geometry file and computes pixel maps.
+    Loads a CrystFEL geometry file and computes pixel maps for data visualization.
 
-    This function reads information from a CrystFEL geometry file (
-    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html))
-    and returns a set of pre-computed pixel maps that can be used to display data
-    in a Qt ImageView widget (from the [PyQtGraph](http://pyqtgraph.org) library).
+    This function takes as input the absolute or relative path to a
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    and returns a set of pre-computed pixel maps that can be used to display data in a
+    Qt ImageView widget (from the [PyQtGraph](http://pyqtgraph.org) library).
 
     These pixel maps are different from the ones generated by the
-    `[om.utils.crystfel_geometry.pixel_maps_from_geometry_file][om.utils.crystfel_geometry.pixel_maps_from_geometry_file]`
+    [`pixel_maps_from_geometry_file`][om.utils.crystfel_geometry.pixel_maps_from_geometry_file]
     function. The main differences are:
 
-    * The origin of the reference system is not the beam interaction point, but the top
-      left corner of the array used to visualize the data.
+    * The origin of the reference system is not the beam interaction point, but first
+      pixel of the array used to visualize the data.
 
-    * Only the x and y pixel maps are available. The other keys in the returned typed
-      dictionary (z, r and phi) have a value of None.
-
-    * The origin of the reference system is not the beam interaction point, but the top
-      left corner of the array used to visualize the data.
-
-    * Only the x and y pixel maps are available. The other keys in the returned typed
-      dictionary (z, r and phi) have a value of None.
+    * Only the `x` and `y` pixel maps are available. The other keys in the returned
+      dictionary (`z`, `r` and `phi`) have a value of None.
 
     Arguments:
 
@@ -1330,8 +1311,8 @@ def visualization_pixel_maps_from_geometry_file(
 
     Returns:
 
-        A [TypePixelMaps][om.utils.crystfel_geometry.TypePixelMaps] dictionary storing
-        the pixel maps.
+        A dictionary storing the pixel maps. Only the values corresponding to the `x`
+        and `y` keys are defined. The values for all other keys are set to None.
     """
     geometry: TypeDetector
     _: Any
@@ -1346,30 +1327,28 @@ def apply_geometry_to_data(
     """
     Applies CrystFEL geometry information to some data.
 
-    This function takes as input the geometry information read from a `CrystFEL
-    <http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html>`_ geometry
-    file, and some data on which the geometry information should be applied. It returns
+    This function takes as input the geometry information read from a
+    [`CrystFEL geometry file`](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
+    and some data to which the geometry information should be applied. It returns
     an array that can be displayed using libraries like
-    `matplotlib <https://matplotlib.org/>`_ or `PyQtGraph <http://pyqtgraph.org/>`_.
+    [`matplotlib`](https://matplotlib.org/) or [`PyQtGraph`](http://pyqtgraph.org).
 
     The shape of the returned array is big enough to display all the pixel values in
     the input data, and is symmetric around the center of the detector reference system
-    (i.e: the beam interaction point).
-
-    These restrictions often cause the returned array to be bigger than the minimum
-    size needed to store the physical layout of the pixels in the detector,
-    particularly if the detector is not centered at the beam interaction point.
+    (i.e: the beam interaction point). These restrictions often cause the returned
+    array to be bigger than the minimum size needed to store the physical layout of the
+    pixels in the detector, particularly if the beam interaction point does not lie
+    close to the center of the detector.
 
     Arguments:
 
-        data: The data on which the geometry information should be applied.
+        data: The data to which the geometry information should be applied.
 
-        geometry: A [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary
-            storing the detector geometry information.
+        geometry: A dictionary storing the detector geometry information.
 
     Returns:
 
-        An array containing the data with the geometry information applied.
+        An array containing the detector data, with geometry information applied to it.
     """
     pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
     x_map: numpy.ndarray

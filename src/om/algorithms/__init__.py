@@ -18,7 +18,8 @@
 """
 OM's Algorithms.
 
-This package contains OM's Algorithms: classes that implement calculations and other
-operations on the data. The available algorithms are grouped into several categories,
-each corresponding to a separate module.
+This package contains OM's Algorithms (classes that implement various operations and
+calculations on the data). The algorithms available in OM are split into multiple
+categories. Each module in the package contains algorithms belonging to one
+of them.
 """

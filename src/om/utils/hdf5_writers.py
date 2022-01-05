@@ -19,13 +19,17 @@
 HDF5 writing.
 
 This module contains classes and functions that allow OM monitors to write data to
-HDF5 format files.
+files in HDF5 format.
 """
 import pathlib
 import sys
 import time
 from typing import Any, Dict, List, Set, Tuple, Union
-from typing_extensions import Literal
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 import h5py  # type: ignore
 import numpy  # type: ignore
@@ -58,34 +62,34 @@ class HDF5Writer:
         parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
-        HDF5 file writer for Cheetah hit-finding backend.
+        HDF5 file writer for Cheetah.
 
-        This class creates an HDF5 file to store the detector data frames processed
-        by the Cheetah software package. For each frame, this class can save into the
-        file the processed detector data frame, the list of found Bragg peaks and
-        additional diagnostic information provided by the facility (timestamp, beam
-        energy, detector distance, pump laser state).
+        This class creates HDF5 data files to store the detector information processed
+        by the Cheetah software package. For each detector frame, this class saves into
+        an HDF5 file the processed data frame, the list of Bragg peaks detected in the
+        frame, and some additional information (timestamp, beam energy, detector
+        distance, pump laser state).
 
         Arguments:
 
             directory_for_processed_data: A relative or absolute path to the directory
-                where the output files with the processed data will be written.
+                where the output files will be written.
 
             node_rank: The rank of the OM node that will write the data in the output
                 files.
 
             geometry: A dictionary returned by the
-                :func:`~om.utils.crystfel_geometry.load_crystfel_geometry` function),
-                storing the geometry information.
+                load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
+                function, storing the detector geometry information.
 
             compression: The compression filter to be applied to the data in the output
                 file.
 
-            detector_data_type: The numpy type of the detector data that will be
+            detector_data_type: The numpy type of the detector data array that will be
                 written to the output files.
 
-            detector_data_shape: The numpy shape of the detector data that will be
-                written to the output files.
+            detector_data_shape: The numpy shape of the detector data array that will
+                be written to the output files.
 
             hdf5_fields: A dictionary storing information about the internal HDF5 path
                 where each data entry will be written.
@@ -104,21 +108,20 @@ class HDF5Writer:
                 name of the output files. Optional. If the value of this argument is
                 None, the string 'h5' will be used as extension. Defaults to None.
 
-            compression_opts: The compression level to be used if data compression is
-                applied. This is argument is considered only if the 'compression'
-                argument is not None, otherwise, the argument is ignored. Optional. If
-                the value of this argument is None, the compression level will be set
-                to 4. Defaults to None.
+            compression_opts: The compression level to be used, if data compression is
+                applied to the output files. This is argument is considered only if the
+                `compression` argument is not None, otherwise, the argument is ignored.
+                Optional. If the value of this argument is None, the compression level
+                will be set to 4. Defaults to None.
 
-            compression_shuffle: Whether the shuffle filter is applied. If the value of
-                this argument is True, the shuffle filter is applied, otherwise it is
-                not. Specifically, if the value of this argument is None, the shuffle
-                filter is not applied. Defaults to None.
+            compression_shuffle: Whether the `shuffle` filter is applied. If the value
+                of this argument is True, the `shuffle` filter will be applied,
+                otherwise it will not. Defaults to None.
 
-            max_num_peaks: The maximum number of detected Bragg peaks that should be
-                written in the HDF5 for each frame. Optional. If the value of this
-                argument is None, only the first 1024 detected peaks will be written in
-                the output file for each frame. Defaults to None.
+            max_num_peaks: The maximum number of detected Bragg peaks that will be
+                written in the HDF5 for each detector frame. Optional. If the value of
+                this argument is None, only the first 1024 peaks detected in each frame
+                will be written to the output file. Defaults to None.
         """
         if parameters is not None:
             directory_for_processed_data = (
@@ -383,13 +386,14 @@ class HDF5Writer:
         for key, value in extra_data.items():
             self._extra_groups[group_name][key][self._num_frames - 1] = extra_data[key]
 
-    def write_frame(self, *, processed_data: Dict[str, Any]) -> None:
+    def write_frame(self, *, processed_data: Dict[str, Any]) -> None:  # noqa: C901
         """
-        Writes one data frame to the HDF5 file.
+        Writes data related to one detector frame into an HDF5 data file.
 
         Arguments:
 
-            processed_data: A dictionary containing the data to write in the HDF5 file.
+            processed_data: A dictionary containing the data to write into the HDF5
+                file.
         """
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
@@ -456,7 +460,7 @@ class HDF5Writer:
 
     def close(self) -> None:
         """
-        Closes the file being written.
+        Closes the file currently being written.
         """
         self._h5file.close()
         self._processed_filename = self._processed_filename.rename(
@@ -471,7 +475,7 @@ class HDF5Writer:
 
     def get_current_filename(self) -> pathlib.Path:
         """
-        Retrieves the path to the file being written.
+        Retrieves the path to the file currently being written.
 
         Returns:
 
@@ -481,7 +485,7 @@ class HDF5Writer:
 
     def get_num_written_frames(self) -> int:
         """
-        Retrieves the number of already written frames.
+        Retrieves the number frames that have been written into the current file.
 
         Returns:
 
@@ -513,18 +517,21 @@ class SumHDF5Writer:
         """
         HDF5 writer for sum of frames.
 
-        This class creates an HDF5 file to store the sum of a set of processed detector
-        data frames, together with the corresponding virtual powder pattern.
+        This class creates HDF5 data files to store the aggregated detector information
+        processed by the Cheetah software package. It saves sums of detector data
+        frames into HDF5 files,together with virtual powder patterns created using the
+        Bragg peaks detected in the frames.
 
         Arguments:
 
             directory_for_processed_data: A relative or absolute path to the directory
-                where the output files with the processed data will be written.
+                where the output files will be written.
 
-            powder_class: A unique identifier for the sum of frames being saved.
+            powder_class: A unique identifier for the sum of frames and virtual powder
+                pattern being saved.
 
-            detector_data_shape: The numpy shape of the detector data that will be
-                written to the output files.
+            detector_data_shape: The numpy shape of the detector data array that will
+                be written to the output files.
 
             sum_filename_prefix: a string that will be prepended to the name of the
                 output files. Optional. If the value of this argument is None, the
@@ -565,7 +572,7 @@ class SumHDF5Writer:
         virtual_powder_pattern: numpy.ndarray,
     ) -> None:
         """
-        Writes the sum of detector data frames and the virtual powder pattern.
+        Writes aggregated detector frame data into an HDF5 file.
 
         Arguments:
 

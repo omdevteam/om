@@ -18,8 +18,8 @@
 """
 OM's real-time Parameter Tweaker.
 
-This module contains the implementation of a graphical interface that can be used in
-crystallography experiments to test peak-finding parameters in real time.
+This module contains a graphical interface that can be used to test peak-finding
+parameters in real time during crystallography experiments.
 """
 import collections
 import copy
@@ -54,8 +54,6 @@ except ImportError:
 class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, *, url: str, monitor_parameters: parameters.MonitorParams):
@@ -63,25 +61,23 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         OM Parameter Tweaker for Crystallography.
 
         This class implements a graphical user interface that can be used to test new
-        peak finding parameters in real time. It is a subclass of the [OmGui]
-        [om.graphical_interfaces.base.OmGui] base class.
+        peak finding parameters in real time in serial crystallography experiments. The
+        GUI receives data frames from an OnDA Monitor, but only when the data is tagged
+        with the `view:omframedata` label. The data must contain processed detector
+        frames. The GUI will then display the frame images, and allow a user to choose
+        a set of peak-finding parameters. The
+        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        algorithm will be applied on the fly to each received frame, and the GUI will
+        display the positions of all detected Bragg peaks on each frame image.
 
-        This GUI receives detector frame data from an OndA Monitor for Crystallography
-        when it is tagged with the 'view:omframedata' label.  The received data must
-        include processed detector frames.
-
-        The GUI allows the user to choose a set of peak-finding parameters. It then
-        applies the [Peakfinder8PeakDetection]
-        [om.algorithms.crystallography.Peakfinder8PeakDetection] algorithm on the fly
-        to each received frame. FInally, it displays the frame together with the
-        detected peaks. A data buffer allows the GUI to stop receiving data from the
-        monitor but still keep in memory the last 10 received frames to inspect and
-        operate on.
+        A data storage buffer allows the viewer to stop receiving data from the OnDA
+        Monitor, but still keep in memory the last 10 displayed frames for
+        re-inspection and re-processing (peak-finding with new parameters).
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI will connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
         """
         super(CrystallographyParameterTweaker, self).__init__(
             url=url,
@@ -328,13 +324,13 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         except ValueError:
             return
 
-        self._peak_detection.set_adc_thresh(pf8_adc_threshold)
-        self._peak_detection.set_minimum_snr(pf8_minimum_snr)
-        self._peak_detection.set_min_pixel_count(pf8_min_pixel_count)
-        self._peak_detection.set_max_pixel_count(pf8_max_pixel_count)
-        self._peak_detection.set_local_bg_radius(pf8_local_bg_radius)
-        self._peak_detection.set_min_res(pf8_min_res)
-        self._peak_detection.set_max_res(pf8_max_res)
+        self._peak_detection.set_adc_thresh(adc_thresh=pf8_adc_threshold)
+        self._peak_detection.set_minimum_snr(minimum_snr=pf8_minimum_snr)
+        self._peak_detection.set_min_pixel_count(min_pixel_count=pf8_min_pixel_count)
+        self._peak_detection.set_max_pixel_count(max_pixel_count=pf8_max_pixel_count)
+        self._peak_detection.set_local_bg_radius(local_bg_radius=pf8_local_bg_radius)
+        self._peak_detection.set_min_res(min_res=pf8_min_res)
+        self._peak_detection.set_max_res(max_res=pf8_max_res)
 
         self._detect_peaks()
 
@@ -421,9 +417,11 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function stores the data received from OM, and calls the internal
-        functions that initially perform the hit finding with the current chosen
-        parameters, and then display the detector frame and the detected peaks.
+        This method, which is executed at regular intervals, calls the internal
+        functions that perform the hit finding with the current chosen parameters,
+        and update the displayed detector frame and Bragg peaks. Additionally, this
+        function manages the data storage buffer that allows the last received frames
+        to be re-inspected and re-processed.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
@@ -492,19 +490,18 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
 def main(*, url: str, config: str) -> None:
     """
     OM Parameter Tweaker for Crystallography. This program must connect to a running
-    OnDA Monitor for Crystallography. If the monitor broadcasts detector frame data,
-    this graphical interface will receive it. The user will be allowed to choose a set
-    of peakfinding parameters which will then be applied to each received detector
-    frame. Each frame will be displayed with its detected peaks. The data stream
-    from the monitor can also be temporarily paused, and any of the last 10 displayed
-    detector frames can be recalled and operated on. The purpose of this GUI is to
-    allow the user to refine the peak finding parameters without interfering with
-    with the OnDA Monitor observing the experiment.
+    OnDA Monitor for Crystallography. If the monitor broadcasts detector data frames,
+    this graphical interface will receive them. The user will be allowed to choose a
+    set  of peak-finding parameters which will be applied to each received detector
+    frame in real-time. Each frame image will then be displayed, together with the
+    positions of all the detected Bragg peaks. The program can also temporarily
+    disconnect from the monitor, and any of the last 10 displayed frames can be
+    recalled and reprocessed.
 
     The GUI conects to and OnDA Monitor running at the IP address (or hostname)
     specified by the URL string. This is a string in the format used by the ZeroMQ
-    Protocol. The URL string is optional. If not provided, URL defaults to
-    tcp://127.0.0.1:12321 and the GUI connects, using the tcp protocol, to a monitor
+    protocol. The URL string is optional. If not provided, URL defaults to
+    tcp://127.0.0.1:12321: the GUI will connect, using the tcp protocol, to a monitor
     running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring

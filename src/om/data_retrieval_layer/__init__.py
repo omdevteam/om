@@ -16,12 +16,11 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's ta Retrieval Layer package.
+OM's Data Retrieval Layer.
 
-This package contains OM's Data Retrieval Layer, with Data Event Handlers and Data
-Extraction Functions supporting several facilities. Functions and classes for different
-detectors and software frameworks are implemented in separate modules that are imported
-on-demand when OM starts.
+This package contains OM's Data Retrieval Layer (which manages the retrieval of data
+and data events from various sources). Functions and classes for different detectors,
+facilities and software frameworks are implemented in separate modules in the package.
 """
 
 try:
@@ -33,6 +32,7 @@ try:
         PilatusFilesDataRetrieval,
         Eiger16MFilesDataRetrieval,
     )
+
     print("OM Message: activating file-based data retrieval")
     PilatusFilesDataEventHandler = PilatusFilesDataRetrieval
     Jungfrau1MFilesDataEventHandler = Jungfrau1MFilesDataRetrieval
@@ -50,6 +50,7 @@ try:
         MfxLclsDataRetrieval,
         MfxLclsRayonixDataRetrieval,
     )
+
     print("OM Message: activating psana data retrieval")
     MfxLclsDataEventHandler = MfxLclsDataRetrieval
     MfxLclsRayonixDataEventHandler = MfxLclsRayonixDataRetrieval
@@ -67,6 +68,7 @@ try:
     from om.data_retrieval_layer.data_retrieval_zmq import (
         Jungfrau1MZmqDataRetrieval,
     )
+
     print("OM Message: activating ZMQ data retrieval")
     Jungfrau1MZmqDataEventHandler = Jungfrau1MZmqDataRetrieval
 except ModuleNotFoundError:

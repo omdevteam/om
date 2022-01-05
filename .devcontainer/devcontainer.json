@@ -1,4 +1,5 @@
 {
   "build": {"dockerfile": "Dockerfile"},
+  "forwardPorts": [8000],
   "runArgs": ["--security-opt", "label=disable"]
 }

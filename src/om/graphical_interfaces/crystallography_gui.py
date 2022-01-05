@@ -18,8 +18,8 @@
 """
 OM's GUI for Crystallography.
 
-This module contains the implementation of a graphical interface that displays reduced
-and aggregated data in crystallography experiments.
+This module contains a graphical interface that displays reduced and aggregated data in
+serial crystallography experiments.
 """
 import signal
 import sys
@@ -51,30 +51,24 @@ except ImportError:
 class CrystallographyGui(graph_interfaces_base.OmGui):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, *, url: str) -> None:
         """
         OM graphical user interface for crystallography.
 
-        This class implements a graphical user interface for crystallography
-        experiments. It is a subclass of the [OmGui]
-        [om.graphical_interfaces.base.OmGui] base class.
-
-        This GUI receives reduced and aggregated data from an OnDA Monitor for
-        Crystallography when it is tagged with the 'omdata' label. The data must
-        contain information about peaks detected in the frames recently processed by
-        the monitor and information about the current hit rate.
-
-        The GUI displays a plot showing the evolution of the hit rate over time, plus a
-        virtual powder pattern created using the detected peaks.
+        This class implements a graphical user interface for serial crystallography
+        experiments. The GUI receives reduced and aggregated data from an OnDA Monitor,
+        but only when it is tagged with the `view:omdata` label. The data
+        must contain information about the position of detected Bragg peaks, together
+        with information about the current hit rate. The GUI will then display a plot
+        showing the evolution of the hit rate over time, plus a virtual powder pattern
+        generated using the positions of the detected Bragg peaks on the detector .
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI will connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
         """
         super(CrystallographyGui, self).__init__(
             url=url,
@@ -268,8 +262,8 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function stores the data received from OM, and calls the internal
-        functions that update the hit rate history plot and the virtual power pattern.
+        This method, which is executed at regular intervals, calls the internal
+        functions that update the hit rate history plot and the virtual powder pattern.
         """
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
@@ -357,14 +351,14 @@ def main(*, url: str) -> None:
     OM Graphical User Interface for Crystallography. This program must connect to a
     running OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
     information, this GUI will display the evolution of the hit rate over time, plus a
-    real-time virtual powder pattern created using the peaks detected in detector
-    frames processed by the monitor.
+    real-time virtual powder pattern created using the positions, on the detector, of
+    the detected Bragg peaks
 
     The GUI connects to and OnDA Monitor running at the IP address (or hostname)
     specified by the URL string. This is a string in the format used by the ZeroMQ
-    Protocol. The URL string is optional. If not provided, it defaults to
-    "tcp://127.0.0.1:12321" and the viewer connects, using the tcp protocol, to a
-    monitor running on the local machine at port 12321.
+    protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321": the GUI will connect, using the tcp protocol, to a monitor
+    running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring
     # above becomes the help string for the script.

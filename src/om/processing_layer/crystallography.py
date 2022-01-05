@@ -44,32 +44,29 @@ except ImportError:
 class CrystallographyProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
-
-    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        OnDA real-time Monitor for serial x-ray crystallography experiments.
+        OnDA Monitor for Crystallography.
 
-        This class contains an OnDA Monitor that processes detector data frames,
-        optionally applying detector calibration, dark correction and gain correction.
-        The Monitor then detects Bragg peaks in each detector frame using the
-        'peakfinder8' peak detection algorithm from the Cheetah software package. It
-        retrieves information about the location, size and intensity of each peak.
-        Additionally, it calculates the evolution of the hit rate over time. It
-        broadcasts all this information over a network socket for visualization by
-        other programs. This OnDA Monitor can also optionally broadcast calibrated and
-        corrected detector data frames to be displayed by an external program.
-
-        This class is a subclass of the
-        [OmProcessing][om.processing_layer.base.OmProcessing] base class.
+        This Processing class implements an OnDA Monitor for serial crystallography
+        experiments. The monitor processes detector data frames, optionally applying
+        detector calibration, dark correction and gain correction. It then detects
+        Bragg peaks in each detector frame using the
+        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        algorithm, retrieving information about the location, size, intensity, SNR and
+        maximum pixel value of each peak. Additionally, the monitor calculates the
+        evolution of the hit rate over time. It can also optionally collect examples of
+        hit and non-hit calibrated detector data frames. All the information is
+        broadcast over a ZMQ socket for visualization by external programs like
+        [OM's Crystallography GUI][om.graphical_interfaces.crystallography_gui.CrystallographyGui]
+        or
+        [OM's Frame Viewer][om.graphical_interfaces.crystallography_frame_viewer.CrystallographyFrameViewer].
 
         Arguments:
 
-          monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._monitor_params = monitor_parameters
 
@@ -77,7 +74,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM processing nodes for the Crystallography Monitor.
+        Initializes the processing nodes for the Crystallography Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -192,7 +189,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM collecting node for the Crystallography Monitor.
+        Initializes the collecting node for the Crystallography Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -247,7 +244,6 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             parameter_type=bool,
             required=False,
         )
-        self._binning: Union[gen_algs.Binning, None]
         if binning:
             self._binning = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
@@ -345,10 +341,10 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function performs calibration and correction of a detector data frame and
-        extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
-        optionally, the detector frame data) for transmission to to the collecting
-        node.
+        This function processes retrieved data events, calibrating and correcting the
+        detector data frames and extracting the Bragg peak information. Finally, it
+        prepares the Bragg peak data (and optionally, the detector frame data) for
+        transmission to to the collecting node.
 
         Arguments:
 
@@ -358,20 +354,23 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            data: A dictionary containing the data retrieved by OM for the frame being
-                processed.
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
 
-                * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' parameter group in the configuration file.
+                * The dictionary keys describe the Data Sources for which OM has
+                  retrieved data. The keys must match the source names listed in the
+                  `required_data` entry of OM's `om` configuration parameter group.
 
-                * The corresponding dictionary values must store the retrieved data.
+                * The corresponding dictionary values must store the the data that OM
+                  retrieved for each of the Data Sources.
 
         Returns:
 
-            A tuple whose first entry is a dictionary storing the data that should be
-            sent to the collecting node, and whose second entry is the OM rank number
-            of the node that processed the information.
+            A tuple with two entries. The first entry is a dictionary storing the
+            processed data that should be sent to the collecting node. The second entry
+            is the OM rank number of the node that processed the information.
         """
+
         processed_data: Dict[str, Any] = {}
         corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
             data=data["detector_data"]
@@ -447,16 +446,15 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> None:
         """
-        Computes statistics on aggregated Bragg peak data broadcasts them.
+        Computes statistics on aggregated data and broadcasts them.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function collects the Bragg peak information from the processing nodes and
-        computes the average hit rate and a virtual powder pattern. It then broadcasts
-        this information over a network socket for visualization by external programs.
-        This function also broadcasts any detector frame data received from the
-        processing nodes.
+        This function collects Bragg peak information (and optionally, frame data) from
+        the processing nodes. It computes a rolling average estimation of the hit rate
+        and a virtual powder pattern. It then broadcasts the aggregated information
+        over a network socket for visualization by external programs.
 
         Arguments:
 
@@ -466,7 +464,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
@@ -583,7 +581,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> None:
+    ) -> Union[Dict[str, Any], None]:
         """
         Ends processing actions on the processing nodes.
 
@@ -602,10 +600,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
 
         Returns:
 
-            A dictionary storing information to be sent to the processing node
-            (Optional: if this function returns nothing, no information is transferred
-            to the processing node.
-
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+            the processing node.
         """
         print("Processing node {0} shutting down.".format(node_rank))
         sys.stdout.flush()

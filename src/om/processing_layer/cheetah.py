@@ -18,8 +18,8 @@
 """
 Cheetah
 
-This module contains the implementation of Cheetah, a data processing program for
-serial x-ray crystallography experiments based on OM.
+This module contains Cheetah, a data-processing program for serial x-ray
+crystallography, based on OM but not designed to be run in real time.
 """
 import collections
 import pathlib
@@ -27,7 +27,6 @@ import sys
 import time
 from typing import Any, Deque, Dict, List, TextIO, Tuple, Union
 
-import h5py  # type: ignore
 import numpy  # type: ignore
 
 from om.algorithms import crystallography as cryst_algs
@@ -40,38 +39,28 @@ from om.utils.crystfel_geometry import TypeDetector
 class CheetahProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
-
-    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        Cheetah processing layer for serial crystallography experiments.
+        Cheetah.
 
-        This class contains the implementation of the Cheetah software package. Cheetah
+        This Processing class implements the Cheetah software package. Cheetah
         processes detector data frames, optionally applying detector calibration, dark
         correction and gain correction. It then detects Bragg peaks in each detector
-        frame using the 'peakfinder8' peak detection algorithm. It retrieves
-        information about the location, size, intensity, SNR and the maximum pixel
-        value of each peak. Cheetah then saves the calibrated and corrected detector
-        data, plus all the experiment-related information retrieved from the facility
-        or extracted from the data in multi-event HDF5 files. In addition to saving
-        individual frames, Cheetah can write compute and save sums of frames identified
-        as hits and non-hits, together with virtual powder patterns,  into separate
-        HDF5 "sum files".
-
-        Cheetah can also optionally broadcast detector data, Bragg peaks and hit-rate
-        information over a network socket for monitoring and visualization by other
-        programs, mimicking the functionality of a regular real-time OnDA Monitor.
-
-        This class is a subclass of the
-        [OmProcessing][om.processing_layer.base.OmProcessing] base class.
+        frame using the
+        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        algorithm, retrieving information about the location, size, intensity, SNR
+        and maximum pixel value of each peak. Cheetah then saves the calibrated and
+        corrected detector data, plus all the information retrieved from the facility
+        or extracted from the data, in multi-event HDF5 files. In addition to saving
+        individual frames, Cheetah can optionally compute separate detector frame sums
+        for hit and non-hit frames. The sums are saved, together with corresponding
+        virtual powder patterns, in HDF5 sum files.
 
         Arguments:
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._monitor_params = monitor_parameters
 
@@ -79,13 +68,13 @@ class CheetahProcessing(pl_base.OmProcessing):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM processing nodes for Cheetah.
+        Initializes the processing nodes for Cheetah.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function initializes the correction and peak finding algorithms, the HDF5
-        file writer plus some internal counters.
+        This function initializes the correction and peak finding algorithms, the
+        multi-frame HDF5 file writer, and some internal counters.
 
         Arguments:
 
@@ -240,15 +229,14 @@ class CheetahProcessing(pl_base.OmProcessing):
 
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
-        Initializes the OM collecting node for Cheetah.
+        Initializes the collecting node for Cheetah.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function initializes the data accumulation algorithms, the storage buffers
         used to compute statistics on the detected Bragg peaks and, optionally, the sum
-        file writers. Additionally, it prepares the data broadcasting socket to send
-        data to external programs.
+        file writer.
 
         Arguments:
 
@@ -277,7 +265,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             required=True,
         )
 
-        self._geometry: TypeDetector
         self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
             filename=self._monitor_params.get_parameter(
                 group="crystallography",
@@ -295,7 +282,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             parameter_type=bool,
             required=False,
         )
-        self._binning: Union[gen_algs.Binning, None]
         if binning:
             self._binning = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
@@ -464,11 +450,11 @@ class CheetahProcessing(pl_base.OmProcessing):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function performs calibration and correction of a detector data frame and
-        extracts Bragg peak information. It then saves the frame in the output HDF5
-        file if it is identified as hit. Finally, it prepares the Bragg peak data (and
-        optionally, the detector frame data and accumulated sums of hits and non-hits)
-        for transmission to the collecting node.
+        This function processes retrieved data events, calibrating and correcting the
+        detector data frames and extracting the Bragg peak information. It also saves
+        the frame-related processed data in an output HDF5 file, if a frame is
+        identified as a hit. Finally, it prepares the peak-related data (and
+        optionally, the frame-related data) for transmission to the collecting node.
 
         Arguments:
 
@@ -478,19 +464,21 @@ class CheetahProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            data: A dictionary containing the data retrieved by OM for the frame being
-                processed.
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
 
-                * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' parameter group in the configuration file.
+                * The dictionary keys describe the Data Sources for which OM has
+                  retrieved data. The keys must match the source names listed in the
+                  `required_data` entry of OM's `om` configuration parameter group.
 
-                * The corresponding dictionary values must store the retrieved data.
+                * The corresponding dictionary values must store the the data that OM
+                  retrieved for each of the Data Sources.
 
         Returns:
 
-            A tuple whose first entry is a dictionary storing the data that should be
-            sent to the collecting node, and whose second entry is the OM rank number
-            of the node that processed the information.
+            A tuple with two entries. The first entry is a dictionary storing the
+            processed data that should be sent to the collecting node. The second entry
+            is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
         corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
@@ -607,22 +595,19 @@ class CheetahProcessing(pl_base.OmProcessing):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> None:
         """
-        Computes aggregated Bragg peak data and broadcasts it over the network.
+        Computes statistics on aggregated data and optionally saves them to files.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function collects the Bragg peak information and accumulated sums of
-        frames from the processing nodes. It then computes the total sums of hits and
-        non-hits detector frames as well as the corresponding virtual powder patterns,
-        saving them to HDF5 files. It also optionally writes the number of
-        processed events, number of found hits and the elapsed time in a status file.
-        External programs can inspect the status file to determine the advancement of
-        the processing work.
-
-        This method additionally broadcasts the information about the average hit rate
-        and accumulated virtual powder pattern over a network socket for visualization
-        by external programs.
+        This function collects and accumulates frame- and peak-related information
+        received from the processing nodes. Optionally, it computes the sums of hit and
+        non-hit detector frames and the corresponding virtual powder patterns. If
+        required, it saves the sums and virtual powder patterns to sum files.
+        Additionally, this function can write information about the processing
+        statistics (number of processed events, number of found hits and the elapsed
+        time) in a status file at regular intervals. External programs can inspect the
+        file to determine the advancement of the data processing.
 
         Arguments:
 
@@ -632,7 +617,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
@@ -792,13 +777,13 @@ class CheetahProcessing(pl_base.OmProcessing):
         node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing actions on the processing nodes.
+        Ends processing on the processing nodes.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function prints a message on the console, closes output HDF5 file and ends
-        the processing.
+        This function prints a message on the console, closes the  output HDF5 files
+        and ends the processing.
 
         Arguments:
 
@@ -810,10 +795,8 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         Returns:
 
-            A dictionary storing information to be sent to the processing node
-            (Optional: if this function returns nothing, no information is transferred
-            to the processing node.
-
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+            the processing node.
         """
         print(
             "Processing finished. OM node {0} has processed {1} events in "
@@ -841,7 +824,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         refer to the documentation of that class for more information.
 
         This function prints a message on the console, writes the final information in
-        the status and sums HDF5 files, closes the files and ends the processing.
+        the sum and status files, closes the files and ends the processing.
 
         Arguments:
 
