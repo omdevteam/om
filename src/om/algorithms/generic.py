@@ -158,13 +158,9 @@ class Correction:
                     exc_type, exc_value = sys.exc_info()[:2]
                     # TODO: Fix types
                     raise RuntimeError(
-                        "The following error occurred while reading the {0} field "
-                        "from the {1} gain map HDF5 file: {2}: {3}".format(
-                            mask_filename,
-                            mask_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
-                        )
+                        "The following error occurred while reading the "
+                        f"{mask_hdf5_path} field from the {mask_filename} gain map "
+                        f"HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
@@ -186,13 +182,9 @@ class Correction:
                     exc_type, exc_value = sys.exc_info()[:2]
                     # TODO: Fix types
                     raise RuntimeError(
-                        "The following error occurred while reading the {0} field from"
-                        "the {1} dark data HDF5 file: {2}: {3}".format(
-                            dark_filename,
-                            dark_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
-                        )
+                        "The following error occurred while reading the "
+                        f"{dark_hdf5_path} field from the {dark_filename} dark data "
+                        f"HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
@@ -214,12 +206,9 @@ class Correction:
                     exc_type, exc_value = sys.exc_info()[:2]
                     # TODO: Fix types
                     raise RuntimeError(
-                        "The following error occurred while reading the {0} field from"
-                        "the {1} dark data HDF5 file: {2}: {3}".format(
-                            gain_filename,
-                            gain_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
+                        "The following error occurred while reading the "
+                        f"{gain_hdf5_path} field from the {gain_filename} dark data "
+                        f"HDF5 file: {exc_type.__name__}: {exc_value}"
                         )
                     ) from exc
             else:
@@ -307,10 +296,10 @@ class RadialProfile:
 
         """
         if parameters is not None:
-            bad_pixel_map_fname = param_utils.get_parameter_from_parameter_group(
+            bad_pixel_map_filename = param_utils.get_parameter_from_parameter_group(
                 group=parameters, parameter="bad_pixel_map_filename", parameter_type=str
             )
-            if bad_pixel_map_fname is not None:
+            if bad_pixel_map_filename is not None:
                 bad_pixel_map_hdf5_path: Union[
                     str, None
                 ] = param_utils.get_parameter_from_parameter_group(
@@ -322,23 +311,19 @@ class RadialProfile:
             else:
                 bad_pixel_map_hdf5_path = None
 
-            if bad_pixel_map_fname is not None:
+            if bad_pixel_map_filename is not None:
                 try:
                     map_hdf5_file_handle: Any
-                    with h5py.File(bad_pixel_map_fname, "r") as map_hdf5_file_handle:
+                    with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
                         bad_pixel_map = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
                     # TODO: Fix type check
                     raise RuntimeError(
-                        "The following error occurred while reading the {0} field from"
-                        "the {1} bad pixel map HDF5 file:"
-                        "{2}: {3}".format(
-                            bad_pixel_map_fname,
-                            bad_pixel_map_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
-                        )
+                        "The following error occurred while reading the "
+                        f"{bad_pixel_map_hdf5_path} field from the "
+                        f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
+                        f"{exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
                 bad_pixel_map = None
@@ -594,11 +579,6 @@ class Binning:
                 parameter_type=int,
                 required=True,
             )
-            bad_pixel_map_fname: str = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="bad_pixel_map_filename",
-                parameter_type=str,
-            )
             min_good_pix_count: Union[
                 int, None
             ] = param_utils.get_parameter_from_parameter_group(
@@ -613,7 +593,12 @@ class Binning:
                 parameter="bad_pixel_value",
                 parameter_type=int,
             )
-            if bad_pixel_map_fname is not None:
+            bad_pixel_map_filename: str = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="bad_pixel_map_filename",
+                parameter_type=str,
+            )
+            if bad_pixel_map_filename is not None:
                 bad_pixel_map_hdf5_path: Union[
                     str, None
                 ] = param_utils.get_parameter_from_parameter_group(
@@ -625,23 +610,19 @@ class Binning:
             else:
                 bad_pixel_map_hdf5_path = None
 
-            if bad_pixel_map_fname is not None:
+            if bad_pixel_map_filename is not None:
                 try:
                     map_hdf5_file_handle: Any
-                    with h5py.File(bad_pixel_map_fname, "r") as map_hdf5_file_handle:
+                    with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
                         bad_pixel_map = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
                     # TODO: Fix type check
                     raise RuntimeError(
-                        "The following error occurred while reading the {0} field from"
-                        "the {1} bad pixel map HDF5 file:"
-                        "{2}: {3}".format(
-                            bad_pixel_map_fname,
-                            bad_pixel_map_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
-                        )
+                        "The following error occurred while reading the "
+                        f"{bad_pixel_map_hdf5_path} field from the "
+                        f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
+                        f"{exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
                 bad_pixel_map = None

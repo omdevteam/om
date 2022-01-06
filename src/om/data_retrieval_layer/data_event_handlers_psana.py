@@ -201,8 +201,8 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
                         )
                     else:
                         raise exceptions.OmWrongParameterTypeError(
-                            "The requested '{}' LCLS-specific data type is not "
-                            "supported.".format(data_type)
+                            f"The requested '{data_type}' LCLS-specific data type is "
+                            "not supported."
                         )
         else:
             self._lcls_extra = None
@@ -380,7 +380,7 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
-                        "to the following error: {exc_type.__name__}: {exc_value}"
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         if self._lcls_extra:

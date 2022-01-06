@@ -180,11 +180,8 @@ class XesGui(graph_interfaces_base.OmGui):
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         timenow: float = time.time()
-        self.statusBar().showMessage(
-            "Estimated delay: {0} seconds".format(
-                round(timenow - local_data["timestamp"], 6)
-            )
-        )
+        estimated_delay: float = round(timenow - local_data["timestamp"], 6)
+        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
 
 @click.command()

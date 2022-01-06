@@ -391,15 +391,12 @@ class Peakfinder8PeakDetection:
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
                     # TODO: Fix type check
+                    exc_type_name = exc_type.__name__
                     raise RuntimeError(
-                        "The following error occurred while reading the {0} field from"
-                        "the {1} bad pixel map HDF5 file:"
-                        "{2}: {3}".format(
-                            bad_pixel_map_fname,
-                            bad_pixel_map_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
-                        )
+                        f"The following error occurred while reading the "
+                        f"{bad_pixel_map_hdf5_path} field from the "
+                        f"{bad_pixel_map_fname} bad pixel map HDF5 file:"
+                        f"{exc_type_name}: {exc_value}"
                     ) from exc
             else:
                 bad_pixel_map = None

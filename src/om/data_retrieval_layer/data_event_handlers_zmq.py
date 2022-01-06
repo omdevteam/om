@@ -155,7 +155,7 @@ class Jungfrau1MZmqDataEventHandler(drl_base.OmDataEventHandler):
         """
         url: str = self._source
         zmq_context: Any = zmq.Context()
-        print("Node {0} connecting to {1}".format(node_rank, url))
+        print(f"Node {node_rank} connecting to {url}")
         zmq_socket: Any = zmq_context.socket(zmq.PULL)
         zmq_socket.setsockopt(zmq.CONFLATE, 1)
         try:
@@ -277,7 +277,7 @@ class Jungfrau1MZmqDataEventHandler(drl_base.OmDataEventHandler):
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
-                        "to the following error: {exc_type.__name__}: {exc_value}"
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data

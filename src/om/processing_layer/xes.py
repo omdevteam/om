@@ -127,7 +127,7 @@ class XESProcessing(pl_base.OmProcessing):
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
 
-        print("Processing node {0} starting.".format(node_rank))
+        print(f"Processing node {node_rank} starting.")
         sys.stdout.flush()
 
     def initialize_collecting_node(
@@ -410,18 +410,14 @@ class XESProcessing(pl_base.OmProcessing):
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
-            speed_report_msg: str = (
-                "Processed: {0} in {1:.2f} seconds "
-                "({2:.2f} Hz)".format(
-                    self._num_events,
-                    now_time - self._old_time,
-                    (
-                        float(self._speed_report_interval)
-                        / float(now_time - self._old_time)
-                    ),
-                )
+            time_diff: float = now_time - self._old_time
+            events_per_second: float = float(self._speed_report_interval) / float(
+                now_time - self._old_time
             )
-            print(speed_report_msg)
+            print(
+                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
+                f"({events_per_second} Hz)"
+            )
             sys.stdout.flush()
             self._old_time = now_time
 
@@ -449,7 +445,7 @@ class XESProcessing(pl_base.OmProcessing):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
-        print("Processing node {0} shutting down.".format(node_rank))
+        print(f"Processing node {node_rank} shutting down.")
         sys.stdout.flush()
 
     def end_processing_on_collecting_node(
@@ -472,8 +468,7 @@ class XESProcessing(pl_base.OmProcessing):
                 processing nodes and the collecting node.
         """
         print(
-            "Processing finished. OM has processed {0} events in total.".format(
-                self._num_events
-            )
+            f"Processing finished. OM has processed {self._num_events} events "
+            "in total."
         )
         sys.stdout.flush()

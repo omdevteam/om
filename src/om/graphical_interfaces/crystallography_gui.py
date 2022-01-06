@@ -95,7 +95,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         ]
         x: float
         self._resolution_rings_textitems: List[Any] = [
-            pyqtgraph.TextItem(text="{0}A".format(x), anchor=(0.5, 0.8))
+            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8))
             for x in self._resolution_rings_in_a
         ]
         self._resolution_rings_enabled: bool = False
@@ -191,7 +191,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
 
         x: float
         self._resolution_rings_textitems = [
-            pyqtgraph.TextItem(text="{0}A".format(x), anchor=(0.5, 0.8))
+            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8))
             for x in self._resolution_rings_in_a
         ]
 
@@ -337,11 +337,8 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         timenow: float = time.time()
-        self.statusBar().showMessage(
-            "Estimated delay: {0} seconds".format(
-                round(timenow - local_data["timestamp"], 6)
-            )
-        )
+        estimated_delay: float = round(timenow - local_data["timestamp"], 6)
+        self.statusBar().showMessage(f"Estimated delay: {estimated_delay}")
 
 
 @click.command()

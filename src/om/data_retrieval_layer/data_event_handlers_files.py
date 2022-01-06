@@ -172,7 +172,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
                 filelist: List[str] = fhandle.readlines()
         except (IOError, OSError) as exc:
             raise RuntimeError(
-                "Error reading the {0} source file.".format(self._source)
+                f"Error reading the {self._source} source file."
             ) from exc
         num_files_curr_node: int = int(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))
@@ -298,7 +298,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
-                        "to the following error: {exc_type.__name__}: {exc_value}"
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data
@@ -438,7 +438,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
             raise RuntimeError(
-                "Error reading the {0} source file.".format(self._source)
+                f"Error reading the {self._source0} source file."
             ) from exc
         frame_list: List[Dict[str, Any]] = []
         # TODO: Specify types better
@@ -616,7 +616,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
-                        "to the following error: {exc_type.__name__}: {exc_value}"
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data
@@ -756,7 +756,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
             raise RuntimeError(
-                "Error reading the {0} source file.".format(self._source)
+                f"Error reading the {self._source} source file.")
             ) from exc
         num_files_curr_node: int = int(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))

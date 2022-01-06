@@ -164,11 +164,8 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         timenow: float = time.time()
-        self.statusBar().showMessage(
-            "Estimated delay: {0} seconds".format(
-                round(timenow - current_data["timestamp"], 6)
-            )
-        )
+        estimated_delay: float = round(timenow - current_data["timestamp"], 6)
+        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
     def update_gui(self) -> None:
         """
@@ -205,7 +202,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        print("Showing frame {0} in the buffer".format(self._current_frame_index))
+        print(f"Showing frame {self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _forward_button_clicked(self) -> None:
@@ -213,7 +210,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        print("Showing frame {0} in the buffer".format(self._current_frame_index))
+        print(f"Showing frame {self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _stop_stream(self) -> None:

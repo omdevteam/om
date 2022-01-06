@@ -163,7 +163,7 @@ def om_exception_handler(parameter_type, value, traceback_):  # type: ignore
     """
     # TODO: Fix types.
     if issubclass(parameter_type, OmException):
-        print("OM ERROR: {0}".format(value))
+        print(f"OM ERROR: {value}")
         sys.stdout.flush()
         sys.stderr.flush()
         sys.exit(0)

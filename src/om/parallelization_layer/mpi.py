@@ -122,7 +122,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
                         # If the received message announces that a processing node has
                         # finished processing data, keeps track of how many processing
                         # nodes have already finished.
-                        print("Finalizing {0}".format(received_data[1]))
+                        print(f"Finalizing {received_data[1]}")
                         self._num_nomore += 1
                         # When all processing nodes have finished, calls the
                         # 'end_processing_on_collecting_node' function then shuts down.
@@ -167,7 +167,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
             for event in events:
                 # Listens for requests to shut down.
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
-                    self.shutdown(msg="Shutting down RANK: {0}.".format(self._rank))
+                    self.shutdown(msg=f"Shutting down RANK: {self._rank}.")
 
                 self._data_event_handler.open_event(event=event)
                 n_frames_in_evt: int = self._data_event_handler.get_num_frames_in_event(

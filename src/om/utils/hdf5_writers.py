@@ -216,10 +216,9 @@ class HDF5Writer:
         else:
             self._max_num_peaks = max_num_peaks
 
-        self._processed_filename: pathlib.Path = pathlib.Path(
-            directory_for_processed_data
-        ).resolve() / "{0}_{1}.{2}".format(
-            processed_filename_prefix, node_rank, "inprogress"
+        self._processed_filename: pathlib.Path = (
+            pathlib.Path(directory_for_processed_data).resolve()
+            / f"{processed_filename_prefix}_{node_rank}.inprogress"
         )
 
         # TODO: fix cxiview (or even better, rewrite it)
@@ -376,8 +375,8 @@ class HDF5Writer:
                 )
             else:
                 raise exceptions.OmHdf5UnsupportedDataFormat(
-                    "Cannot write the '{}' data entry into the output HDF5: "
-                    "its format is not supported.".format(key)
+                    f"Cannot write the '{key}' data entry into the output HDF5: "
+                    "its format is not supported."
                 )
 
     def _write_extra_data(self, *, group_name: str, extra_data: Dict[str, Any]) -> None:
@@ -466,11 +465,7 @@ class HDF5Writer:
         self._processed_filename = self._processed_filename.rename(
             self._processed_filename.with_suffix(self._processed_filename_extension)
         )
-        print(
-            "{0} frames saved in {1} file.".format(
-                self._num_frames, self._processed_filename
-            )
-        )
+        print(f"{self._num_frames} frames saved in {self._processed_filename} file.")
         sys.stdout.flush()
 
     def get_current_filename(self) -> pathlib.Path:
@@ -540,10 +535,9 @@ class SumHDF5Writer:
         if sum_filename_prefix is None:
             sum_filename_prefix = "processed"
 
-        self._class_filename: pathlib.Path = pathlib.Path(
-            directory_for_processed_data
-        ).resolve() / "{0}-detector0-class{1}-sum.h5".format(
-            sum_filename_prefix, powder_class
+        self._class_filename: pathlib.Path = (
+            pathlib.Path(directory_for_processed_data).resolve()
+            / f"{sum_filename_prefix}-detector0-class{powder_class}-sum.h5"
         )
         self._h5file: Any = h5py.File(self._class_filename, "w")
 
@@ -598,8 +592,7 @@ class SumHDF5Writer:
                 time.sleep(2)
                 pass
         print(
-            "Another application is reading the file {0} exclusively. Five attempts "
-            "to open the files failed. Cannot update the file.".format(
-                self._class_filename
-            )
+            f"Another application is reading the file {self._class_filename} "
+            "exclusively. Five attempts to open the files failed. Cannot update the "
+            "file."
         )

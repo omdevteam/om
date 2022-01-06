@@ -374,12 +374,12 @@ def _dir_conv(
     ]
     items: List[str] = _assplode_algebraic(value=value)
     if not items:
-        raise RuntimeError("Invalid direction: {}.".format(value))
+        raise RuntimeError(f"Invalid direction: {value}.")
     item: str
     for item in items:
         axis: str = item[-1]
         if axis not in ("x", "y", "z"):
-            raise RuntimeError("Invalid Symbol: {} (must be x, y or z).".format(axis))
+            raise RuntimeError(f"Invalid Symbol: {axis} (must be x, y or z).")
         if item[:-1] == "+":
             value = "1.0"
         elif item[:-1] == "-":
@@ -407,7 +407,7 @@ def _set_dim_structure_entry(*, key: str, value: str, panel: TypePanel) -> None:
     except IndexError:
         raise RuntimeError("'dim' must be followed by a number, e.g. 'dim0')")
     except ValueError:
-        raise RuntimeError("Invalid dimension number {}".format(key[3]))
+        raise RuntimeError(f"Invalid dimension number {key[3]}")
     if dim_index > len(dim) - 1:
         for _ in range(len(dim), dim_index + 1):
             dim.append(None)
@@ -416,7 +416,7 @@ def _set_dim_structure_entry(*, key: str, value: str, panel: TypePanel) -> None:
     elif value.isdigit():
         dim[dim_index] = int(value)
     else:
-        raise RuntimeError("Invalid dim entry: {}.".format(value))
+        raise RuntimeError(f"Invalid dim entry: {value}.")
     panel["dim_structure"] = dim
 
 
@@ -450,7 +450,7 @@ def _parse_field_for_panel(  # noqa: C901
                 value=value,
             )
         except RuntimeError as exc:
-            raise RuntimeError("Invalid rail direction. ", exc)
+            raise RuntimeError(f"Invalid rail direction. ", exc)
     elif key == "clen_for_centering":
         panel["clen_for_centering"] = float(value)
     elif key == "adu_per_eV":
@@ -474,11 +474,11 @@ def _parse_field_for_panel(  # noqa: C901
             panel["clen_from"] = value
     elif key == "data":
         if not value.startswith("/"):
-            raise RuntimeError("Invalid data location: {}".format(value))
+            raise RuntimeError(f"Invalid data location: {value}")
         panel["data"] = value
     elif key == "mask":
         if not value.startswith("/"):
-            raise RuntimeError("Invalid data location: {}".format(value))
+            raise RuntimeError(f"Invalid data location: {value}")
         panel["mask"] = value
     elif key == "mask_file":
         panel["mask_file"] = value
@@ -532,7 +532,7 @@ def _parse_field_for_panel(  # noqa: C901
     elif key.startswith("dim"):
         _set_dim_structure_entry(key=key, value=value, panel=panel)
     else:
-        RuntimeError("Unrecognized field: {}".format(key))
+        RuntimeError(f"Unrecognized field: {key}")
 
 
 def _parse_toplevel(  # noqa: C901
@@ -619,7 +619,7 @@ def _parse_field_bad(*, key: str, value: str, bad: TypeBadRegion) -> None:
     elif key == "panel":
         bad["panel"] = value
     else:
-        raise RuntimeError("Unrecognized field: {}".format(key))
+        raise RuntimeError(f"Unrecognized field: {key}")
 
 
 def _check_point(
@@ -913,9 +913,8 @@ def load_crystfel_geometry(  # noqa: C901
                 for dim_index, entry in enumerate(panel["dim_structure"]):
                     if entry is None:
                         raise RuntimeError(
-                            "Dimension {} for panel {} is undefined.".format(
-                                dim_index, panel_name
-                            )
+                            f"Dimension {dim_index} for panel {panel_name} is "
+                            "undefined."
                         )
                     if entry == "ss":
                         found_ss += 1
@@ -925,19 +924,19 @@ def load_crystfel_geometry(  # noqa: C901
                         found_placeholder += 1
                 if found_ss != 1:
                     raise RuntimeError(
-                        "Exactly one slow scan dim coordinate is needed (found {} for "
-                        "panel {}).".format(found_ss, panel_name)
+                        "Exactly one slow scan dim coordinate is needed (found "
+                        f"{found_ss} for panel {panel_name})."
                     )
                 if found_fs != 1:
                     raise RuntimeError(
-                        "Exactly one fast scan dim coordinate is needed (found {} for "
-                        "panel {}).".format(found_fs, panel_name)
+                        "Exactly one fast scan dim coordinate is needed (found "
+                        f"{found_fs} for panel {panel_name})."
                     )
                 if found_placeholder > 1:
                     raise RuntimeError(
                         "Only one placeholder dim coordinate is allowed. Maximum one "
                         "placeholder dim coordinate is allowed "
-                        "(found {} for panel {})".format(found_placeholder, panel_name)
+                        f"(found {found_placeholder} for panel {panel_name})"
                     )
                 if dim_length == -1:
                     dim_length = len(panel["dim_structure"])
@@ -952,53 +951,46 @@ def load_crystfel_geometry(  # noqa: C901
             for panel_name, panel in detector["panels"].items():
                 if panel["orig_min_fs"] < 0:
                     raise RuntimeError(
-                        "Please specify the minimum fs coordinate for panel {}.".format(
-                            panel_name
-                        )
+                        "Please specify the minimum fs coordinate for panel "
+                        f"{panel_name}."
                     )
                 if panel["orig_max_fs"] < 0:
                     raise RuntimeError(
-                        "Please specify the maximum fs coordinate for panel {}.".format(
-                            panel_name
-                        )
+                        "Please specify the maximum fs coordinate for panel "
+                        f"{panel_name}."
                     )
                 if panel["orig_min_ss"] < 0:
                     raise RuntimeError(
-                        "Please specify the minimum ss coordinate for panel {}.".format(
-                            panel_name
-                        )
+                        "Please specify the minimum ss coordinate for panel "
+                        f"{panel_name}."
                     )
                 if panel["orig_max_ss"] < 0:
                     raise RuntimeError(
-                        "Please specify the maximum ss coordinate for panel {}.".format(
-                            panel_name
-                        )
+                        "Please specify the maximum ss coordinate for panel "
+                        f"{panel_name}."
                     )
                 if panel["cnx"] is None:
                     raise RuntimeError(
-                        "Please specify the corner X coordinate for panel {}.".format(
-                            panel_name
-                        )
+                        "Please specify the corner X coordinate for panel "
+                        f"{panel_name}."
                     )
                 if panel["clen"] is None and panel["clen_from"] is None:
                     raise RuntimeError(
-                        "Please specify the camera length for panel {}.".format(
-                            panel_name
-                        )
+                        f"Please specify the camera length for panel {panel_name}."
                     )
                 if panel["res"] < 0:
                     raise RuntimeError(
-                        "Please specify the resolution or panel {}.".format(panel_name)
+                        f"Please specify the resolution or panel {panel_name}."
                     )
                 if panel["adu_per_eV"] is None and panel["adu_per_photon"] is None:
                     raise RuntimeError(
                         "Please specify either adu_per_eV or adu_per_photon for panel "
-                        "{}.".format(panel_name)
+                        f"{panel_name}."
                     )
                 if panel["clen_for_centering"] is None and panel["rail_x"] is not None:
                     raise RuntimeError(
                         "You must specify clen_for_centering if you specify the rail "
-                        "direction (panel {})".format(panel_name)
+                        f"direction (panel {panel_name})."
                     )
                 if panel["rail_x"] is None:
                     panel["rail_x"] = 0.0
@@ -1014,7 +1006,7 @@ def load_crystfel_geometry(  # noqa: C901
                 if bad_region["is_fsss"] == 99:
                     raise RuntimeError(
                         "Please specify the coordinate ranges for bad "
-                        "region {}.".format(bad_region_name)
+                        f"region {bad_region_name}."
                     )
             group: str
             for group in detector["rigid_groups"]:
@@ -1023,7 +1015,7 @@ def load_crystfel_geometry(  # noqa: C901
                     if name not in detector["panels"]:
                         raise RuntimeError(
                             "Cannot add panel to rigid_group. Panel not "
-                            "found: {}".format(name)
+                            f"found: {name}."
                         )
             group_collection: str
             for group_collection in detector["rigid_group_collections"]:
@@ -1032,13 +1024,13 @@ def load_crystfel_geometry(  # noqa: C901
                     if group_name not in detector["rigid_groups"]:
                         raise RuntimeError(
                             "Cannot add rigid_group to collection. Rigid group not "
-                            "found: {}".format(name)
+                            f"found: {name}."
                         )
 
             for panel in detector["panels"].values():
                 d: float = panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]
                 if d == 0.0:
-                    raise RuntimeError("Panel {} transformation is singular.")
+                    raise fRuntimeError("Panel {name} transformation is singular.")
                 panel["xfs"] = panel["ssy"] / d
                 panel["yfs"] = panel["ssx"] / d
                 panel["xss"] = panel["fsy"] / d
@@ -1048,12 +1040,8 @@ def load_crystfel_geometry(  # noqa: C901
         # TODO: Fix type check
         exc_type, exc_value = sys.exc_info()[:2]
         raise exceptions.OmConfigurationFileReadingError(
-            "The following error occurred while reading the {0} geometry"
-            "file {1}: {2}".format(
-                filename,
-                exc_type.__name__,  # type: ignore
-                exc_value,
-            )
+            f"The following error occurred while reading the {filename} geometry"
+            f"file {exc_type.__name__}: {exc_value}"
         ) from exc
 
     return detector, beam, hdf5_peak_path

@@ -200,7 +200,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             geometry=self._geometry,
         )
 
-        print("Processing node {0} starting.".format(node_rank))
+        print(f"Processing node {node_rank} starting.")
         sys.stdout.flush()
 
     def _write_status_file(
@@ -213,19 +213,20 @@ class CheetahProcessing(pl_base.OmProcessing):
         # Writes a status file that the Cheetah GUI from Anton Barty can inspect.
 
         fh: TextIO
+        time_string: str = time.strftime("%a %b %d %H:%M:%S %Y")
         with open(self._status_filename, "w") as fh:
             fh.write("# Cheetah status\n")
-            fh.write("Update time: {}\n".format(time.strftime("%a %b %d %H:%M:%S %Y")))
+            fh.write(f"Update time: {time_string}\n")
             dt: int = int(time.time() - self._start_time)
             hours: int
             minutes: int
             hours, minutes = divmod(dt, 3600)
             seconds: int
             minutes, seconds = divmod(minutes, 60)
-            fh.write("Elapsed time: {}hr {}min {}sec\n".format(hours, minutes, seconds))
-            fh.write("Status: {}\n".format(status))
-            fh.write("Frames processed: {}\n".format(num_frames))
-            fh.write("Number of hits: {}\n".format(num_hits))
+            fh.write(f"Elapsed time: {hours}hr {minutes}min {seconds}sec\n")
+            fh.write(f"Status: {status}\n")
+            fh.write(f"Frames processed: {num_frames}\n")
+            fh.write(f"Number of hits: {num_hits}\n")
 
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
@@ -755,18 +756,14 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
-            speed_report_msg: str = (
-                "Processed: {0} in {1:.2f} seconds "
-                "({2:.2f} Hz)".format(
-                    self._num_events,
-                    now_time - self._old_time,
-                    (
-                        float(self._speed_report_interval)
-                        / float(now_time - self._old_time)
-                    ),
-                )
+            time_diff: float = now_time - self._old_time
+            events_per_second: float = float(self._speed_report_interval) / float(
+                now_time - self._old_time
             )
-            print(speed_report_msg)
+            print(
+                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
+                f"({events_per_second} Hz)"
+            )
             sys.stdout.flush()
             self._old_time = now_time
 
@@ -798,12 +795,12 @@ class CheetahProcessing(pl_base.OmProcessing):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
+        total_num_events: int = (
+            self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"]
+        )
         print(
-            "Processing finished. OM node {0} has processed {1} events in "
-            "total.".format(
-                node_rank,
-                self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"],
-            )
+            f"Processing finished. OM node {node_rank} has processed "
+            f"{total_num_events} events in total."
         )
         sys.stdout.flush()
         if self._file_writer is not None:
@@ -859,8 +856,12 @@ class CheetahProcessing(pl_base.OmProcessing):
                 "ave_intensity\n"
             )
             frame: Tuple[Any, ...]
+            # TODO: Make frame a named_tuple, maybe?
             for frame in frame_list:
-                fh.write("{}, {}, {}, {}, {}, {}, {}\n".format(*frame))
+                fh.write(
+                    f"{frame[0]}, {frame[1]}, {frame[2]}, {frame[3]}, "
+                    f"{frame[4]}, {frame[5]}, {frame[6]}\n"
+                )
         with open(self._cleaned_filename, "w") as fh:
             fh.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
@@ -868,6 +869,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
             for frame in frame_list:
                 if frame[2] is True:
-                    fh.write("{}, {}, {}, {}, {}, {}, {}\n".format(*frame))
+                    fh.write(
+                        f"{frame[0]}, {frame[1]}, {frame[2]}, {frame[3]}, "
+                        f"{frame[4]}, {frame[5]}, {frame[6]}\n"
+                    )
         print("Collecting node shutting down.")
         sys.stdout.flush()

@@ -105,7 +105,8 @@ class ZmqDataBroadcaster:
         # TODO: Fix types
 
         if url is None:
-            url = "tcp://{}:12321".format(get_current_machine_ip())
+            current_machine_ip: str = get_current_machine_ip()
+            url = f"tcp://{current_machine_ip}:12321"
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -118,9 +119,9 @@ class ZmqDataBroadcaster:
             if exc_type is not None:
                 raise exceptions.OmInvalidDataBroadcastUrl(
                     "The setup of the data broadcasting socket failed due to the "
-                    "following error: {0}: {1}.".format(exc_type.__name__, exc_value)
+                    f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
-        print("Broadcasting data at {0}".format(url))
+        print(f"Broadcasting data at {url}.")
         sys.stdout.flush()
 
     def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
@@ -196,7 +197,8 @@ class ZmqResponder:
         # TODO: Fix types
 
         if url is None:
-            url = "tcp://{}:12322".format(get_current_machine_ip())
+            current_machine_ip: str = get_current_machine_ip()
+            url = f"tcp://{current_machine_ip}:12322"
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -208,12 +210,12 @@ class ZmqResponder:
             if exc_type is not None:
                 raise exceptions.OmInvalidRespondingUrl(
                     "The setup of the responding socket failed due to the "
-                    "following error: {0}: {1}.".format(exc_type.__name__, exc_value)
+                    f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
 
         self._zmq_poller: Any = zmq.Poller()
         self._zmq_poller.register(self._sock, zmq.POLLIN)
-        print("Answering requests at {0}".format(url))
+        print(f"Answering requests at {url}")
         sys.stdout.flush()
 
     def get_request(self) -> Union[str, None]:

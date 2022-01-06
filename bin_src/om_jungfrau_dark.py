@@ -42,7 +42,7 @@ def main(input: str, output: str, s: int) -> None:
         with open(input, "r") as fhandle:
             filelist: List[str] = [fn.strip() for fn in fhandle]
     except (IOError, OSError) as exc:
-        raise RuntimeError("Error reading the {0} source file.".format(input)) from exc
+        raise RuntimeError(f"Error reading the {input} source file.") from exc
 
     n: int = 1024 * 512
     sd: numpy.ndarray = numpy.zeros((3, n), dtype=numpy.float64)

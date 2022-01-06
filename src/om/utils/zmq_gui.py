@@ -103,7 +103,7 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
         This function connects the listening socket to the URL with which the class was
         initialized. The socket starts receiving data immediately.
         """
-        print("Connecting to {0}".format(self._url))
+        print(f"Connecting to {self._url}")
         self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)
         try:
             self._zmq_subscribe.connect(self._url)
@@ -137,8 +137,8 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
         to start receiving data again.
         """
         self._listening_timer.stop()
-        print("Disconnecting from {0}".format(self._url))
-        self._zmq_subscribe.disconnect("{0}".format(self._url))
+        print(f"Disconnecting from {self._url}.")
+        self._zmq_subscribe.disconnect(f"{self.url}")
         self._zmq_poller = None
         self._zmq_subscribe = None
 

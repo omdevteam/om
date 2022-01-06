@@ -81,37 +81,28 @@ def get_parameter_from_parameter_group(
     ret: Any = group.get(parameter)
     if ret is None and required is True:
         raise exceptions.OmMissingParameterError(
-            "Parameter {0} in group [{1}] was not found, but is "
-            "required.".format(parameter, group["name"])
+            f"Parameter {parameter} in group [{group['name']}] was not found, but is "
+            "required."
         )
     if ret is not None and parameter_type is not None:
+        requested_parameter_type: str = str(parameter_type).split()[1][1:-2]
+        real_parameter_type: str = str(type(ret)).split()[1][1:-2],
         if parameter_type is str:
             if not isinstance(ret, str):
                 raise exceptions.OmWrongParameterTypeError(
-                    "Wrong type for parameter {0}: should be {1}, is "
-                    "{2}.".format(
-                        parameter,
-                        str(parameter_type).split()[1][1:-2],
-                        str(type(ret)).split()[1][1:-2],
-                    )
+                    f"Wrong type for parameter {parameter}: should be "
+                    f"{requested_parameter_type}, is {real_parameter_type}."
                 )
         elif parameter_type is float:
             if not isinstance(ret, float) and not isinstance(ret, int):
                 raise exceptions.OmWrongParameterTypeError(
-                    "Wrong type for parameter {0}: should be {1}, is "
-                    "{2}.".format(
-                        parameter,
-                        str(parameter_type).split()[1][1:-2],
-                        str(type(ret)).split()[1][1:-2],
-                    )
+                    f"Wrong type for parameter {parameter}: should be "
+                    f"{requested_parameter_type}, is {real_parameter_type}."
                 )
         elif not isinstance(ret, parameter_type):
             raise exceptions.OmWrongParameterTypeError(
-                "Wrong type for parameter {0}: should be {1}, is {2}.".format(
-                    parameter,
-                    str(parameter_type).split()[1][1:-2],
-                    str(type(ret)).split()[1][1:-2],
-                )
+                f"Wrong type for parameter {parameter}: should be "
+                f"{requested_parameter_type}, is {real_parameter_type}."
             )
 
         return ret
@@ -149,11 +140,11 @@ class MonitorParams:
                 self._monitor_params = yaml.safe_load(open_file)
         except OSError:
             raise exceptions.OmConfigurationFileReadingError(
-                "Cannot open or read the configuration file {0}".format(config)
+                f"Cannot open or read the configuration file {config}."
             )
         except yaml.parser.ParserError as exc:
             raise exceptions.OmConfigurationFileSyntaxError(
-                "Syntax error in the configuration file: {0}".format(exc)
+                f"Syntax error in the configuration file: {exc}."
             ) from exc
 
         # Store group name within the group
@@ -187,7 +178,7 @@ class MonitorParams:
         """
         if group not in self._monitor_params:
             raise exceptions.OmMissingParameterGroupError(
-                "Parameter group [{0}] is not in the configuration file".format(group)
+                f"Parameter group '{group}' is not in the configuration file."
             )
         return self._monitor_params[group]
 
