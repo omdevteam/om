@@ -62,8 +62,7 @@ class ZmqDataBroadcaster:
     def __init__(
         self,
         *,
-        url: Union[str, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data-broadcasting socket for OnDA Monitors.
@@ -87,29 +86,18 @@ class ZmqDataBroadcaster:
                 socket will be opened at port 12321 using the 'tcp://' protocol.
                 Defaults to None.
         """
-        if parameters is not None:
-            url = param_utils.get_parameter_from_parameter_group(
-                group=parameters, parameter="data_broadcast_url", parameter_type=str
-            )
-        else:
-            print(
-                "OM Warning: Initializing the ZmqDataBroadcaster class with "
-                "individual parameters (url) is deprecated and will be removed in a "
-                "future version of OM. Please use the new parameter group-based "
-                "initialization interface (which requires only the parameters "
-                "argument)."
-            )
-
-        self._context: Any = zmq.Context()
-        self._sock: Any = self._context.socket(zmq.PUB)
-        # TODO: Fix types
-
+        url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+            group=parameters, parameter="data_broadcast_url", parameter_type=str
+        )
         if url is None:
             current_machine_ip: str = get_current_machine_ip()
             url = f"tcp://{current_machine_ip}:12321"
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
+        # TODO: Fix types
+        self._context: Any = zmq.Context()
+        self._sock: Any = self._context.socket(zmq.PUB)
         self._sock.set_hwm(1)
         try:
             self._sock.bind(url)
@@ -156,8 +144,7 @@ class ZmqResponder:
     def __init__(
         self,
         *,
-        url: Union[str, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         ZMQ-based responding socket for OnDA Monitors.
@@ -179,29 +166,19 @@ class ZmqResponder:
                 socket will be opened at port 12322 using the 'tcp://' protocol.
                 Defaults to None.
         """
-        if parameters is not None:
-            url = param_utils.get_parameter_from_parameter_group(
-                group=parameters, parameter="responding_url", parameter_type=str
-            )
-        else:
-            print(
-                "OM Warning: Initializing the ZmqResponder class with individual "
-                "parameters (url) is deprecated and will be removed in a future "
-                "version of OM. Please use the new parameter group-based "
-                "initialization interface (which requires only the parameters "
-                "argument)."
-            )
-
-        self._context: Any = zmq.Context()
-        self._sock: Any = self._context.socket(zmq.REP)
-        # TODO: Fix types
-
+        url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+            group=parameters, parameter="responding_url", parameter_type=str
+        )
         if url is None:
             current_machine_ip: str = get_current_machine_ip()
             url = f"tcp://{current_machine_ip}:12322"
+        # TODO: Fix types
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
+        self._context: Any = zmq.Context()
+        self._sock: Any = self._context.socket(zmq.REP)
+        self._sock.set_hwm(1)
         try:
             self._sock.bind(url)
         except zmq.error.ZMQError as exc:

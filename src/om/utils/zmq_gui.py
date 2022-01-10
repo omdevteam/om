@@ -54,7 +54,6 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
         *,
         url: str,
         tag: str,
-        parameters: Union[Dict[str, Any], None] = None,
     ) -> None:
         """
         Data receiving socket for external programs.
@@ -84,8 +83,7 @@ class ZmqDataListener(QtCore.QObject):  # type: ignore
                 label matches this argument will be accepted and received.
         """
         QtCore.QObject.__init__(self)
-
-        self._url: str = url
+        self._url: Union[str, None] = url
         self._subscription_string: str = tag
         self._zmq_context: Any = zmq.Context()
         self._zmq_subscribe: Any = None

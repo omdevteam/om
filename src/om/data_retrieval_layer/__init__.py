@@ -26,24 +26,19 @@ facilities and software frameworks are implemented in separate modules in the pa
 try:
     import fabio  # type: ignore  # noqa: F401
     import h5py  # type: ignore  # noqa: F401
-
-    from om.data_retrieval_layer.data_retrieval_filesystem import (
+    from om.data_retrieval_layer.data_retrieval_files import (  # noqa: F401
         Jungfrau1MFilesDataRetrieval,
         PilatusFilesDataRetrieval,
         Eiger16MFilesDataRetrieval,
     )
 
     print("OM Message: activating file-based data retrieval")
-    PilatusFilesDataEventHandler = PilatusFilesDataRetrieval
-    Jungfrau1MFilesDataEventHandler = Jungfrau1MFilesDataRetrieval
-    Eiger16MFilesDataEventHandler = Eiger16MFilesDataRetrieval
 except ModuleNotFoundError:
     pass
 
 try:
     import psana  # type: ignore  # noqa: F401
-
-    from om.data_retrieval_layer.data_retrieval_psana import (
+    from om.data_retrieval_layer.data_retrieval_psana import (  # noqa: F401
         CxiLclsDataRetrieval,
         CxiLclsCspadDataRetrieval,
         CxiLclsEpix100DataRetrieval,
@@ -52,24 +47,17 @@ try:
     )
 
     print("OM Message: activating psana data retrieval")
-    MfxLclsDataEventHandler = MfxLclsDataRetrieval
-    MfxLclsRayonixDataEventHandler = MfxLclsRayonixDataRetrieval
-    CxiLclsDataEventHandler = CxiLclsDataRetrieval
-    CxiLclsCspadDataEventHandler = CxiLclsCspadDataRetrieval
-    CxiLclsEpix100DataEventHandler = CxiLclsEpix100DataRetrieval
-
 except ModuleNotFoundError:
     pass
 
 try:
+    import h5py  # type: ignore  # noqa: F401,F811
     import zmq  # type: ignore  # noqa: F401
-    import h5py  # type: ignore  # noqa: F401
 
-    from om.data_retrieval_layer.data_retrieval_zmq import (
+    from om.data_retrieval_layer.data_retrieval_zmq import (  # noqa: F401
         Jungfrau1MZmqDataRetrieval,
     )
 
     print("OM Message: activating ZMQ data retrieval")
-    Jungfrau1MZmqDataEventHandler = Jungfrau1MZmqDataRetrieval
 except ModuleNotFoundError:
     pass

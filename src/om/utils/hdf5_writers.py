@@ -47,19 +47,11 @@ class HDF5Writer:
     def __init__(  # noqa: C901
         self,
         *,
-        directory_for_processed_data: Union[str, None] = None,
-        node_rank: Union[int, None] = None,
-        geometry: Union[crystfel_geometry.TypeDetector, None] = None,
-        compression: Union[str, None] = None,
-        detector_data_type: Union[str, None] = None,
-        detector_data_shape: Union[Tuple[int, int], None] = None,
-        hdf5_fields: Union[Dict[str, str], None] = None,
-        processed_filename_prefix: Union[str, None] = None,
-        processed_filename_extension: Union[str, None] = None,
-        compression_opts: Union[int, None] = None,
-        compression_shuffle: Union[bool, None] = None,
-        max_num_peaks: Union[int, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        node_rank: int,
+        geometry: crystfel_geometry.TypeDetector,
+        detector_data_type: numpy.dtype,
+        detector_data_shape: Tuple[int, int],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         HDF5 file writer for Cheetah.
@@ -72,18 +64,50 @@ class HDF5Writer:
 
         Arguments:
 
-            directory_for_processed_data: A relative or absolute path to the directory
-                where the output files will be written.
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
 
-            node_rank: The rank of the OM node that will write the data in the output
-                files.
+                directory_for_processed_data: A relative or absolute path to the
+                    directory where the output files will be written.
 
-            geometry: A dictionary returned by the
-                load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
-                function, storing the detector geometry information.
 
-            compression: The compression filter to be applied to the data in the output
-                file.
+                compression: The compression filter to be applied to the data in the
+                    output file.
+
+
+                hdf5_fields: A dictionary storing information about the internal HDF5
+                    path where each data entry will be written.
+
+                    * The keys in the dictionary must store the names of data entries
+                      to write.
+
+                    * The corresponding dictionary values must contain the internal
+                      HDF5 paths where the entries will be written.
+
+                processed_filename_prefix: A string that will be prepended to the name
+                    of the output files. Optional. If the value of this entry is None,
+                    the string 'processed_' will be used as prefix. Defaults to None.
+
+                processed_filename_extension: An extension string that will appended to
+                    the name of the output files. Optional. If the value of this entry
+                    is None, the string 'h5' will be used as extension. Defaults to
+                    None.
+
+                compression_opts: The compression level to be used, if data compression
+                    is applied to the output files. This is entry is considered only
+                    if the `compression` entry is not None, otherwise, it is ignored.
+                    Optional. If the value of this entry is None, the compression level
+                    will be set to 4. Defaults to None.
+
+                compression_shuffle: Whether the `shuffle` filter is applied. If the
+                    value of this entry is True, the `shuffle` filter will be applied,
+                    otherwise it will not. Defaults to None.
+
+                max_num_peaks: The maximum number of detected Bragg peaks that will be
+                    written in the HDF5 for each detector frame. Optional. If the value
+                    of this entry is None, only the first 1024 peaks detected in each
+                    frame will be written to the output file. Defaults to None.
 
             detector_data_type: The numpy type of the detector data array that will be
                 written to the output files.
@@ -91,134 +115,85 @@ class HDF5Writer:
             detector_data_shape: The numpy shape of the detector data array that will
                 be written to the output files.
 
-            hdf5_fields: A dictionary storing information about the internal HDF5 path
-                where each data entry will be written.
+            geometry: A dictionary returned by the
+                [load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
+                function, storing the detector geometry information.
 
-                * The keys in the dictionary must store the names of data entries to
-                  write.
-
-                * The corresponding dictionary values must contain the internal HDF5
-                  paths where the entries will be written.
-
-            processed_filename_prefix: A string that will be prepended to the name of
-                the output files. Optional. If the value of this argument is None, the
-                string 'processed_' will be used as prefix. Defaults to None.
-
-            processed_filename_extension: An extension string that will appended to the
-                name of the output files. Optional. If the value of this argument is
-                None, the string 'h5' will be used as extension. Defaults to None.
-
-            compression_opts: The compression level to be used, if data compression is
-                applied to the output files. This is argument is considered only if the
-                `compression` argument is not None, otherwise, the argument is ignored.
-                Optional. If the value of this argument is None, the compression level
-                will be set to 4. Defaults to None.
-
-            compression_shuffle: Whether the `shuffle` filter is applied. If the value
-                of this argument is True, the `shuffle` filter will be applied,
-                otherwise it will not. Defaults to None.
-
-            max_num_peaks: The maximum number of detected Bragg peaks that will be
-                written in the HDF5 for each detector frame. Optional. If the value of
-                this argument is None, only the first 1024 peaks detected in each frame
-                will be written to the output file. Defaults to None.
+            node_rank: The rank of the OM node that will write the data in the output
+                files.
         """
-        if parameters is not None:
-            directory_for_processed_data = (
-                param_utils.get_parameter_from_parameter_group(
-                    group=parameters,
-                    parameter="processed_directory",
-                    parameter_type=str,
-                    required=True,
-                )
-            )
-            processed_filename_prefix = param_utils.get_parameter_from_parameter_group(
+        directory_for_processed_data: str = (
+            param_utils.get_parameter_from_parameter_group(
                 group=parameters,
-                parameter="processed_filename_prefix",
+                parameter="processed_directory",
                 parameter_type=str,
+                required=True,
             )
-            processed_filename_extension = (
-                param_utils.get_parameter_from_parameter_group(
-                    group=parameters,
-                    parameter="processed_filename_extension",
-                    parameter_type=str,
-                )
-            )
-            detector_data_type = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="hdf5_file_data_type",
-                parameter_type=str,
-            )
-            compression = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="hdf5_file_compression",
-                parameter_type=str,
-            )
-            compression_opts = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="hdf5_file_compression_opts",
-                parameter_type=int,
-            )
-            compression_shuffle = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="hdf5_file_compression_shuffle",
-                parameter_type=bool,
-            )
-            max_num_peaks = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="hdf5_file_max_num_peaks",
-                parameter_type=int,
-            )
-            hdf5_fields = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="hdf5_fields",
-                parameter_type=dict,
-            )
-        else:
-            print(
-                "OM Warning: Initializing the Hdf5Writer class with individual "
-                "parameters (directory_for_processed_data, node_rank,  geometry, "
-                "compression, detector_data_type, detector_data_shape, hdf5_fields, "
-                "hdf5_fields, processed_filename_prefix, "
-                "processed_filename_extension, compression_opts, compression_shuffle "
-                "max_num_peaks is deprecated and will be removed in a future version "
-                "of OM. Please use the new parameter group-based initialization "
-                "interface (which requires only the parameters argument)."
-            )
-
-        if (
-            directory_for_processed_data is None
-            or node_rank is None
-            or geometry is None
-            or detector_data_shape is None
-            or hdf5_fields is None
-        ):
-            raise RuntimeError(
-                "OM ERROR: Some parameters required for the initialization of the "
-                "HDF5Writer class have not been defined. Please check the command "
-                "to initialize the algorithm."
-            )
-
+        )
+        processed_filename_prefix: Union[
+            str, None
+        ] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="processed_filename_prefix",
+            parameter_type=str,
+        )
         if processed_filename_prefix is None:
             processed_filename_prefix = "processed"
+        self._processed_filename: pathlib.Path = (
+            pathlib.Path(directory_for_processed_data).resolve()
+            / f"{processed_filename_prefix}_{node_rank}.inprogress"
+        )
+        processed_filename_extension: Union[
+            str, None
+        ] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="processed_filename_extension",
+            parameter_type=str,
+        )
         if processed_filename_extension is None:
             processed_filename_extension = "h5"
+        self._processed_filename_extension: str = f".{processed_filename_extension}"
 
-        self._processed_filename_extension = f".{processed_filename_extension}"
+        compression: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="hdf5_file_compression",
+            parameter_type=str,
+        )
+        compression_opts: Union[
+            int, None
+        ] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="hdf5_file_compression_opts",
+            parameter_type=int,
+        )
+        compression_shuffle: Union[
+            bool, None
+        ] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="hdf5_file_compression_shuffle",
+            parameter_type=bool,
+        )
+        if compression is None:
+            compression_opts = None
+        elif compression_opts is None:
+            compression_opts = 4
+        if compression_shuffle is None:
+            compression_shuffle = False
 
-        if detector_data_type is None:
-            self._data_type: numpy.ndarray = numpy.float32
-        else:
-            self._data_type = numpy.dtype(detector_data_type)
-
+        max_num_peaks: Union[int, None] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="hdf5_file_max_num_peaks",
+            parameter_type=int,
+        )
         if max_num_peaks is None:
             self._max_num_peaks: int = 1024
         else:
             self._max_num_peaks = max_num_peaks
 
-        self._processed_filename: pathlib.Path = (
-            pathlib.Path(directory_for_processed_data).resolve()
-            / f"{processed_filename_prefix}_{node_rank}.inprogress"
+        hdf5_fields = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="hdf5_fields",
+            parameter_type=dict,
         )
 
         # TODO: fix cxiview (or even better, rewrite it)
@@ -226,14 +201,6 @@ class HDF5Writer:
         self._pixel_size: float = (
             1 / geometry["panels"][tuple(geometry["panels"].keys())[0]]["res"]
         )
-
-        if compression is None:
-            compression_opts = None
-        elif compression_opts is None:
-            compression_opts = 4
-
-        if compression_shuffle is None:
-            compression_shuffle = False
 
         # TODO: decide what to do if file exists
         self._h5file: Any = h5py.File(self._processed_filename, "w")

@@ -20,9 +20,10 @@ This module contains algorithms that perform data processing operations related 
 x-ray emission spectroscopy (beam energy spectrum retrieval, etc.).
 """
 
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 from scipy import ndimage  # type: ignore
 
 from om.utils import parameters as param_utils
@@ -36,11 +37,7 @@ class XESAnalysis:
     def __init__(
         self,
         *,
-        intensity_threshold: Union[float, None] = None,
-        rotation: Union[float, None] = None,
-        min_row: Union[int, None] = None,
-        max_row: Union[int, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        parameters: Dict[str, Any] = None,
     ) -> None:
         """
         Beam energy spectrum retrieval.
@@ -68,54 +65,37 @@ class XESAnalysis:
             max_row (int): The row index defining the end of the integration region
                 for the spectrum information.
         """
-        if parameters is not None:
-            intensity_threshold = param_utils.get_parameter_from_parameter_group(
+        self._intensity_threshold: float = (
+            param_utils.get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="intensity_threshold_in_ADU",
                 parameter_type=float,
             )
-            rotation = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="rotation_in_degrees",
-                parameter_type=float,
-                required=True,
-            )
-            min_row = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="min_row_in_pix_for_integration",
-                parameter_type=int,
-                required=True,
-            )
-            max_row = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="max_row_in_pix_for_integration",
-                parameter_type=int,
-                required=True,
-            )
-        else:
-            print(
-                "OM Warning: Initializing the XESAnalysis algorithm with individual "
-                "parameters (intensity threshold, rotation, min_row and max_row) is "
-                "deprecated and will be removed in a future version of OM. Please use "
-                "the new parameter group-based initialization interface (which "
-                "requires only the parameters and photon_energy_kev arguments)."
-            )
-
-        if rotation is None or min_row is None or max_row is None:
-            raise RuntimeError(
-                "OM ERROR: Some parameters required for the initialization of the "
-                "XESAnalysis algorithm have not been defined. Please check the command "
-                "used to initialize the algorithm."
-            )
-
-        self._intensity_threshold: Union[float, None] = intensity_threshold
-        self._rotation: Union[float, None] = rotation
-        self._min_row: Union[int, None] = min_row
-        self._max_row: Union[int, None] = max_row
+        )
+        self._rotation: float = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="rotation_in_degrees",
+            parameter_type=float,
+            required=True,
+        )
+        self._min_row: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_row_in_pix_for_integration",
+            parameter_type=int,
+            required=True,
+        )
+        self._max_row: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_row_in_pix_for_integration",
+            parameter_type=int,
+            required=True,
+        )
 
     # TODO: Enforce return dict content for the function below
 
-    def generate_spectrum(self, data: numpy.ndarray) -> Dict[str, numpy.ndarray]:
+    def generate_spectrum(
+        self, data: NDArray[numpy.float]
+    ) -> Dict[str, NDArray[numpy.float]]:
         """
         Calculates beam energy spectrum information from a 2D camera data frame.
 
@@ -125,8 +105,8 @@ class XESAnalysis:
 
         Arguments:
 
-            data (numpy.ndarray): The camera data frame from which the spectrum
-                information must be extracted.
+            data: The camera data frame from which the spectrum information must be
+                extracted.
 
         Returns:
 
@@ -143,11 +123,11 @@ class XESAnalysis:
         # Apply a threshold
         if self._intensity_threshold:
             data[data < self._intensity_threshold] = 0
-        imr: numpy.ndarray = ndimage.rotate(data, self._rotation, order=0)
-        spectrum: numpy.ndarray = numpy.mean(
+        imr: NDArray[numpy.float] = ndimage.rotate(data, self._rotation, order=0)
+        spectrum: NDArray[numpy.float] = numpy.mean(
             imr[:, self._min_row : self._max_row], axis=1
         )
-        spectrum_smoothed: numpy.ndarray = ndimage.filters.gaussian_filter1d(
+        spectrum_smoothed: NDArray[numpy.float] = ndimage.filters.gaussian_filter1d(
             spectrum, 2
         )
 

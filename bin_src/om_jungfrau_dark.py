@@ -35,7 +35,7 @@ def main(input: str, output: str, s: int) -> None:
     INPUT: text file containing list of dark files for one panel \n
     OUTPUT: output .h5 file
     """
-    const_dark: Tuple[int] = (0, 0, 0)
+    const_dark: Tuple[int, int, int] = (0, 0, 0)
     fn: str
     try:
         fhandle: TextIO
@@ -45,7 +45,7 @@ def main(input: str, output: str, s: int) -> None:
         raise RuntimeError(f"Error reading the {input} source file.") from exc
 
     n: int = 1024 * 512
-    sd: numpy.ndarray = numpy.zeros((3, n), dtype=numpy.float64)
+    sd: numpy.ndarray: NDArray[numpy.float64] = numpy.zeros((3, n), dtype=numpy.float64)
     nd: numpy.ndarray = numpy.zeros((3, n))
     for fn in filelist:
         h5_data_path: str = "/data_" + re.findall("_(f\d+)_", fn)[0]
