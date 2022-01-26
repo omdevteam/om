@@ -21,6 +21,7 @@ OM's Data Retrieval Layer.
 This package contains OM's Data Retrieval Layer (which manages the retrieval of data
 and data events from various sources). Functions and classes for different detectors,
 facilities and software frameworks are implemented in separate modules in the package.
+Other modules contain utilities functions and classes.
 """
 
 try:

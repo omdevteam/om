@@ -28,6 +28,7 @@ from numpy.typing import NDArray
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
+from om.data_retrieval_layer import utils_generic as utils_gen
 from om.utils.parameters import MonitorParams
 
 
@@ -85,67 +86,30 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
             monitor_parameters=self._monitor_parameters,
         )
         if self._calibrated_data_required:
-            dark_filenames: Union[
-                List[str], None
-            ] = self._monitor_parameters.get_parameter(
-                group="calibration",
-                parameter="dark_filenames",
+            dark_filenames: List[str] = self._monitor_parameters.get_parameter(
+                group="data_retrieval_layer",
+                parameter=f"{self._data_source_name}_dark_filenames",
                 parameter_type=list,
+                required=True,
             )
-            gain_filenames: Union[
-                List[str], None
-            ] = self._monitor_parameters.get_parameter(
-                group="calibration",
-                parameter="gain_filenames",
+            gain_filenames: List[str] = self._monitor_parameters.get_parameter(
+                group="data_retrieval_layer",
+                parameter=f"{self._data_source_name}_gain_filenames",
                 parameter_type=list,
+                required=True,
             )
 
-            # TODO: Energy should be in eV
-            photon_energy_kev: Union[
-                float, None
-            ] = self._monitor_parameters.get_parameter(
-                group="calibration",
-                parameter="photon_energy_kev",
+            photon_energy_kev: float = self._monitor_parameters.get_parameter(
+                group="data_retrieval_layer",
+                parameter=f"{self._data_source_name}_photon_energy_kev",
                 parameter_type=float,
             )
 
-            if (
-                dark_filenames is None
-                or gain_filenames is None
-                or photon_energy_kev is None
-            ):
-                self._calibration_available: bool = False
-            else:
-                self._calibration_available = True
-                # 2 for Jungfrau 1M
-                num_panels: int = len(dark_filenames)
-
-                self._dark: NDArray[numpy.float_] = numpy.ndarray(
-                    (3, 512 * num_panels, 1024), dtype=numpy.float32
-                )
-                self._gain: NDArray[numpy.float_] = numpy.ndarray(
-                    (3, 512 * num_panels, 1024), dtype=numpy.float64
-                )
-                panel_id: int
-                for panel_id in range(num_panels):
-                    gain_file: BinaryIO = open(gain_filenames[panel_id], "rb")
-                    dark_file: Any = h5py.File(dark_filenames[panel_id], "r")
-                    gain: int
-                    for gain in range(3):
-                        self._dark[
-                            gain, 512 * panel_id : 512 * (panel_id + 1), :
-                        ] = dark_file["gain%d" % gain][:]
-                        self._gain[
-                            gain, 512 * panel_id : 512 * (panel_id + 1), :
-                        ] = numpy.fromfile(
-                            gain_file, dtype=numpy.float64, count=1024 * 512
-                        ).reshape(
-                            (512, 1024)
-                        )
-                    gain_file.close()
-                    dark_file.close()
-
-                self._photon_energy_kev: float = photon_energy_kev
+            self._calibration = utils_gen.Jungfrau1MCalibration(
+                dark_filenames=dark_filenames,
+                gain_filenames=gain_filenames,
+                photon_energy_kev=photon_energy_kev,
+            )
 
     def get_data(
         self, *, event: Dict[str, Any]
@@ -176,22 +140,7 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
         )
 
         if self._calibrated_data_required:
-            calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float32)
-
-            where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
-                numpy.where(data & 2 ** 14 == 0),
-                numpy.where((data & (2 ** 14) > 0) & (data & 2 ** 15 == 0)),
-                numpy.where(data & 2 ** 15 > 0),
-            ]
-
-            gain: int
-            for gain in range(3):
-                calibrated_data[where_gain[gain]] -= self._dark[gain][where_gain[gain]]
-                calibrated_data[where_gain[gain]] /= (
-                    self._gain[gain][where_gain[gain]] * self._photon_energy_kev
-                )
-
-            return calibrated_data
+            return self._calibration.apply_calibration(data=data)
         else:
             return data
 
