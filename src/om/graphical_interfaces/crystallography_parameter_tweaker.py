@@ -26,10 +26,11 @@ import copy
 import signal
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, List, Tuple, Union, cast
 
-import click  # type: ignore
-import numpy  # type: ignore
+import click
+import numpy
+from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.graphical_interfaces import base as graph_interfaces_base
@@ -37,7 +38,7 @@ from om.utils import crystfel_geometry, exceptions, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
 
 try:
-    from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -84,7 +85,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
             tag="view:omframedata",
         )
 
-        self._img: Union[numpy.array, None] = None
+        self._img: Union[NDArray[numpy.float_], None] = None
         self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
         self._current_frame_index: int = -1
         self._monitor_params = monitor_parameters
@@ -115,17 +116,16 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         visual_img_shape: Tuple[int, int] = (y_minimum, x_minimum)
         self._img_center_x: int = int(visual_img_shape[1] / 2)
         self._img_center_y: int = int(visual_img_shape[0] / 2)
-        self._visual_pixelmap_x: numpy.ndarray = (
-            numpy.array(self._pixelmaps["x"], dtype=numpy.int)
-            + visual_img_shape[1] // 2
-            - 1
+
+        pixelmap_x_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        self._visual_pixelmap_x: NDArray[numpy.int_] = (
+            pixelmap_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        self._visual_pixelmap_y: numpy.ndarray = (
-            numpy.array(self._pixelmaps["y"], dtype=numpy.int)
-            + visual_img_shape[0] // 2
-            - 1
+        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        self._visual_pixelmap_y: NDArray[numpy.int_] = (
+            pixelmap_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()
-        self._assembled_img: numpy.ndarray = numpy.zeros(
+        self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
             shape=visual_img_shape, dtype=numpy.float32
         )
 
@@ -134,7 +134,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
                 parameters=self._monitor_params.get_parameter_group(
                     group="peakfinder8_peak_detection"
                 ),
-                radius_pixel_map=self._pixelmaps["radius"],
+                radius_pixel_map=cast(NDArray[numpy.float_], self._pixelmaps["radius"]),
             )
         )
 
@@ -294,8 +294,8 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
     def _update_peaks(
         self,
         *,
-        peak_list_x_in_frame: numpy.ndarray,
-        peak_list_y_in_frame: numpy.ndarray,
+        peak_list_x_in_frame: List[float],
+        peak_list_y_in_frame: List[float],
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
         QtWidgets.QApplication.processEvents()
@@ -338,7 +338,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         # Performs peak detection with the current parameters
 
         try:
-            current_data: numpy.ndarray = self._frame_list[self._current_frame_index]
+            current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the framebuffer is empty, returns without drawing anything.
             return
@@ -376,7 +376,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         # Updates the image and Bragg peaks shown by the viewer.
 
         try:
-            current_data: numpy.ndarray = self._frame_list[self._current_frame_index]
+            current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the framebuffer is empty, returns without drawing anything.
             return

@@ -24,12 +24,11 @@ the psana software framework (used at the LCLS facility).
 import sys
 from typing import Any, Dict, Generator, List, Union
 
-import numpy  # type: ignore
+import numpy
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_psana as ds_psana
 from om.utils import exceptions, parameters
-
 
 try:
     import psana  # type: ignore

@@ -86,7 +86,7 @@ def get_parameter_from_parameter_group(
         )
     if ret is not None and parameter_type is not None:
         requested_parameter_type: str = str(parameter_type).split()[1][1:-2]
-        real_parameter_type: str = str(type(ret)).split()[1][1:-2],
+        real_parameter_type: str = str(type(ret)).split()[1][1:-2]
         if parameter_type is str:
             if not isinstance(ret, str):
                 raise exceptions.OmWrongParameterTypeError(

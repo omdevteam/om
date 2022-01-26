@@ -28,14 +28,15 @@ import sys
 import time
 from typing import Any, Deque, Dict, Union
 
-import click  # type: ignore
-import numpy  # type: ignore
+import click
+import numpy
+from numpy.typing import NDArray
 
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtWidgets  # type: ignore
+    from PyQt5 import QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -76,7 +77,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
             tag="view:omframedata",
         )
 
-        self._img: Union[numpy.array, None] = None
+        self._img: Union[NDArray[numpy.float_], None] = None
         self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
         self._current_frame_index: int = -1
 
@@ -117,8 +118,8 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
     def _update_peaks(
         self,
         *,
-        peak_list_x_in_frame: numpy.ndarray,
-        peak_list_y_in_frame: numpy.ndarray,
+        peak_list_x_in_frame: NDArray[numpy.float_],
+        peak_list_y_in_frame: NDArray[numpy.float_],
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
         QtWidgets.QApplication.processEvents()
@@ -137,7 +138,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         # Updates the image and Bragg peaks shown by the viewer.
 
         try:
-            current_data: numpy.ndarray = self._frame_list[self._current_frame_index]
+            current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the framebuffer is empty, returns without drawing anything.
             return

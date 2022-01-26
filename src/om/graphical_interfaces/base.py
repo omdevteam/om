@@ -27,7 +27,7 @@ from typing import Any, Callable, Dict, List, Union  # noqa: F401
 from om.utils import exceptions, zmq_gui
 
 try:
-    from PyQt5 import QtCore, QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -40,7 +40,7 @@ class _QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore
     pass
 
 
-class OmGui(QtWidgets.QMainWindow, metaclass=_QtMetaclass):  # type: ignore
+class OmGui(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
     """
     See documentation of the `__init__` function.
     """

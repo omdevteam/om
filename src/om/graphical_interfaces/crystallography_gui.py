@@ -26,15 +26,16 @@ import sys
 import time
 from typing import Any, Dict, List, Tuple, Union
 
-import click  # type: ignore
-import numpy  # type: ignore
+import click
+import numpy
+from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -75,7 +76,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             tag="view:omdata",
         )
 
-        self._virt_powd_plot_img: Union[numpy.ndarray, None] = None
+        self._virt_powd_plot_img: Union[NDArray[numpy.int_], None] = None
         self._img_center_x: int = 0
         self._img_center_y: int = 0
 
@@ -117,7 +118,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
 
         self._resolution_rings_check_box: Any = QtWidgets.QCheckBox(
-            text="Show Resolution Rings", checked=True
+            text="Show Resolution Rings"
         )
         self._resolution_rings_check_box.setEnabled(True)
         self._resolution_rings_lineedit: Any = QtWidgets.QLineEdit()

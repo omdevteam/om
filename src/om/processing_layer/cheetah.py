@@ -25,9 +25,10 @@ import collections
 import pathlib
 import sys
 import time
-from typing import Any, Deque, Dict, List, TextIO, Tuple, Union
+from typing import Any, Deque, Dict, List, TextIO, Tuple, Union, cast
 
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
@@ -108,8 +109,14 @@ class CheetahProcessing(pl_base.OmProcessing):
                 parameters=self._monitor_params.get_parameter_group(
                     group="peakfinder8_peak_detection"
                 ),
-                radius_pixel_map=self._pixelmaps["radius"],
+                radius_pixel_map=cast(NDArray[numpy.float_], self._pixelmaps["radius"]),
             )
+        )
+
+        self._data_type: Union[str, None] = self._monitor_params.get_param(
+            group="cheetah",
+            parameter="hdf5_file_data_type",
+            parameter_type=str,
         )
 
         binning: Union[bool, None] = self._monitor_params.get_parameter(
@@ -139,11 +146,14 @@ class CheetahProcessing(pl_base.OmProcessing):
                 )
                 self._peak_detection.set_bad_pixel_mask(
                     self._binning.bin_bad_pixel_mask(
-                        self._peak_detection.get_bad_pixel_mask()
+                        mask=self._peak_detection.get_bad_pixel_mask()
                     )
                 )
                 self._peak_detection.set_radius_pixel_map(
-                    self._binning.bin_pixel_maps(self._pixelmaps)["radius"]
+                    cast(
+                        NDArray[numpy.float_],
+                        self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps),
+                    )["radius"]
                 )
             self._data_shape = self._binning.get_binned_data_shape()
         else:
@@ -196,6 +206,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
             parameters=self._monitor_params.get_parameter_group(group="cheetah"),
             detector_data_shape=self._data_shape,
+            detector_data_type=self._data_type,
             node_rank=node_rank,
             geometry=self._geometry,
         )
@@ -287,7 +298,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._binning = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
-            self._pixelmaps = self._binning.bin_pixel_maps(self._pixelmaps)
+            self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
         else:
             self._binning = None
@@ -335,20 +346,18 @@ class CheetahProcessing(pl_base.OmProcessing):
         visual_img_shape: Tuple[int, int] = (y_minimum, x_minimum)
         self._img_center_x: int = int(visual_img_shape[1] / 2)
         self._img_center_y: int = int(visual_img_shape[0] / 2)
-        self._visual_pixelmap_x: numpy.ndarray = (
-            numpy.array(self._pixelmaps["x"], dtype=numpy.int)
-            + visual_img_shape[1] // 2
-            - 1
+        pixelmap_x_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        self._visual_pixelmap_x: NDArray[numpy.int_] = (
+            pixelmap_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        self._visual_pixelmap_y: numpy.ndarray = (
-            numpy.array(self._pixelmaps["y"], dtype=numpy.int)
-            + visual_img_shape[0] // 2
-            - 1
+        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        self._visual_pixelmap_y: NDArray[numpy.int_] = (
+            pixelmap_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()
-        self._virt_powd_plot_img: numpy.ndarray = numpy.zeros(
+        self._virt_powd_plot_img: NDArray[numpy.int_] = numpy.zeros(
             visual_img_shape, dtype=numpy.int32
         )
-        self._frame_data_img: numpy.ndarray = numpy.zeros(
+        self._frame_data_img: NDArray[numpy.float_] = numpy.zeros(
             visual_img_shape, dtype=numpy.float32
         )
         self._data_broadcast: Union[bool, None] = self._monitor_params.get_parameter(
@@ -482,12 +491,14 @@ class CheetahProcessing(pl_base.OmProcessing):
             is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
-        corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
-            data=data["detector_data"]
-        )
+        corrected_detector_data: NDArray[
+            numpy.float_
+        ] = self._correction.apply_correction(data=data["detector_data"])
         if self._binning is not None and self._binning_before_peakfinding:
-            binned_detector_data = self._binning.bin_detector_data(
-                corrected_detector_data
+            binned_detector_data: : NDArray[
+            numpy.float_
+        ] = self._binning.bin_detector_data(
+                data=corrected_detector_data
             )
         else:
             binned_detector_data = corrected_detector_data
@@ -498,7 +509,7 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         if self._binning is not None and not self._binning_before_peakfinding:
             binned_detector_data = self._binning.bin_detector_data(
-                corrected_detector_data
+                data=corrected_detector_data
             )
             i: int
             bin_size: int = self._binning.get_bin_size()

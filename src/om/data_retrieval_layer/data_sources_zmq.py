@@ -23,7 +23,8 @@ This module contains Data Source classes that deal with data from ZMQ data strea
 from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
 
 import h5py  # type: ignore
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
@@ -119,10 +120,10 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
                 # 2 for Jungfrau 1M
                 num_panels: int = len(dark_filenames)
 
-                self._dark: numpy.ndarray = numpy.ndarray(
+                self._dark: NDArray[numpy.float_] = numpy.ndarray(
                     (3, 512 * num_panels, 1024), dtype=numpy.float32
                 )
-                self._gain: numpy.ndarray = numpy.ndarray(
+                self._gain: NDArray[numpy.float_] = numpy.ndarray(
                     (3, 512 * num_panels, 1024), dtype=numpy.float64
                 )
                 panel_id: int
@@ -146,7 +147,9 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
 
                 self._photon_energy_kev: float = photon_energy_kev
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a Jungfrau 1M detector data frame from a ZMQ data stream.
 
@@ -165,7 +168,7 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
             One detector data frame.
         """
         msg: Tuple[Dict[str, Any], Dict[str, Any]] = event["data"]
-        data: numpy.ndarray = numpy.concatenate(
+        data: NDArray[numpy.int_] = numpy.concatenate(
             [
                 numpy.frombuffer(msg[i]["data"], dtype=numpy.int16).reshape((512, 1024))
                 for i in range(2)
@@ -173,10 +176,9 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
         )
 
         if self._calibrated_data_required:
+            calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float32)
 
-            calibrated_data: numpy.ndarray = data.astype(numpy.float32)
-
-            where_gain: List[numpy.ndarray] = [
+            where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
                 numpy.where(data & 2 ** 14 == 0),
                 numpy.where((data & (2 ** 14) > 0) & (data & 2 ** 15 == 0)),
                 numpy.where(data & 2 ** 15 > 0),

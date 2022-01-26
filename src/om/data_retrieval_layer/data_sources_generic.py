@@ -22,7 +22,7 @@ This module contains Data Source classes that deal with data of no specific orig
 """
 from typing import Any, Dict, Union, cast
 
-import numpy  # type: ignore
+import numpy
 
 from om.data_retrieval_layer import base as drl_base
 from om.utils.parameters import MonitorParams

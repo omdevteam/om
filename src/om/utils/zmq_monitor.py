@@ -25,7 +25,7 @@ import socket
 import sys
 from typing import Any, Dict, Union
 
-import zmq  # type: ignore
+import zmq
 
 from om.utils import exceptions
 from om.utils import parameters as param_utils

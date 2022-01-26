@@ -28,8 +28,8 @@ from typing import Any, Dict, List, Tuple, Union
 
 import h5py  # type: ignore
 import numpy
-from typing_extensions import TypedDict
 from numpy.typing import NDArray
+from typing_extensions import TypedDict
 
 from om.lib.peakfinder8_extension import peakfinder_8  # type: ignore
 from om.utils import parameters as param_utils
@@ -207,7 +207,7 @@ class Peakfinder8PeakDetection:
     def __init__(
         self,
         *,
-        radius_pixel_map: NDArray[numpy.float],
+        radius_pixel_map: NDArray[numpy.float_],
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -385,22 +385,22 @@ class Peakfinder8PeakDetection:
                 map_hdf5_file_handle: Any
                 with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
                     self._bad_pixel_map: Union[
-                        NDArray[numpy.int], None
+                        NDArray[numpy.int_], None
                     ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
             except (IOError, OSError, KeyError) as exc:
                 exc_type, exc_value = sys.exc_info()[:2]
                 # TODO: Fix type check
-                exc_type_name = exc_type.__name__
                 raise RuntimeError(
-                    f"The following error occurred while reading the "
+                    "The following error occurred while reading the "  # type: ignore
                     f"{bad_pixel_map_hdf5_path} field from the "
                     f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
-                    f"{exc_type_name}: {exc_value}"
+                    f"{exc_type.__name__}: {exc_value}"
                 ) from exc
         else:
             self._bad_pixel_map = None
 
-        self._radius_pixel_map: NDArray[numpy.float] = radius_pixel_map
+        self._mask: Union[NDArray[numpy.int_], None] = None
+        self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
 
     def set_peakfinder8_info(self, peakfinder8_info: TypePeakfinder8Info) -> None:
         self._asic_nx = peakfinder8_info["asic_nx"]
@@ -408,15 +408,15 @@ class Peakfinder8PeakDetection:
         self._nasics_x = peakfinder8_info["nasics_x"]
         self._nasics_y = peakfinder8_info["nasics_y"]
 
-    def get_bad_pixel_mask(self) -> Union[NDArray[numpy.int], None]:
+    def get_bad_pixel_mask(self) -> Union[NDArray[numpy.int_], None]:
         return self._bad_pixel_mask
 
     def set_bad_pixel_mask(
-        self, bad_pixel_mask: Union[NDArray[numpy.int], None]
+        self, bad_pixel_mask: Union[NDArray[numpy.int_], None]
     ) -> None:
         self._bad_pixel_mask = bad_pixel_mask
 
-    def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy / float]) -> None:
+    def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
 
     def get_adc_thresh(self) -> float:
@@ -621,7 +621,7 @@ class Peakfinder8PeakDetection:
         self._max_res = max_res
         self._mask = None
 
-    def find_peaks(self, *, data: NDArray[numpy.float]) -> TypePeakList:
+    def find_peaks(self, *, data: NDArray[numpy.float_]) -> TypePeakList:
         """
         Finds peaks in a detector data frame.
 

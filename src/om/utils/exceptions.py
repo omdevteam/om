@@ -159,7 +159,7 @@ def om_exception_handler(parameter_type, value, traceback_):  # type: ignore
 
         value (str): The exception value (the message that comes with the exception).
 
-        traceback_ (str): The esception traceback.
+        traceback_ (str): The exception traceback.
     """
     # TODO: Fix types.
     if issubclass(parameter_type, OmException):

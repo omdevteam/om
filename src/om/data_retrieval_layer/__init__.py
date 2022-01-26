@@ -51,8 +51,8 @@ except ModuleNotFoundError:
     pass
 
 try:
-    import h5py  # type: ignore  # noqa: F401,F811
-    import zmq  # type: ignore  # noqa: F401
+    import h5py  # noqa: F401,F811
+    import zmq  # noqa: F401
 
     from om.data_retrieval_layer.data_retrieval_zmq import (  # noqa: F401
         Jungfrau1MZmqDataRetrieval,

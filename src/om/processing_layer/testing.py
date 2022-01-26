@@ -252,6 +252,7 @@ class TestProcessing(pl_base.OmProcessing):
         """
         print(f"Processing node {node_rank} shutting down.")
         sys.stdout.flush()
+        return None
 
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int

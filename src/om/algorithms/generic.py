@@ -23,16 +23,18 @@ tied to a specific experimental technique (e.g.: detector frame masking and corr
 radial averaging, data accumulation, binning, etc.).
 """
 import sys
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Type, TypeVar, Union, cast
 
 import h5py  # type:ignore
 import numpy
-from numpy.typing import NDArray
+from numpy.typing import DTypeLike, NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.utils import exceptions
 from om.utils import parameters as param_utils
 from om.utils.crystfel_geometry import TypePixelMaps
+
+A = TypeVar("A", NDArray[numpy.float_], NDArray[numpy.int_])
 
 
 class Correction:
@@ -43,7 +45,7 @@ class Correction:
     def __init__(  # noqa: C901
         self,
         *,
-        parameters: Dict[str, Any] = None,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Detector data frame correction.
@@ -149,15 +151,14 @@ class Correction:
                     mask_hdf5_file_handle: Any
                     with h5py.File(mask_filename, "r") as mask_hdf5_file_handle:
                         self._mask: Union[
-                            NDArray[numpy.int], None
+                            NDArray[numpy.int_], bool, None
                         ] = mask_hdf5_file_handle[mask_hdf5_path][:]
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
-                    # TODO: Fix types
                     raise RuntimeError(
-                        "The following error occurred while reading the "
-                        f"{mask_hdf5_path} field from the {mask_filename} gain map "
-                        f"HDF5 file: {exc_type.__name__}: {exc_value}"
+                        "The following error occurred while reading "  # type: ignore
+                        f"the {mask_hdf5_path} field from the {mask_filename} gain "
+                        f"map HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
@@ -172,16 +173,15 @@ class Correction:
                 try:
                     dark_hdf5_file_handle: Any
                     with h5py.File(dark_filename, "r") as dark_hdf5_file_handle:
-                        self._dark: Union[NDArray[numpy.float], None] = (
+                        self._dark: Union[NDArray[numpy.float_], bool, None] = (
                             dark_hdf5_file_handle[dark_hdf5_path][:] * self._mask
                         )
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
-                    # TODO: Fix types
                     raise RuntimeError(
-                        "The following error occurred while reading the "
-                        f"{dark_hdf5_path} field from the {dark_filename} dark data "
-                        f"HDF5 file: {exc_type.__name__}: {exc_value}"
+                        "The following error occurred while reading "  # type: ignore
+                        f"the {dark_hdf5_path} field from the {dark_filename} dark "
+                        f"data HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
@@ -196,16 +196,15 @@ class Correction:
                 try:
                     gain_hdf5_file_handle: Any
                     with h5py.File(gain_filename, "r") as gain_hdf5_file_handle:
-                        self._gain: Union[NDArray[numpy.float], None] = (
+                        self._gain: Union[NDArray[numpy.float_], None] = (
                             gain_hdf5_file_handle[gain_hdf5_path][:] * self._mask
                         )
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
-                    # TODO: Fix types
                     raise RuntimeError(
-                        "The following error occurred while reading the "
-                        f"{gain_hdf5_path} field from the {gain_filename} dark data "
-                        f"HDF5 file: {exc_type.__name__}: {exc_value}"
+                        "The following error occurred while reading "  # type: ignore
+                        f"the {gain_hdf5_path} field from the {gain_filename} dark "
+                        f"data HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
                 raise exceptions.OmHdf5PathError(
@@ -215,7 +214,7 @@ class Correction:
             # True here is equivalent to an all-one map.
             self._gain_map = True
 
-    def apply_correction(self, data: NDArray[numpy.float]) -> NDArray[numpy.float]:
+    def apply_correction(self, data: NDArray[numpy.float_]) -> NDArray[numpy.float_]:
         """
         Applies the correction to a detector data frame.
 
@@ -243,7 +242,7 @@ class RadialProfile:
     def __init__(
         self,
         *,
-        radius_pixel_map: NDArray[numpy.float],
+        radius_pixel_map: NDArray[numpy.float_],
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -318,14 +317,13 @@ class RadialProfile:
                 map_hdf5_file_handle: Any
                 with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
                     bad_pixel_map: Union[
-                        NDArray[numpy.float], None
+                        NDArray[numpy.int_], None
                     ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
             except (IOError, OSError, KeyError) as exc:
                 exc_type, exc_value = sys.exc_info()[:2]
-                # TODO: Fix type check
                 raise RuntimeError(
-                    "The following error occurred while reading the "
-                    f"{bad_pixel_map_hdf5_path} field from the "
+                    "The following error occurred while reading "  # type: ignore
+                    f"the {bad_pixel_map_hdf5_path} field from the "
                     f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
                     f"{exc_type.__name__}: {exc_value}"
                 ) from exc
@@ -333,7 +331,7 @@ class RadialProfile:
             bad_pixel_map = None
 
         if bad_pixel_map is None:
-            self._mask: Union[NDArray[numpy.bool], bool] = True
+            self._mask: Union[NDArray[numpy.bool_], bool] = True
         else:
             self._mask = bad_pixel_map.astype(bool)
 
@@ -345,17 +343,17 @@ class RadialProfile:
 
         # Calculate radial bins
         num_bins: int = int(radius_pixel_map.max() / radius_step)
-        radial_bins: NDArray[numpy.float] = numpy.linspace(
+        radial_bins: NDArray[numpy.float_] = numpy.linspace(
             0, num_bins * radius_step, num_bins + 1
         )
 
         # Create an array that labels each pixel according to the bin to which it
         # belongs.
-        self._radial_bin_labels: NDArray[numpy.int] = (
+        self._radial_bin_labels: NDArray[numpy.int_] = (
             numpy.searchsorted(radial_bins, radius_pixel_map, "right") - 1
         )
 
-    def calculate_profile(self, data: NDArray[numpy.float]) -> NDArray[numpy.float]:
+    def calculate_profile(self, data: NDArray[numpy.float_]) -> NDArray[numpy.float_]:
         """
         Calculates the radial profile for a detector data frame.
 
@@ -371,15 +369,15 @@ class RadialProfile:
             The radial profile.
         """
 
-        radius_sum: NDArray[numpy.int] = numpy.bincount(
+        radius_sum: NDArray[numpy.int_] = numpy.bincount(
             self._radial_bin_labels[self._mask].ravel(), data[self._mask].ravel()
         )
-        radius_count: NDArray[numpy.int] = numpy.bincount(
+        radius_count: NDArray[numpy.int_] = numpy.bincount(
             self._radial_bin_labels[self._mask].ravel()
         )
         with numpy.errstate(divide="ignore", invalid="ignore"):
             # numpy.errstate allows to ignore the divide by zero warning
-            radial_average: NDArray[numpy.float] = numpy.nan_to_num(
+            radial_average: NDArray[numpy.float_] = numpy.nan_to_num(
                 radius_sum / radius_count
             )
 
@@ -420,7 +418,7 @@ class DataAccumulation:
         self._accumulator: List[Dict[str, Any]] = []
         self._num_events_in_accumulator: int = 0
 
-    def add_data(self, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
+    def add_data(self, *, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
         """
         Adds data to the accumulator.
 
@@ -593,13 +591,12 @@ class Binning:
                 map_hdf5_file_handle: Any
                 with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
                     bad_pixel_map: Union[
-                        NDArray[numpy.int], None
+                        NDArray[numpy.int_], None
                     ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
             except (IOError, OSError, KeyError) as exc:
                 exc_type, exc_value = sys.exc_info()[:2]
-                # TODO: Fix type check
                 raise RuntimeError(
-                    "The following error occurred while reading the "
+                    "The following error occurred while reading the "  # type: ignore
                     f"{bad_pixel_map_hdf5_path} field from the "
                     f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
                     f"{exc_type.__name__}: {exc_value}"
@@ -607,8 +604,8 @@ class Binning:
         else:
             bad_pixel_map = None
         if bad_pixel_map is None:
-            self._mask: NDArray[numpy.iny] = numpy.ones(
-                (self._original_nx, self._original_ny), dtype=numpy.int
+            self._mask: NDArray[numpy.int_] = numpy.ones(
+                (self._original_nx, self._original_ny), dtype=int
             )
         else:
             self._mask = bad_pixel_map
@@ -637,13 +634,13 @@ class Binning:
         self._binned_ny: int = self._extended_ny // self._bin_size
 
         # Binned mask = num good pixels per bin
-        self._binned_mask: NDArray[numpy.int] = self._bin_data_array(self._mask)
+        self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(data=self._mask)
 
-    def _extend_data_array(self, data: NDArray[numpy.float]) -> NDArray[numpy.float]:
+    def _extend_data_array(self, *, data: A) -> A:
         # Extends the original data array with zeros making the asic size divisible by
         # bin_size. Returns new array of size (self._extended_nx, self._extended_ny)
-        extended_data: NDArray[numpy.float] = numpy.zeros(
-            (self._extended_nx, self._extended_ny)
+        extended_data: A = numpy.zeros(
+            (self._extended_nx, self._extended_ny), dtype=data.dtype
         )
         i: int
         j: int
@@ -660,11 +657,11 @@ class Binning:
                 ]
         return extended_data
 
-    def _bin_data_array(self, data: NDArray[numpy.float]) -> NDArray[numpy.float]:
+    def _bin_data_array(self, *, data: A) -> A:
         # Gets an extended data array with dimensions divisible by bin size and sums
         # pixel values in the bins. Returns the binned data array.
-        extended_data: NDArray[numpy.float] = self._extend_data_array(data)
-        binned_data: NDArray[numpy.float] = (
+        extended_data: A = self._extend_data_array(data=data)
+        binned_data: A = (
             extended_data.reshape(
                 self._binned_nx, self._bin_size, self._binned_ny, self._bin_size
             )
@@ -718,7 +715,9 @@ class Binning:
         """
         return self._extended_nx // self._bin_size, self._extended_ny // self._bin_size
 
-    def bin_detector_data(self, data: NDArray[numpy.float]) -> NDArray[numpy.float]:
+    def bin_detector_data(
+        self, *, data: NDArray[numpy.float_]
+    ) -> NDArray[numpy.float_]:
         """
         Computes a binned version of the detector data frame.
 
@@ -745,10 +744,12 @@ class Binning:
         # Bin data and scale to the number of good pixels per bin:
         with numpy.errstate(divide="ignore", invalid="ignore"):
             binned_data = (
-                self._bin_data_array(data) / self._binned_mask * self._bin_size ** 2
+                self._bin_data_array(data=data)
+                / self._binned_mask
+                * self._bin_size ** 2
             )
 
-        data_type: numpy.dtype = data.dtype
+        data_type: DTypeLike = data.dtype
         if numpy.issubdtype(data_type, numpy.integer):
             if self._bad_pixel_value is None:
                 self._bad_pixel_value = numpy.iinfo(data_type).max
@@ -765,8 +766,8 @@ class Binning:
         return binned_data
 
     def bin_bad_pixel_mask(
-        self, mask: Union[NDArray[numpy.int], None]
-    ) -> Union[NDArray[numpy.int], None]:
+        self, *, mask: Union[NDArray[numpy.int_], None]
+    ) -> Union[NDArray[numpy.int_], None]:
         """
         Computes a bad pixel mask for the binned data frame.
 
@@ -801,9 +802,9 @@ class Binning:
         if mask is None:
             return None
         else:
-            return self._bin_data_array(mask) // self._bin_size ** 2
+            return self._bin_data_array(data=mask) // self._bin_size ** 2
 
-    def bin_pixel_maps(self, pixel_maps: TypePixelMaps) -> TypePixelMaps:
+    def bin_pixel_maps(self, *, pixel_maps: TypePixelMaps) -> TypePixelMaps:
         """
         Computes pixel maps for a binned data frame.
 
@@ -822,11 +823,20 @@ class Binning:
         """
 
         binned_pixel_maps: TypePixelMaps = {
-            "x": self._bin_data_array(pixel_maps["x"]) / self._bin_size ** 3,
-            "y": self._bin_data_array(pixel_maps["y"]) / self._bin_size ** 3,
-            "z": self._bin_data_array(pixel_maps["z"]) / self._bin_size ** 3,
-            "radius": self._bin_data_array(pixel_maps["radius"]) / self._bin_size ** 3,
-            "phi": self._bin_data_array(pixel_maps["phi"]) / self._bin_size ** 2,
+            "x": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["x"]))
+            / self._bin_size ** 3,
+            "y": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["y"]))
+            / self._bin_size ** 3,
+            "z": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["z"]))
+            / self._bin_size ** 3,
+            "radius": self._bin_data_array(
+                data=cast(NDArray[numpy.float_], pixel_maps["radius"])
+            )
+            / self._bin_size ** 3,
+            "phi": self._bin_data_array(
+                data=cast(NDArray[numpy.float_], pixel_maps["phi"])
+            )
+            / self._bin_size ** 2,
         }
 
         return binned_pixel_maps

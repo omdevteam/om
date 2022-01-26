@@ -67,7 +67,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-            data_retrieval_layer.data_event_handler
+            data_retrieval_layer.get_data_event_handler()
         )
         self._processing_layer: pl_base.OmProcessing = processing_layer
         self._monitor_params: parameters.MonitorParams = monitor_parameters

@@ -24,19 +24,19 @@ from an OnDA Monitor over a ZMQ socket.
 from builtins import str as unicode_str
 from typing import Any, Dict, Union
 
-import zmq  # type: ignore
+import zmq
 
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtCore  # type: ignore
+    from PyQt5 import QtCore
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
 
-class ZmqDataListener(QtCore.QObject):  # type: ignore
+class ZmqDataListener(QtCore.QObject):
     """
     See documentation for the `__init__` function.
     """

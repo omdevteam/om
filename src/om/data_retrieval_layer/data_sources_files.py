@@ -23,7 +23,8 @@ This module contains Data Source classes that deal with data stored in files.
 from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
 
 import h5py  # type: ignore
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
@@ -73,7 +74,7 @@ class PilatusSingleFrameFiles(drl_base.OmDataSource):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
         """
         Retrieves a Pilatus detector data frame from an event.
 
@@ -92,7 +93,7 @@ class PilatusSingleFrameFiles(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        return event["data"].data
+        return cast(NDArray[numpy.float_], event["data"].data)
 
 
 class Jungfrau1MFiles(drl_base.OmDataSource):
@@ -183,10 +184,10 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
                 # 2 for Jungfrau 1M
                 num_panels: int = len(dark_filenames)
 
-                self._dark: numpy.ndarray = numpy.ndarray(
+                self._dark: NDArray[numpy.float_] = numpy.ndarray(
                     (3, 512 * num_panels, 1024), dtype=numpy.float32
                 )
-                self._gain: numpy.ndarray = numpy.ndarray(
+                self._gain: NDArray[numpy.float_] = numpy.ndarray(
                     (3, 512 * num_panels, 1024), dtype=numpy.float64
                 )
                 panel_id: int
@@ -210,7 +211,9 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
 
                 self._photon_energy_kev: float = photon_energy_kev
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a Jungfrau 1M  detector data frame.
 
@@ -235,15 +238,15 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
         h5_data_path: str = event["additional_info"]["h5_data_path"]
         index: Tuple[int, int] = event["additional_info"]["index"]
 
-        data: numpy.ndarray = numpy.concatenate(
+        data: NDArray[numpy.int_] = numpy.concatenate(
             [h5files[i][h5_data_path][index[i]] for i in range(len(h5files))]
         )
 
         if self._calibrated_data_required:
 
-            calibrated_data: numpy.ndarray = data.astype(numpy.float32)
+            calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float32)
 
-            where_gain: List[numpy.ndarray] = [
+            where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
                 numpy.where(data & 2 ** 14 == 0),
                 numpy.where((data & (2 ** 14) > 0) & (data & 2 ** 15 == 0)),
                 numpy.where(data & 2 ** 15 > 0),
@@ -306,7 +309,7 @@ class Eiger16MFiles(drl_base.OmDataSource):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
         """
         Retrieves a Eiger 16M detector data frame.
 
@@ -325,9 +328,12 @@ class Eiger16MFiles(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        return event["additional_info"]["h5file"]["entry/data/data"][
-            event["additional_info"]["index"]
-        ]
+        return cast(
+            NDArray[numpy.int_],
+            event["additional_info"]["h5file"]["entry/data/data"][
+                event["additional_info"]["index"]
+            ],
+        )
 
 
 class TimestampFromFileModificationTime(drl_base.OmDataSource):
@@ -393,7 +399,7 @@ class TimestampFromFileModificationTime(drl_base.OmDataSource):
 
             The timestamp of the data event.
         """
-        return event["additional_info"]["file_modification_time"]
+        return cast(numpy.float64, event["additional_info"]["file_modification_time"])
 
 
 class TimestampJungfrau1MFiles(drl_base.OmDataSource):
@@ -465,7 +471,9 @@ class TimestampJungfrau1MFiles(drl_base.OmDataSource):
             The timestamp of the Jungfrau 1M data frame.
         """
 
-        file_creation_time: float = event["additional_info"]["file_creation_time"]
+        file_creation_time: numpy.float64 = numpy.float64(
+            event["additional_info"]["file_creation_time"]
+        )
         jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
         # Jungfrau internal clock frequency in Hz
         jf_clock_frequency: int = 10000000

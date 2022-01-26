@@ -23,15 +23,16 @@ detection algorithm.
 """
 from typing import List, Tuple
 
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 
 def peakfinder_8(
     *,
     max_num_peaks: int,
-    data: numpy.ndarray,
-    mask: numpy.ndarray,
-    pix_r: numpy.ndarray,
+    data: NDArray[numpy.float_],
+    mask: NDArray[numpy.int_],
+    pix_r: NDArray[numpy.float_],
     asic_nx: int,
     asic_ny: int,
     nasics_x: int,

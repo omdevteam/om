@@ -26,13 +26,10 @@ import sys
 import time
 from typing import Any, Dict, List, Set, Tuple, Union
 
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-
 import h5py  # type: ignore
-import numpy  # type: ignore
+import numpy
+from numpy.typing import DTypeLike, NDArray
+from typing_extensions import Literal
 
 from om.algorithms import crystallography as cryst_algs
 from om.utils import crystfel_geometry, exceptions
@@ -49,7 +46,7 @@ class HDF5Writer:
         *,
         node_rank: int,
         geometry: crystfel_geometry.TypeDetector,
-        detector_data_type: numpy.dtype,
+        detector_data_type: Union[str, None],
         detector_data_shape: Tuple[int, int],
         parameters: Dict[str, Any],
     ) -> None:
@@ -154,6 +151,11 @@ class HDF5Writer:
             processed_filename_extension = "h5"
         self._processed_filename_extension: str = f".{processed_filename_extension}"
 
+        if detector_data_type is None:
+            self._data_type: DTypeLike = numpy.float32
+        else:
+            self._data_type = numpy.dtype(detector_data_type)
+
         compression: Union[str, None] = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_compression",
@@ -180,7 +182,9 @@ class HDF5Writer:
         if compression_shuffle is None:
             compression_shuffle = False
 
-        max_num_peaks: Union[int, None] = param_utils.get_parameter_from_parameter_group(
+        max_num_peaks: Union[
+            int, None
+        ] = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_max_num_peaks",
             parameter_type=int,
@@ -232,7 +236,7 @@ class HDF5Writer:
                 name=hdf5_fields["optical_laser_active"],
                 shape=(0,),
                 maxshape=(None,),
-                dtype=numpy.bool,
+                dtype=numpy.bool_,
             )
         # Creating all requested 1D float64 datasets:
         key: str
@@ -303,9 +307,9 @@ class HDF5Writer:
     def _create_extra_datasets(
         self, *, group_name: str, extra_data: Dict[str, Any]
     ) -> None:
-        # Creates empty dataset in the extra data group for each item in extra_data dict
-        # using dict keys as dataset names. Supported data types: numpy.ndarray, str,
-        # float, int and bool
+        # Creates empty dataset in the extra data group for each item in extra_data
+        # dictusing dict keys as dataset names. Supported data types: numpy arrays,
+        # str, float, int and bool
         key: str
         value: Any
         for key, value in extra_data.items():
@@ -429,7 +433,7 @@ class HDF5Writer:
         Closes the file currently being written.
         """
         self._h5file.close()
-        self._processed_filename = self._processed_filename.rename(
+        self._processed_filename.rename(
             self._processed_filename.with_suffix(self._processed_filename_extension)
         )
         print(f"{self._num_frames} frames saved in {self._processed_filename} file.")
@@ -529,8 +533,8 @@ class SumHDF5Writer:
         self,
         *,
         num_frames: int,
-        sum_frames: numpy.ndarray,
-        virtual_powder_pattern: numpy.ndarray,
+        sum_frames: NDArray[numpy.float_],
+        virtual_powder_pattern: NDArray[numpy.int_],
     ) -> None:
         """
         Writes aggregated detector frame data into an HDF5 file.

@@ -27,7 +27,7 @@ import sys
 from types import ModuleType
 from typing import Type, TypeVar, Union, cast
 
-import click  # type: ignore
+import click
 
 from om.data_retrieval_layer import base as drl_base
 from om.parallelization_layer import base as pa_base

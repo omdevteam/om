@@ -24,7 +24,7 @@ a ZMQ stream.
 import sys
 from typing import Any, Dict, Generator, List, Tuple
 
-import zmq  # type: ignore
+import zmq
 
 from om.data_retrieval_layer import base as drl_base
 from om.utils import exceptions, parameters

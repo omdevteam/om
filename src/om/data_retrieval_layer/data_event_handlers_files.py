@@ -26,7 +26,8 @@ import sys
 from typing import Any, Dict, Generator, List, TextIO, Tuple
 
 import h5py  # type: ignore
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from om.data_retrieval_layer import base as drl_base
 from om.utils import exceptions, parameters
@@ -438,7 +439,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
             raise RuntimeError(
-                f"Error reading the {self._source0} source file."
+                f"Error reading the {self._source} source file."
             ) from exc
         frame_list: List[Dict[str, Any]] = []
         # TODO: Specify types better
@@ -459,14 +460,14 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
             h5_data_path: str = "/data_" + re.findall(r"_(f\d+)_", filename)[0]
 
             try:
-                frame_numbers: List[numpy.ndarray] = [
+                frame_numbers: List[NDArray[numpy.int_]] = [
                     h5file["/frameNumber"][:] for h5file in h5files
                 ]
             except KeyError:
                 frame_numbers = [h5file["/frame number"][:] for h5file in h5files]
 
             ind0: int
-            frame_number: numpy.ndarray
+            frame_number: NDArray[numpy.int_]
             for ind0, frame_number in enumerate(frame_numbers[0]):
                 try:
                     ind1: int = numpy.where(frame_numbers[1] == frame_number)[0][0]
@@ -756,7 +757,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
             raise RuntimeError(
-                f"Error reading the {self._source} source file.")
+                f"Error reading the {self._source} source file."
             ) from exc
         num_files_curr_node: int = int(
             numpy.ceil(len(filelist) / float(node_pool_size - 1))
@@ -889,7 +890,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
-                        "to the following error: {exc_type.__name__}: {exc_value}"
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data

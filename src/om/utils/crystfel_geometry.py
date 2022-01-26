@@ -28,8 +28,9 @@ import re
 import sys
 from typing import Any, Dict, List, TextIO, Tuple, Union
 
-import numpy  # type: ignore
+import numpy
 from mypy_extensions import TypedDict
+from numpy.typing import NDArray
 
 from om.utils import exceptions
 
@@ -345,11 +346,11 @@ class TypePixelMaps(TypedDict):
             the pixel, the center of the detector reference system, and the x axis.
     """
 
-    x: numpy.ndarray
-    y: numpy.ndarray
-    z: Union[numpy.ndarray, None]
-    radius: Union[numpy.ndarray, None]
-    phi: Union[numpy.ndarray, None]
+    x: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+    y: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+    z: Union[NDArray[numpy.float_], None]
+    radius: Union[NDArray[numpy.float_], None]
+    phi: Union[NDArray[numpy.float_], None]
 
 
 def _assplode_algebraic(*, value: str) -> List[str]:
@@ -1030,18 +1031,17 @@ def load_crystfel_geometry(  # noqa: C901
             for panel in detector["panels"].values():
                 d: float = panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]
                 if d == 0.0:
-                    raise fRuntimeError("Panel {name} transformation is singular.")
+                    raise RuntimeError(f"Panel {name} transformation is singular.")
                 panel["xfs"] = panel["ssy"] / d
                 panel["yfs"] = panel["ssx"] / d
                 panel["xss"] = panel["fsy"] / d
                 panel["yss"] = panel["fsx"] / d
             _find_min_max_d(detector=detector)
     except (IOError, OSError) as exc:
-        # TODO: Fix type check
         exc_type, exc_value = sys.exc_info()[:2]
         raise exceptions.OmConfigurationFileReadingError(
-            f"The following error occurred while reading the {filename} geometry"
-            f"file {exc_type.__name__}: {exc_value}"
+            f"The following error occurred while reading the "  # type: ignore
+            f"{filename} geometry file {exc_type.__name__}: {exc_value}"
         ) from exc
 
     return detector, beam, hdf5_peak_path
@@ -1085,13 +1085,13 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
         [geometry["panels"][k]["orig_max_ss"] for k in geometry["panels"]]
     ).max()
 
-    x_map: numpy.ndarray = numpy.zeros(
+    x_map: NDArray[numpy.float_] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
-    y_map: numpy.ndarray = numpy.zeros(
+    y_map: NDArray[numpy.float_] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
-    z_map: numpy.ndarray = numpy.zeros(
+    z_map: NDArray[numpy.float_] = numpy.zeros(
         shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
     )
 
@@ -1105,8 +1105,8 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
         else:
             first_panel_camera_length = 0.0
 
-        ss_grid: numpy.ndarray
-        fs_grid: numpy.ndarray
+        ss_grid: NDArray[numpy.int_]
+        fs_grid: NDArray[numpy.int_]
         ss_grid, fs_grid = numpy.meshgrid(
             numpy.arange(
                 geometry["panels"][panel_name]["orig_max_ss"]
@@ -1120,12 +1120,12 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
             ),
             indexing="ij",
         )
-        y_panel: numpy.ndarray = (
+        y_panel: NDArray[numpy.int_] = (
             ss_grid * geometry["panels"][panel_name]["ssy"]
             + fs_grid * geometry["panels"][panel_name]["fsy"]
             + geometry["panels"][panel_name]["cny"]
         )
-        x_panel: numpy.ndarray = (
+        x_panel: NDArray[numpy.int_] = (
             ss_grid * geometry["panels"][panel_name]["ssx"]
             + fs_grid * geometry["panels"][panel_name]["fsx"]
             + geometry["panels"][panel_name]["cnx"]
@@ -1161,8 +1161,8 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
             + 1,
         ] = first_panel_camera_length
 
-    r_map: numpy.ndarray = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
-    phi_map: numpy.ndarray = numpy.arctan2(y_map, x_map)
+    r_map: NDArray[numpy.float_] = numpy.sqrt(numpy.square(x_map) + numpy.square(y_map))
+    phi_map: NDArray[numpy.float_] = numpy.arctan2(y_map, x_map)
 
     return {
         "x": x_map,
@@ -1207,8 +1207,8 @@ def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     # display the data, then use this information to estimate the magnitude of the
     # shift.
     pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
-    x_map: numpy.ndarray
-    y_map: numpy.ndarray
+    x_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+    y_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
     x_map, y_map = (
         pixel_maps["x"],
         pixel_maps["y"],
@@ -1216,11 +1216,11 @@ def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     y_minimum: int = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
     x_minimum: int = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
     min_shape: Tuple[int, int] = (y_minimum, x_minimum)
-    new_x_map: numpy.ndarray = (
-        numpy.array(object=pixel_maps["x"], dtype=numpy.int) + min_shape[1] // 2 - 1
+    new_x_map: NDArray[numpy.int_] = (
+        numpy.array(object=pixel_maps["x"], dtype=int) + min_shape[1] // 2 - 1
     )
-    new_y_map: numpy.ndarray = (
-        numpy.array(object=pixel_maps["y"], dtype=numpy.int) + min_shape[0] // 2 - 1
+    new_y_map: NDArray[numpy.int_] = (
+        numpy.array(object=pixel_maps["y"], dtype=int) + min_shape[0] // 2 - 1
     )
 
     return {
@@ -1310,8 +1310,8 @@ def visualization_pixel_maps_from_geometry_file(
 
 
 def apply_geometry_to_data(
-    *, data: numpy.ndarray, geometry: TypeDetector
-) -> numpy.ndarray:
+    *, data: NDArray[numpy.float_], geometry: TypeDetector
+) -> NDArray[numpy.float_]:
     """
     Applies CrystFEL geometry information to some data.
 
@@ -1339,8 +1339,8 @@ def apply_geometry_to_data(
         An array containing the detector data, with geometry information applied to it.
     """
     pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
-    x_map: numpy.ndarray
-    y_map: numpy.ndarray
+    x_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+    y_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
     x_map, y_map = (
         pixel_maps["x"],
         pixel_maps["y"],
@@ -1348,7 +1348,7 @@ def apply_geometry_to_data(
     y_minimum: int = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
     x_minimum: int = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
     min_shape: Tuple[int, int] = (y_minimum, x_minimum)
-    visualization_array: numpy.ndarray = numpy.zeros(min_shape, dtype=float)
+    visualization_array: NDArray[numpy.float_] = numpy.zeros(min_shape, dtype=float)
     visual_pixel_maps: TypePixelMaps = compute_visualization_pix_maps(geometry=geometry)
     visualization_array[
         visual_pixel_maps["y"].flatten(), visual_pixel_maps["x"].flatten()

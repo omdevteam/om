@@ -20,7 +20,7 @@ This module contains algorithms that perform data processing operations related 
 x-ray emission spectroscopy (beam energy spectrum retrieval, etc.).
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -37,7 +37,7 @@ class XESAnalysis:
     def __init__(
         self,
         *,
-        parameters: Dict[str, Any] = None,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Beam energy spectrum retrieval.
@@ -94,8 +94,8 @@ class XESAnalysis:
     # TODO: Enforce return dict content for the function below
 
     def generate_spectrum(
-        self, data: NDArray[numpy.float]
-    ) -> Dict[str, NDArray[numpy.float]]:
+        self, *, data: NDArray[numpy.float_]
+    ) -> Dict[str, NDArray[numpy.float_]]:
         """
         Calculates beam energy spectrum information from a 2D camera data frame.
 
@@ -123,11 +123,11 @@ class XESAnalysis:
         # Apply a threshold
         if self._intensity_threshold:
             data[data < self._intensity_threshold] = 0
-        imr: NDArray[numpy.float] = ndimage.rotate(data, self._rotation, order=0)
-        spectrum: NDArray[numpy.float] = numpy.mean(
+        imr: NDArray[numpy.float_] = ndimage.rotate(data, self._rotation, order=0)
+        spectrum: NDArray[numpy.float_] = numpy.mean(
             imr[:, self._min_row : self._max_row], axis=1
         )
-        spectrum_smoothed: NDArray[numpy.float] = ndimage.filters.gaussian_filter1d(
+        spectrum_smoothed: NDArray[numpy.float_] = ndimage.filters.gaussian_filter1d(
             spectrum, 2
         )
 
@@ -137,6 +137,9 @@ class XESAnalysis:
         }
 
 
-def _running_mean(x: numpy.ndarray, n: int) -> numpy.ndarray:
+def _running_mean(x: NDArray[numpy.float_], n: int) -> NDArray[numpy.float_]:
     # TODO: Document this function.
-    return ndimage.filters.uniform_filter1d(x, n, mode="constant")[: -(n - 1)]
+    return cast(
+        NDArray[numpy.float_],
+        ndimage.filters.uniform_filter1d(x, n, mode="constant")[: -(n - 1)],
+    )

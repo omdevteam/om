@@ -24,9 +24,10 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import time
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union, cast
 
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from om.algorithms import generic as gen_algs
 from om.algorithms import xes as xes_algs
@@ -177,12 +178,12 @@ class XESProcessing(pl_base.OmProcessing):
             parameters=self._monitor_params.get_parameter_group(group="xes")
         )
 
-        self._spectra_cumulative_sum: Union[numpy.ndarray, None] = None
-        self._spectra_cumulative_sum_smoothed: Union[numpy.ndarray, None] = None
+        self._spectra_cumulative_sum: Union[NDArray[numpy.float_], None] = None
+        self._spectra_cumulative_sum_smoothed: Union[NDArray[numpy.float_], None] = None
 
-        self._cumulative_2d = None
-        self._cumulative_2d_pumped: Union[numpy.ndarray, None] = None
-        self._cumulative_2d_dark: Union[numpy.ndarray, None] = None
+        self._cumulative_2d: Union[NDArray[numpy.float_], None] = None
+        self._cumulative_2d_pumped: Union[NDArray[numpy.float_], None] = None
+        self._cumulative_2d_dark: Union[NDArray[numpy.float_], None] = None
 
         self._num_events_pumped: int = 0
         self._num_events_dark: int = 0
@@ -243,9 +244,9 @@ class XESProcessing(pl_base.OmProcessing):
             is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
-        corrected_camera_data: numpy.ndarray = self._correction.apply_correction(
-            data=data["detector_data"]
-        )
+        corrected_camera_data: NDArray[
+            numpy.float_
+        ] = self._correction.apply_correction(data=data["detector_data"])
 
         # Mask the camera edges
         corrected_camera_data[
@@ -260,8 +261,8 @@ class XESProcessing(pl_base.OmProcessing):
             + 1,
         ] = 0
 
-        xes: Dict[str, numpy.ndarray] = self._xes_analysis.generate_spectrum(
-            corrected_camera_data
+        xes: Dict[str, NDArray[numpy.float_]] = self._xes_analysis.generate_spectrum(
+            data=corrected_camera_data
         )
 
         processed_data["timestamp"] = data["timestamp"]
@@ -314,18 +315,23 @@ class XESProcessing(pl_base.OmProcessing):
                 self._num_events_dark += 1
 
         if self._cumulative_2d is None:
-            self._cumulative_2d = received_data["detector_data"]
+            self._cumulative_2d = cast(
+                NDArray[numpy.float_], received_data["detector_data"]
+            )
         else:
             self._cumulative_2d += (
-                (received_data["detector_data"] - self._cumulative_2d * 1.0)
+                (
+                    cast(NDArray[numpy.float_], received_data["detector_data"])
+                    - self._cumulative_2d * 1.0
+                )
                 / self._num_events
                 * 1.0
             )
 
         # Calculate normalized spectrum from cumulative 2D images.
-        cumulative_xes: Dict[str, numpy.ndarray] = self._xes_analysis.generate_spectrum(
-            self._cumulative_2d
-        )
+        cumulative_xes: Dict[
+            str, NDArray[numpy.float_]
+        ] = self._xes_analysis.generate_spectrum(data=self._cumulative_2d)
         self._spectra_cumulative_sum = cumulative_xes["spectrum"]
         self._spectra_cumulative_sum_smoothed = cumulative_xes["spectrum_smoothed"]
 
@@ -350,30 +356,38 @@ class XESProcessing(pl_base.OmProcessing):
             # Need to calculate a running average
             if received_data["optical_laser_active"]:
                 self._cumulative_2d_pumped += (
-                    (received_data["detector_data"] - self._cumulative_2d_pumped * 1.0)
+                    (
+                        cast(NDArray[numpy.float_], received_data["detector_data"])
+                        - self._cumulative_2d_pumped * 1.0
+                    )
                     / self._num_events_pumped
                     * 1.0
                 )
             else:
                 self._cumulative_2d_dark += (
-                    (received_data["detector_data"] - self._cumulative_2d_dark * 1.0)
+                    (
+                        cast(NDArray[numpy.float_], received_data["detector_data"])
+                        - self._cumulative_2d_dark * 1.0
+                    )
                     / self._num_events_dark
                     * 1.0
                 )
 
             # Calculate spectrum from cumulative 2D images
             cumulative_xes_pumped: Dict[
-                str, numpy.ndarray
-            ] = self._xes_analysis.generate_spectrum(self._cumulative_2d_pumped)
-            spectra_cumulative_sum_pumped: numpy.ndarray = cumulative_xes_pumped[
-                "spectrum"
-            ]
+                str, NDArray[numpy.float_]
+            ] = self._xes_analysis.generate_spectrum(data=self._cumulative_2d_pumped)
+            spectra_cumulative_sum_pumped: NDArray[
+                numpy.float_
+            ] = cumulative_xes_pumped["spectrum"]
 
             # calculate spectrum from cumulative 2D images
             cumulative_xes_dark: Dict[
-                str, numpy.ndarray
-            ] = self._xes_analysis.generate_spectrum(self._cumulative_2d_dark)
-            spectra_cumulative_sum_dark: numpy.ndarray = cumulative_xes_dark["spectrum"]
+                str, NDArray[numpy.float_]
+            ] = self._xes_analysis.generate_spectrum(data=self._cumulative_2d_dark)
+            spectra_cumulative_sum_dark: NDArray[numpy.float_] = cumulative_xes_dark[
+                "spectrum"
+            ]
 
             # normalize spectra
             if numpy.mean(numpy.abs(spectra_cumulative_sum_pumped)) > 0:
@@ -447,6 +461,7 @@ class XESProcessing(pl_base.OmProcessing):
         """
         print(f"Processing node {node_rank} shutting down.")
         sys.stdout.flush()
+        return None
 
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int

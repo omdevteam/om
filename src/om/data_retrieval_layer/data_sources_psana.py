@@ -23,8 +23,9 @@ software framework (used at the LCLS facility).
 """
 from typing import Any, Callable, Dict, List, Tuple, Union, cast
 
-import numpy  # type: ignore
+import numpy
 import psana  # type: ignore
+from numpy.typing import NDArray
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
@@ -146,7 +147,9 @@ class CspadPsana(drl_base.OmDataSource):
             monitor_parameters=self._monitor_parameters,
         )
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a CSPAD detector data frame from psana.
 
@@ -167,15 +170,19 @@ class CspadPsana(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        cspad_psana: numpy.ndarray = self._data_retrieval_function(event["data"])
+        cspad_psana: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = self._data_retrieval_function(event["data"])
         if cspad_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
             )
 
         # Rearranges the data into 'slab' format.
-        cspad_reshaped: numpy.ndarray = cspad_psana.reshape((4, 8, 185, 388))
-        cspad_slab: numpy.ndarray = numpy.zeros(
+        cspad_reshaped: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = cspad_psana.reshape((4, 8, 185, 388))
+        cspad_slab: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = numpy.zeros(
             shape=(1480, 1552), dtype=cspad_reshaped.dtype
         )
         index: int
@@ -251,7 +258,9 @@ class Epix10kaPsana(drl_base.OmDataSource):
             monitor_parameters=self._monitor_parameters,
         )
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a Epix10KA 2M detector data frame from psana.
 
@@ -272,14 +281,18 @@ class Epix10kaPsana(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        epixka2m_psana: numpy.ndarray = self._data_retrieval_function(event["data"])
+        epixka2m_psana: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = self._data_retrieval_function(event["data"])
         if epixka2m_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
             )
 
         # Rearranges the data into 'slab' format.
-        epixka2m_reshaped: numpy.ndarray = epixka2m_psana.reshape(16 * 352, 384)
+        epixka2m_reshaped: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = epixka2m_psana.reshape(16 * 352, 384)
 
         return epixka2m_reshaped
 
@@ -342,7 +355,9 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
             monitor_parameters=self._monitor_parameters,
         )
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a Jungfrau 4M detector data frame from psana.
 
@@ -352,8 +367,8 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_base_name}_calibration` entry in OM's `data_retrieval_layer`
-        configuration parameter group..
+        value of the `{source_base_name}_calibration` entry in OM's
+        `data_retrieval_layer` configuration parameter group..
 
         Arguments:
 
@@ -363,14 +378,18 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        jungfrau_psana: numpy.ndarray = self._data_retrieval_function(event["data"])
+        jungfrau_psana: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = self._data_retrieval_function(event["data"])
         if jungfrau_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
             )
 
         # Rearranges the data into 'slab' format.
-        jungfrau_reshaped: numpy.ndarray = jungfrau_psana.reshape(8 * 512, 1024)
+        jungfrau_reshaped: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = jungfrau_psana.reshape(8 * 512, 1024)
 
         return jungfrau_reshaped
 
@@ -433,7 +452,9 @@ class Epix100Psana(drl_base.OmDataSource):
             monitor_parameters=self._monitor_parameters,
         )
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a Epix100 detector data frame from psana.
 
@@ -443,8 +464,8 @@ class Epix100Psana(drl_base.OmDataSource):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_base_name}_calibration` entry in OM's `data_retrieval_layer`
-        configuration parameter group.
+        value of the `{source_base_name}_calibration` entry in OM's
+        `data_retrieval_layer` configuration parameter group.
 
         Arguments:
 
@@ -454,7 +475,9 @@ class Epix100Psana(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        epix_psana: numpy.ndarray = self._data_retrieval_function(event["data"])
+        epix_psana: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = self._data_retrieval_function(event["data"])
         if epix_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
@@ -518,7 +541,7 @@ class RayonixPsana(drl_base.OmDataSource):
         )
         self._detector_interface: Any = psana.Detector(detector_name)
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
         """
         Retrieves a Rayonix detector data frame from psana.
 
@@ -536,7 +559,9 @@ class RayonixPsana(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        rayonix_psana: numpy.ndarray = self._detector_interface.calib(event["data"])
+        rayonix_psana: NDArray[numpy.float_] = self._detector_interface.calib(
+            event["data"]
+        )
         if rayonix_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
@@ -599,7 +624,7 @@ class OpalPsana(drl_base.OmDataSource):
         )
         self._detector_interface: Any = psana.Detector(detector_name)
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
         """
         Retrieves an Opal camera data frame from psana.
 
@@ -617,7 +642,9 @@ class OpalPsana(drl_base.OmDataSource):
 
             One camera data frame.
         """
-        opal_psana: numpy.ndarray = self._detector_interface.calib(event["data"])
+        opal_psana: NDArray[numpy.float_] = self._detector_interface.calib(
+            event["data"]
+        )
         if opal_psana is None:
             raise exceptions.OmDataExtractionError(
                 "Could not retrieve detector data from psana."
@@ -680,7 +707,9 @@ class AcqirisDetector(drl_base.OmDataSource):
         )
         self._detector_interface: Any = psana.Detector(detector_name)
 
-    def get_data(self, *, event: Dict[str, Any]) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Tuple[NDArray[numpy.float_], NDArray[numpy.float_]]:
         """
         Retrieves Acqiris waveform data from psana.
 
@@ -720,9 +749,12 @@ class AcqirisDetector(drl_base.OmDataSource):
                 - The second axis stores, for each channel, the value of the waveform
                   data at the time points at which it has been digitized.
         """
-        return (
-            self._detector_interface.waveform(event["data"]),
-            self._detector_interface.wftime(event["data"]),
+        return cast(
+            Tuple[NDArray[numpy.float_], NDArray[numpy.float_]],
+            (
+                self._detector_interface.wftime(event["data"]),
+                self._detector_interface.waveform(event["data"]),
+            ),
         )
 
 
@@ -919,7 +951,7 @@ class EventIdPsana(drl_base.OmDataSource):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> Any:
+    def get_data(self, *, event: Dict[str, Any]) -> str:
         """
         Retrieves an event identifier for a psana-based data event.
 
@@ -988,7 +1020,7 @@ class EpicsVariablePsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the variable whose
-        psana name matches the `psana_{source_base_name}_name` enry in the
+        psana name matches the `psana_{source_base_name}_name` entry in the
         OM's `data_retrieval_layer` configuration parameter group, or for the Epics
         variable with a given psana name, if the `source_base_name` argument has the
         format `psana-{psana detector name}`.

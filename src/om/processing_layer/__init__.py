@@ -22,6 +22,3 @@ This package contains OM's Processing Layer (where the scientific data analysis
 logic for all OnDA Monitors is defined). Each module in the package stores the
 implementation of a different OnDA Monitor.
 """
-from om.processing_layer.cheetah import CheetahProcessing  # noqa: F401
-from om.processing_layer.crystallography import CrystallographyProcessing  # noqa: F401
-from om.processing_layer.xes import XESProcessing  # noqa: F401

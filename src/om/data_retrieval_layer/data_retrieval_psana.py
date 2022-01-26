@@ -24,9 +24,9 @@ This module contains Data Retrieval classes that deal with the psana software fr
 from typing import Dict
 
 from om.data_retrieval_layer import base as drl_base
+from om.data_retrieval_layer import data_event_handlers_psana as deh_psana
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import data_sources_psana as ds_psana
-from om.data_retrieval_layer import data_event_handlers_psana as deh_psana
 from om.utils import parameters
 
 

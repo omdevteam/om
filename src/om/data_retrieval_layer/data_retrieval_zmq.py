@@ -23,10 +23,9 @@ This module contains Data Retrieval classes that deal with ZMQ streams.
 from typing import Dict
 
 from om.data_retrieval_layer import base as drl_base
+from om.data_retrieval_layer import data_event_handlers_zmq as deh_zmq
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import data_sources_zmq as ds_zmq
-from om.data_retrieval_layer import data_event_handlers_zmq as deh_zmq
-
 from om.utils import parameters
 
 
