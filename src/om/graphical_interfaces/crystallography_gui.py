@@ -73,7 +73,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         """
         super(CrystallographyGui, self).__init__(
             url=url,
-            tag="view:omdata",
+            tag="omdata",
         )
 
         self._virt_powd_plot_img: Union[NDArray[numpy.int_], None] = None
@@ -266,6 +266,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         This method, which is executed at regular intervals, calls the internal
         functions that update the hit rate history plot and the virtual powder pattern.
         """
+
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
             # data has been received simply by checking wether the attribute is not
@@ -289,14 +290,13 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             self._virt_powd_plot_img is None
             or self._virt_powd_plot_img.shape != virt_powd_plot_img_shape
         ):
-
             self._img_center_x = int(virt_powd_plot_img_shape[1] / 2)
             self._img_center_y = int(virt_powd_plot_img_shape[0] / 2)
+            self._virt_powd_plot_img = local_data["virtual_powder_plot"]
             if (
                 self._resolution_rings_check_box.isEnabled()
                 and self._resolution_rings_check_box.isChecked() is True
             ):
-                self._virt_powd_plot_img = local_data["virtual_powder_plot"]
                 self._update_resolution_rings_status()
         else:
             self._virt_powd_plot_img = local_data["virtual_powder_plot"]

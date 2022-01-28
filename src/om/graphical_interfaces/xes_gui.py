@@ -72,7 +72,7 @@ class XesGui(graph_interfaces_base.OmGui):
         """
         super(XesGui, self).__init__(
             url=url,
-            tag="view:omdata",
+            tag="omdata",
         )
 
         self._image_view: Any = pyqtgraph.ImageView()

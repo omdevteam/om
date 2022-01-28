@@ -74,7 +74,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         """
         super(CrystallographyFrameViewer, self).__init__(
             url=url,
-            tag="view:omframedata",
+            tag="omframedata",
         )
 
         self._img: Union[NDArray[numpy.float_], None] = None

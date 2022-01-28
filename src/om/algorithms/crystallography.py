@@ -319,7 +319,7 @@ class Peakfinder8PeakDetection:
             parameter_type=int,
             required=True,
         )
-        self._adc_threshold: float = param_utils.get_parameter_from_parameter_group(
+        self._adc_thresh: float = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="adc_threshold",
             parameter_type=float,
@@ -430,7 +430,7 @@ class Peakfinder8PeakDetection:
 
             The minimum ADC threshold currently used by the algorithm.
         """
-        return self._minimum_snr
+        return self._adc_thresh
 
     def set_adc_thresh(self, *, adc_thresh: float) -> None:
         """
@@ -639,10 +639,10 @@ class Peakfinder8PeakDetection:
             with information about the detected peaks.
         """
         if self._mask is None:
-            if self._bad_pixel_mask is None:
+            if self._bad_pixel_map is None:
                 self._mask = numpy.ones_like(data, dtype=numpy.int8)
             else:
-                self._mask = self._bad_pixel_mask.astype(numpy.int8)
+                self._mask = self._bad_pixel_map.astype(numpy.int8)
 
             self._mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             self._mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0

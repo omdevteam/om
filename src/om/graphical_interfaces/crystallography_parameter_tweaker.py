@@ -64,8 +64,8 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         This class implements a graphical user interface that can be used to test new
         peak finding parameters in real time in serial crystallography experiments. The
         GUI receives data frames from an OnDA Monitor, but only when the data is tagged
-        with the `view:omframedata` label. The data must contain processed detector
-        frames. The GUI will then display the frame images, and allow a user to choose
+        with the `omframedata` label. The data must contain processed detector frames.
+        The GUI will then display the frame images, and allow a user to choose
         a set of peak-finding parameters. The
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
         algorithm will be applied on the fly to each received frame, and the GUI will
@@ -82,7 +82,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         """
         super(CrystallographyParameterTweaker, self).__init__(
             url=url,
-            tag="view:omframedata",
+            tag="omtweakingdata",
         )
 
         self._img: Union[NDArray[numpy.float_], None] = None
@@ -121,7 +121,7 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._visual_pixelmap_x: NDArray[numpy.int_] = (
             pixelmap_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
         self._visual_pixelmap_y: NDArray[numpy.int_] = (
             pixelmap_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()

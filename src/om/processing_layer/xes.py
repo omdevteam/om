@@ -104,7 +104,7 @@ class XESProcessing(pl_base.OmProcessing):
             parameters=self._monitor_params.get_parameter_group(group="xes")
         )
 
-        self._time_resolved: bool = self._monitor_params.get_param(
+        self._time_resolved: bool = self._monitor_params.get_parameter(
             group="xes",
             parameter="time_resolved",
             parameter_type=bool,
@@ -128,7 +128,7 @@ class XESProcessing(pl_base.OmProcessing):
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
 
-        print(f"Processing node {node_rank} starting.")
+        print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
@@ -167,7 +167,7 @@ class XESProcessing(pl_base.OmProcessing):
             required=True,
         )
 
-        self._time_resolved = self._monitor_params.get_param(
+        self._time_resolved = self._monitor_params.get_parameter(
             group="xes",
             parameter="time_resolved",
             parameter_type=bool,
@@ -418,7 +418,7 @@ class XESProcessing(pl_base.OmProcessing):
 
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
-                tag="view:omdata",
+                tag="omdata",
                 message=message,
             )
 

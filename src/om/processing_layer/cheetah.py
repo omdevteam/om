@@ -211,7 +211,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             geometry=self._geometry,
         )
 
-        print(f"Processing node {node_rank} starting.")
+        print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def _write_status_file(
@@ -350,7 +350,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._visual_pixelmap_x: NDArray[numpy.int_] = (
             pixelmap_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
         self._visual_pixelmap_y: NDArray[numpy.int_] = (
             pixelmap_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()
@@ -495,11 +495,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             numpy.float_
         ] = self._correction.apply_correction(data=data["detector_data"])
         if self._binning is not None and self._binning_before_peakfinding:
-            binned_detector_data: : NDArray[
-            numpy.float_
-        ] = self._binning.bin_detector_data(
-                data=corrected_detector_data
-            )
+            binned_detector_data: NDArray[
+                numpy.float_
+            ] = self._binning.bin_detector_data(data=corrected_detector_data)
         else:
             binned_detector_data = corrected_detector_data
 
@@ -722,7 +720,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             and self._num_events % self._data_broadcast_interval == 0
         ):
             self._data_broadcast_socket.send_data(
-                tag="view:omdata",
+                tag="omdata",
                 message={
                     "geometry_is_optimized": self._geometry_is_optimized,
                     "timestamp": received_data["timestamp"],
@@ -749,7 +747,7 @@ class CheetahProcessing(pl_base.OmProcessing):
                 )
 
                 self._data_broadcast_socket.send_data(
-                    tag="view:omframedata",
+                    tag="omframedata",
                     message={
                         "frame_data": self._frame_data_img,
                         "timestamp": received_data["timestamp"],
@@ -758,7 +756,7 @@ class CheetahProcessing(pl_base.OmProcessing):
                     },
                 )
                 self._data_broadcast_socket.send_data(
-                    tag="view:omtweakingdata",
+                    tag="omtweakingdata",
                     message={
                         "detector_data": received_data["detector_data"],
                         "timestamp": received_data["timestamp"],

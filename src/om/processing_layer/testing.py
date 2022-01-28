@@ -66,7 +66,7 @@ class TestProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        print(f"Processing node {node_rank} starting.")
+        print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
@@ -205,7 +205,7 @@ class TestProcessing(pl_base.OmProcessing):
 
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
-                tag="view:omdata",
+                tag="omdata",
                 message={
                     "timestamp": received_data["timestamp"],
                     "event_counter": self._num_events,

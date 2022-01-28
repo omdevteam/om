@@ -1306,7 +1306,7 @@ def visualization_pixel_maps_from_geometry_file(
     _: Any
     __: Any
     geometry, _, __ = load_crystfel_geometry(filename=filename)
-    return compute_pix_maps(geometry=geometry)
+    return compute_visualization_pix_maps(geometry=geometry)
 
 
 def apply_geometry_to_data(

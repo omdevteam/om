@@ -188,7 +188,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
 
-        print(f"Processing node {node_rank} starting.")
+        print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
@@ -306,7 +306,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self._visual_pixelmap_x: NDArray[numpy.int_] = (
             pixelmap_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
         self._visual_pixelmap_y: NDArray[numpy.int_] = (
             pixelmap_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()
@@ -517,13 +517,13 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             ] + int(round(peak_fs))
             y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
             x_in_frame: float = self._visual_pixelmap_x[peak_index_in_slab]
-            peak_list_x_in_frame.append(y_in_frame)
-            peak_list_y_in_frame.append(x_in_frame)
+            peak_list_x_in_frame.append(x_in_frame)
+            peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
-                tag="view:omdata",
+                tag="omdata",
                 message={
                     "geometry_is_optimized": self._geometry_is_optimized,
                     "timestamp": received_data["timestamp"],
@@ -550,7 +550,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 )
 
                 self._data_broadcast_socket.send_data(
-                    tag="view:omframedata",
+                    tag="omframedata",
                     message={
                         "frame_data": self._frame_data_img,
                         "timestamp": received_data["timestamp"],
@@ -559,7 +559,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                     },
                 )
                 self._data_broadcast_socket.send_data(
-                    tag="view:omtweakingdata",
+                    tag="omtweakingdata",
                     message={
                         "detector_data": received_data["detector_data"],
                         "timestamp": received_data["timestamp"],

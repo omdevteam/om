@@ -109,7 +109,7 @@ class ZmqDataBroadcaster:
                     "The setup of the data broadcasting socket failed due to the "
                     f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
-        print(f"Broadcasting data at {url}.")
+        print(f"Broadcasting data at {url}")
         sys.stdout.flush()
 
     def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
