@@ -157,55 +157,6 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
             required_data=required_data,
         )
 
-        lcls_extra_entry: List[List[str]] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="lcls_extra",
-            parameter_type=list,
-        )
-
-        if lcls_extra_entry:
-            self._lcls_extra: Union[Dict[str, Any], None] = {}
-
-            data_item: List[str]
-            for data_item in lcls_extra_entry:
-                if not isinstance(data_item, list) or len(data_item) != 3:
-                    raise exceptions.OmWrongParameterTypeError(
-                        "The 'lcls_extra' entry of the 'data_retrieval_layer' group "
-                        "in the configuration file is not formatted correctly."
-                    )
-                for entry in data_item:
-                    if not isinstance(entry, str):
-                        raise exceptions.OmWrongParameterTypeError(
-                            "The 'lcls_extra' entry of the 'data_retrieval_layer' "
-                            "group in the configuration file is not formatted "
-                            "correctly."
-                        )
-                    identifier: str
-                    name: str
-                    data_type, identifier, name = data_item
-                    if data_type == "acqiris_waveform":
-                        self._lcls_extra[name] = ds_psana.AcqirisDetector(
-                            data_source_name=f"psana-{identifier}",
-                            monitor_parameters=self._monitor_params,
-                        )
-                    elif data_type == "epics_pv":
-                        self._lcls_extra[name] = ds_psana.EpicsVariablePsana(
-                            data_source_name=f"psana-{identifier}",
-                            monitor_parameters=self._monitor_params,
-                        )
-                    elif data_type == "wave8_total_intensity":
-                        self._lcls_extra[name] = ds_psana.Wave8Detector(
-                            data_source_name=f"psana-{identifier}",
-                            monitor_parameters=self._monitor_params,
-                        )
-                    else:
-                        raise exceptions.OmWrongParameterTypeError(
-                            f"The requested '{data_type}' LCLS-specific data type is "
-                            "not supported."
-                        )
-        else:
-            self._lcls_extra = None
-
     def event_generator(
         self,
         *,
@@ -381,11 +332,5 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
-
-        if self._lcls_extra:
-            data["lcls_extra"] = {}
-            name: str
-            for name in self._lcls_extra:
-                data["lcls_extra"][name] = self._lcls_extra[name].get_data(event)
 
         return data

@@ -92,7 +92,10 @@ class CxiLclsDataRetrieval(drl_base.OmDataRetrieval):
                 data_source_name="active_optical_laser",
                 monitor_parameters=monitor_parameters,
             ),
-            # "lcls_extra": functions_psana.lcls_extra,
+            "lcls_extra": ds_psana.LclsExtraPsana(
+                data_source_name="lcls_extra",
+                monitor_parameters=monitor_parameters,
+            ),
         }
 
         self._data_event_handler: drl_base.OmDataEventHandler = (
@@ -182,7 +185,10 @@ class CxiLclsCspadDataRetrieval(drl_base.OmDataRetrieval):
                 data_source_name="active_optical_laser",
                 monitor_parameters=monitor_parameters,
             ),
-            # "lcls_extra": functions_psana.lcls_extra,
+            "lcls_extra": ds_psana.LclsExtraPsana(
+                data_source_name="lcls_extra",
+                monitor_parameters=monitor_parameters,
+            ),
         }
 
         self._data_event_handler: drl_base.OmDataEventHandler = (
@@ -269,7 +275,10 @@ class CxiLclsEpix100DataRetrieval(drl_base.OmDataRetrieval):
                 data_source_name="active_optical_laser",
                 monitor_parameters=monitor_parameters,
             ),
-            # "lcls_extra": functions_psana.lcls_extra,
+            "lcls_extra": ds_psana.LclsExtraPsana(
+                data_source_name="lcls_extra",
+                monitor_parameters=monitor_parameters,
+            ),
         }
 
         self._data_event_handler: drl_base.OmDataEventHandler = (
@@ -356,7 +365,10 @@ class MfxLclsDataRetrieval(drl_base.OmDataRetrieval):
                 data_source_name="active_optical_laser",
                 monitor_parameters=monitor_parameters,
             ),
-            # "lcls_extra": functions_psana.lcls_extra,
+            "lcls_extra": ds_psana.LclsExtraPsana(
+                data_source_name="lcls_extra",
+                monitor_parameters=monitor_parameters,
+            ),
         }
 
         self._data_event_handler: drl_base.OmDataEventHandler = (
@@ -442,7 +454,10 @@ class MfxLclsRayonixDataRetrieval(drl_base.OmDataRetrieval):
                 data_source_name="active_optical_laser",
                 monitor_parameters=monitor_parameters,
             ),
-            # "lcls_extra": functions_psana.lcls_extra,
+            "lcls_extra": ds_psana.LclsExtraPsana(
+                data_source_name="lcls_extra",
+                monitor_parameters=monitor_parameters,
+            ),
         }
 
         self._data_event_handler: drl_base.OmDataEventHandler = (

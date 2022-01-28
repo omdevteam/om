@@ -653,7 +653,7 @@ class OpalPsana(drl_base.OmDataSource):
         return opal_psana
 
 
-class AcqirisDetector(drl_base.OmDataSource):
+class AcqirisPsana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -758,7 +758,7 @@ class AcqirisDetector(drl_base.OmDataSource):
         )
 
 
-class Wave8Detector(drl_base.OmDataSource):
+class Wave8Psana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -830,7 +830,7 @@ class Wave8Detector(drl_base.OmDataSource):
 
             The total intensity recorded by the Wave8 detector.
         """
-        return cast(float, self._detector_interface.get(event["data"]).TotalIntensity())
+        return cast(float, self._detector_interface())
 
 
 class TimestampPsana(drl_base.OmDataSource):
@@ -1212,3 +1212,104 @@ class EvrCodesPsana(drl_base.OmDataSource):
             )
 
         return self._requested_event_code in current_evr_codes
+
+
+class LclsExtraPsana(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        TODO: Documentation
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        TODO: Documentation
+        """
+
+        lcls_extra_items: List[List[str]] = self._monitor_parameters.get_parameter(
+            group="data_retrieval_layer",
+            parameter="lcls_extra",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._lcls_extra: Dict[str, Any] = {}
+
+        data_item: List[str]
+        for data_item in lcls_extra_items:
+            if not isinstance(data_item, list) or len(data_item) != 3:
+                raise exceptions.OmWrongParameterTypeError(
+                    "The 'lcls_extra' entry of the 'data_retrieval_layer' group "
+                    "in the configuration file is not formatted correctly."
+                )
+            for entry in data_item:
+                if not isinstance(entry, str):
+                    raise exceptions.OmWrongParameterTypeError(
+                        "The 'lcls_extra' entry of the 'data_retrieval_layer' "
+                        "group in the configuration file is not formatted "
+                        "correctly."
+                    )
+                identifier: str
+                name: str
+                data_type, identifier, name = data_item
+                if data_type == "acqiris_waveform":
+                    self._lcls_extra[name] = AcqirisPsana(
+                        data_source_name=f"psana-{identifier}",
+                        monitor_parameters=self._monitor_parameters,
+                    )
+                    self._lcls_extra[name].initialize_data_source()
+                elif data_type == "epics_pv":
+                    self._lcls_extra[name] = EpicsVariablePsana(
+                        data_source_name=f"psana-{identifier}",
+                        monitor_parameters=self._monitor_parameters,
+                    )
+                    self._lcls_extra[name].initialize_data_source()
+                elif data_type == "wave8_total_intensity":
+                    self._lcls_extra[name] = Wave8Psana(
+                        data_source_name=f"psana-{identifier}",
+                        monitor_parameters=self._monitor_parameters,
+                    )
+                    self._lcls_extra[name].initialize_data_source()
+                else:
+                    raise exceptions.OmWrongParameterTypeError(
+                        f"The requested '{data_type}' LCLS-specific data type is "
+                        "not supported."
+                    )
+
+    def get_data(self, *, event: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        TODO: Documentation
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            Whether the required event code has been emitted for the provided event.
+        """
+        data: Dict[str, Any] = {}
+
+        name: str
+        for name in self._lcls_extra:
+            data[name] = self._lcls_extra[name].get_data(event=event)
+
+        return data
