@@ -80,8 +80,8 @@ else
 fi
 
 # Create activation file
-echo "Creating activation script at ${om_prefix}/bin/activate"
-cat << EOF > ${om_prefix}/bin/activate
+echo "Creating activation script at ${om_prefix}/bin/activate-om"
+cat << EOF > ${om_prefix}/bin/activate-om
 echo "Activating OM installation at ${om_prefix}"
 export PATH=${om_prefix}/bin:\$PATH
 export PYTHONPATH=${om_prefix}/lib/python${om_pyver}/site-packages:\$PYTHONPATH
