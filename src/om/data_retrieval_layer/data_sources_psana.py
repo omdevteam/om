@@ -1288,6 +1288,8 @@ class LclsExtraPsana(drl_base.OmDataSource):
                         monitor_parameters=self._monitor_parameters,
                     )
                     self._lcls_extra[name].initialize_data_source()
+                elif data_type == "camera":
+                    self._lcls =
                 else:
                     raise exceptions.OmWrongParameterTypeError(
                         f"The requested '{data_type}' LCLS-specific data type is "
