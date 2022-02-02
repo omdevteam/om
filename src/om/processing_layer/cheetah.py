@@ -113,7 +113,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
         )
 
-        self._data_type: Union[str, None] = self._monitor_params.get_param(
+        self._data_type: Union[str, None] = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="hdf5_file_data_type",
             parameter_type=str,
