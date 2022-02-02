@@ -1275,26 +1275,27 @@ class LclsExtraPsana(drl_base.OmDataSource):
                         data_source_name=f"psana-{identifier}",
                         monitor_parameters=self._monitor_parameters,
                     )
-                    self._lcls_extra[name].initialize_data_source()
                 elif data_type == "epics_pv":
                     self._lcls_extra[name] = EpicsVariablePsana(
                         data_source_name=f"psana-{identifier}",
                         monitor_parameters=self._monitor_parameters,
                     )
-                    self._lcls_extra[name].initialize_data_source()
                 elif data_type == "wave8_total_intensity":
                     self._lcls_extra[name] = Wave8Psana(
                         data_source_name=f"psana-{identifier}",
                         monitor_parameters=self._monitor_parameters,
                     )
-                    self._lcls_extra[name].initialize_data_source()
-                elif data_type == "camera":
-                    self._lcls =
+                elif data_type == "opal_camera":
+                    self._lcls_extra[name] = OpalPsana(
+                        data_source_name=f"psana-{identifier}",
+                        monitor_parameters=self._monitor_parameters
+                    )
                 else:
                     raise exceptions.OmWrongParameterTypeError(
                         f"The requested '{data_type}' LCLS-specific data type is "
                         "not supported."
                     )
+                self._lcls_extra[name].initialize_data_source()
 
     def get_data(self, *, event: Dict[str, Any]) -> Dict[str, Any]:
         """
