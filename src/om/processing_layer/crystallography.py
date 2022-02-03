@@ -23,6 +23,7 @@ This module contains an OnDA Monitor for serial x-ray crystallography experiment
 import collections
 import sys
 import time
+from turtle import pu
 from typing import Any, Deque, Dict, List, Tuple, Union, cast
 
 import numpy
@@ -158,6 +159,16 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         else:
             self._binning = None
 
+        pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="pump_probe_experiment",
+            parameter_type=bool,
+        )
+        if pump_probe_experiment is None:
+            self._pump_probe_experiment: bool = False
+        else:
+            self._pump_probe_experiment = pump_probe_experiment
+
         self._min_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="min_num_peaks_for_hit",
@@ -259,6 +270,16 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         else:
             self._binning = None
 
+        pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="pump_probe_experiment",
+            parameter_type=bool,
+        )
+        if pump_probe_experiment is None:
+            self._pump_probe_experiment = False
+        else:
+            self._pump_probe_experiment = pump_probe_experiment
+
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
         # of the whole detector.
@@ -277,6 +298,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             parameter_type=int,
             required=True,
         )
+
         self._hit_rate_running_window: Deque[float] = collections.deque(
             [0.0] * self._running_average_window_size,
             maxlen=self._running_average_window_size,
@@ -288,6 +310,19 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self._hit_rate_history: Deque[float] = collections.deque(
             5000 * [0.0], maxlen=5000
         )
+
+        if self._pump_probe_experiment is True:
+            self._hit_rate_running_window_dark: Deque[float] = collections.deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._avg_hit_rate_dark: int = 0
+            self._hit_rate_timestamp_history_dark: Deque[float] = collections.deque(
+                5000 * [0.0], maxlen=5000
+            )
+            self._hit_rate_history_dark: Deque[float] = collections.deque(
+                5000 * [0.0], maxlen=5000
+            )
 
         y_minimum: int = (
             2
@@ -413,6 +448,9 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         processed_data["event_id"] = data["event_id"]
         processed_data["frame_id"] = data["frame_id"]
         processed_data["data_shape"] = binned_detector_data.shape
+        if self._pump_probe_experiment:
+            processed_data["optical_laser_active"] = data["optical_laser_active"]
+
         if frame_is_hit:
             processed_data["peak_list"] = peak_list
             if self._hit_frame_sending_interval is not None:
@@ -495,12 +533,34 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 else:
                     print(f"OM Warning: Could not understand request '{request}'.")
 
-        self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
-        avg_hit_rate: float = (
-            sum(self._hit_rate_running_window) / self._running_average_window_size
-        )
-        self._hit_rate_timestamp_history.append(received_data["timestamp"])
-        self._hit_rate_history.append(avg_hit_rate * 100.0)
+        if self._pump_probe_experiment:
+            if received_data["optical_laser_active"]:
+                self._hit_rate_running_window.append(
+                    float(received_data["frame_is_hit"])
+                )
+                avg_hit_rate: float = (
+                    sum(self._hit_rate_running_window)
+                    / self._running_average_window_size
+                )
+                self._hit_rate_timestamp_history.append(received_data["timestamp"])
+                self._hit_rate_history.append(avg_hit_rate * 100.0)
+            else:
+                self._hit_rate_running_window_dark.append(
+                    float(received_data["frame_is_hit"])
+                )
+                avg_hit_rate_dark: float = (
+                    sum(self._hit_rate_running_window_dark)
+                    / self._running_average_window_size
+                )
+                self._hit_rate_timestamp_history_dark.append(received_data["timestamp"])
+                self._hit_rate_history_dark.append(avg_hit_rate_dark * 100.0)
+        else:
+            self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
+            avg_hit_rate = (
+                sum(self._hit_rate_running_window) / self._running_average_window_size
+            )
+            self._hit_rate_timestamp_history.append(received_data["timestamp"])
+            self._hit_rate_history.append(avg_hit_rate * 100.0)
 
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
@@ -521,20 +581,28 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
+        omdata_message: Dict[str, Any] = {
+            "geometry_is_optimized": self._geometry_is_optimized,
+            "timestamp": received_data["timestamp"],
+            "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
+            "hit_rate_history": self._hit_rate_history,
+            "virtual_powder_plot": self._virt_powd_plot_img,
+            "beam_energy": received_data["beam_energy"],
+            "detector_distance": received_data["detector_distance"],
+            "first_panel_coffset": self._first_panel_coffset,
+            "pixel_size": self._pixel_size,
+            "pump_probe_experiment": self._pump_probe_experiment,
+        }
+        if self._pump_probe_experiment:
+            omdata_message[
+                "hit_rate_timestamp_history_dark"
+            ] = self._hit_rate_timestamp_history_dark
+            omdata_message["hit_rate_history_dark"] = self._hit_rate_history_dark
+
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
                 tag="omdata",
-                message={
-                    "geometry_is_optimized": self._geometry_is_optimized,
-                    "timestamp": received_data["timestamp"],
-                    "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
-                    "hit_rate_history": self._hit_rate_history,
-                    "virtual_powder_plot": self._virt_powd_plot_img,
-                    "beam_energy": received_data["beam_energy"],
-                    "detector_distance": received_data["detector_distance"],
-                    "first_panel_coffset": self._first_panel_coffset,
-                    "pixel_size": self._pixel_size,
-                },
+                message=omdata_message,
             )
 
             if "detector_data" in received_data:

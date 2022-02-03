@@ -140,6 +140,8 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._hit_rate_plot: Any = self._hit_rate_plot_widget.plot(
             tuple(range(-5000, 0)), [0.0] * 5000
         )
+        self._hit_rate_plot_dark: Any = None
+
         self._resolution_rings_check_box.stateChanged.connect(
             self._update_resolution_rings_status
         )
@@ -319,6 +321,22 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._hit_rate_plot.setData(
             tuple(range(-5000, 0)), local_data["hit_rate_history"]
         )
+
+        new_local_data = [(x - 5) for x in local_data["hit_rate_history_dark"]]
+        local_data["hit_rate_history_dark"] = new_local_data
+
+        if local_data["pump_probe_experiment"]:
+            if self._hit_rate_plot_dark is None:
+                self._hit_rate_plot_dark = self._hit_rate_plot_widget.plot(
+                    tuple(range(-5000, 0)),
+                    local_data["hit_rate_history"],
+                    pen=pyqtgraph.mkPen(color="light blue"),
+                )
+            else:
+                self._hit_rate_plot_dark.setData(
+                    tuple(range(-5000, 0)),
+                    local_data["hit_rate_history_dark"],
+                )
 
         QtWidgets.QApplication.processEvents()
 
