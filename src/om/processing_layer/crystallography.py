@@ -560,6 +560,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             self._hit_rate_timestamp_history.append(received_data["timestamp"])
             self._hit_rate_history.append(avg_hit_rate * 100.0)
 
+        print(f"DEBUG {self._virt_powd_plot_img.max()}")
+
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
         peak_fs: float
