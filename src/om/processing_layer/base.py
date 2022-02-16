@@ -145,7 +145,7 @@ class OmProcessing(ABC):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> None:
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
         Collects processed data from a processing node.
 
@@ -153,8 +153,23 @@ class OmProcessing(ABC):
         from a processing node. The function accepts as input the data received from
         the processing node (the tuple returned by the
         [`process_data`][om.processing_layer.base.OmProcessing.process_data] method of
-        this class). This function often computes aggregate statistics on the data received from all
-        nodes, forwards data to external programs for visualization, etc.
+        this class). This function often computes aggregate statistics on the data
+        received from all nodes, forwards data to external programs for visualization,etc.
+
+        The function usually does not return any value, but can optionally return a
+        nested dictionary, which can be used to provide feedback data to the processing
+        nodes.
+
+        * The keys of the outer dictionary must correspond to the OM rank numbers of
+          the processing nodes which will receive the feedback data. A key value of 0
+          can be used to send feedback data to all the processing nodes.
+
+        * The dictionary value corresponding to each key must be a dictionary that
+          stores the feedback data to send.
+
+        * The feedback data dictionary will be merged with the `data` argument
+          of the [process_data][om.processing_layer.base.OmProcessing.process_data]
+          function, the next time that function is called on the processing node.
 
         Arguments:
 
@@ -168,6 +183,11 @@ class OmProcessing(ABC):
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
+
+        Returns:
+
+            Usually nothing. Optionally, a nested dictionary that can be used to send
+            data back to the processing nodes.
         """
         pass
 

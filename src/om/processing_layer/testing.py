@@ -173,7 +173,7 @@ class TestProcessing(pl_base.OmProcessing):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> None:
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
         Computes aggregated data and broadcasts it over the network.
 
@@ -225,6 +225,8 @@ class TestProcessing(pl_base.OmProcessing):
 
             sys.stdout.flush()
             self._old_time = now_time
+
+        return {0: {"timestamp_of_last_event": received_data["timestamp"]}}
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int

@@ -281,7 +281,7 @@ class XESProcessing(pl_base.OmProcessing):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> None:
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
         Computes statistics on aggregated spectrum data and broadcasts them.
 
@@ -434,6 +434,8 @@ class XESProcessing(pl_base.OmProcessing):
             )
             sys.stdout.flush()
             self._old_time = now_time
+
+        return None
 
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int

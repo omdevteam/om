@@ -603,7 +603,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> None:
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
         Computes statistics on aggregated data and optionally saves them to files.
 
@@ -644,7 +644,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._class_sum_update_counter += 1
 
         if "end_processing" in received_data:
-            return
+            return None
 
         self._num_events += 1
         if received_data["frame_is_hit"]:
@@ -775,6 +775,8 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
             sys.stdout.flush()
             self._old_time = now_time
+
+        return None
 
     def end_processing_on_processing_node(
         self,

@@ -33,6 +33,7 @@ from om.utils import exceptions, parameters
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _DIETAG: int = 999
 _DEADTAG: int = 1000
+_FEEDBACKTAG: int = 1000
 
 
 class MpiParallelization(par_layer_base.OmParallelization):
@@ -113,6 +114,8 @@ class MpiParallelization(par_layer_base.OmParallelization):
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
 
+            req: Any = 0
+
             while True:
                 try:
                     received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
@@ -137,12 +140,36 @@ class MpiParallelization(par_layer_base.OmParallelization):
                             exit(0)
                         else:
                             continue
-                    self._processing_layer.collect_data(
+                    feedback_data: Union[
+                        Dict[int, Dict[str, Any]], None
+                    ] = self._processing_layer.collect_data(
                         node_rank=self._rank,
                         node_pool_size=self._mpi_size,
                         processed_data=received_data,
                     )
                     self._num_collected_events += 1
+                    if feedback_data is not None:
+                        receiving_rank: int
+                        for receiving_rank in feedback_data.keys():
+                            if receiving_rank == 0:
+                                target_rank: int
+                                for target_rank in range(1, self._mpi_size):
+                                    if req:
+                                        req.Wait()
+                                    req = MPI.COMM_WORLD.isend(
+                                        feedback_data[0],
+                                        dest=target_rank,
+                                        tag=_FEEDBACKTAG,
+                                    )
+                            else:
+                                if req:
+                                    req.Wait()
+                                req = MPI.COMM_WORLD.isend(
+                                    feedback_data[receiving_rank],
+                                    dest=receiving_rank,
+                                    tag=_FEEDBACKTAG,
+                                )
+
                 except KeyboardInterrupt as exc:
                     print("Received keyboard sigterm...")
                     print(str(exc))
@@ -169,6 +196,10 @@ class MpiParallelization(par_layer_base.OmParallelization):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
                     self.shutdown(msg=f"Shutting down RANK: {self._rank}.")
 
+                feedback_dict: Dict[str, Any] = {}
+                if MPI.COMM_WORLD.Iprobe(source=0, tag=_FEEDBACKTAG):
+                    feedback_dict = MPI.COMM_WORLD.recv(source=0, tag=_FEEDBACKTAG)
+
                 self._data_event_handler.open_event(event=event)
                 n_frames_in_evt: int = self._data_event_handler.get_num_frames_in_event(
                     event=event
@@ -192,6 +223,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
                         print(exc)
                         print("Skipping event...")
                         continue
+                    data.update(feedback_dict)
                     processed_data: Tuple[
                         Dict[str, Any], int
                     ] = self._processing_layer.process_data(
@@ -214,6 +246,8 @@ class MpiParallelization(par_layer_base.OmParallelization):
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
             if final_data is not None:
+                if req:
+                    req.Wait()
                 req = MPI.COMM_WORLD.isend((final_data, self._rank), dest=0, tag=0)
                 if req:
                     req.Wait()
@@ -221,6 +255,8 @@ class MpiParallelization(par_layer_base.OmParallelization):
             # Sends a message to the collecting node saying that there are no more
             # events.
             end_dict = {"end": True}
+            if req:
+                req.Wait()
             req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=0)
             if req:
                 req.Wait()
@@ -270,6 +306,8 @@ class MpiParallelization(par_layer_base.OmParallelization):
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
         else:
-            _ = MPI.COMM_WORLD.send(dest=0, tag=_DEADTAG)
+            req = MPI.COMM_WORLD.send(dest=0, tag=_DEADTAG)
+            if req:
+                req.Wait()
             MPI.Finalize()
             exit(0)
