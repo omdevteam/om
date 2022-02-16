@@ -322,15 +322,12 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             tuple(range(-5000, 0)), local_data["hit_rate_history"]
         )
 
-        new_local_data = [(x - 5) for x in local_data["hit_rate_history_dark"]]
-        local_data["hit_rate_history_dark"] = new_local_data
-
         if local_data["pump_probe_experiment"]:
             if self._hit_rate_plot_dark is None:
                 self._hit_rate_plot_dark = self._hit_rate_plot_widget.plot(
                     tuple(range(-5000, 0)),
                     local_data["hit_rate_history"],
-                    pen=pyqtgraph.mkPen(color="light blue"),
+                    pen=pyqtgraph.mkPen(color="light green"),
                 )
             else:
                 self._hit_rate_plot_dark.setData(
