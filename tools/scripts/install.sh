@@ -4,7 +4,7 @@ set -e
 # Set up default parameters
 om_develop=""
 om_deps=""
-om_prefix=`pwd`/install
+om_prefix=""
 
 # Check that the script is run from the right directory
 if [ ! -f "./setup.py" ]
@@ -20,7 +20,7 @@ function print_usage() {
   echo "   Or: source tools/scripts/install.sh <arguments>    Install OM"      
   echo ""
   echo "Arguments:"
-  echo "   -p <path>  installation path (defaults to <om_root>/install) "      
+  echo "   -p <path>  installation path (defaults to the path when python is installed) "      
   echo "   -e         perform an editable (develop) installation"      
   echo "   -n         install only OM, no dependecies"      
   echo "   -h         print this help"      
@@ -50,43 +50,57 @@ while getopts ":p:enh" opt; do
 done
 
 # Start installation
-echo "Installing OM at ${om_prefix}"
-
-# Create sitecustomize.py file if needed
-mkdir -p ${om_prefix}
-om_python_version=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
-om_pyver=${om_python_version:0:3}
-if [ "${om_develop}" == "--editable" ]
+if [ "${om_prefix}" != "" ]
 then
-  mkdir -p ${om_prefix}/lib/python${om_pyver}/site-packages
-  echo "Editable installation detected"
-  echo "Creating sitecustomize.py file at ${om_prefix}/lib/python${om_pyver}/site-packages/sitecustomize.py"
-cat << EOF > ${om_prefix}/lib/python${om_pyver}/site-packages/sitecustomize.py
+  echo "Installing OM at ${om_prefix}"
+  mkdir -p ${om_prefix}
+  if [ "${om_develop}" == "--editable" ]
+  then
+     echo "Editable installation detected"
+     echo "Creating sitecustomize.py file at ${om_prefix}/lib/python${om_pyver}/site-packages/sitecustomize.py"
+     mkdir -p ${om_prefix}/lib/python${om_pyver}/site-packages
+     cat << EOF > ${om_prefix}/lib/python${om_pyver}/site-packages/sitecustomize.py
 import site
 
 site.addsitedir('${om_prefix}/lib/python${om_pyver}/site-packages')
 EOF
+  fi
+else
+  echo "Installing OM"
 fi
 
+# Create sitecustomize.py file if needed
+om_python_version=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
+om_pyver=${om_python_version:0:3}
+
 # Perform the installation
+if [ "${om_prefix}" == "" ]
+then
+  prefix_opt=""
+else
+  prefix_opt="--prefix=${om_prefix}"
+fi
 
 if [ "${om_develop}" == "--editable" ]
 then
-  echo "Running: 'python setup.py develop ${om_deps} --prefix=${om_prefix}'"
-  PYTHONPATH=${om_prefix}/lib/python${om_pyver}/site-packages:$PYTHONPATH python setup.py develop ${om_deps} --prefix=${om_prefix}
+  echo "Running: 'python setup.py develop ${om_deps} ${prefix_opt}'"
+  PYTHONPATH=${om_prefix}/lib/python${om_pyver}/site-packages:$PYTHONPATH python setup.py develop ${om_deps} ${prefix_opt}
 else
-  echo "Running: 'pip install ${om_deps} --prefix=${om_prefix} .'"
-  pip install ${om_deps} --prefix=${om_prefix} .
+  echo "Running: 'pip install ${om_deps} ${prefix_opt} .'"
+  pip install ${om_deps} ${prefix_opt} .
 fi
 
 # Create activation file
-echo "Creating activation script at ${om_prefix}/bin/activate-om"
-cat << EOF > ${om_prefix}/bin/activate-om
+if [ "${om_prefix}" != "" ]
+then
+  echo "Creating activation script at ${om_prefix}/bin/activate-om"
+  cat << EOF > ${om_prefix}/bin/activate-om
 echo "Activating OM installation at ${om_prefix}"
 export PATH=${om_prefix}/bin:\$PATH
 export PYTHONPATH=${om_prefix}/lib/python${om_pyver}/site-packages:\$PYTHONPATH
 export PYTHONPATH=${om_prefix}/lib64/python${om_pyver}/site-packages:\$PYTHONPATH
 EOF
+fi
 
 # Do not exit if any command fails
 set +e
