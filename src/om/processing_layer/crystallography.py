@@ -23,8 +23,8 @@ This module contains an OnDA Monitor for serial x-ray crystallography experiment
 import collections
 import sys
 import time
-from turtle import pu
-from typing import Any, Deque, Dict, List, Tuple, Union, cast
+from itertools import cycle
+from typing import Any, Deque, Dict, Iterator, List, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -168,6 +168,9 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         else:
             self._pump_probe_experiment = pump_probe_experiment
 
+        self._send_hit_frame: bool = False
+        self._send_non_hit_frame: bool = False
+
         self._min_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="min_num_peaks_for_hit",
@@ -180,23 +183,6 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             parameter_type=int,
             required=True,
         )
-        self._hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="hit_frame_sending_interval",
-            parameter_type=int,
-        )
-        self._non_hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="non_hit_frame_sending_interval",
-            parameter_type=int,
-        )
-
-        self._hit_frame_sending_counter: int = 0
-        self._non_hit_frame_sending_counter: int = 0
 
         print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
@@ -350,6 +336,23 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             visual_img_shape, dtype=numpy.float32
         )
 
+        self._hit_frame_sending_interval: Union[
+            int, None
+        ] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="hit_frame_sending_interval",
+            parameter_type=int,
+        )
+        self._non_hit_frame_sending_interval: Union[
+            int, None
+        ] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="non_hit_frame_sending_interval",
+            parameter_type=int,
+        )
+
+        self._ranks_for_frame_request: Iterator[int] = cycle(range(1, node_pool_size))
+
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
             zmq_monitor.ZmqDataBroadcaster(
                 parameters=self._monitor_params.get_parameter_group(
@@ -433,6 +436,12 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 peak_list["fs"][i] = (peak_list["fs"][i] + 0.5) / bin_size - 0.5
                 peak_list["ss"][i] = (peak_list["ss"][i] + 0.5) / bin_size - 0.5
 
+        if "requests" in data:
+            if data["requests"] == "hit_frame":
+                self._send_hit_frame = True
+            if data["requests"] == "non_hit_frame":
+                self._send_hit_frame = True
+
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
             < len(peak_list["intensity"])
@@ -451,30 +460,14 @@ class CrystallographyProcessing(pl_base.OmProcessing):
 
         if frame_is_hit:
             processed_data["peak_list"] = peak_list
-            if self._hit_frame_sending_interval is not None:
-                self._hit_frame_sending_counter += 1
-                if self._hit_frame_sending_counter == self._hit_frame_sending_interval:
-                    # If the frame is a hit, and if the 'hit_sending_interval'
-                    # attribute says that the detector frame data should be sent to
-                    # the collecting node, adds the data to the 'processed_data'
-                    # dictionary (and resets the counter).
-                    processed_data["detector_data"] = binned_detector_data
-                    self._hit_frame_sending_counter = 0
+            if self._send_hit_frame is True:
+                processed_data["detector_data"] = binned_detector_data
+                self._send_hit_frame = False
         else:
-            # If the frame is not a hit, sends an empty peak list.
             processed_data["peak_list"] = {"fs": [], "ss": [], "intensity": []}
-            if self._non_hit_frame_sending_interval is not None:
-                self._non_hit_frame_sending_counter += 1
-                if (
-                    self._non_hit_frame_sending_counter
-                    == self._non_hit_frame_sending_interval
-                ):
-                    # If the frame is a not a hit, and if the 'hit_sending_interval'
-                    # attribute says that the detector frame data should be sent to
-                    # the collecting node, adds the data to the 'processed_data'
-                    # dictionary (and resets the counter).
-                    processed_data["detector_data"] = binned_detector_data
-                    self._non_hit_frame_sending_counter = 0
+            if self._send_non_hit_frame is True:
+                processed_data["detector_data"] = binned_detector_data
+                self._send_non_hit_frame = False
 
         return (processed_data, node_rank)
 
@@ -511,6 +504,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         """
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
+        return_dict: Dict[int, Dict[str, Any]] = {}
 
         if received_data["frame_is_hit"] is True:
             request: Union[str, None] = self._responding_socket.get_request()
@@ -603,34 +597,45 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 message=omdata_message,
             )
 
-            if "detector_data" in received_data:
-                # If detector frame data is found in the data received from the
-                # processing node, it must be broadcasted to visualization programs.
+        if "detector_data" in received_data:
+            # If detector frame data is found in the data received from the
+            # processing node, it must be broadcasted to visualization programs.
 
-                self._frame_data_img[
-                    self._visual_pixelmap_y, self._visual_pixelmap_x
-                ] = (
-                    received_data["detector_data"]
-                    .ravel()
-                    .astype(self._frame_data_img.dtype)
-                )
+            self._frame_data_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
+                received_data["detector_data"]
+                .ravel()
+                .astype(self._frame_data_img.dtype)
+            )
 
-                self._data_broadcast_socket.send_data(
-                    tag="omframedata",
-                    message={
-                        "frame_data": self._frame_data_img,
-                        "timestamp": received_data["timestamp"],
-                        "peak_list_x_in_frame": peak_list_x_in_frame,
-                        "peak_list_y_in_frame": peak_list_y_in_frame,
-                    },
-                )
-                self._data_broadcast_socket.send_data(
-                    tag="omtweakingdata",
-                    message={
-                        "detector_data": received_data["detector_data"],
-                        "timestamp": received_data["timestamp"],
-                    },
-                )
+            self._data_broadcast_socket.send_data(
+                tag="omframedata",
+                message={
+                    "frame_data": self._frame_data_img,
+                    "timestamp": received_data["timestamp"],
+                    "peak_list_x_in_frame": peak_list_x_in_frame,
+                    "peak_list_y_in_frame": peak_list_y_in_frame,
+                },
+            )
+            self._data_broadcast_socket.send_data(
+                tag="omtweakingdata",
+                message={
+                    "detector_data": received_data["detector_data"],
+                    "timestamp": received_data["timestamp"],
+                },
+            )
+
+        if (
+            self._hit_frame_sending_interval is not None
+            and self._num_events % self._hit_frame_sending_interval == 0
+        ):
+            rank_for_request: int = next(self._ranks_for_frame_request)
+            return_dict[rank_for_request] = {"requests": "hit_frame"}
+        if (
+            self._non_hit_frame_sending_interval is not None
+            and self._num_events % self._non_hit_frame_sending_interval == 0
+        ):
+            rank_for_request = next(self._ranks_for_frame_request)
+            return_dict[rank_for_request] = {"requests": "non_hit_frame"}
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
@@ -645,6 +650,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             sys.stdout.flush()
             self._old_time = now_time
 
+        if return_dict:
+            return return_dict
         return None
 
     def end_processing_on_processing_node(
