@@ -440,7 +440,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             if data["requests"] == "hit_frame":
                 self._send_hit_frame = True
             if data["requests"] == "non_hit_frame":
-                self._send_hit_frame = True
+                self._send_non_hit_frame = True
 
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit

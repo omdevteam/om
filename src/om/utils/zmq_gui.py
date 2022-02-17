@@ -136,7 +136,7 @@ class ZmqDataListener(QtCore.QObject):
         """
         self._listening_timer.stop()
         print(f"Disconnecting from {self._url}.")
-        self._zmq_subscribe.disconnect(f"{self.url}")
+        self._zmq_subscribe.disconnect(f"{self._url}")
         self._zmq_poller = None
         self._zmq_subscribe = None
 
