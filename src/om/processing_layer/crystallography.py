@@ -288,6 +288,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             maxlen=self._running_average_window_size,
         )
         self._avg_hit_rate: int = 0
+        self._num_hits: int = 0
         self._hit_rate_timestamp_history: Deque[float] = collections.deque(
             5000 * [0.0], maxlen=5000
         )
@@ -352,6 +353,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         )
 
         self._ranks_for_frame_request: Iterator[int] = cycle(range(1, node_pool_size))
+        self._first_broadcast: bool = True
 
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
             zmq_monitor.ZmqDataBroadcaster(
@@ -507,6 +509,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         return_dict: Dict[int, Dict[str, Any]] = {}
 
         if received_data["frame_is_hit"] is True:
+            self._num_hits += 1
             request: Union[str, None] = self._responding_socket.get_request()
             if request is not None:
                 if request == "next":
@@ -584,13 +587,17 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             "first_panel_coffset": self._first_panel_coffset,
             "pixel_size": self._pixel_size,
             "pump_probe_experiment": self._pump_probe_experiment,
+            "num_events": self._num_events,
+            "num_hits": self._num_hits,
         }
         if self._pump_probe_experiment:
             omdata_message[
                 "hit_rate_timestamp_history_dark"
             ] = self._hit_rate_timestamp_history_dark
             omdata_message["hit_rate_history_dark"] = self._hit_rate_history_dark
-
+        if self._first_broadcast:
+            omdata_message["first_broadcast"] = True
+            self._first_broadcast = False
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
                 tag="omdata",
