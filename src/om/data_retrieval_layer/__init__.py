@@ -32,8 +32,6 @@ try:
         PilatusFilesDataRetrieval,
         Eiger16MFilesDataRetrieval,
     )
-
-    print("OM Message: activating file-based data retrieval")
 except ModuleNotFoundError:
     pass
 
@@ -46,8 +44,6 @@ try:
         MfxLclsDataRetrieval,
         MfxLclsRayonixDataRetrieval,
     )
-
-    print("OM Message: activating psana data retrieval")
 except ModuleNotFoundError:
     pass
 
@@ -58,7 +54,5 @@ try:
     from om.data_retrieval_layer.data_retrieval_zmq import (  # noqa: F401
         Jungfrau1MZmqDataRetrieval,
     )
-
-    print("OM Message: activating ZMQ data retrieval")
 except ModuleNotFoundError:
     pass
