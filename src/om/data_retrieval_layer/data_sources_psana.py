@@ -24,13 +24,19 @@ software framework (used at the LCLS facility).
 from typing import Any, Callable, Dict, List, Tuple, Union, cast
 
 import numpy
-import psana  # type: ignore
 from numpy.typing import NDArray
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils import exceptions
 from om.utils.parameters import MonitorParams
+
+try:
+    import psana  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: psana"
+    )
 
 
 def _get_psana_epics_name(
@@ -1288,7 +1294,7 @@ class LclsExtraPsana(drl_base.OmDataSource):
                 elif data_type == "opal_camera":
                     self._lcls_extra[name] = OpalPsana(
                         data_source_name=f"psana-{identifier}",
-                        monitor_parameters=self._monitor_parameters
+                        monitor_parameters=self._monitor_parameters,
                     )
                 else:
                     raise exceptions.OmWrongParameterTypeError(
