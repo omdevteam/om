@@ -301,8 +301,8 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         QtWidgets.QApplication.processEvents()
 
         self._peak_canvas.setData(
-            x=peak_list_y_in_frame,
-            y=peak_list_x_in_frame,
+            x=peak_list_x_in_frame,
+            y=peak_list_y_in_frame,
             symbol="o",
             size=[5] * len(peak_list_x_in_frame),
             brush=(255, 255, 255, 0),
