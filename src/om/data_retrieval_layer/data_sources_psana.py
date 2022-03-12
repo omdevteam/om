@@ -91,7 +91,7 @@ def _get_psana_data_retrieval_function(
     if calibrated_data_required:
         data_retrieval_function: Callable[[Any], Any] = detector_interface.calib
     else:
-        detector_interface.raw
+        data_retrieval_function = detector_interface.raw
     return data_retrieval_function
 
 
