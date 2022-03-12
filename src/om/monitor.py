@@ -102,55 +102,26 @@ def main(*, source: str, config: str, debug: bool) -> None:
 
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(config)
 
-    data_retrieval_layer_class_name: Union[
-        str, None
-    ] = monitor_parameters.get_parameter(
+    data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
-        parameter="data_event_handler",
+        parameter="data_retrieval_layer",
         parameter_type=str,
+        required=True,
     )
-    if not data_retrieval_layer_class_name:
-        data_retrieval_layer_class_name = cast(
-            str,
-            monitor_parameters.get_parameter(
-                group="om",
-                parameter="data_retrieval_layer",
-                parameter_type=str,
-                required=True,
-            ),
-        )
 
-    parallelization_layer_class_name: Union[
-        str, None
-    ] = monitor_parameters.get_parameter(
+    parallelization_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
-        parameter="parallelization_engine",
+        parameter="parallelization_layer",
         parameter_type=str,
+        required=True,
     )
-    if not parallelization_layer_class_name:
-        parallelization_layer_class_name = cast(
-            str,
-            monitor_parameters.get_parameter(
-                group="om",
-                parameter="parallelization_layer",
-                parameter_type=str,
-                required=True,
-            ),
-        )
 
-    processing_layer_class_name: Union[str, None] = monitor_parameters.get_parameter(
-        group="om", parameter="monitor", parameter_type=str
+    processing_layer_class_name: str = monitor_parameters.get_parameter(
+        group="om",
+        parameter="processing_layer",
+        parameter_type=str,
+        required=True,
     )
-    if not processing_layer_class_name:
-        processing_layer_class_name = cast(
-            str,
-            monitor_parameters.get_parameter(
-                group="om",
-                parameter="processing_layer",
-                parameter_type=str,
-                required=True,
-            ),
-        )
 
     parallelization_layer_class: Type[pa_base.OmParallelization] = _import_class(
         layer="parallelization_layer",
