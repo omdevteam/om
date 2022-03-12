@@ -365,7 +365,8 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
             required_data=required_data,
         )
 
-        self._psana_source: Any = self._initialize_psana_data_source()
+        psana_source: Any = self._initialize_psana_data_source()
+        self._run = next(psana_source.runs())
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
@@ -399,13 +400,7 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
         event_time: Any = psana.EventTime(
             int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
         )
-        retrieved_event: Any = None
-        run: Any
-        for run in self._psana_source.runs():
-            evt: Any = run.event(event_time)
-            if evt is not None:
-                retrieved_event = evt
-                break
+        retrieved_event: Any = self._run.event(event_time)
         if retrieved_event is None:
             raise exceptions.OmMissingDataEventError(
                 f"Data event {event_id} cannot be retrieved from the data event source"
