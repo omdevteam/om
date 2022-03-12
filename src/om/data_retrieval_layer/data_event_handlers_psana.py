@@ -106,6 +106,31 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
         self._monitor_params: parameters.MonitorParams = monitor_parameters
         self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
 
+    def _initialize_psana_data_source(self) -> Any:
+        # This private method contains all the common psana initialization code needed
+        # by other methods of the class
+
+        # If the psana calibration directory is provided in the configuration file, it
+        # is added as an option to psana before the DataSource is set.
+        psana_calib_dir: str = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="psana_calibration_directory",
+            parameter_type=str,
+        )
+        if psana_calib_dir is not None:
+            psana.setOption("psana.calib-dir", psana_calib_dir)
+        else:
+            print("OM Warning: Calibration directory not provided or not found.")
+
+        psana_source: Any = psana.DataSource(self._source)
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
+        return psana_source
+
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -196,24 +221,7 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
         if offline and not self._source[-4:] == ":idx":
             self._source += ":idx"
 
-        # If the psana calibration directory is provided in the configuration file, it
-        # is added as an option to psana before the DataSource is set.
-        psana_calib_dir: str = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="psana_calibration_directory",
-            parameter_type=str,
-        )
-        if psana_calib_dir is not None:
-            psana.setOption("psana.calib-dir", psana_calib_dir)
-        else:
-            print("OM Warning: Calibration directory not provided or not found.")
-
-        psana_source = psana.DataSource(self._source)
-
-        self._data_sources["timestamp"].initialize_data_source()
-        source_name: str
-        for source_name in self._required_data_sources:
-            self._data_sources[source_name].initialize_data_source()
+        psana_source: Any = self._initialize_psana_data_source()
 
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
@@ -316,8 +324,8 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
               Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
-        f_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
+        source_name: str
         for source_name in self._required_data_sources:
             try:
                 data[source_name] = self._data_sources[source_name].get_data(
@@ -334,3 +342,89 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
                     )
 
         return data
+
+    def initialize_frame_data_retrieval(self) -> None:
+        """
+        Initializes frame data retrievals from psana.
+
+        This function initializes the retrieval of a single standalone detector data
+        frame from psana, with all the information that refers to it.
+        """
+        if self._source[-4:] != ":idx":
+            self._source += ":idx"
+
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+
+        self._psana_source: Any = self._initialize_psana_data_source()
+
+    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+        """
+        Retrieves all data realted to the requested detector frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves frame data from the event specified by the provided
+        psana unique event identifier. The identifier is a string of combining
+        psana timestamp and fiducial information, with the following format:
+        `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`. Since psana
+        data events are based around single detector frames, the unique frame
+        identifier provided to this function must be the string "0".
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
+        """
+        event_id_parts: List[str] = event_id.split("-")
+        evt_id_timestamp: int = int(event_id_parts[0])
+        evt_id_timestamp_ns: int = int(event_id_parts[1])
+        evt_id_fiducials: int = int(event_id_parts[2])
+        event_time: Any = psana.EventTime(
+            int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
+        )
+        retrieved_event: Any = None
+        print("Qui")
+        run: Any
+        for run in self._psana_source.runs():
+            evt: Any = run.event(event_time)
+            if evt is not None:
+                retrieved_event = evt
+                break
+        if retrieved_event is None:
+            raise exceptions.OmMissingDataEventError(
+                f"Data event {event_id} cannot be retrieved from the data event source"
+            )
+        if frame_id != "0":
+            raise exceptions.OmMissingFrameDataError(
+                f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
+                "the  data event source"
+            )
+
+        data_event: Dict[str, Any] = {}
+        data_event["additional_info"] = {}
+        data_event["data"] = retrieved_event
+
+        # Recovers the timestamp from the psana event (as seconds from the Epoch)
+        # and stores it in the event dictionary.
+        data_event["additional_info"]["timestamp"] = self._data_sources[
+            "timestamp"
+        ].get_data(event=data_event)
+
+        return self.extract_data(event=data_event)

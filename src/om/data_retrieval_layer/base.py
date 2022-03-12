@@ -195,10 +195,10 @@ class OmDataEventHandler(ABC):
         """
         Retrieves events from the source.
 
-        This function retrieves data events from a source. OM calls this function on
-        each processing node to start retrieving events. The function, which is a
-        generator, returns an iterator over the events that the calling node should
-        process.
+        This function retrieves a series of data events from a source. OM calls this
+        function on each processing node to start retrieving events. The function,
+        which is a generator, returns an iterator over the events that the calling node
+        should process.
 
         Arguments:
 
@@ -296,6 +296,51 @@ class OmDataEventHandler(ABC):
 
             * The corresponding dictionary value stores the data extracted from the
               Data Source for the frame being processed.
+        """
+        pass
+
+    @abstractmethod
+    def initialize_frame_data_retrieval(self) -> None:
+        """
+        Initializes frame data retrievals.
+
+        This function initializes the retrieval of a single standalone detector data
+        frame, with all the information that refers to it, as opposed to a series of
+        events and frames as OM usually does. The function can be called on any type
+        of node in OM and even outside of an OnDA Monitor. It prepares the system to
+        retrieve the data, initializing the Data Sources, etc.
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+        """
+        pass
+
+    @abstractmethod
+    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+        """
+        Retrieves all data realted to the requested detector frame from an event.
+
+        This function retrieves a standalone detector frame from a data event source,
+        together with all the data related to it. Before this function can be called,
+        frame data retrieval must be initialized by calling the
+        [`initialize_frame_data_retrieval`][initialize_frame_data_retrieval] function.
+        The function can then be used to retrieve data related to the data event and
+        frame specified by the provided unique identifiers.
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
         """
         pass
 

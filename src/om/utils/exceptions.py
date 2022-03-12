@@ -103,6 +103,12 @@ class OmMissingDataRetrievalClassError(OmException):
     """
 
 
+class OmMissingDataEventError(OmException):
+    """
+    Raised if a data event cannot be retrieved from a data source.
+    """
+
+
 class OmMissingDataSourceClassError(OmException):
     """
     Raised if a Data Source class cannot be found in the Data Retrieval Layer.
@@ -113,6 +119,13 @@ class OmMissingDataSourceClassError(OmException):
 class OmMissingDependencyError(OmException):
     """
     Raised if one of the python module dependencies is not found on the system.
+
+    """
+
+
+class OmMissingFrameDataError(OmException):
+    """
+    Raised if detector frame data cannot be retrieved from a data event.
 
     """
 

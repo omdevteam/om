@@ -50,3 +50,5 @@ try:
     )
 except ModuleNotFoundError:
     pass
+
+from om.data_retrieval_layer.frame_retrieval import OmFrameDataRetrieval
