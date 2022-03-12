@@ -400,7 +400,6 @@ class PsanaDataEventHandler(drl_base.OmDataEventHandler):
             int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
         )
         retrieved_event: Any = None
-        print("Qui")
         run: Any
         for run in self._psana_source.runs():
             evt: Any = run.event(event_time)
