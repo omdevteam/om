@@ -33,7 +33,8 @@ from om.utils import exceptions, parameters
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _DIETAG: int = 999
 _DEADTAG: int = 1000
-_FEEDBACKTAG: int = 1000
+_DATATAG: int = 1001
+_FEEDBACKTAG: int = 1002
 
 
 class MpiParallelization(par_layer_base.OmParallelization):
@@ -119,7 +120,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
             while True:
                 try:
                     received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
-                        source=MPI.ANY_SOURCE, tag=0
+                        source=MPI.ANY_SOURCE, tag=_DATATAG
                     )
                     if "end" in received_data[0].keys():
                         # If the received message announces that a processing node has
@@ -231,7 +232,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
                     )
                     if req:
                         req.Wait()
-                    req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=0)
+                    req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=_DATATAG)
                 # Makes sure that the last MPI message has processed.
                 if req:
                     req.Wait()
@@ -248,7 +249,9 @@ class MpiParallelization(par_layer_base.OmParallelization):
             if final_data is not None:
                 if req:
                     req.Wait()
-                req = MPI.COMM_WORLD.isend((final_data, self._rank), dest=0, tag=0)
+                req = MPI.COMM_WORLD.isend(
+                    (final_data, self._rank), dest=0, tag=_DATATAG
+                )
                 if req:
                     req.Wait()
 
@@ -257,7 +260,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
             end_dict = {"end": True}
             if req:
                 req.Wait()
-            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=0)
+            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=_DATATAG)
             if req:
                 req.Wait()
             MPI.Finalize()
@@ -291,8 +294,8 @@ class MpiParallelization(par_layer_base.OmParallelization):
                     MPI.COMM_WORLD.isend(0, dest=node_num, tag=_DIETAG)
                 num_shutdown_confirm = 0
                 while True:
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=0):
-                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATATAG):
+                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=_DATATAG)
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DEADTAG):
                         num_shutdown_confirm += 1
                     if num_shutdown_confirm == self._mpi_size - 1:
