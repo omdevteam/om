@@ -894,3 +894,78 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
                     )
 
         return data
+
+    def initialize_frame_data_retrieval(self) -> None:
+        """
+        Initializes frame data retrievals from Eiger 16M files.
+
+        This function initializes the retrieval of a single standalone detector data
+        frame from Eiger 16M files, with all the information that refers to it.
+        """
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
+    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+        """
+        Retrieves all data realted to the requested detector frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves frame data from the event specified by the provided
+        Eiger 16M unique event identifier. The identifier is a string consisting of
+        the path of the HDF5 file attached to the event and the index of the event
+        within the file, separated by '//' symbol. Since Eiger 16M data events are
+        based around single detector frames, the unique frame identifier provided to
+        this function must be the string "0".
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
+        """
+
+        event_id_parts: List[str] = event_id.split("//")
+        filename: str = event_id_parts[0].strip()
+        index: int = int(event_id_parts[1].strip())
+
+        data_event: Dict[str, Any] = {}
+        data_event["additional_info"] = {}
+
+        h5file: Any = h5py.File(filename, "r")
+        data_event["additional_info"]["h5file"] = h5file
+        data_event["additional_info"]["full_path"] = str(
+            pathlib.Path(filename).resolve()
+        )
+        data_event["additional_info"]["file_modification_time"] = numpy.float64(
+            pathlib.Path(filename).stat().st_mtime
+        )
+        data_event["additional_info"]["timestamp"] = self._data_sources[
+            "timestamp"
+        ].get_data(event=data_event)
+        data_event["additional_info"]["index"] = index
+
+        extracted_data: Dict[str, Any] = self.extract_data(event=data_event)
+        h5file.close()
+
+        return extracted_data
