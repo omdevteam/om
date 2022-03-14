@@ -398,6 +398,16 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._status_filename: pathlib.Path = (
             processed_directory_path.resolve() / "status.txt"
         )
+        self._hits_file: TextIO = open(
+            processed_directory_path.resolve() / "hits.lst", "w"
+        )
+        self._peaks_file: TextIO = open(
+            processed_directory_path.resolve() / "peaks.txt", "w"
+        )
+        self._peaks_file.write(
+            "event_id, num_peaks, fs, ss, intensity, num_pixels, "
+            "max_pixel_intensity, snr\n"
+        )
         self._start_time: float = time.time()
         self._status_file_update_interval: int = self._monitor_params.get_parameter(
             group="cheetah",
@@ -649,6 +659,23 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._num_events += 1
         if received_data["frame_is_hit"]:
             self._num_hits += 1
+            if "event_id" in received_data.keys():
+                self._hits_file.write(f"{received_data['event_id']}\n")
+                self._hits_file.flush()
+                self._peaks_file.writelines(
+                    (
+                        f"{received_data['event_id']}, "
+                        f"{received_data['peak_list']['num_peaks']}, "
+                        f"{received_data['peak_list']['fs'][i]}, "
+                        f"{received_data['peak_list']['ss'][i]}, "
+                        f"{received_data['peak_list']['intensity'][i]}, "
+                        f"{received_data['peak_list']['num_pixels'][i]}, "
+                        f"{received_data['peak_list']['max_pixel_intensity'][i]}, "
+                        f"{received_data['peak_list']['snr'][i]}\n"
+                        for i in range(received_data["peak_list"]["num_peaks"])
+                    )
+                )
+                self._peaks_file.flush()
 
         self._frame_list.append(
             (
