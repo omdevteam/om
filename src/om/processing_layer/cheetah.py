@@ -661,7 +661,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._num_hits += 1
             if "event_id" in received_data.keys():
                 self._hits_file.write(f"{received_data['event_id']}\n")
-                self._hits_file.flush()
                 self._peaks_file.writelines(
                     (
                         f"{received_data['event_id']}, "
@@ -675,7 +674,6 @@ class CheetahProcessing(pl_base.OmProcessing):
                         for i in range(received_data["peak_list"]["num_peaks"])
                     )
                 )
-                self._peaks_file.flush()
 
         self._frame_list.append(
             (
@@ -741,6 +739,8 @@ class CheetahProcessing(pl_base.OmProcessing):
                 num_frames=self._num_events,
                 num_hits=self._num_hits,
             )
+            self._hits_file.flush()
+            self._peaks_file.flush()
 
         if (
             self._data_broadcast
