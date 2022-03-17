@@ -749,12 +749,12 @@ def load_crystfel_geometry(  # noqa: C901
             f"The following error occurred while reading the "  # type: ignore
             f"{filename} geometry file {exc_type.__name__}: {exc_value}"
         ) from exc
-    return read_crystfel_geometry(file_lines=file_lines)
+    return read_crystfel_geometry(text_lines=file_lines)
 
 
 def read_crystfel_geometry(  # noqa: C901
     *,
-    file_lines: List[str],
+    text_lines: List[str],
 ) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
     """
     Reads CrystFEL geometry information from text data.
@@ -870,7 +870,7 @@ def read_crystfel_geometry(  # noqa: C901
     default_dim: List[Union[int, str, None]] = ["ss", "fs"]
     hdf5_peak_path: str = ""
     line: str
-    for line in file_lines:
+    for line in text_lines:
         if line.startswith(";"):
             continue
         line_without_comments: str = line.strip().split(";")[0]
