@@ -24,5 +24,6 @@ implementation of a different OnDA Monitor.
 """
 from om.processing_layer.cheetah import CheetahProcessing  # noqa: F401
 from om.processing_layer.crystallography import CrystallographyProcessing  # noqa: F401
+from om.processing_layer.spi import SpiProcessing  # noqa: F401
 from om.processing_layer.testing import TestProcessing  # noqa: F401
 from om.processing_layer.xes import XESProcessing  # noqa: F401
