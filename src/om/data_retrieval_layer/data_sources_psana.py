@@ -764,6 +764,91 @@ class AcqirisPsana(drl_base.OmDataSource):
         )
 
 
+class AssembledDetectorPsana(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Assembled detector data frames at the LCLS facility.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of an assembled detector data frame from
+        the psana software framework. It retrieves detector data to which geometry
+        information has already been applied. The assembled data is normally retrieved
+        for the detector whose psana name matches the `psana_{source_base_name}_name`
+        entry in OM's `data_retrieval_layer` configuration parameter group. However, it
+        is also possible to provide the psana name of the detector directly in the
+        `source_base_name` argument, by prefixing it with the string "psana-".
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM'a configuration parameters.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the psana assembled detector frame data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the detector
+        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        `data_retrieval_layer` configuration parameter group, or for the detector with
+        a given psana name, if the `source_base_name` argument has the format
+        `psana-{psana detector name}`.
+        """
+        detector_name: str = _get_psana_detector_name(
+            source_base_name=self._data_source_name,
+            monitor_parameters=self._monitor_parameters,
+        )
+        self._detector_interface: Any = psana.Detector(detector_name)
+
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
+        """
+        Retrieves an assembled detector data frame from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves from psana the assembled detector data frame associated
+        with the provided event. It returns the frame as a 2D array storing pixel
+        information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            One detector data frame.
+        """
+        assembled_data: NDArray[numpy.float_] = self._detector_interface.image(
+            event["data"]
+        )
+        if assembled_data is None:
+            raise exceptions.OmDataExtractionError(
+                "Could not retrieve assembled detector data from psana."
+            )
+
+        return assembled_data
+
+
 class Wave8Psana(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
@@ -1293,6 +1378,11 @@ class LclsExtraPsana(drl_base.OmDataSource):
                     )
                 elif data_type == "opal_camera":
                     self._lcls_extra[name] = OpalPsana(
+                        data_source_name=f"psana-{identifier}",
+                        monitor_parameters=self._monitor_parameters,
+                    )
+                elif data_type == "assembled_detector_data":
+                    self._lcls_extra[name] = AssembledDetectorPsana(
                         data_source_name=f"psana-{identifier}",
                         monitor_parameters=self._monitor_parameters,
                     )
