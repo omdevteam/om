@@ -23,7 +23,7 @@ to external programs over a ZMQ socket.
 """
 import socket
 import sys
-from typing import Any, Dict, Union
+from typing import Any, Dict, Tuple, Union
 
 import zmq
 
@@ -155,7 +155,7 @@ class ZmqResponder:
         The socket will then accept requests from external sources, and it can be used
         to transmit data that satisfy the requests, if necessary.
 
-        This class creates a ZMQ REP socket that can accept requests from REQ sockets
+        This class creates a ZMQ ROUTER socket that can accept requests from REQ sockets
         in external programs and respond to them.
 
         Arguments:
@@ -177,7 +177,7 @@ class ZmqResponder:
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
         self._context: Any = zmq.Context()
-        self._sock: Any = self._context.socket(zmq.REP)
+        self._sock: Any = self._context.socket(zmq.ROUTER)
         self._sock.set_hwm(1)
         try:
             self._sock.bind(url)
@@ -195,27 +195,32 @@ class ZmqResponder:
         print(f"Answering requests at {url}")
         sys.stdout.flush()
 
-    def get_request(self) -> Union[str, None]:
+    def get_request(self) -> Union[Tuple[bytes, bytes], None]:
         """
         Gets a request from the responding socket, if present.
 
-        This function checks if a request has been received by the socket. In the
-        affirmative case, it returns the content of the request, otherwise it returns
-        None. This function is non-blocking.
+        This function checks, in a non-blocking way, if a request has been received by
+        the socket. In the affirmative case, it returns a tuple storing the identity of
+        the requester and the content of the request, otherwise it returns None. The
+        identity of the requester must be stored and provided later to the
+        [send_data][om.utils.zmq_monitor.send_data] function to answer the request.
 
         Returns:
 
-            request: A string containing the request, or None if no request has been
-            received by the socket.
+            request: If a request was received by the socket, a tuple storing th
+            identity of the caller as the first entry, and a string with the request's
+            content as the second entry. If no request has been received by the
+            socket, None.
         """
         socks: Dict[Any, Any] = dict(self._zmq_poller.poll(0))
         if self._sock in socks and socks[self._sock] == zmq.POLLIN:
-            request: Union[str, None] = self._sock.recv_string()
+            request: Tuple[bytes, bytes, bytes] = self._sock.recv_multipart()
+            print(request)
+            return (request[0], request[2])
         else:
-            request = None
-        return request
+            return None
 
-    def send_data(self, *, message: Dict[str, Any]) -> None:
+    def send_data(self, *, identity: bytes, message: Dict[str, Any]) -> None:
         """
         Send data from the ZMQ REP socket.
 
@@ -225,6 +230,10 @@ class ZmqResponder:
 
         Arguments:
 
+            identity: The identity of the requester to which the data should sent. This
+                information is returned by the
+                [get_request][om.utils.zmq_monitor.get_request].
+
             message: A dictionary containing information to be transmitted.
         """
-        self._sock.send(message)
+        self._sock.send_multipart((identity, b"", message))
