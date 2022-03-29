@@ -49,7 +49,10 @@ while getopts ":p:enh" opt; do
   esac
 done
 
-# Start installation
+om_python_version=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
+om_pyver=${om_python_version:0:3}
+
+# Create sitecustomize.py file if needed
 if [ "${om_prefix}" != "" ]
 then
   echo "Installing OM at ${om_prefix}"
@@ -68,10 +71,6 @@ EOF
 else
   echo "Installing OM"
 fi
-
-# Create sitecustomize.py file if needed
-om_python_version=$(python -V 2>&1 | grep -Po '(?<=Python )(.+)')
-om_pyver=${om_python_version:0:3}
 
 # Perform the installation
 if [ "${om_prefix}" == "" ]
