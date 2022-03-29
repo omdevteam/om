@@ -304,6 +304,72 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
 
         return data
 
+    def initialize_frame_data_retrieval(self) -> None:
+        """
+        Initializes frame data retrievals from psana.
+
+        This function initializes the retrieval of a single standalone detector data
+        frame from psana, with all the information that refers to it.
+        """
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
+    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+        """
+        Retrieves all data realted to the requested detector frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves the CBF file associated with the event specified by
+        the provided identifier, and returns the only frame it contains.
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
+        """
+        data_event: Dict[str, Any] = {}
+        data_event["additional_info"] = {}
+
+        data_event["additional_info"]["full_path"] = event_id
+        # File modification time is used as a first approximation of the timestamp
+        # when the timestamp is not available.
+        data_event["additional_info"]["file_modification_time"] = numpy.float64(
+            pathlib.Path(event_id).stat().st_mtime
+        )
+        data_event["data"] = fabio.open(pathlib.Path(event_id))
+        if frame_id != "0":
+            raise exceptions.OmMissingFrameDataError(
+                f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
+                "the  data event source"
+            )
+
+        data_event["additional_info"]["timestamp"] = self._data_sources[
+            "timestamp"
+        ].get_data(event=data_event)
+        return self.extract_data(event=data_event)
+
 
 class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
     """
