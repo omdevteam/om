@@ -366,6 +366,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
             parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
+        self._request_list: Deque[Tuple[bytes, bytes]] = collections.deque(maxlen=500)
 
         self._num_events: int = 0
         self._old_time: float = time.time()
@@ -510,10 +511,18 @@ class CrystallographyProcessing(pl_base.OmProcessing):
 
         if received_data["frame_is_hit"] is True:
             self._num_hits += 1
-            request: Union[str, None] = self._responding_socket.get_request()
-            if request is not None:
-                if request == "next":
-                    message: Any = msgpack.packb(
+
+        request: Union[
+            Tuple[bytes, bytes], None
+        ] = self._responding_socket.get_request()
+        if request:
+            self._request_list.append(request)
+
+        if len(self._request_list) != 0:
+            first_request = self._request_list[0]
+            if first_request[1] == b"next":
+                if received_data["frame_is_hit"] is True:
+                    data_to_send: Any = msgpack.packb(
                         {
                             "peak_list": received_data["peak_list"],
                             "beam_energy": received_data["beam_energy"],
@@ -524,9 +533,16 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                         },
                         use_bin_type=True,
                     )
-                    self._responding_socket.send_data(message=message)
-                else:
-                    print(f"OM Warning: Could not understand request '{request}'.")
+                    self._responding_socket.send_data(
+                        identity=first_request[0], message=data_to_send
+                    )
+                    _ = self._request_list.popleft()
+            else:
+                print(
+                    "OM Warning: Could not understand request "
+                    f"'{str(first_request[1])}'."
+                )
+                _ = self._request_list.popleft()
 
         if self._pump_probe_experiment:
             if received_data["optical_laser_active"]:
