@@ -408,13 +408,13 @@ class Peakfinder8PeakDetection:
         self._nasics_x = peakfinder8_info["nasics_x"]
         self._nasics_y = peakfinder8_info["nasics_y"]
 
-    def get_bad_pixel_mask(self) -> Union[NDArray[numpy.int_], None]:
-        return self._bad_pixel_mask
+    def get_bad_pixel_map(self) -> Union[NDArray[numpy.int_], None]:
+        return self._bad_pixel_map
 
-    def set_bad_pixel_mask(
-        self, bad_pixel_mask: Union[NDArray[numpy.int_], None]
+    def set_bad_pixel_map(
+        self, bad_pixel_map: Union[NDArray[numpy.int_], None]
     ) -> None:
-        self._bad_pixel_mask = bad_pixel_mask
+        self._bad_pixel_map = bad_pixel_map
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
