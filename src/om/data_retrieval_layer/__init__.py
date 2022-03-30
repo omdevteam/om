@@ -16,10 +16,39 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's ta Retrieval Layer package.
+OM's Data Retrieval Layer.
 
-This package contains OM's Data Retrieval Layer, with Data Event Handlers and Data
-Extraction Functions supporting several facilities. Functions and classes for different
-detectors and software frameworks are implemented in separate modules that are imported
-on-demand when OM starts.
+This package contains OM's Data Retrieval Layer (which manages the retrieval of data
+and data events from various sources). Functions and classes for different detectors,
+facilities and software frameworks are implemented in separate modules in the package.
+Other modules contain utilities functions and classes.
 """
+
+from om.data_retrieval_layer.data_retrieval_zmq import (  # noqa: F401
+    Jungfrau1MZmqDataRetrieval,
+)
+from om.data_retrieval_layer.data_retrieval_files import (  # noqa: F401
+    Jungfrau1MFilesDataRetrieval,
+    PilatusFilesDataRetrieval,
+    Eiger16MFilesDataRetrieval,
+)
+
+try:
+    import fabio  # type: ignore  # noqa: F401
+    from om.data_retrieval_layer.data_retrieval_files import PilatusFilesDataRetrieval
+except ModuleNotFoundError:
+    pass
+
+try:
+    import psana  # type: ignore  # noqa: F401
+    from om.data_retrieval_layer.data_retrieval_psana import (  # noqa: F401
+        CxiLclsDataRetrieval,
+        CxiLclsCspadDataRetrieval,
+        CxiLclsEpix100DataRetrieval,
+        MfxLclsDataRetrieval,
+        MfxLclsRayonixDataRetrieval,
+    )
+except ModuleNotFoundError:
+    pass
+
+from om.data_retrieval_layer.frame_retrieval import OmFrameDataRetrieval

@@ -29,13 +29,13 @@ plugins:
             show_root_full_path: false
             show_root_toc_entry: false
             show_source: false
+            members_order: source
             heading_level: 1
           setup_commands:
             - import sys
             - from unittest.mock import MagicMock as mock
             - sys.modules["psana"] = mock()
             - sys.modules["mpi4py"] = mock()
-            - sys.modules["hidra_api"] = mock()
   - search
 
 nav:
@@ -50,28 +50,29 @@ nav:
       - __init__: reference/om/index.md
       - algorithms:
         - __init__: reference/om/algorithms/index.md
-        - calibration: reference/om/algorithms/calibration.md
         - crystallography: reference/om/algorithms/crystallography.md
         - generic: reference/om/algorithms/generic.md
+        - xes: reference/om/algorithms/xes.md
       - data_retrieval_layer:
         - __init__: reference/om/data_retrieval_layer/index.md
         - base: reference/om/data_retrieval_layer/base.md
-        - data_handlers_filesystem: reference/om/data_retrieval_layer/data_handlers_filesystem.md
-        - data_handlers_hidra: reference/om/data_retrieval_layer/data_handlers_hidra.md
-        - data_handlers_psana: reference/om/data_retrieval_layer/data_handlers_psana.md
-        - functions_cspad: reference/om/data_retrieval_layer/functions_cspad.md
-        - functions_epix10ka: reference/om/data_retrieval_layer/functions_epix10ka.md
-        - functions_jungfrau1M: reference/om/data_retrieval_layer/functions_jungfrau1M.md
-        - functions_jungfrau4M: reference/om/data_retrieval_layer/functions_jungfrau4M.md
-        - functions_pilatus: reference/om/data_retrieval_layer/functions_pilatus.md
-        - functions_rayonix: reference/om/data_retrieval_layer/functions_rayonix.md
-        - functions_psana: reference/om/data_retrieval_layer/functions_psana.md
+        - data_event_handlers_files: reference/om/data_retrieval_layer/data_event_handlers_files.md
+        - data_event_handlers_psana: reference/om/data_retrieval_layer/data_event_handlers_psana.md
+        - data_event_handlers_zmq: reference/om/data_retrieval_layer/data_event_handlers_zmq.md
+        - data_retrieval_files: reference/om/data_retrieval_layer/data_retrieval_files.md
+        - data_retrieval_psana: reference/om/data_retrieval_layer/data_retrieval_psana.md
+        - data_retrieval_zmq: reference/om/data_retrieval_layer/data_retrieval_zmq.md
+        - data_sources_files: reference/om/data_retrieval_layer/data_sources_files.md
+        - data_sources_generic: reference/om/data_retrieval_layer/data_sources_generic.md
+        - data_sources_psana: reference/om/data_retrieval_layer/data_sources_psana.md
+        - data_sources_zmq: reference/om/data_retrieval_layer/data_sources_zmq.md
       - graphical_interfaces:
         - __init__: reference/om/graphical_interfaces/index.md
         - base: reference/om/graphical_interfaces/base.md
         - crystallography_frame_viewer: reference/om/graphical_interfaces/crystallography_frame_viewer.md
         - crystallography_gui: reference/om/graphical_interfaces/crystallography_gui.md
         - crystallography_parameter_tweaker: reference/om/graphical_interfaces/crystallography_parameter_tweaker.md
+        - xes_gui: reference/om/graphical_interfaces/xes_gui.md
       - lib:
         - __init__: reference/om/lib/index.md
         - peakfinder8_extension: reference/om/lib/peakfinder8_extension.md
@@ -82,8 +83,10 @@ nav:
       - processing_layer:
         - __init__: reference/om/processing_layer/index.md
         - base: reference/om/processing_layer/base.md
-        - crystallography: reference/om/processing_layer/crystallography.md
         - cheetah: reference/om/processing_layer/cheetah.md
+        - crystallography: reference/om/processing_layer/crystallography.md
+        - testing: reference/om/processing_layer/testing.md
+        - xes: reference/om/processing_layer/xes.md
       - utils:
         - __init__: reference/om/utils/index.md
         - crystfel_geometry: reference/om/utils/crystfel_geometry.md

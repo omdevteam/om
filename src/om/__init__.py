@@ -18,7 +18,7 @@
 """
 OM: OnDA Monitor.
 
-This is the main OnDA Monitor package. It contains the full implementation of the
-OM framework, which is subdivided into several different subpackages.
+This is the main OnDA Monitor package. It contains the full OM framework, subdivided
+into several subpackages.
 """
 __version__ = "21.5.0"

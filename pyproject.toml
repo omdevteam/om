@@ -18,3 +18,7 @@
 [build-system]
 requires = ["setuptools", "numpy"]
 build-backend = "setuptools.build_meta"
+
+[tool.isort]
+py_version = 37
+profile = "black"

@@ -18,8 +18,7 @@
 """
 Base abstract classes for OM's graphical interfaces.
 
-This module contains base abstract classes for OM's graphical user interfaces and
-viewers.
+This module contains base Classes for OM's graphical user interfaces and viewers.
 """
 import copy
 from abc import ABCMeta, abstractmethod
@@ -28,33 +27,22 @@ from typing import Any, Callable, Dict, List, Union  # noqa: F401
 from om.utils import exceptions, zmq_gui
 
 try:
-    from PyQt5 import QtCore, QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
 
-class QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore
-    """
-    Metaclass for ABC classes with Qt inheritance.
-
-    Base class: `type(QtCore.QObject)`, `ABCMeta`
-
-    This metaclass is used internally to resolve an issue with classes that inherit
-    from Qt and non-Qt classes at the same time.
-    """
-
+class _QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore
+    # This metaclass is used internally to resolve an issue with classes that inherit
+    # from Qt and non-Qt classes at the same time.
     pass
 
 
-class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
+class OmGui(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
     """
     See documentation of the `__init__` function.
-
-    Base class: `QtWidgets.QMainWindow`
-
-    Metaclass: [`QtMetaclass`][om.graphical_interfaces.base.QtMetaclass]
     """
 
     # Signals to connect or disconnect from an OM monitor.
@@ -65,37 +53,30 @@ class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
         """
         Base class for OM's graphical user interfaces.
 
-        This class implements the common elements of all OM's  graphical interfaces. It
-        should be subclassed to implement specific interfaces and viewers.
+        This class implements the common elements of all OM's graphical interfaces. The
+        constructor of this class creates a listening thread that receives data from
+        an OnDA Monitor. Additionally, it lays out the foundation of the GUI by setting
+        its basic widget structure. Finally, it also makes sure that a function that
+        updates the GUI elements is called at regular intervals.
 
-        The constructor of this class instantiates a listening thread that receives
-        (filtered) data from the broadcasting socket of an OnDA Monitor. It also sets
-        up the basic widget structure of the GUI. Finally, it makes sure that the GUI
-        update function is called at regular intervals to update the relevant GUI
-        elements.
+        The class also has methods to start and stop the listening thread, effectively
+        attaching and detaching the GUI from the OnDA Monitor from which it receives
+        data.
 
-        Derived classes should always call the constructor of this class to perform the
-        GUI initialization. Furthermore, please  notice that the [update_gui]
-        [om.graphical_interfaces.base.OmGui.update_gui] method of this class is
-        abstract: each derived graphical interface is supposed to provide its own
-        implementation to update its own specific widgets and plots.
+        This base class should be subclassed to create specific graphical interfaces.
+        The derived classes should always call its constructor to initialize the the
+        GUI. Each derived class should also provide its specific implementation of the
+        abstract [update_gui][om.graphical_interfaces.base.OmGui.update_gui] method.
+        The implementation should take care of updating the specific widgets of the
+        derived class.
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI will connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
 
-            tag (str): a string used to filter the data received from OM. Only data
-                whose tag label matches this argument will be accepted and received.
-
-        Attributes:
-
-            received_data (List[Dict[bytes, Any]]): The latest data received from
-                Om. A list of aggregated event data entries, each stored in a
-                dictionary.
-
-            is_gui_listening (bool): The state of the listening thread. True if the
-                GUI is currently listening to OM, False otherwise.
+            tag: A string used to filter the data received from an OnDA Monitor. Only
+                data whose tag matches this argument will be received by the GUI.
         """
         super(OmGui, self).__init__()
 
@@ -126,10 +107,10 @@ class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
 
     def start_listening(self) -> None:
         """
-        Connects to an OM monitor and starts listening for broadcasted data.
+        Connects to an OnDA Monitor and starts listening for broadcasted data.
 
-        This function instructs the listening thread to connect to an OM socket and
-        start listening for data.
+        This function instructs the listening thread to connect to an OnDA Monitor
+        and to start receiving data.
         """
         if not self.listening:
             self.listening = True
@@ -137,10 +118,10 @@ class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
 
     def stop_listening(self) -> None:
         """
-        Disconnects from an OM monitor and stops listening for data.
+        Disconnects from an OnDA Monitor and stops listening for data.
 
-        This function instructs the listening thread to disconnect from the OM socket
-        and to stop receiveing data.
+        This function instructs the listening thread to disconnect from an
+        OnDA Monitor and to stop receiveing data.
         """
         if self.listening:
             self.listening = False
@@ -157,9 +138,7 @@ class OmGui(QtWidgets.QMainWindow, metaclass=QtMetaclass):  # type: ignore
         """
         Updates GUI elements.
 
-        This is an abstract method.
-
-        This function is called at regular intervals and updates the elements of the
-        GUI as required.
+        This function is called at regular intervals and updates plots and other
+        elements of the GUI, as required.
         """
         pass

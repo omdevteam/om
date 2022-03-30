@@ -18,23 +18,24 @@
 """
 OM's GUI for Crystallography.
 
-This module contains the implementation of a graphical interface that displays reduced
-and aggregated data in crystallography experiments.
+This module contains a graphical interface that displays reduced and aggregated data in
+serial crystallography experiments.
 """
 import signal
 import sys
 import time
 from typing import Any, Dict, List, Tuple, Union
 
-import click  # type: ignore
-import numpy  # type: ignore
+import click
+import numpy
+from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtCore, QtGui, QtWidgets  # type: ignore
+    from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -51,37 +52,31 @@ except ImportError:
 class CrystallographyGui(graph_interfaces_base.OmGui):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, *, url: str) -> None:
         """
         OM graphical user interface for crystallography.
 
-        This class implements a graphical user interface for crystallography
-        experiments. It is a subclass of the [OmGui]
-        [om.graphical_interfaces.base.OmGui] base class.
-
-        This GUI receives reduced and aggregated data from an OnDA Monitor for
-        Crystallography when it is tagged with the 'omdata' label. The data must
-        contain information about peaks detected in the frames recently processed by
-        the monitor and information about the current hit rate.
-
-        The GUI displays a plot showing the evolution of the hit rate over time, plus a
-        virtual powder pattern created using the detected peaks.
+        This class implements a graphical user interface for serial crystallography
+        experiments. The GUI receives reduced and aggregated data from an OnDA Monitor,
+        but only when it is tagged with the `view:omdata` label. The data
+        must contain information about the position of detected Bragg peaks, together
+        with information about the current hit rate. The GUI will then display a plot
+        showing the evolution of the hit rate over time, plus a virtual powder pattern
+        generated using the positions of the detected Bragg peaks on the detector .
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI will connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
         """
         super(CrystallographyGui, self).__init__(
             url=url,
-            tag="view:omdata",
+            tag="omdata",
         )
 
-        self._virt_powd_plot_img: Union[numpy.ndarray, None] = None
+        self._virt_powd_plot_img: Union[NDArray[numpy.int_], None] = None
         self._img_center_x: int = 0
         self._img_center_y: int = 0
 
@@ -101,7 +96,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         ]
         x: float
         self._resolution_rings_textitems: List[Any] = [
-            pyqtgraph.TextItem(text="{0}A".format(x), anchor=(0.5, 0.8))
+            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8))
             for x in self._resolution_rings_in_a
         ]
         self._resolution_rings_enabled: bool = False
@@ -123,7 +118,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
 
         self._resolution_rings_check_box: Any = QtWidgets.QCheckBox(
-            text="Show Resolution Rings", checked=True
+            text="Show Resolution Rings"
         )
         self._resolution_rings_check_box.setEnabled(True)
         self._resolution_rings_lineedit: Any = QtWidgets.QLineEdit()
@@ -145,6 +140,8 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._hit_rate_plot: Any = self._hit_rate_plot_widget.plot(
             tuple(range(-5000, 0)), [0.0] * 5000
         )
+        self._hit_rate_plot_dark: Any = None
+
         self._resolution_rings_check_box.stateChanged.connect(
             self._update_resolution_rings_status
         )
@@ -197,7 +194,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
 
         x: float
         self._resolution_rings_textitems = [
-            pyqtgraph.TextItem(text="{0}A".format(x), anchor=(0.5, 0.8))
+            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8))
             for x in self._resolution_rings_in_a
         ]
 
@@ -268,9 +265,10 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function stores the data received from OM, and calls the internal
-        functions that update the hit rate history plot and the virtual power pattern.
+        This method, which is executed at regular intervals, calls the internal
+        functions that update the hit rate history plot and the virtual powder pattern.
         """
+
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
             # data has been received simply by checking wether the attribute is not
@@ -294,14 +292,13 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             self._virt_powd_plot_img is None
             or self._virt_powd_plot_img.shape != virt_powd_plot_img_shape
         ):
-
             self._img_center_x = int(virt_powd_plot_img_shape[1] / 2)
             self._img_center_y = int(virt_powd_plot_img_shape[0] / 2)
+            self._virt_powd_plot_img = local_data["virtual_powder_plot"]
             if (
                 self._resolution_rings_check_box.isEnabled()
                 and self._resolution_rings_check_box.isChecked() is True
             ):
-                self._virt_powd_plot_img = local_data["virtual_powder_plot"]
                 self._update_resolution_rings_status()
         else:
             self._virt_powd_plot_img = local_data["virtual_powder_plot"]
@@ -325,6 +322,19 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             tuple(range(-5000, 0)), local_data["hit_rate_history"]
         )
 
+        if local_data["pump_probe_experiment"]:
+            if self._hit_rate_plot_dark is None:
+                self._hit_rate_plot_dark = self._hit_rate_plot_widget.plot(
+                    tuple(range(-5000, 0)),
+                    local_data["hit_rate_history"],
+                    pen=pyqtgraph.mkPen(color="light green"),
+                )
+            else:
+                self._hit_rate_plot_dark.setData(
+                    tuple(range(-5000, 0)),
+                    local_data["hit_rate_history_dark"],
+                )
+
         QtWidgets.QApplication.processEvents()
 
         if self._virt_powd_plot_img is not None:
@@ -343,11 +353,8 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         timenow: float = time.time()
-        self.statusBar().showMessage(
-            "Estimated delay: {0} seconds".format(
-                round(timenow - local_data["timestamp"], 6)
-            )
-        )
+        estimated_delay: float = round(timenow - local_data["timestamp"], 6)
+        self.statusBar().showMessage(f"Estimated delay: {estimated_delay}")
 
 
 @click.command()
@@ -357,14 +364,14 @@ def main(*, url: str) -> None:
     OM Graphical User Interface for Crystallography. This program must connect to a
     running OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
     information, this GUI will display the evolution of the hit rate over time, plus a
-    real-time virtual powder pattern created using the peaks detected in detector
-    frames processed by the monitor.
+    real-time virtual powder pattern created using the positions, on the detector, of
+    the detected Bragg peaks
 
     The GUI connects to and OnDA Monitor running at the IP address (or hostname)
     specified by the URL string. This is a string in the format used by the ZeroMQ
-    Protocol. The URL string is optional. If not provided, it defaults to
-    "tcp://127.0.0.1:12321" and the viewer connects, using the tcp protocol, to a
-    monitor running on the local machine at port 12321.
+    protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321": the GUI will connect, using the tcp protocol, to a monitor
+    running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring
     # above becomes the help string for the script.

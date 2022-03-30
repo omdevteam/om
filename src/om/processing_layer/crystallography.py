@@ -23,13 +23,15 @@ This module contains an OnDA Monitor for serial x-ray crystallography experiment
 import collections
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Union
+from itertools import cycle
+from typing import Any, Deque, Dict, Iterator, List, Tuple, Union, cast
 
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
 
@@ -41,45 +43,40 @@ except ImportError:
     )
 
 
-class CrystallographyMonitor(process_layer_base.OmMonitor):
+class CrystallographyProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
-
-    Base class: [`OmMonitor`][om.processing_layer.base.OmMonitor]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        OnDA real-time Monitor for serial x-ray crystallography experiments.
+        OnDA Monitor for Crystallography.
 
-        This class contains an OnDA Monitor that processes detector data frames,
-        optionally applying detector calibration, dark correction and gain correction.
-        The Monitor then detects Bragg peaks in each detector frame using the
-        'peakfinder8' peak detection algorithm from the Cheetah software package. It
-        retrieves information about the location, size and intensity of each peak.
-        Additionally, it calculates the evolution of the hit rate over time. It
-        broadcasts all this information over a network socket for visualization by
-        other programs. This OnDA Monitor can also optionally broadcast calibrated and
-        corrected detector data frames to be displayed by an external program.
-
-        This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
-        base class.
+        This Processing class implements an OnDA Monitor for serial crystallography
+        experiments. The monitor processes detector data frames, optionally applying
+        detector calibration, dark correction and gain correction. It then detects
+        Bragg peaks in each detector frame using the
+        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        algorithm, retrieving information about the location, size, intensity, SNR and
+        maximum pixel value of each peak. Additionally, the monitor calculates the
+        evolution of the hit rate over time. It can also optionally collect examples of
+        hit and non-hit calibrated detector data frames. All the information is
+        broadcast over a ZMQ socket for visualization by external programs like
+        [OM's Crystallography GUI][om.graphical_interfaces.crystallography_gui.CrystallographyGui]
+        or
+        [OM's Frame Viewer][om.graphical_interfaces.crystallography_frame_viewer.CrystallographyFrameViewer].
 
         Arguments:
 
-          monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
-        super(CrystallographyMonitor, self).__init__(
-            monitor_parameters=monitor_parameters
-        )
+        self._monitor_params = monitor_parameters
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM processing nodes for the Crystallography Monitor.
+        Initializes the processing nodes for the Crystallography Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -116,7 +113,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 parameters=self._monitor_params.get_parameter_group(
                     group="peakfinder8_peak_detection"
                 ),
-                radius_pixel_map=self._pixelmaps["radius"],
+                radius_pixel_map=cast(NDArray[numpy.float_], self._pixelmaps["radius"]),
             )
         )
 
@@ -124,28 +121,55 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             group="crystallography",
             parameter="binning",
             parameter_type=bool,
-            required=False,
         )
-        self._binning: Union[gen_algs.Binning, None]
-        if binning:
-            self._binning = gen_algs.Binning(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="binning"
-                ),
-            )
-            self._peak_detection.set_peakfinder8_info(
-                self._binning.get_binned_layout_info()
-            )
-            self._peak_detection.set_bad_pixel_mask(
-                self._binning.bin_bad_pixel_mask(
-                    self._peak_detection.get_bad_pixel_mask()
-                )
-            )
-            self._peak_detection.set_radius_pixel_map(
-                self._binning.bin_pixel_maps(self._pixelmaps)["radius"]
-            )
+        if binning is None:
+            self._binning: Union[gen_algs.Binning, None] = None
         else:
-            self._binning = None
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(group="binning"),
+            )
+            binning_before_peakfinding: Union[
+                bool, None
+            ] = self._monitor_params.get_parameter(
+                group="crystallography",
+                parameter="binning_before_peakfinding",
+                parameter_type=bool,
+            )
+            if binning_before_peakfinding is None:
+                self._binning_before_peakfinding: bool = True
+            else:
+                self._binning_before_peakfinding = binning_before_peakfinding
+            if self._binning_before_peakfinding:
+                self._peak_detection.set_peakfinder8_info(
+                    self._binning.get_binned_layout_info()
+                )
+                self._peak_detection.set_bad_pixel_mask(
+                    self._binning.bin_bad_pixel_mask(
+                        mask=self._peak_detection.get_bad_pixel_mask()
+                    )
+                )
+                self._peak_detection.set_radius_pixel_map(
+                    cast(
+                        NDArray[numpy.float_],
+                        self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)[
+                            "radius"
+                        ],
+                    )
+                )
+            self._data_shape = self._binning.get_binned_data_shape()
+
+        pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="pump_probe_experiment",
+            parameter_type=bool,
+        )
+        if pump_probe_experiment is None:
+            self._pump_probe_experiment: bool = False
+        else:
+            self._pump_probe_experiment = pump_probe_experiment
+
+        self._send_hit_frame: bool = False
+        self._send_non_hit_frame: bool = False
 
         self._min_num_peaks_for_hit: int = self._monitor_params.get_parameter(
             group="crystallography",
@@ -159,32 +183,15 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=int,
             required=True,
         )
-        self._hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="hit_frame_sending_interval",
-            parameter_type=int,
-        )
-        self._non_hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="non_hit_frame_sending_interval",
-            parameter_type=int,
-        )
 
-        self._hit_frame_sending_counter: int = 0
-        self._non_hit_frame_sending_counter: int = 0
-
-        print("Processing node {0} starting.".format(node_rank))
+        print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM collecting node for the Crystallography Monitor.
+        Initializes the collecting node for the Crystallography Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -237,22 +244,29 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             group="crystallography",
             parameter="binning",
             parameter_type=bool,
-            required=False,
         )
-        self._binning: Union[gen_algs.Binning, None]
-        if binning:
-            self._binning = gen_algs.Binning(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="binning"
-                ),
-            )
-            self._pixelmaps = self._binning.bin_pixel_maps(self._pixelmaps)
-        else:
+        if binning is None:
             self._binning = None
+        else:
+            self._binning = gen_algs.Binning(
+                parameters=self._monitor_params.get_parameter_group(group="binning"),
+            )
+            self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
+            self._data_shape = self._binning.get_binned_data_shape()
 
-        # Theoretically, the pixel size and coffset could be different for every panel
-        # of the detector. Currently, the pixel size and coffset of the first module
-        # are taken as the pixel size and coffset of the whole detector.
+        pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="pump_probe_experiment",
+            parameter_type=bool,
+        )
+        if pump_probe_experiment is None:
+            self._pump_probe_experiment = False
+        else:
+            self._pump_probe_experiment = pump_probe_experiment
+
+        # Theoretically, the pixel size could be different for every module of the
+        # detector. The pixel size of the first module is taken as the pixel size
+        # of the whole detector.
         self._pixel_size: float = self._geometry["panels"][
             tuple(self._geometry["panels"].keys())[0]
         ]["res"]
@@ -268,17 +282,32 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             parameter_type=int,
             required=True,
         )
+
         self._hit_rate_running_window: Deque[float] = collections.deque(
             [0.0] * self._running_average_window_size,
             maxlen=self._running_average_window_size,
         )
         self._avg_hit_rate: int = 0
+        self._num_hits: int = 0
         self._hit_rate_timestamp_history: Deque[float] = collections.deque(
             5000 * [0.0], maxlen=5000
         )
         self._hit_rate_history: Deque[float] = collections.deque(
             5000 * [0.0], maxlen=5000
         )
+
+        if self._pump_probe_experiment is True:
+            self._hit_rate_running_window_dark: Deque[float] = collections.deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._avg_hit_rate_dark: int = 0
+            self._hit_rate_timestamp_history_dark: Deque[float] = collections.deque(
+                5000 * [0.0], maxlen=5000
+            )
+            self._hit_rate_history_dark: Deque[float] = collections.deque(
+                5000 * [0.0], maxlen=5000
+            )
 
         y_minimum: int = (
             2
@@ -293,22 +322,38 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         visual_img_shape: Tuple[int, int] = (y_minimum, x_minimum)
         self._img_center_x: int = int(visual_img_shape[1] / 2)
         self._img_center_y: int = int(visual_img_shape[0] / 2)
-        self._visual_pixelmap_x: numpy.ndarray = (
-            numpy.array(self._pixelmaps["x"], dtype=numpy.int)
-            + visual_img_shape[1] // 2
-            - 1
+        pixelmap_x_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        self._visual_pixelmap_x: NDArray[numpy.int_] = (
+            pixelmap_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        self._visual_pixelmap_y: numpy.ndarray = (
-            numpy.array(self._pixelmaps["y"], dtype=numpy.int)
-            + visual_img_shape[0] // 2
-            - 1
+        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
+        self._visual_pixelmap_y: NDArray[numpy.int_] = (
+            pixelmap_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()
-        self._virt_powd_plot_img: numpy.ndarray = numpy.zeros(
+        self._virt_powd_plot_img: NDArray[numpy.int_] = numpy.zeros(
             visual_img_shape, dtype=numpy.int32
         )
-        self._frame_data_img: numpy.ndarray = numpy.zeros(
+        self._frame_data_img: NDArray[numpy.float_] = numpy.zeros(
             visual_img_shape, dtype=numpy.float32
         )
+
+        self._hit_frame_sending_interval: Union[
+            int, None
+        ] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="hit_frame_sending_interval",
+            parameter_type=int,
+        )
+        self._non_hit_frame_sending_interval: Union[
+            int, None
+        ] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="non_hit_frame_sending_interval",
+            parameter_type=int,
+        )
+
+        self._ranks_for_frame_request: Iterator[int] = cycle(range(1, node_pool_size))
+        self._start_timestamp: float = time.time()
 
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
             zmq_monitor.ZmqDataBroadcaster(
@@ -321,6 +366,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
             parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
+        self._request_list: Deque[Tuple[bytes, bytes]] = collections.deque(maxlen=500)
 
         self._num_events: int = 0
         self._old_time: float = time.time()
@@ -338,10 +384,10 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function performs calibration and correction of a detector data frame and
-        extracts Bragg peak information. Finally, it prepares the Bragg peak data (and
-        optionally, the detector frame data) for transmission to to the collecting
-        node.
+        This function processes retrieved data events, calibrating and correcting the
+        detector data frames and extracting the Bragg peak information. Finally, it
+        prepares the Bragg peak data (and optionally, the detector frame data) for
+        transmission to to the collecting node.
 
         Arguments:
 
@@ -351,31 +397,54 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            data: A dictionary containing the data retrieved by OM for the frame being
-                processed.
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
 
-                * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' parameter group in the configuration file.
+                * The dictionary keys describe the Data Sources for which OM has
+                  retrieved data. The keys must match the source names listed in the
+                  `required_data` entry of OM's `om` configuration parameter group.
 
-                * The corresponding dictionary values must store the retrieved data.
+                * The corresponding dictionary values must store the the data that OM
+                  retrieved for each of the Data Sources.
 
         Returns:
 
-            A tuple whose first entry is a dictionary storing the data that should be
-            sent to the collecting node, and whose second entry is the OM rank number
-            of the node that processed the information.
+            A tuple with two entries. The first entry is a dictionary storing the
+            processed data that should be sent to the collecting node. The second entry
+            is the OM rank number of the node that processed the information.
         """
+
         processed_data: Dict[str, Any] = {}
-        corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
-            data=data["detector_data"]
-        )
-        if self._binning is not None:
-            binned_detector_data = self._binning.apply_binning(corrected_detector_data)
+        corrected_detector_data: NDArray[
+            numpy.float_
+        ] = self._correction.apply_correction(data=data["detector_data"])
+        if self._binning is not None and self._binning_before_peakfinding:
+            binned_detector_data = self._binning.bin_detector_data(
+                data=corrected_detector_data
+            )
         else:
             binned_detector_data = corrected_detector_data
+
         peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
             data=binned_detector_data
         )
+
+        if self._binning is not None and not self._binning_before_peakfinding:
+            binned_detector_data = self._binning.bin_detector_data(
+                data=corrected_detector_data
+            )
+            i: int
+            bin_size: int = self._binning.get_bin_size()
+            for i in range(peak_list["num_peaks"]):
+                peak_list["fs"][i] = (peak_list["fs"][i] + 0.5) / bin_size - 0.5
+                peak_list["ss"][i] = (peak_list["ss"][i] + 0.5) / bin_size - 0.5
+
+        if "requests" in data:
+            if data["requests"] == "hit_frame":
+                self._send_hit_frame = True
+            if data["requests"] == "non_hit_frame":
+                self._send_non_hit_frame = True
+
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
             < len(peak_list["intensity"])
@@ -389,32 +458,19 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         processed_data["event_id"] = data["event_id"]
         processed_data["frame_id"] = data["frame_id"]
         processed_data["data_shape"] = binned_detector_data.shape
+        if self._pump_probe_experiment:
+            processed_data["optical_laser_active"] = data["optical_laser_active"]
+
         if frame_is_hit:
             processed_data["peak_list"] = peak_list
-            if self._hit_frame_sending_interval is not None:
-                self._hit_frame_sending_counter += 1
-                if self._hit_frame_sending_counter == self._hit_frame_sending_interval:
-                    # If the frame is a hit, and if the 'hit_sending_interval'
-                    # attribute says that the detector frame data should be sent to
-                    # the collecting node, adds the data to the 'processed_data'
-                    # dictionary (and resets the counter).
-                    processed_data["detector_data"] = binned_detector_data
-                    self._hit_frame_sending_counter = 0
+            if self._send_hit_frame is True:
+                processed_data["detector_data"] = binned_detector_data
+                self._send_hit_frame = False
         else:
-            # If the frame is not a hit, sends an empty peak list.
             processed_data["peak_list"] = {"fs": [], "ss": [], "intensity": []}
-            if self._non_hit_frame_sending_interval is not None:
-                self._non_hit_frame_sending_counter += 1
-                if (
-                    self._non_hit_frame_sending_counter
-                    == self._non_hit_frame_sending_interval
-                ):
-                    # If the frame is a not a hit, and if the 'hit_sending_interval'
-                    # attribute says that the detector frame data should be sent to
-                    # the collecting node, adds the data to the 'processed_data'
-                    # dictionary (and resets the counter).
-                    processed_data["detector_data"] = binned_detector_data
-                    self._non_hit_frame_sending_counter = 0
+            if self._send_non_hit_frame is True:
+                processed_data["detector_data"] = binned_detector_data
+                self._send_non_hit_frame = False
 
         return (processed_data, node_rank)
 
@@ -424,18 +480,17 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> None:
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
-        Computes aggregated Bragg peak data and broadcasts it over the network.
+        Computes statistics on aggregated data and broadcasts them.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function collects the Bragg peak information from the processing nodes and
-        computes the average hit rate and a virtual powder pattern. It then broadcasts
-        this information over a network socket for visualization by external programs.
-        This function also broadcasts any detector frame data received from the
-        processing nodes.
+        This function collects Bragg peak information (and optionally, frame data) from
+        the processing nodes. It computes a rolling average estimation of the hit rate
+        and a virtual powder pattern. It then broadcasts the aggregated information
+        over a network socket for visualization by external programs.
 
         Arguments:
 
@@ -445,19 +500,29 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
         """
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
+        return_dict: Dict[int, Dict[str, Any]] = {}
 
         if received_data["frame_is_hit"] is True:
-            request: Union[str, None] = self._responding_socket.get_request()
-            if request is not None:
-                if request == "next":
-                    message: Any = msgpack.packb(
+            self._num_hits += 1
+
+        request: Union[
+            Tuple[bytes, bytes], None
+        ] = self._responding_socket.get_request()
+        if request:
+            self._request_list.append(request)
+
+        if len(self._request_list) != 0:
+            first_request = self._request_list[0]
+            if first_request[1] == b"next":
+                if received_data["frame_is_hit"] is True:
+                    data_to_send: Any = msgpack.packb(
                         {
                             "peak_list": received_data["peak_list"],
                             "beam_energy": received_data["beam_energy"],
@@ -468,16 +533,45 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                         },
                         use_bin_type=True,
                     )
-                    self._responding_socket.send_data(message=message)
-                else:
-                    print("OM Warning: Could not understand request '{}'.")
+                    self._responding_socket.send_data(
+                        identity=first_request[0], message=data_to_send
+                    )
+                    _ = self._request_list.popleft()
+            else:
+                print(
+                    "OM Warning: Could not understand request "
+                    f"'{str(first_request[1])}'."
+                )
+                _ = self._request_list.popleft()
 
-        self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
-        avg_hit_rate: float = (
-            sum(self._hit_rate_running_window) / self._running_average_window_size
-        )
-        self._hit_rate_timestamp_history.append(received_data["timestamp"])
-        self._hit_rate_history.append(avg_hit_rate * 100.0)
+        if self._pump_probe_experiment:
+            if received_data["optical_laser_active"]:
+                self._hit_rate_running_window.append(
+                    float(received_data["frame_is_hit"])
+                )
+                avg_hit_rate: float = (
+                    sum(self._hit_rate_running_window)
+                    / self._running_average_window_size
+                )
+                self._hit_rate_timestamp_history.append(received_data["timestamp"])
+                self._hit_rate_history.append(avg_hit_rate * 100.0)
+            else:
+                self._hit_rate_running_window_dark.append(
+                    float(received_data["frame_is_hit"])
+                )
+                avg_hit_rate_dark: float = (
+                    sum(self._hit_rate_running_window_dark)
+                    / self._running_average_window_size
+                )
+                self._hit_rate_timestamp_history_dark.append(received_data["timestamp"])
+                self._hit_rate_history_dark.append(avg_hit_rate_dark * 100.0)
+        else:
+            self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
+            avg_hit_rate = (
+                sum(self._hit_rate_running_window) / self._running_average_window_size
+            )
+            self._hit_rate_timestamp_history.append(received_data["timestamp"])
+            self._hit_rate_history.append(avg_hit_rate * 100.0)
 
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
@@ -494,74 +588,96 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
             ] + int(round(peak_fs))
             y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
             x_in_frame: float = self._visual_pixelmap_x[peak_index_in_slab]
-            peak_list_x_in_frame.append(y_in_frame)
-            peak_list_y_in_frame.append(x_in_frame)
+            peak_list_x_in_frame.append(x_in_frame)
+            peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
+        omdata_message: Dict[str, Any] = {
+            "geometry_is_optimized": self._geometry_is_optimized,
+            "timestamp": received_data["timestamp"],
+            "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
+            "hit_rate_history": self._hit_rate_history,
+            "virtual_powder_plot": self._virt_powd_plot_img,
+            "beam_energy": received_data["beam_energy"],
+            "detector_distance": received_data["detector_distance"],
+            "first_panel_coffset": self._first_panel_coffset,
+            "pixel_size": self._pixel_size,
+            "pump_probe_experiment": self._pump_probe_experiment,
+            "num_events": self._num_events,
+            "num_hits": self._num_hits,
+            "start_timestamp": self._start_timestamp,
+        }
+        if self._pump_probe_experiment:
+            omdata_message[
+                "hit_rate_timestamp_history_dark"
+            ] = self._hit_rate_timestamp_history_dark
+            omdata_message["hit_rate_history_dark"] = self._hit_rate_history_dark
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
-                tag="view:omdata",
+                tag="omdata",
+                message=omdata_message,
+            )
+
+        if "detector_data" in received_data:
+            # If detector frame data is found in the data received from the
+            # processing node, it must be broadcasted to visualization programs.
+
+            self._frame_data_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
+                received_data["detector_data"]
+                .ravel()
+                .astype(self._frame_data_img.dtype)
+            )
+
+            self._data_broadcast_socket.send_data(
+                tag="omframedata",
                 message={
-                    "geometry_is_optimized": self._geometry_is_optimized,
+                    "frame_data": self._frame_data_img,
                     "timestamp": received_data["timestamp"],
-                    "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
-                    "hit_rate_history": self._hit_rate_history,
-                    "virtual_powder_plot": self._virt_powd_plot_img,
-                    "beam_energy": received_data["beam_energy"],
-                    "detector_distance": received_data["detector_distance"],
-                    "first_panel_coffset": self._first_panel_coffset,
-                    "pixel_size": self._pixel_size,
+                    "peak_list_x_in_frame": peak_list_x_in_frame,
+                    "peak_list_y_in_frame": peak_list_y_in_frame,
+                },
+            )
+            self._data_broadcast_socket.send_data(
+                tag="omtweakingdata",
+                message={
+                    "detector_data": received_data["detector_data"],
+                    "timestamp": received_data["timestamp"],
                 },
             )
 
-            if "detector_data" in received_data:
-                # If detector frame data is found in the data received from the
-                # processing node, it must be broadcasted to visualization programs.
-                self._frame_data_img[
-                    self._visual_pixelmap_y, self._visual_pixelmap_x
-                ] = (
-                    received_data["detector_data"]
-                    .ravel()
-                    .astype(self._frame_data_img.dtype)
-                )
-
-                self._data_broadcast_socket.send_data(
-                    tag="view:omframedata",
-                    message={
-                        "frame_data": self._frame_data_img,
-                        "timestamp": received_data["timestamp"],
-                        "peak_list_x_in_frame": peak_list_x_in_frame,
-                        "peak_list_y_in_frame": peak_list_y_in_frame,
-                    },
-                )
-                self._data_broadcast_socket.send_data(
-                    tag="view:omtweakingdata",
-                    message={
-                        "detector_data": received_data["detector_data"],
-                        "timestamp": received_data["timestamp"],
-                    },
-                )
+        if (
+            self._hit_frame_sending_interval is not None
+            and self._num_events % self._hit_frame_sending_interval == 0
+        ):
+            rank_for_request: int = next(self._ranks_for_frame_request)
+            return_dict[rank_for_request] = {"requests": "hit_frame"}
+        if (
+            self._non_hit_frame_sending_interval is not None
+            and self._num_events % self._non_hit_frame_sending_interval == 0
+        ):
+            rank_for_request = next(self._ranks_for_frame_request)
+            return_dict[rank_for_request] = {"requests": "non_hit_frame"}
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
-            speed_report_msg: str = (
-                "Processed: {0} in {1:.2f} seconds "
-                "({2:.2f} Hz)".format(
-                    self._num_events,
-                    now_time - self._old_time,
-                    (
-                        float(self._speed_report_interval)
-                        / float(now_time - self._old_time)
-                    ),
-                )
+            time_diff: float = now_time - self._old_time
+            events_per_second: float = float(self._speed_report_interval) / float(
+                now_time - self._old_time
             )
-            print(speed_report_msg)
+            print(
+                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
+                f"({events_per_second} Hz)"
+            )
             sys.stdout.flush()
             self._old_time = now_time
 
+        if return_dict:
+            return return_dict
+        return None
+
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> None:
+    ) -> Union[Dict[str, Any], None]:
         """
         Ends processing actions on the processing nodes.
 
@@ -580,13 +696,12 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
 
         Returns:
 
-            A dictionary storing information to be sent to the processing node
-            (Optional: if this function returns nothing, no information is transferred
-            to the processing node.
-
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+            the processing node.
         """
-        print("Processing node {0} shutting down.".format(node_rank))
+        print(f"Processing node {node_rank} shutting down.")
         sys.stdout.flush()
+        return None
 
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -608,8 +723,7 @@ class CrystallographyMonitor(process_layer_base.OmMonitor):
                 processing nodes and the collecting node.
         """
         print(
-            "Processing finished. OM has processed {0} events in total.".format(
-                self._num_events
-            )
+            f"Processing finished. OM has processed {self._num_events} events "
+            "in total."
         )
         sys.stdout.flush()

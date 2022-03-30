@@ -51,7 +51,7 @@ peakfinder8_ext.cython_directives = {"embedsignature": True}
 if OM_USE_CYTHON:
     from Cython.Build import cythonize
 
-    extensions = cythonize(peakfinder8_ext)
+    extensions = cythonize(peakfinder8_ext, annotate=True)
 else:
     extensions = [peakfinder8_ext]
 
@@ -127,8 +127,13 @@ setup(
             "crystallography_frame_viewer:main",
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
             "crystallography_parameter_tweaker:main",
+            "om_spi_gui.py=om.graphical_interfaces."
+            "spi_gui:main",
+            "om_xes_gui.py=om.graphical_interfaces."
+            "xes_gui:main",
         ],
     },
+    scripts=["bin_src/om_jungfrau_dark.py", "bin_src/om_jungfrau_zmq_receiver.py"],
     ext_modules=extensions,
     packages=find_packages(where="src"),
     package_dir={"": "src"},

@@ -18,15 +18,17 @@
 """
 Algorithms for the processing of crystallography data.
 
-This module contains algorithms that perform crystallography-related data processing
-(peak finding, etc.). In addition, it also contains several typed dictionaries that
-store data needed or produced by these algorithms.
+This module contains algorithms that perform data processing operations related to
+serial crystallography (peak finding, etc.). Additionally, it contains several typed
+dictionaries that store the data needed or produced by these algorithms.
+
 """
 import sys
 from typing import Any, Dict, List, Tuple, Union
 
 import h5py  # type: ignore
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 from typing_extensions import TypedDict
 
 from om.lib.peakfinder8_extension import peakfinder_8  # type: ignore
@@ -37,13 +39,13 @@ class TypePeakfinder8Info(TypedDict, total=True):
     """
     Detector layout information for the peakfinder8 algorithm.
 
-    Base class: `TypedDict`
-
-    This typed dictionary is used to store information about the data layout in a
-    detector data frame, in the format needed by the [Peakfinder8PeakDetection]
-    [om.algorithms.crystallography.Peakfinder8PeakDetection] algorithm. This
-    information is usually retrieved via the [get_peakfinder8_info]
-    [om.algorithms.crystallography.get_peakfinder8_info] function.
+    This typed dictionary stores information about the internal data layout of a
+    detector data frame (number and size of ASICs, etc.). The information
+    is needed by the
+    [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+    algorithm, and is usually retrieved via the
+    [`get_peakfinder8_info`][om.algorithms.crystallography.get_peakfinder8_info]
+    function.
 
     Attributes:
 
@@ -66,8 +68,9 @@ class TypePeakList(TypedDict, total=True):
     """
     Detected peaks information.
 
-    This typed dictionary is used to store information about a set of peaks that
-    were detected in a data frame.
+    This typed dictionary stores information about a set of peaks found by the
+    [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+    algorithm in a detector data frame.
 
     Attributes:
 
@@ -103,37 +106,40 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
     """
     Gets the peakfinder8 information for a detector.
 
-    This function retrieves, for a supported detector type, the data layout information
-    required by the [Peakfinder8PeakDetection]
-    [om.algorithms.crystallography.Peakfinder8PeakDetection] algorithm.
+    This function retrieves, for supported detector types, the data layout information
+    needed by the
+    [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+    algorithm.
 
     Arguments:
 
         detector_type: The type of detector for which the information needs to be
             retrieved. The following detector types are currently supported:
 
-            * 'cspad': The CSPAD detector used at the CXI beamline of the LCLS facility
+            * `cspad`: The CSPAD detector used at the CXI beamline of the LCLS facility
               before 2020.
 
-            * 'pilatus': The Pilatus detector used at the P11 beamline of the PETRA III
+            * `pilatus`: The Pilatus detector used at the P11 beamline of the PETRA III
               facility.
 
-            * 'jungfrau1M': The 1M version of the Jungfrau detector used at the PETRA
+            * `jungfrau1M`: The 1M version of the Jungfrau detector used at the PETRA
               III facility.
 
-            * 'jungfrau4M': The 4M version of the Jungfrau detector used at the CXI
+            * `jungfrau4M`: The 4M version of the Jungfrau detector used at the CXI
               beamline of the LCLS facility.
 
-            * 'epix10k2M': The 2M version of the Epix10KA detector used at the MFX
+            * `epix10k2M`: The 2M version of the Epix10KA detector used at the MFX
               beamline of the LCLS facility.
 
-            * 'rayonix': The Rayonix detector used at the MFX beamline of the LCLS
+            * `rayonix`: The Rayonix detector used at the MFX beamline of the LCLS
+              facility.
+
+            * `eiger16M`: The 16M version of the Eiger2 detector used at the PETRA III
               facility.
 
     Returns:
 
-        A [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
-        dictionary storing the data layout information.
+        A dictionary storing the data layout information.
     """
     if detector_type == "cspad":
         peakfinder8_info: TypePeakfinder8Info = {
@@ -201,28 +207,15 @@ class Peakfinder8PeakDetection:
     def __init__(
         self,
         *,
-        radius_pixel_map: numpy.ndarray,
-        max_num_peaks: Union[int, None] = None,
-        asic_nx: Union[int, None] = None,
-        asic_ny: Union[int, None] = None,
-        nasics_x: Union[int, None] = None,
-        nasics_y: Union[int, None] = None,
-        adc_threshold: Union[float, None] = None,
-        minimum_snr: Union[float, None] = None,
-        min_pixel_count: Union[int, None] = None,
-        max_pixel_count: Union[int, None] = None,
-        local_bg_radius: Union[int, None] = None,
-        min_res: Union[int, None] = None,
-        max_res: Union[int, None] = None,
-        bad_pixel_map: Union[numpy.ndarray, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        radius_pixel_map: NDArray[numpy.float_],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
 
-        This algorithm stores the parameters required to find peaks in a detector data
-        frame using the 'peakfinder8' strategy, and performs peak finding on a data
-        frame upon request. The 'peakfinder8' peak detection strategy is described in
+        This algorithm stores the parameters required to perform peak-finding on a
+        detector data frame using the `peakfinder8` strategy. It can then detect peaks
+        in a provided frame. The `peakfinder8` peak detection approach is described in
         the following publication:
 
         A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
@@ -232,228 +225,201 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            max_num_peaks: The maximum number of peaks that will be retrieved from each
-                data frame. Additional peaks will be ignored.
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
 
-            asic_nx: The fs size in pixels of each detector panel in the data frame
-                (Can be retrieved from a [TypePeakfinder8Info]
-                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
+                * `max_num_peaks`: The maximum number of peaks that will be retrieved
+                  from each data frame. Additional peaks will be ignored.
 
-            asic_ny: The ss size in pixels of each detector panel in the data frame
-                (Can be retrieved from a [TypePeakfinder8Info]
-                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
+                * `asic_nx`: The fs size, in pixels, of each detector panel in the data
+                  frame (Can be retrieved from a
+                  [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+                  dictionary).
 
-            nasics_x: The number of panels along the fs axis of the data frame
-                (Can be retrieved from a [TypePeakfinder8Info]
-                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
+                * `asic_ny`: The ss size, in pixels, of each detector panel in the data
+                  frame (Can be retrieved from a
+                  [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+                  dictionary).
 
-            nasics_y: The number of panels along the ss axis of the data frame
-                (Can be retrieved from a [TypePeakfinder8Info]
-                [om.algorithms.crystallography.TypePeakfinder8Info] dictionary).
+                * `nasics_x`: The number of detector panels along the fs axis of the
+                  data frame (Can be retrieved from a
+                  [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+                  dictionary).
 
-            adc_threshold: The minimum ADC threshold for peak detection.
+                * `nasics_y`: The number of detector panels along the ss axis of the
+                  data frame (Can be retrieved from a
+                  [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+                  dictionary).
 
-            minimum_snr: The minimum signal-to-noise ratio for peak detection.
+                * `adc_threshold`: The minimum ADC threshold for peak detection.
 
-            min_pixel_count: The minimum size of a peak in pixels.
+                * `minimum_snr`: The minimum signal-to-noise ratio for peak detection.
 
-            max_pixel_count: The maximum size of a peak in pixels.
+                * `min_pixel_count`: The minimum size of a peak (in pixels).
 
-            local_bg_radius: The radius for the estimation of the local background in
-                pixels.
+                * `max_pixel_count`: The maximum size of a peak (in pixels).
 
-            min_res: The minimum resolution for a peak in pixels.
+                * `local_bg_radius`: The radius, in pixels, for the estimation of the
+                  local background.
 
-            max_res: The maximum resolution for a peak in pixels.
+                * `min_res`: The minimum resolution (in pixels) for a peak.
 
-            bad_pixel_map: An array storing a bad pixel map. The map can be used to
-                mark areas of the data frame that must be excluded from the peak
-                search. If the value of this argument is None, no area will be excluded
-                from the search. Defaults to None.
+                * `max_res`: The maximum resolution (in pixels) for a peak.
 
-                * The map must be a numpy array of the same shape as the data frame on
-                  which the algorithm will be applied.
+                * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
+                   file containing a bad pixel map. The map can be used to exclude
+                   regions of the data frame from the peak search. If the value of this
+                   entry is None, the search will extend to the full frame. Defaults to
+                   None.
 
-                * Each pixel in the map must have a value of either 0, meaning that
-                  the corresponding pixel in the data frame should be ignored, or 1,
-                  meaning that the corresponding pixel should be included in the
-                  search.
+                    - The map must be a numpy array with the same shape as the data
+                      frame on which the algorithm will be applied.
 
-                * The map is only used to exclude areas from the peak search: the data
-                  is not modified in any way.
+                    - Each pixel in the map must have a value of either 0, meaning that
+                      the corresponding pixel in the data frame should be ignored, or
+                      1, meaning that the corresponding pixel should be included in the
+                      peak search.
 
-            radius_pixel_map: A numpy array with radius information.
+                    - The map is only used to exclude areas from the peak search: the
+                      data is not modified in any way.
+
+                * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
+                  where the bad pixel map data is located. Defaults to None.
+
+                    * If the `bad_pixel_map_filename` entry is not None, this entry
+                      must also be provided, and cannot be None. Otherwise it is
+                      ignored.
+
+            radius_pixel_map: A numpy array with radius information for the detector
+                data frame.
 
                 * The array must have the same shape as the data frame on which the
                   algorithm will be applied.
 
                 * Each element of the array must store, for the corresponding pixel in
-                  the data frame, the distance in pixels from the origin
-                  of the detector reference system (usually the center of the
-                  detector).
+                  the data frame, its distance (in pixels) from the origin of the
+                  detector reference system (usually the center of the detector).
         """
-        if parameters is not None:
-            peakfinder8_info: TypePeakfinder8Info = get_peakfinder8_info(
-                detector_type=param_utils.get_parameter_from_parameter_group(
-                    group=parameters,
-                    parameter="detector_type",
-                    parameter_type=str,
-                    required=True,
-                )
-            )
-            asic_nx = peakfinder8_info["asic_nx"]
-            asic_ny = peakfinder8_info["asic_ny"]
-            nasics_x = peakfinder8_info["nasics_x"]
-            nasics_y = peakfinder8_info["nasics_y"]
-            max_num_peaks = param_utils.get_parameter_from_parameter_group(
+        peakfinder8_info: TypePeakfinder8Info = get_peakfinder8_info(
+            detector_type=param_utils.get_parameter_from_parameter_group(
                 group=parameters,
-                parameter="max_num_peaks",
-                parameter_type=int,
-                required=True,
-            )
-            adc_threshold = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="adc_threshold",
-                parameter_type=float,
-                required=True,
-            )
-            minimum_snr = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="minimum_snr",
-                parameter_type=float,
-                required=True,
-            )
-            min_pixel_count = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="min_pixel_count",
-                parameter_type=int,
-                required=True,
-            )
-            max_pixel_count = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="max_pixel_count",
-                parameter_type=int,
-                required=True,
-            )
-            local_bg_radius = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="local_bg_radius",
-                parameter_type=int,
-                required=True,
-            )
-            min_res = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="min_res",
-                parameter_type=int,
-                required=True,
-            )
-            max_res = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="max_res",
-                parameter_type=int,
-                required=True,
-            )
-            bad_pixel_map_fname: str = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="bad_pixel_map_filename",
+                parameter="detector_type",
                 parameter_type=str,
+                required=True,
             )
-            if bad_pixel_map_fname is not None:
-                bad_pixel_map_hdf5_path: Union[
-                    str, None
-                ] = param_utils.get_parameter_from_parameter_group(
-                    group=parameters,
-                    parameter="bad_pixel_map_hdf5_path",
-                    parameter_type=str,
-                    required=True,
-                )
-            else:
-                bad_pixel_map_hdf5_path = None
-
-            if bad_pixel_map_fname is not None:
-                try:
-                    map_hdf5_file_handle: Any
-                    with h5py.File(bad_pixel_map_fname, "r") as map_hdf5_file_handle:
-                        bad_pixel_map = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
-                except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[:2]
-                    # TODO: Fix type check
-                    raise RuntimeError(
-                        "The following error occurred while reading the {0} field from"
-                        "the {1} bad pixel map HDF5 file:"
-                        "{2}: {3}".format(
-                            bad_pixel_map_fname,
-                            bad_pixel_map_hdf5_path,
-                            exc_type.__name__,  # type: ignore
-                            exc_value,
-                        )
-                    ) from exc
-            else:
-                bad_pixel_map = None
-
+        )
+        self._asic_nx: int = peakfinder8_info["asic_nx"]
+        self._asic_ny: int = peakfinder8_info["asic_ny"]
+        self._nasics_x: int = peakfinder8_info["nasics_x"]
+        self._nasics_y: int = peakfinder8_info["nasics_y"]
+        self._max_num_peaks: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_num_peaks",
+            parameter_type=int,
+            required=True,
+        )
+        self._adc_thresh: float = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="adc_threshold",
+            parameter_type=float,
+            required=True,
+        )
+        self._minimum_snr: float = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="minimum_snr",
+            parameter_type=float,
+            required=True,
+        )
+        self._min_pixel_count: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_pixel_count",
+            parameter_type=int,
+            required=True,
+        )
+        self._max_pixel_count: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_pixel_count",
+            parameter_type=int,
+            required=True,
+        )
+        self._local_bg_radius: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="local_bg_radius",
+            parameter_type=int,
+            required=True,
+        )
+        self._min_res: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_res",
+            parameter_type=int,
+            required=True,
+        )
+        self._max_res: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_res",
+            parameter_type=int,
+            required=True,
+        )
+        bad_pixel_map_filename: Union[
+            str, None
+        ] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="bad_pixel_map_filename",
+            parameter_type=str,
+        )
+        if bad_pixel_map_filename is not None:
+            bad_pixel_map_hdf5_path: Union[
+                str, None
+            ] = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="bad_pixel_map_hdf5_path",
+                parameter_type=str,
+                required=True,
+            )
         else:
-            print(
-                "OM Warning: Initializing the Peakfinder8PeakDetection algorithm with "
-                "individual parameters (max_num_peaks, asic_nx, asic_ny, nasics_x, "
-                "nasics_y, adc_threshold, minimum_snr, min_pixel_count, "
-                "max_pixel_count, local_bg_radius, min_res, max_res, bad_pixel_map "
-                "and radius_pixel_map) is deprecated and will be removed in a future "
-                "version of OM. Please use the new parameter group-based "
-                "initialization interface (which requires only the parameters and "
-                "photon_energy_kev arguments)."
-            )
+            bad_pixel_map_hdf5_path = None
 
-        if (
-            max_num_peaks is None
-            or asic_nx is None
-            or asic_ny is None
-            or nasics_x is None
-            or nasics_y is None
-            or adc_threshold is None
-            or minimum_snr is None
-            or min_pixel_count is None
-            or max_pixel_count is None
-            or min_res is None
-            or max_res is None
-        ):
-            raise RuntimeError(
-                "OM ERROR: Some parameters required for the initialization of the "
-                "Peakfinder8PeakDetection algorithm have not been defined. Please "
-                "check the command used to initialize the algorithm."
-            )
+        if bad_pixel_map_filename is not None:
+            try:
+                map_hdf5_file_handle: Any
+                with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
+                    self._bad_pixel_map: Union[
+                        NDArray[numpy.int_], None
+                    ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
+            except (IOError, OSError, KeyError) as exc:
+                exc_type, exc_value = sys.exc_info()[:2]
+                # TODO: Fix type check
+                raise RuntimeError(
+                    "The following error occurred while reading the "  # type: ignore
+                    f"{bad_pixel_map_hdf5_path} field from the "
+                    f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
+                    f"{exc_type.__name__}: {exc_value}"
+                ) from exc
+        else:
+            self._bad_pixel_map = None
 
-        self._max_num_peaks: Union[int, None] = max_num_peaks
-        self._asic_nx: Union[int, None] = asic_nx
-        self._asic_ny: Union[int, None] = asic_ny
-        self._nasics_x: Union[int, None] = nasics_x
-        self._nasics_y: Union[int, None] = nasics_y
-        self._adc_thresh: Union[float, None] = adc_threshold
-        self._minimum_snr: Union[float, None] = minimum_snr
-        self._min_pixel_count: Union[int, None] = min_pixel_count
-        self._max_pixel_count: Union[int, None] = max_pixel_count
-        self._local_bg_radius: Union[int, None] = local_bg_radius
-        self._min_res: Union[int, None] = min_res
-        self._max_res: Union[int, None] = max_res
-        self._bad_pixel_mask: Union[numpy.ndarray, None] = bad_pixel_map
-        self._mask: Union[numpy.ndarray, None] = None
-        self._radius_pixel_map: numpy.ndarray = radius_pixel_map
+        self._mask: Union[NDArray[numpy.int_], None] = None
+        self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
 
-    def set_peakfinder8_info(self, peakfinder8_info: TypePeakfinder8Info):
+    def set_peakfinder8_info(self, peakfinder8_info: TypePeakfinder8Info) -> None:
         self._asic_nx = peakfinder8_info["asic_nx"]
         self._asic_ny = peakfinder8_info["asic_ny"]
         self._nasics_x = peakfinder8_info["nasics_x"]
         self._nasics_y = peakfinder8_info["nasics_y"]
 
-    def get_bad_pixel_mask(self) -> Union[numpy.ndarray, None]:
+    def get_bad_pixel_mask(self) -> Union[NDArray[numpy.int_], None]:
         return self._bad_pixel_mask
 
-    def set_bad_pixel_mask(self, bad_pixel_mask: Union[numpy.ndarray, None]):
+    def set_bad_pixel_mask(
+        self, bad_pixel_mask: Union[NDArray[numpy.int_], None]
+    ) -> None:
         self._bad_pixel_mask = bad_pixel_mask
 
-    def set_radius_pixel_map(self, radius_pixel_map: numpy.ndarray):
+    def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
 
-    def get_adc_thresh(self) -> Union[float, None]:
+    def get_adc_thresh(self) -> float:
         """
         Gets the minimum ADC threshold for peak detection.
 
@@ -462,29 +428,28 @@ class Peakfinder8PeakDetection:
 
         Returns:
 
-            The minimum singal-to-noise ratio currently used by the algorithm.
+            The minimum ADC threshold currently used by the algorithm.
         """
-        return self._minimum_snr
+        return self._adc_thresh
 
-    def set_adc_thresh(self, adc_thresh: float) -> None:
+    def set_adc_thresh(self, *, adc_thresh: float) -> None:
         """
-        Sets the minimum ADC threshold for peak detection.
+        Sets the current minimum ADC threshold for peak detection.
 
-        This function sets the minimum ADC threshold used by the algorithm for peak
-        detection. Any future call to the
-        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use the value provided here for this specific parameter.
+        This function sets the minimum ADC threshold that the algorithm should use for
+        peak detection. Any future call to the
+        [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use, for the `adc_thresh` parameter, the value provided here.
 
         Arguments:
 
-            adc_threshold: The new value of the minimum singal-to-noise ratio for peak
-            detection.
+            adc_thresh: The new value of the minimum ADC threshold for peak detection.
         """
         self._adc_thresh = adc_thresh
 
-    def get_minimum_snr(self) -> Union[float, None]:
+    def get_minimum_snr(self) -> float:
         """
-        Gets the minimum signal-to-noise ratio for peak detection.
+        Gets the current minimum signal-to-noise ratio for peak detection.
 
         This function returns the minimum signal-to-noise ratio currently used by
         the algorithm for peak detection.
@@ -495,174 +460,178 @@ class Peakfinder8PeakDetection:
         """
         return self._minimum_snr
 
-    def set_minimum_snr(self, minimum_snr: float) -> None:
+    def set_minimum_snr(self, *, minimum_snr: float) -> None:
         """
         Sets the minimum signal-to-noise ratio for peak detection.
 
-        This function sets the minimum signal-to-noise ratio used by the algorithm for
-        peak detection. Any future call to the
-        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use the value provided here for this specific parameter.
+        This function sets the minimum signal-to-noise ratio that the algorithm should
+        use for peak detection. Any future call to the
+        [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use, for the `minimum_snr` algorithm parameter, the value provided
+        here.
 
         Arguments:
 
             minimum_snr: The new value of the minimum singal-to-noise ratio for peak
-            detection.
+                detection.
         """
         self._minimum_snr = minimum_snr
 
-    def get_min_pixel_count(self) -> Union[int, None]:
+    def get_min_pixel_count(self) -> int:
         """
-        Gets the minimum size for a peak in pixels.
+        Gets the current minimum size for a peak (in pixels).
 
-        This function returns the current minimum size in pixels that allows a peak
-        to be detected by the algorithm.
+        This function returns the minimum size, in pixels, that the algorithm currently
+        expects a peak to have.
 
         Returns:
 
-            The minimum size in pixels for a peak.
+            The current minimum size for a peak (in pixels).
         """
         return self._min_pixel_count
 
-    def set_min_pixel_count(self, min_pixel_count: int) -> None:
+    def set_min_pixel_count(self, *, min_pixel_count: int) -> None:
         """
-        Sets the minimum size for a peak in pixels.
+        Sets the minimum size for a peak (in pixels).
 
-        This function sets the minimum size in pixels that allows a peak to be
-        detected by the algorithm. Any future call to the
-        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use the value provided here for this specific parameter.
+        This function sets the minimum size, in pixels, that the algorithm should
+        expect a peak to have. Any future call to the
+        [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use, for the `min_pixel_count` parameter, the value provided here.
 
         Arguments:
 
-            min_pixel_count: The new minimum size in pixels for a peak.
+            min_pixel_count: The new minimum size for a peak (in pixels).
         """
         self._min_pixel_count = min_pixel_count
 
-    def get_max_pixel_count(self) -> Union[int, None]:
+    def get_max_pixel_count(self) -> int:
         """
-        Gets the maximum size for a peak in pixels.
+        Gets the current maximum size for a peak (in pixels).
 
-        This function returns the current maximum size in pixels that allows a peak
-        to be detected by the algorithm.
+        This function returns the maximum size, in pixels, that the algorithm
+        currently expects a peak to have.
 
         Returns:
 
-            The maximum size in pixels for a peak.
+            The current maximum size for a peak (in pixels).
         """
         return self._max_pixel_count
 
-    def set_max_pixel_count(self, max_pixel_count: int) -> None:
+    def set_max_pixel_count(self, *, max_pixel_count: int) -> None:
         """
-        Sets the maximum size for a peak in pixels.
+        Sets the maximum size for a peak (in pixels).
 
-        This function sets the maximum size in pixels that allows a peak to be
-        detected by the algorithm. Any future call to the
-        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use the value provided here for this specific parameter.
+        This function sets the maximum size, in pixels, that the algorithm should
+        expect a peak to have. Any future call to the
+        [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use, for the `max_pixel_count` parameter, the value provided here.
 
         Arguments:
 
-            max_pixel_count: The new minimum size in pixels for a peak.
+            max_pixel_count: The new maximum size for a peak (in pixels).
         """
         self._max_pixel_count = max_pixel_count
 
-    def get_local_bg_radius(self) -> Union[int, None]:
+    def get_local_bg_radius(self) -> int:
         """
-        Gets the radius in pixels for the estimation of the local background.
+        Gets the radius, in pixels, currently used to estimate of the local background.
 
-        This function returns the radius in pixels currently used by the algorithm to
-        estimate the background.
+        This function returns the radius (in pixels) currently used by the algorithm to
+        estimate the local background.
 
         Returns:
 
-            The radius in pixels for the estimation of the local background.
+            The radius, in pixels, currently used for the estimation of the local
+            background.
         """
         return self._local_bg_radius
 
-    def set_local_bg_radius(self, local_bg_radius: int) -> None:
+    def set_local_bg_radius(self, *, local_bg_radius: int) -> None:
         """
-        Sets the radius in pixels for the estimation of the local background.
+        Sets the radius, in pixels, for the estimation of the local background.
 
-        This function sets the radius in pixels used by the algorithm to estimate the
-        local background. Any future call to the
-        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use the value provided here for this specific parameter.
+        This function sets the radius (in pixels) that the algorithm should use to
+        estimate the local background. Any future call to the
+        [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use, for the `local_bg_radius` parameter, the value provided here.
 
         Arguments:
 
-            max_pixel_count: The new minimum size in pixels for a peak.
+            local_bg_radius: The new radius, in pixels, that should be used for the
+                estimation of the local background.
         """
         self._local_bg_radius = local_bg_radius
 
-    def get_min_res(self) -> Union[int, None]:
+    def get_min_res(self) -> int:
         """
         Gets the minimum resolution for a peak in pixels.
 
-        This function returns the current minimum resolution in pixels that allows a
+        This function returns the current minimum resolution (in pixels) that allows a
         peak to be detected by the algorithm.
 
         Returns:
 
-            The minimum resolution in pixels for a peak.
+            The minimum resolution (in pixels) for a peak.
         """
         return self._min_res
 
-    def set_min_res(self, min_res: int) -> None:
+    def set_min_res(self, *, min_res: int) -> None:
         """
-        Sets the minimum resolution for a peak in pixels.
+        Sets the minimum resolution for a peak (in pixels).
 
-        This function sets the minimum resolution in pixels that allows a peak to be
+        This function sets the minimum resolution, in pixels, that allows a peak to be
         detected by the algorithm. Any future call to the
-        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use the value provided here for this specific parameter.
+        [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use, for the `min_res` parameter, the value provided here.
 
         Arguments:
 
-            max_res: The new maximum resolution in pixels for a peak.
+            min_res: The new minimum resolution (in pixels) for a peak.
         """
         self._min_res = min_res
         self._mask = None
 
-    def get_max_res(self) -> Union[int, None]:
+    def get_max_res(self) -> int:
         """
-        Gets the maximum resolution a peak in pixels.
+        Gets the maximum resolution a peak (in pixels).
 
-        This function returns the current maximum resolution in pixels that allows a
+        This function returns the current maximum resolution (in pixels) that allows a
         peak to be detected by the algorithm.
 
         Returns:
 
-            The maximum resolution in pixels for a peak.
+            The maximum resolution (in pixels) for a peak.
         """
         return self._max_res
 
     def set_max_res(self, max_res: int) -> None:
         """
-        Sets the maximum resolution for a peak in pixels.
+        Sets the maximum resolution for a peak (in pixels).
 
-        This function sets the maximum resolution in pixels that allows a peak to be
+        This function sets the maximum resolution, in pixels, that allows a peak to be
         detected by the algorithm. Any future call to the
-        [find_peaks1][om.algorithm.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use the value provided here for this specific parameter.
+        [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
+        method will use, for the `max_res` parameter, the value provided here.
 
         Arguments:
 
-            max_res: The new maximum resolution in pixels for a peak.
+            max_res: The new maximum resolution (in pixels) for a peak.
         """
         self._max_res = max_res
         self._mask = None
 
-    def find_peaks(self, *, data: numpy.ndarray) -> TypePeakList:
+    def find_peaks(self, *, data: NDArray[numpy.float_]) -> TypePeakList:
         """
         Finds peaks in a detector data frame.
 
-        This function detects peaks in a data frame, and returns information about
-        their location, size and intensity.
+        This function detects peaks in a provided data frame, and returns information
+        about their location, size and intensity.
 
         Arguments:
 
-            data: The detector data frame on which the peak finding must be performed.
+            data: The detector data frame on which the peak-finding operation must be
+                performed.
 
         Returns:
 
@@ -670,10 +639,10 @@ class Peakfinder8PeakDetection:
             with information about the detected peaks.
         """
         if self._mask is None:
-            if self._bad_pixel_mask is None:
+            if self._bad_pixel_map is None:
                 self._mask = numpy.ones_like(data, dtype=numpy.int8)
             else:
-                self._mask = self._bad_pixel_mask.astype(numpy.int8)
+                self._mask = self._bad_pixel_map.astype(numpy.int8)
 
             self._mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             self._mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0

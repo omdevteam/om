@@ -19,13 +19,13 @@
 ZMQ utilities to broadcast data from an OnDA Monitor.
 
 This module contains classes and functions that allow OnDA Monitors to broadcast data
-to external programs over a network connection.
+to external programs over a ZMQ socket.
 """
 import socket
 import sys
-from typing import Any, Dict, Union
+from typing import Any, Dict, Tuple, Union
 
-import zmq  # type: ignore
+import zmq
 
 from om.utils import exceptions
 from om.utils import parameters as param_utils
@@ -35,7 +35,7 @@ def get_current_machine_ip() -> str:
     """
     Retrieves the IP address of the local machine.
 
-    This function uses the python 'socket' module to autodetect the IP addess of the
+    This function uses Python's `socket` module to autodetect the IP addess of the
     the machine where it is invoked.
 
     Returns:
@@ -62,17 +62,21 @@ class ZmqDataBroadcaster:
     def __init__(
         self,
         *,
-        url: Union[str, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        parameters: Dict[str, Any],
     ) -> None:
         """
-        ZMQ-based data-broadcasting socket for OnDA Monitors.
+        Data-broadcasting socket for OnDA Monitors.
 
-        This class implements a ZMQ PUB socket that can be used to broadcast data from
-        an OnDA Monitor. The data must be tagged with a label when broadcast. The
-        socket supports multiple simultaneous clients, but has no queuing system:
-        broadcast data will be lost to the clients if not received before the next
-        transmission takes place.
+        This class manages a broadcasting socket that can be used by OnDA Monitors
+        to transmit data to outside programs. The class must be initialized with the
+        URL, in ZeroMQ format, were the socket should operate. Each data item broadcast
+        by the socket can be tagged with a different label, and external programs can
+        use this label to filter incoming data. The socket can transmit to multiple
+        clients at the same time but has no queuing system: broadcast data will be lost
+        to the clients if not received before the next transmission takes place.
+
+        This class creates a ZMQ PUB socket that accepts connections from ZMQ PUB
+        sockets.
 
         Arguments:
 
@@ -82,28 +86,18 @@ class ZmqDataBroadcaster:
                 socket will be opened at port 12321 using the 'tcp://' protocol.
                 Defaults to None.
         """
-        if parameters is not None:
-            url = param_utils.get_parameter_from_parameter_group(
-                group=parameters, parameter="data_broadcast_url", parameter_type=str
-            )
-        else:
-            print(
-                "OM Warning: Initializing the ZmqDataBroadcaster class with "
-                "individual parameters (url) is deprecated and will be removed in a "
-                "future version of OM. Please use the new parameter group-based "
-                "initialization interface (which requires only the parameters "
-                "argument)."
-            )
-
-        self._context: Any = zmq.Context()
-        self._sock: Any = self._context.socket(zmq.PUB)
-        # TODO: Fix types
-
+        url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+            group=parameters, parameter="data_broadcast_url", parameter_type=str
+        )
         if url is None:
-            url = "tcp://{}:12321".format(get_current_machine_ip())
+            current_machine_ip: str = get_current_machine_ip()
+            url = f"tcp://{current_machine_ip}:12321"
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
+        # TODO: Fix types
+        self._context: Any = zmq.Context()
+        self._sock: Any = self._context.socket(zmq.PUB)
         self._sock.set_hwm(1)
         try:
             self._sock.bind(url)
@@ -113,25 +107,30 @@ class ZmqDataBroadcaster:
             if exc_type is not None:
                 raise exceptions.OmInvalidDataBroadcastUrl(
                     "The setup of the data broadcasting socket failed due to the "
-                    "following error: {0}: {1}.".format(exc_type.__name__, exc_value)
+                    f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
-        print("Broadcasting data at {0}".format(url))
+        print(f"Broadcasting data at {url}")
         sys.stdout.flush()
 
     def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
         """
         Broadcasts data from the ZMQ PUB socket.
 
-        This function broadcasts data in the format of a python dictionary. The data is
-        tagged with the specified label when broadcast.
+        This function transmits the provided data from the broadcasting socket. The
+        data must have the format of a python dictionary. When broadcast, the data is
+        tagged with the specified label.
 
         Arguments:
 
-            tag: The label that will be attached to the data.
+            tag: The label that will be used to tag the data.
 
-            message: A dictionary, where the keys are names of information elements to
-                be broadcasted through the broadcasting socket, and the corresponding
-                values are the information elements to be sent (python objects).
+            message: A dictionary storing the data to be transmitted.
+
+                * The dictionary keys must store the names of the data units being
+                  broadcast.
+
+                * The corresponding dictionary values must store the data content to be
+                  transsmitted (strictly in the format of Python objects).
         """
         self._sock.send_string(tag, zmq.SNDMORE)
         self._sock.send_pyobj(message)
@@ -145,16 +144,19 @@ class ZmqResponder:
     def __init__(
         self,
         *,
-        url: Union[str, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         ZMQ-based responding socket for OnDA Monitors.
 
-        This class implements a ZMQ REP socket that an OnDA Monitor can use to respond
-        to requests from an external program. The responding socket can receive
-        requests from ZMQ REQ sockets and send, in response, data in the format of a
-        python dictionary.
+        This class manages a socket that can be used by an OnDA Monitor to receive
+        requests from external programs, and respond to them. The class must be
+        initialized with the URL, in ZeroMQ format, were the socket should operate.
+        The socket will then accept requests from external sources, and it can be used
+        to transmit data that satisfy the requests, if necessary.
+
+        This class creates a ZMQ ROUTER socket that can accept requests from REQ sockets
+        in external programs and respond to them.
 
         Arguments:
 
@@ -164,28 +166,19 @@ class ZmqResponder:
                 socket will be opened at port 12322 using the 'tcp://' protocol.
                 Defaults to None.
         """
-        if parameters is not None:
-            url = param_utils.get_parameter_from_parameter_group(
-                group=parameters, parameter="responding_url", parameter_type=str
-            )
-        else:
-            print(
-                "OM Warning: Initializing the ZmqResponder class with individual "
-                "parameters (url) is deprecated and will be removed in a future "
-                "version of OM. Please use the new parameter group-based "
-                "initialization interface (which requires only the parameters "
-                "argument)."
-            )
-
-        self._context: Any = zmq.Context()
-        self._sock: Any = self._context.socket(zmq.REP)
-        # TODO: Fix types
-
+        url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+            group=parameters, parameter="responding_url", parameter_type=str
+        )
         if url is None:
-            url = "tcp://{}:12322".format(get_current_machine_ip())
+            current_machine_ip: str = get_current_machine_ip()
+            url = f"tcp://{current_machine_ip}:12322"
+        # TODO: Fix types
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
+        self._context: Any = zmq.Context()
+        self._sock: Any = self._context.socket(zmq.ROUTER)
+        self._sock.set_hwm(1)
         try:
             self._sock.bind(url)
         except zmq.error.ZMQError as exc:
@@ -194,44 +187,53 @@ class ZmqResponder:
             if exc_type is not None:
                 raise exceptions.OmInvalidRespondingUrl(
                     "The setup of the responding socket failed due to the "
-                    "following error: {0}: {1}.".format(exc_type.__name__, exc_value)
+                    f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
 
         self._zmq_poller: Any = zmq.Poller()
         self._zmq_poller.register(self._sock, zmq.POLLIN)
-        print("Answering requests at {0}".format(url))
+        print(f"Answering requests at {url}")
         sys.stdout.flush()
 
-    def get_request(self) -> Union[str, None]:
+    def get_request(self) -> Union[Tuple[bytes, bytes], None]:
         """
-        Gets a request from the ZMQ REP socket if present.
+        Gets a request from the responding socket, if present.
 
-        This function checks if a request has been received by the responding socket.
-        If the socket received a request, this function returns it. Otherwise the
-        function returns None. This function is non-blocking.
+        This function checks, in a non-blocking way, if a request has been received by
+        the socket. In the affirmative case, it returns a tuple storing the identity of
+        the requester and the content of the request, otherwise it returns None. The
+        identity of the requester must be stored and provided later to the
+        [send_data][om.utils.zmq_monitor.send_data] function to answer the request.
 
         Returns:
 
-            request: A string containing the request, or None if no request has been
-            received by the socket.
+            request: If a request was received by the socket, a tuple storing th
+            identity of the caller as the first entry, and a string with the request's
+            content as the second entry. If no request has been received by the
+            socket, None.
         """
         socks: Dict[Any, Any] = dict(self._zmq_poller.poll(0))
         if self._sock in socks and socks[self._sock] == zmq.POLLIN:
-            request: Union[str, None] = self._sock.recv_string()
+            request: Tuple[bytes, bytes, bytes] = self._sock.recv_multipart()
+            print(request)
+            return (request[0], request[2])
         else:
-            request = None
-        return request
+            return None
 
-    def send_data(self, *, message: Dict[str, Any]) -> None:
+    def send_data(self, *, identity: bytes, message: Dict[str, Any]) -> None:
         """
         Send data from the ZMQ REP socket.
 
-        This function sends data to an external program that has previously sent a
+        This function transmits data to an external program that has previously sent a
         request to the socket. The response must have the format of a python
         dictionary.
 
         Arguments:
 
-            message: A dictionary containing information to be sent.
+            identity: The identity of the requester to which the data should sent. This
+                information is returned by the
+                [get_request][om.utils.zmq_monitor.get_request].
+
+            message: A dictionary containing information to be transmitted.
         """
-        self._sock.send(message)
+        self._sock.send_multipart((identity, b"", message))

@@ -24,82 +24,70 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from om.data_retrieval_layer import base as data_ret_layer_base
-from om.processing_layer import base as process_layer_base
+from om.processing_layer import base as pl_base
 from om.utils import parameters
 
 
-class OmParallelizationEngine(ABC):
+class OmParallelization(ABC):
     """
     See documentation of the `__init__` function.
-
-    Base class: `ABC`
     """
 
+    @abstractmethod
     def __init__(
         self,
         *,
-        data_event_handler: data_ret_layer_base.OmDataEventHandler,
-        monitor: process_layer_base.OmMonitor,
+        data_retrieval_layer: data_ret_layer_base.OmDataRetrieval,
+        processing_layer: pl_base.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        Base class for an OM's Parallelization Engine.
+        Base class for OM's Parallelization Layer.
 
-        Parallelization Engines orchestrate OM's processing and collecting nodes, and
+        Parallelization classes orchestrate OM's processing and collecting nodes, and
         take care of the communication between them.
 
-        This class is the base abstract class for all of OM's Parallelization Engines,
-        and it should be subclassed to implement every Engine. All its methods are
-        abstract: derived classes are expected to provide their own functions that
-        implement a specific Parallelization Engine.
+        * When OM start, a Parallelization class instance initializes several
+          processing nodes, plus a single collecting node.
 
-        * When OM start, each Parallelization Engine initializes several processing
-          nodes and a single collecting node. A Data Event Handler (an instance of a
-          class derived from
-          [OmDataEventHandler][om.data_retrieval_layer.base.OmDataEventHandler]) and a
-          Monitor (an instance of a class derived from
-          [OmMonitor][om.processing_layer.base.OmMonitor]) must be provided to its
-          constructor.
+        * The Parallelization class associates an instance of a Data Retrieval class
+          (see [OmDataRetrieval][om.data_retrieval_layer.base.OmDataRetrieval]) and an
+          instance of a Processing class (see
+          [OmProcessing][om.processing_layer.base.OmProcessing]) to the nodes.
 
-        * On each processing node, the Engine retrieves one data event from a source by
-          calling the relevant Data Event Handler methods. It then invokes the
-          appropriate Monitor methods to process every frame in the retrieved event.
-          The Engine also makes sure that the processed data is transferred to the
-          collecting node.
+        * Each processing node retrieves an event from a data event source by calling
+          the relevant Data Retrieval class methods. It then invokes the appropriate
+          Processing class methods on every frame in the event. Finally, it transfers
+          the processed data to the collecting node. The node then retrieves another
+          event, and the cycle continues until there are no more data events or OM
+          shuts down.
 
-        * On the collecting node, the Engine invokes the relevant Monitor methods to
-          aggregate data received from the processing nodes.
+        * Every time it receives data from a processing node, the collecting node
+          invokes the relevant Processing class methods to aggregate the received data.
 
-        * When all events from the source have been processed, the Engine performs
-          some final clean-up tasks defined in the Data Event Handler, then it shuts
-          all the nodes down.
+        * When all events from the source have been processed, all nodes perform some
+          final clean-up tasks by calling the appropriate methods of the Processing
+          class. All nodes then shut down.
+
+        This class is the base abstract class from which every Parallelization class
+        should inherit. All its methods are abstract: each derived class must provide
+        its own implementations tailored to its specific parallelization strategy.
 
         Arguments:
 
-            data_event_handler: A class defining how data events are retrieved and
-                handled.
+            data_retrieval_layer: A class defining how data and data events are
+                retrieved and handled.
 
-            monitor: A class defining the how the retrieved data must be processed.
+            processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-            data_event_handler
-        )
-        self._monitor: process_layer_base.OmMonitor = monitor
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="num_frames_in_event_to_process",
-            parameter_type=int,
-        )
+        pass
 
     @abstractmethod
     def start(self) -> None:
         """
-        Starts the parallelization engine.
+        Starts OM.
 
         This function begins operations on the processing and collecting nodes.
 
@@ -114,7 +102,7 @@ class OmParallelizationEngine(ABC):
     @abstractmethod
     def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
         """
-        Shuts down the parallelization engine.
+        Shuts down OM.
 
         This function stops the processing and collecting nodes.
 
@@ -123,13 +111,11 @@ class OmParallelizationEngine(ABC):
           down.
 
         * When this function is called on the collecting node, the collecting node
-          tells each processing node to shut down, waits for all the processing nodes
+          tells every processing node to shut down, waits for all the processing nodes
           to confirm that they have stopped operating, then shuts itself down.
 
         Arguments:
 
-            msg: Reason for shutting down the parallelization engine. Defaults to
-                "Reason not provided".
+            msg: Reason for shutting down. Defaults to "Reason not provided".
         """
-
         pass

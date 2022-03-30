@@ -27,27 +27,23 @@ import traceback
 
 class OmException(Exception):
     """
-    Base class for OM exceptions.
+    Base class for OM's exceptions.
 
-    Base class: Exception
-
-    All other OM-specific exceptions should subclass from this exception.
+    All other OM-specific exceptions should inherit from this exception.
     """
 
 
 class OmConfigurationFileReadingError(OmException):
     """
-    Raised if an error happens while reading the configuration file.
+    Raised if an error happens while OM is reading its configuration file.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmConfigurationFileSyntaxError(OmException):
     """
-    Raised if there is a syntax error in the configuration file.
+    Raised if there is a syntax error in OM's configuration file.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
@@ -55,39 +51,27 @@ class OmDataExtractionError(OmException):
     """
     Raised if an error happens during data extraction.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmHdf5FileReadingError(OmException):
     """
-    Raised if an error happens while reading an HDF5 file.
+    Raised if an error happens while reading an HDF5 data file.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmHdf5UnsupportedDataFormat(OmException):
     """
-    Raised when trying to write an unsupported data format into an HDF5 file.
+    Raised when trying to write an unsupported data format into an HDF5 data file.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmHdf5PathError(OmException):
     """
-    Raised if an internal HDF5 path is not found.
+    Raised if an internal HDF5 path cannot be found.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
-    """
-
-
-class OmHidraAPIError(OmException):
-    """
-    Raised if an error happens during a HiDRA API call.
-
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
@@ -95,15 +79,13 @@ class OmInvalidSourceError(OmException):
     """
     Raised if the format of the source string is not valid.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmInvalidDataBroadcastUrl(OmException):
     """
-    Raised if the format of the data broadcasting URL is not valid.
+    Raised if the format of the data broadcasting socket's URL is not valid.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
@@ -111,23 +93,26 @@ class OmInvalidRespondingUrl(OmException):
     """
     Raised if the format of the responding socket's URL is not valid.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
-class OmMissingDataEventHandlerError(OmException):
+class OmMissingDataRetrievalClassError(OmException):
     """
-    Raised if the implementation of a data event handler cannot be found on the system.
+    Raised if a Data Retrieval class cannot be found in the Data Retrieval Layer.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
-class OmMissingDataExtractionFunctionError(OmException):
+class OmMissingDataEventError(OmException):
     """
-    Raised if a Data Extraction Function is not defined.
+    Raised if a data event cannot be retrieved from a data source.
+    """
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
+
+class OmMissingDataSourceClassError(OmException):
+    """
+    Raised if a Data Source class cannot be found in the Data Retrieval Layer.
+
     """
 
 
@@ -135,7 +120,13 @@ class OmMissingDependencyError(OmException):
     """
     Raised if one of the python module dependencies is not found on the system.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
+    """
+
+
+class OmMissingFrameDataError(OmException):
+    """
+    Raised if detector frame data cannot be retrieved from a data event.
+
     """
 
 
@@ -143,39 +134,26 @@ class OmMissingLayerModuleFileError(OmException):
     """
     Raised if the python implementation of an OM layer cannot be found on the system.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmMissingParameterError(OmException):
     """
-    Raised if a parameter is missing from the configuration file.
+    Raised if a parameter is missing from OM'sconfiguration file.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmMissingParameterGroupError(OmException):
     """
-    Raised if a parameter group is missing from the configuration file.
+    Raised if a parameter group is missing from OM's configuration file.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
-    """
-
-
-class OmMissingPsanaInitializationFunctionError(OmException):
-    """
-    Raised if a psana Detector interface initialization Function is not defined.
-
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 
 class OmWrongParameterTypeError(OmException):
     """
-    Raised if the type of a configuration parameter does not match the requested type.
-
-    Base class: [`OmException`][om.utils.exceptions.OmException]
+    Raised if the type of an OM's configuration parameter is not correct.
     """
 
 
@@ -190,15 +168,15 @@ def om_exception_handler(parameter_type, value, traceback_):  # type: ignore
 
     Arguments:
 
-        parameter_type (Exception): exception type.
+        parameter_type (Exception): The exception type.
 
-        value (str): exception value (the message that comes with the exception).
+        value (str): The exception value (the message that comes with the exception).
 
-        traceback_ (str): traceback to be printed.
+        traceback_ (str): The exception traceback.
     """
     # TODO: Fix types.
     if issubclass(parameter_type, OmException):
-        print("OM ERROR: {0}".format(value))
+        print(f"OM ERROR: {value}")
         sys.stdout.flush()
         sys.stderr.flush()
         sys.exit(0)

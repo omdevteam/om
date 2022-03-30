@@ -16,17 +16,16 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Algorithms for detector calibration.
+Generic utilities for data retrieval.
 
-This module contains algorithms that can be used to calibrate raw detector data. Each
-algorithm deals with a specific detector.
+This module contains utility classes and functions used by several Data Retrieval
+Layer modules.
 """
-from typing import Any, BinaryIO, Dict, List, Union
+from typing import Any, BinaryIO, List, Tuple
 
 import h5py  # type: ignore
-import numpy  # type: ignore
-
-from om.utils import parameters as param_utils
+import numpy
+from numpy.typing import NDArray
 
 
 class Jungfrau1MCalibration:
@@ -37,10 +36,9 @@ class Jungfrau1MCalibration:
     def __init__(
         self,
         *,
-        dark_filenames: Union[List[str], None] = None,
-        gain_filenames: Union[List[str], None] = None,
-        photon_energy_kev: float,
-        parameters: Union[Dict[str, Any], None] = None,
+        dark_filenames: List[str],
+        gain_filenames: List[str],
+        photon_energy_kev: float
     ) -> None:
         """
         Calibration of the Jungfrau 1M detector.
@@ -56,45 +54,14 @@ class Jungfrau1MCalibration:
             gain_filenames: A list of relative or absolute paths to files containing
                 gain data for the calibration of the detector.
 
-            photon_energy_kev: the photon energy at which the detector will be operated.
+            photon_energy_kev: the photon energy at which the detector will be
+                operated.
         """
-        if parameters is not None:
-            dark_filenames = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="dark_filenames",
-                parameter_type=list,
-                required=True,
-            )
-            gain_filenames = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="gain_filenames",
-                parameter_type=list,
-                required=True,
-            )
-        else:
-            print(
-                "OM Warning: Initializing the Jungfrau1MCalibration algorithm with "
-                "individual parameters (dark_filenames, gain_filenames and "
-                "photon_energy_kev) is deprecated and will be removed in a future "
-                "version of OM. Please use the new parameter group-based "
-                "initialization interface (which requires only the parameters and "
-                "photon_energy_kev arguments)."
-            )
-
-        if dark_filenames is None or gain_filenames is None:
-            raise RuntimeError(
-                "OM ERROR: Some parameters required for the initialization of the "
-                "Jungfrau1MCalibration algorithm have not been defined. Please check"
-                "the command used to initialize the algorithm."
-            )
-
-        # 2 for Jungfrau 1M
         num_panels: int = len(dark_filenames)
-
-        self._dark: numpy.ndarray = numpy.ndarray(
+        self._dark: NDArray[numpy.float_] = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float32
         )
-        self._gain: numpy.ndarray = numpy.ndarray(
+        self._gain: NDArray[numpy.float_] = numpy.ndarray(
             (3, 512 * num_panels, 1024), dtype=numpy.float64
         )
         panel_id: int
@@ -116,10 +83,10 @@ class Jungfrau1MCalibration:
             gain_file.close()
             dark_file.close()
 
-        # TODO: Energy should be in eV
         self._photon_energy_kev: float = photon_energy_kev
 
-    def apply_calibration(self, *, data: numpy.ndarray) -> numpy.ndarray:
+    def apply_calibration(self, *, data: NDArray[numpy.int_]) -> NDArray[numpy.float_]:
+
         """
         Applies the calibration to a detector data frame.
 
@@ -134,9 +101,9 @@ class Jungfrau1MCalibration:
 
             The corrected data frame.
         """
-        corrected_data: numpy.ndarray = data.astype(numpy.float32)
+        calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float32)
 
-        where_gain: List[numpy.ndarray] = [
+        where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
             numpy.where(data & 2 ** 14 == 0),
             numpy.where((data & (2 ** 14) > 0) & (data & 2 ** 15 == 0)),
             numpy.where(data & 2 ** 15 > 0),
@@ -144,9 +111,9 @@ class Jungfrau1MCalibration:
 
         gain: int
         for gain in range(3):
-            corrected_data[where_gain[gain]] -= self._dark[gain][where_gain[gain]]
-            corrected_data[where_gain[gain]] /= (
+            calibrated_data[where_gain[gain]] -= self._dark[gain][where_gain[gain]]
+            calibrated_data[where_gain[gain]] /= (
                 self._gain[gain][where_gain[gain]] * self._photon_energy_kev
             )
 
-        return corrected_data
+        return calibrated_data
