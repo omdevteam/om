@@ -586,6 +586,15 @@ class Binning:
         else:
             bad_pixel_map_hdf5_path = None
 
+        self._original_asic_nx: int = self._layout_info["asic_ny"]
+        self._original_asic_ny: int = self._layout_info["asic_nx"]
+        self._original_nx: int = (
+            self._layout_info["asic_ny"] * self._layout_info["nasics_y"]
+        )
+        self._original_ny: int = (
+            self._layout_info["asic_nx"] * self._layout_info["nasics_x"]
+        )
+
         if bad_pixel_map_filename is not None:
             try:
                 map_hdf5_file_handle: Any
@@ -609,15 +618,6 @@ class Binning:
             )
         else:
             self._mask = bad_pixel_map
-
-        self._original_asic_nx: int = self._layout_info["asic_ny"]
-        self._original_asic_ny: int = self._layout_info["asic_nx"]
-        self._original_nx: int = (
-            self._layout_info["asic_ny"] * self._layout_info["nasics_y"]
-        )
-        self._original_ny: int = (
-            self._layout_info["asic_nx"] * self._layout_info["nasics_x"]
-        )
 
         self._extended_asic_nx: int = (
             int(numpy.ceil(self._original_asic_nx / self._bin_size)) * self._bin_size
@@ -765,7 +765,7 @@ class Binning:
 
         return binned_data
 
-    def bin_bad_pixel_mask(
+    def bin_bad_pixel_map(
         self, *, mask: Union[NDArray[numpy.int_], None]
     ) -> Union[NDArray[numpy.int_], None]:
         """

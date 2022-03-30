@@ -122,10 +122,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             parameter="binning",
             parameter_type=bool,
         )
-        if binning is None:
-            self._binning: Union[gen_algs.Binning, None] = None
-        else:
-            self._binning = gen_algs.Binning(
+        if binning:
+            self._binning: Union[gen_algs.Binning, None] = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
             binning_before_peakfinding: Union[
@@ -143,9 +141,9 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 self._peak_detection.set_peakfinder8_info(
                     self._binning.get_binned_layout_info()
                 )
-                self._peak_detection.set_bad_pixel_mask(
-                    self._binning.bin_bad_pixel_mask(
-                        mask=self._peak_detection.get_bad_pixel_mask()
+                self._peak_detection.set_bad_pixel_map(
+                    self._binning.bin_bad_pixel_map(
+                        mask=self._peak_detection.get_bad_pixel_map()
                     )
                 )
                 self._peak_detection.set_radius_pixel_map(
@@ -157,6 +155,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                     )
                 )
             self._data_shape = self._binning.get_binned_data_shape()
+        else:
+            self._binning = None
 
         pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
             group="crystallography",
@@ -245,14 +245,14 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             parameter="binning",
             parameter_type=bool,
         )
-        if binning is None:
-            self._binning = None
-        else:
+        if binning:
             self._binning = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
             self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
+        else:
+            self._binning = None
 
         pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
             group="crystallography",
