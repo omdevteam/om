@@ -51,4 +51,10 @@ try:
 except ModuleNotFoundError:
     pass
 
+try:
+    import asapo_consumer  # type: ignore
+    from om.data_retrieval_layer.data_retrieval_asapo import EigerAsapoDataRetrieval
+except ModuleNotFoundError:
+    pass
+
 from om.data_retrieval_layer.frame_retrieval import OmFrameDataRetrieval
