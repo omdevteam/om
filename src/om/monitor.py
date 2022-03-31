@@ -100,7 +100,9 @@ def main(*, source: str, config: str, debug: bool) -> None:
     if not debug:
         sys.excepthook = exceptions.om_exception_handler
 
-    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(config)
+    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
+        config, source=source
+    )
 
     data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",

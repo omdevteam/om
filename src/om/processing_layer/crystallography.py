@@ -229,6 +229,20 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             required=True,
         )
 
+        self._source: str = self._monitor_params.get_parameter(
+            group="om",
+            parameter="source",
+            parameter_type=str,
+            required=True,
+        )
+
+        self._configuration_file: str = self._monitor_params.get_parameter(
+            group="om",
+            parameter="configuration_file",
+            parameter_type=str,
+            required=True,
+        )
+
         geometry: TypeDetector
         self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
             filename=self._monitor_params.get_parameter(
@@ -530,6 +544,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                             "event_id": received_data["event_id"],
                             "frame_id": received_data["frame_id"],
                             "timestamp": received_data["timestamp"],
+                            "source": self._source,
+                            "configuration_file": self._configuration_file,
                         },
                         use_bin_type=True,
                     )
