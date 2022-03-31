@@ -113,6 +113,13 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._image_view.ui.roiBtn.hide()
         self._image_view.getView().addItem(self._resolution_rings_canvas)
 
+        self._reset_peaks_button: Any = QtWidgets.QPushButton("Clear peaks")
+        self._reset_peaks_button.clicked.connect(self._reset_peaks)
+        self._virtual_powder_plot: Union[None, NDArray[numpy.int_]] = None
+        self._last_monitor_timestamp: int = 0
+        self._powder_plot_to_subtract: Union[None, NDArray[numpy.int_]] = None
+        self._monitor_timestamp_before_reset: int = 0
+
         self._resolution_rings_regex: Any = QtCore.QRegExp(r"[0-9.,]+")
         self._resolution_rings_validator: Any = QtGui.QRegExpValidator()
         self._resolution_rings_validator.setRegExp(self._resolution_rings_regex)
@@ -147,6 +154,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         )
 
         horizontal_layout: Any = QtWidgets.QHBoxLayout()
+        horizontal_layout.addWidget(self._reset_peaks_button)
         horizontal_layout.addWidget(self._resolution_rings_check_box)
         horizontal_layout.addWidget(self._resolution_rings_lineedit)
         splitter_0: Any = QtWidgets.QSplitter()
@@ -258,6 +266,52 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
 
         QtWidgets.QApplication.processEvents()
 
+    def _reset_peaks(self) -> None:
+        if self._virt_powd_plot_img is not None:
+            self._powder_plot_to_subtract = self._virtual_powder_plot
+            self._monitor_timestamp_before_reset = self._last_monitor_timestamp
+        self._update_virtual_powder_plot()
+
+    def _update_virtual_powder_plot(self) -> None:
+        # Updates virtual powder plot.
+        if self._virtual_powder_plot is None:
+            return
+        if (
+            self._powder_plot_to_subtract is None
+            or self._monitor_timestamp_before_reset < self._last_monitor_timestamp
+        ):
+            self._powder_plot_to_subtract = numpy.zeros(self._virtual_powder_plot.shape)
+
+        virt_powd_plot_img_shape: Tuple[int, int] = self._virtual_powder_plot.shape
+        if (
+            self._virt_powd_plot_img is None
+            or self._virt_powd_plot_img.shape != virt_powd_plot_img_shape
+        ):
+            self._img_center_x = int(virt_powd_plot_img_shape[1] / 2)
+            self._img_center_y = int(virt_powd_plot_img_shape[0] / 2)
+            self._virt_powd_plot_img = (
+                self._virtual_powder_plot - self._powder_plot_to_subtract
+            )
+            if (
+                self._resolution_rings_check_box.isEnabled()
+                and self._resolution_rings_check_box.isChecked() is True
+            ):
+                self._update_resolution_rings_status()
+        else:
+            self._virt_powd_plot_img = (
+                self._virtual_powder_plot - self._powder_plot_to_subtract
+            )
+
+        if self._virt_powd_plot_img is not None:
+            self._image_view.setImage(
+                self._virt_powd_plot_img.T,
+                autoHistogramRange=False,
+                autoLevels=False,
+                autoRange=False,
+            )
+
+        QtWidgets.QApplication.processEvents()
+
     def update_gui(self) -> None:
         """
         Updates the elements of the Crystallography GUI.
@@ -283,27 +337,9 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._last_detector_distance = local_data["detector_distance"]
         self._last_beam_energy = local_data["beam_energy"]
         self._last_coffset = local_data["first_panel_coffset"]
-
-        virt_powd_plot_img_shape: Tuple[int, int] = local_data[
-            "virtual_powder_plot"
-        ].shape
-
-        if (
-            self._virt_powd_plot_img is None
-            or self._virt_powd_plot_img.shape != virt_powd_plot_img_shape
-        ):
-            self._img_center_x = int(virt_powd_plot_img_shape[1] / 2)
-            self._img_center_y = int(virt_powd_plot_img_shape[0] / 2)
-            self._virt_powd_plot_img = local_data["virtual_powder_plot"]
-            if (
-                self._resolution_rings_check_box.isEnabled()
-                and self._resolution_rings_check_box.isChecked() is True
-            ):
-                self._update_resolution_rings_status()
-        else:
-            self._virt_powd_plot_img = local_data["virtual_powder_plot"]
-
-        QtWidgets.QApplication.processEvents()
+        self._virtual_powder_plot = local_data["virtual_powder_plot"]
+        self._last_monitor_timestamp = local_data["start_timestamp"]
+        self._update_virtual_powder_plot()
 
         if local_data["geometry_is_optimized"]:
             if not self._resolution_rings_check_box.isEnabled():
@@ -336,14 +372,6 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
                 )
 
         QtWidgets.QApplication.processEvents()
-
-        if self._virt_powd_plot_img is not None:
-            self._image_view.setImage(
-                self._virt_powd_plot_img.T,
-                autoHistogramRange=False,
-                autoLevels=False,
-                autoRange=False,
-            )
 
         self._draw_resolution_rings()
 
