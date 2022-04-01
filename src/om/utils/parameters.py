@@ -21,7 +21,7 @@ OM's configuration parameter management.
 This module contains classes and functions that can be used to manage and validate a
 set of OM's configuration parameters from a configuration file.
 """
-from typing import Any, Dict, TextIO
+from typing import Any, Dict, List, TextIO, Union
 
 import yaml  # type: ignore
 
@@ -113,7 +113,7 @@ class MonitorParams:
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, config: str) -> None:
+    def __init__(self, config: str, source: Union[str, None] = None) -> None:
         """
         Storage, retrieval and validation of OnDA Monitor configuration parameters.
 
@@ -121,6 +121,13 @@ class MonitorParams:
         The parameters must be read from a configuration file written in YAML format.
         The class allows then single parameters or group of parameters to be retrieved,
         and optionally validated.
+
+        This class takes as input the path to a YAML file storing the configuration
+        parameters. In addition to the parameters read from the file, this class stores
+        the path to the file itself, in a parameter named `configuration_file` within
+        the `om` parameter group. Additionally, if the name of a data source is
+        provided as an input parameter, this class will make it available as a
+        parameter with the name `source` within the `om` group.
 
         Arguments:
 
@@ -150,6 +157,11 @@ class MonitorParams:
         # Store group name within the group
         for group in self._monitor_params:
             self._monitor_params[group]["name"] = group
+
+        # Add source and configuration_file parameters to the om group
+        self._monitor_params["om"]["configuration_file"] = config
+        if source:
+            self._monitor_params["om"]["source"] = source
 
     def get_parameter_group(
         self,
