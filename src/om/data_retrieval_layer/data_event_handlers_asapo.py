@@ -345,7 +345,73 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
         return data
 
     def initialize_frame_data_retrieval(self) -> None:
-        pass
+        """
+        Initializes frame data retrievals from psana.
+
+        This function initializes the retrieval of a single standalone detector data
+        frame from ASAPO, with all the information that refers to it.
+        """
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+        self._consumer: Any = self._initialize_asapo_consumer()
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
-        pass
+        """
+        Retrieves all data realted to the requested detector frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves frame data from the event specified by the provided
+        ASAPO unique event identifier. The identifier is a string of combining
+        ASAPO stream name and the ID of the event in the stream separated by the "//"
+        symbol. Since ASAPO data events are based around single detector frames, the
+        unique frame identifier provided to this function must be the string "0".
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
+        """
+        event_id_parts: List[str] = event_id.split("//")
+        stream: str = event_id_parts[0].strip()
+        asapo_event_id: int = int(event_id_parts[1])
+
+        event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+        event_metadata: Dict[str, Any]
+        event_data, event_metadata = self._consumer.get_by_id(
+            asapo_event_id,
+            stream=stream,
+            meta_only=False,
+        )
+        stream_metadata: Dict[str, Any] = self._consumer.get_stream_meta(stream)
+
+        data_event: Dict[str, Any] = {}
+        data_event["data"] = event_data
+        data_event["metadata"] = event_metadata
+        data_event["additional_info"] = {
+            "stream_metadata": stream_metadata,
+            "stream_name": stream,
+        }
+
+        # Recovers the timestamp from the ASAPO event (as seconds from the Epoch)
+        # and stores it in the event dictionary.
+        data_event["additional_info"]["timestamp"] = self._data_sources[
+            "timestamp"
+        ].get_data(event=data_event)
+
+        return self.extract_data(event=data_event)
