@@ -23,6 +23,7 @@ set of OM's configuration parameters from a configuration file.
 """
 from typing import Any, Dict, List, TextIO, Union
 
+import pathlib
 import yaml  # type: ignore
 
 from om.utils import exceptions
@@ -159,7 +160,9 @@ class MonitorParams:
             self._monitor_params[group]["name"] = group
 
         # Add source and configuration_file parameters to the om group
-        self._monitor_params["om"]["configuration_file"] = config
+        self._monitor_params["om"]["configuration_file"] = str(
+            pathlib.Path(config).absolute()
+        )
         if source:
             self._monitor_params["om"]["source"] = source
 
