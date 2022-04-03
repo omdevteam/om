@@ -138,11 +138,6 @@ class HDF5Writer:
             processed_filename_extension = "h5"
         self._processed_filename_extension: str = f".{processed_filename_extension}"
 
-        # if detector_data_type is None:
-        #     self._data_type: DTypeLike = numpy.float32
-        # else:
-        #     self._data_type = numpy.dtype(detector_data_type)
-
         self._compression: Union[
             str, None
         ] = param_utils.get_parameter_from_parameter_group(
@@ -194,17 +189,6 @@ class HDF5Writer:
 
         self._resizable_datasets: Dict[str, Any] = {}
 
-        # if "detector_data" in hdf5_fields.keys():
-        #     self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
-        #         name=hdf5_fields["detector_data"],
-        #         shape=(0,) + detector_data_shape,
-        #         maxshape=(None,) + detector_data_shape,
-        #         dtype=detector_data_type,
-        #         chunks=(1,) + detector_data_shape,
-        #         compression=compression,
-        #         compression_opts=compression_opts,
-        #         shuffle=compression_shuffle,
-        #     )
         if "event_id" in self._hdf5_fields.keys():
             self._resizable_datasets["event_id"] = self._h5file.create_dataset(
                 name=self._hdf5_fields["event_id"],
@@ -528,7 +512,7 @@ class SumHDF5Writer:
         *,
         num_frames: int,
         sum_frames: NDArray[numpy.float_],
-        virtual_powder_pattern: NDArray[numpy.int_],
+        virtual_powder_pattern: NDArray[numpy.float_],
     ) -> None:
         """
         Writes aggregated detector frame data into an HDF5 file.
