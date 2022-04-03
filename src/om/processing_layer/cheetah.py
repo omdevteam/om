@@ -144,9 +144,9 @@ class CheetahProcessing(pl_base.OmProcessing):
                 self._peak_detection.set_peakfinder8_info(
                     self._binning.get_binned_layout_info()
                 )
-                self._peak_detection.set_bad_pixel_mask(
-                    self._binning.bin_bad_pixel_mask(
-                        mask=self._peak_detection.get_bad_pixel_mask()
+                self._peak_detection.set_bad_pixel_map(
+                    self._binning.bin_bad_pixel_map(
+                        mask=self._peak_detection.get_bad_pixel_map()
                     )
                 )
                 self._peak_detection.set_radius_pixel_map(
@@ -205,10 +205,7 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
             parameters=self._monitor_params.get_parameter_group(group="cheetah"),
-            detector_data_shape=self._data_shape,
-            detector_data_type=self._data_type,
             node_rank=node_rank,
-            geometry=self._geometry,
         )
 
         print(f"Processing node {node_rank} starting")

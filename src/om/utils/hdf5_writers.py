@@ -45,9 +45,6 @@ class HDF5Writer:
         self,
         *,
         node_rank: int,
-        geometry: crystfel_geometry.TypeDetector,
-        detector_data_type: Union[str, None],
-        detector_data_shape: Tuple[int, int],
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -106,16 +103,6 @@ class HDF5Writer:
                     of this entry is None, only the first 1024 peaks detected in each
                     frame will be written to the output file. Defaults to None.
 
-            detector_data_type: The numpy type of the detector data array that will be
-                written to the output files.
-
-            detector_data_shape: The numpy shape of the detector data array that will
-                be written to the output files.
-
-            geometry: A dictionary returned by the
-                [load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
-                function, storing the detector geometry information.
-
             node_rank: The rank of the OM node that will write the data in the output
                 files.
         """
@@ -151,36 +138,38 @@ class HDF5Writer:
             processed_filename_extension = "h5"
         self._processed_filename_extension: str = f".{processed_filename_extension}"
 
-        if detector_data_type is None:
-            self._data_type: DTypeLike = numpy.float32
-        else:
-            self._data_type = numpy.dtype(detector_data_type)
+        # if detector_data_type is None:
+        #     self._data_type: DTypeLike = numpy.float32
+        # else:
+        #     self._data_type = numpy.dtype(detector_data_type)
 
-        compression: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+        self._compression: Union[
+            str, None
+        ] = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_compression",
             parameter_type=str,
         )
-        compression_opts: Union[
+        self._compression_opts: Union[
             int, None
         ] = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_compression_opts",
             parameter_type=int,
         )
-        compression_shuffle: Union[
+        self._compression_shuffle: Union[
             bool, None
         ] = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_compression_shuffle",
             parameter_type=bool,
         )
-        if compression is None:
-            compression_opts = None
-        elif compression_opts is None:
-            compression_opts = 4
-        if compression_shuffle is None:
-            compression_shuffle = False
+        if self._compression is None:
+            self._compression_opts = None
+        elif self._compression_opts is None:
+            self._compression_opts = 4
+        if self._compression_shuffle is None:
+            self._compression_shuffle = False
 
         max_num_peaks: Union[
             int, None
@@ -194,16 +183,10 @@ class HDF5Writer:
         else:
             self._max_num_peaks = max_num_peaks
 
-        hdf5_fields = param_utils.get_parameter_from_parameter_group(
+        self._hdf5_fields = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_fields",
             parameter_type=dict,
-        )
-
-        # TODO: fix cxiview (or even better, rewrite it)
-        # To get pixel size required for cxiview:
-        self._pixel_size: float = (
-            1 / geometry["panels"][tuple(geometry["panels"].keys())[0]]["res"]
         )
 
         # TODO: decide what to do if file exists
@@ -211,29 +194,29 @@ class HDF5Writer:
 
         self._resizable_datasets: Dict[str, Any] = {}
 
-        if "detector_data" in hdf5_fields.keys():
-            self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
-                name=hdf5_fields["detector_data"],
-                shape=(0,) + detector_data_shape,
-                maxshape=(None,) + detector_data_shape,
-                dtype=detector_data_type,
-                chunks=(1,) + detector_data_shape,
-                compression=compression,
-                compression_opts=compression_opts,
-                shuffle=compression_shuffle,
-            )
-        if "event_id" in hdf5_fields.keys():
+        # if "detector_data" in hdf5_fields.keys():
+        #     self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
+        #         name=hdf5_fields["detector_data"],
+        #         shape=(0,) + detector_data_shape,
+        #         maxshape=(None,) + detector_data_shape,
+        #         dtype=detector_data_type,
+        #         chunks=(1,) + detector_data_shape,
+        #         compression=compression,
+        #         compression_opts=compression_opts,
+        #         shuffle=compression_shuffle,
+        #     )
+        if "event_id" in self._hdf5_fields.keys():
             self._resizable_datasets["event_id"] = self._h5file.create_dataset(
-                name=hdf5_fields["event_id"],
+                name=self._hdf5_fields["event_id"],
                 shape=(0,),
                 maxshape=(None,),
                 dtype=h5py.special_dtype(vlen=str),
             )
-        if "optical_laser_active" in hdf5_fields.keys():
+        if "optical_laser_active" in self._hdf5_fields.keys():
             self._resizable_datasets[
                 "optical_laser_active"
             ] = self._h5file.create_dataset(
-                name=hdf5_fields["optical_laser_active"],
+                name=self._hdf5_fields["optical_laser_active"],
                 shape=(0,),
                 maxshape=(None,),
                 dtype=numpy.bool_,
@@ -241,54 +224,54 @@ class HDF5Writer:
         # Creating all requested 1D float64 datasets:
         key: str
         for key in ("timestamp", "beam_energy", "pixel_size", "detector_distance"):
-            if key in hdf5_fields.keys():
+            if key in self._hdf5_fields.keys():
                 self._resizable_datasets[key] = self._h5file.create_dataset(
-                    name=hdf5_fields[key],
+                    name=self._hdf5_fields[key],
                     shape=(0,),
                     maxshape=(None,),
                     dtype=numpy.float64,
                 )
-        if "peak_list" in hdf5_fields.keys():
+        if "peak_list" in self._hdf5_fields.keys():
             self._resizable_datasets.update(
                 {
                     "npeaks": self._h5file.create_dataset(
-                        name=hdf5_fields["peak_list"] + "/nPeaks",
+                        name=self._hdf5_fields["peak_list"] + "/nPeaks",
                         shape=(0,),
                         maxshape=(None,),
                         dtype=numpy.int64,
                     ),
                     "fs": self._h5file.create_dataset(
-                        name=hdf5_fields["peak_list"] + "/peakXPosRaw",
+                        name=self._hdf5_fields["peak_list"] + "/peakXPosRaw",
                         shape=(0, self._max_num_peaks),
                         maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "ss": self._h5file.create_dataset(
-                        name=hdf5_fields["peak_list"] + "/peakYPosRaw",
+                        name=self._hdf5_fields["peak_list"] + "/peakYPosRaw",
                         shape=(0, self._max_num_peaks),
                         maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "intensity": self._h5file.create_dataset(
-                        name=hdf5_fields["peak_list"] + "/peakTotalIntensity",
+                        name=self._hdf5_fields["peak_list"] + "/peakTotalIntensity",
                         shape=(0, self._max_num_peaks),
                         maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "num_pixels": self._h5file.create_dataset(
-                        name=hdf5_fields["peak_list"] + "/peakNPixels",
+                        name=self._hdf5_fields["peak_list"] + "/peakNPixels",
                         shape=(0, self._max_num_peaks),
                         maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "max_pixel_intensity": self._h5file.create_dataset(
-                        name=hdf5_fields["peak_list"] + "/peakMaximumValue",
+                        name=self._hdf5_fields["peak_list"] + "/peakMaximumValue",
                         shape=(0, self._max_num_peaks),
                         maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "snr": self._h5file.create_dataset(
-                        name=hdf5_fields["peak_list"] + "/peakSNR",
+                        name=self._hdf5_fields["peak_list"] + "/peakSNR",
                         shape=(0, self._max_num_peaks),
                         maxshape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
@@ -296,11 +279,11 @@ class HDF5Writer:
                 }
             )
         self._extra_groups: Dict[str, Any] = {}
-        if "lcls_extra" in hdf5_fields.keys():
+        if "lcls_extra" in self._hdf5_fields.keys():
             self._extra_groups["lcls_extra"] = self._h5file.create_group(
-                hdf5_fields["lcls_extra"]
+                self._hdf5_fields["lcls_extra"]
             )
-        self._requested_datasets: Set[str] = set(hdf5_fields.keys())
+        self._requested_datasets: Set[str] = set(self._hdf5_fields.keys())
 
         self._num_frames: int = 0
 
@@ -368,6 +351,19 @@ class HDF5Writer:
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
 
+        # When the first data comes create detector data dataset:
+        if self._num_frames == 0 and "detector_data" in fields:
+            self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
+                name=self._hdf5_fields["detector_data"],
+                shape=(0,) + processed_data["detector_data"].shape,
+                maxshape=(None,) + processed_data["detector_data"].shape,
+                dtype=processed_data["detector_data"].dtype,
+                chunks=(1,) + processed_data["detector_data"].shape,
+                compression=self._compression,
+                compression_opts=self._compression_opts,
+                shuffle=self._compression_shuffle,
+            )
+
         extra_group_name: str
         if self._num_frames == 0:
             for extra_group_name in self._extra_groups:
@@ -403,9 +399,6 @@ class HDF5Writer:
                     dataset_dict_key
                 ]
 
-        if "pixel_size" in self._requested_datasets:
-            self._resizable_datasets["pixel_size"][frame_num] = self._pixel_size
-
         if "peak_list" in fields:
             peak_list: cryst_algs.TypePeakList = processed_data["peak_list"]
             n_peaks: int = min(peak_list["num_peaks"], self._max_num_peaks)
@@ -433,10 +426,11 @@ class HDF5Writer:
         Closes the file currently being written.
         """
         self._h5file.close()
-        self._processed_filename.rename(
-            self._processed_filename.with_suffix(self._processed_filename_extension)
+        final_filename: pathlib.Path = self._processed_filename.with_suffix(
+            self._processed_filename_extension
         )
-        print(f"{self._num_frames} frames saved in {self._processed_filename} file.")
+        self._processed_filename.rename(final_filename)
+        print(f"{self._num_frames} frames saved in {final_filename} file.")
         sys.stdout.flush()
 
     def get_current_filename(self) -> pathlib.Path:
