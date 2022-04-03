@@ -56,9 +56,8 @@ class OmDataExtractionError(OmException):
 
 class OmEigerHttpInterfaceInitializationError(OmException):
     """
-    Raised if an error happens during data extraction.
+    Raised if an error happens while OM is accessing Eiger http interface.
 
-    Base class: [`OmException`][om.utils.exceptions.OmException]
     """
 
 

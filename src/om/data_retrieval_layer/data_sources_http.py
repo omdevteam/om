@@ -22,6 +22,7 @@ This module contains Data Source classes that deal with data retrieved from http
 detector interface.
 """
 import numpy
+from numpy.typing import NDArray
 import time
 
 from datetime import datetime
@@ -36,8 +37,6 @@ from om.utils.parameters import MonitorParams
 class Eiger16MHttp(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -53,8 +52,7 @@ class Eiger16MHttp(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This class deals with the retrieval of Eiger 16M detector frame data from
-        the tif images retrieved from http/REST detector interface. It is a subclass of
-        the [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        the tif images retrieved from the http/REST detector interface.
 
         Arguments:
 
@@ -84,7 +82,9 @@ class Eiger16MHttp(drl_base.OmDataSource):
         """
         pass
 
-    def get_data(self, *, event: Dict[str, Any]) -> numpy.ndarray:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves an Eiger 16M detector data frame.
 
@@ -110,8 +110,6 @@ class Eiger16MHttp(drl_base.OmDataSource):
 class TimestampEiger16MHttp(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
@@ -127,8 +125,7 @@ class TimestampEiger16MHttp(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This class deals with the retrieval of timestamp information from Eiger 16M tif
-        files retrieved from the http/REST detector interface. This class is a subclass
-        of the [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        files retrieved from the http/REST detector interface.
 
         Arguments:
 
@@ -181,18 +178,16 @@ class TimestampEiger16MHttp(drl_base.OmDataSource):
         # the same timestamp for all images in the run:
         return numpy.float64(time.time())
 
-        return numpy.float64(
-            datetime.strptime(
-                time_str[0:-3] + time_str[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
-            ).timestamp()
-        )
+        # return numpy.float64(
+        #     datetime.strptime(
+        #         time_str[0:-3] + time_str[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
+        #     ).timestamp()
+        # )
 
 
 class EventIdEiger16MHttp(drl_base.OmDataSource):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataSource`][om.data_retrieval_layer.base.OmDataSource]
     """
 
     def __init__(
