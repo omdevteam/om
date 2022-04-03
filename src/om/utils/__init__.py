@@ -18,7 +18,7 @@
 """
 OM's utility functions and classes.
 
-This package contains several helper functions and classes. They perform tasks needed
-by other parts of OM. They are grouped into several categories, each corresponding to a
-separate module.
+This package contains several helper functions and classes that perform tasks needed
+by other parts of OM.  They are split in several categories. Each module in the
+package contains functions and classes belonging to one of them.
 """

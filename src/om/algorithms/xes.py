@@ -16,13 +16,14 @@
 """
 Algorithms for the processing of x-ray emission spectroscopy data.
 
-This module contains algorithms that carry out x-ray emission spectroscopy-related data
-processing (spectrum generation, etc.).
+This module contains algorithms that perform data processing operations related to
+x-ray emission spectroscopy (beam energy spectrum retrieval, etc.).
 """
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, cast
 
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 from scipy import ndimage  # type: ignore
 
 from om.utils import parameters as param_utils
@@ -30,119 +31,103 @@ from om.utils import parameters as param_utils
 
 class XESAnalysis:
     """
-    See documentation of the '__init__' function.
+    See documentation of the `__init__` function.
     """
 
     def __init__(
         self,
         *,
-        intensity_threshold: Union[float, None] = None,
-        rotation: Union[float, None] = None,
-        min_row: Union[int, None] = None,
-        max_row: Union[int, None] = None,
-        parameters: Union[Dict[str, Any], None] = None,
+        parameters: Dict[str, Any],
     ) -> None:
         """
-        XES algorithm for calculating spectra from 2D camera.
+        Beam energy spectrum retrieval.
 
-        This algorithm extracts spectrum information from a 2D camera image. The image
-        is rotated until the spectrum information is aligned to the vertical axis. The
-        image area containing the spectrum information is then integrated in a
-        direction parallel to the vertical axis. Optionally, this algorithm can apply
-        an intensity threshold to the data and consider only pixels whose value exceeds
-        the threshold.
+        This algorithm stores all the parameters needed to extract beam energy
+        spectra from camera data frames. It can then extract a beam energy spectrum
+        from a provided camera frame. The algorithm rotates the frame image until the
+        beam energy information is aligned with the vertical axis. The data from the
+        area containing the information is then integrated in a direction parallel to
+        the axis. Optionally, this algorithm can apply an ADU threshold to the camera
+        data, and use only the pixels whose values exceeds the threshold to compute the
+        spectrum.
 
         Arguments:
 
-            intensity_threshold: An intensity threshold, in ADU units, for spectrum
-                data for being considered.
+            intensity_threshold: An intensity threshold, in ADU units, for pixels in
+                the camera frame to be considered in the spectrum calculation.
 
-            rotation (int): The rotation in degrees that should be applied to align the
-                linear signal on 2D camera with vertical axis.
+            rotation (int): The rotation in degrees that should be applied to the
+                camera image to align the spectrum information to the vertical axis.
 
-            min_row (int): The minimum row index defining the region of integration for
-                the spectrum after the signal has been rotated.
+            min_row (int): The row index defining the start of the integration
+                region for the spectrum information.
 
-            max_row (int): The maximim row index defining the region of integration for
-                the spectrum after the signal has been rotated.
+            max_row (int): The row index defining the end of the integration region
+                for the spectrum information.
         """
-        if parameters is not None:
-            intensity_threshold = param_utils.get_parameter_from_parameter_group(
+        self._intensity_threshold: float = (
+            param_utils.get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="intensity_threshold_in_ADU",
                 parameter_type=float,
             )
-            rotation = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="rotation_in_degrees",
-                parameter_type=float,
-                required=True,
-            )
-            min_row = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="min_row_in_pix_for_integration",
-                parameter_type=int,
-                required=True,
-            )
-            max_row = param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="max_row_in_pix_for_integration",
-                parameter_type=int,
-                required=True,
-            )
-        else:
-            print(
-                "OM Warning: Initializing the XESAnalysis algorithm with individual "
-                "parameters (intensity threshold, rotation, min_row and max_row) is "
-                "deprecated and will be removed in a future version of OM. Please use "
-                "the new parameter group-based initialization interface (which "
-                "requires only the parameters and photon_energy_kev arguments)."
-            )
+        )
+        self._rotation: float = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="rotation_in_degrees",
+            parameter_type=float,
+            required=True,
+        )
+        self._min_row: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_row_in_pix_for_integration",
+            parameter_type=int,
+            required=True,
+        )
+        self._max_row: int = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_row_in_pix_for_integration",
+            parameter_type=int,
+            required=True,
+        )
 
-        if rotation is None or min_row is None or max_row is None:
-            raise RuntimeError(
-                "OM ERROR: Some parameters required for the initialization of the "
-                "XESAnalysis algorithm have not been defined. Please check the command "
-                "used to initialize the algorithm."
-            )
+    # TODO: Enforce return dict content for the function below
 
-        self._intensity_threshold: Union[float, None] = intensity_threshold
-        self._rotation: Union[float, None] = rotation
-        self._min_row: Union[int, None] = min_row
-        self._max_row: Union[int, None] = max_row
-
-    def generate_spectrum(self, data: numpy.ndarray) -> Dict[str, numpy.ndarray]:
+    def generate_spectrum(
+        self, *, data: NDArray[numpy.float_]
+    ) -> Dict[str, NDArray[numpy.float_]]:
         """
-        Calculates spectrum information from camera image data.
+        Calculates beam energy spectrum information from a 2D camera data frame.
 
-        This function extracts spectrum information from a camera frame. It returns
-        the raw spectrum information together with a smoothed version.
+        This function extracts beam energy spectrum information from a provided camera
+        data frame. It returns the raw spectrum information, plus a smoother, filtered
+        version of it.
 
         Arguments:
 
-            data (numpy.ndarray): The camera image data from which the spectrum will be
-                generated.
+            data: The camera data frame from which the spectrum information must be
+                extracted.
 
         Returns:
 
-            A dictionary with information about the XES spectrum extracted from the
-            camera image data. The dictionary has the following keys:
+            A dictionary storing the spectrum information extracted from the
+            camera frame.
 
-            - A key named "spectrum" whose value is a 1D array of storing the raw
-              spectral energy information.
+            - The value corresponding to the key named `spectrum` is a 1D array storing
+              the raw spectrum information.
 
-            - A key named "spectrum_smooth" whose value is a 1D array storing a
-              filtered, smoothed version of the spectral energy information.
+            - The value corresponding to the key named `spectrum_smooth` is a 1D array
+              storing a filtered, smoothed version of the spectrum.
         """
 
         # Apply a threshold
         if self._intensity_threshold:
             data[data < self._intensity_threshold] = 0
-        imr: numpy.ndarray = ndimage.rotate(data, self._rotation, order=0)
-        spectrum: numpy.ndarray = numpy.mean(
+        imr: NDArray[numpy.float_] = ndimage.rotate(data, self._rotation, order=0)
+        spectrum: NDArray[numpy.float_] = numpy.mean(
             imr[:, self._min_row : self._max_row], axis=1
         )
-        spectrum_smoothed: numpy.ndarray = ndimage.filters.gaussian_filter1d(
+        spectrum_smoothed: NDArray[numpy.float_] = ndimage.filters.gaussian_filter1d(
             spectrum, 2
         )
 
@@ -152,6 +137,9 @@ class XESAnalysis:
         }
 
 
-def _running_mean(x: numpy.ndarray, n: int) -> numpy.ndarray:
+def _running_mean(x: NDArray[numpy.float_], n: int) -> NDArray[numpy.float_]:
     # TODO: Document this function.
-    return ndimage.filters.uniform_filter1d(x, n, mode="constant")[: -(n - 1)]
+    return cast(
+        NDArray[numpy.float_],
+        ndimage.filters.uniform_filter1d(x, n, mode="constant")[: -(n - 1)],
+    )

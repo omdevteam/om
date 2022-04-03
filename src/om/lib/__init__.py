@@ -18,6 +18,6 @@
 """
 OM's C/C++ extensions.
 
-This package contains OM's C/C++-language extensions. Each module in this package is an
-extension compiled into a dynamic libray together with its Cython wrapper.
+This package contains OM's C/C++-language extensions. Each module in this package
+contains an extension and its Cython wrapper.
 """

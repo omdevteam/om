@@ -18,14 +18,12 @@
 """
 OM's Processing Layer.
 
-This package contains OM's Processing Layer. This is where the pipeline of scientific
-data analysis for all kind of monitors is defined. Each module in this package contains
-the implementation of a different type of OnDA Monitor.
+This package contains OM's Processing Layer (where the scientific data analysis
+logic for all OnDA Monitors is defined). Each module in the package stores the
+implementation of a different OnDA Monitor.
 """
-from om.processing_layer.crystallography import CrystallographyProcessing
-from om.processing_layer.xes import XESProcessing
-from om.processing_layer.cheetah import CheetahProcessing
-
-CrystallographyMonitor = CrystallographyProcessing
-XESMonitor = XESProcessing
-Cheetah = CheetahProcessing
+from om.processing_layer.cheetah import CheetahProcessing  # noqa: F401
+from om.processing_layer.crystallography import CrystallographyProcessing  # noqa: F401
+from om.processing_layer.spi import SpiProcessing  # noqa: F401
+from om.processing_layer.testing import TestProcessing  # noqa: F401
+from om.processing_layer.xes import XESProcessing  # noqa: F401

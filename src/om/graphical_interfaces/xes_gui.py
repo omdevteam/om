@@ -18,8 +18,8 @@
 """
 OM's GUI for x-ray emission spectroscopy.
 
-This module contains the implementation of a graphical interface that displays reduced
-and aggregated data in x-ray emission spectroscopy experiments.
+This module contains a graphical interface that displays reduced and aggregated data
+in x-ray emission spectroscopy experiments.
 """
 import signal
 import sys
@@ -27,11 +27,12 @@ import time
 from typing import Any
 
 import click
+
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtGui,QtWidgets  # type: ignore
+    from PyQt5 import QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -45,30 +46,33 @@ except ImportError:
     )
 
 
-class XESGui(graph_interfaces_base.OmGui):
+class XesGui(graph_interfaces_base.OmGui):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, url: str, time_resolved: bool = False) -> None:
         """
         OM graphical user interface for crystallography.
 
-        This class implements a graphical user interface for XES experiments. It is a
-        subclass of the [OmGui][om.graphical_interfaces.base.OmGui] base class.
+        This class implements a graphical user interface for XES experiments.
 
-        #TODO: Docs
+        This GUI receives reduced and aggregated data from an OnDA Monitor, but only
+        when it is tagged with the `view:omdata` label. The data must contain
+        information about collected XES spectra. The UI will then display the last
+        observed XES spectrum, both in raw and smoothed form, plus an average of the
+        most recently collected spectra. For time resolved experiments, this GUI will
+        display average spectra for pumped and dark events separately, and also show
+        their difference.
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI will connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
         """
-        super(XESGui, self).__init__(
+        super(XesGui, self).__init__(
             url=url,
-            tag="view:omdata",
+            tag="omdata",
         )
 
         self._image_view: Any = pyqtgraph.ImageView()
@@ -134,6 +138,9 @@ class XESGui(graph_interfaces_base.OmGui):
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
+
+        This method, which is executed at regular intervals, calls the internal
+        functions that update the displayed spectra.
         """
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
@@ -173,11 +180,8 @@ class XESGui(graph_interfaces_base.OmGui):
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         timenow: float = time.time()
-        self.statusBar().showMessage(
-            "Estimated delay: {0} seconds".format(
-                round(timenow - local_data["timestamp"], 6)
-            )
-        )
+        estimated_delay: float = round(timenow - local_data["timestamp"], 6)
+        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
 
 @click.command()
@@ -185,11 +189,18 @@ class XESGui(graph_interfaces_base.OmGui):
 @click.argument("time_resolved", type=bool, required=False)
 def main(url: str, time_resolved: bool) -> None:
     """
-    #TODO: DOcs
+    OM Graphical User Interface for X-ray Emission Spectroscopy. This program must
+    connect to a running OnDA Monitor for X-ray Emission Spectroscopy. If the monitor
+    broadcasts the necessary information, this GUI will display the lastest observed
+    XES spectrum, both in raw and smoothed form, and an average of the most recently
+    collected spectra. For time resolved experiments, the GUI will display separate
+    average spectra for pumped and dark events, and also show their difference.
 
-    URL: the URL at which the GUI will connect and listen for data. This is a string in
-    the format used by the ZeroMQ Protocol. Optional: if not provided, it defaults to
-    tcp://127.0.0.1:12321
+    The GUI connects to and OnDA Monitor running at the IP address (or hostname)
+    specified by the URL string. This is a string in the format used by the ZeroMQ
+    protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321": the GUI will connect, using the tcp protocol, to a monitor
+    running on the local machine at port 12321.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -198,5 +209,5 @@ def main(url: str, time_resolved: bool) -> None:
     if time_resolved is None:
         time_resolved = False
     app: Any = QtWidgets.QApplication(sys.argv)
-    _ = XESGui(url, time_resolved)
+    _ = XesGui(url, time_resolved)
     sys.exit(app.exec_())

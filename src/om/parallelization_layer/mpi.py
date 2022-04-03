@@ -16,10 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-MPI-based Parallelization Engine for OM.
+MPI-based Parallelization Layer for OM.
 
-This module contains a Parallelization Engine for OM which uses the MPI communication
-rotocol to manage the communication between the nodes.
+This module contains a Parallelization Layer based on the MPI protocol.
 """
 import sys
 from typing import Any, Dict, Tuple, Union
@@ -34,14 +33,13 @@ from om.utils import exceptions, parameters
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _DIETAG: int = 999
 _DEADTAG: int = 1000
+_DATATAG: int = 1001
+_FEEDBACKTAG: int = 1002
 
 
 class MpiParallelization(par_layer_base.OmParallelization):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmParallelizationEngine`]
-    [om.parallelization_layer.base.OmParallelizationEngine]
     """
 
     def __init__(
@@ -52,13 +50,14 @@ class MpiParallelization(par_layer_base.OmParallelization):
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        MPI-based Parallelization Engine for OM.
+        MPI-based Parallelization Layer for OM.
 
-        This class implements a Parallelization Engine based on the MPI protocol. It is
-        a subclass of the [OmParallelizationEngine]
-        [om.parallelization_layer.base.OmParallelizationEngine] base class. In this
-        Engine, the nodes communicate with each other using an implementation of the
-        MPI protocol supported by the Python language.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class implements a Parallelization Layer based on the MPI protocol. The
+        nodes communicate with each other using an implementation of the MPI protocol
+        supported by the Python language (OpenMPI or MPICH).
 
         Arguments:
 
@@ -67,12 +66,10 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_event_handler: data_ret_layer_base.OmDataEventHandler = (
-            data_retrieval_layer.data_event_handler
+            data_retrieval_layer.get_data_event_handler()
         )
         self._processing_layer: pl_base.OmProcessing = processing_layer
         self._monitor_params: parameters.MonitorParams = monitor_parameters
@@ -99,15 +96,15 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
     def start(self) -> None:  # noqa: C901
         """
-        Starts the MPI parallelization engine.
+        Starts the MPI parallelization.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function sets up the communication between OM's collecting and processing
-        nodes using the MPI protocol. Additionally, it manages the interaction between
-        the nodes while OM is running, receiving and dispatching data and control
-        commands over MPI channels.
+        nodes using the MPI protocol. The function starts the nodes and manages all of
+        their interactions, organizing the receiving and dispatching of data and
+        control commands over MPI channels.
         """
         if self._rank == 0:
             print(
@@ -118,16 +115,18 @@ class MpiParallelization(par_layer_base.OmParallelization):
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
 
+            req: Any = 0
+
             while True:
                 try:
                     received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
-                        source=MPI.ANY_SOURCE, tag=0
+                        source=MPI.ANY_SOURCE, tag=_DATATAG
                     )
                     if "end" in received_data[0].keys():
                         # If the received message announces that a processing node has
                         # finished processing data, keeps track of how many processing
                         # nodes have already finished.
-                        print("Finalizing {0}".format(received_data[1]))
+                        print(f"Finalizing {received_data[1]}")
                         self._num_nomore += 1
                         # When all processing nodes have finished, calls the
                         # 'end_processing_on_collecting_node' function then shuts down.
@@ -142,12 +141,36 @@ class MpiParallelization(par_layer_base.OmParallelization):
                             exit(0)
                         else:
                             continue
-                    self._processing_layer.collect_data(
+                    feedback_data: Union[
+                        Dict[int, Dict[str, Any]], None
+                    ] = self._processing_layer.collect_data(
                         node_rank=self._rank,
                         node_pool_size=self._mpi_size,
                         processed_data=received_data,
                     )
                     self._num_collected_events += 1
+                    if feedback_data is not None:
+                        receiving_rank: int
+                        for receiving_rank in feedback_data.keys():
+                            if receiving_rank == 0:
+                                target_rank: int
+                                for target_rank in range(1, self._mpi_size):
+                                    if req:
+                                        req.Wait()
+                                    req = MPI.COMM_WORLD.isend(
+                                        feedback_data[0],
+                                        dest=target_rank,
+                                        tag=_FEEDBACKTAG,
+                                    )
+                            else:
+                                if req:
+                                    req.Wait()
+                                req = MPI.COMM_WORLD.isend(
+                                    feedback_data[receiving_rank],
+                                    dest=receiving_rank,
+                                    tag=_FEEDBACKTAG,
+                                )
+
                 except KeyboardInterrupt as exc:
                     print("Received keyboard sigterm...")
                     print(str(exc))
@@ -172,7 +195,11 @@ class MpiParallelization(par_layer_base.OmParallelization):
             for event in events:
                 # Listens for requests to shut down.
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
-                    self.shutdown(msg="Shutting down RANK: {0}.".format(self._rank))
+                    self.shutdown(msg=f"Shutting down RANK: {self._rank}.")
+
+                feedback_dict: Dict[str, Any] = {}
+                if MPI.COMM_WORLD.Iprobe(source=0, tag=_FEEDBACKTAG):
+                    feedback_dict = MPI.COMM_WORLD.recv(source=0, tag=_FEEDBACKTAG)
 
                 self._data_event_handler.open_event(event=event)
                 n_frames_in_evt: int = self._data_event_handler.get_num_frames_in_event(
@@ -197,6 +224,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
                         print(exc)
                         print("Skipping event...")
                         continue
+                    data.update(feedback_dict)
                     processed_data: Tuple[
                         Dict[str, Any], int
                     ] = self._processing_layer.process_data(
@@ -204,7 +232,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
                     )
                     if req:
                         req.Wait()
-                    req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=0)
+                    req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=_DATATAG)
                 # Makes sure that the last MPI message has processed.
                 if req:
                     req.Wait()
@@ -219,14 +247,20 @@ class MpiParallelization(par_layer_base.OmParallelization):
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
             if final_data is not None:
-                req = MPI.COMM_WORLD.isend((final_data, self._rank), dest=0, tag=0)
+                if req:
+                    req.Wait()
+                req = MPI.COMM_WORLD.isend(
+                    (final_data, self._rank), dest=0, tag=_DATATAG
+                )
                 if req:
                     req.Wait()
 
             # Sends a message to the collecting node saying that there are no more
             # events.
             end_dict = {"end": True}
-            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=0)
+            if req:
+                req.Wait()
+            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=_DATATAG)
             if req:
                 req.Wait()
             MPI.Finalize()
@@ -234,19 +268,18 @@ class MpiParallelization(par_layer_base.OmParallelization):
 
     def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
         """
-        Shuts down the MPI parallelization engine.
+        Shuts down the MPI parallelization.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        When OM stops, this function closes the communication between the processing
-        and collecting nodes, and manages a controlled shutdown of OM's resources,
-        terminating the MPI processes in an orderly fashion.
+        This function stops OM, closing all the communication channels between the
+        nodes and managing a controlled shutdown of OM's resources. Additionally, it
+        terminates the MPI processes in an orderly fashion.
 
         Arguments:
 
-            msg: Reason for shutting down the parallelization engine. Defaults to
-                "Reason not provided".
+            msg: Reason for shutting down. Defaults to "Reason not provided".
         """
         print("Shutting down:", msg)
         sys.stdout.flush()
@@ -261,8 +294,8 @@ class MpiParallelization(par_layer_base.OmParallelization):
                     MPI.COMM_WORLD.isend(0, dest=node_num, tag=_DIETAG)
                 num_shutdown_confirm = 0
                 while True:
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=0):
-                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=0)
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATATAG):
+                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=_DATATAG)
                     if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DEADTAG):
                         num_shutdown_confirm += 1
                     if num_shutdown_confirm == self._mpi_size - 1:
@@ -276,6 +309,8 @@ class MpiParallelization(par_layer_base.OmParallelization):
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
         else:
-            _ = MPI.COMM_WORLD.send(dest=0, tag=_DEADTAG)
+            req = MPI.COMM_WORLD.send(dest=0, tag=_DEADTAG)
+            if req:
+                req.Wait()
             MPI.Finalize()
             exit(0)

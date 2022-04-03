@@ -3,5 +3,7 @@
       members: false 
 
   * [base](base.md)
-  * [crystallography](crystallography.md)
   * [cheetah](cheetah.md)
+  * [crystallography](crystallography.md)
+  * [testing](testing.md)
+  * [xes](xes.md)

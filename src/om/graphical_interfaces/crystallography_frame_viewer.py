@@ -18,8 +18,8 @@
 """
 OM's Frame Viewer for Crystallography.
 
-This module contains the implementation of a graphical interface that displays detector
-data frames in crystallography experiments.
+This module contains a graphical interface that displays detector data frames and
+detected Bragg peaks in crystallography experiments.
 """
 import collections
 import copy
@@ -28,14 +28,15 @@ import sys
 import time
 from typing import Any, Deque, Dict, Union
 
-import click  # type: ignore
-import numpy  # type: ignore
+import click
+import numpy
+from numpy.typing import NDArray
 
 from om.graphical_interfaces import base as graph_interfaces_base
 from om.utils import exceptions
 
 try:
-    from PyQt5 import QtWidgets  # type: ignore
+    from PyQt5 import QtWidgets
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -52,37 +53,31 @@ except ImportError:
 class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmGui`][om.graphical_interfaces.base.OmGui]
     """
 
     def __init__(self, *, url: str):
         """
         OM frame viewer for crystallography.
 
-        This class implements a frame viewer for crystallography experiments. It is
-        a subclass of the [OmGui][om.graphical_interfaces.base.OmGui] base class.
-
-        The viewer receives detector frame data from an OnDA Monitor for
-        Crystallography when it is tagged with the 'view:omframedata' label. The
-        receiveddata must include processed detector frames, together with information
-        on any Bragg peak detected in them.
-
-        The viewer displays the frames and the position of the detected peaks. A data
-        buffer allows the viewer to stop receiving data from the monitor but still keep
-        in memory the last 10 displayed frames for inspection.
+        This class implements a frame viewer for serial crystallography experiments.
+        The viewer receives data frames from an OnDA Monitor, but only when the data is
+        tagged with the `view:omframedata` label. The data must contain processed
+        detector frames, and information on any detected Bragg peak. The viewer will
+        then display the frame images, and the position of each peak. A data storage
+        buffer allows the viewer to stop receiving data from the OnDA Monitor, but
+        still keep in memory the last 10 displayed frames for re-inspection.
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI will connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
         """
         super(CrystallographyFrameViewer, self).__init__(
             url=url,
-            tag="view:omframedata",
+            tag="omframedata",
         )
 
-        self._img: Union[numpy.array, None] = None
+        self._img: Union[NDArray[numpy.float_], None] = None
         self._frame_list: Deque[Dict[str, Any]] = collections.deque(maxlen=20)
         self._current_frame_index: int = -1
 
@@ -123,27 +118,27 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
     def _update_peaks(
         self,
         *,
-        peak_list_x_in_frame: numpy.ndarray,
-        peak_list_y_in_frame: numpy.ndarray,
+        peak_list_x_in_frame: NDArray[numpy.float_],
+        peak_list_y_in_frame: NDArray[numpy.float_],
     ) -> None:
         # Updates the Bragg peaks shown by the viewer.
         QtWidgets.QApplication.processEvents()
 
         self._peak_canvas.setData(
-            x=peak_list_y_in_frame,
-            y=peak_list_x_in_frame,
+            x=peak_list_x_in_frame,
+            y=peak_list_y_in_frame,
             symbol="o",
-            size=[5] * len(peak_list_x_in_frame),
+            size=[8] * len(peak_list_x_in_frame),
             brush=(255, 255, 255, 0),
             pen=self._ring_pen,
-            pxMode=False,
+            pxMode=True,
         )
 
     def _update_image_and_peaks(self) -> None:
         # Updates the image and Bragg peaks shown by the viewer.
 
         try:
-            current_data: numpy.ndarray = self._frame_list[self._current_frame_index]
+            current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
             # If the framebuffer is empty, returns without drawing anything.
             return
@@ -170,11 +165,8 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
         timenow: float = time.time()
-        self.statusBar().showMessage(
-            "Estimated delay: {0} seconds".format(
-                round(timenow - current_data["timestamp"], 6)
-            )
-        )
+        estimated_delay: float = round(timenow - current_data["timestamp"], 6)
+        self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
     def update_gui(self) -> None:
         """
@@ -183,8 +175,10 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function stores the data received from OM, and calls the internal
-        functions that update the displayed detector frame and the detected peaks.
+        This method, which is executed at regular intervals, calls the internal
+        functions that update the displayed detector frame and Bragg peaks.
+        Additionally, this function manages the data storage buffer that allows the
+        last received frames to be re-inspected.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
@@ -209,7 +203,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        print("Showing frame {0} in the buffer".format(self._current_frame_index))
+        print(f"Showing frame {self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _forward_button_clicked(self) -> None:
@@ -217,7 +211,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        print("Showing frame {0} in the buffer".format(self._current_frame_index))
+        print(f"Showing frame {self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _stop_stream(self) -> None:
@@ -245,16 +239,16 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
 def main(*, url: str) -> None:
     """
     OM Frame Viewer for Crystallography. This program must connect to a running OnDA
-    Monitor for Crystallography. If the monitor broadcasts detector frame data, this
-    viewer will display it. The viewer will also show, overlayed on the frame data,
+    Monitor for Crystallography. If the monitor broadcasts detector data frames, this
+    viewer will display them. The viewer will also show, overlayed on each frame,
     any detected Bragg peak. The data stream from the monitor can also be temporarily
     paused, and any of 10 most recently displayed detector frames can be recalled for
-    inspection.
+    re-inspection.
 
     The viewer connects to and OnDA Monitor running at the IP address (or hostname)
     specified by the URL string. This is a string in the format used by the ZeroMQ
-    Protocol. The URL string is optional. If not provided, it defaults to
-    "tcp://127.0.0.1:12321" and the viewer connects, using the tcp protocol, to a
+    protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321": the viewer will connect, using the tcp protocol, to a
     monitor running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring

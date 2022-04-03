@@ -18,17 +18,17 @@
 """
 Cheetah
 
-This module contains the implementation of Cheetah, a data processing program for
-serial x-ray crystallography experiments based on OM.
+This module contains Cheetah, a data-processing program for serial x-ray
+crystallography, based on OM but not designed to be run in real time.
 """
 import collections
 import pathlib
 import sys
 import time
-from typing import Any, Deque, Dict, List, TextIO, Tuple, Union
+from typing import Any, Deque, Dict, List, TextIO, Tuple, Union, cast
 
-import h5py  # type: ignore
-import numpy  # type: ignore
+import numpy
+from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
@@ -40,38 +40,28 @@ from om.utils.crystfel_geometry import TypeDetector
 class CheetahProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
-
-    Base class: [`OmProcessing`][om.processing_layer.base.OmProcessing]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        Cheetah processing layer for serial crystallography experiments.
+        Cheetah.
 
-        This class contains the implementation of the Cheetah software package. Cheetah
+        This Processing class implements the Cheetah software package. Cheetah
         processes detector data frames, optionally applying detector calibration, dark
         correction and gain correction. It then detects Bragg peaks in each detector
-        frame using the 'peakfinder8' peak detection algorithm. It retrieves
-        information about the location, size, intensity, SNR and the maximum pixel
-        value of each peak. Cheetah then saves the calibrated and corrected detector
-        data, plus all the experiment-related information retrieved from the facility
-        or extracted from the data in multi-event HDF5 files. In addition to saving
-        individual frames, Cheetah can write compute and save sums of frames identified
-        as hits and non-hits, together with virtual powder patterns,  into separate
-        HDF5 "sum files".
-
-        Cheetah can also optionally broadcast detector data, Bragg peaks and hit-rate
-        information over a network socket for monitoring and visualization by other
-        programs, mimicking the functionality of a regular real-time OnDA Monitor.
-
-        This class is a subclass of the
-        [OmProcessing][om.processing_layer.base.OmProcessing] base class.
+        frame using the
+        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        algorithm, retrieving information about the location, size, intensity, SNR
+        and maximum pixel value of each peak. Cheetah then saves the calibrated and
+        corrected detector data, plus all the information retrieved from the facility
+        or extracted from the data, in multi-event HDF5 files. In addition to saving
+        individual frames, Cheetah can optionally compute separate detector frame sums
+        for hit and non-hit frames. The sums are saved, together with corresponding
+        virtual powder patterns, in HDF5 sum files.
 
         Arguments:
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._monitor_params = monitor_parameters
 
@@ -79,13 +69,13 @@ class CheetahProcessing(pl_base.OmProcessing):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM processing nodes for Cheetah.
+        Initializes the processing nodes for Cheetah.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function initializes the correction and peak finding algorithms, the HDF5
-        file writer plus some internal counters.
+        This function initializes the correction and peak finding algorithms, the
+        multi-frame HDF5 file writer, and some internal counters.
 
         Arguments:
 
@@ -119,8 +109,14 @@ class CheetahProcessing(pl_base.OmProcessing):
                 parameters=self._monitor_params.get_parameter_group(
                     group="peakfinder8_peak_detection"
                 ),
-                radius_pixel_map=self._pixelmaps["radius"],
+                radius_pixel_map=cast(NDArray[numpy.float_], self._pixelmaps["radius"]),
             )
+        )
+
+        self._data_type: Union[str, None] = self._monitor_params.get_parameter(
+            group="cheetah",
+            parameter="hdf5_file_data_type",
+            parameter_type=str,
         )
 
         binning: Union[bool, None] = self._monitor_params.get_parameter(
@@ -150,11 +146,14 @@ class CheetahProcessing(pl_base.OmProcessing):
                 )
                 self._peak_detection.set_bad_pixel_mask(
                     self._binning.bin_bad_pixel_mask(
-                        self._peak_detection.get_bad_pixel_mask()
+                        mask=self._peak_detection.get_bad_pixel_mask()
                     )
                 )
                 self._peak_detection.set_radius_pixel_map(
-                    self._binning.bin_pixel_maps(self._pixelmaps)["radius"]
+                    cast(
+                        NDArray[numpy.float_],
+                        self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps),
+                    )["radius"]
                 )
             self._data_shape = self._binning.get_binned_data_shape()
         else:
@@ -207,11 +206,12 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
             parameters=self._monitor_params.get_parameter_group(group="cheetah"),
             detector_data_shape=self._data_shape,
+            detector_data_type=self._data_type,
             node_rank=node_rank,
             geometry=self._geometry,
         )
 
-        print("Processing node {0} starting.".format(node_rank))
+        print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def _write_status_file(
@@ -224,31 +224,31 @@ class CheetahProcessing(pl_base.OmProcessing):
         # Writes a status file that the Cheetah GUI from Anton Barty can inspect.
 
         fh: TextIO
+        time_string: str = time.strftime("%a %b %d %H:%M:%S %Y")
         with open(self._status_filename, "w") as fh:
             fh.write("# Cheetah status\n")
-            fh.write("Update time: {}\n".format(time.strftime("%a %b %d %H:%M:%S %Y")))
+            fh.write(f"Update time: {time_string}\n")
             dt: int = int(time.time() - self._start_time)
             hours: int
             minutes: int
             hours, minutes = divmod(dt, 3600)
             seconds: int
             minutes, seconds = divmod(minutes, 60)
-            fh.write("Elapsed time: {}hr {}min {}sec\n".format(hours, minutes, seconds))
-            fh.write("Status: {}\n".format(status))
-            fh.write("Frames processed: {}\n".format(num_frames))
-            fh.write("Number of hits: {}\n".format(num_hits))
+            fh.write(f"Elapsed time: {hours}hr {minutes}min {seconds}sec\n")
+            fh.write(f"Status: {status}\n")
+            fh.write(f"Frames processed: {num_frames}\n")
+            fh.write(f"Number of hits: {num_hits}\n")
 
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
-        Initializes the OM collecting node for Cheetah.
+        Initializes the collecting node for Cheetah.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function initializes the data accumulation algorithms, the storage buffers
         used to compute statistics on the detected Bragg peaks and, optionally, the sum
-        file writers. Additionally, it prepares the data broadcasting socket to send
-        data to external programs.
+        file writer.
 
         Arguments:
 
@@ -277,7 +277,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             required=True,
         )
 
-        self._geometry: TypeDetector
         self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
             filename=self._monitor_params.get_parameter(
                 group="crystallography",
@@ -295,12 +294,11 @@ class CheetahProcessing(pl_base.OmProcessing):
             parameter_type=bool,
             required=False,
         )
-        self._binning: Union[gen_algs.Binning, None]
         if binning:
             self._binning = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
-            self._pixelmaps = self._binning.bin_pixel_maps(self._pixelmaps)
+            self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
         else:
             self._binning = None
@@ -348,20 +346,18 @@ class CheetahProcessing(pl_base.OmProcessing):
         visual_img_shape: Tuple[int, int] = (y_minimum, x_minimum)
         self._img_center_x: int = int(visual_img_shape[1] / 2)
         self._img_center_y: int = int(visual_img_shape[0] / 2)
-        self._visual_pixelmap_x: numpy.ndarray = (
-            numpy.array(self._pixelmaps["x"], dtype=numpy.int)
-            + visual_img_shape[1] // 2
-            - 1
+        pixelmap_x_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        self._visual_pixelmap_x: NDArray[numpy.int_] = (
+            pixelmap_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        self._visual_pixelmap_y: numpy.ndarray = (
-            numpy.array(self._pixelmaps["y"], dtype=numpy.int)
-            + visual_img_shape[0] // 2
-            - 1
+        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
+        self._visual_pixelmap_y: NDArray[numpy.int_] = (
+            pixelmap_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()
-        self._virt_powd_plot_img: numpy.ndarray = numpy.zeros(
+        self._virt_powd_plot_img: NDArray[numpy.int_] = numpy.zeros(
             visual_img_shape, dtype=numpy.int32
         )
-        self._frame_data_img: numpy.ndarray = numpy.zeros(
+        self._frame_data_img: NDArray[numpy.float_] = numpy.zeros(
             visual_img_shape, dtype=numpy.float32
         )
         self._data_broadcast: Union[bool, None] = self._monitor_params.get_parameter(
@@ -401,6 +397,16 @@ class CheetahProcessing(pl_base.OmProcessing):
         )
         self._status_filename: pathlib.Path = (
             processed_directory_path.resolve() / "status.txt"
+        )
+        self._hits_file: TextIO = open(
+            processed_directory_path.resolve() / "hits.lst", "w"
+        )
+        self._peaks_file: TextIO = open(
+            processed_directory_path.resolve() / "peaks.txt", "w"
+        )
+        self._peaks_file.write(
+            "event_id, num_peaks, fs, ss, intensity, num_pixels, "
+            "max_pixel_intensity, snr\n"
         )
         self._start_time: float = time.time()
         self._status_file_update_interval: int = self._monitor_params.get_parameter(
@@ -464,11 +470,11 @@ class CheetahProcessing(pl_base.OmProcessing):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function performs calibration and correction of a detector data frame and
-        extracts Bragg peak information. It then saves the frame in the output HDF5
-        file if it is identified as hit. Finally, it prepares the Bragg peak data (and
-        optionally, the detector frame data and accumulated sums of hits and non-hits)
-        for transmission to the collecting node.
+        This function processes retrieved data events, calibrating and correcting the
+        detector data frames and extracting the Bragg peak information. It also saves
+        the frame-related processed data in an output HDF5 file, if a frame is
+        identified as a hit. Finally, it prepares the peak-related data (and
+        optionally, the frame-related data) for transmission to the collecting node.
 
         Arguments:
 
@@ -478,28 +484,30 @@ class CheetahProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            data: A dictionary containing the data retrieved by OM for the frame being
-                processed.
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
 
-                * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' parameter group in the configuration file.
+                * The dictionary keys describe the Data Sources for which OM has
+                  retrieved data. The keys must match the source names listed in the
+                  `required_data` entry of OM's `om` configuration parameter group.
 
-                * The corresponding dictionary values must store the retrieved data.
+                * The corresponding dictionary values must store the the data that OM
+                  retrieved for each of the Data Sources.
 
         Returns:
 
-            A tuple whose first entry is a dictionary storing the data that should be
-            sent to the collecting node, and whose second entry is the OM rank number
-            of the node that processed the information.
+            A tuple with two entries. The first entry is a dictionary storing the
+            processed data that should be sent to the collecting node. The second entry
+            is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
-        corrected_detector_data: numpy.ndarray = self._correction.apply_correction(
-            data=data["detector_data"]
-        )
+        corrected_detector_data: NDArray[
+            numpy.float_
+        ] = self._correction.apply_correction(data=data["detector_data"])
         if self._binning is not None and self._binning_before_peakfinding:
-            binned_detector_data = self._binning.bin_detector_data(
-                corrected_detector_data
-            )
+            binned_detector_data: NDArray[
+                numpy.float_
+            ] = self._binning.bin_detector_data(data=corrected_detector_data)
         else:
             binned_detector_data = corrected_detector_data
 
@@ -509,7 +517,7 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         if self._binning is not None and not self._binning_before_peakfinding:
             binned_detector_data = self._binning.bin_detector_data(
-                corrected_detector_data
+                data=corrected_detector_data
             )
             i: int
             bin_size: int = self._binning.get_bin_size()
@@ -605,24 +613,21 @@ class CheetahProcessing(pl_base.OmProcessing):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> None:
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
-        Computes aggregated Bragg peak data and broadcasts it over the network.
+        Computes statistics on aggregated data and optionally saves them to files.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function collects the Bragg peak information and accumulated sums of
-        frames from the processing nodes. It then computes the total sums of hits and
-        non-hits detector frames as well as the corresponding virtual powder patterns,
-        saving them to HDF5 files. It also optionally writes the number of
-        processed events, number of found hits and the elapsed time in a status file.
-        External programs can inspect the status file to determine the advancement of
-        the processing work.
-
-        This method additionally broadcasts the information about the average hit rate
-        and accumulated virtual powder pattern over a network socket for visualization
-        by external programs.
+        This function collects and accumulates frame- and peak-related information
+        received from the processing nodes. Optionally, it computes the sums of hit and
+        non-hit detector frames and the corresponding virtual powder patterns. If
+        required, it saves the sums and virtual powder patterns to sum files.
+        Additionally, this function can write information about the processing
+        statistics (number of processed events, number of found hits and the elapsed
+        time) in a status file at regular intervals. External programs can inspect the
+        file to determine the advancement of the data processing.
 
         Arguments:
 
@@ -632,7 +637,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
@@ -649,11 +654,26 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._class_sum_update_counter += 1
 
         if "end_processing" in received_data:
-            return
+            return None
 
         self._num_events += 1
         if received_data["frame_is_hit"]:
             self._num_hits += 1
+            if "event_id" in received_data.keys():
+                self._hits_file.write(f"{received_data['event_id']}\n")
+                self._peaks_file.writelines(
+                    (
+                        f"{received_data['event_id']}, "
+                        f"{received_data['peak_list']['num_peaks']}, "
+                        f"{received_data['peak_list']['fs'][i]}, "
+                        f"{received_data['peak_list']['ss'][i]}, "
+                        f"{received_data['peak_list']['intensity'][i]}, "
+                        f"{received_data['peak_list']['num_pixels'][i]}, "
+                        f"{received_data['peak_list']['max_pixel_intensity'][i]}, "
+                        f"{received_data['peak_list']['snr'][i]}\n"
+                        for i in range(received_data["peak_list"]["num_peaks"])
+                    )
+                )
 
         self._frame_list.append(
             (
@@ -719,13 +739,15 @@ class CheetahProcessing(pl_base.OmProcessing):
                 num_frames=self._num_events,
                 num_hits=self._num_hits,
             )
+            self._hits_file.flush()
+            self._peaks_file.flush()
 
         if (
             self._data_broadcast
             and self._num_events % self._data_broadcast_interval == 0
         ):
             self._data_broadcast_socket.send_data(
-                tag="view:omdata",
+                tag="omdata",
                 message={
                     "geometry_is_optimized": self._geometry_is_optimized,
                     "timestamp": received_data["timestamp"],
@@ -752,7 +774,7 @@ class CheetahProcessing(pl_base.OmProcessing):
                 )
 
                 self._data_broadcast_socket.send_data(
-                    tag="view:omframedata",
+                    tag="omframedata",
                     message={
                         "frame_data": self._frame_data_img,
                         "timestamp": received_data["timestamp"],
@@ -761,7 +783,7 @@ class CheetahProcessing(pl_base.OmProcessing):
                     },
                 )
                 self._data_broadcast_socket.send_data(
-                    tag="view:omtweakingdata",
+                    tag="omtweakingdata",
                     message={
                         "detector_data": received_data["detector_data"],
                         "timestamp": received_data["timestamp"],
@@ -770,20 +792,18 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
-            speed_report_msg: str = (
-                "Processed: {0} in {1:.2f} seconds "
-                "({2:.2f} Hz)".format(
-                    self._num_events,
-                    now_time - self._old_time,
-                    (
-                        float(self._speed_report_interval)
-                        / float(now_time - self._old_time)
-                    ),
-                )
+            time_diff: float = now_time - self._old_time
+            events_per_second: float = float(self._speed_report_interval) / float(
+                now_time - self._old_time
             )
-            print(speed_report_msg)
+            print(
+                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
+                f"({events_per_second} Hz)"
+            )
             sys.stdout.flush()
             self._old_time = now_time
+
+        return None
 
     def end_processing_on_processing_node(
         self,
@@ -792,13 +812,13 @@ class CheetahProcessing(pl_base.OmProcessing):
         node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing actions on the processing nodes.
+        Ends processing on the processing nodes.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function prints a message on the console, closes output HDF5 file and ends
-        the processing.
+        This function prints a message on the console, closes the  output HDF5 files
+        and ends the processing.
 
         Arguments:
 
@@ -810,17 +830,15 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         Returns:
 
-            A dictionary storing information to be sent to the processing node
-            (Optional: if this function returns nothing, no information is transferred
-            to the processing node.
-
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+            the processing node.
         """
+        total_num_events: int = (
+            self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"]
+        )
         print(
-            "Processing finished. OM node {0} has processed {1} events in "
-            "total.".format(
-                node_rank,
-                self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"],
-            )
+            f"Processing finished. OM node {node_rank} has processed "
+            f"{total_num_events} events in total."
         )
         sys.stdout.flush()
         if self._file_writer is not None:
@@ -841,7 +859,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         refer to the documentation of that class for more information.
 
         This function prints a message on the console, writes the final information in
-        the status and sums HDF5 files, closes the files and ends the processing.
+        the sum and status files, closes the files and ends the processing.
 
         Arguments:
 
@@ -876,8 +894,12 @@ class CheetahProcessing(pl_base.OmProcessing):
                 "ave_intensity\n"
             )
             frame: Tuple[Any, ...]
+            # TODO: Make frame a named_tuple, maybe?
             for frame in frame_list:
-                fh.write("{}, {}, {}, {}, {}, {}, {}\n".format(*frame))
+                fh.write(
+                    f"{frame[0]}, {frame[1]}, {frame[2]}, {frame[3]}, "
+                    f"{frame[4]}, {frame[5]}, {frame[6]}\n"
+                )
         with open(self._cleaned_filename, "w") as fh:
             fh.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
@@ -885,6 +907,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
             for frame in frame_list:
                 if frame[2] is True:
-                    fh.write("{}, {}, {}, {}, {}, {}, {}\n".format(*frame))
+                    fh.write(
+                        f"{frame[0]}, {frame[1]}, {frame[2]}, {frame[3]}, "
+                        f"{frame[4]}, {frame[5]}, {frame[6]}\n"
+                    )
         print("Collecting node shutting down.")
         sys.stdout.flush()

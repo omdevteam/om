@@ -18,7 +18,7 @@
 """
 OM's main function.
 
-This module contains the main function that instantiates an OnDA Monitor when called.
+This module contains the main function that tarts an OnDA Monitor.
 """
 
 import importlib
@@ -54,7 +54,7 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
     try:
         imported_class: Type[T] = getattr(imported_layer, class_name)
     except AttributeError:
-        raise exceptions.OmMissingDataEventHandlerError(
+        raise exceptions.OmMissingDataRetrievalClassError(
             f"The {class_name} class cannot be found in the {layer} file."
         )
 
@@ -84,12 +84,13 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
 @click.argument("source", type=str)
 def main(*, source: str, config: str, debug: bool) -> None:
     """
-    OnDA Monitor. This script starts a online data analysis monitor that behaves
-    according to the parameters defined in the provided configuration file. The monitor
-    retrieves data from the source specified by SOURCE_STRING. The exact format of
-    SOURCE_STRING depends on the specific Data Extraction Layer currently used by the
-    monitor (see the relevant documentation). When the 'mpi' Parallelization Layer is
-    used, this script should be launched via the 'mpirun' or 'mpiexec' commands.
+    OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
+    configuration parameters read from a provided file. The monitor retrieves data
+    events from the source specified by the SOURCE argument, and starts processing
+    them. The exact format of SOURCE depends on the specific Data Extraction Layer used
+    by the monitor (see the relevant documentation). When OM uses the `mpi`
+    Parallelization Layer, this script should be launched via the `mpirun` or `mpiexec`
+    commands.
     """
     # This function is turned into a script by the Click library. The docstring
     # above becomes the help string for the script.
@@ -99,57 +100,30 @@ def main(*, source: str, config: str, debug: bool) -> None:
     if not debug:
         sys.excepthook = exceptions.om_exception_handler
 
-    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(config)
+    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
+        config, source=source
+    )
 
-    data_retrieval_layer_class_name: Union[
-        str, None
-    ] = monitor_parameters.get_parameter(
+    data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
-        parameter="data_event_handler",
+        parameter="data_retrieval_layer",
         parameter_type=str,
+        required=True,
     )
-    if not data_retrieval_layer_class_name:
-        data_retrieval_layer_class_name = cast(
-            str,
-            monitor_parameters.get_parameter(
-                group="om",
-                parameter="data_retrieval_layer",
-                parameter_type=str,
-                required=True,
-            ),
-        )
 
-    parallelization_layer_class_name: Union[
-        str, None
-    ] = monitor_parameters.get_parameter(
+    parallelization_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
-        parameter="parallelization_engine",
+        parameter="parallelization_layer",
         parameter_type=str,
+        required=True,
     )
-    if not parallelization_layer_class_name:
-        parallelization_layer_class_name = cast(
-            str,
-            monitor_parameters.get_parameter(
-                group="om",
-                parameter="parallelization_layer",
-                parameter_type=str,
-                required=True,
-            ),
-        )
 
-    processing_layer_class_name: Union[str, None] = monitor_parameters.get_parameter(
-        group="om", parameter="monitor", parameter_type=str
+    processing_layer_class_name: str = monitor_parameters.get_parameter(
+        group="om",
+        parameter="processing_layer",
+        parameter_type=str,
+        required=True,
     )
-    if not processing_layer_class_name:
-        processing_layer_class_name = cast(
-            str,
-            monitor_parameters.get_parameter(
-                group="om",
-                parameter="processing_layer",
-                parameter_type=str,
-                required=True,
-            ),
-        )
 
     parallelization_layer_class: Type[pa_base.OmParallelization] = _import_class(
         layer="parallelization_layer",

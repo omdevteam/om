@@ -18,7 +18,7 @@
 """
 OnDA Test Monitor.
 
-This module contains an OnDA Monitor that can be used for testing purposes.
+This module contains an OnDA Monitor that can be used for testing.
 """
 import sys
 import time
@@ -28,42 +28,35 @@ from om.processing_layer import base as pl_base
 from om.utils import parameters, zmq_monitor
 
 
-class TestMonitor(pl_base.OmMonitor):
+class TestProcessing(pl_base.OmProcessing):
     """
     See documentation for the `__init__` function.
-
-    Base class: [`OmMonitor`][om.processing_layer.base.OmMonitor]
     """
 
     def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
         """
-        OnDA real-time Test Monitor.
+        OnDA Test Monitor.
 
-        This class contains an OnDA Monitor that can be used for testing purposes.
-        The monitor retrieves data, but does nothing with it.
-
-        This class is a subclass of the [OmMonitor][om.processing_layer.base.OmMonitor]
-        base class.
+        This Processing class implements an OnDA Monitor that can be used for testing
+        purposes. The monitor retrieves data events, but does not process the them. It
+        simply broadcasts the timestamp of each data event over a ZMQ socket.
 
         Arguments:
 
-          monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
-        super(TestMonitor, self).__init__(monitor_parameters=monitor_parameters)
+        self._monitor_params = monitor_parameters
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM processing nodes for the Test Monitor.
+        Initializes the processing nodes for the Test Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function should be used just for testing purposes: it does not actually
-        perform any task.
+        This function does not actually perform any task.
 
         Arguments:
 
@@ -73,21 +66,20 @@ class TestMonitor(pl_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        print("Processing node {0} starting.".format(node_rank))
+        print(f"Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the OM collecting node for the Test Monitor.
+        Initializes the collecting node for the Test Monitor.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function should be used just for testing purposes: it simply initializes
-        some internal counts and prepares the data broadcasting socket to send data to
-        external programs.
+        This function simply initializes some internal counters and prepares the data
+        broadcasting socket.
 
         Arguments:
 
@@ -97,30 +89,30 @@ class TestMonitor(pl_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: int = self._monitor_params.get_param(
-            group="test",
+        self._speed_report_interval: int = self._monitor_params.get_parameter(
+            group="crystallography",
             parameter="speed_report_interval",
             parameter_type=int,
             required=True,
         )
 
-        self._data_broadcast_interval: int = self._monitor_params.get_param(
-            group="test",
+        self._data_broadcast_interval: int = self._monitor_params.get_parameter(
+            group="crystallography",
             parameter="data_broadcast_interval",
             parameter_type=int,
             required=True,
         )
 
-        data_broadcast_url: Union[str, None] = self._monitor_params.get_param(
-            group="test", parameter="data_broadcast_url", parameter_type=str
-        )
-        if data_broadcast_url is None:
-            data_broadcast_url = "tcp://{0}:12321".format(
-                zmq_monitor.get_current_machine_ip()
-            )
-
         self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-            zmq_monitor.ZmqDataBroadcaster(url=data_broadcast_url)
+            zmq_monitor.ZmqDataBroadcaster(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="crystallography"
+                )
+            )
+        )
+
+        self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
         self._num_events: int = 0
@@ -139,9 +131,8 @@ class TestMonitor(pl_base.OmMonitor):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function should be used just for testing purposes: it retrieves the data,
-        but does nothing with it. It simply returns the data event timestamp to be
-        transferred to the collecting node.
+        This function processes data events but does nothing with them. It simply
+        extracts the timestamp information for each data event.
 
         Arguments:
 
@@ -151,24 +142,26 @@ class TestMonitor(pl_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            data: A dictionary containing the data retrieved by OM for the frame being
-                processed.
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
 
-                * The dictionary keys must match the entries in the 'required_data'
-                  list found in the 'om' parameter group in the configuration file.
+                * The dictionary keys describe the Data Sources for which OM has
+                    retrieved data. The keys must match the source names listed in the
+                    `required_data` entry of OM's `om` configuration parameter group.
 
-                * The corresponding dictionary values must store the retrieved data.
+                * The corresponding dictionary values must store the the data that OM
+                    retrieved for each of the Data Sources.
 
         Returns:
 
-            A tuple whose first entry is a dictionary storing the data that should be
-            sent to the collecting node, and whose second entry is the OM rank number
-            of the node that processed the information.
+            A tuple with two entries. The first entry is a dictionary storing the
+            processed data that should be sent to the collecting node. The second entry
+            is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
 
         print("Processing Node - Retrieved data")
-        print("  Timestamp: {}".format(data["timestamp"]))
+        print(f"  Timestamp: {data['timestamp']}")
 
         processed_data["timestamp"] = data["timestamp"]
 
@@ -180,16 +173,16 @@ class TestMonitor(pl_base.OmMonitor):
         node_rank: int,
         node_pool_size: int,
         processed_data: Tuple[Dict[str, Any], int],
-    ) -> None:
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
         Computes aggregated data and broadcasts it over the network.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function should be used just for testing purposes: it receives data from
-        the processing node, but does nothing with it. Additionally, it broadcasts an
-        event counter and an event timestamp to external programs
+        This function receives data from the processing node, but does nothing with it.
+        It simply broadcasts over a socket the value of an event counter and the
+        timestamp of each received event.
 
         Arguments:
 
@@ -199,7 +192,7 @@ class TestMonitor(pl_base.OmMonitor):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            processed_data (Tuple[Dict, int]): a tuple whose first entry is a
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
                 dictionary storing the data received from a processing node, and whose
                 second entry is the OM rank number of the node that processed the
                 information.
@@ -208,11 +201,11 @@ class TestMonitor(pl_base.OmMonitor):
         self._num_events += 1
 
         print("Collecting Node - Received data")
-        print("  Timestamp: {}".format(received_data["timestamp"]))
+        print(f"  Timestamp: {received_data['timestamp']}")
 
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
-                tag="view:omdata",
+                tag="omdata",
                 message={
                     "timestamp": received_data["timestamp"],
                     "event_counter": self._num_events,
@@ -221,26 +214,25 @@ class TestMonitor(pl_base.OmMonitor):
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
-            speed_report_msg: str = (
-                "Processed: {0} in {1:.2f} seconds "
-                "({2:.2f} Hz)".format(
-                    self._num_events,
-                    now_time - self._old_time,
-                    (
-                        float(self._speed_report_interval)
-                        / float(now_time - self._old_time)
-                    ),
-                )
+            time_diff: float = now_time - self._old_time
+            events_per_second: float = float(self._speed_report_interval) / float(
+                now_time - self._old_time
             )
-            print(speed_report_msg)
+            print(
+                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
+                f"({events_per_second} Hz)"
+            )
+
             sys.stdout.flush()
             self._old_time = now_time
 
+        return {0: {"timestamp_of_last_event": received_data["timestamp"]}}
+
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
-    ) -> None:
+    ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing actions on the processing nodes.
+        Ends processing on the processing nodes.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -257,13 +249,12 @@ class TestMonitor(pl_base.OmMonitor):
 
         Returns:
 
-            A dictionary storing information to be sent to the processing node
-            (Optional: if this function returns nothing, no information is transferred
-            to the processing node.
-
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+            the processing node.
         """
-        print("Processing node {0} shutting down.".format(node_rank))
+        print(f"Processing node {node_rank} shutting down.")
         sys.stdout.flush()
+        return None
 
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -285,8 +276,7 @@ class TestMonitor(pl_base.OmMonitor):
                 processing nodes and the collecting node.
         """
         print(
-            "Processing finished. OM has processed {0} events in total.".format(
-                self._num_events
-            )
+            f"Processing finished. OM has processed {self._num_events} events in "
+            "total."
         )
         sys.stdout.flush()
