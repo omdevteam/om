@@ -21,11 +21,11 @@ ASAPO-related data sources.
 This module contains Data Source classes that deal with data retrieved from the ASAPO
 software framework (used at the PETRA III facility).
 """
-from typing import Any, Callable, Dict, List, Tuple, Union, cast
+from typing import Any, Dict, Union, cast
 
 import numpy
 from numpy.typing import NDArray
-from scipy import constants
+from scipy import constants  # type: ignore
 
 from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
