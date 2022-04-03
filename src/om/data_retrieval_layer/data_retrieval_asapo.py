@@ -77,11 +77,11 @@ class EigerAsapoDataRetrieval(drl_base.OmDataRetrieval):
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
             "beam_energy": ds_asapo.BeamEnergyAsapo(
-                data_source_name="fallback_beam_energy",
+                data_source_name="beam_energy",
                 monitor_parameters=monitor_parameters,
             ),
             "detector_distance": ds_asapo.DetectorDistanceAsapo(
-                data_source_name="fallback_detector_distance",
+                data_source_name="detector_distance",
                 monitor_parameters=monitor_parameters,
             ),
         }

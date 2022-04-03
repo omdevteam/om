@@ -207,6 +207,11 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
             consumer_group_id = "default_om_group"
         consumer: Any = self._initialize_asapo_consumer()
 
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
@@ -233,9 +238,7 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
                     time.sleep(1)
                 else:
                     last_stream = current_stream
-                    stream_metadata: Dict[str, Any] = consumer.get_stream_meta(
-                        last_stream
-                    )
+                    stream_metadata = consumer.get_stream_meta(last_stream)
                 continue
 
             data_event["data"] = event_data
@@ -346,7 +349,7 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from psana.
+        Initializes frame data retrievals from ASAPO.
 
         This function initializes the retrieval of a single standalone detector data
         frame from ASAPO, with all the information that refers to it.
@@ -362,6 +365,11 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
             required_data=required_data,
         )
         self._consumer: Any = self._initialize_asapo_consumer()
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """

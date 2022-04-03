@@ -688,6 +688,33 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
 
         return data
 
+    def initialize_frame_data_retrieval(self) -> None:
+        """
+        Initializes frame data retrievals from Jungfrau 1M files.
+
+        """
+        pass
+
+    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+        """
+        Retrieves all data related to the requested detector frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
+        """
+        pass
+
 
 class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
     """
