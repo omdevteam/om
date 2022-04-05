@@ -138,6 +138,13 @@ class HDF5Writer:
             processed_filename_extension = "h5"
         self._processed_filename_extension: str = f".{processed_filename_extension}"
 
+        self._data_type: Union[
+            str, DTypeLike, None
+        ] = param_utils.get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="hdf5_file_data_type",
+            parameter_type=str,
+        )
         self._compression: Union[
             str, None
         ] = param_utils.get_parameter_from_parameter_group(
@@ -337,11 +344,13 @@ class HDF5Writer:
 
         # When the first data comes create detector data dataset:
         if self._num_frames == 0 and "detector_data" in fields:
+            if self._data_type is None:
+                self._data_type = processed_data["detector_data"].dtype
             self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
                 name=self._hdf5_fields["detector_data"],
                 shape=(0,) + processed_data["detector_data"].shape,
                 maxshape=(None,) + processed_data["detector_data"].shape,
-                dtype=processed_data["detector_data"].dtype,
+                dtype=self._data_type,
                 chunks=(1,) + processed_data["detector_data"].shape,
                 compression=self._compression,
                 compression_opts=self._compression_opts,
