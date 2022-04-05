@@ -134,7 +134,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._hit_rate_plot_widget: Any = pyqtgraph.PlotWidget()
         self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
         self._hit_rate_plot_widget.setLabel(axis="bottom", text="Events")
-        self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate")
+        self._hit_rate_plot_widget.setLabel(axis="left", text="Hit Rate, %")
         self._hit_rate_plot_widget.showGrid(x=True, y=True)
         self._hit_rate_plot_widget.setYRange(0, 100.0)
         self._hit_rate_plot: Any = self._hit_rate_plot_widget.plot(
