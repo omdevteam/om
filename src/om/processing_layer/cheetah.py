@@ -25,7 +25,19 @@ import collections
 import pathlib
 import sys
 import time
-from typing import Any, Deque, Dict, List, TextIO, Tuple, Union, cast
+from tokenize import Name
+from typing import (
+    Any,
+    Deque,
+    Dict,
+    List,
+    NamedTuple,
+    TextIO,
+    Tuple,
+    TypedDict,
+    Union,
+    cast,
+)
 
 import numpy
 from numpy.typing import NDArray
@@ -35,6 +47,27 @@ from om.algorithms import generic as gen_algs
 from om.processing_layer import base as pl_base
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector
+
+
+class _TypeClassSumData(TypedDict, total=False):
+    # This typed dictionary is used internally to store the number of detector frames
+    # belonging to a certain data class, their sum and, optionally, the virtual peak
+    # powder.
+    num_frames: int
+    sum_frames: NDArray[numpy.float_]
+    peak_powder: NDArray[numpy.float_]
+
+
+class _TypeFrameListData(NamedTuple):
+    # This named tuple is used internally to store frame data which is then written to
+    # frames.txt file.
+    timestamp: numpy.float64
+    event_id: Union[str, None]
+    frame_is_hit: bool
+    filename: str
+    index_in_file: int
+    num_peaks: int
+    average_intensity: numpy.float64
 
 
 class CheetahProcessing(pl_base.OmProcessing):
@@ -144,9 +177,9 @@ class CheetahProcessing(pl_base.OmProcessing):
                 self._peak_detection.set_peakfinder8_info(
                     self._binning.get_binned_layout_info()
                 )
-                self._peak_detection.set_bad_pixel_mask(
-                    self._binning.bin_bad_pixel_mask(
-                        mask=self._peak_detection.get_bad_pixel_mask()
+                self._peak_detection.set_bad_pixel_map(
+                    self._binning.bin_bad_pixel_map(
+                        mask=self._peak_detection.get_bad_pixel_map()
                     )
                 )
                 self._peak_detection.set_radius_pixel_map(
@@ -159,8 +192,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         else:
             self._binning = None
 
-        # TODO: Type this dictionary
-        self._total_sums: List[Dict[str, Any]] = [
+        self._total_sums: List[_TypeClassSumData] = [
             {
                 "num_frames": 0,
                 "sum_frames": numpy.zeros(self._data_shape, dtype=numpy.float64),
@@ -205,10 +237,7 @@ class CheetahProcessing(pl_base.OmProcessing):
 
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
             parameters=self._monitor_params.get_parameter_group(group="cheetah"),
-            detector_data_shape=self._data_shape,
-            detector_data_type=self._data_type,
             node_rank=node_rank,
-            geometry=self._geometry,
         )
 
         print(f"Processing node {node_rank} starting")
@@ -221,7 +250,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         num_frames: int = 0,
         num_hits: int = 0,
     ) -> None:
-        # Writes a status file that the Cheetah GUI from Anton Barty can inspect.
+        # Writes a status file that the Cheetah GUI can inspect.
 
         fh: TextIO
         time_string: str = time.strftime("%a %b %d %H:%M:%S %Y")
@@ -375,10 +404,10 @@ class CheetahProcessing(pl_base.OmProcessing):
                 )
             )
 
-        self._num_events = 0  # type: int
-        self._num_hits = 0  # type: int
-        self._old_time = time.time()  # type: float
-        self._time = None  # type: Union[float, None]
+        self._num_events: int = 0
+        self._num_hits: int = 0
+        self._old_time: float = time.time()
+        self._time: Union[float, None] = None
 
         processed_directory: str = self._monitor_params.get_parameter(
             group="cheetah",
@@ -417,7 +446,7 @@ class CheetahProcessing(pl_base.OmProcessing):
         if self._status_file_update_interval is not None:
             self._write_status_file(status="Not finished")
 
-        self._frame_list: List[Tuple[Any, ...]] = []
+        self._frame_list: List[_TypeFrameListData] = []
         self._write_class_sums: bool = self._monitor_params.get_parameter(
             group="cheetah",
             parameter="write_class_sums",
@@ -449,7 +478,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
             self._class_sum_update_counter: int = 0
 
-        # TODO: Type this dictionary
         self._total_sums = [
             {
                 "num_frames": 0,
@@ -646,11 +674,12 @@ class CheetahProcessing(pl_base.OmProcessing):
         if self._write_class_sums and "class_sums" in received_data:
             class_number: int
             for class_number in range(2):
-                key: str
-                for key in ("num_frames", "sum_frames"):
-                    self._total_sums[class_number][key] += received_data["class_sums"][
-                        class_number
-                    ][key]
+                self._total_sums[class_number]["num_frames"] += received_data[
+                    "class_sums"
+                ][class_number]["num_frames"]
+                self._total_sums[class_number]["sum_frames"] += received_data[
+                    "class_sums"
+                ][class_number]["sum_frames"]
             self._class_sum_update_counter += 1
 
         if "end_processing" in received_data:
@@ -676,7 +705,7 @@ class CheetahProcessing(pl_base.OmProcessing):
                 )
 
         self._frame_list.append(
-            (
+            _TypeFrameListData(
                 received_data["timestamp"],
                 received_data["event_id"],
                 received_data["frame_is_hit"],
@@ -879,8 +908,7 @@ class CheetahProcessing(pl_base.OmProcessing):
                         "peak_powder"
                     ],
                 )
-        # TODO: Type this tuple
-        frame_list: List[Tuple[Any, ...]] = sorted(self._frame_list)
+        frame_list: List[_TypeFrameListData] = sorted(self._frame_list)
         if self._status_file_update_interval is not None:
             self._write_status_file(
                 status="Finished",
@@ -893,12 +921,12 @@ class CheetahProcessing(pl_base.OmProcessing):
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
                 "ave_intensity\n"
             )
-            frame: Tuple[Any, ...]
-            # TODO: Make frame a named_tuple, maybe?
+            frame: _TypeFrameListData
             for frame in frame_list:
                 fh.write(
-                    f"{frame[0]}, {frame[1]}, {frame[2]}, {frame[3]}, "
-                    f"{frame[4]}, {frame[5]}, {frame[6]}\n"
+                    f"{frame.timestamp}, {frame.event_id}, {frame.frame_is_hit}, "
+                    f"{frame.filename}, {frame.index_in_file}, {frame.num_peaks}, "
+                    f"{frame.average_intensity}\n"
                 )
         with open(self._cleaned_filename, "w") as fh:
             fh.write(
@@ -906,10 +934,12 @@ class CheetahProcessing(pl_base.OmProcessing):
                 "ave_intensity\n"
             )
             for frame in frame_list:
-                if frame[2] is True:
+                if frame.frame_is_hit:
                     fh.write(
-                        f"{frame[0]}, {frame[1]}, {frame[2]}, {frame[3]}, "
-                        f"{frame[4]}, {frame[5]}, {frame[6]}\n"
+                        f"{frame.timestamp}, {frame.event_id}, {frame.frame_is_hit}, "
+                        f"{frame.filename}, {frame.index_in_file}, {frame.num_peaks}, "
+                        f"{frame.average_intensity}\n"
                     )
+
         print("Collecting node shutting down.")
         sys.stdout.flush()
