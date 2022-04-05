@@ -119,6 +119,8 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
             asapo_data_source,
             asapo_token,
             1000,
+            instance_id="auto",
+            pipeline_step="onda_monitor",
         )
 
         return consumer
