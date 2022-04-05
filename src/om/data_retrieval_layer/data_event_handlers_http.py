@@ -219,6 +219,11 @@ class Eiger16MHttpDataEventHandler(drl_base.OmDataEventHandler):
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
         while True:
             response: requests.Response = requests.get(f"{self._source}/images/next")
             if response.status_code == 200:
@@ -334,7 +339,7 @@ class Eiger16MHttpDataEventHandler(drl_base.OmDataEventHandler):
                 if exc_type is not None:
                     raise exceptions.OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
-                        "to the following error: {exc_type.__name__}: {exc_value}"
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data
