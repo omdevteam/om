@@ -380,7 +380,17 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
             parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
-        self._request_list: Deque[Tuple[bytes, bytes]] = collections.deque(maxlen=500)
+
+        request_list_size: Union[int, None] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="external_data_request_list_size",
+            parameter_type=int,
+        )
+        if request_list_size is None:
+            request_list_size = 20
+        self._request_list: Deque[Tuple[bytes, bytes]] = collections.deque(
+            maxlen=request_list_size
+        )
 
         self._num_events: int = 0
         self._old_time: float = time.time()
