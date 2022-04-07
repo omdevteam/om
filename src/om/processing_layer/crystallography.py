@@ -290,6 +290,39 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             list(self._geometry["panels"].keys())[0]
         ]["coffset"]
 
+        peakogram_nbins: int = 300
+        peakogram_intensity_bin_size: Union[
+            None, float
+        ] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="peakogram_intensity_bin_size",
+            parameter_type=float,
+            required=False,
+        )
+        if peakogram_intensity_bin_size:
+            self._peakogram_intensity_bin_size: float = peakogram_intensity_bin_size
+        else:
+            self._peakogram_intensity_bin_size = 100
+
+        peakfinder_max_res: Union[None, int] = self._monitor_params.get_parameter(
+            group="peakfinder8_peak_detection",
+            parameter="max_res",
+            parameter_type=int,
+            required=False,
+        )
+        if peakfinder_max_res:
+            self._peakogram_radius_bin_size: float = (
+                peakfinder_max_res / peakogram_nbins
+            )
+        else:
+            self._peakogram_radius_bin_size = (
+                cast(NDArray[numpy.float_], self._pixelmaps["radius"]) / peakogram_nbins
+            )
+
+        self._peakogram: NDArray[numpy.int_] = numpy.zeros(
+            (peakogram_nbins, peakogram_nbins)
+        )
+
         self._running_average_window_size: int = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="running_average_window_size",
@@ -491,7 +524,12 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 processed_data["detector_data"] = binned_detector_data
                 self._send_hit_frame = False
         else:
-            processed_data["peak_list"] = {"fs": [], "ss": [], "intensity": []}
+            processed_data["peak_list"] = {
+                "fs": [],
+                "ss": [],
+                "intensity": [],
+                "max_pixel_intensity": [],
+            }
             if self._send_non_hit_frame is True:
                 processed_data["detector_data"] = binned_detector_data
                 self._send_non_hit_frame = False
@@ -599,15 +637,41 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             self._hit_rate_timestamp_history.append(received_data["timestamp"])
             self._hit_rate_history.append(avg_hit_rate * 100.0)
 
+        if received_data["frame_is_hit"]:
+            peakogram_max_intensity: float = (
+                self._peakogram.shape[1] * self._peakogram_intensity_bin_size
+            )
+            peaks_max_intensity: float = max(
+                received_data["peak_list"]["max_pixel_intensity"]
+            )
+            if peaks_max_intensity > peakogram_max_intensity:
+                self._peakogram = numpy.concatenate(
+                    (
+                        self._peakogram,
+                        numpy.zeros(
+                            (
+                                self._peakogram.shape[0],
+                                int(
+                                    (peaks_max_intensity - peakogram_max_intensity)
+                                    // self._peakogram_intensity_bin_size
+                                    + 1
+                                ),
+                            )
+                        ),
+                    ),
+                    axis=1,
+                )
+
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
         peak_fs: float
         peak_ss: float
         peak_value: float
-        for peak_fs, peak_ss, peak_value in zip(
+        for peak_fs, peak_ss, peak_value, peak_max_pixel_intensity in zip(
             received_data["peak_list"]["fs"],
             received_data["peak_list"]["ss"],
             received_data["peak_list"]["intensity"],
+            received_data["peak_list"]["max_pixel_intensity"],
         ):
             peak_index_in_slab: int = int(round(peak_ss)) * received_data["data_shape"][
                 1
@@ -617,6 +681,14 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
+
+            peak_radius: float = self._pixelmaps["radius"][
+                int(round(peak_ss)), int(round(peak_fs))
+            ]
+            self._peakogram[
+                int(peak_radius // self._peakogram_radius_bin_size),
+                int(peak_max_pixel_intensity // self._peakogram_intensity_bin_size),
+            ] += 1
 
         omdata_message: Dict[str, Any] = {
             "geometry_is_optimized": self._geometry_is_optimized,
@@ -632,6 +704,9 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             "num_events": self._num_events,
             "num_hits": self._num_hits,
             "start_timestamp": self._start_timestamp,
+            "peakogram": self._peakogram,
+            "peakogram_radius_bin_size": self._peakogram_radius_bin_size,
+            "peakogram_intensity_bin_size": self._peakogram_intensity_bin_size,
         }
         if self._pump_probe_experiment:
             omdata_message[

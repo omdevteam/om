@@ -142,6 +142,25 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         )
         self._hit_rate_plot_dark: Any = None
 
+        self._peakogram_plot_widget = pyqtgraph.PlotWidget(
+            title="Peakogram", lockAspect=False
+        )
+        self._peakogram_plot_widget.showGrid(x=True, y=True)
+        self._peakogram_plot_widget.setLabel(
+            axis="left", text="Peak maximum intensity, AU"
+        )
+        self._peakogram_plot_widget.setLabel(
+            axis="bottom",
+            text="Resolution, pixels",
+        )
+        self._peakogram_plot_image_view = pyqtgraph.ImageView(
+            view=self._peakogram_plot_widget.getPlotItem(),
+        )
+        self._peakogram_plot_image_view.ui.roiBtn.hide()
+        self._peakogram_plot_image_view.ui.menuBtn.hide()
+        self._peakogram_plot_image_view.view.invertY(False)
+        self._peakogram_plot_image_view.setPredefinedGradient("viridis")
+
         self._resolution_rings_check_box.stateChanged.connect(
             self._update_resolution_rings_status
         )
@@ -149,9 +168,12 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         horizontal_layout: Any = QtWidgets.QHBoxLayout()
         horizontal_layout.addWidget(self._resolution_rings_check_box)
         horizontal_layout.addWidget(self._resolution_rings_lineedit)
+        splitter_1: Any = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        splitter_1.addWidget(self._hit_rate_plot_widget)
+        splitter_1.addWidget(self._peakogram_plot_image_view)
         splitter_0: Any = QtWidgets.QSplitter()
         splitter_0.addWidget(self._image_view)
-        splitter_0.addWidget(self._hit_rate_plot_widget)
+        splitter_0.addWidget(splitter_1)
         vertical_layout: Any = QtWidgets.QVBoxLayout()
         vertical_layout.addWidget(splitter_0)
         vertical_layout.addLayout(horizontal_layout)
@@ -346,6 +368,24 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
             )
 
         self._draw_resolution_rings()
+
+        QtWidgets.QApplication.processEvents()
+
+        peakogram: NDArray[numpy.float_] = local_data["peakogram"]
+        peakogram[numpy.where(peakogram == 0)] = numpy.nan
+
+        self._peakogram_plot_image_view.setImage(
+            numpy.log(peakogram),
+            pos=(0, 0),
+            scale=(
+                local_data["peakogram_radius_bin_size"],
+                local_data["peakogram_intensity_bin_size"],
+            ),
+            autoRange=False,
+            autoLevels=False,
+            autoHistogramRange=False,
+        )
+        self._peakogram_plot_widget.setAspectLocked(lock=False)
 
         QtWidgets.QApplication.processEvents()
 
