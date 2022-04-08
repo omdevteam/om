@@ -159,7 +159,7 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
         self._peakogram_plot_image_view.ui.roiBtn.hide()
         self._peakogram_plot_image_view.ui.menuBtn.hide()
         self._peakogram_plot_image_view.view.invertY(False)
-        self._peakogram_plot_image_view.setPredefinedGradient("viridis")
+        self._peakogram_plot_image_view.setColorMap(pyqtgraph.colormap.get("CET-I1"))
 
         self._resolution_rings_check_box.stateChanged.connect(
             self._update_resolution_rings_status
@@ -373,7 +373,6 @@ class CrystallographyGui(graph_interfaces_base.OmGui):
 
         peakogram: NDArray[numpy.float_] = local_data["peakogram"]
         peakogram[numpy.where(peakogram == 0)] = numpy.nan
-
         self._peakogram_plot_image_view.setImage(
             numpy.log(peakogram),
             pos=(0, 0),

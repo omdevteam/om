@@ -265,8 +265,10 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             )
             self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
+            self._bin_size: int = self._binning.get_bin_size()
         else:
             self._binning = None
+            self._bin_size = 1
 
         pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
             group="crystallography",
@@ -682,13 +684,19 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
 
-            peak_radius: float = self._pixelmaps["radius"][
-                int(round(peak_ss)), int(round(peak_fs))
-            ]
-            self._peakogram[
-                int(peak_radius // self._peakogram_radius_bin_size),
-                int(peak_max_pixel_intensity // self._peakogram_intensity_bin_size),
-            ] += 1
+            peak_radius: float = (
+                self._bin_size
+                * self._pixelmaps["radius"][int(round(peak_ss)), int(round(peak_fs))]
+            )
+            radius_index: int = int(peak_radius // self._peakogram_radius_bin_size)
+            intensity_index: int = int(
+                peak_max_pixel_intensity // self._peakogram_intensity_bin_size
+            )
+            if (
+                radius_index < self._peakogram.shape[0]
+                and intensity_index < self._peakogram.shape[1]
+            ):
+                self._peakogram[radius_index, intensity_index] += 1
 
         omdata_message: Dict[str, Any] = {
             "geometry_is_optimized": self._geometry_is_optimized,
