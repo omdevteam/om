@@ -266,7 +266,7 @@ class MpiParallelization(par_layer_base.OmParallelization):
             MPI.Finalize()
             exit(0)
 
-    def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
+    def shutdown(self, *, msg: str = "Reason not provided.") -> None:
         """
         Shuts down the MPI parallelization.
 
