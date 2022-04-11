@@ -22,7 +22,7 @@ This package contains OM's Parallelization Layer (which manages the communicatio
 between the processing and collecting nodes). Each module in the package is
 dedicated to a different communication approach or technique.
 """
+from om.parallelization_layer.mpi import MpiParallelization  # noqa: F401
 from om.parallelization_layer.multiprocessing import (  # noqa: F401
     MultiprocessingParallelization,
 )
-from om.parallelization_layer.mpi import MpiParallelization  # noqa: F401
