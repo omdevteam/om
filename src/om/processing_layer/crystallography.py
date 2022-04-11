@@ -321,7 +321,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 cast(NDArray[numpy.float_], self._pixelmaps["radius"]) / peakogram_nbins
             )
 
-        self._peakogram: NDArray[numpy.int_] = numpy.zeros(
+        self._peakogram: NDArray[numpy.float_] = numpy.zeros(
             (peakogram_nbins, peakogram_nbins)
         )
 
