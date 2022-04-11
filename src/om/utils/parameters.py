@@ -113,7 +113,13 @@ class MonitorParams:
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, config: str, source: Union[str, None] = None) -> None:
+    def __init__(
+        self,
+        *,
+        config: str,
+        source: Union[str, None] = None,
+        node_pool_size: Union[int, None] = None,
+    ) -> None:
         """
         Storage, retrieval and validation of OnDA Monitor configuration parameters.
 
@@ -127,11 +133,19 @@ class MonitorParams:
         the path to the file itself, in a parameter named `configuration_file` within
         the `om` parameter group. Additionally, if the name of a data source is
         provided as an input parameter, this class will make it available as a
-        parameter with the name `source` within the `om` group.
+        parameter with the name `source` within the `om` group. Finally, if the set of
+        input parameters includes the total number of nodes in the OM pool, this
+        information will be made availabe as a parameter named `node_pool_size` within
+        the `om` group.
 
         Arguments:
 
             config: The absolute or relative path to a YAML-format configuration file.
+
+            source: A string describing the data event source.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
 
         Raises:
 
@@ -158,10 +172,12 @@ class MonitorParams:
         for group in self._monitor_params:
             self._monitor_params[group]["name"] = group
 
-        # Add source and configuration_file parameters to the om group
+        # Add source, node_pool_size and configuration_file parameters to the om group
         self._monitor_params["om"]["configuration_file"] = config
         if source:
             self._monitor_params["om"]["source"] = source
+        if source:
+            self._monitor_params["om"]["node_pool_size"] = node_pool_size
 
     def get_parameter_group(
         self,
