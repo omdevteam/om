@@ -281,12 +281,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             parameter_type=int,
             required=True,
         )
-        self._data_broadcast_interval: int = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="data_broadcast_interval",
-            parameter_type=int,
-            required=True,
-        )
         self._geometry_is_optimized: bool = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="geometry_is_optimized",
@@ -384,6 +378,12 @@ class CheetahProcessing(pl_base.OmProcessing):
             required=False,
         )
         if self._data_broadcast:
+            self._data_broadcast_interval: int = self._monitor_params.get_parameter(
+                group="crystallography",
+                parameter="data_broadcast_interval",
+                parameter_type=int,
+                required=True,
+            )
             self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
                 zmq_monitor.ZmqDataBroadcaster(
                     parameters=self._monitor_params.get_parameter_group(
