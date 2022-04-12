@@ -31,6 +31,7 @@ from om.data_retrieval_layer.data_retrieval_files import (  # noqa: F401
     Jungfrau1MFilesDataRetrieval,
     PilatusFilesDataRetrieval,
     Eiger16MFilesDataRetrieval,
+    RayonixMccdFilesDataRetrieval,
 )
 
 try:

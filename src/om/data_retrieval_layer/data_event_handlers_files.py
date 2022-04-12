@@ -1035,3 +1035,340 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
         h5file.close()
 
         return extracted_data
+
+
+class RayonixMccdFilesEventHandler(drl_base.OmDataEventHandler):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        source: str,
+        data_sources: Dict[str, drl_base.OmDataSource],
+        monitor_parameters: parameters.MonitorParams,
+    ) -> None:
+        """
+        Data Event Handler for Rayonix MX340-HS single-frame files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class handles data events originating from single-frame mccd files written
+        by a Rayonix MX340-HS detector.
+
+        * For this Event Handler, a data event corresponds to the content of an
+          individual single-frame mccd file.
+
+        * The source string required by this Data Event Handler is the path to a file
+          containing a list of mccd files to process, one per line, with their
+          absolute or relative path.
+
+        Arguments:
+
+            source: A string describing the data event source.
+
+            data_sources: A dictionary containing a set of Data Sources.
+
+                * Each dictionary key must define the name of a data source.
+
+                * The corresponding dictionary value must store the instance of the
+                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
+                  describes the source.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        self._source: str = source
+        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+
+    def initialize_event_handling_on_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes Rayonix MX340-HS single-frame file event handling on the collecting
+        node.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        There is usually no need to initialize a Rayonix MX340-HS file-based data
+        source on the collecting node, so this function actually does nothing.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        pass
+
+    def initialize_event_handling_on_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes Rayonix MX340-HS single-frame file event handling on the processing
+        nodes.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+
+    def event_generator(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> Generator[Dict[str, Any], None, None]:
+        """
+        Retrieves Rayonix MX340-HS single-frame file events.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves events for processing (each event corresponds to the
+        content of an individual single-frame mccd file). It tries to distribute the
+        events as evenly as possible across all the processing nodes. Each node should
+        ideally process the same number of events. Only the last node might process
+        fewer, depending on how evenly the total number can be split.
+
+        Arguments:
+
+            node_rank: The rank, in the OM pool, of the processing node calling the
+                function.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # Computes how many files the current processing node should process. Splits
+        # the files as equally as possible amongst the processing nodes with the last
+        # processing node getting a smaller number of files if the number of files to
+        # be processed cannot be exactly divided by the number of processing nodes.
+        try:
+            fhandle: TextIO
+            with open(self._source, "r") as fhandle:
+                filelist: List[str] = fhandle.readlines()
+        except (IOError, OSError) as exc:
+            raise RuntimeError(
+                f"Error reading the {self._source} source file."
+            ) from exc
+        num_files_curr_node: int = int(
+            numpy.ceil(len(filelist) / float(node_pool_size - 1))
+        )
+        files_curr_node: List[str] = filelist[
+            ((node_rank - 1) * num_files_curr_node) : (node_rank * num_files_curr_node)
+        ]
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
+        data_event: Dict[str, Any] = {}
+        data_event["additional_info"] = {}
+
+        entry: str
+        for entry in files_curr_node:
+            stripped_entry: str = entry.strip()
+            data_event["additional_info"]["full_path"] = stripped_entry
+
+            # File modification time is used as a first approximation of the timestamp
+            # when the timestamp is not available.
+            data_event["additional_info"]["file_modification_time"] = numpy.float64(
+                pathlib.Path(stripped_entry).stat().st_mtime
+            )
+
+            data_event["additional_info"]["timestamp"] = self._data_sources[
+                "timestamp"
+            ].get_data(event=data_event)
+
+            yield data_event
+
+    def open_event(self, *, event: Dict[str, Any]) -> None:
+        """
+        Opens a Rayonix MX340-HS single-frame file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since `detector_data` is the only event data which is retrieved from the mccd
+        files the corresponding
+        [Data Source class][om.data_retrieval_layer.base.OmDataSource] takes care of
+        opening and closing the files. This function therefore does nothing.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+        """
+        pass
+
+    def close_event(self, *, event: Dict[str, Any]) -> None:
+        """
+        Closes a Rayonix MX340-HS single-frame file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Since `detector_data` is the only event data which is retrieved from the mccd
+        files the corresponding
+        [Data Source class][om.data_retrieval_layer.base.OmDataSource] takes care of
+        opening and closing the files. This function therefore does nothing.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+        """
+        pass
+
+    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
+        """
+        Gets the number of frames in a Rayonix MX340-HS single-frame file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Rayonix MX340-HS single-frame files contain by definition only one frame per
+        file, so this function always returns 1.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The number of frames in the event.
+        """
+        return 1
+
+    def extract_data(
+        self,
+        *,
+        event: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Extracts data from a Rayonix MX340-HS single-frame file event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            A dictionary storing the extracted data.
+
+            * Each dictionary key identifies a Data Source in the event for which data
+              has been retrieved.
+
+            * The corresponding dictionary value stores the data extracted from the
+              Data Source for the frame being processed.
+        """
+        data: Dict[str, Any] = {}
+        source_name: str
+        data["timestamp"] = event["additional_info"]["timestamp"]
+        for source_name in self._required_data_sources:
+            try:
+                data[source_name] = self._data_sources[source_name].get_data(
+                    event=event
+                )
+            # One should never do the following, but it is not possible to anticipate
+            # every possible error raised by the facility frameworks.
+            except Exception:
+                exc_type, exc_value = sys.exc_info()[:2]
+                if exc_type is not None:
+                    raise exceptions.OmDataExtractionError(
+                        f"OM Warning: Cannot interpret {source_name} event data due "
+                        f"to the following error: {exc_type.__name__}: {exc_value}"
+                    )
+
+        return data
+
+    def initialize_frame_data_retrieval(self) -> None:
+        """
+        Initializes frame data retrievals from Rayonix MX340-HS single-frame files.
+
+        This function initializes the retrieval of a single standalone detector data
+        frame from a Rayonix MX340-HS single-frame file, with all the information that
+        refers to it.
+        """
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_sources = drl_base.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
+
+    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+        """
+        Retrieves all data realted to the requested detector frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves the mccd file associated with the event specified by
+        the provided identifier, and returns the only frame it contains.
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
+        """
+        data_event: Dict[str, Any] = {}
+        data_event["additional_info"] = {}
+
+        data_event["additional_info"]["full_path"] = event_id
+        # File modification time is used as a first approximation of the timestamp
+        # when the timestamp is not available.
+        data_event["additional_info"]["file_modification_time"] = numpy.float64(
+            pathlib.Path(event_id).stat().st_mtime
+        )
+        if frame_id != "0":
+            raise exceptions.OmMissingFrameDataError(
+                f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
+                "the data event source."
+            )
+
+        data_event["additional_info"]["timestamp"] = self._data_sources[
+            "timestamp"
+        ].get_data(event=data_event)
+        return self.extract_data(event=data_event)

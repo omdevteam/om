@@ -183,6 +183,13 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
             "nasics_x": 1,
             "nasics_y": 1,
         }
+    elif detector_type == "rayonix16M":
+        peakfinder8_info = {
+            "asic_nx": 3840,
+            "asic_ny": 3840,
+            "nasics_x": 1,
+            "nasics_y": 1,
+        }
     elif detector_type == "eiger16M":
         peakfinder8_info = {
             "asic_nx": 4148,

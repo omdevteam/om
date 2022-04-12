@@ -287,3 +287,88 @@ class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
              The Data Event Handler used by the Data Retrieval class.
         """
         return self._data_event_handler
+
+
+class RayonixMccdFilesDataRetrieval(drl_base.OmDataRetrieval):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+        """
+        Data Retrieval for Rayonix MX340-HS single-frame mccd files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class implements OM's Data Retrieval Layer for a set of single-frame files
+        written by a Rayonix detector in mccd format.
+
+        * This class considers an individual data event as corresponding to the content
+          of a single Rayonix mccd file.
+
+        * The full path to the mccd file is used as event identifier.
+
+        * Since Rayonix mccd files do not contain any timestamp information, the
+          modification time of a file is taken as a first approximation of the
+          timestamp of the data it contains.
+
+        * Since Rayonix mccd files do not contain any detector distance or beam energy
+          information, their values are retrieved from OM's configuration parameters
+          (specifically, the `fallback_detector_distance_in_mm` and
+          `fallback_beam_energy_in_eV` entries in the `data_retrieval_layer`
+          parameter group).
+
+        * The source string required by this Data Retrieval class is the path to a file
+          containing a list of mccd files to process, one per line, with their absolute
+          or relative path.
+
+        Arguments:
+
+            monitor_parameters: An object storing OM's configuration parameters.
+
+            source: A string describing the data event source.
+        """
+        data_sources: Dict[str, drl_base.OmDataSource] = {
+            "timestamp": ds_files.TimestampFromFileModificationTime(
+                data_source_name="timestamp", monitor_parameters=monitor_parameters
+            ),
+            "event_id": ds_files.EventIdFromFilePath(
+                data_source_name="eventid", monitor_parameters=monitor_parameters
+            ),
+            "frame_id": ds_generic.FrameIdZero(
+                data_source_name="frameid", monitor_parameters=monitor_parameters
+            ),
+            "detector_data": ds_files.RayonixMccdSingleFrameFiles(
+                data_source_name="detector", monitor_parameters=monitor_parameters
+            ),
+            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+                data_source_name="fallback_beam_energy_in_eV",
+                monitor_parameters=monitor_parameters,
+            ),
+            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+                data_source_name="fallback_detector_distance_in_mm",
+                monitor_parameters=monitor_parameters,
+            ),
+        }
+
+        self._data_event_handler: drl_base.OmDataEventHandler = (
+            deh_files.RayonixMccdFilesEventHandler(
+                source=source,
+                monitor_parameters=monitor_parameters,
+                data_sources=data_sources,
+            )
+        )
+
+    def get_data_event_handler(self) -> drl_base.OmDataEventHandler:
+        """
+        Retrieves the Data Event Handler used by the class.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Returns:
+
+            The Data Event Handler used by the Data Retrieval class.
+        """
+        return self._data_event_handler

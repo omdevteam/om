@@ -30,6 +30,14 @@ from om.data_retrieval_layer import base as drl_base
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import utils_generic as utils_gen
 from om.utils.parameters import MonitorParams
+from om.utils import exceptions
+
+try:
+    from PIL import Image  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PIL.Image"
+    )
 
 
 class PilatusSingleFrameFiles(drl_base.OmDataSource):
@@ -282,6 +290,75 @@ class Eiger16MFiles(drl_base.OmDataSource):
                 event["additional_info"]["index"]
             ],
         )
+
+
+class RayonixMccdSingleFrameFiles(drl_base.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Detector data frames from Rayonix MX340-HS single-frame mccd files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a Pilatus detector data frame from
+        single-frame files written by the detector in CBF format.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Rayonix MX340-HS detector frame data source for single-frame
+        mccd files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve a detector data frame from single-frame
+        mccd files, so this function actually does nothing.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
+        """
+        Retrieves a Rayonix MX340-HS detector data frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function extracts a detector data frame from a mccd file attached to the
+        provided data event. It returns the frame as a 2D array storing pixel
+        information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            One detector data frame.
+        """
+        img: Any
+        with Image.open(event["additional_info"]["full_path"]) as img:
+            data: NDArray[numpy.int_] = numpy.array(img)
+        return data
 
 
 class TimestampFromFileModificationTime(drl_base.OmDataSource):
