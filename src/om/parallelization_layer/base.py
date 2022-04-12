@@ -21,7 +21,6 @@ Parallelization Layer's base classes.
 This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
-from typing import Union
 
 from om.data_retrieval_layer import base as data_ret_layer_base
 from om.processing_layer import base as pl_base
@@ -100,7 +99,7 @@ class OmParallelization(ABC):
         pass
 
     @abstractmethod
-    def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
+    def shutdown(self, *, msg: str = "Reason not provided.") -> None:
         """
         Shuts down OM.
 

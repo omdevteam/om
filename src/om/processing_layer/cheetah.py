@@ -26,18 +26,7 @@ import pathlib
 import sys
 import time
 from tokenize import Name
-from typing import (
-    Any,
-    Deque,
-    Dict,
-    List,
-    NamedTuple,
-    TextIO,
-    Tuple,
-    TypedDict,
-    Union,
-    cast,
-)
+from typing import Any, Deque, Dict, List, NamedTuple, TextIO, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -47,6 +36,11 @@ from om.algorithms import generic as gen_algs
 from om.processing_layer import base as pl_base
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from mypy_extensions import TypedDict
 
 
 class _TypeClassSumData(TypedDict, total=False):

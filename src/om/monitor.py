@@ -25,7 +25,7 @@ import importlib
 import signal
 import sys
 from types import ModuleType
-from typing import Type, TypeVar, Union, cast
+from typing import Type, TypeVar, cast
 
 import click
 
@@ -82,7 +82,8 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
     ),
 )
 @click.argument("source", type=str)
-def main(*, source: str, config: str, debug: bool) -> None:
+@click.argument("node_pool_size", type=int)
+def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
     """
     OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
     configuration parameters read from a provided file. The monitor retrieves data
@@ -101,7 +102,7 @@ def main(*, source: str, config: str, debug: bool) -> None:
         sys.excepthook = exceptions.om_exception_handler
 
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
-        config, source=source
+        config=config, source=source, node_pool_size=node_pool_size
     )
 
     data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
