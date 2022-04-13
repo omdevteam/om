@@ -24,10 +24,8 @@ facilities and software frameworks are implemented in separate modules in the pa
 Other modules contain utilities functions and classes.
 """
 
-from om.data_retrieval_layer.data_retrieval_zmq import (  # noqa: F401
-    Jungfrau1MZmqDataRetrieval,
-)
-from om.data_retrieval_layer.data_retrieval_files import (  # noqa: F401
+from .data_retrieval_zmq import Jungfrau1MZmqDataRetrieval  # noqa: F401
+from .data_retrieval_files import (  # noqa: F401
     Jungfrau1MFilesDataRetrieval,
     PilatusFilesDataRetrieval,
     Eiger16MFilesDataRetrieval,
@@ -36,13 +34,13 @@ from om.data_retrieval_layer.data_retrieval_files import (  # noqa: F401
 
 try:
     import fabio  # type: ignore  # noqa: F401
-    from om.data_retrieval_layer.data_retrieval_files import PilatusFilesDataRetrieval
+    from .data_retrieval_files import PilatusFilesDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
     pass
 
 try:
     import psana  # type: ignore  # noqa: F401
-    from om.data_retrieval_layer.data_retrieval_psana import (  # noqa: F401
+    from .data_retrieval_psana import (  # noqa: F401
         CxiLclsDataRetrieval,
         CxiLclsCspadDataRetrieval,
         CxiLclsEpix100DataRetrieval,
@@ -52,4 +50,4 @@ try:
 except ModuleNotFoundError:
     pass
 
-from om.data_retrieval_layer.frame_retrieval import OmFrameDataRetrieval
+from .frame_retrieval import OmFrameDataRetrieval
