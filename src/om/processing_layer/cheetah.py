@@ -308,10 +308,12 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._binning = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
+            self._bin_size: int = self._binning.get_bin_size()
             self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
         else:
             self._binning = None
+            self._bin_size = 1
 
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
@@ -677,17 +679,18 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._num_hits += 1
             if "event_id" in received_data.keys():
                 self._hits_file.write(f"{received_data['event_id']}\n")
+                peak_list: cryst_algs.TypePeakList = received_data["peak_list"]
                 self._peaks_file.writelines(
                     (
                         f"{received_data['event_id']}, "
-                        f"{received_data['peak_list']['num_peaks']}, "
-                        f"{received_data['peak_list']['fs'][i]}, "
-                        f"{received_data['peak_list']['ss'][i]}, "
-                        f"{received_data['peak_list']['intensity'][i]}, "
-                        f"{received_data['peak_list']['num_pixels'][i]}, "
-                        f"{received_data['peak_list']['max_pixel_intensity'][i]}, "
-                        f"{received_data['peak_list']['snr'][i]}\n"
-                        for i in range(received_data["peak_list"]["num_peaks"])
+                        f"{peak_list['num_peaks']}, "
+                        f"{(peak_list['fs'][i] + 0.5) * self._bin_size - 0.5}, "
+                        f"{(peak_list['ss'][i] + 0.5) * self._bin_size - 0.5}, "
+                        f"{peak_list['intensity'][i]}, "
+                        f"{peak_list['num_pixels'][i]}, "
+                        f"{peak_list['max_pixel_intensity'][i]}, "
+                        f"{peak_list['snr'][i]}\n"
+                        for i in range(peak_list["num_peaks"])
                     )
                 )
 
