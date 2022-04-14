@@ -464,7 +464,7 @@ class SumHDF5Writer:
         *,
         directory_for_processed_data: str,
         powder_class: int,
-        detector_data_shape: Tuple[int, int],
+        detector_data_shape: Tuple[int, ...],
         sum_filename_prefix: Union[str, None] = None,
     ) -> None:
         """

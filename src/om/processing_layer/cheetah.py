@@ -25,7 +25,6 @@ import collections
 import pathlib
 import sys
 import time
-from tokenize import Name
 from typing import Any, Deque, Dict, List, NamedTuple, TextIO, Tuple, Union, cast
 
 import numpy
@@ -122,7 +121,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
         )
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
-        self._data_shape: Tuple[int, int] = self._pixelmaps["x"].shape
+        self._data_shape: Tuple[int, ...] = self._pixelmaps["x"].shape
 
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
