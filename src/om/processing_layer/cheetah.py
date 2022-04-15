@@ -56,7 +56,7 @@ class _TypeFrameListData(NamedTuple):
     # frames.txt file.
     timestamp: numpy.float64
     event_id: Union[str, None]
-    frame_is_hit: bool
+    frame_is_hit: int
     filename: str
     index_in_file: int
     num_peaks: int
@@ -416,6 +416,10 @@ class CheetahProcessing(pl_base.OmProcessing):
         self._status_filename: pathlib.Path = (
             processed_directory_path.resolve() / "status.txt"
         )
+        self._frames_file: TextIO = open(self._frames_filename, "w")
+        self._frames_file.write(
+            "# timestamp, event_id, hit, filename, index, num_peaks, ave_intensity\n"
+        )
         self._hits_file: TextIO = open(
             processed_directory_path.resolve() / "hits.lst", "w"
         )
@@ -694,16 +698,21 @@ class CheetahProcessing(pl_base.OmProcessing):
                     )
                 )
 
-        self._frame_list.append(
-            _TypeFrameListData(
-                received_data["timestamp"],
-                received_data["event_id"],
-                received_data["frame_is_hit"],
-                received_data["filename"],
-                received_data["index"],
-                received_data["peak_list"]["num_peaks"],
-                numpy.mean(received_data["peak_list"]["intensity"]),
-            )
+        frame_data: _TypeFrameListData = _TypeFrameListData(
+            received_data["timestamp"],
+            received_data["event_id"],
+            int(received_data["frame_is_hit"]),
+            received_data["filename"],
+            received_data["index"],
+            received_data["peak_list"]["num_peaks"],
+            numpy.mean(received_data["peak_list"]["intensity"]),
+        )
+        self._frame_list.append(frame_data)
+        self._frames_file.write(
+            f"{frame_data.timestamp}, {frame_data.event_id}, "
+            f"{frame_data.frame_is_hit}, {frame_data.filename}, "
+            f"{frame_data.index_in_file}, {frame_data.num_peaks}, "
+            f"{frame_data.average_intensity}\n"
         )
 
         self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
@@ -760,6 +769,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
             self._hits_file.flush()
             self._peaks_file.flush()
+            self._frames_file.flush()
 
         if (
             self._data_broadcast
@@ -905,15 +915,16 @@ class CheetahProcessing(pl_base.OmProcessing):
                 num_frames=self._num_events,
                 num_hits=self._total_sums[1]["num_frames"],
             )
-        fh: TextIO
-        with open(self._frames_filename, "w") as fh:
-            fh.write(
+        # Sort frames and write frames.txt file again
+        self._frames_file.close()
+        with open(self._frames_filename, "w") as self._frames_file:
+            self._frames_file.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
                 "ave_intensity\n"
             )
             frame: _TypeFrameListData
             for frame in frame_list:
-                fh.write(
+                self._frames_file.write(
                     f"{frame.timestamp}, {frame.event_id}, {frame.frame_is_hit}, "
                     f"{frame.filename}, {frame.index_in_file}, {frame.num_peaks}, "
                     f"{frame.average_intensity}\n"
