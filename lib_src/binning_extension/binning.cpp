@@ -35,14 +35,24 @@ float process_bin(float *data, char *mask, int bin_origin_ss, int bin_origin_fs,
                int slab_pixel_index =
                    ((bin_origin_ss + ss_in_bin) + asic_index_ss * asic_size_ss) * num_pix_slab_fs +
                    (bin_origin_fs + fs_in_bin) + asic_index_fs * asic_size_fs;
-               float original_pixel_value = data[slab_pixel_index];
+               float original_pixel_value;
+               int pixel_is_good;
+               if (bin_origin_ss + ss_in_bin < asic_size_ss && bin_origin_fs + fs_in_bin < asic_size_fs)
+               {
+                    original_pixel_value = data[slab_pixel_index];
+                    pixel_is_good = mask[slab_pixel_index];
+               }
+               else
+               {
+                    pixel_is_good = 0;
+               }
 
-               if (saturation_value > 0 && original_pixel_value > saturation_value)
+               if (saturation_value > 0 && original_pixel_value >= saturation_value)
                {
                     return bad_pixel_value;
                }
 
-               if (mask[slab_pixel_index] != 0)
+               if (pixel_is_good != 0)
                {
                     bin_sum += original_pixel_value;
                     pixels_in_bin_sum += 1;
@@ -55,7 +65,7 @@ float process_bin(float *data, char *mask, int bin_origin_ss, int bin_origin_fs,
           return bad_pixel_value;
      }
 
-     return (bin_sum * (pixels_in_bin_sum / total_pixels_in_bin));
+     return (bin_sum * (total_pixels_in_bin / pixels_in_bin_sum));
 }
 
 void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_slab_fs,
@@ -86,9 +96,11 @@ void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_slab_fs,
 void c_bin_detector_data(float *data, float *binned_data, char *mask, int bin_size,
                          int min_good_pixel_count, float bad_pixel_value,
                          float saturation_value, int asic_size_fs,
-                         int asic_size_ss, int num_asics_fs, int num_asics_ss,
-                         int num_pix_slab_fs, int num_pix_binned_fs)
+                         int asic_size_ss, int num_asics_fs, int num_asics_ss)
 {
+     int num_pix_slab_fs = asic_size_fs * num_asics_fs;
+     int binned_asic_size_fs = (asic_size_fs + bin_size - 1) / bin_size;
+     int num_pix_binned_fs = binned_asic_size_fs * num_asics_fs;
      for (int asic_index_ss = 0; asic_index_ss < num_asics_ss; asic_index_ss++)
      {
           for (int asic_index_fs = 0; asic_index_fs < num_asics_fs; asic_index_fs++)
