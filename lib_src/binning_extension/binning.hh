@@ -21,7 +21,6 @@
 void c_bin_detector_data(float *data, float *binned_data, char *mask, int bin_size,
                          int min_good_pixel_count, float bad_pixel_value,
                          float saturation_value, int asic_size_fs,
-                         int asic_size_ss, int num_asics_fs, int num_asics_ss,
-                         int num_pix_slab_fs, int num_pix_binned_fs);
+                         int asic_size_ss, int num_asics_fs, int num_asics_ss);
 
-#endif // PEAKFINDER8_H
+#endif // BINNING_H

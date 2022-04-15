@@ -27,14 +27,12 @@ cdef extern from "binning.hh":
    void c_bin_detector_data(float *data, float *binned_data, char *mask, int bin_size,
                        int min_good_pixel_count, float bad_pixel_value,
                        float saturation_value, int asic_size_fs,
-                       int asic_size_ss, int num_asics_fs, int num_asics_ss,
-                       int num_pix_slab_fs, int num_pix_binned_fs);
+                       int asic_size_ss, int num_asics_fs, int num_asics_ss);
 
 def bin_detector_data(float[:,::1] data, float[:,::1] binned_data, char[:,::1] mask,
                        int bin_size, int min_good_pixel_count, float bad_pixel_value,
                        float saturation_value, int asic_size_fs,
-                       int asic_size_ss, int num_asics_fs, int num_asics_ss,
-                       int num_pix_slab_fs, int num_pix_binned_fs):
+                       int asic_size_ss, int num_asics_fs, int num_asics_ss):
     """
     Docstring here
     """
@@ -42,5 +40,4 @@ def bin_detector_data(float[:,::1] data, float[:,::1] binned_data, char[:,::1] m
     c_bin_detector_data(&data[0, 0], &binned_data[0,0], &mask[0, 0], bin_size,
                        min_good_pixel_count, bad_pixel_value,
                        saturation_value, asic_size_fs,
-                       asic_size_ss, num_asics_fs, num_asics_ss,
-                       num_pix_slab_fs, num_pix_binned_fs)
+                       asic_size_ss, num_asics_fs, num_asics_ss)

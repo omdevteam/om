@@ -1925,12 +1925,10 @@ static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_bad_pixel_value[] = "bad_pixel_value";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
-static const char __pyx_k_num_pix_slab_fs[] = "num_pix_slab_fs";
 static const char __pyx_k_pyx_PickleError[] = "__pyx_PickleError";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_saturation_value[] = "saturation_value";
 static const char __pyx_k_bin_detector_data[] = "bin_detector_data";
-static const char __pyx_k_num_pix_binned_fs[] = "num_pix_binned_fs";
 static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
@@ -2027,8 +2025,6 @@ static PyObject *__pyx_n_s_new;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
 static PyObject *__pyx_n_s_num_asics_fs;
 static PyObject *__pyx_n_s_num_asics_ss;
-static PyObject *__pyx_n_s_num_pix_binned_fs;
-static PyObject *__pyx_n_s_num_pix_slab_fs;
 static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_om_lib_binning_extension;
 static PyObject *__pyx_n_s_pack;
@@ -2063,7 +2059,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
-static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, float __pyx_v_bad_pixel_value, float __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss, int __pyx_v_num_pix_slab_fs, int __pyx_v_num_pix_binned_fs); /* proto */
+static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, float __pyx_v_bad_pixel_value, float __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2143,8 +2139,8 @@ static PyObject *__pyx_codeobj__20;
 static PyObject *__pyx_codeobj__27;
 /* Late includes */
 
-/* "lib_src/binning_extension/binning_extension.pyx":33
- *                        int num_pix_slab_fs, int num_pix_binned_fs);
+/* "lib_src/binning_extension/binning_extension.pyx":32
+ *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
  * 
  * def bin_detector_data(float[:,::1] data, float[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
  *                        int bin_size, int min_good_pixel_count, float bad_pixel_value,
@@ -2167,8 +2163,6 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
   int __pyx_v_asic_size_ss;
   int __pyx_v_num_asics_fs;
   int __pyx_v_num_asics_ss;
-  int __pyx_v_num_pix_slab_fs;
-  int __pyx_v_num_pix_binned_fs;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2176,16 +2170,12 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("bin_detector_data (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_data,&__pyx_n_s_binned_data,&__pyx_n_s_mask,&__pyx_n_s_bin_size,&__pyx_n_s_min_good_pixel_count,&__pyx_n_s_bad_pixel_value,&__pyx_n_s_saturation_value,&__pyx_n_s_asic_size_fs,&__pyx_n_s_asic_size_ss,&__pyx_n_s_num_asics_fs,&__pyx_n_s_num_asics_ss,&__pyx_n_s_num_pix_slab_fs,&__pyx_n_s_num_pix_binned_fs,0};
-    PyObject* values[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_data,&__pyx_n_s_binned_data,&__pyx_n_s_mask,&__pyx_n_s_bin_size,&__pyx_n_s_min_good_pixel_count,&__pyx_n_s_bad_pixel_value,&__pyx_n_s_saturation_value,&__pyx_n_s_asic_size_fs,&__pyx_n_s_asic_size_ss,&__pyx_n_s_num_asics_fs,&__pyx_n_s_num_asics_ss,0};
+    PyObject* values[11] = {0,0,0,0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
-        case 13: values[12] = PyTuple_GET_ITEM(__pyx_args, 12);
-        CYTHON_FALLTHROUGH;
-        case 12: values[11] = PyTuple_GET_ITEM(__pyx_args, 11);
-        CYTHON_FALLTHROUGH;
         case 11: values[10] = PyTuple_GET_ITEM(__pyx_args, 10);
         CYTHON_FALLTHROUGH;
         case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
@@ -2220,79 +2210,67 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_binned_data)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 1); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 1); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_mask)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 2); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 2); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bin_size)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 3); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 3); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_min_good_pixel_count)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 4); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 4); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bad_pixel_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 5); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 5); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_saturation_value)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 6); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 6); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
         if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_asic_size_fs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 7); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 7); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  8:
         if (likely((values[8] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_asic_size_ss)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 8); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 8); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  9:
         if (likely((values[9] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_asics_fs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 9); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 9); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 10:
         if (likely((values[10] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_asics_ss)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 10); __PYX_ERR(0, 33, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case 11:
-        if (likely((values[11] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_pix_slab_fs)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 11); __PYX_ERR(0, 33, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case 12:
-        if (likely((values[12] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_pix_binned_fs)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, 12); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 10); __PYX_ERR(0, 32, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "bin_detector_data") < 0)) __PYX_ERR(0, 33, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "bin_detector_data") < 0)) __PYX_ERR(0, 32, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 13) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 11) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -2306,39 +2284,35 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
       values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
       values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
       values[10] = PyTuple_GET_ITEM(__pyx_args, 10);
-      values[11] = PyTuple_GET_ITEM(__pyx_args, 11);
-      values[12] = PyTuple_GET_ITEM(__pyx_args, 12);
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 33, __pyx_L3_error)
-    __pyx_v_binned_data = __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_binned_data.memview)) __PYX_ERR(0, 33, __pyx_L3_error)
-    __pyx_v_mask = __Pyx_PyObject_to_MemoryviewSlice_d_dc_char(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_mask.memview)) __PYX_ERR(0, 33, __pyx_L3_error)
-    __pyx_v_bin_size = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_bin_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
-    __pyx_v_min_good_pixel_count = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_min_good_pixel_count == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
-    __pyx_v_bad_pixel_value = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_bad_pixel_value == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
-    __pyx_v_saturation_value = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_saturation_value == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
-    __pyx_v_asic_size_fs = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_asic_size_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
-    __pyx_v_asic_size_ss = __Pyx_PyInt_As_int(values[8]); if (unlikely((__pyx_v_asic_size_ss == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 36, __pyx_L3_error)
-    __pyx_v_num_asics_fs = __Pyx_PyInt_As_int(values[9]); if (unlikely((__pyx_v_num_asics_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 36, __pyx_L3_error)
-    __pyx_v_num_asics_ss = __Pyx_PyInt_As_int(values[10]); if (unlikely((__pyx_v_num_asics_ss == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 36, __pyx_L3_error)
-    __pyx_v_num_pix_slab_fs = __Pyx_PyInt_As_int(values[11]); if (unlikely((__pyx_v_num_pix_slab_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 37, __pyx_L3_error)
-    __pyx_v_num_pix_binned_fs = __Pyx_PyInt_As_int(values[12]); if (unlikely((__pyx_v_num_pix_binned_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 37, __pyx_L3_error)
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 32, __pyx_L3_error)
+    __pyx_v_binned_data = __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_binned_data.memview)) __PYX_ERR(0, 32, __pyx_L3_error)
+    __pyx_v_mask = __Pyx_PyObject_to_MemoryviewSlice_d_dc_char(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_mask.memview)) __PYX_ERR(0, 32, __pyx_L3_error)
+    __pyx_v_bin_size = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_bin_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_min_good_pixel_count = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_min_good_pixel_count == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_bad_pixel_value = __pyx_PyFloat_AsFloat(values[5]); if (unlikely((__pyx_v_bad_pixel_value == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_saturation_value = __pyx_PyFloat_AsFloat(values[6]); if (unlikely((__pyx_v_saturation_value == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_asic_size_fs = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_asic_size_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_asic_size_ss = __Pyx_PyInt_As_int(values[8]); if (unlikely((__pyx_v_asic_size_ss == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
+    __pyx_v_num_asics_fs = __Pyx_PyInt_As_int(values[9]); if (unlikely((__pyx_v_num_asics_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
+    __pyx_v_num_asics_ss = __Pyx_PyInt_As_int(values[10]); if (unlikely((__pyx_v_num_asics_ss == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 13, 13, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 33, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 32, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("om.lib.binning_extension.bin_detector_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2om_3lib_17binning_extension_bin_detector_data(__pyx_self, __pyx_v_data, __pyx_v_binned_data, __pyx_v_mask, __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss, __pyx_v_num_pix_slab_fs, __pyx_v_num_pix_binned_fs);
+  __pyx_r = __pyx_pf_2om_3lib_17binning_extension_bin_detector_data(__pyx_self, __pyx_v_data, __pyx_v_binned_data, __pyx_v_mask, __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, float __pyx_v_bad_pixel_value, float __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss, int __pyx_v_num_pix_slab_fs, int __pyx_v_num_pix_binned_fs) {
+static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, float __pyx_v_bad_pixel_value, float __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   Py_ssize_t __pyx_t_1;
@@ -2353,7 +2327,7 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("bin_detector_data", 0);
 
-  /* "lib_src/binning_extension/binning_extension.pyx":42
+  /* "lib_src/binning_extension/binning_extension.pyx":40
  *     """
  * 
  *     c_bin_detector_data(&data[0, 0], &binned_data[0,0], &mask[0, 0], bin_size,             # <<<<<<<<<<<<<<
@@ -2373,7 +2347,7 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   } else if (unlikely(__pyx_t_2 >= __pyx_v_data.shape[1])) __pyx_t_3 = 1;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 42, __pyx_L1_error)
+    __PYX_ERR(0, 40, __pyx_L1_error)
   }
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
@@ -2388,7 +2362,7 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   } else if (unlikely(__pyx_t_5 >= __pyx_v_binned_data.shape[1])) __pyx_t_3 = 1;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 42, __pyx_L1_error)
+    __PYX_ERR(0, 40, __pyx_L1_error)
   }
   __pyx_t_6 = 0;
   __pyx_t_7 = 0;
@@ -2403,18 +2377,18 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   } else if (unlikely(__pyx_t_7 >= __pyx_v_mask.shape[1])) __pyx_t_3 = 1;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 42, __pyx_L1_error)
+    __PYX_ERR(0, 40, __pyx_L1_error)
   }
 
-  /* "lib_src/binning_extension/binning_extension.pyx":46
+  /* "lib_src/binning_extension/binning_extension.pyx":43
+ *                        min_good_pixel_count, bad_pixel_value,
  *                        saturation_value, asic_size_fs,
- *                        asic_size_ss, num_asics_fs, num_asics_ss,
- *                        num_pix_slab_fs, num_pix_binned_fs)             # <<<<<<<<<<<<<<
+ *                        asic_size_ss, num_asics_fs, num_asics_ss)             # <<<<<<<<<<<<<<
  */
-  c_bin_detector_data((&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_1 * __pyx_v_data.strides[0]) )) + __pyx_t_2)) )))), (&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_binned_data.data + __pyx_t_4 * __pyx_v_binned_data.strides[0]) )) + __pyx_t_5)) )))), (&(*((char *) ( /* dim=1 */ ((char *) (((char *) ( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_6 * __pyx_v_mask.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss, __pyx_v_num_pix_slab_fs, __pyx_v_num_pix_binned_fs);
+  c_bin_detector_data((&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_1 * __pyx_v_data.strides[0]) )) + __pyx_t_2)) )))), (&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_binned_data.data + __pyx_t_4 * __pyx_v_binned_data.strides[0]) )) + __pyx_t_5)) )))), (&(*((char *) ( /* dim=1 */ ((char *) (((char *) ( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_6 * __pyx_v_mask.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss);
 
-  /* "lib_src/binning_extension/binning_extension.pyx":33
- *                        int num_pix_slab_fs, int num_pix_binned_fs);
+  /* "lib_src/binning_extension/binning_extension.pyx":32
+ *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
  * 
  * def bin_detector_data(float[:,::1] data, float[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
  *                        int bin_size, int min_good_pixel_count, float bad_pixel_value,
@@ -16293,8 +16267,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
   {&__pyx_n_s_num_asics_fs, __pyx_k_num_asics_fs, sizeof(__pyx_k_num_asics_fs), 0, 0, 1, 1},
   {&__pyx_n_s_num_asics_ss, __pyx_k_num_asics_ss, sizeof(__pyx_k_num_asics_ss), 0, 0, 1, 1},
-  {&__pyx_n_s_num_pix_binned_fs, __pyx_k_num_pix_binned_fs, sizeof(__pyx_k_num_pix_binned_fs), 0, 0, 1, 1},
-  {&__pyx_n_s_num_pix_slab_fs, __pyx_k_num_pix_slab_fs, sizeof(__pyx_k_num_pix_slab_fs), 0, 0, 1, 1},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
   {&__pyx_n_s_om_lib_binning_extension, __pyx_k_om_lib_binning_extension, sizeof(__pyx_k_om_lib_binning_extension), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
@@ -16541,17 +16513,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
 
-  /* "lib_src/binning_extension/binning_extension.pyx":33
- *                        int num_pix_slab_fs, int num_pix_binned_fs);
+  /* "lib_src/binning_extension/binning_extension.pyx":32
+ *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
  * 
  * def bin_detector_data(float[:,::1] data, float[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
  *                        int bin_size, int min_good_pixel_count, float bad_pixel_value,
  *                        float saturation_value, int asic_size_fs,
  */
-  __pyx_tuple__19 = PyTuple_Pack(13, __pyx_n_s_data, __pyx_n_s_binned_data, __pyx_n_s_mask, __pyx_n_s_bin_size, __pyx_n_s_min_good_pixel_count, __pyx_n_s_bad_pixel_value, __pyx_n_s_saturation_value, __pyx_n_s_asic_size_fs, __pyx_n_s_asic_size_ss, __pyx_n_s_num_asics_fs, __pyx_n_s_num_asics_ss, __pyx_n_s_num_pix_slab_fs, __pyx_n_s_num_pix_binned_fs); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(11, __pyx_n_s_data, __pyx_n_s_binned_data, __pyx_n_s_mask, __pyx_n_s_bin_size, __pyx_n_s_min_good_pixel_count, __pyx_n_s_bad_pixel_value, __pyx_n_s_saturation_value, __pyx_n_s_asic_size_fs, __pyx_n_s_asic_size_ss, __pyx_n_s_num_asics_fs, __pyx_n_s_num_asics_ss); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
-  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(13, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_lib_src_binning_extension_binnin, __pyx_n_s_bin_detector_data, 33, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(11, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_lib_src_binning_extension_binnin, __pyx_n_s_bin_detector_data, 32, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 32, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -16962,16 +16934,16 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "lib_src/binning_extension/binning_extension.pyx":33
- *                        int num_pix_slab_fs, int num_pix_binned_fs);
+  /* "lib_src/binning_extension/binning_extension.pyx":32
+ *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
  * 
  * def bin_detector_data(float[:,::1] data, float[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
  *                        int bin_size, int min_good_pixel_count, float bad_pixel_value,
  *                        float saturation_value, int asic_size_fs,
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_2om_3lib_17binning_extension_1bin_detector_data, NULL, __pyx_n_s_om_lib_binning_extension); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_2om_3lib_17binning_extension_1bin_detector_data, NULL, __pyx_n_s_om_lib_binning_extension); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_bin_detector_data, __pyx_t_1) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_bin_detector_data, __pyx_t_1) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "lib_src/binning_extension/binning_extension.pyx":1
