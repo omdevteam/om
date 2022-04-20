@@ -24,14 +24,14 @@ algorithm.
 
 cdef extern from "binning.hh":
     
-   void c_bin_detector_data(float *data, float *binned_data, char *mask, int bin_size,
-                       int min_good_pixel_count, float bad_pixel_value,
-                       float saturation_value, int asic_size_fs,
+   void c_bin_detector_data(double *data, double *binned_data, char *mask, int bin_size,
+                       int min_good_pixel_count, double bad_pixel_value,
+                       double saturation_value, int asic_size_fs,
                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
 
-def bin_detector_data(float[:,::1] data, float[:,::1] binned_data, char[:,::1] mask,
-                       int bin_size, int min_good_pixel_count, float bad_pixel_value,
-                       float saturation_value, int asic_size_fs,
+def bin_detector_data(double[:,::1] data, double[:,::1] binned_data, char[:,::1] mask,
+                       int bin_size, int min_good_pixel_count, double bad_pixel_value,
+                       double saturation_value, int asic_size_fs,
                        int asic_size_ss, int num_asics_fs, int num_asics_ss):
     """
     Docstring here

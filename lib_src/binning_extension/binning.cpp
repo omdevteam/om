@@ -18,13 +18,13 @@
 
 #include "binning.hh"
 
-float process_bin(float *data, char *mask, int bin_origin_ss, int bin_origin_fs,
-                  int bin_size, int asic_index_ss, int asic_index_fs, int asic_size_ss,
-                  int asic_size_fs, int num_pix_slab_fs, int min_good_pixel_count,
-                  float saturation_value, float bad_pixel_value)
+double process_bin(double *data, char *mask, int bin_origin_ss, int bin_origin_fs,
+                   int bin_size, int asic_index_ss, int asic_index_fs, int asic_size_ss,
+                   int asic_size_fs, int num_pix_slab_fs, int min_good_pixel_count,
+                   double saturation_value, double bad_pixel_value)
 {
 
-     float bin_sum = 0.0;
+     double bin_sum = 0.0;
      int pixels_in_bin_sum = 0;
      int total_pixels_in_bin = bin_size * bin_size;
 
@@ -35,7 +35,7 @@ float process_bin(float *data, char *mask, int bin_origin_ss, int bin_origin_fs,
                int slab_pixel_index =
                    ((bin_origin_ss + ss_in_bin) + asic_index_ss * asic_size_ss) * num_pix_slab_fs +
                    (bin_origin_fs + fs_in_bin) + asic_index_fs * asic_size_fs;
-               float original_pixel_value;
+               double original_pixel_value;
                int pixel_is_good;
                if (bin_origin_ss + ss_in_bin < asic_size_ss && bin_origin_fs + fs_in_bin < asic_size_fs)
                {
@@ -47,7 +47,7 @@ float process_bin(float *data, char *mask, int bin_origin_ss, int bin_origin_fs,
                     pixel_is_good = 0;
                }
 
-               if (saturation_value > 0 && original_pixel_value >= saturation_value)
+               if (pixel_is_good != 0 && saturation_value > 0 && original_pixel_value >= saturation_value)
                {
                     return bad_pixel_value;
                }
@@ -69,10 +69,10 @@ float process_bin(float *data, char *mask, int bin_origin_ss, int bin_origin_fs,
 }
 
 void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_slab_fs,
-                   unsigned int asic_index_ss, unsigned int asic_index_fs, float *data,
-                   float *binned_data, int num_pix_binned_fs, char *mask, int bin_size,
-                   int min_good_pixel_count, float bad_pixel_value,
-                   float saturation_value)
+                   unsigned int asic_index_ss, unsigned int asic_index_fs, double *data,
+                   double *binned_data, int num_pix_binned_fs, char *mask, int bin_size,
+                   int min_good_pixel_count, double bad_pixel_value,
+                   double saturation_value)
 {
      for (int bin_origin_ss = 0; bin_origin_ss < asic_size_ss; bin_origin_ss += bin_size)
      {
@@ -93,9 +93,9 @@ void process_panel(int asic_size_fs, int asic_size_ss, int num_pix_slab_fs,
      }
 }
 
-void c_bin_detector_data(float *data, float *binned_data, char *mask, int bin_size,
-                         int min_good_pixel_count, float bad_pixel_value,
-                         float saturation_value, int asic_size_fs,
+void c_bin_detector_data(double *data, double *binned_data, char *mask, int bin_size,
+                         int min_good_pixel_count, double bad_pixel_value,
+                         double saturation_value, int asic_size_fs,
                          int asic_size_ss, int num_asics_fs, int num_asics_ss)
 {
      int num_pix_slab_fs = asic_size_fs * num_asics_fs;

@@ -18,9 +18,9 @@
 #ifndef BINNING_H
 #define BINNING_H
 
-void c_bin_detector_data(float *data, float *binned_data, char *mask, int bin_size,
-                         int min_good_pixel_count, float bad_pixel_value,
-                         float saturation_value, int asic_size_fs,
+void c_bin_detector_data(double *data, double *binned_data, char *mask, int bin_size,
+                         int min_good_pixel_count, double bad_pixel_value,
+                         double saturation_value, int asic_size_fs,
                          int asic_size_ss, int num_asics_fs, int num_asics_ss);
 
 #endif // BINNING_H
