@@ -30,6 +30,7 @@ import numpy
 from numpy.typing import DTypeLike, NDArray
 
 from om.algorithms import crystallography as cryst_algs
+from om.lib.binning_extension import bin_detector_data  # type: ignore
 from om.utils import exceptions
 from om.utils import parameters as param_utils
 from om.utils.crystfel_geometry import TypePixelMaps
@@ -614,10 +615,10 @@ class Binning:
             bad_pixel_map = None
         if bad_pixel_map is None:
             self._mask: NDArray[numpy.int_] = numpy.ones(
-                (self._original_nx, self._original_ny), dtype=int
+                (self._original_nx, self._original_ny), dtype=numpy.int8
             )
         else:
-            self._mask = bad_pixel_map
+            self._mask = bad_pixel_map.astype(numpy.int8)
 
         self._extended_asic_nx: int = (
             int(numpy.ceil(self._original_asic_nx / self._bin_size)) * self._bin_size
@@ -635,6 +636,14 @@ class Binning:
 
         # Binned mask = num good pixels per bin
         self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(data=self._mask)
+
+        self._float_data_array: NDArray[numpy.float_] = numpy.zeros(
+            (self._original_nx, self._original_ny), dtype=numpy.float64
+        )
+        self._binned_data_array: NDArray[numpy.float_] = numpy.zeros(
+            (self._binned_nx, self._binned_ny), dtype=numpy.float64
+        )
+        self._saturation_value: float = -1.0
 
     def _extend_data_array(self, *, data: A) -> A:
         # Extends the original data array with zeros making the asic size divisible by
@@ -739,31 +748,30 @@ class Binning:
             A binned version of the detector data frame.
         """
 
-        # Set bad pixels to zero:
-        data = data * self._mask
-        # Bin data and scale to the number of good pixels per bin:
-        with numpy.errstate(divide="ignore", invalid="ignore"):
-            binned_data = (
-                self._bin_data_array(data=data)
-                / self._binned_mask
-                * self._bin_size ** 2
-            )
-
         data_type: DTypeLike = data.dtype
-        if numpy.issubdtype(data_type, numpy.integer):
-            if self._bad_pixel_value is None:
+        if self._bad_pixel_value is None:
+            if numpy.issubdtype(data_type, numpy.integer):
                 self._bad_pixel_value = numpy.iinfo(data_type).max
-            binned_data[
-                numpy.where(binned_data > self._bad_pixel_value)
-            ] = self._bad_pixel_value
-        elif self._bad_pixel_value is None:
-            self._bad_pixel_value = numpy.nan
+            else:
+                self._bad_pixel_value = -1.0e10
+        if numpy.issubdtype(data_type, numpy.integer):
+            self._saturation_value = float(numpy.iinfo(data_type).max)
 
-        binned_data[
-            numpy.where(self._binned_mask < self._min_good_pix_count)
-        ] = self._bad_pixel_value
-
-        return binned_data
+        self._float_data_array[:] = data
+        bin_detector_data(
+            self._float_data_array,
+            self._binned_data_array,
+            self._mask,
+            self._bin_size,
+            self._min_good_pix_count,
+            self._bad_pixel_value,
+            self._saturation_value,
+            self._original_asic_ny,
+            self._original_asic_nx,
+            self._layout_info["nasics_y"],
+            self._layout_info["nasics_x"],
+        )
+        return self._binned_data_array
 
     def bin_bad_pixel_map(
         self, *, mask: Union[NDArray[numpy.int_], None]
