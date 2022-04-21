@@ -31,7 +31,7 @@ import numpy
 from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
-from om.graphical_interfaces import base as graph_interfaces_base
+from om.graphical_interfaces import common as graph_interfaces_protocol
 from om.utils import exceptions
 
 try:
@@ -49,7 +49,7 @@ except ImportError:
     )
 
 
-class SpiGui(graph_interfaces_base.OmGui):
+class SpiGui(graph_interfaces_protocol.OmGui):
     """
     See documentation of the `__init__` function.
     """

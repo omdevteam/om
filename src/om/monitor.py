@@ -25,14 +25,14 @@ import importlib
 import signal
 import sys
 from types import ModuleType
-from typing import Type, TypeVar, cast
+from typing import TYPE_CHECKING, Type, TypeVar, cast
 
 import click
 
-from om.data_retrieval_layer import base as drl_base
-from om.parallelization_layer import base as pa_base
-from om.processing_layer import base as pr_base
-from om.utils import exceptions, parameters
+from om.utils import console, exceptions, parameters
+from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import parallelization_layer as pa_protocols
+from om.protocols import processing_layer as pr_protocols
 
 T = TypeVar("T")
 
@@ -126,27 +126,27 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
         required=True,
     )
 
-    parallelization_layer_class: Type[pa_base.OmParallelization] = _import_class(
+    parallelization_layer_class: Type[pa_protocols.OmParallelization] = _import_class(
         layer="parallelization_layer",
         class_name=parallelization_layer_class_name,
     )
-    data_retrieval_layer_class: Type[drl_base.OmDataRetrieval] = _import_class(
+    data_retrieval_layer_class: Type[drl_protocols.OmDataRetrieval] = _import_class(
         layer="data_retrieval_layer",
         class_name=data_retrieval_layer_class_name,
     )
-    processing_layer_class: Type[pr_base.OmProcessing] = _import_class(
+    processing_layer_class: Type[pr_protocols.OmProcessing] = _import_class(
         layer="processing_layer",
         class_name=processing_layer_class_name,
     )
 
-    processing_layer: pr_base.OmProcessing = processing_layer_class(
+    processing_layer: pr_protocols.OmProcessing = processing_layer_class(
         monitor_parameters=monitor_parameters
     )
-    data_retrieval_layer: drl_base.OmDataRetrieval = data_retrieval_layer_class(
+    data_retrieval_layer: drl_protocols.OmDataRetrieval = data_retrieval_layer_class(
         monitor_parameters=monitor_parameters,
         source=source,
     )
-    parallelization_layer: pa_base.OmParallelization = parallelization_layer_class(
+    parallelization_layer: pa_protocols.OmParallelization = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
         processing_layer=processing_layer,
         monitor_parameters=monitor_parameters,

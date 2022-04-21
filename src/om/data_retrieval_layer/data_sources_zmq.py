@@ -26,13 +26,13 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocol
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import utils_generic as utils_gen
 from om.utils.parameters import MonitorParams
 
 
-class Jungfrau1MZmq(drl_base.OmDataSource):
+class Jungfrau1MZmq(drl_protocol.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -52,7 +52,7 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
         This class deals with the retrieval of a Jungfrau 1M    detector data frame from
         a ZMQ stream broadcast by the detector. The detector data frame can be
         retrieved in calibrated or non-calibrated form, depending on the value of the
-        `{source_base_name}_calibration` entry in the OM's `data_retrieval_layer`
+        `{source_protocol_name}_calibration` entry in the OM's `data_retrieval_layer`
         configuration parameter group.
 
         Arguments:
@@ -82,7 +82,7 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
         in the `calibration` parameter group.
         """
         self._calibrated_data_required: bool = ds_generic.get_calibration_request(
-            source_base_name=self._data_source_name,
+            source_protocol_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         if self._calibrated_data_required:
@@ -145,7 +145,7 @@ class Jungfrau1MZmq(drl_base.OmDataSource):
             return data
 
 
-class TimestampJungfrau1MZmq(drl_base.OmDataSource):
+class TimestampJungfrau1MZmq(drl_protocol.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -215,7 +215,7 @@ class TimestampJungfrau1MZmq(drl_base.OmDataSource):
         return cast(numpy.float64, event["data"][0]["timestamp"])
 
 
-class EventIdJungfrau1MZmq(drl_base.OmDataSource):
+class EventIdJungfrau1MZmq(drl_protocol.OmDataSource):
     """
     See documentation of the `__init__` function.
     """

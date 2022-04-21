@@ -26,11 +26,11 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocol
 from om.utils import exceptions, parameters
 
 
-class Jungfrau1MZmqDataEventHandler(drl_base.OmDataEventHandler):
+class Jungfrau1MZmqDataEventHandler(drl_protocol.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -39,7 +39,7 @@ class Jungfrau1MZmqDataEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocol.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -74,7 +74,7 @@ class Jungfrau1MZmqDataEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocol.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -122,7 +122,7 @@ class Jungfrau1MZmqDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

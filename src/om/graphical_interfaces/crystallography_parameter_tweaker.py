@@ -33,7 +33,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
-from om.graphical_interfaces import base as graph_interfaces_base
+from om.graphical_interfaces import common as graph_interfaces_protocol
 from om.utils import crystfel_geometry, exceptions, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
 
@@ -52,7 +52,7 @@ except ImportError:
     )
 
 
-class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
+class CrystallographyParameterTweaker(graph_interfaces_protocol.OmGui):
     """
     See documentation of the `__init__` function.
     """

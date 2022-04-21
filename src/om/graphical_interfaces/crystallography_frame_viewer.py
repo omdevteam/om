@@ -32,7 +32,7 @@ import click
 import numpy
 from numpy.typing import NDArray
 
-from om.graphical_interfaces import base as graph_interfaces_base
+from om.graphical_interfaces import common as graph_interfaces_protocol
 from om.utils import exceptions
 
 try:
@@ -50,7 +50,7 @@ except ImportError:
     )
 
 
-class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
+class CrystallographyFrameViewer(graph_interfaces_protocol.OmGui):
     """
     See documentation of the `__init__` function.
     """

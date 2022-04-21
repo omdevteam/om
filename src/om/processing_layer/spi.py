@@ -29,11 +29,11 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms import generic as gen_algs
-from om.processing_layer import base as pl_base
+from om.protocols import processing_layer as pl_protocol
 from om.utils import parameters, zmq_monitor
 
 
-class SpiProcessing(pl_base.OmProcessing):
+class SpiProcessing(pl_protocol.OmProcessing):
     """
     See documentation for the `__init__` function.
     """

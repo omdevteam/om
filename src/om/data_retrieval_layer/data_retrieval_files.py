@@ -22,14 +22,14 @@ This module contains Data Retrieval classes that deal with files.
 """
 from typing import Dict
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocol
 from om.data_retrieval_layer import data_event_handlers_files as deh_files
 from om.data_retrieval_layer import data_sources_files as ds_files
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils import parameters
 
 
-class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
+class PilatusFilesDataRetrieval(drl_protocol.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
     """
@@ -69,7 +69,7 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_base.OmDataSource] = {
+        data_sources: Dict[str, drl_protocol.OmDataSource] = {
             "timestamp": ds_files.TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -92,7 +92,7 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_base.OmDataEventHandler = (
+        self._data_event_handler: drl_protocol.OmDataEventHandler = (
             deh_files.PilatusFilesEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -100,7 +100,7 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_base.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_protocol.OmDataEventHandler:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -114,7 +114,7 @@ class PilatusFilesDataRetrieval(drl_base.OmDataRetrieval):
         return self._data_event_handler
 
 
-class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
+class Jungfrau1MFilesDataRetrieval(drl_protocol.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
     """
@@ -158,7 +158,7 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, drl_base.OmDataSource] = {
+        data_sources: Dict[str, drl_protocol.OmDataSource] = {
             "timestamp": ds_files.TimestampJungfrau1MFiles(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -181,7 +181,7 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_base.OmDataEventHandler = (
+        self._data_event_handler: drl_protocol.OmDataEventHandler = (
             deh_files.Jungfrau1MFilesDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -189,7 +189,7 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_base.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_protocol.OmDataEventHandler:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -203,7 +203,7 @@ class Jungfrau1MFilesDataRetrieval(drl_base.OmDataRetrieval):
         return self._data_event_handler
 
 
-class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
+class Eiger16MFilesDataRetrieval(drl_protocol.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
     """
@@ -244,7 +244,7 @@ class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_base.OmDataSource] = {
+        data_sources: Dict[str, drl_protocol.OmDataSource] = {
             "timestamp": ds_files.TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -267,7 +267,7 @@ class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_base.OmDataEventHandler = (
+        self._data_event_handler: drl_protocol.OmDataEventHandler = (
             deh_files.Eiger16MFilesDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -275,7 +275,7 @@ class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_base.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_protocol.OmDataEventHandler:
         """
          Retrieves the Data Event Handler used by the class.
 
@@ -289,7 +289,7 @@ class Eiger16MFilesDataRetrieval(drl_base.OmDataRetrieval):
         return self._data_event_handler
 
 
-class RayonixMccdFilesDataRetrieval(drl_base.OmDataRetrieval):
+class RayonixMccdFilesDataRetrieval(drl_protocol.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
     """
@@ -329,7 +329,7 @@ class RayonixMccdFilesDataRetrieval(drl_base.OmDataRetrieval):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_base.OmDataSource] = {
+        data_sources: Dict[str, drl_protocol.OmDataSource] = {
             "timestamp": ds_files.TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -352,7 +352,7 @@ class RayonixMccdFilesDataRetrieval(drl_base.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_base.OmDataEventHandler = (
+        self._data_event_handler: drl_protocol.OmDataEventHandler = (
             deh_files.RayonixMccdFilesEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -360,7 +360,7 @@ class RayonixMccdFilesDataRetrieval(drl_base.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_base.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_protocol.OmDataEventHandler:
         """
         Retrieves the Data Event Handler used by the class.
 

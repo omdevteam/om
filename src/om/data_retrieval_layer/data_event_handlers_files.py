@@ -29,7 +29,7 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocol
 from om.utils import exceptions, parameters
 
 try:
@@ -40,7 +40,7 @@ except ImportError:
     )
 
 
-class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
+class PilatusFilesEventHandler(drl_protocol.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -49,7 +49,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocol.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -84,7 +84,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocol.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -132,7 +132,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -318,7 +318,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -371,7 +371,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         return self.extract_data(event=data_event)
 
 
-class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
+class Jungfrau1MFilesDataEventHandler(drl_protocol.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -380,7 +380,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocol.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -416,7 +416,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocol.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -464,7 +464,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -689,7 +689,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         return data
 
 
-class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
+class Eiger16MFilesDataEventHandler(drl_protocol.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -698,7 +698,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocol.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -734,7 +734,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocol.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -782,7 +782,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -975,7 +975,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1037,7 +1037,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
         return extracted_data
 
 
-class RayonixMccdFilesEventHandler(drl_base.OmDataEventHandler):
+class RayonixMccdFilesEventHandler(drl_protocol.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -1046,7 +1046,7 @@ class RayonixMccdFilesEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocol.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -1081,7 +1081,7 @@ class RayonixMccdFilesEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocol.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -1131,7 +1131,7 @@ class RayonixMccdFilesEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1322,7 +1322,7 @@ class RayonixMccdFilesEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocol.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

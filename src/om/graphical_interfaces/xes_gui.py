@@ -28,7 +28,7 @@ from typing import Any
 
 import click
 
-from om.graphical_interfaces import base as graph_interfaces_base
+from om.graphical_interfaces import common as graph_interfaces_protocol
 from om.utils import exceptions
 
 try:
@@ -46,7 +46,7 @@ except ImportError:
     )
 
 
-class XesGui(graph_interfaces_base.OmGui):
+class XesGui(graph_interfaces_protocol.OmGui):
     """
     See documentation of the `__init__` function.
     """

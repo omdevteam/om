@@ -31,12 +31,12 @@ from numpy.typing import NDArray
 
 from om.algorithms import generic as gen_algs
 from om.algorithms import xes as xes_algs
-from om.processing_layer import base as pl_base
+from om.protocols import processing_layer as pl_protocol
 from om.utils import crystfel_geometry, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypePixelMaps
 
 
-class XESProcessing(pl_base.OmProcessing):
+class XESProcessing(pl_protocol.OmProcessing):
     """
     See documentation for the `__init__` function.
     """
