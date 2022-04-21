@@ -24,18 +24,18 @@ from typing import Any, Dict, Union, cast
 
 import numpy
 
-from om.protocols import data_extraction_layer as drl_protocol
+from om.protocols import data_extraction_layer as drl_protocols
 from om.utils.parameters import MonitorParams
 
 
 def get_calibration_request(
-    *, source_protocol_name: str, monitor_parameters: MonitorParams
+    *, source_protocols_name: str, monitor_parameters: MonitorParams
 ) -> bool:
     # Helper function to retrieve from the monitor configuration parameters a flag
     # that determines if calibrated data should be retrieved for a specific detector.
     calibrated_data_required: Union[bool, None] = monitor_parameters.get_parameter(
         group="data_retrieval_layer",
-        parameter=f"{source_protocol_name}_calibration",
+        parameter=f"{source_protocols_name}_calibration",
         parameter_type=bool,
     )
     if calibrated_data_required is None:
@@ -43,7 +43,7 @@ def get_calibration_request(
     return calibrated_data_required
 
 
-class TimestampFromEvent(drl_protocol.OmDataSource):
+class TimestampFromEvent(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -109,7 +109,7 @@ class TimestampFromEvent(drl_protocol.OmDataSource):
         return cast(numpy.float64, event["additional_info"]["timestamp"])
 
 
-class FloatEntryFromConfiguration(drl_protocol.OmDataSource):
+class FloatEntryFromConfiguration(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -184,7 +184,7 @@ class FloatEntryFromConfiguration(drl_protocol.OmDataSource):
         return self._value
 
 
-class FrameIdZero(drl_protocol.OmDataSource):
+class FrameIdZero(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """

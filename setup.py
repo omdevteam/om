@@ -128,6 +128,7 @@ setup(
         "numpy",
         "pyyaml",
         "pyzmq",
+        "rich",
         "scipy",
         "typing_extensions",
     ],

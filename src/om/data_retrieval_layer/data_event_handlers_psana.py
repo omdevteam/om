@@ -26,7 +26,7 @@ from typing import Any, Dict, Generator, List, Union
 
 import numpy
 
-from om.protocols import data_extraction_layer as drl_protocol
+from om.protocols import data_extraction_layer as drl_protocols
 from om.data_retrieval_layer import data_sources_psana as ds_psana
 from om.utils import exceptions, parameters
 
@@ -60,7 +60,7 @@ def _psana_offline_event_generator(
             yield run.event(evt)
 
 
-class PsanaDataEventHandler(drl_protocol.OmDataEventHandler):
+class PsanaDataEventHandler(drl_protocols.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -69,7 +69,7 @@ class PsanaDataEventHandler(drl_protocol.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocol.OmDataSource],
+        data_sources: Dict[str, drl_protocols.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -104,7 +104,7 @@ class PsanaDataEventHandler(drl_protocol.OmDataEventHandler):
 
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocol.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
 
     def _initialize_psana_data_source(self) -> Any:
         # This private method contains all the common psana initialization code needed
@@ -177,7 +177,7 @@ class PsanaDataEventHandler(drl_protocol.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocol.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -360,7 +360,7 @@ class PsanaDataEventHandler(drl_protocol.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocol.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

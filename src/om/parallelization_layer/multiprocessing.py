@@ -28,9 +28,9 @@ from sqlite3 import connect
 import sys
 from typing import Any, Dict, List, Tuple, Union
 
-from om.protocols import data_extraction_layer as data_ret_layer_protocol
-from om.protocols import parallelization_layer as par_layer_protocol
-from om.protocols import processing_layer as pl_protocol
+from om.protocols import data_extraction_layer as data_ret_layer_protocols
+from om.protocols import parallelization_layer as par_layer_protocols
+from om.protocols import processing_layer as pl_protocols
 from om.utils import exceptions, parameters
 
 
@@ -40,8 +40,8 @@ def _om_processing_node(
     node_pool_size: int,
     data_queue: "multiprocessing.Queue[Tuple[Dict[str, Any], int]]",
     message_pipe: multiprocessing.connection.Connection,
-    data_event_handler: data_ret_layer_protocol.OmDataEventHandler,
-    processing_layer: pl_protocol.OmProcessing,
+    data_event_handler: data_ret_layer_protocols.OmDataEventHandler,
+    processing_layer: pl_protocols.OmProcessing,
     monitor_params: parameters.MonitorParams,
 ) -> None:
     # This function implements a processing node. It is designed to be run as a
@@ -123,7 +123,7 @@ def _om_processing_node(
     return
 
 
-class MultiprocessingParallelization(par_layer_protocol.OmParallelization):
+class MultiprocessingParallelization(par_layer_protocols.OmParallelization):
     """
     See documentation of the `__init__` function.
     """
@@ -131,8 +131,8 @@ class MultiprocessingParallelization(par_layer_protocol.OmParallelization):
     def __init__(
         self,
         *,
-        data_retrieval_layer: data_ret_layer_protocol.OmDataRetrieval,
-        processing_layer: pl_protocol.OmProcessing,
+        data_retrieval_layer: data_ret_layer_protocols.OmDataRetrieval,
+        processing_layer: pl_protocols.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -156,10 +156,10 @@ class MultiprocessingParallelization(par_layer_protocol.OmParallelization):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._data_event_handler: data_ret_layer_protocol.OmDataEventHandler = (
+        self._data_event_handler: data_ret_layer_protocols.OmDataEventHandler = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: pl_protocol.OmProcessing = processing_layer
+        self._processing_layer: pl_protocols.OmProcessing = processing_layer
         self._monitor_params: parameters.MonitorParams = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(

@@ -25,9 +25,9 @@ from typing import Any, Dict, Tuple, Union
 
 from mpi4py import MPI  # type: ignore
 
-from om.protocols import data_extraction_layer as data_ret_layer_protocol
-from om.protocols import parallelization_layer as par_layer_protocol
-from om.protocols import processing_layer as pl_protocol
+from om.protocols import data_extraction_layer as data_ret_layer_protocols
+from om.protocols import parallelization_layer as par_layer_protocols
+from om.protocols import processing_layer as pl_protocols
 from om.utils import exceptions, parameters
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
@@ -37,7 +37,7 @@ _DATATAG: int = 1001
 _FEEDBACKTAG: int = 1002
 
 
-class MpiParallelization(par_layer_protocol.OmParallelization):
+class MpiParallelization(par_layer_protocols.OmParallelization):
     """
     See documentation of the `__init__` function.
     """
@@ -45,8 +45,8 @@ class MpiParallelization(par_layer_protocol.OmParallelization):
     def __init__(
         self,
         *,
-        data_retrieval_layer: data_ret_layer_protocol.OmDataRetrieval,
-        processing_layer: pl_protocol.OmProcessing,
+        data_retrieval_layer: data_ret_layer_protocols.OmDataRetrieval,
+        processing_layer: pl_protocols.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -68,10 +68,10 @@ class MpiParallelization(par_layer_protocol.OmParallelization):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._data_event_handler: data_ret_layer_protocol.OmDataEventHandler = (
+        self._data_event_handler: data_ret_layer_protocols.OmDataEventHandler = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: pl_protocol.OmProcessing = processing_layer
+        self._processing_layer: pl_protocols.OmProcessing = processing_layer
         self._monitor_params: parameters.MonitorParams = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(

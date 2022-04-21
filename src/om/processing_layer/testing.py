@@ -24,11 +24,11 @@ import sys
 import time
 from typing import Any, Dict, Tuple, Union
 
-from om.protocols import processing_layer as pl_protocol
+from om.protocols import processing_layer as pl_protocols
 from om.utils import parameters, zmq_monitor
 
 
-class TestProcessing(pl_protocol.OmProcessing):
+class TestProcessing(pl_protocols.OmProcessing):
     """
     See documentation for the `__init__` function.
     """

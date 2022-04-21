@@ -22,14 +22,14 @@ This module contains Data Retrieval classes that deal with ZMQ streams.
 """
 from typing import Dict
 
-from om.protocols import data_extraction_layer as drl_protocol
+from om.protocols import data_extraction_layer as drl_protocols
 from om.data_retrieval_layer import data_event_handlers_zmq as deh_zmq
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import data_sources_zmq as ds_zmq
 from om.utils import parameters
 
 
-class Jungfrau1MZmqDataRetrieval(drl_protocol.OmDataRetrieval):
+class Jungfrau1MZmqDataRetrieval(drl_protocols.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
     """
@@ -68,7 +68,7 @@ class Jungfrau1MZmqDataRetrieval(drl_protocol.OmDataRetrieval):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, drl_protocol.OmDataSource] = {
+        data_sources: Dict[str, drl_protocols.OmDataSource] = {
             "timestamp": ds_zmq.TimestampJungfrau1MZmq(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -91,7 +91,7 @@ class Jungfrau1MZmqDataRetrieval(drl_protocol.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_protocol.OmDataEventHandler = (
+        self._data_event_handler: drl_protocols.OmDataEventHandler = (
             deh_zmq.Jungfrau1MZmqDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -99,7 +99,7 @@ class Jungfrau1MZmqDataRetrieval(drl_protocol.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_protocol.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
         """
         Retrieves the Data Event Handler used by the class.
 

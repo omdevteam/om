@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 
-from om.protocols import data_extraction_layer as drl_protocol
+from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
 from types import ModuleType
 from typing import Any, Dict, Type
@@ -78,7 +78,7 @@ class OmFrameDataRetrieval:
                     ) from exc
 
         try:
-            data_retrieval_layer_class: Type[drl_protocol.OmDataRetrieval] = getattr(
+            data_retrieval_layer_class: Type[drl_protocols.OmDataRetrieval] = getattr(
                 data_retrieval_layer_module, data_retrieval_layer_class_name
             )
         except AttributeError:
@@ -87,12 +87,14 @@ class OmFrameDataRetrieval:
                 "data_retrieval_layer file."
             )
 
-        data_retrieval_layer: drl_protocol.OmDataRetrieval = data_retrieval_layer_class(
-            monitor_parameters=monitor_parameters,
-            source=source,
+        data_retrieval_layer: drl_protocols.OmDataRetrieval = (
+            data_retrieval_layer_class(
+                monitor_parameters=monitor_parameters,
+                source=source,
+            )
         )
 
-        self._data_event_handler: drl_protocol.OmDataEventHandler = (
+        self._data_event_handler: drl_protocols.OmDataEventHandler = (
             data_retrieval_layer.get_data_event_handler()
         )
 
