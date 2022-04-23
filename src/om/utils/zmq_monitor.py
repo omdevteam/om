@@ -145,7 +145,7 @@ class ZmqResponder:
         self,
         *,
         parameters: Dict[str, Any],
-        blocking: bool = True,
+        blocking: bool = False,
     ) -> None:
         """
         ZMQ-based responding socket for OnDA Monitors.
