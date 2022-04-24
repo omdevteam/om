@@ -68,7 +68,8 @@ def main(input: str, output: str, s: int) -> None:
                     sd[i][where_gain[i]] += d[where_gain[i]]
                     nd[i][where_gain[i]] += 1
 
-    dark: NDArray[numpy.float_] = (sd / nd).astype(numpy.float32)
+    with numpy.errstate(divide="ignore", invalid="ignore"):
+        dark: NDArray[numpy.float_] = (sd / nd).astype(numpy.float32)
 
     if numpy.any(nd == 0):
         print("Some pixels don't have data in all gains:")
