@@ -148,8 +148,8 @@ class Jungfrau1MFilesDataRetrieval(drl_protocols.OmDataRetrieval):
           parameter group).
 
         * The source string required by this Data Retrieval class is the path to a file
-          containing a list of HDF5 files to process, one per line, with their absolute
-          or relative path.
+          containing a list of master HDF5 files to process, one per line, with their
+          absolute or relative path.
 
         Arguments:
 
@@ -172,11 +172,11 @@ class Jungfrau1MFilesDataRetrieval(drl_protocols.OmDataRetrieval):
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
             "beam_energy": ds_generic.FloatEntryFromConfiguration(
-                data_source_name="fallback_beam_energy",
+                data_source_name="fallback_beam_energy_in_eV",
                 monitor_parameters=monitor_parameters,
             ),
             "detector_distance": ds_generic.FloatEntryFromConfiguration(
-                data_source_name="fallback_detector_distance",
+                data_source_name="fallback_detector_distance_in_mm",
                 monitor_parameters=monitor_parameters,
             ),
         }

@@ -206,13 +206,9 @@ class Jungfrau1MFiles(drl_protocols.OmDataSource):
 
             One detector data frame.
         """
-        h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
-        h5_data_path: str = event["additional_info"]["h5_data_path"]
-        index: Tuple[int, int] = event["additional_info"]["index"]
-
-        data: NDArray[numpy.int_] = numpy.concatenate(
-            [h5files[i][h5_data_path][index[i]] for i in range(len(h5files))]
-        )
+        data: NDArray[numpy.int_] = event["additional_info"]["h5file"][
+            "/entry/data/data"
+        ][event["additional_info"]["index"]]
 
         if self._calibrated_data_required:
             return self._calibration.apply_calibration(data=data)
@@ -496,13 +492,18 @@ class TimestampJungfrau1MFiles(drl_protocols.OmDataSource):
             The timestamp of the Jungfrau 1M data frame.
         """
 
-        file_creation_time: numpy.float64 = numpy.float64(
-            event["additional_info"]["file_creation_time"]
+        file_timestamp: numpy.float64 = numpy.float64(
+            event["additional_info"]["file_timestamp"]
         )
-        jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
+        jf_clock_value: int = (
+            event["additional_info"]["h5file"]["/entry/data/timestamp"][
+                event["additional_info"]["index"]
+            ][0]
+            - event["additional_info"]["h5file"]["/entry/data/timestamp"][0][0]
+        )
         # Jungfrau internal clock frequency in Hz
         jf_clock_frequency: int = 10000000
-        return file_creation_time + jf_clock_value / jf_clock_frequency
+        return file_timestamp + jf_clock_value / jf_clock_frequency
 
 
 class EventIdFromFilePath(drl_protocols.OmDataSource):
@@ -637,9 +638,9 @@ class EventIdJungfrau1MFiles(drl_protocols.OmDataSource):
 
             A unique event identifier.
         """
-        filename: str = event["additional_info"]["h5files"][0].filename
-        index: str = event["additional_info"]["index"][0]
-        return f"{filename} // {index:04d}"
+        filename: str = event["additional_info"]["h5file"].filename
+        index: str = event["additional_info"]["index"]
+        return f"{filename} // {index:05d}"
 
 
 class EventIdEiger16MFiles(drl_protocols.OmDataSource):
