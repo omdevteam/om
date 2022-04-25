@@ -26,6 +26,7 @@ from typing import Any, Dict, Union
 
 import zmq
 
+from om.monitor import om_print as print
 from om.utils import exceptions
 
 try:

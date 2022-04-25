@@ -560,7 +560,7 @@ class Binning:
             parameter_type=int,
         )
         if min_good_pix_count is None:
-            self._min_good_pix_count: int = self._bin_size ** 2
+            self._min_good_pix_count: int = self._bin_size**2
         else:
             self._min_good_pix_count = min_good_pix_count
         self._bad_pixel_value: int = param_utils.get_parameter_from_parameter_group(
@@ -810,7 +810,7 @@ class Binning:
         if mask is None:
             return None
         else:
-            return self._bin_data_array(data=mask) // self._bin_size ** 2
+            return self._bin_data_array(data=mask) // self._bin_size**2
 
     def bin_pixel_maps(self, *, pixel_maps: TypePixelMaps) -> TypePixelMaps:
         """
@@ -832,19 +832,19 @@ class Binning:
 
         binned_pixel_maps: TypePixelMaps = {
             "x": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["x"]))
-            / self._bin_size ** 3,
+            / self._bin_size**3,
             "y": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["y"]))
-            / self._bin_size ** 3,
+            / self._bin_size**3,
             "z": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["z"]))
-            / self._bin_size ** 3,
+            / self._bin_size**3,
             "radius": self._bin_data_array(
                 data=cast(NDArray[numpy.float_], pixel_maps["radius"])
             )
-            / self._bin_size ** 3,
+            / self._bin_size**3,
             "phi": self._bin_data_array(
                 data=cast(NDArray[numpy.float_], pixel_maps["phi"])
             )
-            / self._bin_size ** 2,
+            / self._bin_size**2,
         }
 
         return binned_pixel_maps

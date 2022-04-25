@@ -26,8 +26,9 @@ from typing import Any, Dict, Generator, List, Union
 
 import numpy
 
-from om.protocols import data_extraction_layer as drl_protocols
 from om.data_retrieval_layer import data_sources_psana as ds_psana
+from om.monitor import om_print as print
+from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
 
 try:

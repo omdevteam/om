@@ -26,6 +26,7 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
+from om.monitor import om_print as print
 from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
 

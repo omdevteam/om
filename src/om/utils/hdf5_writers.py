@@ -32,6 +32,7 @@ from numpy.typing import DTypeLike, NDArray
 from typing_extensions import Literal
 
 from om.algorithms import crystallography as cryst_algs
+from om.monitor import om_print as print
 from om.utils import crystfel_geometry, exceptions
 from om.utils import parameters as param_utils
 

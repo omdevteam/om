@@ -25,7 +25,7 @@ import importlib
 import signal
 import sys
 from types import ModuleType
-from typing import TYPE_CHECKING, Type, TypeVar, cast
+from typing import Any, Callable, Dict, Type, TypeVar, Union, cast
 
 import click
 
@@ -59,6 +59,9 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
         )
 
     return imported_class
+
+
+om_print: Callable[..., None] = print
 
 
 @click.command()
@@ -125,6 +128,13 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
         parameter_type=str,
         required=True,
     )
+
+    om_custom_print: Union[Callable[..., None], None] = console.get_om_print(
+        monitor_parameters
+    )
+    if om_custom_print is not None:
+        global om_print
+        om_print = om_custom_print
 
     parallelization_layer_class: Type[pa_protocols.OmParallelization] = _import_class(
         layer="parallelization_layer",

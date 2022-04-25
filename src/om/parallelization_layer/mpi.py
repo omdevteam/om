@@ -25,6 +25,7 @@ from typing import Any, Dict, Tuple, Union
 
 from mpi4py import MPI  # type: ignore
 
+from om.monitor import om_print as print
 from om.protocols import data_extraction_layer as data_ret_layer_protocols
 from om.protocols import parallelization_layer as par_layer_protocols
 from om.protocols import processing_layer as pl_protocols

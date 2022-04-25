@@ -32,6 +32,7 @@ from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
+from om.monitor import om_print as print
 from om.protocols import processing_layer as pl_protocols
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector

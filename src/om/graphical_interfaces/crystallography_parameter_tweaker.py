@@ -34,6 +34,7 @@ from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.graphical_interfaces import common as graph_interfaces_common
+from om.monitor import om_print as print
 from om.utils import crystfel_geometry, exceptions, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
 

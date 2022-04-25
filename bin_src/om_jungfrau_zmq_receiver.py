@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-import zmq
-import time
 import json
-import click
 import threading
-
+import time
 from collections import deque
-from typing import Any, List, Dict, Deque
+from typing import Any, Deque, Dict, List
+
+import click
+import zmq
+
+from om.monitor import om_print as print
 
 
 def listen(

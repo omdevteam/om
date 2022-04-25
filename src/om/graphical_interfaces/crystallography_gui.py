@@ -32,6 +32,7 @@ from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
 from om.graphical_interfaces import common as graph_interfaces_common
+from om.monitor import om_print as print
 from om.utils import exceptions
 
 try:

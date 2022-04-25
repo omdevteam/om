@@ -20,14 +20,15 @@ MPI-based Parallelization Layer for OM.
 
 This module contains a Parallelization Layer based on the MPI protocol.
 """
+import multiprocessing
+import sys
 from concurrent.futures import process
 from email import message
-import multiprocessing
 from pickle import NONE
 from sqlite3 import connect
-import sys
 from typing import Any, Dict, List, Tuple, Union
 
+from om.monitor import om_print as print
 from om.protocols import data_extraction_layer as data_ret_layer_protocols
 from om.protocols import parallelization_layer as par_layer_protocols
 from om.protocols import processing_layer as pl_protocols

@@ -34,6 +34,7 @@ from om.algorithms import generic as gen_algs
 from om.protocols import processing_layer as pl_protocols
 from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
+from om.monitor import om_print as print
 
 try:
     import msgpack  # type: ignore

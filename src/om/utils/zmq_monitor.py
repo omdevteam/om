@@ -27,6 +27,7 @@ from typing import Any, Dict, Tuple, Union
 
 import zmq
 
+from om.monitor import om_print as print
 from om.utils import exceptions
 from om.utils import parameters as param_utils
 
