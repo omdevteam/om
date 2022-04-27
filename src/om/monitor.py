@@ -82,8 +82,17 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
         "debugging."
     ),
 )
+@click.option(
+    "--node-pool-size",
+    "-n",
+    default=0,
+    type=int,
+    help=(
+        "The total number of nodes in the OM pool, including all the processing nodes "
+        "and the collecting node."
+    ),
+)
 @click.argument("source", type=str)
-@click.argument("node_pool_size", type=int)
 def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
     """
     OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
