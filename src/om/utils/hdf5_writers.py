@@ -32,9 +32,9 @@ from numpy.typing import DTypeLike, NDArray
 from typing_extensions import Literal
 
 from om.algorithms import crystallography as cryst_algs
-from om.monitor import om_print as print
 from om.utils import crystfel_geometry, exceptions
 from om.utils import parameters as param_utils
+from om.utils.rich_console import console, get_current_timestamp
 
 
 class HDF5Writer:
@@ -424,7 +424,10 @@ class HDF5Writer:
             self._processed_filename_extension
         )
         self._processed_filename.rename(final_filename)
-        print(f"{self._num_frames} frames saved in {final_filename} file.")
+        console.print(
+            f"{get_current_timestamp()} {self._num_frames} frames saved in "
+            f"{final_filename} file."
+        )
         sys.stdout.flush()
 
     def get_current_filename(self) -> pathlib.Path:
@@ -550,8 +553,9 @@ class SumHDF5Writer:
             except OSError:
                 time.sleep(2)
                 pass
-        print(
-            f"Another application is reading the file {self._class_filename} "
-            "exclusively. Five attempts to open the files failed. Cannot update the "
-            "file."
+        console.print(
+            f"{get_current_timestamp()} Another application is reading the file "
+            f"{self._class_filename} exclusively. Five attempts to open the files "
+            "failed. Cannot update the file.",
+            style="warning",
         )

@@ -26,9 +26,9 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
-from om.monitor import om_print as print
 from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
+from om.utils.rich_console import console, get_current_timestamp
 
 
 class Jungfrau1MZmqDataEventHandler(drl_protocols.OmDataEventHandler):
@@ -156,7 +156,7 @@ class Jungfrau1MZmqDataEventHandler(drl_protocols.OmDataEventHandler):
         """
         url: str = self._source
         zmq_context: Any = zmq.Context()
-        print(f"Node {node_rank} connecting to {url}")
+        console.print(f"{get_current_timestamp()} Node {node_rank} connecting to {url}")
         zmq_socket: Any = zmq_context.socket(zmq.PULL)
         zmq_socket.setsockopt(zmq.CONFLATE, 1)
         try:

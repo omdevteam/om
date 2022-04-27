@@ -32,8 +32,8 @@ from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
 from om.graphical_interfaces import common as graph_interfaces_common
-from om.monitor import om_print as print
 from om.utils import exceptions
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
@@ -255,9 +255,10 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
                 ]
             )
         except TypeError:
-            print(
-                "Beam energy or detector distance information is not available. "
-                "Resolution rings cannot be drawn."
+            console.print(
+                f"{get_current_timestamp()} Beam energy or detector distance"
+                "information is not available. Resolution rings cannot be drawn.",
+                style="warning",
             )
             self._resolution_rings_check_box.setChecked(False)
         else:

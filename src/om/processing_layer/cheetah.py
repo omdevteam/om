@@ -32,10 +32,10 @@ from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.monitor import om_print as print
 from om.protocols import processing_layer as pl_protocols
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     from typing import TypedDict
@@ -228,7 +228,7 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             node_rank=node_rank,
         )
 
-        print(f"Processing node {node_rank} starting")
+        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def _write_status_file(
@@ -480,7 +480,7 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             }
             for class_number in range(2)
         ]
-        print("Starting the monitor...")
+        console.print(f"{get_current_timestamp()} Starting the monitor...")
         sys.stdout.flush()
 
     def process_data(  # noqa: C901
@@ -826,9 +826,9 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             events_per_second: float = float(self._speed_report_interval) / float(
                 now_time - self._old_time
             )
-            print(
-                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
-                f"({events_per_second} Hz)"
+            console.print(
+                f"{get_current_timestamp()} Processed: {self._num_events} in "
+                f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
             )
             sys.stdout.flush()
             self._old_time = now_time
@@ -866,9 +866,9 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         total_num_events: int = (
             self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"]
         )
-        print(
-            f"Processing finished. OM node {node_rank} has processed "
-            f"{total_num_events} events in total."
+        console.print(
+            f"{get_current_timestamp()} Processing finished. OM node {node_rank} has "
+            f"processed {total_num_events} events in total."
         )
         sys.stdout.flush()
         if self._file_writer is not None:
@@ -943,5 +943,5 @@ class CheetahProcessing(pl_protocols.OmProcessing):
                         f"{frame.average_intensity}\n"
                     )
 
-        print("Collecting node shutting down.")
+        console.print(f"{get_current_timestamp()} Collecting node shutting down.")
         sys.stdout.flush()

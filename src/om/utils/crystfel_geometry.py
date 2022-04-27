@@ -32,8 +32,8 @@ import numpy
 from mypy_extensions import TypedDict
 from numpy.typing import NDArray
 
-from om.monitor import om_print as print
 from om.utils import exceptions
+from om.utils.rich_console import console
 
 
 class TypeBeam(TypedDict):
@@ -506,8 +506,10 @@ def _parse_field_for_panel(  # noqa: C901
         elif value == "-":
             panel["badrow"] = "-"
         else:
-            print("badrow_direction must be x, t, f, s, or '-'")
-            print("Assuming '-'.")
+            console.print(
+                "badrow_direction must be x, t, f, s, or '-'", style="warning"
+            )
+            console.print("Assuming '-'.", style="warning")
             panel["badrow"] = "-"
     elif key == "no_index":
         panel["no_index"] = bool(value)

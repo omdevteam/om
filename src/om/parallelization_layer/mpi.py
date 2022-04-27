@@ -25,11 +25,11 @@ from typing import Any, Dict, Tuple, Union
 
 from mpi4py import MPI  # type: ignore
 
-from om.monitor import om_print as print
 from om.protocols import data_extraction_layer as data_ret_layer_protocols
 from om.protocols import parallelization_layer as par_layer_protocols
 from om.protocols import processing_layer as pl_protocols
 from om.utils import exceptions, parameters
+from om.utils.rich_console import console, get_current_timestamp
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _DIETAG: int = 999
@@ -108,9 +108,9 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
         control commands over MPI channels.
         """
         if self._rank == 0:
-            print(
+            console.rule(
                 "You are using an OM real-time monitor. Please cite: "
-                "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080"
+                "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080",
             )
             self._processing_layer.initialize_collecting_node(
                 node_rank=self._rank, node_pool_size=self._mpi_size
@@ -127,13 +127,18 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
                         # If the received message announces that a processing node has
                         # finished processing data, keeps track of how many processing
                         # nodes have already finished.
-                        print(f"Finalizing {received_data[1]}")
+                        console.print(
+                            f"{get_current_timestamp()} Finalizing {received_data[1]}"
+                        )
                         self._num_nomore += 1
                         # When all processing nodes have finished, calls the
                         # 'end_processing_on_collecting_node' function then shuts down.
                         if self._num_nomore == self._mpi_size - 1:
-                            print("All processing nodes have run out of events.")
-                            print("Shutting down.")
+                            console.print(
+                                f"{get_current_timestamp()} All processing nodes have "
+                                f"run out of events."
+                            )
+                            console.print(f"{get_current_timestamp()} Shutting down.")
                             sys.stdout.flush()
                             self._processing_layer.end_processing_on_collecting_node(
                                 node_rank=self._rank, node_pool_size=self._mpi_size
@@ -173,11 +178,11 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
                                 )
 
                 except KeyboardInterrupt as exc:
-                    print("Received keyboard sigterm...")
-                    print(str(exc))
-                    print("shutting down MPI.")
+                    console.print("Received keyboard sigterm...")
+                    console.print(str(exc))
+                    console.print("shutting down.")
                     self.shutdown()
-                    print("---> execution finished.")
+                    console.print("---> execution finished.")
                     sys.stdout.flush()
                     sys.exit(0)
         else:
@@ -222,8 +227,13 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
                             event=event
                         )
                     except exceptions.OmDataExtractionError as exc:
-                        print(exc)
-                        print("Skipping event...")
+                        console.print(
+                            f"{get_current_timestamp()} {exc}", style="warning"
+                        )
+                        console.print(
+                            f"{get_current_timestamp()} Skipping event...",
+                            style="warning",
+                        )
                         continue
                     data.update(feedback_dict)
                     processed_data: Tuple[
@@ -282,7 +292,7 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
 
             msg: Reason for shutting down. Defaults to "Reason not provided".
         """
-        print("Shutting down:", msg)
+        console.print("Shutting down:", msg)
         sys.stdout.flush()
         if self._rank == 0:
             # Tells all the processing nodes that they need to shut down, then waits

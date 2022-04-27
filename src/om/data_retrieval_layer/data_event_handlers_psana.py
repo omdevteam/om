@@ -27,9 +27,9 @@ from typing import Any, Dict, Generator, List, Union
 import numpy
 
 from om.data_retrieval_layer import data_sources_psana as ds_psana
-from om.monitor import om_print as print
 from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     import psana  # type: ignore
@@ -121,7 +121,11 @@ class PsanaDataEventHandler(drl_protocols.OmDataEventHandler):
         if psana_calib_dir is not None:
             psana.setOption("psana.calib-dir", psana_calib_dir)
         else:
-            print("OM Warning: Calibration directory not provided or not found.")
+            console.print(
+                f"{get_current_timestamp} OM Warning: Calibration directory not "
+                "provided or not found.",
+                style="warning",
+            )
 
         psana_source: Any = psana.DataSource(self._source)
 

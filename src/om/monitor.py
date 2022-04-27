@@ -29,10 +29,11 @@ from typing import Any, Callable, Dict, Type, TypeVar, Union, cast
 
 import click
 
-from om.utils import console, exceptions, parameters
+from om.utils import exceptions, parameters
 from om.protocols import data_extraction_layer as drl_protocols
 from om.protocols import parallelization_layer as pa_protocols
 from om.protocols import processing_layer as pr_protocols
+from om.utils.rich_console import console
 
 T = TypeVar("T")
 
@@ -59,9 +60,6 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
         )
 
     return imported_class
-
-
-om_print: Callable[..., None] = print
 
 
 @click.command()
@@ -105,6 +103,51 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
         sys.excepthook = exceptions.om_exception_handler
 
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
+        config=config
+    )
+
+    parallelization_layer_class_name: str = monitor_parameters.get_parameter(
+        group="om",
+        parameter="parallelization_layer",
+        parameter_type=str,
+        required=True,
+    )
+
+    if parallelization_layer_class_name == "MpiParallelization":
+        try:
+            from mpi4py import MPI
+
+            mpi_size: int = MPI.COMM_WORLD.Get_size()
+            mpi_rank: int = MPI.COMM_WORLD.Get_rank()
+
+            if node_pool_size != 0:
+                if mpi_rank == 0:
+                    console.print(
+                        "OM Warning: ignoring --node-pool-size or -n option to this "
+                        "script and using the number of nodes defined by MPI "
+                        f"({mpi_size}).",
+                        style="yellow",
+                    )
+
+            node_pool_size = mpi_size
+
+        except ImportError:
+            console.print(
+                "OM ERROR: mpi parallelization selected, but mpi4py failed to import.",
+                style="red",
+            )
+            sys.exit(1)
+    else:
+        if node_pool_size == 0:
+            console.print(
+                "OM ERROR: When not using the mpi parallelization layer, the "
+                "number of nodes must be specified using the --node-pool-size or "
+                "-n option to this script.",
+                style="red",
+            )
+            sys.exit(1)
+
+    monitor_parameters = parameters.MonitorParams(
         config=config, source=source, node_pool_size=node_pool_size
     )
 
@@ -115,26 +158,12 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
         required=True,
     )
 
-    parallelization_layer_class_name: str = monitor_parameters.get_parameter(
-        group="om",
-        parameter="parallelization_layer",
-        parameter_type=str,
-        required=True,
-    )
-
     processing_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
         parameter="processing_layer",
         parameter_type=str,
         required=True,
     )
-
-    om_custom_print: Union[Callable[..., None], None] = console.get_om_print(
-        monitor_parameters
-    )
-    if om_custom_print is not None:
-        global om_print
-        om_print = om_custom_print
 
     parallelization_layer_class: Type[pa_protocols.OmParallelization] = _import_class(
         layer="parallelization_layer",

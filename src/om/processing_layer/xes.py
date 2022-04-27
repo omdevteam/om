@@ -31,10 +31,10 @@ from numpy.typing import NDArray
 
 from om.algorithms import generic as gen_algs
 from om.algorithms import xes as xes_algs
-from om.monitor import om_print as print
 from om.protocols import processing_layer as pl_protocols
 from om.utils import crystfel_geometry, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypePixelMaps
+from om.utils.rich_console import console, get_current_timestamp
 
 
 class XESProcessing(pl_protocols.OmProcessing):
@@ -129,7 +129,7 @@ class XESProcessing(pl_protocols.OmProcessing):
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
 
-        print(f"Processing node {node_rank} starting")
+        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
@@ -203,7 +203,7 @@ class XESProcessing(pl_protocols.OmProcessing):
         self._old_time: float = time.time()
         self._time: Union[float, None] = None
 
-        print("Starting the monitor...")
+        console.print(f"{get_current_timestamp()} Starting the monitor...")
         sys.stdout.flush()
 
     def process_data(
@@ -429,9 +429,9 @@ class XESProcessing(pl_protocols.OmProcessing):
             events_per_second: float = float(self._speed_report_interval) / float(
                 now_time - self._old_time
             )
-            print(
-                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
-                f"({events_per_second} Hz)"
+            console.print(
+                f"{get_current_timestamp()} Processed: {self._num_events} in "
+                f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
             )
             sys.stdout.flush()
             self._old_time = now_time
@@ -462,7 +462,9 @@ class XESProcessing(pl_protocols.OmProcessing):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
-        print(f"Processing node {node_rank} shutting down.")
+        console.print(
+            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
+        )
         sys.stdout.flush()
         return None
 
@@ -485,8 +487,8 @@ class XESProcessing(pl_protocols.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        print(
-            f"Processing finished. OM has processed {self._num_events} events "
-            "in total."
+        console.print(
+            f"{get_current_timestamp()} Processing finished. OM has processed "
+            f"{self._num_events} events in total."
         )
         sys.stdout.flush()

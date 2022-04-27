@@ -27,9 +27,9 @@ from typing import Any, Dict, Tuple, Union
 
 import zmq
 
-from om.monitor import om_print as print
 from om.utils import exceptions
 from om.utils import parameters as param_utils
+from om.utils.rich_console import console, get_current_timestamp
 
 
 def get_current_machine_ip() -> str:
@@ -110,7 +110,7 @@ class ZmqDataBroadcaster:
                     "The setup of the data broadcasting socket failed due to the "
                     f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
-        print(f"Broadcasting data at {url}")
+        console.print(f"{get_current_timestamp()} Broadcasting data at {url}")
         sys.stdout.flush()
 
     def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
@@ -203,7 +203,7 @@ class ZmqResponder:
 
         self._zmq_poller: Any = zmq.Poller()
         self._zmq_poller.register(self._sock, zmq.POLLIN)
-        print(f"Answering requests at {url}")
+        console.print(f"{get_current_timestamp()} Answering requests at {url}")
         sys.stdout.flush()
 
     def get_request(self) -> Union[Tuple[bytes, bytes], None]:

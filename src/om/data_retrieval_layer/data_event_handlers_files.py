@@ -36,9 +36,9 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.monitor import om_print as print
 from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     import fabio  # type: ignore
@@ -558,7 +558,10 @@ class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
             )
         ]
 
-        print("Num frames current node:", node_rank, num_frames_curr_node)
+        console.print(
+            f"{get_current_timestamp()} Num frames current node: "
+            f"{node_rank} {num_frames_curr_node}"
+        )
 
         self._data_sources["timestamp"].initialize_data_source()
         source_name: str

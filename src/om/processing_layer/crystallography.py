@@ -34,7 +34,7 @@ from om.algorithms import generic as gen_algs
 from om.protocols import processing_layer as pl_protocols
 from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
-from om.monitor import om_print as print
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     import msgpack  # type: ignore
@@ -185,7 +185,7 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             required=True,
         )
 
-        print(f"Processing node {node_rank} starting")
+        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
@@ -293,7 +293,7 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             list(self._geometry["panels"].keys())[0]
         ]["coffset"]
 
-        peakogram_nbins: int = 300
+        peakogram_num_bins: int = 300
         peakogram_intensity_bin_size: Union[
             None, float
         ] = self._monitor_params.get_parameter(
@@ -315,15 +315,16 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
         )
         if peakfinder_max_res:
             self._peakogram_radius_bin_size: float = (
-                peakfinder_max_res / peakogram_nbins
+                peakfinder_max_res / peakogram_num_bins
             )
         else:
             self._peakogram_radius_bin_size = (
-                cast(NDArray[numpy.float_], self._pixelmaps["radius"]) / peakogram_nbins
+                cast(NDArray[numpy.float_], self._pixelmaps["radius"])
+                / peakogram_num_bins
             )
 
         self._peakogram: NDArray[numpy.float_] = numpy.zeros(
-            (peakogram_nbins, peakogram_nbins)
+            (peakogram_num_bins, peakogram_num_bins)
         )
 
         self._running_average_window_size: int = self._monitor_params.get_parameter(
@@ -432,7 +433,7 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
         self._old_time: float = time.time()
         self._time: Union[float, None] = None
 
-        print("Starting the monitor...")
+        console.print(f"{get_current_timestamp()} Starting the monitor...")
         sys.stdout.flush()
 
     def process_data(
@@ -605,9 +606,10 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
                     )
                     _ = self._request_list.popleft()
             else:
-                print(
-                    "OM Warning: Could not understand request "
-                    f"'{str(first_request[1])}'."
+                console.print(
+                    f"{get_current_timestamp()} OM Warning: Could not understand "
+                    f"request '{str(first_request[1])}'.",
+                    style="warning",
                 )
                 _ = self._request_list.popleft()
 
@@ -774,9 +776,9 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             events_per_second: float = float(self._speed_report_interval) / float(
                 now_time - self._old_time
             )
-            print(
-                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
-                f"({events_per_second} Hz)"
+            console.print(
+                f"{get_current_timestamp()} Processed: {self._num_events} in "
+                f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
             )
             sys.stdout.flush()
             self._old_time = now_time
@@ -809,7 +811,9 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
-        print(f"Processing node {node_rank} shutting down.")
+        console.print(
+            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
+        )
         sys.stdout.flush()
         return None
 
@@ -832,8 +836,8 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        print(
-            f"Processing finished. OM has processed {self._num_events} events "
-            "in total."
+        console.print(
+            f"{get_current_timestamp()} Processing finished. OM has processed "
+            f"{self._num_events} events in total."
         )
         sys.stdout.flush()
