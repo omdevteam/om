@@ -1,13 +1,15 @@
 om:
   parallelization_layer: MpiParallelization
   data_retrieval_layer: CxiLclsDataRetrieval
-  processing_layer: SpiProcessing
+  processing_layer: CrystallographyProcessing
 
 data_retrieval_layer:
   calibration: true
   psana_detector_name: jungfrau4M
   psana_detector_distance_epics_name: detector_z
   psana_calibration_directory: /reg/d/psdm/cxi/cxilv4418/calib
+ psana_evr_source_name: evr1
+  active_optical_laser_evr_code: 183
   required_data:
     - "detector_data"
     - "beam_energy"
@@ -29,6 +31,7 @@ crystallography:
   speed_report_interval: 100
   hit_frame_sending_interval: 5
   non_hit_frame_sending_interval: 10
+  pump_probe_experiment: false
 
 correction:
   dark_filename: null
