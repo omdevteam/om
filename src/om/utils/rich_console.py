@@ -23,10 +23,17 @@ terminal console output, using the python Rich library.
 """
 
 from datetime import datetime
+from typing import Dict
 
 from rich.console import Console
+from rich.theme import Theme
+from rich.traceback import install
+
 
 console = Console()
+om_base_theme = Theme({"warning": "bold yellow", "error": "red"})
+console.push_theme(om_base_theme)
+install(show_locals=True, console=console)
 
 
 def get_current_timestamp() -> str:
@@ -41,3 +48,34 @@ def get_current_timestamp() -> str:
         A string with the formatted timestamp.
     """
     return datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+
+
+def set_null_theme() -> None:
+    """
+    Configures OM's rich console not to use colors.
+
+    This function configures OM's rich console to use an null theme, effectively
+    preventing it from using colors when displaying its output.
+    """
+    null_theme: Theme = Theme({"warning": "none", "error": "none"}, inherit=False)
+    console.push_theme(null_theme, inherit=False)
+
+
+def set_custom_theme(*, theme_dict: Dict[str, str]) -> None:
+    """
+    Sets a custom theme for OM's rich console.
+
+    This function configures OM's rich console to use a custom theme. A dictionary
+    passed to this function as an input parameter must stores the theme definition,
+    using the syntax defined by the python
+    [Rich library][https://rich.readthedocs.io/en/stable/style.html].
+    The custom theme is overlayed on top of OM's base rich console's theme: the console
+    will fall back to the base theme for any entry not defined in the custom one.
+
+    Arguments:
+
+        theme_dict: A dictionary storing the custom theme definition, following the
+            syntax defined by python Rich library.
+    """
+    custom_theme: Theme = Theme(theme_dict)
+    console.push_theme(custom_theme)

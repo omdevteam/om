@@ -33,7 +33,7 @@ from om.utils import exceptions, parameters
 from om.protocols import data_extraction_layer as drl_protocols
 from om.protocols import parallelization_layer as pa_protocols
 from om.protocols import processing_layer as pr_protocols
-from om.utils.rich_console import console
+from om.utils.rich_console import console, set_null_theme, set_custom_theme
 
 T = TypeVar("T")
 
@@ -72,17 +72,6 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
     "working directory)",
 )
 @click.option(
-    "--debug",
-    "-d",
-    default=False,
-    type=bool,
-    is_flag=True,
-    help=(
-        "Disable the custom OM error handler for OM-related exceptions. Useful for "
-        "debugging."
-    ),
-)
-@click.option(
     "--node-pool-size",
     "-n",
     default=0,
@@ -93,7 +82,7 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
     ),
 )
 @click.argument("source", type=str)
-def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
+def main(*, source: str, node_pool_size: int, config: str) -> None:
     """
     OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
     configuration parameters read from a provided file. The monitor retrieves data
@@ -107,13 +96,29 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    # Sets a custom exception handler to deal with OM-specific exceptions.
-    if not debug:
-        sys.excepthook = exceptions.om_exception_handler
-
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
         config=config
     )
+
+    colors_in_rich_console: Union[bool, None] = monitor_parameters.get_parameter(
+        group="om",
+        parameter="colors_in_rich_console",
+        parameter_type=bool,
+    )
+
+    if colors_in_rich_console is False:
+        set_null_theme()
+    else:
+        custom_rich_console_colors: Union[
+            Dict[str, str], None
+        ] = monitor_parameters.get_parameter(
+            group="om",
+            parameter="custom_rich_console_colors",
+            parameter_type=dict,
+        )
+
+        if custom_rich_console_colors is not None:
+            set_custom_theme(custom_rich_console_colors)
 
     parallelization_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
@@ -135,7 +140,7 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
                         "OM Warning: ignoring --node-pool-size or -n option to this "
                         "script and using the number of nodes defined by MPI "
                         f"({mpi_size}).",
-                        style="yellow",
+                        style="warning",
                     )
 
             node_pool_size = mpi_size
@@ -143,7 +148,7 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
         except ImportError:
             console.print(
                 "OM ERROR: mpi parallelization selected, but mpi4py failed to import.",
-                style="red",
+                style="error",
             )
             sys.exit(1)
     else:
@@ -152,12 +157,13 @@ def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
                 "OM ERROR: When not using the mpi parallelization layer, the "
                 "number of nodes must be specified using the --node-pool-size or "
                 "-n option to this script.",
-                style="red",
+                style="error",
             )
             sys.exit(1)
 
-    monitor_parameters = parameters.MonitorParams(
-        config=config, source=source, node_pool_size=node_pool_size
+    monitor_parameters.add_source_and_node_pool_size_information(
+        source=source,
+        node_pool_size=node_pool_size,
     )
 
     data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
