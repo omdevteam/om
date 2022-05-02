@@ -118,7 +118,7 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
         )
 
         if custom_rich_console_colors is not None:
-            set_custom_theme(custom_rich_console_colors)
+            set_custom_theme(theme_dict=custom_rich_console_colors)
 
     parallelization_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
@@ -129,7 +129,7 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
 
     if parallelization_layer_class_name == "MpiParallelization":
         try:
-            from mpi4py import MPI
+            from mpi4py import MPI  # type: ignore
 
             mpi_size: int = MPI.COMM_WORLD.Get_size()
             mpi_rank: int = MPI.COMM_WORLD.Get_rank()
