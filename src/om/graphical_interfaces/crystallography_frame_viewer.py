@@ -129,10 +129,10 @@ class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
             x=peak_list_x_in_frame,
             y=peak_list_y_in_frame,
             symbol="o",
-            size=[5] * len(peak_list_x_in_frame),
+            size=[8] * len(peak_list_x_in_frame),
             brush=(255, 255, 255, 0),
             pen=self._ring_pen,
-            pxMode=False,
+            pxMode=True,
         )
 
     def _update_image_and_peaks(self) -> None:

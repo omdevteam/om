@@ -23,6 +23,7 @@ set of OM's configuration parameters from a configuration file.
 """
 from typing import Any, Dict, List, TextIO, Union
 
+import pathlib
 import yaml  # type: ignore
 
 from om.utils import exceptions

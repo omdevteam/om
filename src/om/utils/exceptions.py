@@ -54,6 +54,13 @@ class OmDataExtractionError(OmException):
     """
 
 
+class OmEigerHttpInterfaceInitializationError(OmException):
+    """
+    Raised if an error happens while OM is accessing Eiger http interface.
+
+    """
+
+
 class OmHdf5FileReadingError(OmException):
     """
     Raised if an error happens while reading an HDF5 data file.

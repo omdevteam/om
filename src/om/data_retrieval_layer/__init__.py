@@ -17,7 +17,6 @@
 # a research centre of the Helmholtz Association.
 """
 OM's Data Retrieval Layer.
-
 This package contains OM's Data Retrieval Layer (which manages the retrieval of data
 and data events from various sources). Functions and classes for different detectors,
 facilities and software frameworks are implemented in separate modules in the package.
@@ -47,6 +46,18 @@ try:
         MfxLclsDataRetrieval,
         MfxLclsRayonixDataRetrieval,
     )
+except ModuleNotFoundError:
+    pass
+
+try:
+    import asapo_consumer  # type: ignore
+    from .data_retrieval_asapo import EigerAsapoDataRetrieval
+except ModuleNotFoundError:
+    pass
+
+try:
+    import PIL  # type: ignore  # noqa: F401
+    from .data_retrieval_http import Eiger16MHttpDataRetrieval
 except ModuleNotFoundError:
     pass
 
