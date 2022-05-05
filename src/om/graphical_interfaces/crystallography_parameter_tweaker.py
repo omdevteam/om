@@ -33,9 +33,10 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
-from om.graphical_interfaces import base as graph_interfaces_base
+from om.graphical_interfaces import common as graph_interfaces_common
 from om.utils import crystfel_geometry, exceptions, parameters
 from om.utils.crystfel_geometry import TypePixelMaps
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
@@ -52,7 +53,7 @@ except ImportError:
     )
 
 
-class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
+class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
     """
     See documentation of the `__init__` function.
     """
@@ -443,7 +444,10 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        print(f"Showing frame {self._current_frame_index} in the buffer")
+        console.print(
+            f"{get_current_timestamp()} Showing frame "
+            f"{self._current_frame_index} in the buffer"
+        )
         self._update_image_and_peaks()
 
     def _forward_button_clicked(self) -> None:
@@ -451,7 +455,10 @@ class CrystallographyParameterTweaker(graph_interfaces_base.OmGui):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        print(f"Showing frame {self._current_frame_index} in the buffer")
+        console.print(
+            f"{get_current_timestamp()} Showing frame "
+            f"{self._current_frame_index} in the buffer"
+        )
         self._update_image_and_peaks()
 
     def _stop_stream(self) -> None:
@@ -508,7 +515,9 @@ def main(*, url: str, config: str) -> None:
     if url is None:
         url = "tcp://127.0.0.1:12321"
 
-    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(config)
+    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
+        config=config
+    )
 
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyParameterTweaker(url=url, monitor_parameters=monitor_parameters)

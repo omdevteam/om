@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-import zmq
-import time
 import json
-import click
 import threading
-
+import time
 from collections import deque
-from typing import Any, List, Dict, Deque
+from typing import Any, Deque, Dict, List
+
+import click
+import zmq
+
+from om.utils.console import console
 
 
 def listen(
@@ -63,7 +65,7 @@ def listen(
         # speed reporting
         i += 1
         if i % 100 == 0:
-            print(
+            console.print(
                 "Worker %d: %d frames, %.1f s since start timestamp, %.2f s delay"
                 % (panel_id, i, timestamp - timestamp_start, time.time() - timestamp)
             )
@@ -132,7 +134,7 @@ def main(input_url: str, output_url: str) -> None:
                     and fr0["frame_number"] not in matched
                 ):
                     if i % 200 == 0:
-                        print(
+                        console.print(
                             "Master: last matched frame id %d, %.2f s delay"
                             % (fr0["acq_index"], time.time() - fr0["timestamp"])
                         )

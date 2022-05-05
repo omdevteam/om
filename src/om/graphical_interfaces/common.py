@@ -18,7 +18,8 @@
 """
 Base abstract classes for OM's graphical interfaces.
 
-This module contains base Classes for OM's graphical user interfaces and viewers.
+This module contains base classes and functions used by several of OM's graphical user
+interfaces and viewers.
 """
 import copy
 from abc import ABCMeta, abstractmethod
@@ -40,7 +41,7 @@ class _QtMetaclass(type(QtCore.QObject), ABCMeta):  # type: ignore
     pass
 
 
-class OmGui(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
+class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
     """
     See documentation of the `__init__` function.
     """
@@ -78,7 +79,7 @@ class OmGui(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
             tag: A string used to filter the data received from an OnDA Monitor. Only
                 data whose tag matches this argument will be received by the GUI.
         """
-        super(OmGui, self).__init__()
+        super(OmGuiBase, self).__init__()
 
         self._received_data: Dict[str, Any] = {}
         self.listening: bool = False

@@ -25,28 +25,22 @@ import collections
 import pathlib
 import sys
 import time
-from tokenize import Name
-from typing import (
-    Any,
-    Deque,
-    Dict,
-    List,
-    NamedTuple,
-    TextIO,
-    Tuple,
-    TypedDict,
-    Union,
-    cast,
-)
+from typing import Any, Deque, Dict, List, NamedTuple, TextIO, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.processing_layer import base as pl_base
+from om.protocols import processing_layer as pl_protocols
 from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector
+from om.utils.rich_console import console, get_current_timestamp
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from mypy_extensions import TypedDict
 
 
 class _TypeClassSumData(TypedDict, total=False):
@@ -63,14 +57,14 @@ class _TypeFrameListData(NamedTuple):
     # frames.txt file.
     timestamp: numpy.float64
     event_id: Union[str, None]
-    frame_is_hit: bool
+    frame_is_hit: int
     filename: str
     index_in_file: int
     num_peaks: int
     average_intensity: numpy.float64
 
 
-class CheetahProcessing(pl_base.OmProcessing):
+class CheetahProcessing(pl_protocols.OmProcessing):
     """
     See documentation for the `__init__` function.
     """
@@ -128,7 +122,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
         )
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
-        self._data_shape: Tuple[int, int] = self._pixelmaps["x"].shape
+        self._data_shape: Tuple[int, ...] = self._pixelmaps["x"].shape
 
         self._hit_frame_sending_counter: int = 0
         self._non_hit_frame_sending_counter: int = 0
@@ -234,7 +228,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             node_rank=node_rank,
         )
 
-        print(f"Processing node {node_rank} starting")
+        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def _write_status_file(
@@ -287,12 +281,6 @@ class CheetahProcessing(pl_base.OmProcessing):
             parameter_type=int,
             required=True,
         )
-        self._data_broadcast_interval: int = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="data_broadcast_interval",
-            parameter_type=int,
-            required=True,
-        )
         self._geometry_is_optimized: bool = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="geometry_is_optimized",
@@ -321,10 +309,12 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._binning = gen_algs.Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
+            self._bin_size: int = self._binning.get_bin_size()
             self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
         else:
             self._binning = None
+            self._bin_size = 1
 
         # Theoretically, the pixel size could be different for every module of the
         # detector. The pixel size of the first module is taken as the pixel size
@@ -390,6 +380,12 @@ class CheetahProcessing(pl_base.OmProcessing):
             required=False,
         )
         if self._data_broadcast:
+            self._data_broadcast_interval: int = self._monitor_params.get_parameter(
+                group="crystallography",
+                parameter="data_broadcast_interval",
+                parameter_type=int,
+                required=True,
+            )
             self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
                 zmq_monitor.ZmqDataBroadcaster(
                     parameters=self._monitor_params.get_parameter_group(
@@ -420,6 +416,10 @@ class CheetahProcessing(pl_base.OmProcessing):
         )
         self._status_filename: pathlib.Path = (
             processed_directory_path.resolve() / "status.txt"
+        )
+        self._frames_file: TextIO = open(self._frames_filename, "w")
+        self._frames_file.write(
+            "# timestamp, event_id, hit, filename, index, num_peaks, ave_intensity\n"
         )
         self._hits_file: TextIO = open(
             processed_directory_path.resolve() / "hits.lst", "w"
@@ -480,7 +480,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             }
             for class_number in range(2)
         ]
-        print("Starting the monitor...")
+        console.print(f"{get_current_timestamp()} Starting the monitor...")
         sys.stdout.flush()
 
     def process_data(  # noqa: C901
@@ -684,30 +684,36 @@ class CheetahProcessing(pl_base.OmProcessing):
             self._num_hits += 1
             if "event_id" in received_data.keys():
                 self._hits_file.write(f"{received_data['event_id']}\n")
+                peak_list: cryst_algs.TypePeakList = received_data["peak_list"]
                 self._peaks_file.writelines(
                     (
                         f"{received_data['event_id']}, "
-                        f"{received_data['peak_list']['num_peaks']}, "
-                        f"{received_data['peak_list']['fs'][i]}, "
-                        f"{received_data['peak_list']['ss'][i]}, "
-                        f"{received_data['peak_list']['intensity'][i]}, "
-                        f"{received_data['peak_list']['num_pixels'][i]}, "
-                        f"{received_data['peak_list']['max_pixel_intensity'][i]}, "
-                        f"{received_data['peak_list']['snr'][i]}\n"
-                        for i in range(received_data["peak_list"]["num_peaks"])
+                        f"{peak_list['num_peaks']}, "
+                        f"{(peak_list['fs'][i] + 0.5) * self._bin_size - 0.5}, "
+                        f"{(peak_list['ss'][i] + 0.5) * self._bin_size - 0.5}, "
+                        f"{peak_list['intensity'][i]}, "
+                        f"{peak_list['num_pixels'][i]}, "
+                        f"{peak_list['max_pixel_intensity'][i]}, "
+                        f"{peak_list['snr'][i]}\n"
+                        for i in range(peak_list["num_peaks"])
                     )
                 )
 
-        self._frame_list.append(
-            _TypeFrameListData(
-                received_data["timestamp"],
-                received_data["event_id"],
-                received_data["frame_is_hit"],
-                received_data["filename"],
-                received_data["index"],
-                received_data["peak_list"]["num_peaks"],
-                numpy.mean(received_data["peak_list"]["intensity"]),
-            )
+        frame_data: _TypeFrameListData = _TypeFrameListData(
+            received_data["timestamp"],
+            received_data["event_id"],
+            int(received_data["frame_is_hit"]),
+            received_data["filename"],
+            received_data["index"],
+            received_data["peak_list"]["num_peaks"],
+            numpy.mean(received_data["peak_list"]["intensity"]),
+        )
+        self._frame_list.append(frame_data)
+        self._frames_file.write(
+            f"{frame_data.timestamp}, {frame_data.event_id}, "
+            f"{frame_data.frame_is_hit}, {frame_data.filename}, "
+            f"{frame_data.index_in_file}, {frame_data.num_peaks}, "
+            f"{frame_data.average_intensity}\n"
         )
 
         self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
@@ -764,6 +770,7 @@ class CheetahProcessing(pl_base.OmProcessing):
             )
             self._hits_file.flush()
             self._peaks_file.flush()
+            self._frames_file.flush()
 
         if (
             self._data_broadcast
@@ -819,9 +826,9 @@ class CheetahProcessing(pl_base.OmProcessing):
             events_per_second: float = float(self._speed_report_interval) / float(
                 now_time - self._old_time
             )
-            print(
-                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
-                f"({events_per_second} Hz)"
+            console.print(
+                f"{get_current_timestamp()} Processed: {self._num_events} in "
+                f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
             )
             sys.stdout.flush()
             self._old_time = now_time
@@ -859,9 +866,9 @@ class CheetahProcessing(pl_base.OmProcessing):
         total_num_events: int = (
             self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"]
         )
-        print(
-            f"Processing finished. OM node {node_rank} has processed "
-            f"{total_num_events} events in total."
+        console.print(
+            f"{get_current_timestamp()} Processing finished. OM node {node_rank} has "
+            f"processed {total_num_events} events in total."
         )
         sys.stdout.flush()
         if self._file_writer is not None:
@@ -909,15 +916,16 @@ class CheetahProcessing(pl_base.OmProcessing):
                 num_frames=self._num_events,
                 num_hits=self._total_sums[1]["num_frames"],
             )
-        fh: TextIO
-        with open(self._frames_filename, "w") as fh:
-            fh.write(
+        # Sort frames and write frames.txt file again
+        self._frames_file.close()
+        with open(self._frames_filename, "w") as self._frames_file:
+            self._frames_file.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
                 "ave_intensity\n"
             )
             frame: _TypeFrameListData
             for frame in frame_list:
-                fh.write(
+                self._frames_file.write(
                     f"{frame.timestamp}, {frame.event_id}, {frame.frame_is_hit}, "
                     f"{frame.filename}, {frame.index_in_file}, {frame.num_peaks}, "
                     f"{frame.average_intensity}\n"
@@ -935,5 +943,5 @@ class CheetahProcessing(pl_base.OmProcessing):
                         f"{frame.average_intensity}\n"
                     )
 
-        print("Collecting node shutting down.")
+        console.print(f"{get_current_timestamp()} Collecting node shutting down.")
         sys.stdout.flush()

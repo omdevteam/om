@@ -25,14 +25,15 @@ import importlib
 import signal
 import sys
 from types import ModuleType
-from typing import Type, TypeVar, Union, cast
+from typing import Any, Callable, Dict, Type, TypeVar, Union, cast
 
 import click
 
-from om.data_retrieval_layer import base as drl_base
-from om.parallelization_layer import base as pa_base
-from om.processing_layer import base as pr_base
 from om.utils import exceptions, parameters
+from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import parallelization_layer as pa_protocols
+from om.protocols import processing_layer as pr_protocols
+from om.utils.rich_console import console, set_null_theme, set_custom_theme
 
 T = TypeVar("T")
 
@@ -71,18 +72,17 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
     "working directory)",
 )
 @click.option(
-    "--debug",
-    "-d",
-    default=False,
-    type=bool,
-    is_flag=True,
+    "--node-pool-size",
+    "-n",
+    default=0,
+    type=int,
     help=(
-        "Disable the custom OM error handler for OM-related exceptions. Useful for "
-        "debugging."
+        "The total number of nodes in the OM pool, including all the processing nodes "
+        "and the collecting node."
     ),
 )
 @click.argument("source", type=str)
-def main(*, source: str, config: str, debug: bool) -> None:
+def main(*, source: str, node_pool_size: int, config: str) -> None:
     """
     OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
     configuration parameters read from a provided file. The monitor retrieves data
@@ -96,24 +96,79 @@ def main(*, source: str, config: str, debug: bool) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    # Sets a custom exception handler to deal with OM-specific exceptions.
-    if not debug:
-        sys.excepthook = exceptions.om_exception_handler
-
     monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
-        config, source=source
+        config=config
+    )
+
+    colors_in_rich_console: Union[bool, None] = monitor_parameters.get_parameter(
+        group="om",
+        parameter="colors_in_rich_console",
+        parameter_type=bool,
+    )
+
+    if colors_in_rich_console is False:
+        set_null_theme()
+    else:
+        custom_rich_console_colors: Union[
+            Dict[str, str], None
+        ] = monitor_parameters.get_parameter(
+            group="om",
+            parameter="custom_rich_console_colors",
+            parameter_type=dict,
+        )
+
+        if custom_rich_console_colors is not None:
+            set_custom_theme(theme_dict=custom_rich_console_colors)
+
+    parallelization_layer_class_name: str = monitor_parameters.get_parameter(
+        group="om",
+        parameter="parallelization_layer",
+        parameter_type=str,
+        required=True,
+    )
+
+    if parallelization_layer_class_name == "MpiParallelization":
+        try:
+            from mpi4py import MPI  # type: ignore
+
+            mpi_size: int = MPI.COMM_WORLD.Get_size()
+            mpi_rank: int = MPI.COMM_WORLD.Get_rank()
+
+            if node_pool_size != 0:
+                if mpi_rank == 0:
+                    console.print(
+                        "OM Warning: ignoring --node-pool-size or -n option to this "
+                        "script and using the number of nodes defined by MPI "
+                        f"({mpi_size}).",
+                        style="warning",
+                    )
+
+            node_pool_size = mpi_size
+
+        except ImportError:
+            console.print(
+                "OM ERROR: mpi parallelization selected, but mpi4py failed to import.",
+                style="error",
+            )
+            sys.exit(1)
+    else:
+        if node_pool_size == 0:
+            console.print(
+                "OM ERROR: When not using the mpi parallelization layer, the "
+                "number of nodes must be specified using the --node-pool-size or "
+                "-n option to this script.",
+                style="error",
+            )
+            sys.exit(1)
+
+    monitor_parameters.add_source_and_node_pool_size_information(
+        source=source,
+        node_pool_size=node_pool_size,
     )
 
     data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
         parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
-    )
-
-    parallelization_layer_class_name: str = monitor_parameters.get_parameter(
-        group="om",
-        parameter="parallelization_layer",
         parameter_type=str,
         required=True,
     )
@@ -125,27 +180,27 @@ def main(*, source: str, config: str, debug: bool) -> None:
         required=True,
     )
 
-    parallelization_layer_class: Type[pa_base.OmParallelization] = _import_class(
+    parallelization_layer_class: Type[pa_protocols.OmParallelization] = _import_class(
         layer="parallelization_layer",
         class_name=parallelization_layer_class_name,
     )
-    data_retrieval_layer_class: Type[drl_base.OmDataRetrieval] = _import_class(
+    data_retrieval_layer_class: Type[drl_protocols.OmDataRetrieval] = _import_class(
         layer="data_retrieval_layer",
         class_name=data_retrieval_layer_class_name,
     )
-    processing_layer_class: Type[pr_base.OmProcessing] = _import_class(
+    processing_layer_class: Type[pr_protocols.OmProcessing] = _import_class(
         layer="processing_layer",
         class_name=processing_layer_class_name,
     )
 
-    processing_layer: pr_base.OmProcessing = processing_layer_class(
+    processing_layer: pr_protocols.OmProcessing = processing_layer_class(
         monitor_parameters=monitor_parameters
     )
-    data_retrieval_layer: drl_base.OmDataRetrieval = data_retrieval_layer_class(
+    data_retrieval_layer: drl_protocols.OmDataRetrieval = data_retrieval_layer_class(
         monitor_parameters=monitor_parameters,
         source=source,
     )
-    parallelization_layer: pa_base.OmParallelization = parallelization_layer_class(
+    parallelization_layer: pa_protocols.OmParallelization = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
         processing_layer=processing_layer,
         monitor_parameters=monitor_parameters,

@@ -33,6 +33,7 @@ from mypy_extensions import TypedDict
 from numpy.typing import NDArray
 
 from om.utils import exceptions
+from om.utils.rich_console import console
 
 
 class TypeBeam(TypedDict):
@@ -505,8 +506,10 @@ def _parse_field_for_panel(  # noqa: C901
         elif value == "-":
             panel["badrow"] = "-"
         else:
-            print("badrow_direction must be x, t, f, s, or '-'")
-            print("Assuming '-'.")
+            console.print(
+                "badrow_direction must be x, t, f, s, or '-'", style="warning"
+            )
+            console.print("Assuming '-'.", style="warning")
             panel["badrow"] = "-"
     elif key == "no_index":
         panel["no_index"] = bool(value)
@@ -877,9 +880,7 @@ def read_crystfel_geometry(  # noqa: C901
         line_items: List[str] = re.split(
             pattern="([ \t])", string=line_without_comments
         )
-        line_items = [
-            item for item in line_items if item not in ("", " ", "\t")
-        ]
+        line_items = [item for item in line_items if item not in ("", " ", "\t")]
         if len(line_items) < 3:
             continue
         value: str = "".join(line_items[2:])
@@ -968,8 +969,7 @@ def read_crystfel_geometry(  # noqa: C901
         for dim_index, entry in enumerate(panel["dim_structure"]):
             if entry is None:
                 raise RuntimeError(
-                    f"Dimension {dim_index} for panel {panel_name} is "
-                    "undefined."
+                    f"Dimension {dim_index} for panel {panel_name} is " "undefined."
                 )
             if entry == "ss":
                 found_ss += 1
@@ -1000,43 +1000,34 @@ def read_crystfel_geometry(  # noqa: C901
                 "Number of dim coordinates must be the same for all panels."
             )
         if dim_length == 1:
-            raise RuntimeError(
-                "Number of dim coordinates must be at least " "two."
-            )
+            raise RuntimeError("Number of dim coordinates must be at least " "two.")
     for panel_name, panel in detector["panels"].items():
         if panel["orig_min_fs"] < 0:
             raise RuntimeError(
-                "Please specify the minimum fs coordinate for panel "
-                f"{panel_name}."
+                "Please specify the minimum fs coordinate for panel " f"{panel_name}."
             )
         if panel["orig_max_fs"] < 0:
             raise RuntimeError(
-                "Please specify the maximum fs coordinate for panel "
-                f"{panel_name}."
+                "Please specify the maximum fs coordinate for panel " f"{panel_name}."
             )
         if panel["orig_min_ss"] < 0:
             raise RuntimeError(
-                "Please specify the minimum ss coordinate for panel "
-                f"{panel_name}."
+                "Please specify the minimum ss coordinate for panel " f"{panel_name}."
             )
         if panel["orig_max_ss"] < 0:
             raise RuntimeError(
-                "Please specify the maximum ss coordinate for panel "
-                f"{panel_name}."
+                "Please specify the maximum ss coordinate for panel " f"{panel_name}."
             )
         if panel["cnx"] is None:
             raise RuntimeError(
-                "Please specify the corner X coordinate for panel "
-                f"{panel_name}."
+                "Please specify the corner X coordinate for panel " f"{panel_name}."
             )
         if panel["clen"] is None and panel["clen_from"] is None:
             raise RuntimeError(
                 f"Please specify the camera length for panel {panel_name}."
             )
         if panel["res"] < 0:
-            raise RuntimeError(
-                f"Please specify the resolution or panel {panel_name}."
-            )
+            raise RuntimeError(f"Please specify the resolution or panel {panel_name}.")
         if panel["adu_per_eV"] is None and panel["adu_per_photon"] is None:
             raise RuntimeError(
                 "Please specify either adu_per_eV or adu_per_photon for panel "
@@ -1069,8 +1060,7 @@ def read_crystfel_geometry(  # noqa: C901
         for name in detector["rigid_groups"][group]:
             if name not in detector["panels"]:
                 raise RuntimeError(
-                    "Cannot add panel to rigid_group. Panel not "
-                    f"found: {name}."
+                    "Cannot add panel to rigid_group. Panel not " f"found: {name}."
                 )
     group_collection: str
     for group_collection in detector["rigid_group_collections"]:

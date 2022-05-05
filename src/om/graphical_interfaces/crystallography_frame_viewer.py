@@ -32,8 +32,9 @@ import click
 import numpy
 from numpy.typing import NDArray
 
-from om.graphical_interfaces import base as graph_interfaces_base
+from om.graphical_interfaces import common as graph_interfaces_common
 from om.utils import exceptions
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtWidgets
@@ -50,7 +51,7 @@ except ImportError:
     )
 
 
-class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
+class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
     """
     See documentation of the `__init__` function.
     """
@@ -203,7 +204,10 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        print(f"Showing frame {self._current_frame_index} in the buffer")
+        console.print(
+            f"{get_current_timestamp()} Showing frame "
+            f"{self._current_frame_index} in the buffer"
+        )
         self._update_image_and_peaks()
 
     def _forward_button_clicked(self) -> None:
@@ -211,7 +215,7 @@ class CrystallographyFrameViewer(graph_interfaces_base.OmGui):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        print(f"Showing frame {self._current_frame_index} in the buffer")
+        console.print(f"Showing frame {self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _stop_stream(self) -> None:

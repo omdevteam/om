@@ -27,6 +27,7 @@ from typing import Any, Dict, Union
 import zmq
 
 from om.utils import exceptions
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore
@@ -101,7 +102,7 @@ class ZmqDataListener(QtCore.QObject):
         This function connects the listening socket to the URL with which the class was
         initialized. The socket starts receiving data immediately.
         """
-        print(f"Connecting to {self._url}")
+        console.print(f"{get_current_timestamp()} Connecting to {self._url}")
         self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)
         try:
             self._zmq_subscribe.connect(self._url)
@@ -135,7 +136,7 @@ class ZmqDataListener(QtCore.QObject):
         to start receiving data again.
         """
         self._listening_timer.stop()
-        print(f"Disconnecting from {self._url}.")
+        console.print(f"{get_current_timestamp()} Disconnecting from {self._url}.")
         self._zmq_subscribe.disconnect(f"{self._url}")
         self._zmq_poller = None
         self._zmq_subscribe = None

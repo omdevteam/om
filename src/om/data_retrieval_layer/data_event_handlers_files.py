@@ -25,12 +25,20 @@ import re
 import sys
 from typing import Any, Dict, Generator, List, TextIO, Tuple
 
+try:
+    from typing import TypedDict
+except ImportError:
+    from mypy_extensions import TypedDict
+
+from datetime import datetime
+
 import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     import fabio  # type: ignore
@@ -40,7 +48,15 @@ except ImportError:
     )
 
 
-class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
+class _TypeJungfrau1MFrameInfo(TypedDict):
+    # This typed dictionary is used internally to store additional information
+    # required to retrieve Jungfrau 1M frame data.
+    h5file: Any
+    index: int
+    file_timestamp: float
+
+
+class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -49,7 +65,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocols.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -371,7 +387,7 @@ class PilatusFilesEventHandler(drl_base.OmDataEventHandler):
         return self.extract_data(event=data_event)
 
 
-class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
+class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -380,7 +396,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocols.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -396,9 +412,9 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
           associated with an individual frame stored in an HDF5 file.
 
         * The source string required by this Data Event Handler is the path to a file
-          containing a list of HDF5 files to process, one per line, with their absolute
-          or relative path. Each file can store more than one detector data frame, each
-          corresponding to an event.
+          containing a list of master HDF5 files to process, one per line, with their
+          absolute or relative path. Each file can store more than one detector data
+          frame, each corresponding to an event.
 
         Arguments:
 
@@ -416,7 +432,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -464,7 +480,7 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -507,74 +523,56 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
             raise RuntimeError(
                 f"Error reading the {self._source} source file."
             ) from exc
-        frame_list: List[Dict[str, Any]] = []
-        # TODO: Specify types better
-        filename: str
-        for filename in filelist:
-            # input filename must be from panel 'd0'
-            if re.match(r".+_d0_.+\.h5", filename):
-                filename_d0: str = filename.strip()
-            else:
+        frame_list: List[_TypeJungfrau1MFrameInfo] = []
+        line: str
+        for line in filelist:
+            filename: str = line.strip()
+            # input filename must be a 'master' h5 file
+            if not re.match(r".+_master_.+\.h5", filename):
                 continue
             filename_d1: str = re.sub(r"(_d0_)(.+\.h5)", r"_d1_\2", str(filename_d0))
 
-            h5files: Tuple[Any, Any] = (
-                h5py.File(pathlib.Path(filename_d0).resolve(), "r"),
-                h5py.File(pathlib.Path(filename_d1).resolve(), "r"),
-            )
+            h5file: Any = h5py.File(pathlib.Path(filename).resolve(), "r")
+            file_timestamp: float = datetime.strptime(
+                h5file["/entry/instrument/detector/timestamp"][()]
+                .decode("utf-8")
+                .strip(),
+                "%a %b %d %H:%M:%S %Y",
+            ).timestamp()
 
-            h5_data_path: str = "/data_" + re.findall(r"_(f\d+)_", filename)[0]
-
-            try:
-                frame_numbers: List[NDArray[numpy.int_]] = [
-                    h5file["/frameNumber"][:] for h5file in h5files
-                ]
-            except KeyError:
-                frame_numbers = [h5file["/frame number"][:] for h5file in h5files]
-
-            ind0: int
-            frame_number: NDArray[numpy.int_]
-            for ind0, frame_number in enumerate(frame_numbers[0]):
-                try:
-                    ind1: int = numpy.where(frame_numbers[1] == frame_number)[0][0]
-                except IndexError:
-                    continue
-
-                # TODO: Type this dictionary
+            index: int
+            for index in range(h5file["/entry/data/data"].shape[0]):
                 frame_list.append(
                     {
-                        "h5files": h5files,
-                        "index": (ind0, ind1),
-                        "h5_data_path": h5_data_path,
-                        "frame_number": frame_number,
-                        "jf_internal_clock": h5files[0]["/timestamp"][ind0]
-                        - h5files[0]["/timestamp"][0],
-                        "file_creation_time": numpy.float64(
-                            pathlib.Path(filename_d0).stat().st_ctime
-                        ),
+                        "h5file": h5file,
+                        "index": index,
+                        "file_timestamp": file_timestamp,
                     }
                 )
 
         num_frames_curr_node: int = int(
             numpy.ceil(len(frame_list) / float(node_pool_size - 1))
         )
-        frames_curr_node: List[Dict[str, Any]] = frame_list[
+        frames_curr_node: List[_TypeJungfrau1MFrameInfo] = frame_list[
             ((node_rank - 1) * num_frames_curr_node) : (
                 node_rank * num_frames_curr_node
             )
         ]
 
-        print("Num frames current node:", node_rank, num_frames_curr_node)
+        console.print(
+            f"{get_current_timestamp()} Num frames current node: "
+            f"{node_rank} {num_frames_curr_node}"
+        )
 
         self._data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:
             self._data_sources[source_name].initialize_data_source()
 
-        data_event: Dict[str, Dict[str, Any]] = {}
+        data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
-        entry: Dict[str, Any]
+        entry: _TypeJungfrau1MFrameInfo
         for entry in frames_curr_node:
             data_event["additional_info"].update(entry)
             data_event["additional_info"]["num_frames_curr_node"] = len(
@@ -690,17 +688,41 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from Jungfrau 1M files.
+        Initializes frame data retrievals from Jungfrau 1M HDF5 files.
 
+        This function initializes the retrieval of a single standalone detector data
+        frame from Jungfrau 1M HDF5 files, with all the information that refers to it.
         """
-        pass
+        required_data: List[str] = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="required_data",
+            parameter_type=list,
+            required=True,
+        )
+
+        self._required_data_sources = drl_protocols.filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=required_data,
+        )
+
+        self._data_sources["timestamp"].initialize_data_source()
+        source_name: str
+        for source_name in self._required_data_sources:
+            self._data_sources[source_name].initialize_data_source()
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data related to the requested detector frame from an event.
+        Retrieves all data realted to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
+
+        This function retrieves frame data from the event specified by the provided
+        Jungfrau 1M unique event identifier. The identifier is a string consisting of
+        the path of the master HDF5 file attached to the event and the index of the
+        event within the file, separated by '//' symbol. Since Jungfrau 1M data events
+        are based around single detector frames, the unique frame identifier provided
+        to this function must be the string "0".
 
         Arguments:
 
@@ -713,10 +735,40 @@ class Jungfrau1MFilesDataEventHandler(drl_base.OmDataEventHandler):
 
             All data related to the requested detector data frame.
         """
-        pass
+        data_event: Dict[str, Any] = {}
+
+        event_id_parts: List[str] = event_id.split("//")
+        filename: str = event_id_parts[0].strip()
+        index: int = int(event_id_parts[1].strip())
+        h5file: Any = h5py.File(pathlib.Path(filename).resolve(), "r")
+        file_timestamp: float = datetime.strptime(
+            h5file["/entry/instrument/detector/timestamp"][()].decode("utf-8").strip(),
+            "%a %b %d %H:%M:%S %Y",
+        ).timestamp()
+
+        data_event["additional_info"] = {
+            "h5file": h5file,
+            "index": index,
+            "file_timestamp": file_timestamp,
+        }
+
+        if frame_id != "0":
+            raise exceptions.OmMissingFrameDataError(
+                f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
+                "the data event source."
+            )
+
+        data_event["additional_info"]["timestamp"] = self._data_sources[
+            "timestamp"
+        ].get_data(event=data_event)
+
+        extracted_data: Dict[str, Any] = self.extract_data(event=data_event)
+        h5file.close()
+
+        return extracted_data
 
 
-class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
+class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -725,7 +777,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocols.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -761,7 +813,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -809,7 +861,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1002,7 +1054,7 @@ class Eiger16MFilesDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

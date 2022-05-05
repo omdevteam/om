@@ -29,6 +29,7 @@ import zmq
 
 from om.utils import exceptions
 from om.utils import parameters as param_utils
+from om.utils.rich_console import console, get_current_timestamp
 
 
 def get_current_machine_ip() -> str:
@@ -109,7 +110,7 @@ class ZmqDataBroadcaster:
                     "The setup of the data broadcasting socket failed due to the "
                     f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
-        print(f"Broadcasting data at {url}")
+        console.print(f"{get_current_timestamp()} Broadcasting data at {url}")
         sys.stdout.flush()
 
     def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
@@ -145,6 +146,7 @@ class ZmqResponder:
         self,
         *,
         parameters: Dict[str, Any],
+        blocking: bool = False,
     ) -> None:
         """
         ZMQ-based responding socket for OnDA Monitors.
@@ -152,8 +154,13 @@ class ZmqResponder:
         This class manages a socket that can be used by an OnDA Monitor to receive
         requests from external programs, and respond to them. The class must be
         initialized with the URL, in ZeroMQ format, were the socket should operate.
-        The socket will then accept requests from external sources, and it can be used
-        to transmit data that satisfy the requests, if necessary.
+        The socket can be of blocking or non-blocking type. In the first case, the
+        socket will wait for a request and will not allow the monitor to proceed until
+        one is received. In the second case, the socket will retrieve a request if one
+        is available, but proceed otherwise. Unless requested when the class is
+        initialized, a non-blocking socket will be created. After being initialized, a
+        socket will accept requests from external sources, and can also be used to
+        transmit data that satisfy them, if necessary.
 
         This class creates a ZMQ ROUTER socket that can accept requests from REQ sockets
         in external programs and respond to them.
@@ -165,6 +172,8 @@ class ZmqResponder:
                 None, the IP address of the local machine will be autodetected, and the
                 socket will be opened at port 12322 using the 'tcp://' protocol.
                 Defaults to None.
+
+            blocking: whether the socket should be of blocking type. Defaults to False.
         """
         url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
             group=parameters, parameter="responding_url", parameter_type=str
@@ -173,6 +182,8 @@ class ZmqResponder:
             current_machine_ip: str = get_current_machine_ip()
             url = f"tcp://{current_machine_ip}:12322"
         # TODO: Fix types
+
+        self._blocking = blocking
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
         # queuing).
@@ -192,16 +203,19 @@ class ZmqResponder:
 
         self._zmq_poller: Any = zmq.Poller()
         self._zmq_poller.register(self._sock, zmq.POLLIN)
-        print(f"Answering requests at {url}")
+        console.print(f"{get_current_timestamp()} Answering requests at {url}")
         sys.stdout.flush()
 
     def get_request(self) -> Union[Tuple[bytes, bytes], None]:
         """
         Gets a request from the responding socket, if present.
 
-        This function checks, in a non-blocking way, if a request has been received by
-        the socket. In the affirmative case, it returns a tuple storing the identity of
-        the requester and the content of the request, otherwise it returns None. The
+        This function checks if a request has been received by the socket. If the
+        socket has been set up as blocking, this function will not return until a
+        request is received. The function will then returns a tuple storing the
+        identity of the requester and the content of the request. If the socket is
+        instead non-blocking, the function will return the same information if a
+        request is available when the function is called, and None otherwise. The
         identity of the requester must be stored and provided later to the
         [send_data][om.utils.zmq_monitor.send_data] function to answer the request.
 
@@ -212,13 +226,16 @@ class ZmqResponder:
             content as the second entry. If no request has been received by the
             socket, None.
         """
-        socks: Dict[Any, Any] = dict(self._zmq_poller.poll(0))
-        if self._sock in socks and socks[self._sock] == zmq.POLLIN:
+        if self._blocking:
             request: Tuple[bytes, bytes, bytes] = self._sock.recv_multipart()
-            print(request)
             return (request[0], request[2])
         else:
-            return None
+            socks: Dict[Any, Any] = dict(self._zmq_poller.poll(0))
+            if self._sock in socks and socks[self._sock] == zmq.POLLIN:
+                request = self._sock.recv_multipart()
+                return (request[0], request[2])
+            else:
+                return None
 
     def send_data(self, *, identity: bytes, message: Dict[str, Any]) -> None:
         """

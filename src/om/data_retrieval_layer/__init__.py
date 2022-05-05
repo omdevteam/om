@@ -17,30 +17,30 @@
 # a research centre of the Helmholtz Association.
 """
 OM's Data Retrieval Layer.
+
 This package contains OM's Data Retrieval Layer (which manages the retrieval of data
 and data events from various sources). Functions and classes for different detectors,
 facilities and software frameworks are implemented in separate modules in the package.
 Other modules contain utilities functions and classes.
 """
 
-from om.data_retrieval_layer.data_retrieval_zmq import (  # noqa: F401
-    Jungfrau1MZmqDataRetrieval,
-)
-from om.data_retrieval_layer.data_retrieval_files import (  # noqa: F401
+from .data_retrieval_zmq import Jungfrau1MZmqDataRetrieval  # noqa: F401
+from .data_retrieval_files import (  # noqa: F401
     Jungfrau1MFilesDataRetrieval,
     PilatusFilesDataRetrieval,
     Eiger16MFilesDataRetrieval,
+    RayonixMccdFilesDataRetrieval,
 )
 
 try:
     import fabio  # type: ignore  # noqa: F401
-    from om.data_retrieval_layer.data_retrieval_files import PilatusFilesDataRetrieval
+    from .data_retrieval_files import PilatusFilesDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
     pass
 
 try:
     import psana  # type: ignore  # noqa: F401
-    from om.data_retrieval_layer.data_retrieval_psana import (  # noqa: F401
+    from .data_retrieval_psana import (  # noqa: F401
         CxiLclsDataRetrieval,
         CxiLclsCspadDataRetrieval,
         CxiLclsEpix100DataRetrieval,

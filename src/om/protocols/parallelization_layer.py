@@ -21,10 +21,9 @@ Parallelization Layer's base classes.
 This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
-from typing import Union
 
-from om.data_retrieval_layer import base as data_ret_layer_base
-from om.processing_layer import base as pl_base
+from om.protocols import data_extraction_layer as data_ret_layer_protocols
+from om.protocols import processing_layer as pl_protocols
 from om.utils import parameters
 
 
@@ -37,8 +36,8 @@ class OmParallelization(ABC):
     def __init__(
         self,
         *,
-        data_retrieval_layer: data_ret_layer_base.OmDataRetrieval,
-        processing_layer: pl_base.OmProcessing,
+        data_retrieval_layer: data_ret_layer_protocols.OmDataRetrieval,
+        processing_layer: pl_protocols.OmProcessing,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -100,7 +99,7 @@ class OmParallelization(ABC):
         pass
 
     @abstractmethod
-    def shutdown(self, *, msg: Union[str, None] = "Reason not provided.") -> None:
+    def shutdown(self, *, msg: str = "Reason not provided.") -> None:
         """
         Shuts down OM.
 

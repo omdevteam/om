@@ -31,9 +31,10 @@ from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.processing_layer import base as pl_base
+from om.protocols import processing_layer as pl_protocols
 from om.utils import crystfel_geometry, exceptions, parameters, zmq_monitor
 from om.utils.crystfel_geometry import TypeDetector, TypePixelMaps
+from om.utils.rich_console import console, get_current_timestamp
 
 try:
     import msgpack  # type: ignore
@@ -43,7 +44,7 @@ except ImportError:
     )
 
 
-class CrystallographyProcessing(pl_base.OmProcessing):
+class CrystallographyProcessing(pl_protocols.OmProcessing):
     """
     See documentation for the `__init__` function.
     """
@@ -184,7 +185,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             required=True,
         )
 
-        print(f"Processing node {node_rank} starting")
+        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
         sys.stdout.flush()
 
     def initialize_collecting_node(
@@ -265,8 +266,10 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             )
             self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
+            self._bin_size: int = self._binning.get_bin_size()
         else:
             self._binning = None
+            self._bin_size = 1
 
         pump_probe_experiment: Union[bool, None] = self._monitor_params.get_parameter(
             group="crystallography",
@@ -289,6 +292,40 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self._first_panel_coffset: float = self._geometry["panels"][
             list(self._geometry["panels"].keys())[0]
         ]["coffset"]
+
+        peakogram_num_bins: int = 300
+        peakogram_intensity_bin_size: Union[
+            None, float
+        ] = self._monitor_params.get_parameter(
+            group="crystallography",
+            parameter="peakogram_intensity_bin_size",
+            parameter_type=float,
+            required=False,
+        )
+        if peakogram_intensity_bin_size:
+            self._peakogram_intensity_bin_size: float = peakogram_intensity_bin_size
+        else:
+            self._peakogram_intensity_bin_size = 100
+
+        peakfinder_max_res: Union[None, int] = self._monitor_params.get_parameter(
+            group="peakfinder8_peak_detection",
+            parameter="max_res",
+            parameter_type=int,
+            required=False,
+        )
+        if peakfinder_max_res:
+            self._peakogram_radius_bin_size: float = (
+                peakfinder_max_res / peakogram_num_bins
+            )
+        else:
+            self._peakogram_radius_bin_size = (
+                cast(NDArray[numpy.float_], self._pixelmaps["radius"])
+                / peakogram_num_bins
+            )
+
+        self._peakogram: NDArray[numpy.float_] = numpy.zeros(
+            (peakogram_num_bins, peakogram_num_bins)
+        )
 
         self._running_average_window_size: int = self._monitor_params.get_parameter(
             group="crystallography",
@@ -396,7 +433,7 @@ class CrystallographyProcessing(pl_base.OmProcessing):
         self._old_time: float = time.time()
         self._time: Union[float, None] = None
 
-        print("Starting the monitor...")
+        console.print(f"{get_current_timestamp()} Starting the monitor...")
         sys.stdout.flush()
 
     def process_data(
@@ -491,7 +528,12 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                 processed_data["detector_data"] = binned_detector_data
                 self._send_hit_frame = False
         else:
-            processed_data["peak_list"] = {"fs": [], "ss": [], "intensity": []}
+            processed_data["peak_list"] = {
+                "fs": [],
+                "ss": [],
+                "intensity": [],
+                "max_pixel_intensity": [],
+            }
             if self._send_non_hit_frame is True:
                 processed_data["detector_data"] = binned_detector_data
                 self._send_non_hit_frame = False
@@ -564,9 +606,10 @@ class CrystallographyProcessing(pl_base.OmProcessing):
                     )
                     _ = self._request_list.popleft()
             else:
-                print(
-                    "OM Warning: Could not understand request "
-                    f"'{str(first_request[1])}'."
+                console.print(
+                    f"{get_current_timestamp()} OM Warning: Could not understand "
+                    f"request '{str(first_request[1])}'.",
+                    style="warning",
                 )
                 _ = self._request_list.popleft()
 
@@ -599,15 +642,41 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             self._hit_rate_timestamp_history.append(received_data["timestamp"])
             self._hit_rate_history.append(avg_hit_rate * 100.0)
 
+        if received_data["frame_is_hit"]:
+            peakogram_max_intensity: float = (
+                self._peakogram.shape[1] * self._peakogram_intensity_bin_size
+            )
+            peaks_max_intensity: float = max(
+                received_data["peak_list"]["max_pixel_intensity"]
+            )
+            if peaks_max_intensity > peakogram_max_intensity:
+                self._peakogram = numpy.concatenate(
+                    (
+                        self._peakogram,
+                        numpy.zeros(
+                            (
+                                self._peakogram.shape[0],
+                                int(
+                                    (peaks_max_intensity - peakogram_max_intensity)
+                                    // self._peakogram_intensity_bin_size
+                                    + 1
+                                ),
+                            )
+                        ),
+                    ),
+                    axis=1,
+                )
+
         peak_list_x_in_frame: List[float] = []
         peak_list_y_in_frame: List[float] = []
         peak_fs: float
         peak_ss: float
         peak_value: float
-        for peak_fs, peak_ss, peak_value in zip(
+        for peak_fs, peak_ss, peak_value, peak_max_pixel_intensity in zip(
             received_data["peak_list"]["fs"],
             received_data["peak_list"]["ss"],
             received_data["peak_list"]["intensity"],
+            received_data["peak_list"]["max_pixel_intensity"],
         ):
             peak_index_in_slab: int = int(round(peak_ss)) * received_data["data_shape"][
                 1
@@ -617,6 +686,20 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
+
+            peak_radius: float = (
+                self._bin_size
+                * self._pixelmaps["radius"][int(round(peak_ss)), int(round(peak_fs))]
+            )
+            radius_index: int = int(peak_radius // self._peakogram_radius_bin_size)
+            intensity_index: int = int(
+                peak_max_pixel_intensity // self._peakogram_intensity_bin_size
+            )
+            if (
+                radius_index < self._peakogram.shape[0]
+                and intensity_index < self._peakogram.shape[1]
+            ):
+                self._peakogram[radius_index, intensity_index] += 1
 
         omdata_message: Dict[str, Any] = {
             "geometry_is_optimized": self._geometry_is_optimized,
@@ -632,6 +715,9 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             "num_events": self._num_events,
             "num_hits": self._num_hits,
             "start_timestamp": self._start_timestamp,
+            "peakogram": self._peakogram,
+            "peakogram_radius_bin_size": self._peakogram_radius_bin_size,
+            "peakogram_intensity_bin_size": self._peakogram_intensity_bin_size,
         }
         if self._pump_probe_experiment:
             omdata_message[
@@ -690,9 +776,9 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             events_per_second: float = float(self._speed_report_interval) / float(
                 now_time - self._old_time
             )
-            print(
-                f"Processed: {self._num_events} in {time_diff:.2f} seconds "
-                f"({events_per_second} Hz)"
+            console.print(
+                f"{get_current_timestamp()} Processed: {self._num_events} in "
+                f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
             )
             sys.stdout.flush()
             self._old_time = now_time
@@ -725,7 +811,9 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             Usually nothing. Optionally, a dictionary storing information to be sent to
             the processing node.
         """
-        print(f"Processing node {node_rank} shutting down.")
+        console.print(
+            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
+        )
         sys.stdout.flush()
         return None
 
@@ -748,8 +836,8 @@ class CrystallographyProcessing(pl_base.OmProcessing):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        print(
-            f"Processing finished. OM has processed {self._num_events} events "
-            "in total."
+        console.print(
+            f"{get_current_timestamp()} Processing finished. OM has processed "
+            f"{self._num_events} events in total."
         )
         sys.stdout.flush()

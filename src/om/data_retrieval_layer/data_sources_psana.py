@@ -26,7 +26,7 @@ from typing import Any, Callable, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocols
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils import exceptions
 from om.utils.parameters import MonitorParams
@@ -40,34 +40,34 @@ except ImportError:
 
 
 def _get_psana_epics_name(
-    *, source_base_name: str, monitor_parameters: MonitorParams
+    *, source_protocols_name: str, monitor_parameters: MonitorParams
 ) -> str:
     # Helper function that retrieves an epics variable's name from the monitor
     # configuration parameters or from the source base name, if the name begins with
     # the string "psana-"".
-    if source_base_name.startswith("psana-"):
-        detector_name: str = source_base_name.split("psana-")[1]
+    if source_protocols_name.startswith("psana-"):
+        detector_name: str = source_protocols_name.split("psana-")[1]
     else:
         detector_name = monitor_parameters.get_parameter(
             group="data_retrieval_layer",
-            parameter=f"psana_{source_base_name}_epics_name",
+            parameter=f"psana_{source_protocols_name}_epics_name",
             parameter_type=str,
         )
     return detector_name
 
 
 def _get_psana_detector_name(
-    *, source_base_name: str, monitor_parameters: MonitorParams
+    *, source_protocols_name: str, monitor_parameters: MonitorParams
 ) -> str:
     # Helper function that retrieves a detector's name from the monitor configuration
     # parameters or from the source base name, if the name begins with the string
     # "psana-"
-    if source_base_name.startswith("psana-"):
-        detector_name: str = source_base_name.split("psana-")[1]
+    if source_protocols_name.startswith("psana-"):
+        detector_name: str = source_protocols_name.split("psana-")[1]
     else:
         detector_name = monitor_parameters.get_parameter(
             group="data_retrieval_layer",
-            parameter=f"psana_{source_base_name}_name",
+            parameter=f"psana_{source_protocols_name}_name",
             required=True,
             parameter_type=str,
         )
@@ -78,15 +78,17 @@ def _get_psana_data_retrieval_function(
     # Helper function that  picks the right psana data retrieval function
     # (raw or calib) depending on what is required.
     *,
-    source_base_name: str,
+    source_protocols_name: str,
     monitor_parameters: MonitorParams,
 ) -> Callable[[Any], Any]:
     detector_name: str = _get_psana_detector_name(
-        source_base_name=source_base_name, monitor_parameters=monitor_parameters
+        source_protocols_name=source_protocols_name,
+        monitor_parameters=monitor_parameters,
     )
     detector_interface: Any = psana.Detector(detector_name)
     calibrated_data_required: bool = ds_generic.get_calibration_request(
-        source_base_name=source_base_name, monitor_parameters=monitor_parameters
+        source_protocols_name=source_protocols_name,
+        monitor_parameters=monitor_parameters,
     )
     if calibrated_data_required:
         data_retrieval_function: Callable[[Any], Any] = detector_interface.calib
@@ -95,7 +97,7 @@ def _get_psana_data_retrieval_function(
     return data_retrieval_function
 
 
-class CspadPsana(drl_base.OmDataSource):
+class CspadPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -114,12 +116,12 @@ class CspadPsana(drl_base.OmDataSource):
 
         This class deals with the retrieval of a CSPAD detector data frame from the
         psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_base_name}_name` entry in OM's
+        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group. However, it is also
         possible to provide the psana name of the detector directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-". The
+        `source_protocols_name` argument, by prefixing it with the string "psana-". The
         detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_base_name}_calibration` entry in the
+        depending on the value of the `{source_protocols_name}_calibration` entry in the
         `data_retrieval_layer` parameter group.
 
         Arguments:
@@ -141,15 +143,15 @@ class CspadPsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the detector
-        whose psana name matches the entry `psana_{source_base_name}_name` in OM's
+        whose psana name matches the entry `psana_{source_protocols_name}_name` in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         self._data_retrieval_function: Callable[
             [Any], Any
         ] = _get_psana_data_retrieval_function(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
 
@@ -165,7 +167,7 @@ class CspadPsana(drl_base.OmDataSource):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_base_name}_calibration` entry in OM's `data_retrieval_layer`
+        value of the `{source_protocols_name}_calibration` entry in OM's `data_retrieval_layer`
         configuration parameter group.
 
         Arguments:
@@ -206,7 +208,7 @@ class CspadPsana(drl_base.OmDataSource):
         return cspad_slab
 
 
-class Epix10kaPsana(drl_base.OmDataSource):
+class Epix10kaPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -225,12 +227,12 @@ class Epix10kaPsana(drl_base.OmDataSource):
 
         This class deals with the retrieval of an Epix10KA 2M detector data frame from
         the psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_base_name}_name` entry in OM's
+        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group. However, it is also
         possible to provide the psana name of the detector directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-". The
+        `source_protocols_name` argument, by prefixing it with the string "psana-". The
         detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_base_name}_calibration` entry in the
+        depending on the value of the `{source_protocols_name}_calibration` entry in the
         `data_retrieval_layer` parameter group.
 
         Arguments:
@@ -252,15 +254,15 @@ class Epix10kaPsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         self._data_retrieval_function: Callable[
             [Any], Any
         ] = _get_psana_data_retrieval_function(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
 
@@ -276,7 +278,7 @@ class Epix10kaPsana(drl_base.OmDataSource):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_base_name}_calibration` entry in OM's `data_retrieval_layer`
+        value of the `{source_protocols_name}_calibration` entry in OM's `data_retrieval_layer`
         configuration parameter group.
 
         Arguments:
@@ -303,7 +305,7 @@ class Epix10kaPsana(drl_base.OmDataSource):
         return epixka2m_reshaped
 
 
-class Jungfrau4MPsana(drl_base.OmDataSource):
+class Jungfrau4MPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -322,12 +324,12 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
 
         This class deals with the retrieval of a Jungfrau 4M detector data frame from
         the psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_base_name}_name` entry in OM's
+        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group. However, it is also
         possible to provide the psana name of the detector directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-". The
+        `source_protocols_name` argument, by prefixing it with the string "psana-". The
         detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_base_name}_calibration` entry in the
+        depending on the value of the `{source_protocols_name}_calibration` entry in the
         `data_retrieval_layer` parameter group.
 
         Arguments:
@@ -349,15 +351,15 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_base_name}_name` entry in the
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in the
         OM's `data_retrieval_layer` configuration parameter group, or for the detector
-        with a given psana name, if the `source_base_name` argument has the format
+        with a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         self._data_retrieval_function: Callable[
             [Any], Any
         ] = _get_psana_data_retrieval_function(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
 
@@ -373,7 +375,7 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_base_name}_calibration` entry in OM's
+        value of the `{source_protocols_name}_calibration` entry in OM's
         `data_retrieval_layer` configuration parameter group..
 
         Arguments:
@@ -400,7 +402,7 @@ class Jungfrau4MPsana(drl_base.OmDataSource):
         return jungfrau_reshaped
 
 
-class Epix100Psana(drl_base.OmDataSource):
+class Epix100Psana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -419,12 +421,12 @@ class Epix100Psana(drl_base.OmDataSource):
 
         This class deals with the retrieval of an Epix100 detector data frame from the
         psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_base_name}_name` entry in OM's
+        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group. However, it is also
         possible to provide the psana name of the detector directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-". The
+        `source_protocols_name` argument, by prefixing it with the string "psana-". The
         detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_base_name}_calibration` entry in the
+        depending on the value of the `{source_protocols_name}_calibration` entry in the
         `data_retrieval_layer` parameter group.
 
         Arguments:
@@ -446,15 +448,15 @@ class Epix100Psana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         self._data_retrieval_function: Callable[
             [Any], Any
         ] = _get_psana_data_retrieval_function(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
 
@@ -470,7 +472,7 @@ class Epix100Psana(drl_base.OmDataSource):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_base_name}_calibration` entry in OM's
+        value of the `{source_protocols_name}_calibration` entry in OM's
         `data_retrieval_layer` configuration parameter group.
 
         Arguments:
@@ -492,7 +494,7 @@ class Epix100Psana(drl_base.OmDataSource):
         return epix_psana
 
 
-class RayonixPsana(drl_base.OmDataSource):
+class RayonixPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -511,10 +513,10 @@ class RayonixPsana(drl_base.OmDataSource):
 
         This class deals with the retrieval of a Rayonix detector data frame from the
         psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_base_name}_name` entry in OM's
+        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group. However, it is also
         possible to provide the psana name of the detector directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-".
+        `source_protocols_name` argument, by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -536,13 +538,13 @@ class RayonixPsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         detector_name: str = _get_psana_detector_name(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         self._detector_interface: Any = psana.Detector(detector_name)
@@ -576,7 +578,7 @@ class RayonixPsana(drl_base.OmDataSource):
         return rayonix_psana
 
 
-class OpalPsana(drl_base.OmDataSource):
+class OpalPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -595,9 +597,9 @@ class OpalPsana(drl_base.OmDataSource):
 
         This class deals with the retrieval of an Opal camera data frame from the psana
         software framework. Data is normally retrieved for the camera whose psana name
-        matches the `psana_{source_base_name}_name` entry in OM's `data_retrieval_layer`
+        matches the `psana_{source_protocols_name}_name` entry in OM's `data_retrieval_layer`
         configuration parameter group. However, it is also possible to provide the
-        psana name of the camera directly in the `source_base_name` argument, by
+        psana name of the camera directly in the `source_protocols_name` argument, by
         prefixing it with the string "psana-".
 
         Arguments:
@@ -619,13 +621,13 @@ class OpalPsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the camera
-        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the camera with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         detector_name: str = _get_psana_detector_name(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         self._detector_interface: Any = psana.Detector(detector_name)
@@ -659,7 +661,7 @@ class OpalPsana(drl_base.OmDataSource):
         return opal_psana
 
 
-class AcqirisPsana(drl_base.OmDataSource):
+class AcqirisPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -678,10 +680,10 @@ class AcqirisPsana(drl_base.OmDataSource):
 
         This class deals with the retrieval of waveform data from an Acqiris
         time/voltage detector at the LCLS facility. Data is normally retrieved for the
-        Acqiris detector whose psana name matches the `psana_{source_base_name}_name`
+        Acqiris detector whose psana name matches the `psana_{source_protocols_name}_name`
         entry in OM's `data_retrieval_layer` configuration parameter group. However, it
         is also possible to provide the psana name of the Acqiris detector directly in
-        the `source_base_name` argument, by prefixing it with the string "psana-".
+        the `source_protocols_name` argument, by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -702,13 +704,13 @@ class AcqirisPsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the Acqiris detector
-        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         detector_name: str = _get_psana_detector_name(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         self._detector_interface: Any = psana.Detector(detector_name)
@@ -764,7 +766,7 @@ class AcqirisPsana(drl_base.OmDataSource):
         )
 
 
-class AssembledDetectorPsana(drl_base.OmDataSource):
+class AssembledDetectorPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -784,10 +786,10 @@ class AssembledDetectorPsana(drl_base.OmDataSource):
         This class deals with the retrieval of an assembled detector data frame from
         the psana software framework. It retrieves detector data to which geometry
         information has already been applied. The assembled data is normally retrieved
-        for the detector whose psana name matches the `psana_{source_base_name}_name`
+        for the detector whose psana name matches the `psana_{source_protocols_name}_name`
         entry in OM's `data_retrieval_layer` configuration parameter group. However, it
         is also possible to provide the psana name of the detector directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-".
+        `source_protocols_name` argument, by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -808,13 +810,13 @@ class AssembledDetectorPsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         detector_name: str = _get_psana_detector_name(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         self._detector_interface: Any = psana.Detector(detector_name)
@@ -849,7 +851,7 @@ class AssembledDetectorPsana(drl_base.OmDataSource):
         return assembled_data
 
 
-class Wave8Psana(drl_base.OmDataSource):
+class Wave8Psana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -868,10 +870,10 @@ class Wave8Psana(drl_base.OmDataSource):
 
         This class deals with the retrieval of data from a Wave8 detector at the LCLS
         facility. Data is normally retrieved for the Wave8 detector whose psana name
-        matches the `psana_{source_base_name}_name` entry in OM's
+        matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group. However, it is also
         possible to provide the psana name of the Wave8 detector directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-".
+        `source_protocols_name` argument, by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -892,13 +894,13 @@ class Wave8Psana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the Wave8 detector
-        whose psana name matches the `psana_{source_base_name}_name` entry in OM's
+        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
-        a given psana name, if the `source_base_name` argument has the format
+        a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
         """
         detector_name: str = _get_psana_detector_name(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         self._detector_interface: Any = psana.Detector(detector_name)
@@ -924,7 +926,7 @@ class Wave8Psana(drl_base.OmDataSource):
         return cast(float, self._detector_interface())
 
 
-class TimestampPsana(drl_base.OmDataSource):
+class TimestampPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -993,7 +995,7 @@ class TimestampPsana(drl_base.OmDataSource):
         )
 
 
-class EventIdPsana(drl_base.OmDataSource):
+class EventIdPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -1068,7 +1070,7 @@ class EventIdPsana(drl_base.OmDataSource):
         return f"{timestamp_epoch_format[0]}-{timestamp_epoch_format[1]}-{fiducials}"
 
 
-class EpicsVariablePsana(drl_base.OmDataSource):
+class EpicsVariablePsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -1087,10 +1089,10 @@ class EpicsVariablePsana(drl_base.OmDataSource):
 
         This class deals with the retrieval of an Epics variable's value from the
         psana software framework. It retrieves the value of the variable whose psana
-        name matches the `psana_{source_base_name}_name` entry in OM's
+        name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group. However, it is also
         possible to provide the psana name of the variable directly in the
-        `source_base_name` argument, by prefixing it with the string "psana-".
+        `source_protocols_name` argument, by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -1111,18 +1113,18 @@ class EpicsVariablePsana(drl_base.OmDataSource):
         refer to the documentation of that class for more information.
 
         This function initializes the psana Detector interface for the variable whose
-        psana name matches the `psana_{source_base_name}_name` entry in the
+        psana name matches the `psana_{source_protocols_name}_name` entry in the
         OM's `data_retrieval_layer` configuration parameter group, or for the Epics
-        variable with a given psana name, if the `source_base_name` argument has the
+        variable with a given psana name, if the `source_protocols_name` argument has the
         format `psana-{psana detector name}`.
         """
         epics_variable_name: str = _get_psana_epics_name(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         if not epics_variable_name:
             epics_variable_name = _get_psana_detector_name(
-                source_base_name=self._data_source_name,
+                source_protocols_name=self._data_source_name,
                 monitor_parameters=self._monitor_parameters,
             )
         self._detector_interface: Any = psana.Detector(epics_variable_name)
@@ -1148,7 +1150,7 @@ class EpicsVariablePsana(drl_base.OmDataSource):
         return self._detector_interface()
 
 
-class BeamEnergyPsana(drl_base.OmDataSource):
+class BeamEnergyPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -1214,7 +1216,7 @@ class BeamEnergyPsana(drl_base.OmDataSource):
         )
 
 
-class EvrCodesPsana(drl_base.OmDataSource):
+class EvrCodesPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -1305,7 +1307,7 @@ class EvrCodesPsana(drl_base.OmDataSource):
         return self._requested_event_code in current_evr_codes
 
 
-class LclsExtraPsana(drl_base.OmDataSource):
+class LclsExtraPsana(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """

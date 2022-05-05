@@ -20,7 +20,7 @@ Data Extraction Layer's base classes.
 
 This module contains base abstract classes for OM's Data Extraction Layer.
 """
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from typing import Any, Dict, Generator, List
 
 from om.utils import exceptions, parameters

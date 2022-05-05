@@ -162,33 +162,3 @@ class OmWrongParameterTypeError(OmException):
     """
     Raised if the type of an OM's configuration parameter is not correct.
     """
-
-
-def om_exception_handler(parameter_type, value, traceback_):  # type: ignore
-    """
-    Custom OM exception handler.
-
-    This function should never be called directly. Instead it should be used as a
-    replacement for the standard exception handler. For all OM exceptions, this
-    handler adds a label to the exception and hides the stacktrace. All non-OM
-    exceptions are instead reported normally.
-
-    Arguments:
-
-        parameter_type (Exception): The exception type.
-
-        value (str): The exception value (the message that comes with the exception).
-
-        traceback_ (str): The exception traceback.
-    """
-    # TODO: Fix types.
-    if issubclass(parameter_type, OmException):
-        print(f"OM ERROR: {value}")
-        sys.stdout.flush()
-        sys.stderr.flush()
-        sys.exit(0)
-    else:
-        traceback.print_exception(parameter_type, value, traceback_)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        sys.exit(0)

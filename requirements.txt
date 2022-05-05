@@ -6,5 +6,6 @@ mypy-extensions
 numpy
 pyyaml
 pyzmq
+rich
 scipy
 typing_extensions

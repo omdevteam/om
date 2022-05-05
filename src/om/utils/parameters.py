@@ -114,7 +114,13 @@ class MonitorParams:
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, config: str, source: Union[str, None] = None) -> None:
+    def __init__(
+        self,
+        *,
+        config: str,
+        source: Union[str, None] = None,
+        node_pool_size: Union[int, None] = None,
+    ) -> None:
         """
         Storage, retrieval and validation of OnDA Monitor configuration parameters.
 
@@ -126,9 +132,7 @@ class MonitorParams:
         This class takes as input the path to a YAML file storing the configuration
         parameters. In addition to the parameters read from the file, this class stores
         the path to the file itself, in a parameter named `configuration_file` within
-        the `om` parameter group. Additionally, if the name of a data source is
-        provided as an input parameter, this class will make it available as a
-        parameter with the name `source` within the `om` group.
+        the `om` parameter group.
 
         Arguments:
 
@@ -258,3 +262,31 @@ class MonitorParams:
             parameter_type=parameter_type,
             required=required,
         )
+
+    def add_source_and_node_pool_size_information(
+        self,
+        *,
+        source: Union[str, None] = None,
+        node_pool_size: Union[int, None] = None,
+    ) -> None:
+        """
+        Adds source and node pool size information to the parameter set.
+
+        If the name of a data source is provided as an input parameter, this function
+        adds it to the parameter set stored by this class, and makes it available as a
+        parameter with the name `source` within the `om` group. If, additionally, the
+        total number of  nodes in OM's node pool is provided as one of the input
+        parameters, this information will added to the parameter set and made availabe
+        as a parameter named `node_pool_size` within the `om` group.
+
+        Arguments:
+
+            source: A string describing the data event source.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        if source:
+            self._monitor_params["om"]["source"] = source
+        if node_pool_size:
+            self._monitor_params["om"]["node_pool_size"] = node_pool_size

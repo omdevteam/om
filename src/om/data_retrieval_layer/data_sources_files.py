@@ -26,13 +26,21 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocols
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import utils_generic as utils_gen
 from om.utils.parameters import MonitorParams
+from om.utils import exceptions
+
+try:
+    from PIL import Image  # type: ignore
+except ImportError:
+    raise exceptions.OmMissingDependencyError(
+        "The following required module cannot be imported: PIL.Image"
+    )
 
 
-class PilatusSingleFrameFiles(drl_base.OmDataSource):
+class PilatusSingleFrameFiles(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -97,7 +105,7 @@ class PilatusSingleFrameFiles(drl_base.OmDataSource):
         return cast(NDArray[numpy.float_], event["data"].data)
 
 
-class Jungfrau1MFiles(drl_base.OmDataSource):
+class Jungfrau1MFiles(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -117,7 +125,7 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
         This class deals with the retrieval of a Jungfrau 1M detector data frame from
         files written by the detector in HDF5 format.  The frame can be retrieved in
         calibrated or non-calibrated form, depending on the value of the
-        `{source_base_name}_calibration` entry in OM's `data_retrieval_layer`
+        `{source_protocols_name}_calibration` entry in OM's `data_retrieval_layer`
         configuration parameter group.
 
         Arguments:
@@ -146,7 +154,7 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
         `gain_filenames` in the `calibration` parameter group.
         """
         self._calibrated_data_required: bool = ds_generic.get_calibration_request(
-            source_base_name=self._data_source_name,
+            source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
         if self._calibrated_data_required:
@@ -187,7 +195,7 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
         This function extracts a detector data frame from an HDF5 file attached to the
         provided data event. It returns the frame as a 2D array storing pixel
         information. The data is retrieved in calibrated or non-calibrated form
-        depending on the value of the `{source_base_name}_calibration` entry in OM's
+        depending on the value of the `{source_protocols_name}_calibration` entry in OM's
         `data_retrieval_layer` configuration parameter group.
 
         Arguments:
@@ -198,13 +206,9 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
-        h5_data_path: str = event["additional_info"]["h5_data_path"]
-        index: Tuple[int, int] = event["additional_info"]["index"]
-
-        data: NDArray[numpy.int_] = numpy.concatenate(
-            [h5files[i][h5_data_path][index[i]] for i in range(len(h5files))]
-        )
+        data: NDArray[numpy.int_] = event["additional_info"]["h5file"][
+            "/entry/data/data"
+        ][event["additional_info"]["index"]]
 
         if self._calibrated_data_required:
             return self._calibration.apply_calibration(data=data)
@@ -212,7 +216,7 @@ class Jungfrau1MFiles(drl_base.OmDataSource):
             return data
 
 
-class Eiger16MFiles(drl_base.OmDataSource):
+class Eiger16MFiles(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -284,7 +288,76 @@ class Eiger16MFiles(drl_base.OmDataSource):
         )
 
 
-class TimestampFromFileModificationTime(drl_base.OmDataSource):
+class RayonixMccdSingleFrameFiles(drl_protocols.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Detector data frames from Rayonix MX340-HS single-frame mccd files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a Pilatus detector data frame from
+        single-frame files written by the detector in CBF format.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Rayonix MX340-HS detector frame data source for single-frame
+        mccd files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve a detector data frame from single-frame
+        mccd files, so this function actually does nothing.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
+        """
+        Retrieves a Rayonix MX340-HS detector data frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function extracts a detector data frame from a mccd file attached to the
+        provided data event. It returns the frame as a 2D array storing pixel
+        information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            One detector data frame.
+        """
+        img: Any
+        with Image.open(event["additional_info"]["full_path"]) as img:
+            data: NDArray[numpy.int_] = numpy.array(img)
+        return data
+
+
+class TimestampFromFileModificationTime(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -350,7 +423,7 @@ class TimestampFromFileModificationTime(drl_base.OmDataSource):
         return cast(numpy.float64, event["additional_info"]["file_modification_time"])
 
 
-class TimestampJungfrau1MFiles(drl_base.OmDataSource):
+class TimestampJungfrau1MFiles(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -419,16 +492,21 @@ class TimestampJungfrau1MFiles(drl_base.OmDataSource):
             The timestamp of the Jungfrau 1M data frame.
         """
 
-        file_creation_time: numpy.float64 = numpy.float64(
-            event["additional_info"]["file_creation_time"]
+        file_timestamp: numpy.float64 = numpy.float64(
+            event["additional_info"]["file_timestamp"]
         )
-        jf_clock_value: int = event["additional_info"]["jf_internal_clock"]
+        jf_clock_value: int = (
+            event["additional_info"]["h5file"]["/entry/data/timestamp"][
+                event["additional_info"]["index"]
+            ][0]
+            - event["additional_info"]["h5file"]["/entry/data/timestamp"][0][0]
+        )
         # Jungfrau internal clock frequency in Hz
         jf_clock_frequency: int = 10000000
-        return file_creation_time + jf_clock_value / jf_clock_frequency
+        return file_timestamp + jf_clock_value / jf_clock_frequency
 
 
-class EventIdFromFilePath(drl_base.OmDataSource):
+class EventIdFromFilePath(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -492,7 +570,7 @@ class EventIdFromFilePath(drl_base.OmDataSource):
         return cast(str, event["additional_info"]["full_path"])
 
 
-class EventIdJungfrau1MFiles(drl_base.OmDataSource):
+class EventIdJungfrau1MFiles(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -560,12 +638,12 @@ class EventIdJungfrau1MFiles(drl_base.OmDataSource):
 
             A unique event identifier.
         """
-        filename: str = event["additional_info"]["h5files"][0].filename
-        index: str = event["additional_info"]["index"][0]
-        return f"{filename} // {index:04d}"
+        filename: str = event["additional_info"]["h5file"].filename
+        index: str = event["additional_info"]["index"]
+        return f"{filename} // {index:05d}"
 
 
-class EventIdEiger16MFiles(drl_base.OmDataSource):
+class EventIdEiger16MFiles(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
