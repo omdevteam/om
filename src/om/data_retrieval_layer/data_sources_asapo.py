@@ -33,10 +33,10 @@ from om.utils import exceptions
 from om.utils.parameters import MonitorParams
 
 try:
-    import ceedee  # type: ignore
+    import seedee  # type: ignore
 except ImportError:
     raise exceptions.OmMissingDependencyError(
-        "The following required module cannot be imported: ceedee"
+        "The following required module cannot be imported: seedee"
     )
 
 
@@ -104,7 +104,7 @@ class EigerAsapo(drl_base.OmDataSource):
 
             One detector data frame.
         """
-        return ceedee.deserialize(
+        return seedee.deserialize(
             event["data"], event["metadata"]["meta"]["_data_format"]
         )
 
