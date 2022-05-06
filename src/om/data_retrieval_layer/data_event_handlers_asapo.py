@@ -28,7 +28,7 @@ from typing import Any, Dict, Generator, List, Union
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocols
 from om.utils import exceptions, parameters
 
 try:
@@ -39,7 +39,7 @@ except ImportError:
     )
 
 
-class AsapoDataEventHandler(drl_base.OmDataEventHandler):
+class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
     """
@@ -48,7 +48,7 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocols.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -83,7 +83,7 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
 
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
         asapo_path: str = self._monitor_params.get_parameter(
@@ -171,7 +171,7 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -362,7 +362,7 @@ class AsapoDataEventHandler(drl_base.OmDataEventHandler):
             parameter_type=list,
             required=True,
         )
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

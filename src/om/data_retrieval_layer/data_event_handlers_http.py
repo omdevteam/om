@@ -236,7 +236,7 @@ class Eiger16MHttpDataEventHandler(drl_base.OmDataEventHandler):
                 yield data_event
 
             elif response.status_code == 408:
-                print(f"Processing node {node_rank}: No image available")
+                # print(f"Processing node {node_rank}: No image available")
                 time.sleep(0.5)
 
             else:
