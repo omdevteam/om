@@ -474,9 +474,6 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             processed data that should be sent to the collecting node. The second entry
             is the OM rank number of the node that processed the information.
         """
-        import time
-
-        time.sleep(30)
         processed_data: Dict[str, Any] = {}
         corrected_detector_data: NDArray[
             numpy.float_
