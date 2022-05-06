@@ -363,10 +363,10 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
             peak_index_in_slab: int = int(round(peak_ss)) * data_shape[1] + int(
                 round(peak_fs)
             )
-            y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
             x_in_frame: float = self._visual_pixelmap_x[peak_index_in_slab]
-            peak_list_x_in_frame.append(y_in_frame)
-            peak_list_y_in_frame.append(x_in_frame)
+            y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
+            peak_list_x_in_frame.append(x_in_frame)
+            peak_list_y_in_frame.append(y_in_frame)
 
         self._update_peaks(
             peak_list_x_in_frame=peak_list_x_in_frame,
