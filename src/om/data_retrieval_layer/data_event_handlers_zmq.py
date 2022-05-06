@@ -26,7 +26,7 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.utils import exceptions, parameters
 from om.utils.rich_console import console, get_current_timestamp
 

@@ -29,12 +29,16 @@ from typing import Any, Dict, List, Set, Tuple, Union
 import h5py  # type: ignore
 import numpy
 from numpy.typing import DTypeLike, NDArray
-from typing_extensions import Literal
 
 from om.algorithms import crystallography as cryst_algs
 from om.utils import crystfel_geometry, exceptions
 from om.utils import parameters as param_utils
 from om.utils.rich_console import console, get_current_timestamp
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 
 class HDF5Writer:

@@ -29,12 +29,12 @@ from datetime import datetime
 from PIL import Image  # type: ignore
 from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils.parameters import MonitorParams
 
 
-class Eiger16MHttp(drl_base.OmDataSource):
+class Eiger16MHttp(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -107,7 +107,7 @@ class Eiger16MHttp(drl_base.OmDataSource):
         return numpy.asarray(image, dtype=int)
 
 
-class TimestampEiger16MHttp(drl_base.OmDataSource):
+class TimestampEiger16MHttp(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -185,7 +185,7 @@ class TimestampEiger16MHttp(drl_base.OmDataSource):
         # )
 
 
-class EventIdEiger16MHttp(drl_base.OmDataSource):
+class EventIdEiger16MHttp(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """

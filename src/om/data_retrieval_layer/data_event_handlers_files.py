@@ -36,7 +36,7 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.utils import exceptions, parameters
 from om.utils.rich_console import console, get_current_timestamp
 
@@ -100,7 +100,7 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -148,7 +148,7 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -334,7 +334,7 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

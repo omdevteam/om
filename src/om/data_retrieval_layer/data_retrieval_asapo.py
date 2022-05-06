@@ -23,7 +23,7 @@ This module contains Data Retrieval classes that deal with the ASAPO software fr
 """
 from typing import Dict
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.data_retrieval_layer import data_event_handlers_asapo as deh_asapo
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import data_sources_asapo as ds_asapo

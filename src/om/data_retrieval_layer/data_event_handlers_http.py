@@ -25,16 +25,21 @@ import requests  # type: ignore
 import sys
 import time
 from io import BytesIO
-from typing import Any, Dict, Generator, List, Literal, Union, cast
+from typing import Any, Dict, Generator, List, Union, cast
 
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.utils import exceptions, parameters
 
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
-class Eiger16MHttpDataEventHandler(drl_base.OmDataEventHandler):
+
+class Eiger16MHttpDataEventHandler(drl_protocols.OmDataEventHandler):
     """
     See documentation of the `__init__` function.
 
@@ -44,7 +49,7 @@ class Eiger16MHttpDataEventHandler(drl_base.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_base.OmDataSource],
+        data_sources: Dict[str, drl_protocols.OmDataSource],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -78,7 +83,7 @@ class Eiger16MHttpDataEventHandler(drl_base.OmDataEventHandler):
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_base.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
 
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
@@ -185,7 +190,7 @@ class Eiger16MHttpDataEventHandler(drl_base.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_base.filter_data_sources(
+        self._required_data_sources = drl_protocols.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

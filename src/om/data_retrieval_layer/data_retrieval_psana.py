@@ -23,7 +23,7 @@ This module contains Data Retrieval classes that deal with the psana software fr
 """
 from typing import Dict
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.data_retrieval_layer import data_event_handlers_psana as deh_psana
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import data_sources_psana as ds_psana

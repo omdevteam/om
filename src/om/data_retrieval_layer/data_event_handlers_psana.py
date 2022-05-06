@@ -27,7 +27,7 @@ from typing import Any, Dict, Generator, List, Union
 import numpy
 
 from om.data_retrieval_layer import data_sources_psana as ds_psana
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.utils import exceptions, parameters
 from om.utils.rich_console import console, get_current_timestamp
 

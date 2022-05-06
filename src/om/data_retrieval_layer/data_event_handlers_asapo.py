@@ -28,7 +28,7 @@ from typing import Any, Dict, Generator, List, Union
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.utils import exceptions, parameters
 
 try:

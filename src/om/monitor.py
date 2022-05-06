@@ -30,7 +30,7 @@ from typing import Any, Callable, Dict, Type, TypeVar, Union, cast
 import click
 
 from om.utils import exceptions, parameters
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.protocols import parallelization_layer as pa_protocols
 from om.protocols import processing_layer as pr_protocols
 from om.utils.rich_console import console, set_null_theme, set_custom_theme

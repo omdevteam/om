@@ -23,14 +23,14 @@ retrieved from the http/REST interface.
 """
 from typing import Dict
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.data_retrieval_layer import data_event_handlers_http as deh_http
 from om.data_retrieval_layer import data_sources_http as ds_http
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils import parameters
 
 
-class Eiger16MHttpDataRetrieval(drl_base.OmDataRetrieval):
+class Eiger16MHttpDataRetrieval(drl_protocols.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
 
@@ -71,7 +71,7 @@ class Eiger16MHttpDataRetrieval(drl_base.OmDataRetrieval):
             source: A string describing the data source.
         """
 
-        data_sources: Dict[str, drl_base.OmDataSource] = {
+        data_sources: Dict[str, drl_protocols.OmDataSource] = {
             "timestamp": ds_http.TimestampEiger16MHttp(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -94,7 +94,7 @@ class Eiger16MHttpDataRetrieval(drl_base.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_base.OmDataEventHandler = (
+        self._data_event_handler: drl_protocols.OmDataEventHandler = (
             deh_http.Eiger16MHttpDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -102,7 +102,7 @@ class Eiger16MHttpDataRetrieval(drl_base.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_base.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
         """
         Retrieves the Data Event Handler used by the class.
 

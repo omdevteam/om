@@ -22,7 +22,7 @@ This module contains Data Retrieval classes that deal with files.
 """
 from typing import Dict
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.data_retrieval_layer import data_event_handlers_files as deh_files
 from om.data_retrieval_layer import data_sources_files as ds_files
 from om.data_retrieval_layer import data_sources_generic as ds_generic

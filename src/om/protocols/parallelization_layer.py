@@ -22,7 +22,7 @@ This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
 
-from om.protocols import data_extraction_layer as data_ret_layer_protocols
+from om.protocols import data_retrieval_layer as data_ret_layer_protocols
 from om.protocols import processing_layer as pl_protocols
 from om.utils import parameters
 

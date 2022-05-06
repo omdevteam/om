@@ -24,7 +24,7 @@ from typing import Any, Dict, Union, cast
 
 import numpy
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.utils.parameters import MonitorParams
 
 

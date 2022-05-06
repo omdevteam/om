@@ -28,7 +28,7 @@ from pickle import NONE
 from sqlite3 import connect
 from typing import Any, Dict, List, Tuple, Union
 
-from om.protocols import data_extraction_layer as data_ret_layer_protocols
+from om.protocols import data_retrieval_layer as data_ret_layer_protocols
 from om.protocols import parallelization_layer as par_layer_protocols
 from om.protocols import processing_layer as pl_protocols
 from om.utils import exceptions, parameters

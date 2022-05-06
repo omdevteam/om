@@ -26,7 +26,7 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_extraction_layer as drl_protocols
+from om.protocols import data_retrieval_layer as drl_protocols
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import utils_generic as utils_gen
 from om.utils.parameters import MonitorParams
