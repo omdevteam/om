@@ -899,6 +899,8 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
                     self._virt_powd_plot_img, dtype=numpy.int32
                 )
 
+                self._peakogram = numpy.zeros_like(self._peakogram)
+
                 self._responding_socket.send_data(identity=request[0], message=b"Ok")
             else:
                 console.print(
