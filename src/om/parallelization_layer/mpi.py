@@ -120,62 +120,71 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
 
             while True:
                 try:
-                    received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
-                        source=MPI.ANY_SOURCE, tag=_DATATAG
-                    )
-                    if "end" in received_data[0].keys():
-                        # If the received message announces that a processing node has
-                        # finished processing data, keeps track of how many processing
-                        # nodes have already finished.
-                        console.print(
-                            f"{get_current_timestamp()} Finalizing {received_data[1]}"
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATATAG):
+                        received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
+                            source=MPI.ANY_SOURCE, tag=_DATATAG
                         )
-                        self._num_nomore += 1
-                        # When all processing nodes have finished, calls the
-                        # 'end_processing_on_collecting_node' function then shuts down.
-                        if self._num_nomore == self._mpi_size - 1:
+                        if "end" in received_data[0].keys():
+                            # If the received message announces that a processing node
+                            # has finished processing data, keeps track of how many
+                            # processing nodes have already finished.
                             console.print(
-                                f"{get_current_timestamp()} All processing nodes have "
-                                f"run out of events."
+                                f"{get_current_timestamp()} Finalizing "
+                                f"{received_data[1]}"
                             )
-                            console.print(f"{get_current_timestamp()} Shutting down.")
-                            sys.stdout.flush()
-                            self._processing_layer.end_processing_on_collecting_node(
-                                node_rank=self._rank, node_pool_size=self._mpi_size
-                            )
-                            MPI.Finalize()
-                            exit(0)
-                        else:
-                            continue
-                    feedback_data: Union[
-                        Dict[int, Dict[str, Any]], None
-                    ] = self._processing_layer.collect_data(
-                        node_rank=self._rank,
-                        node_pool_size=self._mpi_size,
-                        processed_data=received_data,
-                    )
-                    self._num_collected_events += 1
-                    if feedback_data is not None:
-                        receiving_rank: int
-                        for receiving_rank in feedback_data.keys():
-                            if receiving_rank == 0:
-                                target_rank: int
-                                for target_rank in range(1, self._mpi_size):
+                            self._num_nomore += 1
+                            # When all processing nodes have finished, calls the
+                            # 'end_processing_on_collecting_node' function then shuts
+                            # down.
+                            if self._num_nomore == self._mpi_size - 1:
+                                console.print(
+                                    f"{get_current_timestamp()} All processing nodes "
+                                    f"have run out of events."
+                                )
+                                console.print(
+                                    f"{get_current_timestamp()} Shutting down."
+                                )
+                                sys.stdout.flush()
+                                self._processing_layer.end_processing_on_collecting_node(
+                                    node_rank=self._rank, node_pool_size=self._mpi_size
+                                )
+                                MPI.Finalize()
+                                exit(0)
+                            else:
+                                continue
+                        feedback_data: Union[
+                            Dict[int, Dict[str, Any]], None
+                        ] = self._processing_layer.collect_data(
+                            node_rank=self._rank,
+                            node_pool_size=self._mpi_size,
+                            processed_data=received_data,
+                        )
+                        self._num_collected_events += 1
+                        if feedback_data is not None:
+                            receiving_rank: int
+                            for receiving_rank in feedback_data.keys():
+                                if receiving_rank == 0:
+                                    target_rank: int
+                                    for target_rank in range(1, self._mpi_size):
+                                        if req:
+                                            req.Wait()
+                                        req = MPI.COMM_WORLD.isend(
+                                            feedback_data[0],
+                                            dest=target_rank,
+                                            tag=_FEEDBACKTAG,
+                                        )
+                                else:
                                     if req:
                                         req.Wait()
                                     req = MPI.COMM_WORLD.isend(
-                                        feedback_data[0],
-                                        dest=target_rank,
+                                        feedback_data[receiving_rank],
+                                        dest=receiving_rank,
                                         tag=_FEEDBACKTAG,
                                     )
-                            else:
-                                if req:
-                                    req.Wait()
-                                req = MPI.COMM_WORLD.isend(
-                                    feedback_data[receiving_rank],
-                                    dest=receiving_rank,
-                                    tag=_FEEDBACKTAG,
-                                )
+                    else:
+                        self._processing_layer.collect_no_data(
+                            node_rank=self._rank, node_pool_size=self._mpi_size
+                        )
 
                 except KeyboardInterrupt as exc:
                     console.print("Received keyboard sigterm...")

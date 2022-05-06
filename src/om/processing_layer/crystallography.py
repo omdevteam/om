@@ -474,7 +474,9 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             processed data that should be sent to the collecting node. The second entry
             is the OM rank number of the node that processed the information.
         """
+        import time
 
+        time.sleep(30)
         processed_data: Dict[str, Any] = {}
         corrected_detector_data: NDArray[
             numpy.float_
@@ -540,6 +542,33 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
 
         return (processed_data, node_rank)
 
+    def collect_no_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> None:
+        """
+        Receives and handles requests from external programs.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function receives requests from external programs over a network socket
+        and reacts according to the nature of the request, sending data back to the
+        source of the request or modifying the internal behavior of the monitor.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        """
+        self._handle_external_requests()
+
     def collect_data(
         self,
         *,
@@ -571,6 +600,7 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
                 second entry is the OM rank number of the node that processed the
                 information.
         """
+        self._handle_external_requests()
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
         return_dict: Dict[int, Dict[str, Any]] = {}
@@ -578,38 +608,24 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
         if received_data["frame_is_hit"] is True:
             self._num_hits += 1
 
-        request: Union[
-            Tuple[bytes, bytes], None
-        ] = self._responding_socket.get_request()
-        if request:
-            self._request_list.append(request)
-
         if len(self._request_list) != 0:
             first_request = self._request_list[0]
-            if first_request[1] == b"next":
-                if received_data["frame_is_hit"] is True:
-                    data_to_send: Any = msgpack.packb(
-                        {
-                            "peak_list": received_data["peak_list"],
-                            "beam_energy": received_data["beam_energy"],
-                            "detector_distance": received_data["detector_distance"],
-                            "event_id": received_data["event_id"],
-                            "frame_id": received_data["frame_id"],
-                            "timestamp": received_data["timestamp"],
-                            "source": self._source,
-                            "configuration_file": self._configuration_file,
-                        },
-                        use_bin_type=True,
-                    )
-                    self._responding_socket.send_data(
-                        identity=first_request[0], message=data_to_send
-                    )
-                    _ = self._request_list.popleft()
-            else:
-                console.print(
-                    f"{get_current_timestamp()} OM Warning: Could not understand "
-                    f"request '{str(first_request[1])}'.",
-                    style="warning",
+            if received_data["frame_is_hit"] is True:
+                data_to_send: Any = msgpack.packb(
+                    {
+                        "peak_list": received_data["peak_list"],
+                        "beam_energy": received_data["beam_energy"],
+                        "detector_distance": received_data["detector_distance"],
+                        "event_id": received_data["event_id"],
+                        "frame_id": received_data["frame_id"],
+                        "timestamp": received_data["timestamp"],
+                        "source": self._source,
+                        "configuration_file": self._configuration_file,
+                    },
+                    use_bin_type=True,
+                )
+                self._responding_socket.send_data(
+                    identity=first_request[0], message=data_to_send
                 )
                 _ = self._request_list.popleft()
 
@@ -841,3 +857,56 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
             f"{self._num_events} events in total."
         )
         sys.stdout.flush()
+
+    def _handle_external_requests(self) -> None:
+        # This function handles external requests sent to the crystallography monitor
+        # over the responding network socket. It either changes the state of the
+        # monitor (resetting accumulated data, for example) or returns some data to the
+        # requesting party.
+        request: Union[
+            Tuple[bytes, bytes], None
+        ] = self._responding_socket.get_request()
+        if request:
+            if request[1] == b"next":
+                self._request_list.append(request)
+            elif request[1] == b"resetplots":
+                console.print(
+                    f"{get_current_timestamp()} OM Warning: Resetting plots.",
+                    style="warning",
+                )
+                self._hit_rate_running_window = collections.deque(
+                    [0.0] * self._running_average_window_size,
+                    maxlen=self._running_average_window_size,
+                )
+                self._avg_hit_rate = 0
+                self._num_hits = 0
+                self._hit_rate_timestamp_history = collections.deque(
+                    5000 * [0.0], maxlen=5000
+                )
+                self._hit_rate_history = collections.deque(5000 * [0.0], maxlen=5000)
+
+                if self._pump_probe_experiment is True:
+                    self._hit_rate_running_window_dark = collections.deque(
+                        [0.0] * self._running_average_window_size,
+                        maxlen=self._running_average_window_size,
+                    )
+                    self._avg_hit_rate_dark = 0
+                    self._hit_rate_timestamp_history_dark = collections.deque(
+                        5000 * [0.0], maxlen=5000
+                    )
+                    self._hit_rate_history_dark = collections.deque(
+                        5000 * [0.0], maxlen=5000
+                    )
+
+                self._virt_powd_plot_img = numpy.zeros_like(
+                    self._virt_powd_plot_img, dtype=numpy.int32
+                )
+
+                self._responding_socket.send_data(identity=request[0], message=b"Ok")
+            else:
+                console.print(
+                    f"{get_current_timestamp()} OM Warning: Could not understand "
+                    f"request '{str(request[1])}'.",
+                    style="warning",
+                )
+                self._responding_socket.send_data(identity=request[0], message=b"What?")

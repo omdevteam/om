@@ -237,13 +237,15 @@ class ZmqResponder:
             else:
                 return None
 
-    def send_data(self, *, identity: bytes, message: Dict[str, Any]) -> None:
+    def send_data(
+        self, *, identity: bytes, message: Union[Dict[str, Any], bytes]
+    ) -> None:
         """
         Send data from the ZMQ REP socket.
 
         This function transmits data to an external program that has previously sent a
-        request to the socket. The response must have the format of a python
-        dictionary.
+        request to the socket. The response must either have the format of a python
+        dictionary or of a sequence of bytes (an ASCII string, for example)
 
         Arguments:
 

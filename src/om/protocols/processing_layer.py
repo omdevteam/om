@@ -139,6 +139,34 @@ class OmProcessing(ABC):
         pass
 
     @abstractmethod
+    def collect_no_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> None:
+        """
+        Performs operations on the processing node when no data is received.
+
+        This function is invoked on the collecting node continuously, but only when
+        data is not received from a processing node. When data is received, the
+        [`collect_data`][om.processing_layer.base.OmProcessing.collect_data] is called
+        instead. This function can be used to perform operations that need to be carried
+        out when the data stream is not active (reacting to external commands and
+        requests, for example)
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        """
+        pass
+
+    @abstractmethod
     def collect_data(
         self,
         *,

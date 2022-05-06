@@ -21,6 +21,7 @@ MPI-based Parallelization Layer for OM.
 This module contains a Parallelization Layer based on the MPI protocol.
 """
 import multiprocessing
+import queue
 import sys
 from concurrent.futures import process
 from email import message
@@ -177,9 +178,9 @@ class MultiprocessingParallelization(par_layer_protocols.OmParallelization):
 
         self._processing_nodes: List[multiprocessing.Process] = []
         self._message_pipes: List[multiprocessing.connection.Connection] = []
-        self._data_queue: multiprocessing.queues.SimpleQueue[
+        self._data_queue: multiprocessing.queues.Queue[
             Tuple[Dict[str, Any], int]
-        ] = multiprocessing.SimpleQueue()
+        ] = multiprocessing.Queue()
 
         processing_node_rank: int
         for processing_node_rank in range(1, self._node_pool_size):
@@ -230,51 +231,60 @@ class MultiprocessingParallelization(par_layer_protocols.OmParallelization):
         )
         while True:
             try:
-                received_data: Tuple[Dict[str, Any], int] = self._data_queue.get()
-                if "end" in received_data[0]:
-                    # If the received message announces that a processing node has
-                    # finished processing data, keeps track of how many processing
-                    # nodes have already finished.
-                    console.print(
-                        f"{get_current_timestamp()} Finalizing {received_data[1]}"
-                    )
-                    self._num_nomore += 1
-                    # When all processing nodes have finished, calls the
-                    # 'end_processing_on_collecting_node' function then shuts down.
-                    if self._num_nomore == self._node_pool_size - 1:
+                try:
+                    received_data: Tuple[
+                        Dict[str, Any], int
+                    ] = self._data_queue.get_nowait()
+                    if "end" in received_data[0]:
+                        # If the received message announces that a processing node has
+                        # finished processing data, keeps track of how many processing
+                        # nodes have already finished.
                         console.print(
-                            f"{get_current_timestamp()} All processing nodes have run "
-                            "out of events."
+                            f"{get_current_timestamp()} Finalizing {received_data[1]}"
                         )
-                        console.print(f"{get_current_timestamp()} Shutting down.")
-                        sys.stdout.flush()
-                        self._processing_layer.end_processing_on_collecting_node(
-                            node_rank=self._rank, node_pool_size=self._node_pool_size
-                        )
-                        for processing_node in self._processing_nodes:
-                            processing_node.join()
-                        sys.exit(0)
-                    else:
-                        continue
-                feedback_data: Union[
-                    Dict[int, Dict[str, Any]], None
-                ] = self._processing_layer.collect_data(
-                    node_rank=self._rank,
-                    node_pool_size=self._node_pool_size,
-                    processed_data=received_data,
-                )
-                self._num_collected_events += 1
-                if feedback_data is not None:
-                    receiving_rank: int
-                    for receiving_rank in feedback_data.keys():
-                        if receiving_rank == 0:
-                            message_pipe: multiprocessing.connection.Connection
-                            for message_pipe in self._message_pipes:
-                                message_pipe.send(feedback_data[0])
-                        else:
-                            self._message_pipes[receiving_rank - 1].send(
-                                feedback_data[receiving_rank]
+                        self._num_nomore += 1
+                        # When all processing nodes have finished, calls the
+                        # 'end_processing_on_collecting_node' function then shuts down.
+                        if self._num_nomore == self._node_pool_size - 1:
+                            console.print(
+                                f"{get_current_timestamp()} All processing nodes have run "
+                                "out of events."
                             )
+                            console.print(f"{get_current_timestamp()} Shutting down.")
+                            sys.stdout.flush()
+                            self._processing_layer.end_processing_on_collecting_node(
+                                node_rank=self._rank,
+                                node_pool_size=self._node_pool_size,
+                            )
+                            for processing_node in self._processing_nodes:
+                                processing_node.join()
+                            sys.exit(0)
+                        else:
+                            continue
+                    feedback_data: Union[
+                        Dict[int, Dict[str, Any]], None
+                    ] = self._processing_layer.collect_data(
+                        node_rank=self._rank,
+                        node_pool_size=self._node_pool_size,
+                        processed_data=received_data,
+                    )
+                    self._num_collected_events += 1
+                    if feedback_data is not None:
+                        receiving_rank: int
+                        for receiving_rank in feedback_data.keys():
+                            if receiving_rank == 0:
+                                message_pipe: multiprocessing.connection.Connection
+                                for message_pipe in self._message_pipes:
+                                    message_pipe.send(feedback_data[0])
+                            else:
+                                self._message_pipes[receiving_rank - 1].send(
+                                    feedback_data[receiving_rank]
+                                )
+                except queue.Empty:
+                    self._processing_layer.collect_no_data(
+                        node_rank=self._rank,
+                        node_pool_size=self._node_pool_size,
+                    )
 
             except KeyboardInterrupt as exc:
                 console.print(f"{get_current_timestamp()} Received keyboard sigterm...")

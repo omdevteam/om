@@ -276,6 +276,33 @@ class XESProcessing(pl_protocols.OmProcessing):
 
         return (processed_data, node_rank)
 
+    def collect_no_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> None:
+        """
+        Performs operations on the processing node when no data is received.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This monitor does not need to perform any operation on the processing node if
+        no data is received, therefore this function does nothing.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        """
+        del node_rank
+        del node_pool_size
+
     def collect_data(
         self,
         *,
