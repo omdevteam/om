@@ -97,7 +97,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
         ]
         x: float
         self._resolution_rings_textitems: List[Any] = [
-            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8))
+            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8), color=(255, 0, 0))
             for x in self._resolution_rings_in_a
         ]
         self._resolution_rings_enabled: bool = False
@@ -106,7 +106,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
 
         pyqtgraph.setConfigOption("background", 0.2)
 
-        self._resolution_rings_pen: Any = pyqtgraph.mkPen("w", width=0.5)
+        self._resolution_rings_pen: Any = pyqtgraph.mkPen("r", width=0.5)
         self._resolution_rings_canvas: Any = pyqtgraph.ScatterPlotItem()
 
         self._image_view: Any = pyqtgraph.ImageView()
@@ -225,7 +225,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
 
         x: float
         self._resolution_rings_textitems = [
-            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8))
+            pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8), color=(255, 0, 0))
             for x in self._resolution_rings_in_a
         ]
 
