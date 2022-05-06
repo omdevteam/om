@@ -27,7 +27,7 @@ import numpy
 from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
-from om.data_retrieval_layer import base as drl_base
+from om.protocols import data_extraction_layer as drl_protocols
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils import exceptions
 from om.utils.parameters import MonitorParams
@@ -40,7 +40,7 @@ except ImportError:
     )
 
 
-class EigerAsapo(drl_base.OmDataSource):
+class EigerAsapo(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -109,7 +109,7 @@ class EigerAsapo(drl_base.OmDataSource):
         )
 
 
-class TimestampAsapo(drl_base.OmDataSource):
+class TimestampAsapo(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -173,7 +173,7 @@ class TimestampAsapo(drl_base.OmDataSource):
         return cast(numpy.float64, event["metadata"]["timestamp"] / 1e9)
 
 
-class EventIdAsapo(drl_base.OmDataSource):
+class EventIdAsapo(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -247,7 +247,7 @@ class EventIdAsapo(drl_base.OmDataSource):
         )
 
 
-class BeamEnergyAsapo(drl_base.OmDataSource):
+class BeamEnergyAsapo(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
@@ -318,7 +318,7 @@ class BeamEnergyAsapo(drl_base.OmDataSource):
         return cast(float, constants.h * constants.c / (wavelength * constants.e))
 
 
-class DetectorDistanceAsapo(drl_base.OmDataSource):
+class DetectorDistanceAsapo(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
     """
