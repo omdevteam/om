@@ -26,7 +26,7 @@ import copy
 import signal
 import sys
 import time
-from typing import Any, Deque, Dict, Union
+from typing import Any, Deque, Dict, Union, Tuple
 
 import click
 import numpy
@@ -37,7 +37,7 @@ from om.utils import exceptions
 from om.utils.rich_console import console, get_current_timestamp
 
 try:
-    from PyQt5 import QtWidgets
+    from PyQt5 import QtWidgets, QtCore, QtGui
 except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
@@ -94,6 +94,10 @@ class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
         self._image_view.ui.roiBtn.hide()
         self._image_view.getView().addItem(self._peak_canvas)
 
+        self._image_hist = self._image_view.getHistogramWidget()
+        self._image_hist.setHistogramRange(0, 100)
+        self._image_hist.sigLevelsChanged.connect(self._hist_range_changed)
+
         self._back_button: Any = QtWidgets.QPushButton(text="Back")
         self._back_button.clicked.connect(self._back_button_clicked)
 
@@ -103,10 +107,31 @@ class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
         self._play_pause_button: Any = QtWidgets.QPushButton(text="Pause")
         self._play_pause_button.clicked.connect(self._play_pause_button_clicked)
 
+        self._levels_range: Tuple[Union[int, float], Union[int, float]] = (0, 1)
+        self._min_range_le: Any = QtWidgets.QLineEdit(f"{self._levels_range[0]}")
+        self._max_range_le: Any = QtWidgets.QLineEdit(f"{self._levels_range[1]}")
+        self._level_regex: Any = QtCore.QRegExp(r"-?\d+\.?\d*([eE][+-]?\d+)?")
+        self._level_validator: Any = QtGui.QRegExpValidator()
+        self._level_validator.setRegExp(self._level_regex)
+        self._min_range_le.setValidator(self._level_validator)
+        self._max_range_le.setValidator(self._level_validator)
+        self._min_range_le.editingFinished.connect(self._change_levels)
+        self._max_range_le.editingFinished.connect(self._change_levels)
+        self._min_range_le.setMaximumWidth(100)
+        self._max_range_le.setMaximumWidth(100)
+
         self._horizontal_layout: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout.addWidget(self._back_button)
         self._horizontal_layout.addWidget(self._forward_button)
         self._horizontal_layout.addWidget(self._play_pause_button)
+        self._horizontal_layout.addSpacerItem(
+            QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding)
+        )
+        self._horizontal_layout.addWidget(QtWidgets.QLabel("Levels min:"))
+        self._horizontal_layout.addWidget(self._min_range_le)
+        self._horizontal_layout.addWidget(QtWidgets.QLabel("max:"))
+        self._horizontal_layout.addWidget(self._max_range_le)
+
         self._vertical_layout: Any = QtWidgets.QVBoxLayout()
         self._vertical_layout.addWidget(self._image_view)
         self._vertical_layout.addLayout(self._horizontal_layout)
@@ -149,6 +174,7 @@ class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
         self._image_view.setImage(
             current_data["frame_data"].T,
             autoLevels=False,
+            levels=self._levels_range,
             autoRange=False,
             autoHistogramRange=False,
         )
@@ -216,6 +242,24 @@ class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
         console.print(f"Showing frame {self._current_frame_index} in the buffer")
+        self._update_image_and_peaks()
+
+    def _hist_range_changed(self) -> None:
+        self._levels_range = self._image_hist.getLevels()
+        self._min_range_le.setText(f"{self._levels_range[0]:.7g}")
+        self._max_range_le.setText(f"{self._levels_range[1]:.7g}")
+
+    def _change_levels(self) -> None:
+        self._levels_range = (
+            float(self._min_range_le.text()),
+            float(self._max_range_le.text()),
+        )
+        if self._levels_range[1] < self._levels_range[0]:
+            self._levels_range = (
+                float(self._min_range_le.text()),
+                float(self._min_range_le.text()),
+            )
+            self._max_range_le.setText(self._min_range_le.text())
         self._update_image_and_peaks()
 
     def _stop_stream(self) -> None:
