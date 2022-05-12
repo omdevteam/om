@@ -195,11 +195,32 @@ class HDF5Writer:
             parameter="hdf5_fields",
             parameter_type=dict,
         )
-
-        # TODO: decide what to do if file exists
-        self._h5file: Any = h5py.File(self._processed_filename, "w")
-
+        self._h5file: Any = None
         self._resizable_datasets: Dict[str, Any] = {}
+        self._extra_groups: Dict[str, Any] = {}
+        self._requested_datasets: Set[str] = set(self._hdf5_fields.keys())
+        self._num_frames: int = 0
+
+    def _create_file_and_datasets(self, *, processed_data: Dict[str, Any]) -> None:
+        # This function is called when the first data comes. It opens output hdf5 file
+        # and creates all requested datasets.
+        self._h5file = h5py.File(self._processed_filename, "w")
+        if (
+            "detector_data" in processed_data
+            and "detector_data" in self._requested_datasets
+        ):
+            if self._data_type is None:
+                self._data_type = processed_data["detector_data"].dtype
+            self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
+                name=self._hdf5_fields["detector_data"],
+                shape=(0,) + processed_data["detector_data"].shape,
+                maxshape=(None,) + processed_data["detector_data"].shape,
+                dtype=self._data_type,
+                chunks=(1,) + processed_data["detector_data"].shape,
+                compression=self._compression,
+                compression_opts=self._compression_opts,
+                shuffle=self._compression_shuffle,
+            )
 
         if "event_id" in self._hdf5_fields.keys():
             self._resizable_datasets["event_id"] = self._h5file.create_dataset(
@@ -274,14 +295,22 @@ class HDF5Writer:
                     ),
                 }
             )
-        self._extra_groups: Dict[str, Any] = {}
+
         if "lcls_extra" in self._hdf5_fields.keys():
             self._extra_groups["lcls_extra"] = self._h5file.create_group(
                 self._hdf5_fields["lcls_extra"]
             )
-        self._requested_datasets: Set[str] = set(self._hdf5_fields.keys())
 
-        self._num_frames: int = 0
+        extra_group_name: str
+        for extra_group_name in self._extra_groups:
+            if (
+                extra_group_name in processed_data
+                and extra_group_name in self._requested_datasets
+            ):
+                self._create_extra_datasets(
+                    group_name=extra_group_name,
+                    extra_data=processed_data[extra_group_name],
+                )
 
     def _create_extra_datasets(
         self, *, group_name: str, extra_data: Dict[str, Any]
@@ -347,29 +376,9 @@ class HDF5Writer:
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
 
-        # When the first data comes create detector data dataset:
-        if self._num_frames == 0 and "detector_data" in fields:
-            if self._data_type is None:
-                self._data_type = processed_data["detector_data"].dtype
-            self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
-                name=self._hdf5_fields["detector_data"],
-                shape=(0,) + processed_data["detector_data"].shape,
-                maxshape=(None,) + processed_data["detector_data"].shape,
-                dtype=self._data_type,
-                chunks=(1,) + processed_data["detector_data"].shape,
-                compression=self._compression,
-                compression_opts=self._compression_opts,
-                shuffle=self._compression_shuffle,
-            )
-
-        extra_group_name: str
+        # When the first data comes create output file and all requested datasets:
         if self._num_frames == 0:
-            for extra_group_name in self._extra_groups:
-                if extra_group_name in fields:
-                    self._create_extra_datasets(
-                        group_name=extra_group_name,
-                        extra_data=processed_data[extra_group_name],
-                    )
+            self._create_file_and_datasets(processed_data=processed_data)
 
         self._resize_datasets()
         frame_num: int = self._num_frames - 1
@@ -423,6 +432,8 @@ class HDF5Writer:
         """
         Closes the file currently being written.
         """
+        if self._h5file is None:
+            return
         self._h5file.close()
         final_filename: pathlib.Path = self._processed_filename.with_suffix(
             self._processed_filename_extension
