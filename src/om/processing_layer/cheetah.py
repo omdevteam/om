@@ -33,7 +33,7 @@ from numpy.typing import NDArray
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
 from om.protocols import processing_layer as pl_protocols
-from om.utils import crystfel_geometry, hdf5_writers, parameters, zmq_monitor
+from om.utils import crystfel_geometry, hdf5_writers, parameters
 from om.utils.crystfel_geometry import TypeDetector
 from om.utils.rich_console import console, get_current_timestamp
 
@@ -124,13 +124,9 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
         self._data_shape: Tuple[int, ...] = self._pixelmaps["x"].shape
 
-        self._hit_frame_sending_counter: int = 0
-        self._non_hit_frame_sending_counter: int = 0
-
         self._correction = gen_algs.Correction(
             parameters=self._monitor_params.get_parameter_group(group="correction")
         )
-
         self._peak_detection: cryst_algs.Peakfinder8PeakDetection = (
             cryst_algs.Peakfinder8PeakDetection(
                 parameters=self._monitor_params.get_parameter_group(
@@ -139,7 +135,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
                 radius_pixel_map=cast(NDArray[numpy.float_], self._pixelmaps["radius"]),
             )
         )
-
         binning: Union[bool, None] = self._monitor_params.get_parameter(
             group="crystallography",
             parameter="binning",
@@ -180,6 +175,7 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         else:
             self._binning = None
 
+        class_number: int
         self._total_sums: List[_TypeClassSumData] = [
             {
                 "num_frames": 0,
@@ -208,21 +204,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             parameter_type=int,
             required=True,
         )
-        self._hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="hit_frame_sending_interval",
-            parameter_type=int,
-        )
-        self._non_hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="non_hit_frame_sending_interval",
-            parameter_type=int,
-        )
-
         self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
             parameters=self._monitor_params.get_parameter_group(group="cheetah"),
             node_rank=node_rank,
@@ -281,10 +262,18 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             parameter_type=int,
             required=True,
         )
-        self._geometry_is_optimized: bool = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="geometry_is_optimized",
-            parameter_type=bool,
+
+        self._source: str = self._monitor_params.get_parameter(
+            group="om",
+            parameter="source",
+            parameter_type=str,
+            required=True,
+        )
+
+        self._configuration_file: str = self._monitor_params.get_parameter(
+            group="om",
+            parameter="configuration_file",
+            parameter_type=str,
             required=True,
         )
 
@@ -315,84 +304,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         else:
             self._binning = None
             self._bin_size = 1
-
-        # Theoretically, the pixel size could be different for every module of the
-        # detector. The pixel size of the first module is taken as the pixel size
-        # of the whole detector.
-        self._pixel_size: float = self._geometry["panels"][
-            tuple(self._geometry["panels"].keys())[0]
-        ]["res"]
-        if self._binning is not None:
-            self._pixel_size /= self._binning.get_bin_size()
-        self._first_panel_coffset: float = self._geometry["panels"][
-            list(self._geometry["panels"].keys())[0]
-        ]["coffset"]
-
-        self._running_average_window_size: int = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="running_average_window_size",
-            parameter_type=int,
-            required=True,
-        )
-        self._hit_rate_running_window: Deque[float] = collections.deque(
-            [0.0] * self._running_average_window_size,
-            maxlen=self._running_average_window_size,
-        )
-        self._avg_hit_rate: int = 0
-        self._hit_rate_timestamp_history: Deque[float] = collections.deque(
-            5000 * [0.0], maxlen=5000
-        )
-        self._hit_rate_history: Deque[float] = collections.deque(
-            5000 * [0.0], maxlen=5000
-        )
-
-        y_minimum: int = (
-            2
-            * int(max(abs(self._pixelmaps["y"].max()), abs(self._pixelmaps["y"].min())))
-            + 2
-        )
-        x_minimum: int = (
-            2
-            * int(max(abs(self._pixelmaps["x"].max()), abs(self._pixelmaps["x"].min())))
-            + 2
-        )
-        visual_img_shape: Tuple[int, int] = (y_minimum, x_minimum)
-        self._img_center_x: int = int(visual_img_shape[1] / 2)
-        self._img_center_y: int = int(visual_img_shape[0] / 2)
-        pixelmap_x_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
-        self._visual_pixelmap_x: NDArray[numpy.int_] = (
-            pixelmap_x_int + visual_img_shape[1] // 2 - 1
-        ).flatten()
-        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
-        self._visual_pixelmap_y: NDArray[numpy.int_] = (
-            pixelmap_y_int + visual_img_shape[0] // 2 - 1
-        ).flatten()
-        self._virt_powd_plot_img: NDArray[numpy.int_] = numpy.zeros(
-            visual_img_shape, dtype=numpy.int32
-        )
-        self._frame_data_img: NDArray[numpy.float_] = numpy.zeros(
-            visual_img_shape, dtype=numpy.float32
-        )
-        self._data_broadcast: Union[bool, None] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="data_broadcast",
-            parameter_type=bool,
-            required=False,
-        )
-        if self._data_broadcast:
-            self._data_broadcast_interval: int = self._monitor_params.get_parameter(
-                group="crystallography",
-                parameter="data_broadcast_interval",
-                parameter_type=int,
-                required=True,
-            )
-            self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-                zmq_monitor.ZmqDataBroadcaster(
-                    parameters=self._monitor_params.get_parameter_group(
-                        group="crystallography"
-                    )
-                )
-            )
 
         self._num_events: int = 0
         self._num_hits: int = 0
@@ -453,7 +364,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
                 parameter="class_sum_filename_prefix",
                 parameter_type=str,
             )
-
             class_number: int
             self._sum_writers = [
                 hdf5_writers.SumHDF5Writer(
@@ -555,63 +465,31 @@ class CheetahProcessing(pl_protocols.OmProcessing):
 
         processed_data["timestamp"] = data["timestamp"]
         processed_data["frame_is_hit"] = frame_is_hit
-        if "detector_distance" in data.keys():
-            processed_data["detector_distance"] = data["detector_distance"]
-        else:
-            processed_data["detector_distance"] = 300
-        if "beam_energy" in data.keys():
-            processed_data["beam_energy"] = data["beam_energy"]
-        else:
-            processed_data["beam_energy"] = 10000
+        processed_data["detector_distance"] = data["detector_distance"]
+        processed_data["beam_energy"] = data["beam_energy"]
+        processed_data["event_id"] = data["event_id"]
+        processed_data["frame_id"] = data["frame_id"]
         processed_data["data_shape"] = binned_detector_data.shape
-        if "event_id" in data.keys():
-            processed_data["event_id"] = data["event_id"]
-        else:
-            processed_data["event_id"] = None
-        if "optical_laser_active" in data.keys():
-            processed_data["optical_laser_active"] = data["optical_laser_active"]
-        else:
-            processed_data["optical_laser_active"] = None
+        processed_data["peak_list"] = peak_list
         if "lcls_extra" in data.keys():
             processed_data["lcls_extra"] = data["lcls_extra"]
-        processed_data["peak_list"] = peak_list
+
         processed_data["filename"] = "---"
         processed_data["index"] = -1
         if frame_is_hit:
-            data_to_write = {"detector_data": binned_detector_data}
-            data_to_write.update(processed_data)
-            self._file_writer.write_frame(processed_data=data_to_write)
             processed_data["filename"] = self._file_writer.get_current_filename()
             processed_data["index"] = self._file_writer.get_num_written_frames()
 
-            if self._hit_frame_sending_interval is not None:
-                self._hit_frame_sending_counter += 1
-                if self._hit_frame_sending_counter == self._hit_frame_sending_interval:
-                    # If the frame is a hit, and if the 'hit_sending_interval'
-                    # attribute says that the detector frame data should be sent to
-                    # the collecting node, adds the data to the 'processed_data'
-                    # dictionary (and resets the counter).
-                    processed_data["detector_data"] = binned_detector_data
-                    self._hit_frame_sending_counter = 0
-        else:
-            if self._non_hit_frame_sending_interval is not None:
-                self._non_hit_frame_sending_counter += 1
-                if (
-                    self._non_hit_frame_sending_counter
-                    == self._non_hit_frame_sending_interval
-                ):
-                    # If the frame is a not a hit, and if the 'hit_sending_interval'
-                    # attribute says that the detector frame data should be sent to
-                    # the collecting node, adds the data to the 'processed_data'
-                    # dictionary (and resets the counter).
-                    processed_data["detector_data"] = binned_detector_data
-                    self._non_hit_frame_sending_counter = 0
+            data_to_write = {"detector_data": binned_detector_data}
+            data_to_write.update(processed_data)
+            self._file_writer.write_frame(processed_data=data_to_write)
 
         self._total_sums[frame_is_hit]["num_frames"] += 1
         self._total_sums[frame_is_hit]["sum_frames"] += binned_detector_data
         if self._sum_sending_interval is not None:
             if self._sum_sending_counter == 0:
-                self._sum_to_send: List[Dict[str, Any]] = [
+                class_number: int
+                self._sum_to_send: List[_TypeClassSumData] = [
                     {
                         "num_frames": 0,
                         "sum_frames": numpy.zeros(
@@ -628,6 +506,31 @@ class CheetahProcessing(pl_protocols.OmProcessing):
                 processed_data["class_sums"] = self._sum_to_send
 
         return (processed_data, node_rank)
+
+    def collect_no_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> None:
+        """
+        Receives and handles requests from external programs.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function does nothing.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        """
+        pass
 
     def collect_data(  # noqa: C901
         self,
@@ -682,22 +585,21 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         self._num_events += 1
         if received_data["frame_is_hit"]:
             self._num_hits += 1
-            if "event_id" in received_data.keys():
-                self._hits_file.write(f"{received_data['event_id']}\n")
-                peak_list: cryst_algs.TypePeakList = received_data["peak_list"]
-                self._peaks_file.writelines(
-                    (
-                        f"{received_data['event_id']}, "
-                        f"{peak_list['num_peaks']}, "
-                        f"{(peak_list['fs'][i] + 0.5) * self._bin_size - 0.5}, "
-                        f"{(peak_list['ss'][i] + 0.5) * self._bin_size - 0.5}, "
-                        f"{peak_list['intensity'][i]}, "
-                        f"{peak_list['num_pixels'][i]}, "
-                        f"{peak_list['max_pixel_intensity'][i]}, "
-                        f"{peak_list['snr'][i]}\n"
-                        for i in range(peak_list["num_peaks"])
-                    )
+            self._hits_file.write(f"{received_data['event_id']}\n")
+            peak_list: cryst_algs.TypePeakList = received_data["peak_list"]
+            self._peaks_file.writelines(
+                (
+                    f"{received_data['event_id']}, "
+                    f"{peak_list['num_peaks']}, "
+                    f"{(peak_list['fs'][i] + 0.5) * self._bin_size - 0.5}, "
+                    f"{(peak_list['ss'][i] + 0.5) * self._bin_size - 0.5}, "
+                    f"{peak_list['intensity'][i]}, "
+                    f"{peak_list['num_pixels'][i]}, "
+                    f"{peak_list['max_pixel_intensity'][i]}, "
+                    f"{peak_list['snr'][i]}\n"
+                    for i in range(peak_list["num_peaks"])
                 )
+            )
 
         frame_data: _TypeFrameListData = _TypeFrameListData(
             received_data["timestamp"],
@@ -716,15 +618,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             f"{frame_data.average_intensity}\n"
         )
 
-        self._hit_rate_running_window.append(float(received_data["frame_is_hit"]))
-        avg_hit_rate: float = (
-            sum(self._hit_rate_running_window) / self._running_average_window_size
-        )
-        self._hit_rate_timestamp_history.append(received_data["timestamp"])
-        self._hit_rate_history.append(avg_hit_rate * 100.0)
-
-        peak_list_x_in_frame: List[float] = []
-        peak_list_y_in_frame: List[float] = []
         peak_fs: float
         peak_ss: float
         peak_value: float
@@ -733,15 +626,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             received_data["peak_list"]["ss"],
             received_data["peak_list"]["intensity"],
         ):
-            peak_index_in_slab: int = int(round(peak_ss)) * received_data["data_shape"][
-                1
-            ] + int(round(peak_fs))
-            y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
-            x_in_frame: float = self._visual_pixelmap_x[peak_index_in_slab]
-            peak_list_x_in_frame.append(y_in_frame)
-            peak_list_y_in_frame.append(x_in_frame)
-            self._virt_powd_plot_img[y_in_frame, x_in_frame] += peak_value
-
             self._total_sums[received_data["frame_is_hit"]]["peak_powder"][
                 int(round(peak_ss))
             ][int(round(peak_fs))] += peak_value
@@ -771,54 +655,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             self._hits_file.flush()
             self._peaks_file.flush()
             self._frames_file.flush()
-
-        if (
-            self._data_broadcast
-            and self._num_events % self._data_broadcast_interval == 0
-        ):
-            self._data_broadcast_socket.send_data(
-                tag="omdata",
-                message={
-                    "geometry_is_optimized": self._geometry_is_optimized,
-                    "timestamp": received_data["timestamp"],
-                    "hit_rate_timestamp_history": self._hit_rate_timestamp_history,
-                    "hit_rate_history": self._hit_rate_history,
-                    "virtual_powder_plot": self._virt_powd_plot_img,
-                    "beam_energy": received_data["beam_energy"],
-                    "detector_distance": received_data["detector_distance"],
-                    "first_panel_coffset": self._first_panel_coffset,
-                    "pixel_size": self._pixel_size,
-                },
-            )
-
-            if "detector_data" in received_data:
-                # If detector frame data is found in the data received from the
-                # processing node, it must be broadcasted to visualization programs.
-
-                self._frame_data_img[
-                    self._visual_pixelmap_y, self._visual_pixelmap_x
-                ] = (
-                    received_data["detector_data"]
-                    .ravel()
-                    .astype(self._frame_data_img.dtype)
-                )
-
-                self._data_broadcast_socket.send_data(
-                    tag="omframedata",
-                    message={
-                        "frame_data": self._frame_data_img,
-                        "timestamp": received_data["timestamp"],
-                        "peak_list_x_in_frame": peak_list_x_in_frame,
-                        "peak_list_y_in_frame": peak_list_y_in_frame,
-                    },
-                )
-                self._data_broadcast_socket.send_data(
-                    tag="omtweakingdata",
-                    message={
-                        "detector_data": received_data["detector_data"],
-                        "timestamp": received_data["timestamp"],
-                    },
-                )
 
         if self._num_events % self._speed_report_interval == 0:
             now_time: float = time.time()
@@ -872,7 +708,6 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         )
         sys.stdout.flush()
         if self._file_writer is not None:
-            # self._file_writer.write_sums(self._total_sums)
             self._file_writer.close()
         if self._sum_sending_interval is not None and self._sum_sending_counter > 0:
             return {"class_sums": self._sum_to_send, "end_processing": True}
@@ -909,14 +744,14 @@ class CheetahProcessing(pl_protocols.OmProcessing):
                         "peak_powder"
                     ],
                 )
-        frame_list: List[_TypeFrameListData] = sorted(self._frame_list)
         if self._status_file_update_interval is not None:
             self._write_status_file(
                 status="Finished",
                 num_frames=self._num_events,
                 num_hits=self._total_sums[1]["num_frames"],
             )
-        # Sort frames and write frames.txt file again
+        # Sort frames and write frames.txt and cleaned.txt files
+        frame_list: List[_TypeFrameListData] = sorted(self._frame_list)
         self._frames_file.close()
         with open(self._frames_filename, "w") as self._frames_file:
             self._frames_file.write(
