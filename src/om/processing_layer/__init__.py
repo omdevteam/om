@@ -23,6 +23,7 @@ logic for all OnDA Monitors is defined). Each module in the package stores the
 implementation of a different OnDA Monitor.
 """
 from .cheetah import CheetahProcessing  # noqa: F401
+from .cheetah_streaming import StreamingCheetahProcessing  # noqa: F401
 from .crystallography import CrystallographyProcessing  # noqa: F401
 from .spi import SpiProcessing  # noqa: F401
 from .testing import TestProcessing  # noqa: F401
