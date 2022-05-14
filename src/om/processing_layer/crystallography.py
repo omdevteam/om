@@ -307,21 +307,15 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
         else:
             self._peakogram_intensity_bin_size = 100
 
-        peakfinder_max_res: Union[None, int] = self._monitor_params.get_parameter(
-            group="peakfinder8_peak_detection",
-            parameter="max_res",
-            parameter_type=int,
-            required=False,
+        self._peakogram_radius_bin_size: float = (
+            self._monitor_params.get_parameter(
+                group="peakfinder8_peak_detection",
+                parameter="max_res",
+                parameter_type=int,
+                required=True,
+            )
+            / peakogram_num_bins
         )
-        if peakfinder_max_res:
-            self._peakogram_radius_bin_size: float = (
-                peakfinder_max_res / peakogram_num_bins
-            )
-        else:
-            self._peakogram_radius_bin_size = (
-                cast(NDArray[numpy.float_], self._pixelmaps["radius"])
-                / peakogram_num_bins
-            )
 
         self._peakogram: NDArray[numpy.float_] = numpy.zeros(
             (peakogram_num_bins, peakogram_num_bins)
@@ -702,7 +696,9 @@ class CrystallographyProcessing(pl_protocols.OmProcessing):
 
             peak_radius: float = (
                 self._bin_size
-                * self._pixelmaps["radius"][int(round(peak_ss)), int(round(peak_fs))]
+                * cast(NDArray[numpy.float_], self._pixelmaps["radius"])[
+                    int(round(peak_ss)), int(round(peak_fs))
+                ]
             )
             radius_index: int = int(peak_radius // self._peakogram_radius_bin_size)
             intensity_index: int = int(
