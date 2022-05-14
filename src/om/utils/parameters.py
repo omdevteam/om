@@ -164,7 +164,9 @@ class MonitorParams:
             self._monitor_params[group]["name"] = group
 
         # Add configuration file path to the om group
-        self._monitor_params["om"]["configuration_file"] = config
+        self._monitor_params["om"]["configuration_file"] = str(
+            pathlib.Path(config).absolute()
+        )
 
     def get_parameter_group(
         self,
