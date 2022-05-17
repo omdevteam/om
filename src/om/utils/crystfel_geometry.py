@@ -354,38 +354,42 @@ class TypePixelMaps(TypedDict):
     phi: Union[NDArray[numpy.float_], None]
 
 
-def _assplode_algebraic(*, value: str) -> List[str]:
-    # Re-implementation of assplode_algebraic from
-    # /src/detector.c.
-    items: List[str] = [
-        item for item in re.split("([+-])", string=value.strip()) if item != ""
-    ]
-    if items and items[0] not in ("+", "-"):
-        items.insert(0, "+")
-    return ["".join((items[x], items[x + 1])) for x in range(0, len(items), 2)]
-
-
-def _dir_conv(
-    *, direction_x: float, direction_y: float, direction_z: float, value: str
+def _parse_direction(
+    # Parses a string of the format: 4x-0.9y+1.3z
+    *,
+    string_to_parse: str,
+    direction_x: float,
+    direction_y: float,
+    direction_z: float,
 ) -> List[float]:
-    # Re-implementation of dir_conv from libcrystfel/src/detector.c.
     direction: List[float] = [
         direction_x,
         direction_y,
         direction_z,
     ]
-    items: List[str] = _assplode_algebraic(value=value)
-    if not items:
-        raise RuntimeError(f"Invalid direction: {value}.")
-    item: str
+    items: List[str] = []
+    character: str
+    current_string: List[str] = []
+    for character in string_to_parse:
+        if character not in ("+", "-"):
+            current_string.append(character)
+        else:
+            joined_string: str = "".join(current_string)
+            if joined_string != "":
+                items.append(joined_string.strip())
+            current_string = []
+            current_string.append(character)
+    joined_string = "".join(current_string)
+    if joined_string != "":
+        items.append(joined_string.strip())
     for item in items:
         axis: str = item[-1]
         if axis not in ("x", "y", "z"):
-            raise RuntimeError(f"Invalid Symbol: {axis} (must be x, y or z).")
-        if item[:-1] == "+":
-            value = "1.0"
-        elif item[:-1] == "-":
+            raise RuntimeError()
+        if item[:-1] == "-":
             value = "-1.0"
+        elif item[:-1] == "":
+            value = "1.0"
         else:
             value = item[:-1]
         if axis == "x":
@@ -394,43 +398,17 @@ def _dir_conv(
             direction[1] = float(value)
         elif axis == "z":
             direction[2] = float(value)
-
     return direction
 
 
-def _set_dim_structure_entry(*, key: str, value: str, panel: TypePanel) -> None:
-    # Re-implementation of set_dim_structure_entry from libcrystfel/src/events.c.
-    if panel["dim_structure"] is not None:
-        dim: List[Union[int, str, None]] = panel["dim_structure"]
-    else:
-        dim = []
-    try:
-        dim_index: int = int(key[3])
-    except IndexError:
-        raise RuntimeError("'dim' must be followed by a number, e.g. 'dim0')")
-    except ValueError:
-        raise RuntimeError(f"Invalid dimension number {key[3]}")
-    if dim_index > len(dim) - 1:
-        for _ in range(len(dim), dim_index + 1):
-            dim.append(None)
-    if value in ("ss", "fs", "%"):
-        dim[dim_index] = value
-    elif value.isdigit():
-        dim[dim_index] = int(value)
-    else:
-        raise RuntimeError(f"Invalid dim entry: {value}.")
-    panel["dim_structure"] = dim
-
-
-def _parse_field_for_panel(  # noqa: C901
-    *,
+def _parse_panel_entry(
     key: str,
     value: str,
     panel: TypePanel,
     panel_name: str,
     detector: TypeDetector,
 ) -> None:
-    # Re-implementation of parse_field_for_panel from libcrystfel/src/detector.c.
+    # Parses entries in the geometry file that refer to panels
     if key == "min_fs":
         panel["orig_min_fs"] = int(value)
     elif key == "max_fs":
@@ -445,14 +423,14 @@ def _parse_field_for_panel(  # noqa: C901
         panel["cny"] = float(value)
     elif key == "rail_direction":
         try:
-            panel["rail_x"], panel["rail_y"], panel["rail_z"] = _dir_conv(
+            panel["rail_x"], panel["rail_y"], panel["rail_z"] = _parse_direction(
                 direction_x=panel["rail_x"],
                 direction_y=panel["rail_y"],
                 direction_z=panel["rail_z"],
-                value=value,
+                string_to_parse=value,
             )
-        except RuntimeError as exc:
-            raise RuntimeError(f"Invalid rail direction. ", exc)
+        except RuntimeError:
+            raise exceptions.OmGeometryError("Invalid rail direction. ")
     elif key == "clen_for_centering":
         panel["clen_for_centering"] = float(value)
     elif key == "adu_per_eV":
@@ -461,7 +439,7 @@ def _parse_field_for_panel(  # noqa: C901
         panel["adu_per_photon"] = float(value)
     elif key == "rigid_group":
         if value in detector["rigid_groups"]:
-            if panel_name not in detector["rigid_groups"][value]:
+            if panel_name != "" and panel_name not in detector["rigid_groups"][value]:
                 detector["rigid_groups"][value].append(panel_name)
         else:
             detector["rigid_groups"][value] = [
@@ -475,12 +453,8 @@ def _parse_field_for_panel(  # noqa: C901
             panel["clen"] = -1
             panel["clen_from"] = value
     elif key == "data":
-        if not value.startswith("/"):
-            raise RuntimeError(f"Invalid data location: {value}")
         panel["data"] = value
     elif key == "mask":
-        if not value.startswith("/"):
-            raise RuntimeError(f"Invalid data location: {value}")
         panel["mask"] = value
     elif key == "mask_file":
         panel["mask_file"] = value
@@ -506,253 +480,207 @@ def _parse_field_for_panel(  # noqa: C901
         elif value == "-":
             panel["badrow"] = "-"
         else:
-            console.print(
-                "badrow_direction must be x, t, f, s, or '-'", style="warning"
-            )
-            console.print("Assuming '-'.", style="warning")
+            print("badrow_direction must be x, t, f, s, or '-'")
+            print("Assuming '-'.")
             panel["badrow"] = "-"
     elif key == "no_index":
         panel["no_index"] = bool(value)
     elif key == "fs":
         try:
-            panel["fsx"], panel["fsy"], panel["fsz"] = _dir_conv(
+            panel["fsx"], panel["fsy"], panel["fsz"] = _parse_direction(
                 direction_x=panel["fsx"],
                 direction_y=panel["fsy"],
                 direction_z=panel["fsz"],
-                value=value,
+                string_to_parse=value,
             )
-        except RuntimeError as exc:
-            raise RuntimeError("Invalid fast scan direction.", exc)
+        except RuntimeError:
+            raise RuntimeError("Invalid fast scan direction.")
     elif key == "ss":
         try:
-            panel["ssx"], panel["ssy"], panel["ssz"] = _dir_conv(
+            panel["ssx"], panel["ssy"], panel["ssz"] = _parse_direction(
                 direction_x=panel["ssx"],
                 direction_y=panel["ssy"],
                 direction_z=panel["ssz"],
-                value=value,
+                string_to_parse=value,
             )
-        except RuntimeError as exc:
-            raise RuntimeError("Invalid slow scan direction.", exc)
+        except RuntimeError:
+            raise RuntimeError("Invalid slow scan direction.")
     elif key.startswith("dim"):
-        _set_dim_structure_entry(key=key, value=value, panel=panel)
+        if panel["dim_structure"] is not None:
+            dim: List[Union[int, str, None]] = panel["dim_structure"]
+        else:
+            dim = []
+        try:
+            dim_index: int = int(key[3])
+        except IndexError:
+            raise RuntimeError("'dim' must be followed by a number, (e.g. 'dim0')")
+        except ValueError:
+            raise RuntimeError("Invalid dimension number {}".format(key[3]))
+        if dim_index > len(dim) - 1:
+            for _ in range(len(dim), dim_index + 1):
+                dim.append(None)
+        if value in ("ss", "fs", "%"):
+            dim[dim_index] = value
+        elif value.isdigit():
+            dim[dim_index] = int(value)
+        else:
+            raise RuntimeError("Invalid dim entry: {}.".format(value))
+        panel["dim_structure"] = dim
     else:
         RuntimeError(f"Unrecognized field: {key}")
 
 
-def _parse_toplevel(  # noqa: C901
-    *,
-    key: str,
-    value: str,
-    detector: TypeDetector,
-    beam: TypeBeam,
-    panel: TypePanel,
-    hdf5_peak_path: str,
-) -> str:
-    # Re-implementation of parse_toplevel from libcrystfel/src/detector.c.
-    if key == "mask_bad":
-        try:
-            detector["mask_bad"] = int(value)
-        except ValueError:
-            detector["mask_bad"] = int(value, base=16)
-    elif key == "mask_good":
-        try:
-            detector["mask_good"] = int(value)
-        except ValueError:
-            detector["mask_good"] = int(value, base=16)
-    elif key == "coffset":
-        panel["coffset"] = float(value)
-    elif key == "photon_energy":
-        if value.startswith("/"):
-            beam["photon_energy"] = 0.0
-            beam["photon_energy_from"] = value
-        else:
-            beam["photon_energy"] = float(value)
-            beam["photon_energy_from"] = ""
-    elif key == "photon_energy_scale":
-        beam["photon_energy_scale"] = float(value)
-    elif key == "peak_info_location":
-        hdf5_peak_path = value
-    elif key.startswith("rigid_group") and not key.startswith("rigid_group_collection"):
-        detector["rigid_groups"][key[12:]] = value.split(",")
-    elif key.startswith("rigid_group_collection"):
-        detector["rigid_group_collections"][key[23:]] = value.split(",")
-    else:
-        _parse_field_for_panel(
-            key=key, value=value, panel=panel, panel_name="", detector=detector
-        )
-
-    return hdf5_peak_path
-
-
-def _check_bad_fsss(*, bad_region: TypeBadRegion, is_fsss: int) -> None:
-    # Re-implementation of check_bad_fsss from libcrystfel/src/detector.c.
-    if bad_region["is_fsss"] == 99:
-        bad_region["is_fsss"] = is_fsss
-        return
-
-    if is_fsss != bad_region["is_fsss"]:
-        raise RuntimeError("You can't mix x/y and fs/ss in a bad region")
-
-
-def _parse_field_bad(*, key: str, value: str, bad: TypeBadRegion) -> None:
-    # Re-implementation of parse_field_bad from libcrystfel/src/detector.c.
-    if key == "min_x":
-        bad["min_x"] = float(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=False)
-    elif key == "max_x":
-        bad["max_x"] = float(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=False)
-    elif key == "min_y":
-        bad["min_y"] = float(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=False)
-    elif key == "max_y":
-        bad["max_y"] = float(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=False)
-    elif key == "min_fs":
-        bad["min_fs"] = int(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=True)
-    elif key == "max_fs":
-        bad["max_fs"] = int(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=True)
-    elif key == "min_ss":
-        bad["min_ss"] = int(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=True)
-    elif key == "max_ss":
-        bad["max_ss"] = int(value)
-        _check_bad_fsss(bad_region=bad, is_fsss=True)
-    elif key == "panel":
-        bad["panel"] = value
-    else:
-        raise RuntimeError(f"Unrecognized field: {key}")
-
-
-def _check_point(
-    *,
-    panel_name: str,
-    panel: TypePanel,
-    fs: int,
-    ss: int,
-    min_d: float,
-    max_d: float,
-    detector: TypeDetector,
-) -> Tuple[float, float]:
-    # Re-implementation of check_point from libcrystfel/src/detector.c.
-    xs: float = fs * panel["fsx"] + ss * panel["ssx"]
-    ys: float = fs * panel["fsy"] + ss * panel["ssy"]
-    rx: float = (xs + panel["cnx"]) / panel["res"]
-    ry: float = (ys + panel["cny"]) / panel["res"]
-    dist: float = math.sqrt(rx * rx + ry * ry)
-    if dist > max_d:
-        detector["furthest_out_panel"] = panel_name
-        detector["furthest_out_fs"] = fs
-        detector["furthest_out_ss"] = ss
-        max_d = dist
-    elif dist < min_d:
-        detector["furthest_in_panel"] = panel_name
-        detector["furthest_in_fs"] = fs
-        detector["furthest_in_ss"] = ss
-        min_d = dist
-
-    return min_d, max_d
-
-
-def _find_min_max_d(*, detector: TypeDetector) -> None:
-    # Re-implementation of find_min_max_d from libcrystfel/src/detector.c.
-    min_d: float = float("inf")
-    max_d: float = 0.0
-    panel_name: str
+def _validate_detector_geometry(detector: TypeDetector) -> None:
+    # Validates the geometry file, checking for errors
+    if not detector["panels"]:
+        raise exceptions.OmGeometryError("No panel descriptions in geometry file.")
     panel: TypePanel
+    panel_name: str
+    num_placeholders_in_panels: int = -1
+    num_placeholders_in_masks: int = -1
+    dim_length: int = -1
     for panel_name, panel in detector["panels"].items():
-        min_d, max_d = _check_point(
-            panel_name=panel_name,
-            panel=panel,
-            fs=0,
-            ss=0,
-            min_d=min_d,
-            max_d=max_d,
-            detector=detector,
+        if panel["dim_structure"] is not None:
+            curr_num_placeholders: int = panel["dim_structure"].count("%")
+        else:
+            curr_num_placeholders = 0
+
+        if num_placeholders_in_panels == -1:
+            num_placeholders_in_panels = curr_num_placeholders
+        else:
+            if curr_num_placeholders != num_placeholders_in_panels:
+                raise exceptions.OmGeometryError(
+                    "All panels' data and mask entries must have the same "
+                    "number of placeholders."
+                )
+
+        if panel["mask"] is not None:
+            curr_num_placeholders = panel["mask"].count("%")
+        else:
+            curr_num_placeholders = 0
+
+        if num_placeholders_in_masks == -1:
+            num_placeholders_in_masks = curr_num_placeholders
+        else:
+            if curr_num_placeholders != num_placeholders_in_masks:
+                raise exceptions.OmGeometryError(
+                    "All panels' data and mask entries must have the same "
+                    "number of placeholders."
+                )
+
+        found_ss: int = 0
+        found_fs: int = 0
+        found_placeholder: int = 0
+        dim_index: int
+        entry: Union[int, str, None]
+        for dim_index, entry in enumerate(panel["dim_structure"]):
+            if entry is None:
+                raise exceptions.OmGeometryError(
+                    f"Dimension {dim_index} for panel {panel_name} is " "undefined."
+                )
+            if entry == "ss":
+                found_ss += 1
+            elif entry == "fs":
+                found_fs += 1
+            elif entry == "%":
+                found_placeholder += 1
+        if found_ss != 1:
+            raise exceptions.OmGeometryError(
+                "Exactly one slow scan dim coordinate is needed (found "
+                f"{found_ss} for panel {panel_name})."
+            )
+        if found_fs != 1:
+            raise exceptions.OmGeometryError(
+                "Exactly one fast scan dim coordinate is needed (found "
+                f"{found_fs} for panel {panel_name})."
+            )
+        if found_placeholder > 1:
+            raise exceptions.OmGeometryError(
+                "Only one placeholder dim coordinate is allowed. Maximum one "
+                "placeholder dim coordinate is allowed "
+                f"(found {found_placeholder} for panel {panel_name})"
+            )
+        if dim_length == -1:
+            dim_length = len(panel["dim_structure"])
+        elif dim_length != len(panel["dim_structure"]):
+            raise exceptions.OmGeometryError(
+                "Number of dim coordinates must be the same for all panels."
+            )
+        if dim_length == 1:
+            raise exceptions.OmGeometryError(
+                "Number of dim coordinates must be at least two."
+            )
+
+        if panel["orig_min_fs"] < 0:
+            raise exceptions.OmGeometryError(
+                "Please specify the minimum fs coordinate for panel " f"{panel_name}."
+            )
+        if panel["orig_max_fs"] < 0:
+            raise exceptions.OmGeometryError(
+                "Please specify the maximum fs coordinate for panel " f"{panel_name}."
+            )
+        if panel["orig_min_ss"] < 0:
+            raise exceptions.OmGeometryError(
+                "Please specify the minimum ss coordinate for panel " f"{panel_name}."
+            )
+        if panel["orig_max_ss"] < 0:
+            raise exceptions.OmGeometryError(
+                "Please specify the maximum ss coordinate for panel " f"{panel_name}."
+            )
+        if panel["cnx"] is None:
+            raise exceptions.OmGeometryError(
+                "Please specify the corner X coordinate for panel " f"{panel_name}."
+            )
+        if panel["clen"] is None and panel["clen_from"] is None:
+            raise exceptions.OmGeometryError(
+                f"Please specify the camera length for panel {panel_name}."
+            )
+        if panel["res"] < 0:
+            raise exceptions.OmGeometryError(
+                f"Please specify the resolution or panel {panel_name}."
+            )
+        if panel["adu_per_eV"] is None and panel["adu_per_photon"] is None:
+            raise exceptions.OmGeometryError(
+                "Please specify either adu_per_eV or adu_per_photon for panel "
+                f"{panel_name}."
+            )
+
+        if (panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]) == 0.0:
+            raise exceptions.OmGeometryError(
+                f"Panel {name} transformation is singular."
+            )
+
+    if num_placeholders_in_masks > num_placeholders_in_panels:
+        raise exceptions.OmGeometryError(
+            "Number of placeholders in mask cannot be larger the number than "
+            "for data."
         )
-        min_d, max_d = _check_point(
-            panel_name=panel_name,
-            panel=panel,
-            fs=panel["w"],
-            ss=0,
-            min_d=min_d,
-            max_d=max_d,
-            detector=detector,
-        )
-        min_d, max_d = _check_point(
-            panel_name=panel_name,
-            panel=panel,
-            fs=0,
-            ss=panel["h"],
-            min_d=min_d,
-            max_d=max_d,
-            detector=detector,
-        )
-        min_d, max_d = _check_point(
-            panel_name=panel_name,
-            panel=panel,
-            fs=panel["w"],
-            ss=panel["h"],
-            min_d=min_d,
-            max_d=max_d,
-            detector=detector,
-        )
 
-
-def load_crystfel_geometry(  # noqa: C901
-    *,
-    filename: str,
-) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
-    """
-    Loads a CrystFEL geometry file.
-
-    This function is a Python re-implementation of the `get_detector_geometry_2` C
-    function from CrystFEL. It reads information from a CrystFEL geometry file (which
-    uses a format fully documented in the relevant
-    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),
-    and returns a set of nested dictionaries whose content matches CrystFEL's internal
-    representation of the information in the file (see the libcrystfel/src/detector.h
-    and the libcrystfel/src/image.c source code files from CrystFEL for more
-    information).
-
-    This function currently re-implements the `get_detector_geometry_2` function from
-    CrystFEL as it was at commit cff9159b4bc6.
-
-    Arguments:
-
-        filename: The absolute or relative path to a CrystFEL geometry file.
-
-    Returns:
-
-        A tuple with the information loaded from the file.
-
-        * The first entry in the tuple is a
-          [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
-          information related to the detector geometry.
-
-        * The second entry in the tuple is a
-          [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
-          information about the beam properties.
-
-        * The third entry is the internal path, in an HDF5 data file, to the location
-          where Bragg peak information for the current detector can be found. This is
-          only used if CrystFEL extracts Bragg peak information from files. If the
-          geometry file does not provide this information, this entry has the value of
-          an empty string.
-    """
-    try:
-        file_handle: TextIO
-        with open(filename, mode="r") as file_handle:
-            file_lines: List[str] = file_handle.readlines()
-    except (IOError, OSError) as exc:
-        exc_type, exc_value = sys.exc_info()[:2]
-        raise exceptions.OmConfigurationFileReadingError(
-            f"The following error occurred while reading the "  # type: ignore
-            f"{filename} geometry file {exc_type.__name__}: {exc_value}"
-        ) from exc
-    return read_crystfel_geometry(text_lines=file_lines)
+    bad_region_name: str
+    bad_region: TypeBadRegion
+    for bad_region_name, bad_region in detector["bad"].items():
+        if bad_region["is_fsss"] == 99:
+            raise exceptions.OmGeometryError(
+                "Please specify the coordinate ranges for bad "
+                f"region {bad_region_name}."
+            )
+    group: str
+    for group in detector["rigid_groups"]:
+        name: str
+        for name in detector["rigid_groups"][group]:
+            if name not in detector["panels"]:
+                raise exceptions.OmGeometryError(
+                    "Cannot add panel to rigid_group. Panel not " f"found: {name}."
+                )
+    group_collection: str
+    for group_collection in detector["rigid_group_collections"]:
+        group_name: str
+        for group_name in detector["rigid_group_collections"][group_collection]:
+            if group_name not in detector["rigid_groups"]:
+                raise exceptions.OmGeometryError(
+                    "Cannot add rigid_group to collection. Rigid group not "
+                    f"found: {name}."
+                )
 
 
 def read_crystfel_geometry(  # noqa: C901
@@ -774,9 +702,6 @@ def read_crystfel_geometry(  # noqa: C901
     geometry data to be provided in the format of lines of text. It is designed for
     cases in which the content of a crystfel geometry file has already been read and
     has been stored in memory in text format.
-
-    This function currently re-implements the functionality of the
-    `get_detector_geometry_2` function from CrystFEL as it was at commit cff9159b4bc6.
 
     Arguments:
 
@@ -874,213 +799,160 @@ def read_crystfel_geometry(  # noqa: C901
     hdf5_peak_path: str = ""
     line: str
     for line in text_lines:
-        if line.startswith(";"):
+        if len(line.strip()) == 0:
             continue
-        line_without_comments: str = line.strip().split(";")[0]
-        line_items: List[str] = re.split(
-            pattern="([ \t])", string=line_without_comments
-        )
-        line_items = [item for item in line_items if item not in ("", " ", "\t")]
-        if len(line_items) < 3:
+        if line.strip().startswith(";"):
             continue
-        value: str = "".join(line_items[2:])
-        if line_items[1] != "=":
-            continue
-        path: List[str] = re.split("(/)", line_items[0])
-        path = [item for item in path if item not in "/"]
-        if len(path) < 2:
-            hdf5_peak_path = _parse_toplevel(
-                key=line_items[0],
-                value=value,
-                detector=detector,
-                beam=beam,
-                panel=default_panel,
-                hdf5_peak_path=hdf5_peak_path,
-            )
-            continue
-        if path[0].startswith("bad"):
-            if path[0] in detector["bad"]:
-                curr_bad: TypeBadRegion = detector["bad"][path[0]]
+        try:
+            line_without_comments: str = line.strip().split(";")[0]
+            line_parts: List[str] = line_without_comments.split("=")
+            if len(line_parts) != 2:
+                raise RuntimeError("The line does not have the format 'key=value'")
+            key: str = line_parts[0].strip()
+            value: str = line_parts[1].strip()
+            key_parts: List[str] = key.split("/")
+            if len(key_parts) < 2:
+                if key == "mask_bad":
+                    try:
+                        detector["mask_bad"] = int(value)
+                    except ValueError:
+                        detector["mask_bad"] = int(value, base=16)
+                elif key == "mask_good":
+                    try:
+                        detector["mask_good"] = int(value)
+                    except ValueError:
+                        detector["mask_good"] = int(value, base=16)
+                elif key == "photon_energy":
+                    if value.startswith("/"):
+                        beam["photon_energy"] = 0.0
+                        beam["photon_energy_from"] = value
+                    else:
+                        beam["photon_energy"] = float(value)
+                        beam["photon_energy_from"] = ""
+                elif key == "photon_energy_scale":
+                    beam["photon_energy_scale"] = float(value)
+                elif key == "peak_info_location":
+                    hdf5_peak_path = value
+                elif key.startswith("rigid_group") and not key.startswith(
+                    "rigid_group_collection"
+                ):
+                    detector["rigid_groups"][key[12:]] = value.split(",")
+                elif key.startswith("rigid_group_collection"):
+                    detector["rigid_group_collections"][key[23:]] = value.split(",")
+                else:
+                    _parse_panel_entry(
+                        key=key,
+                        value=value,
+                        panel=default_panel,
+                        panel_name="",
+                        detector=detector,
+                    )
+                continue
+            if key_parts[0].startswith("bad"):
+                bad_region_name: str = key_parts[0]
+                bad_region_key: str = key_parts[1]
+                if bad_region_name not in detector["bad"]:
+                    detector["bad"][bad_region_name] = copy.deepcopy(default_bad_region)
+                curr_bad_region: TypeBadRegion = detector["bad"][bad_region_name]
+                if curr_bad_region["is_fsss"] == 99:
+                    if bad_region_key in ("min_ss", "min_fs", "max_ss", "max_fs"):
+                        curr_bad_region["is_fsss"] = 1
+                    else:
+                        curr_bad_region["is_fsss"] = 0
+                if curr_bad_region["is_fsss"] == 1 and bad_region_key in (
+                    "min_x",
+                    "min_y",
+                    "max_x",
+                    "max_y",
+                ):
+                    raise RuntimeError("You can't mix x/y and fs/ss in a bad region")
+                if bad_region_key == "min_x":
+                    curr_bad_region["min_x"] = float(value)
+                elif bad_region_key == "max_x":
+                    curr_bad_region["max_x"] = float(value)
+                elif bad_region_key == "min_y":
+                    curr_bad_region["min_y"] = float(value)
+                elif bad_region_key == "max_y":
+                    curr_bad_region["max_y"] = float(value)
+                elif bad_region_key == "min_fs":
+                    curr_bad_region["min_fs"] = int(value)
+                elif bad_region_key == "max_fs":
+                    curr_bad_region["max_fs"] = int(value)
+                elif bad_region_key == "min_ss":
+                    curr_bad_region["min_ss"] = int(value)
+                elif bad_region_key == "max_ss":
+                    curr_bad_region["max_ss"] = int(value)
+                elif bad_region_key == "panel":
+                    curr_bad_region["panel"] = value
+                else:
+                    raise RuntimeError("Unrecognized field: {}".format(key))
             else:
-                curr_bad = copy.deepcopy(default_bad_region)
-                detector["bad"][path[0]] = curr_bad
-            _parse_field_bad(key=path[1], value=value, bad=curr_bad)
-        else:
-            if path[0] in detector["panels"]:
-                curr_panel: TypePanel = detector["panels"][path[0]]
-            else:
-                curr_panel = copy.deepcopy(default_panel)
-                detector["panels"][path[0]] = curr_panel
-            _parse_field_for_panel(
-                key=path[1],
-                value=value,
-                panel=curr_panel,
-                panel_name=path[0],
-                detector=detector,
+
+                panel_name: str = key_parts[0]
+                panel_key: str = key_parts[1]
+                if key_parts[0] not in detector["panels"]:
+                    detector["panels"][panel_name] = copy.deepcopy(default_panel)
+                curr_panel: TypePanel = detector["panels"][panel_name]
+                _parse_panel_entry(
+                    key=panel_key,
+                    value=value,
+                    panel=curr_panel,
+                    panel_name=panel_name,
+                    detector=detector,
+                )
+
+        except RuntimeError as exp:
+            raise exceptions.OmGeometryError(
+                "Cannot interpret the following line in the geometry file: "
+                f" {line.strip()}\n"
+                f"Reason: {str(exp)}",
             )
-    if not detector["panels"]:
-        raise RuntimeError("No panel descriptions in geometry file.")
-    num_placeholders_in_panels: int = -1
+
     panel: TypePanel
     for panel in detector["panels"].values():
-        if panel["dim_structure"] is not None:
-            curr_num_placeholders: int = panel["dim_structure"].count("%")
-        else:
-            curr_num_placeholders = 0
-
-        if num_placeholders_in_panels == -1:
-            num_placeholders_in_panels = curr_num_placeholders
-        else:
-            if curr_num_placeholders != num_placeholders_in_panels:
-                raise RuntimeError(
-                    "All panels' data and mask entries must have the same "
-                    "number of placeholders."
-                )
-    num_placeholders_in_masks: int = -1
-    for panel in detector["panels"].values():
-        if panel["mask"] is not None:
-            curr_num_placeholders = panel["mask"].count("%")
-        else:
-            curr_num_placeholders = 0
-
-        if num_placeholders_in_masks == -1:
-            num_placeholders_in_masks = curr_num_placeholders
-        else:
-            if curr_num_placeholders != num_placeholders_in_masks:
-                raise RuntimeError(
-                    "All panels' data and mask entries must have the same "
-                    "number of placeholders."
-                )
-    if num_placeholders_in_masks > num_placeholders_in_panels:
-        raise RuntimeError(
-            "Number of placeholders in mask cannot be larger the number than "
-            "for data."
-        )
-    dim_length: int = -1
-    panel_name: str
-    for panel_name, panel in detector["panels"].items():
         if len(panel["dim_structure"]) == 0:
             panel["dim_structure"] = copy.deepcopy(default_dim)
-        found_ss: int = 0
-        found_fs: int = 0
-        found_placeholder: int = 0
-        dim_index: int
-        entry: Union[int, str, None]
-        for dim_index, entry in enumerate(panel["dim_structure"]):
-            if entry is None:
-                raise RuntimeError(
-                    f"Dimension {dim_index} for panel {panel_name} is " "undefined."
-                )
-            if entry == "ss":
-                found_ss += 1
-            elif entry == "fs":
-                found_fs += 1
-            elif entry == "%":
-                found_placeholder += 1
-        if found_ss != 1:
-            raise RuntimeError(
-                "Exactly one slow scan dim coordinate is needed (found "
-                f"{found_ss} for panel {panel_name})."
-            )
-        if found_fs != 1:
-            raise RuntimeError(
-                "Exactly one fast scan dim coordinate is needed (found "
-                f"{found_fs} for panel {panel_name})."
-            )
-        if found_placeholder > 1:
-            raise RuntimeError(
-                "Only one placeholder dim coordinate is allowed. Maximum one "
-                "placeholder dim coordinate is allowed "
-                f"(found {found_placeholder} for panel {panel_name})"
-            )
-        if dim_length == -1:
-            dim_length = len(panel["dim_structure"])
-        elif dim_length != len(panel["dim_structure"]):
-            raise RuntimeError(
-                "Number of dim coordinates must be the same for all panels."
-            )
-        if dim_length == 1:
-            raise RuntimeError("Number of dim coordinates must be at least " "two.")
+
+    _validate_detector_geometry(detector)
+
+    min_d: float = float("inf")
+    max_d: float = 0.0
     for panel_name, panel in detector["panels"].items():
-        if panel["orig_min_fs"] < 0:
-            raise RuntimeError(
-                "Please specify the minimum fs coordinate for panel " f"{panel_name}."
-            )
-        if panel["orig_max_fs"] < 0:
-            raise RuntimeError(
-                "Please specify the maximum fs coordinate for panel " f"{panel_name}."
-            )
-        if panel["orig_min_ss"] < 0:
-            raise RuntimeError(
-                "Please specify the minimum ss coordinate for panel " f"{panel_name}."
-            )
-        if panel["orig_max_ss"] < 0:
-            raise RuntimeError(
-                "Please specify the maximum ss coordinate for panel " f"{panel_name}."
-            )
-        if panel["cnx"] is None:
-            raise RuntimeError(
-                "Please specify the corner X coordinate for panel " f"{panel_name}."
-            )
-        if panel["clen"] is None and panel["clen_from"] is None:
-            raise RuntimeError(
-                f"Please specify the camera length for panel {panel_name}."
-            )
-        if panel["res"] < 0:
-            raise RuntimeError(f"Please specify the resolution or panel {panel_name}.")
-        if panel["adu_per_eV"] is None and panel["adu_per_photon"] is None:
-            raise RuntimeError(
-                "Please specify either adu_per_eV or adu_per_photon for panel "
-                f"{panel_name}."
-            )
-        if panel["clen_for_centering"] is None and panel["rail_x"] is not None:
-            raise RuntimeError(
-                "You must specify clen_for_centering if you specify the rail "
-                f"direction (panel {panel_name})."
-            )
         if panel["rail_x"] is None:
             panel["rail_x"] = 0.0
             panel["rail_y"] = 0.0
             panel["rail_z"] = 1.0
+
         if panel["clen_for_centering"] is None:
             panel["clen_for_centering"] = 0.0
-        panel["w"] = panel["orig_max_fs"] - panel["orig_min_fs"] + 1
-        panel["h"] = panel["orig_max_ss"] - panel["orig_min_ss"] + 1
-    bad_region_name: str
-    bad_region: TypeBadRegion
-    for bad_region_name, bad_region in detector["bad"].items():
-        if bad_region["is_fsss"] == 99:
-            raise RuntimeError(
-                "Please specify the coordinate ranges for bad "
-                f"region {bad_region_name}."
-            )
-    group: str
-    for group in detector["rigid_groups"]:
-        name: str
-        for name in detector["rigid_groups"][group]:
-            if name not in detector["panels"]:
-                raise RuntimeError(
-                    "Cannot add panel to rigid_group. Panel not " f"found: {name}."
-                )
-    group_collection: str
-    for group_collection in detector["rigid_group_collections"]:
-        group_name: str
-        for group_name in detector["rigid_group_collections"][group_collection]:
-            if group_name not in detector["rigid_groups"]:
-                raise RuntimeError(
-                    "Cannot add rigid_group to collection. Rigid group not "
-                    f"found: {name}."
-                )
 
-    for panel in detector["panels"].values():
         d: float = panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]
-        if d == 0.0:
-            raise RuntimeError(f"Panel {name} transformation is singular.")
         panel["xfs"] = panel["ssy"] / d
         panel["yfs"] = panel["ssx"] / d
         panel["xss"] = panel["fsy"] / d
         panel["yss"] = panel["fsx"] / d
-    _find_min_max_d(detector=detector)
+        panel["w"] = panel["orig_max_fs"] - panel["orig_min_fs"] + 1
+        panel["h"] = panel["orig_max_ss"] - panel["orig_min_ss"] + 1
+
+        fs: int
+        ss: int
+        for fs in range(0, panel["w"] + 1, panel["w"]):
+            for ss in range(0, panel["h"] + 1, panel["h"]):
+                xs: float = fs * panel["fsx"] + ss * panel["ssx"]
+                ys: float = fs * panel["fsy"] + ss * panel["ssy"]
+                rx: float = (xs + panel["cnx"]) / panel["res"]
+                ry: float = (ys + panel["cny"]) / panel["res"]
+                dist: float = math.sqrt(rx * rx + ry * ry)
+                if dist > max_d:
+                    detector["furthest_out_panel"] = panel_name
+                    detector["furthest_out_fs"] = fs
+                    detector["furthest_out_ss"] = ss
+                    max_d = dist
+                elif dist < min_d:
+                    detector["furthest_in_panel"] = panel_name
+                    detector["furthest_in_fs"] = fs
+                    detector["furthest_in_ss"] = ss
+                    min_d = dist
 
     return detector, beam, hdf5_peak_path
 
@@ -1209,6 +1081,51 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
         "radius": r_map,
         "phi": phi_map,
     }
+
+
+def load_crystfel_geometry(  # noqa: C901
+    *,
+    filename: str,
+) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
+    """
+    Loads a CrystFEL geometry file.
+    This function is a Python re-implementation of the `get_detector_geometry_2` C
+    function from CrystFEL. It reads information from a CrystFEL geometry file (which
+    uses a format fully documented in the relevant
+    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),
+    and returns a set of nested dictionaries whose content matches CrystFEL's internal
+    representation of the information in the file (see the libcrystfel/src/detector.h
+    and the libcrystfel/src/image.c source code files from CrystFEL for more
+    information).
+    This function currently re-implements the `get_detector_geometry_2` function from
+    CrystFEL as it was at commit cff9159b4bc6.
+    Arguments:
+        filename: The absolute or relative path to a CrystFEL geometry file.
+    Returns:
+        A tuple with the information loaded from the file.
+        * The first entry in the tuple is a
+          [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
+          information related to the detector geometry.
+        * The second entry in the tuple is a
+          [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
+          information about the beam properties.
+        * The third entry is the internal path, in an HDF5 data file, to the location
+          where Bragg peak information for the current detector can be found. This is
+          only used if CrystFEL extracts Bragg peak information from files. If the
+          geometry file does not provide this information, this entry has the value of
+          an empty string.
+    """
+    try:
+        file_handle: TextIO
+        with open(filename, mode="r") as file_handle:
+            file_lines: List[str] = file_handle.readlines()
+    except (IOError, OSError) as exc:
+        exc_type, exc_value = sys.exc_info()[:2]
+        raise exceptions.OmConfigurationFileReadingError(
+            f"The following error occurred while reading the "  # type: ignore
+            f"{filename} geometry file {exc_type.__name__}: {exc_value}"
+        ) from exc
+    return read_crystfel_geometry(text_lines=file_lines)
 
 
 def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:

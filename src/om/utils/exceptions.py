@@ -61,6 +61,13 @@ class OmEigerHttpInterfaceInitializationError(OmException):
     """
 
 
+class OmGeometryError(OmException):
+    """
+    Raised if an error in a geometry file read by OM.
+
+    """
+
+
 class OmHdf5FileReadingError(OmException):
     """
     Raised if an error happens while reading an HDF5 data file.
