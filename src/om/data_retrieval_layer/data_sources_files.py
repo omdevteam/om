@@ -357,6 +357,82 @@ class RayonixMccdSingleFrameFiles(drl_protocols.OmDataSource):
         return data
 
 
+class Lambda1M5Files(drl_protocols.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Detector data frames from Lambda 1.5M HDF5 files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a Lambda 1.5M detector data frame from
+        files written by the detector in HDF5 format.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters."""
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Lambda 1.5M detector frame data source for files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve a detector data frame from files
+        written by the Lambda 1.5M detector, so this function actually does nothing.
+        """
+        pass
+
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        """
+        Retrieves a Lambda 1.5M detector data frame.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function extracts a detector data frame from the HDF5 files attached to
+        the provided data event. It returns the frame as a 2D array storing pixel
+        information.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            One detector data frame.
+        """
+        h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
+        index: Tuple[int, int] = event["additional_info"]["index"]
+        return cast(
+            NDArray[numpy.int_],
+            numpy.concatenate(
+                [
+                    h5files[i]["/entry/instrument/detector/data"][index[i]]
+                    for i in range(len(h5files))
+                ]
+            ),
+        )
+
+
 class TimestampFromFileModificationTime(drl_protocols.OmDataSource):
     """
     See documentation of the `__init__` function.
@@ -714,3 +790,79 @@ class EventIdEiger16MFiles(drl_protocols.OmDataSource):
         filename: str = event["additional_info"]["full_path"]
         index: str = event["additional_info"]["index"]
         return f"{filename} // {index:04d}"
+
+
+class EventIdLambda1M5Files(drl_protocols.OmDataSource):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Event identifier for Lambda 1.5M data events.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of a unique event identifier for an
+        Lambda 1.5M data event. For this detector, an individual event corresponds to a
+        single frame stored in two separate HDF5 files written by two detector modules.
+        The combination of the full path to the data file corresponding to the first
+        detector module ("*_m01.nxs") and the index of the frame within the file is
+        used to generate an event identifier.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Lambda 1.5M event identifier data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        No initialization is needed to retrieve an event identifier for an Lambda 1.5M
+        data event, so this function actually does nothing.
+        """
+        pass
+
+    def get_data(self, *, event: Dict[str, Any]) -> str:
+        """
+        Retrieves an event identifier for an Lambda 1.5M data event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function constructs the event identifier for the provided event by joining
+        the following elements in a single string, with the "//" symbol placed between
+        them.
+
+        * The full path to the HDF5 file written by the first detector module attached
+          to the event.
+
+        * The index, within the file, of the frame being processed.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            A unique event identifier.
+        """
+        filename: str = event["additional_info"]["full_path"]
+        index: str = event["additional_info"]["index"][0]
+        return f"{filename} // {index:05d}"

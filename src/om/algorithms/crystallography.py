@@ -197,6 +197,13 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
             "nasics_x": 1,
             "nasics_y": 1,
         }
+    elif detector_type == "lambda1M5":
+        peakfinder8_info = {
+            "asic_nx": 1556,
+            "asic_ny": 516,
+            "nasics_x": 1,
+            "nasics_y": 2,
+        }
     else:
         raise RuntimeError(
             "The peakfinder8 information for the {0} detector "

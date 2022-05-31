@@ -372,3 +372,91 @@ class RayonixMccdFilesDataRetrieval(drl_protocols.OmDataRetrieval):
             The Data Event Handler used by the Data Retrieval class.
         """
         return self._data_event_handler
+
+
+class Lambda1M5FilesDataRetrieval(drl_protocols.OmDataRetrieval):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+        """
+        Data Retrieval for Lambda 1.5M HDF5 files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class implements OM's Data Retrieval Layer for a set of files written by
+        a Lambda 1.5M detector in HDF5 format.
+
+        * This class considers an individual data event as equivalent to an single
+          detector frame stored in two separate HDF5 files written by two detector
+          modules.
+
+        * The full path to the file written by the first detector module ("*_m01.nxs"),
+          together with the index of the frame in the file, is used as event identifier.
+
+        * Since Lambda 1.5M files do not contain any timestamp information, the
+          modification time of a file is taken as a first approximation of the
+          timestamp of the data it contains.
+
+        * Since Lambda 1.5M files do not contain any detector distance or beam energy
+          information, their values are retrieved from OM's configuration parameters
+          (specifically, the `fallback_detector_distance_in_mm` and
+          `fallback_beam_energy_in_eV` entries in the `data_retrieval_layer`
+          parameter group).
+
+        * The source string required by this Data Retrieval class is the path to a file
+          containing a list of first detector module HDF5 files to process, one per
+          line, with their absolute or relative path.
+
+        Arguments:
+
+            monitor_parameters: An object storing OM's configuration parameters.
+
+            source: A string describing the data event source.
+        """
+
+        data_sources: Dict[str, drl_protocols.OmDataSource] = {
+            "timestamp": ds_files.TimestampFromFileModificationTime(
+                data_source_name="timestamp", monitor_parameters=monitor_parameters
+            ),
+            "event_id": ds_files.EventIdLambda1M5Files(
+                data_source_name="eventid", monitor_parameters=monitor_parameters
+            ),
+            "frame_id": ds_generic.FrameIdZero(
+                data_source_name="frameid", monitor_parameters=monitor_parameters
+            ),
+            "detector_data": ds_files.Lambda1M5Files(
+                data_source_name="detector", monitor_parameters=monitor_parameters
+            ),
+            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+                data_source_name="fallback_beam_energy_in_eV",
+                monitor_parameters=monitor_parameters,
+            ),
+            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+                data_source_name="fallback_detector_distance_in_mm",
+                monitor_parameters=monitor_parameters,
+            ),
+        }
+
+        self._data_event_handler: drl_protocols.OmDataEventHandler = (
+            deh_files.Lambda1M5FilesDataEventHandler(
+                source=source,
+                monitor_parameters=monitor_parameters,
+                data_sources=data_sources,
+            )
+        )
+
+    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
+        """
+        Retrieves the Data Event Handler used by the class.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Returns:
+
+            The Data Event Handler used by the Data Retrieval class.
+        """
+        return self._data_event_handler

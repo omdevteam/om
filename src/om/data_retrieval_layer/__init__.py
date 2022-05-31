@@ -30,6 +30,7 @@ from .data_retrieval_files import (  # noqa: F401
     PilatusFilesDataRetrieval,
     Eiger16MFilesDataRetrieval,
     RayonixMccdFilesDataRetrieval,
+    Lambda1M5FilesDataRetrieval,
 )
 
 try:
