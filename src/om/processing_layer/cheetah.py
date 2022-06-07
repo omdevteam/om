@@ -332,6 +332,10 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         self._frames_file.write(
             "# timestamp, event_id, hit, filename, index, num_peaks, ave_intensity\n"
         )
+        self._events_filename: pathlib.Path = (
+            processed_directory_path.resolve() / "events.lst"
+        )
+        self._events_file: TextIO = open(self._events_filename, "w")
         self._hits_file: TextIO = open(
             processed_directory_path.resolve() / "hits.lst", "w"
         )
@@ -617,6 +621,7 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             f"{frame_data.index_in_file}, {frame_data.num_peaks}, "
             f"{frame_data.average_intensity}\n"
         )
+        self._events_file.write(f"{received_data['event_id']}\n")
 
         peak_fs: float
         peak_ss: float
@@ -654,6 +659,7 @@ class CheetahProcessing(pl_protocols.OmProcessing):
             )
             self._hits_file.flush()
             self._peaks_file.flush()
+            self._events_file.flush()
             self._frames_file.flush()
 
         if self._num_events % self._speed_report_interval == 0:
@@ -753,14 +759,19 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         # Sort frames and write frames.txt and cleaned.txt files
         frame_list: List[_TypeFrameListData] = sorted(self._frame_list)
         self._frames_file.close()
-        with open(self._frames_filename, "w") as self._frames_file:
-            self._frames_file.write(
+        self._events_file.close()
+        fh: TextIO
+        with open(self._events_filename, "w") as fh:
+            frame: _TypeFrameListData
+            for frame in frame_list:
+                fh.write(f"{frame.event_id}\n")
+        with open(self._frames_filename, "w") as fh:
+            fh.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
                 "ave_intensity\n"
             )
-            frame: _TypeFrameListData
             for frame in frame_list:
-                self._frames_file.write(
+                fh.write(
                     f"{frame.timestamp}, {frame.event_id}, {frame.frame_is_hit}, "
                     f"{frame.filename}, {frame.index_in_file}, {frame.num_peaks}, "
                     f"{frame.average_intensity}\n"
