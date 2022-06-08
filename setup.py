@@ -124,6 +124,7 @@ setup(
         "fabio",
         "h5py",
         "msgpack",
+        "msgpack_numpy",
         "mypy-extensions",
         "numpy",
         "pyyaml",
