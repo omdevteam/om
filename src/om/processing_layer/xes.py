@@ -37,7 +37,7 @@ from om.utils.crystfel_geometry import TypePixelMaps
 from om.utils.rich_console import console, get_current_timestamp
 
 
-class XESProcessing(pl_protocols.OmProcessing):
+class XesProcessing(pl_protocols.OmProcessing):
     """
     See documentation for the `__init__` function.
     """
