@@ -44,7 +44,7 @@ try:
     from .data_retrieval_psana import (  # noqa: F401
         CxiLclsDataRetrieval,
         CxiLclsCspadDataRetrieval,
-        CxiLclsEpix100DataRetrieval,
+        LclsEpix100DataRetrieval,
         MfxLclsDataRetrieval,
         MfxLclsRayonixDataRetrieval,
     )

@@ -213,7 +213,7 @@ class CxiLclsCspadDataRetrieval(drl_protocols.OmDataRetrieval):
         return self._data_event_handler
 
 
-class CxiLclsEpix100DataRetrieval(drl_protocols.OmDataRetrieval):
+class LclsEpix100DataRetrieval(drl_protocols.OmDataRetrieval):
     """
     See documentation of the `__init__` function.
     """
