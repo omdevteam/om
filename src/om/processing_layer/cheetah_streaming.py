@@ -322,6 +322,10 @@ class StreamingCheetahProcessing(pl_protocols.OmProcessing):
             self._binning = None
             self._bin_size = 1
 
+        self._float_detector_data: NDArray[numpy.float_] = numpy.zeros(
+            self._data_shape, dtype=numpy.float32
+        )
+
         self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
             parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
@@ -622,11 +626,10 @@ class StreamingCheetahProcessing(pl_protocols.OmProcessing):
             while len(self._request_list) == 0:
                 self._handle_external_requests()
             last_request: Tuple[bytes, bytes] = self._request_list[-1]
+            self._float_detector_data[:] = received_data["detector_data"]
             data_to_send: Any = msgpack.packb(
                 {
-                    "detector_data": received_data["detector_data"].astype(
-                        numpy.float32
-                    ),
+                    "detector_data": self._float_detector_data,
                     "peak_list": received_data["peak_list"],
                     "beam_energy": received_data["beam_energy"],
                     "detector_distance": received_data["detector_distance"],
