@@ -23,7 +23,7 @@ the ASAP::O software framework (used at the PETRA III facility).
 """
 import sys
 import time
-from typing import Any, Dict, Generator, List, Union
+from typing import Any, Dict, Generator, List, Union, NamedTuple
 
 import numpy
 from numpy.typing import NDArray
@@ -37,6 +37,15 @@ except ImportError:
     raise exceptions.OmMissingDependencyError(
         "The following required module cannot be imported: asapo_consumer"
     )
+
+
+class _TypeAsapoEvent(NamedTuple):
+    # This named tuple is used internally to store ASAPO event data, metadata and
+    # corresponding ASAPO stream information.
+    event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+    event_metadata: Dict[str, Any]
+    stream_name: str
+    stream_metadata: Dict[str, Any]
 
 
 class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
@@ -63,8 +72,9 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
         * For this Event Handler, a data event corresponds to the content of an
           individual ASAPO event.
 
-        * The source string required by this Data Event Handler is ASAPO server
-        endpoint URL (hostname:port).
+        * The source string required by this Data Event Handler is either beamtime ID
+          (for online data retrieval) or beamtime ID and ASAPO stream name separated by
+          ":" (for offline data retrieval).
 
         Arguments:
 
@@ -86,14 +96,14 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
         self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
+        asapo_url: str = self._monitor_params.get_parameter(
+            group="data_retrieval_layer",
+            parameter="asapo_url",
+            parameter_type=str,
+        )
         asapo_path: str = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="asapo_path",
-            parameter_type=str,
-        )
-        asapo_beamtime: str = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="asapo_beamtime",
             parameter_type=str,
         )
         asapo_data_source: str = self._monitor_params.get_parameter(
@@ -112,18 +122,75 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
             parameter_type=str,
         )
         consumer: Any = asapo_consumer.create_consumer(
-            self._source,
+            asapo_url,
             asapo_path,
             asapo_has_filesystem,
-            asapo_beamtime,
+            self._source.split(":")[0],
             asapo_data_source,
             asapo_token,
-            1000,
+            3000,
             instance_id="auto",
             pipeline_step="onda_monitor",
         )
 
         return consumer
+
+    def _offline_event_generator(
+        self, consumer: Any, consumer_group_id: str, stream_name: str
+    ) -> Generator[_TypeAsapoEvent, None, None]:
+        stream_exists: bool = False
+        while not stream_exists:
+            try:
+                stream_metadata: Dict[str, Any] = consumer.get_stream_meta(stream_name)
+                stream_exists = True
+            except asapo_consumer.AsapoNoDataError:
+                print(f"Stream {stream_name} doesn't exist.")
+                time.sleep(5)
+
+        while True:
+            try:
+                event_data, event_metadata = consumer.get_next(
+                    group_id=consumer_group_id, stream=stream_name, meta_only=False
+                )
+                yield _TypeAsapoEvent(
+                    event_data, event_metadata, stream_name, stream_metadata
+                )
+            except asapo_consumer.AsapoNoDataError:
+                pass
+            except asapo_consumer.AsapoEndOfStreamError:
+                break
+
+    def _online_event_generator(
+        self, consumer: Any, consumer_group_id: str
+    ) -> Generator[_TypeAsapoEvent, None, None]:
+        stream_list: List[Any] = []
+        while len(stream_list) == 0:
+            time.sleep(1)
+            stream_list = consumer.get_stream_list()
+        last_stream: str = stream_list[-1]["name"]
+        stream_metadata: Dict[str, Any] = consumer.get_stream_meta(last_stream)
+        event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+        event_metadata: Dict[str, Any]
+        while True:
+            try:
+                event_data, event_metadata = consumer.get_last(
+                    group_id=consumer_group_id, stream=last_stream, meta_only=False
+                )
+                yield _TypeAsapoEvent(
+                    event_data, event_metadata, last_stream, stream_metadata
+                )
+            except (
+                asapo_consumer.AsapoEndOfStreamError,
+                asapo_consumer.AsapoNoDataError,
+            ):
+                stream_list = consumer.get_stream_list()
+                current_stream = stream_list[-1]["name"]
+                if current_stream == last_stream:
+                    time.sleep(1)
+                else:
+                    last_stream = current_stream
+                    stream_metadata = consumer.get_stream_meta(last_stream)
+                continue
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -199,6 +266,7 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+
         consumer_group_id: Union[str, None] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
             parameter="asapo_group_id",
@@ -217,36 +285,23 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
-        stream_list: List[Any] = []
-        while len(stream_list) == 0:
-            time.sleep(1)
-            stream_list = consumer.get_stream_list()
-        last_stream: str = stream_list[-1]["name"]
-        stream_metadata: Dict[str, Any] = consumer.get_stream_meta(last_stream)
-        event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-        event_metadata: Dict[str, Any]
-        while True:
-            try:
-                event_data, event_metadata = consumer.get_last(
-                    group_id=consumer_group_id, stream=last_stream, meta_only=False
-                )
-            except (
-                asapo_consumer.AsapoEndOfStreamError,
-                asapo_consumer.AsapoNoDataError,
-            ):
-                stream_list = consumer.get_stream_list()
-                current_stream = stream_list[-1]["name"]
-                if current_stream == last_stream:
-                    time.sleep(1)
-                else:
-                    last_stream = current_stream
-                    stream_metadata = consumer.get_stream_meta(last_stream)
-                continue
+        source_items: List[str] = self._source.split(":")
+        if len(source_items) > 1:
+            stream_name: str = ":".join(source_items[1:])
+            asapo_events: Generator[
+                _TypeAsapoEvent, None, None
+            ] = self._offline_event_generator(consumer, consumer_group_id, stream_name)
+        else:
+            asapo_events = self._online_event_generator(consumer, consumer_group_id)
 
-            data_event["data"] = event_data
-            data_event["metadata"] = event_metadata
-            data_event["additional_info"]["stream_metadata"] = stream_metadata
-            data_event["additional_info"]["stream_name"] = last_stream
+        asapo_event: _TypeAsapoEvent
+        for asapo_event in asapo_events:
+            data_event["data"] = asapo_event.event_data
+            data_event["metadata"] = asapo_event.event_metadata
+            data_event["additional_info"]["stream_name"] = asapo_event.stream_name
+            data_event["additional_info"][
+                "stream_metadata"
+            ] = asapo_event.stream_metadata
 
             data_event["additional_info"]["timestamp"] = self._data_sources[
                 "timestamp"

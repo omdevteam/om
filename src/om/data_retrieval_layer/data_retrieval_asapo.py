@@ -51,8 +51,9 @@ class EigerAsapoDataRetrieval(drl_protocols.OmDataRetrieval):
         * ASAPO provides timestamp, beam energy and detector distance information for
           each event.
 
-        * The source string required by this Data Retrieval class is the ASAPO server
-          endpoint URL.
+        * The source string required by this Data Event Handler is either beamtime ID
+          (for online data retrieval) or beamtime ID and ASAPO stream name separated by
+          ":" (for offline data retrieval).
 
         Arguments:
 
