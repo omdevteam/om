@@ -22,5 +22,11 @@ This package contains OM's Parallelization Layer (which manages the communicatio
 between the processing and collecting nodes). Each module in the package is
 dedicated to a different communication approach or technique.
 """
-from .mpi import MpiParallelization  # noqa: F401
+
+try:
+    import mpi4py  # type: ignore  # noqa: F401
+    from .mpi import MpiParallelization  # noqa: F401
+except ModuleNotFoundError:
+    pass
+
 from .multiprocessing import MultiprocessingParallelization  # noqa: F401
