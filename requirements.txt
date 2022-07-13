@@ -5,6 +5,7 @@ msgpack
 msgpack_numpy
 mypy-extensions
 numpy
+pillow
 pyyaml
 pyzmq
 rich

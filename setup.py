@@ -127,6 +127,7 @@ setup(
         "msgpack_numpy",
         "mypy-extensions",
         "numpy",
+        "pillow",
         "pyyaml",
         "pyzmq",
         "rich",
@@ -135,7 +136,7 @@ setup(
     ],
     extras_require={
         "qt": ["pyqt5", "pyqtgraph"],
-        "docs": ["mkdocs", "mkdocstring", "mkdocs-click", "mkdocs-material"],
+        "docs": ["mkdocs", "mkdocstring", "mkdocstring-python", "mkdocs-click", "mkdocs-material", "mkdocs-material-extensions"],
     },
     entry_points={
         "console_scripts": ["om_monitor.py=om.monitor:main"],

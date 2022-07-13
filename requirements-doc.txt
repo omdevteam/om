@@ -1,5 +1,6 @@
 mkdocs
 mkdocstrings
+mkdocstrings-python
 mkdocs-click
 mkdocs-material
-
+mkdocs-material-extensions
