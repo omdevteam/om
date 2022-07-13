@@ -67,9 +67,9 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         This base class should be subclassed to create specific graphical interfaces.
         The derived classes should always call its constructor to initialize the the
         GUI. Each derived class should also provide its specific implementation of the
-        abstract [update_gui][om.graphical_interfaces.base.OmGui.update_gui] method.
-        The implementation should take care of updating the specific widgets of the
-        derived class.
+        abstract [update_gui][om.graphical_interfaces.common.OmGuiBase.update_gui]
+        method. The implementation should take care of updating the specific widgets of
+        the derived class.
 
         Arguments:
 

@@ -29,12 +29,12 @@ from datetime import datetime
 from PIL import Image  # type: ignore
 from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils.parameters import MonitorParams
 
 
-class Eiger16MHttp(drl_protocols.OmDataSource):
+class Eiger16MHttp(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -107,7 +107,7 @@ class Eiger16MHttp(drl_protocols.OmDataSource):
         return numpy.asarray(image, dtype=int)
 
 
-class TimestampEiger16MHttp(drl_protocols.OmDataSource):
+class TimestampEiger16MHttp(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -185,7 +185,7 @@ class TimestampEiger16MHttp(drl_protocols.OmDataSource):
         # )
 
 
-class EventIdEiger16MHttp(drl_protocols.OmDataSource):
+class EventIdEiger16MHttp(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -206,7 +206,7 @@ class EventIdEiger16MHttp(drl_protocols.OmDataSource):
         Eiger 16M data events retrieved as tif files from http/REST detector interface.
         The combination of the series_id and frame_id retrieved from the header of the
         tif file are used as event identifier. This class is a subclass of the
-        [OmDataSource][om.data_retrieval_layer.base.OmDataSource] class.
+        [OmDataSourceBase][om.abcs.data_retrieval_layer.OmDataSourceBase] class.
 
         Arguments:
 

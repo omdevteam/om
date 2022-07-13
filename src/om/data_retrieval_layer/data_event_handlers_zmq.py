@@ -26,12 +26,12 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.utils import exceptions, parameters
 from om.utils.rich_console import console, get_current_timestamp
 
 
-class Jungfrau1MZmqDataEventHandler(drl_protocols.OmDataEventHandler):
+class Jungfrau1MZmqDataEventHandler(drl_abcs.OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -40,7 +40,7 @@ class Jungfrau1MZmqDataEventHandler(drl_protocols.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocols.OmDataSource],
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -69,13 +69,13 @@ class Jungfrau1MZmqDataEventHandler(drl_protocols.OmDataEventHandler):
 
                 * The corresponding dictionary value must store an instance of the
                   corresponding
-                  [Data Source][om.data_retrieval_layer.base.OmDataSource] class.
+                  [Data Source][om.abcs.data_retrieval_layer.OmDataSourceBase] class.
 
             monitor_parameters: A [MonitorParams][om.utils.parameters.MonitorParams]
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -123,7 +123,7 @@ class Jungfrau1MZmqDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -257,11 +257,11 @@ class Jungfrau1MZmqDataEventHandler(drl_protocols.OmDataEventHandler):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extracted from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
         source_name: str

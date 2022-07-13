@@ -74,25 +74,25 @@ def peakfinder_8(
         mask: A int8 numpy array storing a pixel map that can be used to exclude
             regions of the data frame from the peak search.
 
-            - The array must have the same shape as the data frame on which the
-              algorithm will be applied.
+            * The array must have the same shape as the data frame on which the
+            algorithm will be applied.
 
-            - Each element in the array must have a value of either 0, meaning that the
-              corresponding pixel in the data frame should be ignored, or 1, meaning
-              that the corresponding pixel should be included in the peak search.
+            * Each element in the array must have a value of either 0, meaning that the
+            corresponding pixel in the data frame should be ignored, or 1, meaning
+            that the corresponding pixel should be included in the peak search.
 
-            - The map is only used to exclude areas from the peak search: the
-              data is not modified in any way.
+            * The map is only used to exclude areas from the peak search: the
+            data is not modified in any way.
 
         pix_r: A float32 numpy array with radius information for the detector data
             frame.
 
             * The array must have the same shape as the data frame on which the
-              algorithm will be applied.
+            algorithm will be applied.
 
             * Each element of the array must store, for the corresponding pixel in
-              the data frame, its distance (in pixels) from the origin of the
-              detector reference system (usually the center of the detector).
+            the data frame, its distance (in pixels) from the origin of the
+            detector reference system (usually the center of the detector).
 
         asic_nx: The fs size, in pixels, of each detector panel in the data frame (Can
             be retrieved from a
@@ -129,25 +129,25 @@ def peakfinder_8(
 
         A tuple storing information about the detected peaks, with 7 entries.
 
-        * The first entry stores the number of peaks that were detected in the data
-          frame.
+            * The first entry stores the number of peaks that were detected in the data
+            frame.
 
-        * The second entry is a list storing the fractional fs indexes that locate the
-          detected peaks in the data frame.
+            * The second entry is a list storing the fractional fs indexes that locate
+            the detected peaks in the data frame.
 
-        * The third entry is a list storing the fractional ss indexes that locate the
-          the detected peaks in the data frame.
+            * The third entry is a list storing the fractional ss indexes that locate
+            the detected peaks in the data frame.
 
-        * The fourth entry is a list storing the integrated intensities for the
-          detected peaks.
+            * The fourth entry is a list storing the integrated intensities for the
+            detected peaks.
 
-        * The fifth entry is a list storing the number of pixels that make up each
-          detected peak.
+            * The fifth entry is a list storing the number of pixels that make up each
+            detected peak.
 
-        * The sixth entry is a list storing, for each peak, the value of the pixel with
-          the maximum intensity.
+            * The sixth entry is a list storing, for each peak, the value of the pixel
+            with the maximum intensity.
 
-        * The seventh entry is a list storing the signal-to-noise ratio of each
-          detected peak.
+            * The seventh entry is a list storing the signal-to-noise ratio of each
+            detected peak.
     """
     pass

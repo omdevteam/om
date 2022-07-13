@@ -26,7 +26,7 @@ from typing import Any, Callable, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.utils import exceptions
 from om.utils.parameters import MonitorParams
@@ -97,7 +97,7 @@ def _get_psana_data_retrieval_function(
     return data_retrieval_function
 
 
-class CspadPsana(drl_protocols.OmDataSource):
+class CspadPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -208,7 +208,7 @@ class CspadPsana(drl_protocols.OmDataSource):
         return cspad_slab
 
 
-class Epix10kaPsana(drl_protocols.OmDataSource):
+class Epix10kaPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -305,7 +305,7 @@ class Epix10kaPsana(drl_protocols.OmDataSource):
         return epixka2m_reshaped
 
 
-class Jungfrau4MPsana(drl_protocols.OmDataSource):
+class Jungfrau4MPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -402,7 +402,7 @@ class Jungfrau4MPsana(drl_protocols.OmDataSource):
         return jungfrau_reshaped
 
 
-class Epix100Psana(drl_protocols.OmDataSource):
+class Epix100Psana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -494,7 +494,7 @@ class Epix100Psana(drl_protocols.OmDataSource):
         return epix_psana
 
 
-class RayonixPsana(drl_protocols.OmDataSource):
+class RayonixPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -578,7 +578,7 @@ class RayonixPsana(drl_protocols.OmDataSource):
         return rayonix_psana
 
 
-class OpalPsana(drl_protocols.OmDataSource):
+class OpalPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -661,7 +661,7 @@ class OpalPsana(drl_protocols.OmDataSource):
         return opal_psana
 
 
-class AcqirisPsana(drl_protocols.OmDataSource):
+class AcqirisPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -728,13 +728,13 @@ class AcqirisPsana(drl_protocols.OmDataSource):
         Data is retrieved for all of the detector's channels at the same time, and
         returned in the form of a tuple with two entries:
 
-        - The first entry in the tuple is a 1D array storing information about the time
-          points at which the waveform data has been digitized. The size of this array
-          matches the size of each waveform in the second entry.
+        * The first entry in the tuple is a 1D array storing information about the time
+        points at which the waveform data has been digitized. The size of this array
+        matches the size of each waveform in the second entry.
 
-        - The second entry is a 2D array that stores the waveform information from all
-          the channels. The first axis of the array corresponds to the channel number,
-          the second one stores, for each channel, the digitized waveform data.
+        * The second entry is a 2D array that stores the waveform information from all
+        the channels. The first axis of the array corresponds to the channel number,
+        the second one stores, for each channel, the digitized waveform data.
 
         Arguments:
 
@@ -743,19 +743,19 @@ class AcqirisPsana(drl_protocols.OmDataSource):
         Returns:
 
             A tuple, with two entries, storing the digitized waveform data from the
-            Acqiris detector.
+                Acqiris detector.
 
-            * The first entry is a 1D numpy array storing the time points at which each
-              waveform has been digitized. The size of this array matches the size of
-              each waveform in the second entry.
+                * The first entry is a 1D numpy array storing the time points at which
+                each waveform has been digitized. The size of this array matches the
+                size of each waveform in the second entry.
 
-            * The second entry is a 2D numpy array that stores the waveform
-              information for all channels of the detector.
+                * The second entry is a 2D numpy array that stores the waveform
+                information for all channels of the detector.
 
-                - The first axis corresponds to the channel number.
+                    - The first axis corresponds to the channel number.
 
-                - The second axis stores, for each channel, the value of the waveform
-                  data at the time points at which it has been digitized.
+                    - The second axis stores, for each channel, the value of the
+                    waveform data at the time points at which it has been digitized.
         """
         return cast(
             Tuple[NDArray[numpy.float_], NDArray[numpy.float_]],
@@ -766,7 +766,7 @@ class AcqirisPsana(drl_protocols.OmDataSource):
         )
 
 
-class AssembledDetectorPsana(drl_protocols.OmDataSource):
+class AssembledDetectorPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -851,7 +851,7 @@ class AssembledDetectorPsana(drl_protocols.OmDataSource):
         return assembled_data
 
 
-class Wave8Psana(drl_protocols.OmDataSource):
+class Wave8Psana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -926,7 +926,7 @@ class Wave8Psana(drl_protocols.OmDataSource):
         return cast(float, self._detector_interface())
 
 
-class TimestampPsana(drl_protocols.OmDataSource):
+class TimestampPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -995,7 +995,7 @@ class TimestampPsana(drl_protocols.OmDataSource):
         )
 
 
-class EventIdPsana(drl_protocols.OmDataSource):
+class EventIdPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1070,7 +1070,7 @@ class EventIdPsana(drl_protocols.OmDataSource):
         return f"{timestamp_epoch_format[0]}-{timestamp_epoch_format[1]}-{fiducials}"
 
 
-class EpicsVariablePsana(drl_protocols.OmDataSource):
+class EpicsVariablePsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1150,7 +1150,7 @@ class EpicsVariablePsana(drl_protocols.OmDataSource):
         return self._detector_interface()
 
 
-class BeamEnergyPsana(drl_protocols.OmDataSource):
+class BeamEnergyPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1216,7 +1216,7 @@ class BeamEnergyPsana(drl_protocols.OmDataSource):
         )
 
 
-class EvrCodesPsana(drl_protocols.OmDataSource):
+class EvrCodesPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1307,7 +1307,7 @@ class EvrCodesPsana(drl_protocols.OmDataSource):
         return self._requested_event_code in current_evr_codes
 
 
-class LclsExtraPsana(drl_protocols.OmDataSource):
+class LclsExtraPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """

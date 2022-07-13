@@ -36,7 +36,7 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.utils import exceptions, parameters
 from om.utils.rich_console import console, get_current_timestamp
 
@@ -56,7 +56,7 @@ class _TypeJungfrau1MFrameInfo(TypedDict):
     file_timestamp: float
 
 
-class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
+class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -65,7 +65,7 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocols.OmDataSource],
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -93,14 +93,14 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
-                  describes the source.
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -148,7 +148,7 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -294,11 +294,11 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extracted from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
         source_name: str
@@ -334,7 +334,7 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -387,7 +387,7 @@ class PilatusFilesEventHandler(drl_protocols.OmDataEventHandler):
         return self.extract_data(event=data_event)
 
 
-class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
+class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -396,7 +396,7 @@ class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocols.OmDataSource],
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -425,14 +425,14 @@ class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
-                  describes the source.
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -480,7 +480,7 @@ class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -656,11 +656,11 @@ class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extracted from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
         f_name: str
@@ -696,7 +696,7 @@ class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -764,7 +764,7 @@ class Jungfrau1MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
         return extracted_data
 
 
-class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
+class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -773,7 +773,7 @@ class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocols.OmDataSource],
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -802,14 +802,14 @@ class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
-                  describes the source.
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -857,7 +857,7 @@ class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1010,11 +1010,11 @@ class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extraced from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extraced from the
+                Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
         f_name: str
@@ -1050,7 +1050,7 @@ class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1112,7 +1112,7 @@ class Eiger16MFilesDataEventHandler(drl_protocols.OmDataEventHandler):
         return extracted_data
 
 
-class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
+class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1121,7 +1121,7 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocols.OmDataSource],
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -1149,14 +1149,14 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
-                  describes the source.
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -1206,7 +1206,7 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1290,7 +1290,7 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
 
         Since `detector_data` is the only event data which is retrieved from the mccd
         files the corresponding
-        [Data Source class][om.data_retrieval_layer.base.OmDataSource] takes care of
+        [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase] takes care of
         opening and closing the files. This function therefore does nothing.
 
         Arguments:
@@ -1308,8 +1308,8 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
 
         Since `detector_data` is the only event data which is retrieved from the mccd
         files the corresponding
-        [Data Source class][om.data_retrieval_layer.base.OmDataSource] takes care of
-        opening and closing the files. This function therefore does nothing.
+        [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase] takes care
+        of opening and closing the files. This function therefore does nothing.
 
         Arguments:
 
@@ -1356,11 +1356,11 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extracted from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
         source_name: str
@@ -1397,7 +1397,7 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1449,7 +1449,7 @@ class RayonixMccdFilesEventHandler(drl_protocols.OmDataEventHandler):
         return self.extract_data(event=data_event)
 
 
-class Lambda1M5FilesDataEventHandler(drl_protocols.OmDataEventHandler):
+class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1458,7 +1458,7 @@ class Lambda1M5FilesDataEventHandler(drl_protocols.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocols.OmDataSource],
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -1488,14 +1488,14 @@ class Lambda1M5FilesDataEventHandler(drl_protocols.OmDataEventHandler):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
-                  describes the source.
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -1543,7 +1543,7 @@ class Lambda1M5FilesDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1710,11 +1710,11 @@ class Lambda1M5FilesDataEventHandler(drl_protocols.OmDataEventHandler):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extracted from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
@@ -1749,7 +1749,7 @@ class Lambda1M5FilesDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

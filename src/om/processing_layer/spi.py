@@ -29,12 +29,12 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms import generic as gen_algs
-from om.protocols import processing_layer as pl_protocols
+from om.abcs import processing_layer as prol_abcs
 from om.utils import parameters, zmq_monitor
 from om.utils.rich_console import console, get_current_timestamp
 
 
-class SpiProcessing(pl_protocols.OmProcessing):
+class SpiProcessing(prol_abcs.OmProcessingBase):
     """
     See documentation for the `__init__` function.
     """
@@ -190,8 +190,8 @@ class SpiProcessing(pl_protocols.OmProcessing):
         Returns:
 
             A tuple with two entries. The first entry is a dictionary storing the
-            processed data that should be sent to the collecting node. The second entry
-            is the OM rank number of the node that processed the information.
+                processed data that should be sent to the collecting node. The second
+                entry is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
 
@@ -338,7 +338,7 @@ class SpiProcessing(pl_protocols.OmProcessing):
         Returns:
 
             Usually nothing. Optionally, a dictionary storing information to be sent to
-            the processing node.
+                the processing node.
         """
         console.print(
             f"{get_current_timestamp()} Processing node {node_rank} shutting down."

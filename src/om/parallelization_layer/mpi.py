@@ -25,9 +25,9 @@ from typing import Any, Dict, Tuple, Union
 
 from mpi4py import MPI  # type: ignore
 
-from om.protocols import data_retrieval_layer as data_ret_layer_protocols
-from om.protocols import parallelization_layer as par_layer_protocols
-from om.protocols import processing_layer as pl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
+from om.abcs import parallelization_layer as parl_abcs
+from om.abcs import processing_layer as prol_abcs
 from om.utils import exceptions, parameters
 from om.utils.rich_console import console, get_current_timestamp
 
@@ -38,7 +38,7 @@ _DATATAG: int = 1001
 _FEEDBACKTAG: int = 1002
 
 
-class MpiParallelization(par_layer_protocols.OmParallelization):
+class MpiParallelization(parl_abcs.OmParallelizationBase):
     """
     See documentation of the `__init__` function.
     """
@@ -46,8 +46,8 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
     def __init__(
         self,
         *,
-        data_retrieval_layer: data_ret_layer_protocols.OmDataRetrieval,
-        processing_layer: pl_protocols.OmProcessing,
+        data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
+        processing_layer: prol_abcs.OmProcessingBase,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -69,10 +69,10 @@ class MpiParallelization(par_layer_protocols.OmParallelization):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        self._data_event_handler: data_ret_layer_protocols.OmDataEventHandler = (
+        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: pl_protocols.OmProcessing = processing_layer
+        self._processing_layer: prol_abcs.OmProcessingBase = processing_layer
         self._monitor_params: parameters.MonitorParams = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(

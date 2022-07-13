@@ -26,7 +26,7 @@ from typing import Any, Dict, Tuple, Union
 from om.utils import parameters
 
 
-class OmProcessing(ABC):
+class OmProcessingBase(ABC):
     """
     See documentation for the `__init__` function.
     """
@@ -133,8 +133,8 @@ class OmProcessing(ABC):
         Returns:
 
             A tuple with two entries. The first entry is a dictionary storing the
-            processed data that should be sent to the collecting node. The second entry
-            is the OM rank number of the node that processed the information.
+                processed data that should be sent to the collecting node. The second
+                entry is the OM rank number of the node that processed the information.
         """
         pass
 
@@ -150,7 +150,7 @@ class OmProcessing(ABC):
 
         This function is invoked on the collecting node continuously, but only when
         data is not received from a processing node. When data is received, the
-        [`collect_data`][om.processing_layer.base.OmProcessing.collect_data] is called
+        [`collect_data`][om.abcs.processing_layer.OmProcessingBase.collect_data] is called
         instead. This function can be used to perform operations that need to be carried
         out when the data stream is not active (reacting to external commands and
         requests, for example)
@@ -180,7 +180,7 @@ class OmProcessing(ABC):
         This function is invoked on the collecting node every time data is transferred
         from a processing node. The function accepts as input the data received from
         the processing node (the tuple returned by the
-        [`process_data`][om.processing_layer.base.OmProcessing.process_data] method of
+        [`process_data`][om.abcs.processing_layer.OmProcessingBase.process_data] method of
         this class). This function often computes aggregate statistics on the data
         received from all nodes, forwards data to external programs for visualization,etc.
 
@@ -196,7 +196,7 @@ class OmProcessing(ABC):
           stores the feedback data to send.
 
         * The feedback data dictionary will be merged with the `data` argument
-          of the [process_data][om.processing_layer.base.OmProcessing.process_data]
+          of the [process_data][om.abcs.processing_layer.OmProcessingBase.process_data]
           function, the next time that function is called on the processing node.
 
         Arguments:
@@ -215,7 +215,7 @@ class OmProcessing(ABC):
         Returns:
 
             Usually nothing. Optionally, a nested dictionary that can be used to send
-            data back to the processing nodes.
+                data back to the processing nodes.
         """
         pass
 
@@ -243,7 +243,7 @@ class OmProcessing(ABC):
         Returns:
 
             Usually nothing. Optionally, a dictionary storing information to be sent to
-            the processing node.
+                the processing node.
         """
         pass
 

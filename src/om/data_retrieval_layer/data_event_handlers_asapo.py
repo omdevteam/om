@@ -28,7 +28,7 @@ from typing import Any, Dict, Generator, List, Union, NamedTuple
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.utils import exceptions, parameters
 
 try:
@@ -48,7 +48,7 @@ class _TypeAsapoEvent(NamedTuple):
     stream_metadata: Dict[str, Any]
 
 
-class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
+class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -57,7 +57,7 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_protocols.OmDataSource],
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -85,7 +85,7 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase] that
                   describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -93,7 +93,7 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
 
         self._source: str = source
         self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_protocols.OmDataSource] = data_sources
+        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
         asapo_url: str = self._monitor_params.get_parameter(
@@ -238,7 +238,7 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
             required=True,
         )
 
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -378,11 +378,11 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extracted from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
@@ -417,7 +417,7 @@ class AsapoDataEventHandler(drl_protocols.OmDataEventHandler):
             parameter_type=list,
             required=True,
         )
-        self._required_data_sources = drl_protocols.filter_data_sources(
+        self._required_data_sources = drl_abcs.filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )

@@ -32,7 +32,7 @@ from numpy.typing import NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.protocols import processing_layer as pl_protocols
+from om.abcs import processing_layer as prol_abcs
 from om.utils import crystfel_geometry, hdf5_writers, parameters
 from om.utils.crystfel_geometry import TypeDetector
 from om.utils.rich_console import console, get_current_timestamp
@@ -64,7 +64,7 @@ class _TypeFrameListData(NamedTuple):
     average_intensity: numpy.float64
 
 
-class CheetahProcessing(pl_protocols.OmProcessing):
+class CheetahProcessing(prol_abcs.OmProcessingBase):
     """
     See documentation for the `__init__` function.
     """
@@ -433,8 +433,8 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         Returns:
 
             A tuple with two entries. The first entry is a dictionary storing the
-            processed data that should be sent to the collecting node. The second entry
-            is the OM rank number of the node that processed the information.
+                processed data that should be sent to the collecting node. The second
+                entry is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
         corrected_detector_data: NDArray[
@@ -703,7 +703,7 @@ class CheetahProcessing(pl_protocols.OmProcessing):
         Returns:
 
             Usually nothing. Optionally, a dictionary storing information to be sent to
-            the processing node.
+                the processing node.
         """
         total_num_events: int = (
             self._total_sums[0]["num_frames"] + self._total_sums[1]["num_frames"]

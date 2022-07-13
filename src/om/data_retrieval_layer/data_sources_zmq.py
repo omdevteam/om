@@ -26,13 +26,13 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import utils_generic as utils_gen
 from om.utils.parameters import MonitorParams
 
 
-class Jungfrau1MZmq(drl_protocols.OmDataSource):
+class Jungfrau1MZmq(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -145,7 +145,7 @@ class Jungfrau1MZmq(drl_protocols.OmDataSource):
             return data
 
 
-class TimestampJungfrau1MZmq(drl_protocols.OmDataSource):
+class TimestampJungfrau1MZmq(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -215,7 +215,7 @@ class TimestampJungfrau1MZmq(drl_protocols.OmDataSource):
         return cast(numpy.float64, event["data"][0]["timestamp"])
 
 
-class EventIdJungfrau1MZmq(drl_protocols.OmDataSource):
+class EventIdJungfrau1MZmq(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """

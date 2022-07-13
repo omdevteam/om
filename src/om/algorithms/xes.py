@@ -53,17 +53,23 @@ class XESAnalysis:
 
         Arguments:
 
-            intensity_threshold: An intensity threshold, in ADU units, for pixels in
-                the camera frame to be considered in the spectrum calculation.
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
 
-            rotation (int): The rotation in degrees that should be applied to the
-                camera image to align the spectrum information to the vertical axis.
+                * `intensity_threshold_in_ADU`: An intensity threshold, in ADU units,
+                  for pixels in the camera frame to be considered in the spectrum
+                  calculation.
 
-            min_row (int): The row index defining the start of the integration
-                region for the spectrum information.
+                * `rotation_in_degrees`: The rotation in degrees that should be applied
+                  to the camera image to align the spectrum information to the vertical
+                  axis.
 
-            max_row (int): The row index defining the end of the integration region
-                for the spectrum information.
+                * `min_row_in_pix_for_integration`: The row index defining the start of
+                  the integration region for the spectrum information.
+
+                * `max_row_in_pix_for_integration` The row index defining the end of
+                  the integration region for the spectrum information.
         """
         self._intensity_threshold: float = (
             param_utils.get_parameter_from_parameter_group(
@@ -111,13 +117,13 @@ class XESAnalysis:
         Returns:
 
             A dictionary storing the spectrum information extracted from the
-            camera frame.
+                camera frame.
 
-            - The value corresponding to the key named `spectrum` is a 1D array storing
-              the raw spectrum information.
+                * The value corresponding to the key named `spectrum` is a 1D array
+                storing the raw spectrum information.
 
-            - The value corresponding to the key named `spectrum_smooth` is a 1D array
-              storing a filtered, smoothed version of the spectrum.
+                * The value corresponding to the key named `spectrum_smooth` is a 1D
+                array storing a filtered, smoothed version of the spectrum.
         """
 
         # Apply a threshold

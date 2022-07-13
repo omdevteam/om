@@ -23,14 +23,14 @@ This module contains Data Retrieval classes that deal with the ASAPO software fr
 """
 from typing import Dict
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.data_retrieval_layer import data_event_handlers_asapo as deh_asapo
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import data_sources_asapo as ds_asapo
 from om.utils import parameters
 
 
-class EigerAsapoDataRetrieval(drl_protocols.OmDataRetrieval):
+class EigerAsapoDataRetrieval(drl_abcs.OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
@@ -64,7 +64,7 @@ class EigerAsapoDataRetrieval(drl_protocols.OmDataRetrieval):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, drl_protocols.OmDataSource] = {
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
             "timestamp": ds_asapo.TimestampAsapo(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -87,7 +87,7 @@ class EigerAsapoDataRetrieval(drl_protocols.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_protocols.OmDataEventHandler = (
+        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
             deh_asapo.AsapoDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -95,7 +95,7 @@ class EigerAsapoDataRetrieval(drl_protocols.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 

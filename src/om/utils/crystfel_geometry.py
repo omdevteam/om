@@ -705,25 +705,26 @@ def read_crystfel_geometry(  # noqa: C901
 
     Arguments:
 
-        filename: The absolute or relative path to a CrystFEL geometry file.
+        text_lines: a list of strings with geometry information in text format (usually
+            corresponding to the content of a CrystFEL geometry file).
 
     Returns:
 
         A tuple with the information loaded from the file.
 
-        * The first entry in the tuple is a
-          [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
-          information related to the detector geometry.
+            * The first entry in the tuple is a
+            [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
+            information related to the detector geometry.
 
-        * The second entry in the tuple is a
-          [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
-          information about the beam properties.
+            * The second entry in the tuple is a
+            [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
+            information about the beam properties.
 
-        * The third entry is the internal path, in an HDF5 data file, to the location
-          where Bragg peak information for the current detector can be found. This is
-          only used if CrystFEL extracts Bragg peak information from files. If the
-          geometry file does not provide this information, this entry has the value of
-          an empty string.
+            * The third entry is the internal path, in an HDF5 data file, to the
+            location where Bragg peak information for the current detector can be
+            found. This is only used if CrystFEL extracts Bragg peak information from
+            files. If the geometry file does not provide this information, this entry
+            has the value of an empty string.
     """
     beam: TypeBeam = {
         "photon_energy": 0.0,
@@ -1089,6 +1090,7 @@ def load_crystfel_geometry(  # noqa: C901
 ) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
     """
     Loads a CrystFEL geometry file.
+
     This function is a Python re-implementation of the `get_detector_geometry_2` C
     function from CrystFEL. It reads information from a CrystFEL geometry file (which
     uses a format fully documented in the relevant
@@ -1097,23 +1099,31 @@ def load_crystfel_geometry(  # noqa: C901
     representation of the information in the file (see the libcrystfel/src/detector.h
     and the libcrystfel/src/image.c source code files from CrystFEL for more
     information).
+
     This function currently re-implements the `get_detector_geometry_2` function from
     CrystFEL as it was at commit cff9159b4bc6.
+
     Arguments:
+
         filename: The absolute or relative path to a CrystFEL geometry file.
+
     Returns:
+
         A tuple with the information loaded from the file.
-        * The first entry in the tuple is a
-          [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
-          information related to the detector geometry.
-        * The second entry in the tuple is a
-          [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
-          information about the beam properties.
-        * The third entry is the internal path, in an HDF5 data file, to the location
-          where Bragg peak information for the current detector can be found. This is
-          only used if CrystFEL extracts Bragg peak information from files. If the
-          geometry file does not provide this information, this entry has the value of
-          an empty string.
+
+            * The first entry in the tuple is a
+            [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
+            information related to the detector geometry.
+
+            * The second entry in the tuple is a
+            [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
+            information about the beam properties.
+
+            * The third entry is the internal path, in an HDF5 data file, to the
+            location where Bragg peak information for the current detector can be
+            found. This is only used if CrystFEL extracts Bragg peak information from
+            files. If the geometry file does not provide this information, this entry
+            has the value of an empty string.
     """
     try:
         file_handle: TextIO
@@ -1155,7 +1165,7 @@ def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     Returns:
 
         A dictionary storing the pixel maps. Only the values corresponding to the `x`
-        and `y` keys are defined. The values for all other keys are set to None.
+            and `y` keys are defined. The values for all other keys are set to None.
     """
     # Shifts the origin of the reference system from the beam position to the top-left
     # of the image that will be displayed. Computes the size of the array needed to
@@ -1255,7 +1265,7 @@ def visualization_pixel_maps_from_geometry_file(
     Returns:
 
         A dictionary storing the pixel maps. Only the values corresponding to the `x`
-        and `y` keys are defined. The values for all other keys are set to None.
+            and `y` keys are defined. The values for all other keys are set to None.
     """
     geometry: TypeDetector
     _: Any

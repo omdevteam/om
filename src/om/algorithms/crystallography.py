@@ -557,7 +557,7 @@ class Peakfinder8PeakDetection:
         Returns:
 
             The radius, in pixels, currently used for the estimation of the local
-            background.
+                background.
         """
         return self._local_bg_radius
 
@@ -650,7 +650,7 @@ class Peakfinder8PeakDetection:
         Returns:
 
             A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
-            with information about the detected peaks.
+                with information about the detected peaks.
         """
         if self._mask is None:
             if self._bad_pixel_map is None:

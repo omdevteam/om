@@ -26,7 +26,7 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import utils_generic as utils_gen
 from om.utils.parameters import MonitorParams
@@ -40,7 +40,7 @@ except ImportError:
     )
 
 
-class PilatusSingleFrameFiles(drl_protocols.OmDataSource):
+class PilatusSingleFrameFiles(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -105,7 +105,7 @@ class PilatusSingleFrameFiles(drl_protocols.OmDataSource):
         return cast(NDArray[numpy.float_], event["data"].data)
 
 
-class Jungfrau1MFiles(drl_protocols.OmDataSource):
+class Jungfrau1MFiles(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -216,7 +216,7 @@ class Jungfrau1MFiles(drl_protocols.OmDataSource):
             return data
 
 
-class Eiger16MFiles(drl_protocols.OmDataSource):
+class Eiger16MFiles(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -288,7 +288,7 @@ class Eiger16MFiles(drl_protocols.OmDataSource):
         )
 
 
-class RayonixMccdSingleFrameFiles(drl_protocols.OmDataSource):
+class RayonixMccdSingleFrameFiles(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -357,7 +357,7 @@ class RayonixMccdSingleFrameFiles(drl_protocols.OmDataSource):
         return data
 
 
-class Lambda1M5Files(drl_protocols.OmDataSource):
+class Lambda1M5Files(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -433,7 +433,7 @@ class Lambda1M5Files(drl_protocols.OmDataSource):
         )
 
 
-class TimestampFromFileModificationTime(drl_protocols.OmDataSource):
+class TimestampFromFileModificationTime(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -499,7 +499,7 @@ class TimestampFromFileModificationTime(drl_protocols.OmDataSource):
         return cast(numpy.float64, event["additional_info"]["file_modification_time"])
 
 
-class TimestampJungfrau1MFiles(drl_protocols.OmDataSource):
+class TimestampJungfrau1MFiles(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -582,7 +582,7 @@ class TimestampJungfrau1MFiles(drl_protocols.OmDataSource):
         return file_timestamp + jf_clock_value / jf_clock_frequency
 
 
-class EventIdFromFilePath(drl_protocols.OmDataSource):
+class EventIdFromFilePath(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -646,7 +646,7 @@ class EventIdFromFilePath(drl_protocols.OmDataSource):
         return cast(str, event["additional_info"]["full_path"])
 
 
-class EventIdJungfrau1MFiles(drl_protocols.OmDataSource):
+class EventIdJungfrau1MFiles(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -719,7 +719,7 @@ class EventIdJungfrau1MFiles(drl_protocols.OmDataSource):
         return f"{filename} // {index:05d}"
 
 
-class EventIdEiger16MFiles(drl_protocols.OmDataSource):
+class EventIdEiger16MFiles(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -792,7 +792,7 @@ class EventIdEiger16MFiles(drl_protocols.OmDataSource):
         return f"{filename} // {index:04d}"
 
 
-class EventIdLambda1M5Files(drl_protocols.OmDataSource):
+class EventIdLambda1M5Files(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """

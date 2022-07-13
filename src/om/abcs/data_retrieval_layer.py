@@ -26,7 +26,7 @@ from typing import Any, Dict, Generator, List
 from om.utils import exceptions, parameters
 
 
-class OmDataSource(ABC):
+class OmDataSourceBase(ABC):
     """
     See documentation of the `__init__` function.
     """
@@ -100,7 +100,7 @@ class OmDataSource(ABC):
         pass
 
 
-class OmDataEventHandler(ABC):
+class OmDataEventHandlerBase(ABC):
     """
     See documentation of the `__init__` function.
     """
@@ -109,7 +109,7 @@ class OmDataEventHandler(ABC):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSource],
+        data_sources: Dict[str, OmDataSourceBase],
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -137,8 +137,8 @@ class OmDataEventHandler(ABC):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.data_retrieval_layer.base.OmDataSource] that
-                  describes the source.
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
@@ -221,7 +221,7 @@ class OmDataEventHandler(ABC):
 
         This function processes a data event and makes its content accessible for OM.
         OM calls this function on each processing node before the
-        [extract_data][om.data_retrieval_layer.base.OmDataEventHandler.extract_data]
+        [extract_data][om.abcs.data_retrieval_layer.OmDataEventHandlerBase.extract_data]
         function.
 
         Arguments:
@@ -237,7 +237,7 @@ class OmDataEventHandler(ABC):
 
         This function processes a data event and prepares it to be discarded by OM. OM
         calls this function on each processing node after the
-        [extract_data][om.data_retrieval_layer.base.OmDataEventHandler.extract_data]
+        [extract_data][om.abcs.data_retrieval_layer.OmDataEventHandlerBase.extract_data]
         function.
 
         Arguments:
@@ -291,11 +291,11 @@ class OmDataEventHandler(ABC):
 
             A dictionary storing the extracted data.
 
-            * Each dictionary key identifies a Data Source in the event for which data
-              has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-            * The corresponding dictionary value stores the data extracted from the
-              Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the frame being processed.
         """
         pass
 
@@ -309,13 +309,6 @@ class OmDataEventHandler(ABC):
         events and frames as OM usually does. The function can be called on any type
         of node in OM and even outside of an OnDA Monitor. It prepares the system to
         retrieve the data, initializing the Data Sources, etc.
-
-        Arguments:
-
-            event_id: a string that uniquely identifies a data event.
-
-            frame_id: a string that identifies a particular frame within the data
-                event.
         """
         pass
 
@@ -327,9 +320,9 @@ class OmDataEventHandler(ABC):
         This function retrieves a standalone detector frame from a data event source,
         together with all the data related to it. Before this function can be called,
         frame data retrieval must be initialized by calling the
-        [`initialize_frame_data_retrieval`][initialize_frame_data_retrieval] function.
-        The function can then be used to retrieve data related to the data event and
-        frame specified by the provided unique identifiers.
+        [`initialize_frame_data_retrieval`][om.abcs.data_retrieval_layer.OmDataEventHandlerBase.initialize_frame_data_retrieval]
+        function. The function can then be used to retrieve data related to the data
+        event and frame specified by the provided unique identifiers.
 
         Arguments:
 
@@ -345,7 +338,7 @@ class OmDataEventHandler(ABC):
         pass
 
 
-class OmDataRetrieval(ABC):
+class OmDataRetrievalBase(ABC):
     """
     See documentation of the `__init__` function.
     """
@@ -379,7 +372,7 @@ class OmDataRetrieval(ABC):
         pass
 
     @abstractmethod
-    def get_data_event_handler(self) -> OmDataEventHandler:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -395,7 +388,7 @@ class OmDataRetrieval(ABC):
 
 def filter_data_sources(
     *,
-    data_sources: Dict[str, OmDataSource],
+    data_sources: Dict[str, OmDataSourceBase],
     required_data: List[str],
 ) -> List[str]:
     """

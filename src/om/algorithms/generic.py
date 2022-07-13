@@ -405,8 +405,12 @@ class DataAccumulation:
 
         Arguments:
 
-            num_events_to_accumulate (int): the number of data entries that can be
-                added to the accumulator before the collected data is returned.
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
+
+                * `num_events_to_accumulate`: the number of data entries that can be
+                   added to the accumulator before the collected data is returned.
         """
         self._num_events_to_accumulate: int = (
             param_utils.get_parameter_from_parameter_group(
@@ -434,7 +438,7 @@ class DataAccumulation:
         Returns:
 
             Either a list containing the accumulated data, if the algorithm is reset,
-            or None, if more data entries can still be added to the algorithm.
+                or None, if more data entries can still be added to the algorithm.
         """
         self._accumulator.append(data)
         self._num_events_in_accumulator += 1
@@ -720,7 +724,7 @@ class Binning:
         Returns:
 
             A tuple storing the shape (in numpy format) of the array which contains the
-            binned data frame.
+                binned data frame.
         """
         return self._extended_nx // self._bin_size, self._extended_ny // self._bin_size
 
@@ -805,7 +809,7 @@ class Binning:
         Returns:
 
             Either an array containing the binned mask (if the input `mask` argument is
-            not None) or None.
+                not None) or None.
         """
         if mask is None:
             return None

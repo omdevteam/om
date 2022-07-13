@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's protocols (base abstract classes).
+OM's ABCs (Abstract Base Classes).
 
 This module contains the protocols to which OM's classes must adhere. These protocols
 are expressed in the form of base abstract classes.

@@ -22,12 +22,12 @@ This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
 
-from om.protocols import data_retrieval_layer as data_ret_layer_protocols
-from om.protocols import processing_layer as pl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
+from om.abcs import processing_layer as prol_abcs
 from om.utils import parameters
 
 
-class OmParallelization(ABC):
+class OmParallelizationBase(ABC):
     """
     See documentation of the `__init__` function.
     """
@@ -36,8 +36,8 @@ class OmParallelization(ABC):
     def __init__(
         self,
         *,
-        data_retrieval_layer: data_ret_layer_protocols.OmDataRetrieval,
-        processing_layer: pl_protocols.OmProcessing,
+        data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
+        processing_layer: prol_abcs.OmProcessingBase,
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
@@ -50,9 +50,9 @@ class OmParallelization(ABC):
           processing nodes, plus a single collecting node.
 
         * The Parallelization class associates an instance of a Data Retrieval class
-          (see [OmDataRetrieval][om.data_retrieval_layer.base.OmDataRetrieval]) and an
-          instance of a Processing class (see
-          [OmProcessing][om.processing_layer.base.OmProcessing]) to the nodes.
+          (see [OmDataRetrievalBase][om.abcs.data_retrieval_layer.OmDataRetrievalBase])
+          and an instance of a Processing class (see
+          [OmProcessingBase][om.abcs.processing_layer.OmProcessingBase]) to the nodes.
 
         * Each processing node retrieves an event from a data event source by calling
           the relevant Data Retrieval class methods. It then invokes the appropriate

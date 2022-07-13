@@ -23,14 +23,14 @@ This module contains Data Retrieval classes that deal with the psana software fr
 """
 from typing import Dict
 
-from om.protocols import data_retrieval_layer as drl_protocols
+from om.abcs import data_retrieval_layer as drl_abcs
 from om.data_retrieval_layer import data_event_handlers_psana as deh_psana
 from om.data_retrieval_layer import data_sources_generic as ds_generic
 from om.data_retrieval_layer import data_sources_psana as ds_psana
 from om.utils import parameters
 
 
-class CxiLclsDataRetrieval(drl_protocols.OmDataRetrieval):
+class CxiLclsDataRetrieval(drl_abcs.OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
@@ -61,7 +61,7 @@ class CxiLclsDataRetrieval(drl_protocols.OmDataRetrieval):
             monitor_parameters: An object storing OM's configuration parameters.
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_protocols.OmDataSource] = {
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
             "timestamp": ds_psana.TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -98,7 +98,7 @@ class CxiLclsDataRetrieval(drl_protocols.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_protocols.OmDataEventHandler = (
+        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
             deh_psana.PsanaDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -106,7 +106,7 @@ class CxiLclsDataRetrieval(drl_protocols.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -120,7 +120,7 @@ class CxiLclsDataRetrieval(drl_protocols.OmDataRetrieval):
         return self._data_event_handler
 
 
-class CxiLclsCspadDataRetrieval(drl_protocols.OmDataRetrieval):
+class CxiLclsCspadDataRetrieval(drl_abcs.OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
@@ -154,7 +154,7 @@ class CxiLclsCspadDataRetrieval(drl_protocols.OmDataRetrieval):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_protocols.OmDataSource] = {
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
             "timestamp": ds_psana.TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -191,7 +191,7 @@ class CxiLclsCspadDataRetrieval(drl_protocols.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_protocols.OmDataEventHandler = (
+        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
             deh_psana.PsanaDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -199,7 +199,7 @@ class CxiLclsCspadDataRetrieval(drl_protocols.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -213,7 +213,7 @@ class CxiLclsCspadDataRetrieval(drl_protocols.OmDataRetrieval):
         return self._data_event_handler
 
 
-class LclsEpix100DataRetrieval(drl_protocols.OmDataRetrieval):
+class LclsEpix100DataRetrieval(drl_abcs.OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
@@ -230,21 +230,21 @@ class LclsEpix100DataRetrieval(drl_protocols.OmDataRetrieval):
         to record beam energy spectrum information in XES experiments.
 
         * This class considers an individual data event as equivalent to the content of
-          a psana event, which stores data related to a single detector frame.
+        a psana event, which stores data related to a single detector frame.
 
         * Psana provides timestamp, beam energy and detector distance data for each
-          event, retrieved from various sensors in the system.
+        event, retrieved from various sensors in the system.
 
         * The source string required by this Data Retrieval class is a string of the
-          type used by psana to identify specific runs, experiments, or live data
-          streams.
+        type used by psana to identify specific runs, experiments, or live data
+        streams.
 
         Arguments:
 
             monitor_parameters: An object storing OM's configuration parameters.
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_protocols.OmDataSource] = {
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
             "timestamp": ds_psana.TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -281,7 +281,7 @@ class LclsEpix100DataRetrieval(drl_protocols.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_protocols.OmDataEventHandler = (
+        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
             deh_psana.PsanaDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -289,7 +289,7 @@ class LclsEpix100DataRetrieval(drl_protocols.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -303,7 +303,7 @@ class LclsEpix100DataRetrieval(drl_protocols.OmDataRetrieval):
         return self._data_event_handler
 
 
-class MfxLclsDataRetrieval(drl_protocols.OmDataRetrieval):
+class MfxLclsDataRetrieval(drl_abcs.OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
@@ -334,7 +334,7 @@ class MfxLclsDataRetrieval(drl_protocols.OmDataRetrieval):
             monitor_parameters: An object storing OM's configuration parameters.
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_protocols.OmDataSource] = {
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
             "timestamp": ds_psana.TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -371,7 +371,7 @@ class MfxLclsDataRetrieval(drl_protocols.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_protocols.OmDataEventHandler = (
+        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
             deh_psana.PsanaDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -379,7 +379,7 @@ class MfxLclsDataRetrieval(drl_protocols.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -393,7 +393,7 @@ class MfxLclsDataRetrieval(drl_protocols.OmDataRetrieval):
         return self._data_event_handler
 
 
-class MfxLclsRayonixDataRetrieval(drl_protocols.OmDataRetrieval):
+class MfxLclsRayonixDataRetrieval(drl_abcs.OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
@@ -423,7 +423,7 @@ class MfxLclsRayonixDataRetrieval(drl_protocols.OmDataRetrieval):
             monitor_parameters: An object storing OM's configuration parameters.
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_protocols.OmDataSource] = {
+        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
             "timestamp": ds_psana.TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
@@ -460,7 +460,7 @@ class MfxLclsRayonixDataRetrieval(drl_protocols.OmDataRetrieval):
             ),
         }
 
-        self._data_event_handler: drl_protocols.OmDataEventHandler = (
+        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
             deh_psana.PsanaDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -468,7 +468,7 @@ class MfxLclsRayonixDataRetrieval(drl_protocols.OmDataRetrieval):
             )
         )
 
-    def get_data_event_handler(self) -> drl_protocols.OmDataEventHandler:
+    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 

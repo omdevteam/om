@@ -81,10 +81,14 @@ class ZmqDataBroadcaster:
 
         Arguments:
 
-            url: The URL where the socket will be opened. It must be a string in
-                the format used by ZeroMQ, or None. If the value of this argument is
-                None, the IP address of the local machine will be autodetected, and the
-                socket will be opened at port 12321 using the 'tcp://' protocol.
+           parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
+
+                * `url`: The URL where the socket will be opened. It must be a string
+                in the format used by ZeroMQ, or None. If the value of this argument is
+                None, the IP address of the local machine will be auto-detected, and
+                the socket will be opened at port 12321 using the 'tcp://' protocol.
                 Defaults to None.
         """
         url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
@@ -162,15 +166,19 @@ class ZmqResponder:
         socket will accept requests from external sources, and can also be used to
         transmit data that satisfy them, if necessary.
 
-        This class creates a ZMQ ROUTER socket that can accept requests from REQ sockets
-        in external programs and respond to them.
+        This class creates a ZMQ ROUTER socket that can accept requests from REQ
+        sockets in external programs and respond to them.
 
         Arguments:
 
-            url: The URL where the socket will be opened. It must be a string in
-                the format used by ZeroMQ, or None. If the value of this argument is
-                None, the IP address of the local machine will be autodetected, and the
-                socket will be opened at port 12322 using the 'tcp://' protocol.
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
+
+                * `url`: The URL where the socket will be opened. It must be a string
+                in the format used by ZeroMQ, or None. If the value of this argument is
+                None, the IP address of the local machine will be auto-detected, and
+                the socket will be opened at port 12321 using the 'tcp://' protocol.
                 Defaults to None.
 
             blocking: whether the socket should be of blocking type. Defaults to False.
@@ -217,14 +225,15 @@ class ZmqResponder:
         instead non-blocking, the function will return the same information if a
         request is available when the function is called, and None otherwise. The
         identity of the requester must be stored and provided later to the
-        [send_data][om.utils.zmq_monitor.send_data] function to answer the request.
+        [send_data][om.utils.zmq_monitor.ZmqResponder.send_data] function to answer the
+        request.
 
         Returns:
 
             request: If a request was received by the socket, a tuple storing th
-            identity of the caller as the first entry, and a string with the request's
-            content as the second entry. If no request has been received by the
-            socket, None.
+                identity of the caller as the first entry, and a string with the
+                request's content as the second entry. If no request has been received
+                by the socket, None.
         """
         if self._blocking:
             request: Tuple[bytes, bytes, bytes] = self._sock.recv_multipart()
@@ -251,7 +260,7 @@ class ZmqResponder:
 
             identity: The identity of the requester to which the data should sent. This
                 information is returned by the
-                [get_request][om.utils.zmq_monitor.get_request].
+                [get_request][om.utils.zmq_monitor.ZmqResponder.get_request].
 
             message: A dictionary containing information to be transmitted.
         """

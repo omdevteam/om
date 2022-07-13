@@ -33,7 +33,7 @@ from rich.traceback import install
 console = Console()
 om_base_theme = Theme({"warning": "bold yellow", "error": "red"})
 console.push_theme(om_base_theme)
-install(show_locals=True, console=console)
+install(show_locals=True, max_frames=3, console=console)
 
 
 def get_current_timestamp() -> str:

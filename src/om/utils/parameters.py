@@ -69,15 +69,15 @@ def get_parameter_from_parameter_group(
     Returns:
 
         The value of the requested parameter, or None, if the parameter was not
-        found in the parameter group (and it is not required).
+            found in the parameter group (and it is not required).
 
     Raises:
 
-            OmMissingParameterError: Raised if the parameter is required but cannot be
-                found in the parameter group.
+        OmMissingParameterError: Raised if the parameter is required but cannot be
+            found in the parameter group.
 
-            OmWrongParameterTypeError: Raised if the requested parameter type does not
-                match the type of the configuration parameter.
+        OmWrongParameterTypeError: Raised if the requested parameter type does not
+            match the type of the configuration parameter.
     """
     ret: Any = group.get(parameter)
     if ret is None and required is True:
@@ -186,7 +186,7 @@ class MonitorParams:
         Returns:
 
             The parameter group, if it was found in the full set of configuration
-            parameters.
+                parameters.
 
         Raises:
 
@@ -241,7 +241,7 @@ class MonitorParams:
         Returns:
 
             The value of the requested parameter, or None, if the parameter was not
-            found in OM's configuration file (and it is not required).
+                found in OM's configuration file (and it is not required).
 
         Raises:
 
