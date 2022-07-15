@@ -39,7 +39,7 @@ class OmDataSourceBase(ABC):
         monitor_parameters: parameters.MonitorParams,
     ) -> None:
         """
-        Base class for an OM's Data Source classes.
+        Base class for OM's Data Source classes.
 
         Data Sources are classes that perform all the operations needed to retrieve
         data, in OM, from a specific sensor or detector. A data source can be anything
@@ -302,27 +302,32 @@ class OmDataEventHandlerBase(ABC):
     @abstractmethod
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals.
+        Initializes frame data retrieval.
 
         This function initializes the retrieval of a single standalone detector data
-        frame, with all the information that refers to it, as opposed to a series of
-        events and frames as OM usually does. The function can be called on any type
-        of node in OM and even outside of an OnDA Monitor. It prepares the system to
-        retrieve the data, initializing the Data Sources, etc.
+        frame from a data event source, with all the information that refers to it.
+        Please notice tha this is completely different from the way OM usually
+        operates: OM usually retrieves a series of events and frames in sequence. This
+        function can be called on any type of node in OM and even outside of an OnDA
+        Monitor: it prepares the system to retrieve the frame data, it initializes the
+        Data Sources, etc. After this function has been called, single frame data can
+        be retrieved using the
+        [`retrieval_frame_data`][om.abcs.data_retrieval_layer.OmDataEventHandlerBase.retrieve_frame_data]
+        function.
         """
         pass
 
     @abstractmethod
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame.
 
         This function retrieves a standalone detector frame from a data event source,
         together with all the data related to it. Before this function can be called,
         frame data retrieval must be initialized by calling the
         [`initialize_frame_data_retrieval`][om.abcs.data_retrieval_layer.OmDataEventHandlerBase.initialize_frame_data_retrieval]
-        function. The function can then be used to retrieve data related to the data
-        event and frame specified by the provided unique identifiers.
+        function. This function can then be used to retrieve all the data related to
+        the frame specified by the provided unique event and frame identifiers.
 
         Arguments:
 

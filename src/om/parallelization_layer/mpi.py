@@ -182,7 +182,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                                         tag=_FEEDBACKTAG,
                                     )
                     else:
-                        self._processing_layer.collect_no_data(
+                        self._processing_layer.wait_for_data(
                             node_rank=self._rank, node_pool_size=self._mpi_size
                         )
 

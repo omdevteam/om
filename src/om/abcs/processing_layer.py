@@ -139,7 +139,7 @@ class OmProcessingBase(ABC):
         pass
 
     @abstractmethod
-    def collect_no_data(
+    def wait_for_data(
         self,
         *,
         node_rank: int,
@@ -148,12 +148,12 @@ class OmProcessingBase(ABC):
         """
         Performs operations on the processing node when no data is received.
 
-        This function is invoked on the collecting node continuously, but only when
-        data is not received from a processing node. When data is received, the
-        [`collect_data`][om.abcs.processing_layer.OmProcessingBase.collect_data] is called
-        instead. This function can be used to perform operations that need to be carried
-        out when the data stream is not active (reacting to external commands and
-        requests, for example)
+        This function is called on the collecting node continuously, when data is not
+        being received from a processing node. When data is received, the
+        [`collect_data`][om.abcs.processing_layer.OmProcessingBase.collect_data] is
+        instead invoked. This function can be used to perform operations that need to
+        be carried out when the data stream is not active (reacting to external
+        commands and requests, updating graphical interfaces, etc.)
 
         Arguments:
 

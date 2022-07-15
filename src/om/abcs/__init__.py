@@ -18,6 +18,7 @@
 """
 OM's ABCs (Abstract Base Classes).
 
-This module contains the protocols to which OM's classes must adhere. These protocols
-are expressed in the form of base abstract classes.
+This module contains Abstract Base Classes for OM's Data Retrieval, Parallelization,
+and Processing Layers, subdivided in one submodule for each layer. The Abstract
+Base Classes define the interfaces that the classes in the layers must implement.
 """

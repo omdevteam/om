@@ -539,7 +539,7 @@ class StreamingCheetahProcessing(prol_abcs.OmProcessingBase):
 
         return (processed_data, node_rank)
 
-    def collect_no_data(
+    def wait_for_data(
         self,
         *,
         node_rank: int,
