@@ -149,26 +149,26 @@ def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,
 List[float], List[float]`: A tuple storing  information about the detected peaks. The
         tuple has the following elements:
 
-        * The first entry stores the number of peaks that were detected in the data
-          frame.
+            * The first entry stores the number of peaks that were detected in the data
+            frame.
 
-        * The second entry is a list storing the fractional fs indexes that locate the
-          detected peaks in the data frame.
+            * The second entry is a list storing the fractional fs indexes that locate
+            thedetected peaks in the data frame.
     
-        * The third entry is a list storing the fractional ss indexes that locate the
-          the detected peaks in the data frame.
+            * The third entry is a list storing the fractional ss indexes that locate the
+            the detected peaks in the data frame.
     
-        * The fourth entry is a list storing the integrated intensities for the
-          detected peaks.
+            * The fourth entry is a list storing the integrated intensities for the
+            detected peaks.
     
-        * The fifth entry is a list storing the number of pixels that make up each
-          detected peak.
+            * The fifth entry is a list storing the number of pixels that make up each
+            detected peak.
 
-        * The sixth entry is a list storing, for each peak, the value of the pixel with
-          the maximum intensity.
+            * The sixth entry is a list storing, for each peak, the value of the pixel
+            with the maximum intensity.
     
-        * The seventh entry is a list storing the signal-to-noise ratio of each
-          detected peak.
+            * The seventh entry is a list storing the signal-to-noise ratio of each
+            detected peak.
     """
     cdef tPeakList peak_list
     allocatePeakList(&peak_list, max_num_peaks)
