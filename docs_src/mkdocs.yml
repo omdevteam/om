@@ -48,6 +48,11 @@ nav:
   - Code Reference:
     - om:
       - __init__: reference/om/index.md
+      - abcs:
+        - __init__: reference/om/abcs/index.md
+        - data_retrieval_layer: reference/om/abcs/data_retrieval_layer.md
+        - parallelization_layer: reference/om/abcs/parallelization_layer.md
+        - processing_layer: reference/om/abcs/processing_layer.md
       - algorithms:
         - __init__: reference/om/algorithms/index.md
         - crystallography: reference/om/algorithms/crystallography.md
@@ -55,22 +60,29 @@ nav:
         - xes: reference/om/algorithms/xes.md
       - data_retrieval_layer:
         - __init__: reference/om/data_retrieval_layer/index.md
-        - base: reference/om/data_retrieval_layer/base.md
+        - data_event_handlers_asapo: reference/om/data_retrieval_layer/data_event_handlers_asapo.md
         - data_event_handlers_files: reference/om/data_retrieval_layer/data_event_handlers_files.md
+        - data_event_handlers_http: reference/om/data_retrieval_layer/data_event_handlers_http.md
         - data_event_handlers_psana: reference/om/data_retrieval_layer/data_event_handlers_psana.md
         - data_event_handlers_zmq: reference/om/data_retrieval_layer/data_event_handlers_zmq.md
+        - data_retrieval_asapo: reference/om/data_retrieval_layer/data_retrieval_asapo.md
         - data_retrieval_files: reference/om/data_retrieval_layer/data_retrieval_files.md
+        - data_retrieval_http: reference/om/data_retrieval_layer/data_retrieval_http.md
         - data_retrieval_psana: reference/om/data_retrieval_layer/data_retrieval_psana.md
         - data_retrieval_zmq: reference/om/data_retrieval_layer/data_retrieval_zmq.md
+        - data_sources_asapo: reference/om/data_retrieval_layer/data_sources_asapo.md
         - data_sources_files: reference/om/data_retrieval_layer/data_sources_files.md
-        - data_sources_generic: reference/om/data_retrieval_layer/data_sources_generic.md
         - data_sources_psana: reference/om/data_retrieval_layer/data_sources_psana.md
+        - data_sources_generic: reference/om/data_retrieval_layer/data_sources_generic.md
+        - data_sources_http: reference/om/data_retrieval_layer/data_sources_http.md
         - data_sources_zmq: reference/om/data_retrieval_layer/data_sources_zmq.md
+        - frame_retrieval: reference/om/data_retrieval_layer/frame_retrieval.md
+        - utils_generic: reference/om/data_retrieval_layer/utils_generic.md
       - graphical_interfaces:
         - __init__: reference/om/graphical_interfaces/index.md
-        - base: reference/om/graphical_interfaces/base.md
-        - crystallography_frame_viewer: reference/om/graphical_interfaces/crystallography_frame_viewer.md
+        - common: reference/om/graphical_interfaces/common.md
         - crystallography_gui: reference/om/graphical_interfaces/crystallography_gui.md
+        - crystallography_frame_viewer: reference/om/graphical_interfaces/crystallography_frame_viewer.md
         - crystallography_parameter_tweaker: reference/om/graphical_interfaces/crystallography_parameter_tweaker.md
         - xes_gui: reference/om/graphical_interfaces/xes_gui.md
       - lib:
@@ -78,11 +90,10 @@ nav:
         - peakfinder8_extension: reference/om/lib/peakfinder8_extension.md
       - parallelization_layer:
         - __init__: reference/om/parallelization_layer/index.md
-        - base: reference/om/parallelization_layer/base.md
         - mpi: reference/om/parallelization_layer/mpi.md
+        - multiprocessing: reference/om/parallelization_layer/multiprocessing.md
       - processing_layer:
         - __init__: reference/om/processing_layer/index.md
-        - base: reference/om/processing_layer/base.md
         - cheetah: reference/om/processing_layer/cheetah.md
         - crystallography: reference/om/processing_layer/crystallography.md
         - testing: reference/om/processing_layer/testing.md
@@ -93,6 +104,7 @@ nav:
         - exceptions: reference/om/utils/exceptions.md
         - hdf5_writers: reference/om/utils/hdf5_writers.md
         - parameters: reference/om/utils/parameters.md
+        - rich_console: reference/om/utils/rich_console.md
         - zmq_gui: reference/om/utils/zmq_gui.md
         - zmq_monitor: reference/om/utils/zmq_monitor.md
       - monitor: reference/om/monitor.md

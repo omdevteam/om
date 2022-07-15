@@ -6,5 +6,6 @@
   * [exceptions](exceptions.md)
   * [hdf5_writers](hdf5_writers.md)
   * [parameters](parameters.md)
+  * [rich_console](rich_console.md)
   * [zmq_gui](zmq_gui.md)
   * [zmq_moitor](zmq_monitor.md)

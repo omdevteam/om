@@ -2,5 +2,4 @@
     selection:
       members: false
 
-  * [base](base.md)
   * [mpi](mpi.md)

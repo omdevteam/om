@@ -2,7 +2,6 @@
     selection:
       members: false 
 
-  * [base](base.md)
   * [cheetah](cheetah.md)
   * [crystallography](crystallography.md)
   * [testing](testing.md)
