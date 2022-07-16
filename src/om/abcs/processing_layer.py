@@ -146,12 +146,12 @@ class OmProcessingBase(ABC):
         node_pool_size: int,
     ) -> None:
         """
-        Performs operations on the processing node when no data is received.
+        Performs operations on the collecting node when no data is received.
 
-        This function is called on the collecting node continuously, when data is not
-        being received from a processing node. When data is received, the
+        This function is called on the collecting node continuously, when the node is
+        not receiving data from any processing node (When data is received, the
         [`collect_data`][om.abcs.processing_layer.OmProcessingBase.collect_data] is
-        instead invoked. This function can be used to perform operations that need to
+        invoked instead). This function can be used to perform operations that need to
         be carried out when the data stream is not active (reacting to external
         commands and requests, updating graphical interfaces, etc.)
 
@@ -177,27 +177,33 @@ class OmProcessingBase(ABC):
         """
         Collects processed data from a processing node.
 
-        This function is invoked on the collecting node every time data is transferred
-        from a processing node. The function accepts as input the data received from
+        This function is invoked on the collecting node every time data is received
+        from a processing node (When data is not being received, the collecting node
+        continuously calls the
+        [`wait_for_data`][om.abcs.processing_layer.OmProcessingBase.wait_for_data]
+        function instead). The function accepts as input the data received from
         the processing node (the tuple returned by the
-        [`process_data`][om.abcs.processing_layer.OmProcessingBase.process_data] method of
-        this class). This function often computes aggregate statistics on the data
-        received from all nodes, forwards data to external programs for visualization,etc.
+        [`process_data`][om.abcs.processing_layer.OmProcessingBase.process_data] method
+        of this class). It can be used to compute aggregate statistics on the data
+        received from all nodes, to forwards data to external programs for
+        visualization, etc.
 
         The function usually does not return any value, but can optionally return a
-        nested dictionary, which can be used to provide feedback data to the processing
-        nodes.
+        dictionary of dictionaries. When this happens, the data in the dictionary is
+        provided as feedback data to the processing nodes.
 
-        * The keys of the outer dictionary must correspond to the OM rank numbers of
-          the processing nodes which will receive the feedback data. A key value of 0
-          can be used to send feedback data to all the processing nodes.
+        * The keys of the outer dictionary must match the OM rank numbers of the
+        processing nodes which will receive the feedback data. A key value of 0
+        can be used to send feedback data to all the processing nodes at the same
+        time.
 
-        * The dictionary value corresponding to each key must be a dictionary that
-          stores the feedback data to send.
+        * The value corresponding to each key of the outer dictionary must in turn be a
+        dictionary that stores the feedback data to send to the corresponding node.
 
-        * The feedback data dictionary will be merged with the `data` argument
-          of the [process_data][om.abcs.processing_layer.OmProcessingBase.process_data]
-          function, the next time that function is called on the processing node.
+        * On each processing node, the feedback data dictionary, if received, will be
+        merged into with the `data` argument of the
+        [`process_data`][om.abcs.processing_layer.OmProcessingBase.process_data]
+        function the next time the function is called.
 
         Arguments:
 
@@ -214,8 +220,8 @@ class OmProcessingBase(ABC):
 
         Returns:
 
-            Usually nothing. Optionally, a nested dictionary that can be used to send
-                data back to the processing nodes.
+            Usually nothing. Optionally, a dictionary of dictionaries that can be used
+                to send feedback data to the processing nodes.
         """
         pass
 
