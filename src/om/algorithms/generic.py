@@ -261,7 +261,7 @@ class RadialProfile:
 
                 * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
                    file containing a bad pixel map. The map can be used to exclude
-                   regions of the data frame from the calclation of the radial profile.
+                   regions of the data frame from the calculation of the radial profile.
                    If he value of this entry is None, the full frame will be used in
                    the calculation. Defaults to None.
 
@@ -428,8 +428,9 @@ class DataAccumulation:
         Adds data to the accumulator.
 
         This function adds the provided data entry to the algorithm. If, after adding
-        the data, the algorithm has reached the predefined number of entries, this
-        function returns all the data collected by the algorithm, and resets it.
+        the data, the algorithm has reached its maximum predefined number of
+        accumulated entries, the function returns all the accumulated data and resets
+        the algorithm. Otherwise, the function returns None.
 
         Arguments:
 
@@ -466,9 +467,9 @@ class Binning:
         Binning of detector data frames.
 
         This algorithm stores all the parameters needed to bin the data of a detector
-        data frame. Starting from a provided frame, it can then generate a version with
-        binned pixel values, together with binned pixel maps and masks that can be used
-        with it.
+        data frame. Starting from a provided frame, it can then generate a version of
+        the frame with binned pixel values, and additionally provide pixel maps and
+        masks that can be used with it.
 
         Arguments:
 
@@ -537,8 +538,8 @@ class Binning:
                 * `bad_pixel_value`: The value to be written in the generated binned
                   frame when a pixel is invalid (i.e.: the binning area in the original
                   frame contains too many ignored pixels, see the `min_good_pix_count`
-                  argument). Defaults to `MAXINT` if the input array is of integers,
-                  otherwise defaults to `numpy.nan`.
+                  argument). Defaults to `MAXINT` if the input array is an array of
+                  integers, otherwise defaults to `numpy.nan`.
         """
         self._layout_info: cryst_algs.TypePeakfinder8Info = (
             cryst_algs.get_peakfinder8_info(
@@ -739,9 +740,9 @@ class Binning:
         non-ignored pixels. The function then multiplies it by the total number of
         pixels in the area. The resulting value is finally used to fill the output
         frame pixel that corresponds to the binning area. If, however, the pixel is
-        determined to be invalid (see the `min_good_pix_count` argument to the class
-        constructor), a fallback value (defined by the `bad_pixel_value` constructor
-        argument) is used to fill it.
+        determined to be invalid (see the `min_good_pix_count` argument of the class's
+        constructor), a fallback value (defined by the `bad_pixel_value` argument of
+        the constructor) is used to fill it.
 
         Arguments:
 

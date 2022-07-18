@@ -117,25 +117,31 @@ def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
             retrieved. The following detector types are currently supported:
 
             * `cspad`: The CSPAD detector used at the CXI beamline of the LCLS facility
-              before 2020.
-
-            * `pilatus`: The Pilatus detector used at the P11 beamline of the PETRA III
-              facility.
-
-            * `jungfrau1M`: The 1M version of the Jungfrau detector used at the PETRA
-              III facility.
-
-            * `jungfrau4M`: The 4M version of the Jungfrau detector used at the CXI
-              beamline of the LCLS facility.
-
-            * `epix10k2M`: The 2M version of the Epix10KA detector used at the MFX
-              beamline of the LCLS facility.
-
-            * `rayonix`: The Rayonix detector used at the MFX beamline of the LCLS
-              facility.
+            before 2020.
 
             * `eiger16M`: The 16M version of the Eiger2 detector used at the PETRA III
-              facility.
+            facility.
+
+            * `epix10k2M`: The 2M version of the Epix10KA detector used at the MFX
+            beamline of the LCLS facility.
+
+            * `jungfrau1M`: The 1M version of the Jungfrau detector used at the PETRA
+            III facility.
+
+            * `jungfrau4M`: The 4M version of the Jungfrau detector used at the CXI
+            beamline of the LCLS facility.
+
+            * `lambda1M5`: The Lambda detector used at the P09 beamline of the PETRA
+            III facility.
+
+            * `pilatus`: The Pilatus detector used at the P11 beamline of the PETRA III
+            facility.
+
+            * `rayonix`: The Rayonix detector used at the MFX beamline of the LCLS
+            facility.
+
+            * `rayonix16M`: The 16M version of the Rayonix detector used at the BioCars
+            beamline of the APS acility.
 
     Returns:
 
