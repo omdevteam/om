@@ -48,6 +48,23 @@ peakfinder8_ext = Extension(
 )
 peakfinder8_ext.cython_directives = {"embedsignature": True}
 
+peakfinder8_fast_ext = Extension(
+    name="om.lib.peakfinder8_fast_extension",
+    include_dirs=[numpy.get_include()],
+    libraries=["stdc++"],
+    sources=[
+        "lib_src/peakfinder8_fast_extension/peakfinder8_fast.cpp",
+        "lib_src/peakfinder8_fast_extension/peakfinder8_fast_extension.pyx",
+    ]
+    if OM_USE_CYTHON
+    else [
+        "lib_src/peakfinder8_fast_extension/peakfinder8_fast_extension.cpp",
+        "lib_src/peakfinder8_fast_extension/peakfinder8_fast.cpp",
+    ],
+    language="c++",
+)
+peakfinder8_fast_ext.cython_directives = {"embedsignature": True}
+
 binning_ext = Extension(
     name="om.lib.binning_extension",
     libraries=["stdc++"],
@@ -68,9 +85,11 @@ binning_ext.cython_directives = {"embedsignature": True}
 if OM_USE_CYTHON:
     from Cython.Build import cythonize
 
-    extensions = cythonize([peakfinder8_ext, binning_ext], annotate=True)
+    extensions = cythonize(
+        [peakfinder8_ext, peakfinder8_fast_ext, binning_ext], annotate=True
+    )
 else:
-    extensions = [peakfinder8_ext, binning_ext]
+    extensions = [peakfinder8_ext, peakfinder8_fast_ext, binning_ext]
 
 version_fh = open("src/om/__init__.py", "r")
 version = version_fh.readlines()[-1].split("=")[1].strip().split('"')[1]
@@ -136,7 +155,14 @@ setup(
     ],
     extras_require={
         "qt": ["pyqt5", "pyqtgraph"],
-        "docs": ["mkdocs", "mkdocstring", "mkdocstring-python", "mkdocs-click", "mkdocs-material", "mkdocs-material-extensions"],
+        "docs": [
+            "mkdocs",
+            "mkdocstring",
+            "mkdocstring-python",
+            "mkdocs-click",
+            "mkdocs-material",
+            "mkdocs-material-extensions",
+        ],
     },
     entry_points={
         "console_scripts": ["om_monitor.py=om.monitor:main"],
