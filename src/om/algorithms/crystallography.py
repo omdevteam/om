@@ -440,9 +440,11 @@ class Peakfinder8PeakDetection:
             )
             pidx: List[int] = []
             radius: List[int] = []
-            r: int
-            for r in range(rmap_int.max()):
-                idx: NDArray[numpy.int_] = numpy.where(rmap_int == r)[0]
+            idx: NDArray[numpy.int_]
+            for idx in numpy.split(
+                numpy.argsort(rmap_int, kind="mergesort"),
+                numpy.cumsum(numpy.bincount(rmap_int)[:-1]),
+            ):
                 if len(idx) < self._rstats_numpix_per_bin:
                     pidx.extend(idx)
                     radius.extend(rmap_int[(idx,)])
