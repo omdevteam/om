@@ -532,12 +532,20 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 continue
 
             h5file: Any = h5py.File(pathlib.Path(filename).resolve(), "r")
-            file_timestamp: float = datetime.strptime(
-                h5file["/entry/instrument/detector/timestamp"][()]
-                .decode("utf-8")
-                .strip(),
-                "%a %b %d %H:%M:%S %Y",
-            ).timestamp()
+            try:
+                file_timestamp: float = datetime.strptime(
+                    h5file["/entry/instrument/detector/timestamp"][()]
+                    .decode("utf-8")
+                    .strip(),
+                    "%a %b %d %H:%M:%S %Y",
+                ).timestamp()
+            except KeyError:
+                file_timestamp = datetime.strptime(
+                    h5file["/entry/instrument/detector/Timestamp"][()]
+                    .decode("utf-8")
+                    .strip(),
+                    "%a %b %d %H:%M:%S %Y",
+                ).timestamp()
 
             index: int
             for index in range(h5file["/entry/data/data"].shape[0]):
@@ -737,10 +745,20 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         filename: str = event_id_parts[0].strip()
         index: int = int(event_id_parts[1].strip())
         h5file: Any = h5py.File(pathlib.Path(filename).resolve(), "r")
-        file_timestamp: float = datetime.strptime(
-            h5file["/entry/instrument/detector/timestamp"][()].decode("utf-8").strip(),
-            "%a %b %d %H:%M:%S %Y",
-        ).timestamp()
+        try:
+            file_timestamp: float = datetime.strptime(
+                h5file["/entry/instrument/detector/timestamp"][()]
+                .decode("utf-8")
+                .strip(),
+                "%a %b %d %H:%M:%S %Y",
+            ).timestamp()
+        except:
+            file_timestamp: float = datetime.strptime(
+                h5file["/entry/instrument/detector/Timestamp"][()]
+                .decode("utf-8")
+                .strip(),
+                "%a %b %d %H:%M:%S %Y",
+            ).timestamp()
 
         data_event["additional_info"] = {
             "h5file": h5file,

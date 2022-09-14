@@ -8,7 +8,7 @@ import h5py
 import numpy
 from numpy.typing import NDArray
 
-from om.utils.console import console
+from om.utils.rich_console import console
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -52,7 +52,8 @@ def main(input: str, output: str, s: int) -> None:
     sd: NDArray[numpy.float_] = numpy.zeros((3, n), dtype=numpy.float64)
     nd: NDArray[numpy.float_] = numpy.zeros((3, n))
     for fn in filelist:
-        h5_data_path: str = "/data_" + re.findall("_(f\d+)_", fn)[0]
+        i: int = int(re.findall("_f(\d+)_", fn)[0])
+        h5_data_path: str = "/data_" + f"f{i:012d}"
         f: Any
         with h5py.File(fn, "r") as f:
             n_frames: int = f[h5_data_path].shape[0]
@@ -61,9 +62,9 @@ def main(input: str, output: str, s: int) -> None:
             for frame in f[h5_data_path][s:]:
                 d: NDArray[numpy.int_] = frame.flatten()
                 where_gain: List[Tuple[NDArray[numpy.int_]]] = [
-                    numpy.where((d & 2**14 == 0) & (d > 0)),
-                    numpy.where((d & (2**14) > 0) & (d & 2**15 == 0)),
-                    numpy.where(d & 2**15 > 0),
+                    numpy.where((d & 2 ** 14 == 0) & (d > 0)),
+                    numpy.where((d & (2 ** 14) > 0) & (d & 2 ** 15 == 0)),
+                    numpy.where(d & 2 ** 15 > 0),
                 ]
                 i: int
                 for i in range(3):
