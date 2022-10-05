@@ -347,7 +347,7 @@ class MfxLclsDataRetrieval(drl_abcs.OmDataRetrievalBase):
             "detector_data": ds_psana.Epix10kaPsana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_psana.BeamEnergyPsana(
+            "beam_energy": ds_psana.BeamEnergyFromEpicsVariablePsana(
                 data_source_name="beam_energy", monitor_parameters=monitor_parameters
             ),
             "detector_distance": ds_psana.EpicsVariablePsana(

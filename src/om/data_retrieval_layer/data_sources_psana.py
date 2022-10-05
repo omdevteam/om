@@ -1216,6 +1216,81 @@ class BeamEnergyPsana(drl_abcs.OmDataSourceBase):
         )
 
 
+class BeamEnergyFromEpicsVariablePsana(drl_abcs.OmDataSourceBase):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParams,
+    ):
+        """
+        Beam energy information at the LCLS facility.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This class deals with the retrieval of beam energy information at the LCLS
+        facility. It retrieves the information with a method that is different from
+        how Psana usually provides this beam energy information: this class retrieves
+        the information by reading an Epics variable.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        del data_source_name
+        del monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the psana beam energy data source.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the psana Detector interface for the Epics variable
+        storing the beam energy information.
+        """
+        self._detector_interface: Any = psana.Detector("SIOC:SYS0:ML00:AO192")
+
+    def get_data(self, *, event: Dict[str, Any]) -> float:
+        """
+        Retrieves beam energy information from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves from an Epics variable the beam energy information for
+        the provided event.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The beam energy.
+        """
+        wavelength: Union[float, None] = self._detector_interface(event)
+        if wavelength is None:
+            raise exceptions.OmDataExtractionError(
+                "Could not retrieve beam energy information from psana."
+            )
+        h: float = 6.626070e-34  # J.m
+        c: float = 2.99792458e8  # m/s
+        joules_per_ev: float = 1.602176621e-19  # J/eV
+        photon_energy: float = (h / joules_per_ev * c) / (wavelength * 1e-9)
+
+        return photon_energy
+
 class EvrCodesPsana(drl_abcs.OmDataSourceBase):
     """
     See documentation of the `__init__` function.
