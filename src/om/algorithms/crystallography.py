@@ -33,7 +33,6 @@ from numpy.typing import NDArray
 from typing_extensions import TypedDict
 
 from om.lib.peakfinder8_extension import peakfinder_8  # type: ignore
-from om.lib.peakfinder8_fast_extension import peakfinder_8 as peakfinder_8_fast  # type: ignore
 from om.utils import parameters as param_utils
 
 
@@ -424,40 +423,56 @@ class Peakfinder8PeakDetection:
         self._mask: Union[NDArray[numpy.int_], None] = None
         self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
 
-        self._rstats_numpix_per_bin: Union[
-            int, None
+        self._rstats_pidx: Union[None, NDArray[numpy.int_]] = None
+        self._rstats_radius: Union[None, NDArray[numpy.int_]] = None
+        self._rstats_numpix: int = 0
+        self._fast_mode: Union[
+            bool, None
         ] = param_utils.get_parameter_from_parameter_group(
             group=parameters,
-            parameter="rstats_numpix_per_bin",
-            parameter_type=int,
+            parameter="fast_mode",
+            parameter_type=bool,
             required=False,
         )
-        if self._rstats_numpix_per_bin is not None:
-            # Use peakfinder8_fast
-            # Pre-compute random pixel selection in radial bins
-            rmap_int: NDArray[numpy.int_] = (
-                numpy.rint(self._radius_pixel_map).astype(int).ravel()
+        if self._fast_mode is None:
+            self._fast_mode = False
+
+        if self._fast_mode:
+            numpix_per_bin: Union[
+                int, None
+            ] = param_utils.get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="rstats_numpix_per_bin",
+                parameter_type=int,
+                required=False,
             )
-            pidx: List[int] = []
-            radius: List[int] = []
-            idx: NDArray[numpy.int_]
-            for idx in numpy.split(
-                numpy.argsort(rmap_int, kind="mergesort"),
-                numpy.cumsum(numpy.bincount(rmap_int)[:-1]),
-            ):
-                if len(idx) < self._rstats_numpix_per_bin:
-                    pidx.extend(idx)
-                    radius.extend(rmap_int[(idx,)])
-                else:
-                    idx_sample = random.sample(list(idx), self._rstats_numpix_per_bin)
-                    pidx.extend(idx_sample)
-                    radius.extend(rmap_int[(idx_sample,)])
-            self._rstats_pidx: NDArray[numpy.int_] = numpy.array(pidx).astype(
-                numpy.int32
-            )
-            self._rstats_radius: NDArray[numpy.int_] = numpy.array(radius).astype(
-                numpy.int32
-            )
+            if numpix_per_bin is None:
+                self._rstats_numpix_per_bin = 100
+            self._compute_rstats_pixels(numpix_per_bin)
+
+    def _compute_rstats_pixels(self, numpix_per_bin: int) -> None:
+        rmap_int: NDArray[numpy.int_] = (
+            numpy.rint(self._radius_pixel_map).astype(int).ravel()
+        )
+        pidx: List[int] = []
+        radius: List[int] = []
+        idx: NDArray[numpy.int_]
+        for idx in numpy.split(
+            numpy.argsort(rmap_int, kind="mergesort"),
+            numpy.cumsum(numpy.bincount(rmap_int)[:-1]),
+        ):
+            if len(idx) < numpix_per_bin:
+                pidx.extend(idx)
+                radius.extend(rmap_int[(idx,)])
+            else:
+                idx_sample = random.sample(list(idx), numpix_per_bin)
+                pidx.extend(idx_sample)
+                radius.extend(rmap_int[(idx_sample,)])
+        self._rstats_pidx: NDArray[numpy.int_] = numpy.array(pidx).astype(numpy.int32)
+        self._rstats_radius: NDArray[numpy.int_] = numpy.array(radius).astype(
+            numpy.int32
+        )
+        self._rstats_numpix = self._rstats_pidx.shape[0]
 
     def set_peakfinder8_info(self, peakfinder8_info: TypePeakfinder8Info) -> None:
         self._asic_nx = peakfinder8_info["asic_nx"]
@@ -704,41 +719,25 @@ class Peakfinder8PeakDetection:
             self._mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             self._mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
 
-        if self._rstats_numpix_per_bin is None:
-            peak_list: Tuple[List[float], ...] = peakfinder_8(
-                self._max_num_peaks,
-                data.astype(numpy.float32),
-                self._mask,
-                self._radius_pixel_map,
-                self._asic_nx,
-                self._asic_ny,
-                self._nasics_x,
-                self._nasics_y,
-                self._adc_thresh,
-                self._minimum_snr,
-                self._min_pixel_count,
-                self._max_pixel_count,
-                self._local_bg_radius,
-            )
-        else:
-            peak_list = peakfinder_8_fast(
-                self._max_num_peaks,
-                data.astype(numpy.float32),
-                self._mask,
-                self._radius_pixel_map,
-                self._rstats_pidx.shape[0],
-                self._rstats_pidx,
-                self._rstats_radius,
-                self._asic_nx,
-                self._asic_ny,
-                self._nasics_x,
-                self._nasics_y,
-                self._adc_thresh,
-                self._minimum_snr,
-                self._min_pixel_count,
-                self._max_pixel_count,
-                self._local_bg_radius,
-            )
+        peak_list: Tuple[List[float], ...] = peakfinder_8(
+            self._max_num_peaks,
+            data.astype(numpy.float32),
+            self._mask,
+            self._radius_pixel_map,
+            self._rstats_numpix,
+            self._rstats_pidx,
+            self._rstats_radius,
+            int(self._fast_mode),
+            self._asic_nx,
+            self._asic_ny,
+            self._nasics_x,
+            self._nasics_y,
+            self._adc_thresh,
+            self._minimum_snr,
+            self._min_pixel_count,
+            self._max_pixel_count,
+            self._local_bg_radius,
+        )
 
         return {
             "num_peaks": len(peak_list[0]),
