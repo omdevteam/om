@@ -426,18 +426,18 @@ class Peakfinder8PeakDetection:
         self._rstats_pidx: Union[None, NDArray[numpy.int_]] = None
         self._rstats_radius: Union[None, NDArray[numpy.int_]] = None
         self._rstats_numpix: int = 0
-        self._fast_mode: Union[
-            bool, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        fast_mode: Union[bool, None] = param_utils.get_parameter_from_parameter_group(
             group=parameters,
             parameter="fast_mode",
             parameter_type=bool,
             required=False,
         )
-        if self._fast_mode is None:
-            self._fast_mode = False
+        if fast_mode is None:
+            self._fast_mode: bool = False
+        else:
+            self._fast_mode = fast_mode
 
-        if self._fast_mode:
+        if self._fast_mode is True:
             numpix_per_bin: Union[
                 int, None
             ] = param_utils.get_parameter_from_parameter_group(
@@ -447,7 +447,7 @@ class Peakfinder8PeakDetection:
                 required=False,
             )
             if numpix_per_bin is None:
-                self._rstats_numpix_per_bin = 100
+                numpix_per_bin = 100
             self._compute_rstats_pixels(numpix_per_bin)
 
     def _compute_rstats_pixels(self, numpix_per_bin: int) -> None:
@@ -468,10 +468,8 @@ class Peakfinder8PeakDetection:
                 idx_sample = random.sample(list(idx), numpix_per_bin)
                 pidx.extend(idx_sample)
                 radius.extend(rmap_int[(idx_sample,)])
-        self._rstats_pidx: NDArray[numpy.int_] = numpy.array(pidx).astype(numpy.int32)
-        self._rstats_radius: NDArray[numpy.int_] = numpy.array(radius).astype(
-            numpy.int32
-        )
+        self._rstats_pidx = numpy.array(pidx).astype(numpy.int32)
+        self._rstats_radius = numpy.array(radius).astype(numpy.int32)
         self._rstats_numpix = self._rstats_pidx.shape[0]
 
     def set_peakfinder8_info(self, peakfinder8_info: TypePeakfinder8Info) -> None:
