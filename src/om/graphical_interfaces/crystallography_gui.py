@@ -181,6 +181,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
         self._central_widget: Any = QtWidgets.QWidget()
         self._central_widget.setLayout(vertical_layout)
         self.setCentralWidget(self._central_widget)
+        self.resize(1200, 600)
         self.show()
 
     def _update_resolution_rings_status(self) -> None:
