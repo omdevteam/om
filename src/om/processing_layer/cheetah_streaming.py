@@ -22,17 +22,19 @@ This module contains Cheetah, a data-processing program for serial x-ray
 crystallography, based on OM but not designed to be run in real time.
 """
 import collections
+import io
 import pathlib
 import sys
 import time
 from typing import Any, Deque, Dict, List, NamedTuple, TextIO, Tuple, Union, cast
 
+import h5py
 import numpy
 from numpy.typing import NDArray
 
+from om.abcs import processing_layer as prol_abcs
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.abcs import processing_layer as prol_abcs
 from om.utils import (
     crystfel_geometry,
     exceptions,
@@ -47,13 +49,6 @@ try:
     from typing import TypedDict
 except ImportError:
     from mypy_extensions import TypedDict
-
-try:
-    import msgpack  # type: ignore
-except ImportError:
-    raise exceptions.OmMissingDependencyError(
-        "The following required module cannot be imported: msgpack"
-    )
 
 try:
     import msgpack_numpy  # type: ignore
@@ -514,8 +509,15 @@ class StreamingCheetahProcessing(prol_abcs.OmProcessingBase):
         processed_data["filename"] = "---"
         processed_data["index"] = -1
         if frame_is_hit:
-            processed_data["detector_data"] = binned_detector_data
-
+            hdf5_bytes: bytes = io.BytesIO()
+            hdf5_file_handle: Any = h5py.File(hdf5_bytes, "w")
+            hdf5_file_handle.create_dataset(
+                "/detector_data",
+                data=binned_detector_data,
+                compression=6
+            )
+            hdf5_file_handle.close()
+        processed_data["detector_data"] = hdf5_bytes
         self._total_sums[frame_is_hit]["num_frames"] += 1
         self._total_sums[frame_is_hit]["sum_frames"] += binned_detector_data
         if self._sum_sending_interval is not None:
@@ -627,20 +629,7 @@ class StreamingCheetahProcessing(prol_abcs.OmProcessingBase):
                 self._handle_external_requests()
             last_request: Tuple[bytes, bytes] = self._request_list[-1]
             self._float_detector_data[:] = received_data["detector_data"]
-            data_to_send: Any = msgpack.packb(
-                {
-                    "detector_data": self._float_detector_data,
-                    "peak_list": received_data["peak_list"],
-                    "beam_energy": received_data["beam_energy"],
-                    "detector_distance": received_data["detector_distance"],
-                    "event_id": received_data["event_id"],
-                    "frame_id": received_data["frame_id"],
-                    "timestamp": received_data["timestamp"],
-                    "source": self._source,
-                    "configuration_file": self._configuration_file,
-                },
-                use_bin_type=True,
-            )
+            data_to_send: Any = received_data["detector_data"]
             self._responding_socket.send_data(
                 identity=last_request[0], message=data_to_send
             )
