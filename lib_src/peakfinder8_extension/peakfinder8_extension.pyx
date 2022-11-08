@@ -60,17 +60,19 @@ cdef extern from "peakfinder8.hh":
 cdef extern from "peakfinder8.hh":
 
     int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
+                    int rstats_num_pix, int *rstats_pidx, int *rstats_radius, int fast,
                     long asic_nx, long asic_ny, long nasics_x, long nasics_y,
                     float ADCthresh, float hitfinderMinSNR,
                     long hitfinderMinPixCount, long hitfinderMaxPixCount,
-                    long hitfinderLocalBGRadius, char *outliersMask)
+                    long hitfinderLocalBGRadius, char* outliersMask);
 
 
 def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,
-                 float[:,::1] pix_r, long asic_nx, long asic_ny, long nasics_x,
-                 long nasics_y, float adc_thresh, float hitfinder_min_snr,
-                 long hitfinder_min_pix_count, long hitfinder_max_pix_count,
-                 long hitfinder_local_bg_radius):
+                 float[:,::1] pix_r, int rstats_num_pix, int[:] rstats_pidx, 
+                 int[:] rstats_radius, int fast, long asic_nx, long asic_ny, 
+                 long nasics_x, long nasics_y, float adc_thresh, 
+                 float hitfinder_min_snr, long hitfinder_min_pix_count, 
+                 long hitfinder_max_pix_count, long hitfinder_local_bg_radius):
     """
     peakfinder_8(max_num_peaks, data, mask, pix_r, asic_nx, asic_ny, nasics_x, \
         nasics_y, adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count, \
@@ -173,9 +175,11 @@ List[float], List[float]`: A tuple storing  information about the detected peaks
     cdef tPeakList peak_list
     allocatePeakList(&peak_list, max_num_peaks)
 
-    peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], asic_nx, asic_ny,
-                nasics_x, nasics_y, adc_thresh, hitfinder_min_snr,
-                hitfinder_min_pix_count, hitfinder_max_pix_count,
+    peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix, 
+                &rstats_pidx[0] if rstats_pidx is not None else NULL, 
+                &rstats_radius[0] if rstats_radius is not None else NULL, 
+                fast, asic_nx, asic_ny, nasics_x, nasics_y, adc_thresh, 
+                hitfinder_min_snr, hitfinder_min_pix_count, hitfinder_max_pix_count,
                 hitfinder_local_bg_radius, NULL)
 
     cdef int i

@@ -136,7 +136,14 @@ setup(
     ],
     extras_require={
         "qt": ["pyqt5", "pyqtgraph"],
-        "docs": ["mkdocs", "mkdocstring", "mkdocstring-python", "mkdocs-click", "mkdocs-material", "mkdocs-material-extensions"],
+        "docs": [
+            "mkdocs",
+            "mkdocstring",
+            "mkdocstring-python",
+            "mkdocs-click",
+            "mkdocs-material",
+            "mkdocs-material-extensions",
+        ],
     },
     entry_points={
         "console_scripts": ["om_monitor.py=om.monitor:main"],

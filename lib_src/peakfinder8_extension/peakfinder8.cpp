@@ -222,6 +222,38 @@ static void fill_radial_bins(float *data,
 	}
 }
 
+static void fill_radial_bins_fast(float *data,
+							 int num_pix,
+							 int *pidx,
+							 int *radius,
+							 char *mask,
+							 float *rthreshold,
+							 float *lthreshold,
+							 float *roffset,
+							 float *rsigma,
+							 int *rcount)
+{
+	int i;
+
+	int curr_r;
+	float value;
+
+	for (i = 0; i < num_pix; i++)
+	{
+		if (mask[pidx[i]] != 0)
+		{
+			curr_r = radius[i];
+			value = data[pidx[i]];
+			if (value < rthreshold[curr_r] && value > lthreshold[curr_r])
+			{
+				roffset[curr_r] += value;
+				rsigma[curr_r] += (value * value);
+				rcount[curr_r] += 1;
+			}
+		}
+	}
+}
+
 
 static void compute_radial_stats(float *rthreshold,
                                  float *lthreshold,
@@ -262,16 +294,18 @@ static void compute_radial_stats(float *rthreshold,
 
 }
 
-
 static struct radial_stats *compute_radial_bins(float *data,
-                                                char *mask,
-                                                int num_pix,
-                                                float *r_map,
-                                                int iterations,
-                                                float min_snr,
-                                                float acd_threshold,
-                                                int num_pix_fs,
-                                                int num_pix_ss)
+												char *mask,
+												int num_pix,
+												int *pidx,
+												int *radius,
+												float *r_map,
+												int fast,
+												int iterations,
+												float min_snr,
+												float acd_threshold,
+												int num_pix_fs,
+												int num_pix_ss)
 {
 	float max_r;
 	int it_counter;
@@ -306,17 +340,29 @@ static struct radial_stats *compute_radial_bins(float *data,
 			rstats->rsigma[i] = 0;
 			rstats->rcount[i] = 0;
 		}
-
-		fill_radial_bins(data,
-                         num_pix_fs,
-                         num_pix_ss,
-		                 r_map,
-		                 mask,
-		                 rstats->rthreshold,
-		                 rstats->lthreshold,
-		                 rstats->roffset,
-		                 rstats->rsigma,
-		                 rstats->rcount);
+		if ( fast ) {
+			fill_radial_bins_fast(data,
+								  num_pix,
+								  pidx,
+								  radius,
+								  mask,
+								  rstats->rthreshold,
+								  rstats->lthreshold,
+								  rstats->roffset,
+								  rstats->rsigma,
+								  rstats->rcount);
+		} else {
+			fill_radial_bins(data,
+							 num_pix_fs,
+							 num_pix_ss,
+							 r_map,
+							 mask,
+							 rstats->rthreshold,
+							 rstats->lthreshold,
+							 rstats->roffset,
+							 rstats->rsigma,
+							 rstats->rcount);
+		}
 
 		compute_radial_stats(rstats->rthreshold,
 		                     rstats->lthreshold,
@@ -916,6 +962,7 @@ static int peakfinder8_base(float *roffset, float *rthreshold,
 // Includes modifications during Cherezov December 2014 LE80
 // Anton Barty
 int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
+				int rstats_num_pix, int *rstats_pidx, int *rstats_radius, int fast,
                 long asic_nx, long asic_ny, long nasics_x, long nasics_y,
                 float ADCthresh, float hitfinderMinSNR,
                 long hitfinderMinPixCount, long hitfinderMaxPixCount,
@@ -941,8 +988,8 @@ int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
 
 	// Compute radial statistics as 1 function (O.Y.)
 	iterations = 5;
-	rstats = compute_radial_bins(data, mask, num_pix_tot, pix_r,
-	                             iterations, hitfinderMinSNR, ADCthresh,
+	rstats = compute_radial_bins(data, mask, rstats_num_pix, rstats_pidx, rstats_radius,
+	                             pix_r, fast, iterations, hitfinderMinSNR, ADCthresh,
 	                             num_pix_fs, num_pix_ss);
 
 	pkdata = allocate_peak_data(max_num_peaks);

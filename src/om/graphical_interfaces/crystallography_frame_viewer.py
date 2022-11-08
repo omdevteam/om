@@ -139,6 +139,7 @@ class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
         self._central_widget.setLayout(self._vertical_layout)
         self.setCentralWidget(self._central_widget)
 
+        self.resize(600, 600)
         self.show()
 
     def _update_peaks(
