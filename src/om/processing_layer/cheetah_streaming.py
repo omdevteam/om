@@ -29,6 +29,7 @@ import time
 from typing import Any, Deque, Dict, List, NamedTuple, TextIO, Tuple, Union, cast
 
 import h5py
+import hdf5plugin
 import numpy
 from numpy.typing import NDArray
 
@@ -514,10 +515,11 @@ class StreamingCheetahProcessing(prol_abcs.OmProcessingBase):
             hdf5_file_handle.create_dataset(
                 "/detector_data",
                 data=binned_detector_data,
-                compression=6
+                **hdf5plugin.Bitshuffle(nelems=0, lz4=True),
             )
+
             hdf5_file_handle.close()
-        processed_data["detector_data"] = hdf5_bytes
+            processed_data["detector_data"] = hdf5_bytes
         self._total_sums[frame_is_hit]["num_frames"] += 1
         self._total_sums[frame_is_hit]["sum_frames"] += binned_detector_data
         if self._sum_sending_interval is not None:
@@ -628,8 +630,8 @@ class StreamingCheetahProcessing(prol_abcs.OmProcessingBase):
             while len(self._request_list) == 0:
                 self._handle_external_requests()
             last_request: Tuple[bytes, bytes] = self._request_list[-1]
-            self._float_detector_data[:] = received_data["detector_data"]
-            data_to_send: Any = received_data["detector_data"]
+            # self._float_detector_data[:] = received_data["detector_data"]
+            data_to_send: Any = received_data["detector_data"].getbuffer()
             self._responding_socket.send_data(
                 identity=last_request[0], message=data_to_send
             )
