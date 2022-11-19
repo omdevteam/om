@@ -28,25 +28,25 @@ from typing import Any
 
 import click
 
-from om.graphical_interfaces import common as graph_interfaces_common
-from om.utils import exceptions
+from om.graphical_interfaces.common import OmGuiBase
+from om.library.exceptions import OmMissingDependencyError
 
 try:
     from PyQt5 import QtWidgets
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
 try:
     import pyqtgraph  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 
-class XesGui(graph_interfaces_common.OmGuiBase):
+class XesGui(OmGuiBase):
     """
     See documentation of the `__init__` function.
     """
@@ -179,8 +179,8 @@ class XesGui(graph_interfaces_common.OmGuiBase):
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
-        timenow: float = time.time()
-        estimated_delay: float = round(timenow - local_data["timestamp"], 6)
+        time_now: float = time.time()
+        estimated_delay: float = round(time_now - local_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
 
@@ -191,7 +191,7 @@ def main(url: str, time_resolved: bool) -> None:
     """
     OM Graphical User Interface for X-ray Emission Spectroscopy. This program must
     connect to a running OnDA Monitor for X-ray Emission Spectroscopy. If the monitor
-    broadcasts the necessary information, this GUI will display the lastest observed
+    broadcasts the necessary information, this GUI will display the latest observed
     XES spectrum, both in raw and smoothed form, and an average of the most recently
     collected spectra. For time resolved experiments, the GUI will display separate
     average spectra for pumped and dark events, and also show their difference.

@@ -26,7 +26,7 @@ import subprocess
 import click
 from rich import console
 
-from om.utils import parameters
+from om.library import parameters
 
 
 @click.command()
@@ -63,7 +63,7 @@ from om.utils import parameters
 @click.argument("source", type=str)
 def main(*, source: str, node_pool_size: int, config: str, debug: bool) -> None:
     """ """
-    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
+    monitor_parameters: parameters.MonitorParameters = parameters.MonitorParameters(
         config=config
     )
 

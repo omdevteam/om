@@ -18,12 +18,12 @@
 """
 Parallelization Layer's base classes.
 
-This module contains base abstract classes for OM's Proceessing Layer.
+This module contains base abstract classes for OM's Processing Layer.
 """
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple, Union
 
-from om.utils import parameters
+from om.library import parameters
 
 
 class OmProcessingBase(ABC):
@@ -32,7 +32,7 @@ class OmProcessingBase(ABC):
     """
 
     @abstractmethod
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
         """
         Base class for an OM's Monitor.
 
@@ -60,7 +60,7 @@ class OmProcessingBase(ABC):
         Initializes an OM processing node.
 
         This function is invoked on each processing node when OM starts. It prepares
-        the node to begin retrieveing and processing data events. This function often
+        the node to begin retrieving and processing data events. This function often
         recovers additional needed external data, initializes the algorithms
         with all required parameters, etc.
 
@@ -109,7 +109,7 @@ class OmProcessingBase(ABC):
 
         This function is invoked on each processing node for every detector data frame
         in each retrieved data event. It receives the data event as input and returns
-        processed data. The output of this function is tranferred by OM to the
+        processed data. The output of this function is transferred by OM to the
         collecting node.
 
         Arguments:

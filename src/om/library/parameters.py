@@ -21,12 +21,12 @@ OM's configuration parameter management.
 This module contains classes and functions that can be used to manage and validate a
 set of OM's configuration parameters from a configuration file.
 """
-from typing import Any, Dict, List, TextIO, Union
-
 import pathlib
+from typing import Any, Dict, TextIO, Union
+
 import yaml  # type: ignore
 
-from om.utils import exceptions
+from om.library import exceptions
 
 
 def get_parameter_from_parameter_group(
@@ -35,6 +35,7 @@ def get_parameter_from_parameter_group(
     parameter: str,
     parameter_type: Any = None,
     required: bool = False,
+    default: Any = None,
 ) -> Any:
     """
     Extracts an OM's configuration parameter from a parameter group.
@@ -80,36 +81,41 @@ def get_parameter_from_parameter_group(
             match the type of the configuration parameter.
     """
     ret: Any = group.get(parameter)
-    if ret is None and required is True:
-        raise exceptions.OmMissingParameterError(
-            f"Parameter {parameter} in group [{group['name']}] was not found, but is "
-            "required."
-        )
-    if ret is not None and parameter_type is not None:
-        requested_parameter_type: str = str(parameter_type).split()[1][1:-2]
-        real_parameter_type: str = str(type(ret)).split()[1][1:-2]
-        if parameter_type is str:
-            if not isinstance(ret, str):
-                raise exceptions.OmWrongParameterTypeError(
-                    f"Wrong type for parameter {parameter}: should be "
-                    f"{requested_parameter_type}, is {real_parameter_type}."
-                )
-        elif parameter_type is float:
-            if not isinstance(ret, float) and not isinstance(ret, int):
-                raise exceptions.OmWrongParameterTypeError(
-                    f"Wrong type for parameter {parameter}: should be "
-                    f"{requested_parameter_type}, is {real_parameter_type}."
-                )
-        elif not isinstance(ret, parameter_type):
-            raise exceptions.OmWrongParameterTypeError(
-                f"Wrong type for parameter {parameter}: should be "
-                f"{requested_parameter_type}, is {real_parameter_type}."
+    if ret is None:
+        if required is True:
+            raise exceptions.OmMissingParameterError(
+                f"Parameter {parameter} in group [{group['name']}] was not found, but "
+                "is required."
             )
+        else:
+            return default
+
+    else:
+        if parameter_type is not None:
+            requested_parameter_type: str = str(parameter_type).split()[1][1:-2]
+            real_parameter_type: str = str(type(ret)).split()[1][1:-2]
+            if parameter_type is str:
+                if not isinstance(ret, str):
+                    raise exceptions.OmWrongParameterTypeError(
+                        f"Wrong type for parameter {parameter}: should be "
+                        f"{requested_parameter_type}, is {real_parameter_type}."
+                    )
+            elif parameter_type is float:
+                if not isinstance(ret, float) and not isinstance(ret, int):
+                    raise exceptions.OmWrongParameterTypeError(
+                        f"Wrong type for parameter {parameter}: should be "
+                        f"{requested_parameter_type}, is {real_parameter_type}."
+                    )
+            elif not isinstance(ret, parameter_type):
+                raise exceptions.OmWrongParameterTypeError(
+                    f"Wrong type for parameter {parameter}: should be "
+                    f"{requested_parameter_type}, is {real_parameter_type}."
+                )
 
         return ret
 
 
-class MonitorParams:
+class MonitorParameters:
     """
     See documentation for the `__init__` function.
     """
@@ -206,6 +212,7 @@ class MonitorParams:
         parameter: str,
         parameter_type: Any = None,
         required: bool = False,
+        default: Any = None,
     ) -> Any:
         """
         Retrieves an OM's configuration parameter.
@@ -259,6 +266,7 @@ class MonitorParams:
             parameter=parameter,
             parameter_type=parameter_type,
             required=required,
+            default=default,
         )
 
     def add_source_and_node_pool_size_information(

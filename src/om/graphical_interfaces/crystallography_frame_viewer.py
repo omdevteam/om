@@ -26,32 +26,32 @@ import copy
 import signal
 import sys
 import time
-from typing import Any, Deque, Dict, Union, Tuple
+from typing import Any, Deque, Dict, Tuple, Union
 
 import click
 import numpy
 from numpy.typing import NDArray
 
-from om.graphical_interfaces import common as graph_interfaces_common
-from om.utils import exceptions
-from om.utils.rich_console import console, get_current_timestamp
+from om.graphical_interfaces.common import OmGuiBase
+from om.library.exceptions import OmMissingDependencyError
+from om.library.rich_console import console, get_current_timestamp
 
 try:
-    from PyQt5 import QtWidgets, QtCore, QtGui
+    from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
 try:
     import pyqtgraph  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 
-class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
+class CrystallographyFrameViewer(OmGuiBase):
     """
     See documentation of the `__init__` function.
     """
@@ -192,8 +192,8 @@ class CrystallographyFrameViewer(graph_interfaces_common.OmGuiBase):
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
-        timenow: float = time.time()
-        estimated_delay: float = round(timenow - current_data["timestamp"], 6)
+        time_now: float = time.time()
+        estimated_delay: float = round(time_now - current_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
     def update_gui(self) -> None:
@@ -289,7 +289,7 @@ def main(*, url: str) -> None:
     """
     OM Frame Viewer for Crystallography. This program must connect to a running OnDA
     Monitor for Crystallography. If the monitor broadcasts detector data frames, this
-    viewer will display them. The viewer will also show, overlayed on each frame,
+    viewer will display them. The viewer will also show, superimposed on each frame,
     any detected Bragg peak. The data stream from the monitor can also be temporarily
     paused, and any of 10 most recently displayed detector frames can be recalled for
     re-inspection.

@@ -23,7 +23,7 @@ tied to a specific experimental technique (e.g.: detector frame masking and corr
 radial averaging, data accumulation, binning, etc.).
 """
 import sys
-from typing import Any, Dict, List, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Dict, List, Tuple, TypeVar, Union, cast
 
 import h5py  # type:ignore
 import numpy
@@ -31,9 +31,9 @@ from numpy.typing import DTypeLike, NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.lib.binning_extension import bin_detector_data  # type: ignore
-from om.utils import exceptions
-from om.utils import parameters as param_utils
-from om.utils.crystfel_geometry import TypePixelMaps
+from om.library import exceptions
+from om.library import parameters as param_utils
+from om.library.geometry import TypePixelMaps
 
 A = TypeVar("A", NDArray[numpy.float_], NDArray[numpy.int_])
 
@@ -736,7 +736,7 @@ class Binning:
         Computes a binned version of the detector data frame.
 
         This function generates a binned version of the provided detector data frame.
-        For each binning area, it initally computes the average value of all
+        For each binning area, it initially computes the average value of all
         non-ignored pixels. The function then multiplies it by the total number of
         pixels in the area. The resulting value is finally used to fill the output
         frame pixel that corresponds to the binning area. If, however, the pixel is
@@ -756,6 +756,7 @@ class Binning:
         data_type: DTypeLike = data.dtype
         if self._bad_pixel_value is None:
             if numpy.issubdtype(data_type, numpy.integer):
+                # TODO: is self._bad_pixel_value int or float?
                 self._bad_pixel_value = numpy.iinfo(data_type).max
             else:
                 self._bad_pixel_value = -1.0e10

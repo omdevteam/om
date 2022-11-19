@@ -16,25 +16,26 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Handling of ASAPO-based data events.
+Handling of ASAP::O-based data events.
 
 This module contains Data Event Handler classes that manipulate events originating from
 the ASAP::O software framework (used at the PETRA III facility).
 """
 import sys
 import time
-from typing import Any, Dict, Generator, List, Union, NamedTuple
+from typing import Any, Dict, Generator, List, NamedTuple, Union
 
 import numpy
 from numpy.typing import NDArray
 
 from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
+from om.library.exceptions import OmDataExtractionError, OmMissingDependencyError
+from om.library.parameters import MonitorParameters
 
 try:
     import asapo_consumer  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: asapo_consumer"
     )
 
@@ -58,23 +59,24 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
-        Data Event Handler for ASAPO events.
+        Data Event Handler for ASAP::O events.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This class handles data events retrieved from the ASAPO software framework at
+        This class handles data events retrieved from the ASAP::O software framework at
         the PETRA III facility.
 
         * For this Event Handler, a data event corresponds to the content of an
-          individual ASAPO event.
+          individual ASAP::O event.
 
-        * The source string required by this Data Event Handler is either beamtime ID
-          (for online data retrieval) or beamtime ID and ASAPO stream name separated by
-          ":" (for offline data retrieval).
+        * The source string required by this Data Event Handler is either the ID of the
+          beamtime for which OM is being used (for online data retrieval) or the ID of
+          the beamtime and the ASAP::O stream name, separated by a colon (for offline
+          data retrieval).
 
         Arguments:
 
@@ -85,14 +87,14 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase] that
-                  describes the source.
+                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
 
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
@@ -196,12 +198,12 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes ASAPO event handling on the collecting node.
+        Initializes ASAP::O event handling on the collecting node.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        ASAPO event sources do not need to be initialized on the collecting node, so
+        ASAP::O event sources do not need to be initialized on the collecting node, so
         this function actually does nothing.
 
         Arguments:
@@ -250,13 +252,13 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves ASAPO events.
+        Retrieves ASAP::O events.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function retrieves events for processing (each event corresponds to a
-        single ASAPO event).
+        single ASAP::O event).
 
         Arguments:
 
@@ -311,12 +313,12 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def open_event(self, *, event: Dict[str, Any]) -> None:
         """
-        Opens an ASAPO event.
+        Opens an ASAP::O event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        ASAPO events do not need to be opened, so this function actually does nothing.
+        ASAP::O events do not need to be opened, so this function actually does nothing.
 
         Arguments:
 
@@ -326,12 +328,13 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def close_event(self, *, event: Dict[str, Any]) -> None:
         """
-        Closes an ASAPO event.
+        Closes an ASAP::O event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        ASAPO events do not need to be closed, so this function actually does nothing.
+        ASAP::O events do not need to be closed, so this function actually does
+        nothing.
 
         Arguments:
 
@@ -341,7 +344,7 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
         """
-        Gets the number of frames in an ASAPO event.
+        Gets the number of frames in an ASAP::O event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -365,7 +368,7 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         event: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
-        Extracts data from an ASAPO data event.
+        Extracts data from an ASAP::O data event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -397,7 +400,7 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -406,10 +409,10 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from ASAPO.
+        Initializes frame data retrievals from ASAP::O.
 
         This function initializes the retrieval of a single standalone detector data
-        frame from ASAPO, with all the information that refers to it.
+        frame from ASAP::O, with all the information that refers to it.
         """
         required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -430,16 +433,19 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves frame data from the event specified by the provided
-        ASAPO unique event identifier. The identifier is a string of combining
-        ASAPO stream name and the ID of the event in the stream separated by the "//"
-        symbol. Since ASAPO data events are based around single detector frames, the
-        unique frame identifier provided to this function must be the string "0".
+        This function retrieves, from the event specified by the provided unique event
+        identifier, data related to a specific detector frame, determined by the
+        provided unique frame identifier.
+
+        The ASAP::O event identifier corresponds to the ASAP::O stream name and the ID
+        of the ASAP::O event within the stream separated by the "//" symbol. Since
+        ASAP::O data events are based around single detector frames, the unique frame
+        identifier must always be the string "0".
 
         Arguments:
 

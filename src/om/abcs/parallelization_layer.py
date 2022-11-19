@@ -22,9 +22,9 @@ This module contains base abstract classes for OM's Parallelization Layer.
 """
 from abc import ABC, abstractmethod
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.abcs import processing_layer as prol_abcs
-from om.utils import parameters
+from om.abcs.data_retrieval_layer import OmDataRetrievalBase
+from om.abcs.processing_layer import OmProcessingBase
+from om.library.parameters import MonitorParameters
 
 
 class OmParallelizationBase(ABC):
@@ -36,9 +36,9 @@ class OmParallelizationBase(ABC):
     def __init__(
         self,
         *,
-        data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
-        processing_layer: prol_abcs.OmProcessingBase,
-        monitor_parameters: parameters.MonitorParams,
+        data_retrieval_layer: OmDataRetrievalBase,
+        processing_layer: OmProcessingBase,
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Base class for OM's Parallelization Layer.

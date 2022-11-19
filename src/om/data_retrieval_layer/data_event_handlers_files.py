@@ -37,8 +37,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
-from om.utils.rich_console import console, get_current_timestamp
+from om.library import exceptions, parameters
 
 try:
     import fabio  # type: ignore
@@ -66,7 +65,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Pilatus single-frame files.
@@ -99,7 +98,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -346,7 +345,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -397,7 +396,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M files.
@@ -431,7 +430,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -716,7 +715,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -753,7 +752,8 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 "%a %b %d %H:%M:%S %Y",
             ).timestamp()
         except:
-            file_timestamp: float = datetime.strptime(
+            # TODO: Bare except
+            file_timestamp = datetime.strptime(
                 h5file["/entry/instrument/detector/Timestamp"][()]
                 .decode("utf-8")
                 .strip(),
@@ -792,7 +792,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Eiger 16M files.
@@ -826,7 +826,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -1031,7 +1031,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key identifies a Data Source in the event for which
                 data has been retrieved.
 
-                * The corresponding dictionary value stores the data extraced from the
+                * The corresponding dictionary value stores the data extracted from the
                 Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
@@ -1080,7 +1080,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -1140,7 +1140,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Rayonix MX340-HS single-frame files.
@@ -1173,7 +1173,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -1427,7 +1427,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -1477,7 +1477,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Lambda 1.5M files.
@@ -1512,7 +1512,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -1779,7 +1779,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.

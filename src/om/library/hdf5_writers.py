@@ -31,9 +31,9 @@ import numpy
 from numpy.typing import DTypeLike, NDArray
 
 from om.algorithms import crystallography as cryst_algs
-from om.utils import crystfel_geometry, exceptions
-from om.utils import parameters as param_utils
-from om.utils.rich_console import console, get_current_timestamp
+from om.library.exceptions import OmHdf5UnsupportedDataFormat
+from om.library.parameters import get_parameter_from_parameter_group
+from om.library.rich_console import console, get_current_timestamp
 
 try:
     from typing import Literal
@@ -111,17 +111,16 @@ class HDF5Writer:
             node_rank: The rank of the OM node that will write the data in the output
                 files.
         """
-        directory_for_processed_data: str = (
-            param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="processed_directory",
-                parameter_type=str,
-                required=True,
-            )
+        directory_for_processed_data: str = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="processed_directory",
+            parameter_type=str,
+            required=True,
         )
+
         processed_filename_prefix: Union[
             str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        ] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="processed_filename_prefix",
             parameter_type=str,
@@ -134,7 +133,7 @@ class HDF5Writer:
         )
         processed_filename_extension: Union[
             str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        ] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="processed_filename_extension",
             parameter_type=str,
@@ -145,28 +144,24 @@ class HDF5Writer:
 
         self._data_type: Union[
             str, DTypeLike, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        ] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_data_type",
             parameter_type=str,
         )
-        self._compression: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        self._compression: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_compression",
             parameter_type=str,
         )
-        self._compression_opts: Union[
-            int, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        self._compression_opts: Union[int, None] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_compression_opts",
             parameter_type=int,
         )
         self._compression_shuffle: Union[
             bool, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        ] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_compression_shuffle",
             parameter_type=bool,
@@ -178,9 +173,7 @@ class HDF5Writer:
         if self._compression_shuffle is None:
             self._compression_shuffle = False
 
-        max_num_peaks: Union[
-            int, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        max_num_peaks: Union[int, None] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_file_max_num_peaks",
             parameter_type=int,
@@ -190,7 +183,7 @@ class HDF5Writer:
         else:
             self._max_num_peaks = max_num_peaks
 
-        self._hdf5_fields = param_utils.get_parameter_from_parameter_group(
+        self._hdf5_fields = get_parameter_from_parameter_group(
             group=parameters,
             parameter="hdf5_fields",
             parameter_type=dict,
@@ -316,7 +309,7 @@ class HDF5Writer:
         self, *, group_name: str, extra_data: Dict[str, Any]
     ) -> None:
         # Creates empty dataset in the extra data group for each item in extra_data
-        # dictusing dict keys as dataset names. Supported data types: numpy arrays,
+        # dict using dict keys as dataset names. Supported data types: numpy arrays,
         # str, float, int and bool
         key: str
         value: Any
@@ -353,7 +346,7 @@ class HDF5Writer:
                     dtype=type(value),
                 )
             else:
-                raise exceptions.OmHdf5UnsupportedDataFormat(
+                raise OmHdf5UnsupportedDataFormat(
                     f"Cannot write the '{key}' data entry into the output HDF5: "
                     "its format is not supported."
                 )

@@ -30,12 +30,12 @@ from typing import Any, Deque, Dict, List, NamedTuple, TextIO, Tuple, Union, cas
 import numpy
 from numpy.typing import NDArray
 
+from om.abcs import processing_layer as prol_abcs
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.abcs import processing_layer as prol_abcs
-from om.utils import crystfel_geometry, hdf5_writers, parameters
-from om.utils.crystfel_geometry import TypeDetector
-from om.utils.rich_console import console, get_current_timestamp
+from om.library import geometry, hdf5_writers, parameters
+from om.library.geometry import TypeDetector
+from om.library.rich_console import console, get_current_timestamp
 
 try:
     from typing import TypedDict
@@ -69,7 +69,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
         """
         Cheetah.
 
@@ -113,7 +113,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
                 processing nodes and the collecting node.
         """
         self._geometry: TypeDetector
-        self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+        self._geometry, _, __ = geometry.load_crystfel_geometry(
             filename=self._monitor_params.get_parameter(
                 group="crystallography",
                 parameter="geometry_file",
@@ -121,7 +121,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
                 required=True,
             )
         )
-        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
+        self._pixelmaps = geometry.compute_pix_maps(geometry=self._geometry)
         self._data_shape: Tuple[int, ...] = self._pixelmaps["x"].shape
 
         self._correction = gen_algs.Correction(
@@ -277,7 +277,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
             required=True,
         )
 
-        self._geometry, _, __ = crystfel_geometry.load_crystfel_geometry(
+        self._geometry, _, __ = geometry.load_crystfel_geometry(
             filename=self._monitor_params.get_parameter(
                 group="crystallography",
                 parameter="geometry_file",
@@ -285,7 +285,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
                 required=True,
             )
         )
-        self._pixelmaps = crystfel_geometry.compute_pix_maps(geometry=self._geometry)
+        self._pixelmaps = geometry.compute_pix_maps(geometry=self._geometry)
         self._data_shape = self._pixelmaps["x"].shape
 
         binning: Union[bool, None] = self._monitor_params.get_parameter(

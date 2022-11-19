@@ -29,7 +29,6 @@ from rich.console import Console
 from rich.theme import Theme
 from rich.traceback import install
 
-
 console = Console(force_terminal=True, force_interactive=False)
 om_base_theme = Theme({"warning": "bold yellow", "error": "red"})
 console.push_theme(om_base_theme)
@@ -69,7 +68,7 @@ def set_custom_theme(*, theme_dict: Dict[str, str]) -> None:
     passed to this function as an input parameter must stores the theme definition,
     using the syntax defined by the python
     [Rich library][https://rich.readthedocs.io/en/stable/style.html].
-    The custom theme is overlayed on top of OM's base rich console's theme: the console
+    The custom theme is applied on top of OM's base rich console's theme: the console
     will fall back to the base theme for any entry not defined in the custom one.
 
     Arguments:

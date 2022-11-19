@@ -20,19 +20,18 @@ ZMQ-based data sources.
 
 This module contains Data Source classes that deal with data from ZMQ data streams.
 """
-from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
+from typing import Any, Dict, List, Tuple, Union, cast
 
-import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.data_retrieval_layer import utils_generic as utils_gen
-from om.utils.parameters import MonitorParams
+from om.abcs.data_retrieval_layer import OmDataSourceBase
+from om.data_retrieval_layer.data_sources_generic import get_calibration_request
+from om.data_retrieval_layer.utils_generic import Jungfrau1MCalibration
+from om.library.parameters import MonitorParameters
 
 
-class Jungfrau1MZmq(drl_abcs.OmDataSourceBase):
+class Jungfrau1MZmq(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -41,7 +40,7 @@ class Jungfrau1MZmq(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector data frames from a Jungfrau 1M ZMQ data stream.
@@ -81,7 +80,7 @@ class Jungfrau1MZmq(drl_abcs.OmDataSourceBase):
         calibration constants from the entries `dark_filenames` and `gain_filenames`
         in the `calibration` parameter group.
         """
-        self._calibrated_data_required: bool = ds_generic.get_calibration_request(
+        self._calibrated_data_required: bool = get_calibration_request(
             source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
@@ -105,7 +104,7 @@ class Jungfrau1MZmq(drl_abcs.OmDataSourceBase):
                 parameter_type=float,
             )
 
-            self._calibration = utils_gen.Jungfrau1MCalibration(
+            self._calibration = Jungfrau1MCalibration(
                 dark_filenames=dark_filenames,
                 gain_filenames=gain_filenames,
                 photon_energy_kev=photon_energy_kev,
@@ -145,7 +144,7 @@ class Jungfrau1MZmq(drl_abcs.OmDataSourceBase):
             return data
 
 
-class TimestampJungfrau1MZmq(drl_abcs.OmDataSourceBase):
+class TimestampJungfrau1MZmq(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -154,7 +153,7 @@ class TimestampJungfrau1MZmq(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Timestamp information for Jungfrau 1M ZMQ-based events.
@@ -174,7 +173,7 @@ class TimestampJungfrau1MZmq(drl_abcs.OmDataSourceBase):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParams] [om.utils.parameters.MonitorParams]
+            monitor_parameters: A [MonitorParameters] [om.library.parameters.MonitorParameters]
                 object storing the OM monitor parameters from the configuration file.
         """
         self._data_source_name = data_source_name
@@ -215,7 +214,7 @@ class TimestampJungfrau1MZmq(drl_abcs.OmDataSourceBase):
         return cast(numpy.float64, event["data"][0]["timestamp"])
 
 
-class EventIdJungfrau1MZmq(drl_abcs.OmDataSourceBase):
+class EventIdJungfrau1MZmq(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -224,7 +223,7 @@ class EventIdJungfrau1MZmq(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Event identifier for Jungfrau 1M ZMQ-based events.
@@ -244,8 +243,8 @@ class EventIdJungfrau1MZmq(drl_abcs.OmDataSourceBase):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
+            monitor_parameters: A [MonitorParameters]
+                [om.library.parameters.MonitorParameters] object storing the OM monitor
                 parameters from the configuration file.
         """
         self._data_source_name = data_source_name

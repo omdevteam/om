@@ -21,8 +21,6 @@ OM-specific exceptions and exception handling.
 This module contains a set of python exceptions that are specific to OM, and a custom
 exception handler that reports the OM exceptions in a simplified way.
 """
-import sys
-import traceback
 
 
 class OmException(Exception):
@@ -153,7 +151,7 @@ class OmMissingLayerModuleFileError(OmException):
 
 class OmMissingParameterError(OmException):
     """
-    Raised if a parameter is missing from OM'sconfiguration file.
+    Raised if a parameter is missing from OM's configuration file.
 
     """
 

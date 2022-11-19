@@ -22,19 +22,28 @@ This module contains Data Event Handler classes that manipulate events originati
 the psana software framework (used at the LCLS facility).
 """
 import sys
-from typing import Any, Dict, Generator, List, Union
+from typing import Any, Dict, Generator, List
 
 import numpy
 
-from om.data_retrieval_layer import data_sources_psana as ds_psana
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
-from om.utils.rich_console import console, get_current_timestamp
+from om.abcs.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataSourceBase,
+    filter_data_sources,
+)
+from om.library.exceptions import (
+    OmDataExtractionError,
+    OmMissingDataEventError,
+    OmMissingDependencyError,
+    OmMissingFrameDataError,
+)
+from om.library.parameters import MonitorParameters
+from om.library.rich_console import console, get_current_timestamp
 
 try:
     import psana  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: psana"
     )
 
@@ -61,7 +70,7 @@ def _psana_offline_event_generator(
             yield run.event(evt)
 
 
-class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
+class PsanaDataEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -70,8 +79,8 @@ class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for psana events.
@@ -104,8 +113,8 @@ class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         """
 
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def _initialize_psana_data_source(self) -> Any:
         # This private method contains all the common psana initialization code needed
@@ -182,7 +191,7 @@ class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -341,7 +350,7 @@ class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -365,7 +374,7 @@ class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -375,7 +384,7 @@ class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -407,11 +416,11 @@ class PsanaDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         )
         retrieved_event: Any = self._run.event(event_time)
         if retrieved_event is None:
-            raise exceptions.OmMissingDataEventError(
+            raise OmMissingDataEventError(
                 f"Data event {event_id} cannot be retrieved from the data event source"
             )
         if frame_id != "0":
-            raise exceptions.OmMissingFrameDataError(
+            raise OmMissingFrameDataError(
                 f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
                 "the  data event source"
             )

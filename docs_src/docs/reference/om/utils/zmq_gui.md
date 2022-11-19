@@ -1,1 +1,1 @@
-::: om.utils.zmq_gui
+::: om.library.zmq_gui

@@ -31,26 +31,26 @@ import numpy
 from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
-from om.graphical_interfaces import common as graph_interfaces_common
-from om.utils import exceptions
-from om.utils.rich_console import console, get_current_timestamp
+from om.graphical_interfaces.common import OmGuiBase
+from om.library.exceptions import OmMissingDependencyError
+from om.library.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
 try:
     import pyqtgraph  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 
-class CrystallographyGui(graph_interfaces_common.OmGuiBase):
+class CrystallographyGui(OmGuiBase):
     """
     See documentation of the `__init__` function.
     """
@@ -96,7 +96,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
             3.0,
         ]
         x: float
-        self._resolution_rings_textitems: List[Any] = [
+        self._resolution_rings_text_items: List[Any] = [
             pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8), color=(255, 0, 0))
             for x in self._resolution_rings_in_a
         ]
@@ -122,15 +122,15 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
             text="Show Resolution Rings"
         )
         self._resolution_rings_check_box.setEnabled(True)
-        self._resolution_rings_lineedit: Any = QtWidgets.QLineEdit()
-        self._resolution_rings_lineedit.setValidator(self._resolution_rings_validator)
-        self._resolution_rings_lineedit.setText(
+        self._resolution_rings_line_edit: Any = QtWidgets.QLineEdit()
+        self._resolution_rings_line_edit.setValidator(self._resolution_rings_validator)
+        self._resolution_rings_line_edit.setText(
             ",".join(str(x) for x in self._resolution_rings_in_a)
         )
-        self._resolution_rings_lineedit.editingFinished.connect(
+        self._resolution_rings_line_edit.editingFinished.connect(
             self._update_resolution_rings_radii
         )
-        self._resolution_rings_lineedit.setEnabled(True)
+        self._resolution_rings_line_edit.setEnabled(True)
 
         self._hit_rate_plot_widget: Any = pyqtgraph.PlotWidget()
         self._hit_rate_plot_widget.setTitle("Hit Rate vs. Events")
@@ -168,7 +168,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
 
         horizontal_layout: Any = QtWidgets.QHBoxLayout()
         horizontal_layout.addWidget(self._resolution_rings_check_box)
-        horizontal_layout.addWidget(self._resolution_rings_lineedit)
+        horizontal_layout.addWidget(self._resolution_rings_line_edit)
         splitter_1: Any = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         splitter_1.addWidget(self._hit_rate_plot_widget)
         splitter_1.addWidget(self._peakogram_plot_image_view)
@@ -190,12 +190,12 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
         new_state = self._resolution_rings_check_box.isChecked()
         if self._resolution_rings_enabled is True and new_state is False:
             text_item: Any
-            for text_item in self._resolution_rings_textitems:
+            for text_item in self._resolution_rings_text_items:
                 self._image_view.scene.removeItem(text_item)
             self._resolution_rings_canvas.setData([], [])
             self._resolution_rings_enabled = False
         if self._resolution_rings_enabled is False and new_state is True:
-            for text_item in self._resolution_rings_textitems:
+            for text_item in self._resolution_rings_text_items:
                 self._image_view.getView().addItem(text_item)
             self._resolution_rings_enabled = True
             self._draw_resolution_rings()
@@ -207,7 +207,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
         was_enabled: bool = self._resolution_rings_check_box.isChecked()
         self._resolution_rings_check_box.setChecked(False)
 
-        items: List[str] = str(self._resolution_rings_lineedit.text()).split(",")
+        items: List[str] = str(self._resolution_rings_line_edit.text()).split(",")
         if items:
             item: str
             self._resolution_rings_in_a = [
@@ -217,7 +217,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
             self._resolution_rings_in_a = []
 
         x: float
-        self._resolution_rings_textitems = [
+        self._resolution_rings_text_items = [
             pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8), color=(255, 0, 0))
             for x in self._resolution_rings_in_a
         ]
@@ -275,7 +275,7 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
 
             index: int
             item: Any
-            for index, item in enumerate(self._resolution_rings_textitems):
+            for index, item in enumerate(self._resolution_rings_text_items):
                 item.setPos(
                     (self._img_center_x + resolution_rings_in_pix[index + 1] / 2.0),
                     self._img_center_y,
@@ -333,11 +333,11 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
         if local_data["geometry_is_optimized"]:
             if not self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(True)
-                self._resolution_rings_lineedit.setEnabled(True)
+                self._resolution_rings_line_edit.setEnabled(True)
         else:
             if self._resolution_rings_check_box.isEnabled():
                 self._resolution_rings_check_box.setEnabled(False)
-                self._resolution_rings_lineedit.setEnabled(False)
+                self._resolution_rings_line_edit.setEnabled(False)
             if self._resolution_rings_check_box.isChecked() is True:
                 self._resolution_rings_check_box.setChecked(False)
 
@@ -379,23 +379,23 @@ class CrystallographyGui(graph_interfaces_common.OmGuiBase):
         self._peakogram_plot_image_view.setImage(
             numpy.log(peakogram),
             pos=(0, 0),
-            scale=(
-                local_data["peakogram_radius_bin_size"],
-                local_data["peakogram_intensity_bin_size"],
-            ),
+            # scale=(
+            #     local_data["peakogram_radius_bin_size"],
+            #     local_data["peakogram_intensity_bin_size"],
+            # ),
             autoRange=False,
             autoLevels=False,
             autoHistogramRange=False,
         )
-        self._peakogram_plot_widget.setAspectLocked(lock=False)
+        self._peakogram_plot_widget.setAspectLocked(False)
 
         QtWidgets.QApplication.processEvents()
 
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
-        timenow: float = time.time()
-        estimated_delay: float = round(timenow - local_data["timestamp"], 6)
+        time_now: float = time.time()
+        estimated_delay: float = round(time_now - local_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay}")
 
 

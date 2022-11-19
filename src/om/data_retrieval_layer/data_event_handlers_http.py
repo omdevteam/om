@@ -21,17 +21,23 @@ Handling of HTTP-based data events.
 This module contains Data Event Handler classes that manipulate events originating from
 the http/REST interface.
 """
-import requests  # type: ignore
 import sys
 import time
 from io import BytesIO
 from typing import Any, Dict, Generator, List, Union, cast
 
-import numpy
-from numpy.typing import NDArray
+import requests  # type: ignore
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
+from om.abcs.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataSourceBase,
+    filter_data_sources,
+)
+from om.library.exceptions import (
+    OmDataExtractionError,
+    OmEigerHttpInterfaceInitializationError,
+)
+from om.library.parameters import MonitorParameters
 
 try:
     from typing import Literal
@@ -39,7 +45,7 @@ except ImportError:
     from typing_extensions import Literal
 
 
-class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
+class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
 
@@ -49,8 +55,8 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for events recovered from Eiger 16M http/REST interface.
@@ -82,8 +88,8 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
@@ -127,16 +133,16 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         """
         print("Configuring detector...")
         if not self._check_detector_monitor_mode():
-            raise exceptions.OmEigerHttpInterfaceInitializationError(
+            raise OmEigerHttpInterfaceInitializationError(
                 "Cannot connect to the detector: "
-                "please make sure the detector is connected and swiched on."
+                "please make sure the detector is connected and switched on."
             )
 
         response: requests.Response = requests.put(
             f"{self._source}/config/mode", json={"value": "enabled"}
         )
         if not response.status_code == 200:
-            raise exceptions.OmEigerHttpInterfaceInitializationError(
+            raise OmEigerHttpInterfaceInitializationError(
                 "Cannot enable 'monitor' mode of the detector."
             )
 
@@ -144,7 +150,7 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             f"{self._source}/config/discard_new", json={"value": False}
         )
         if not response.status_code == 200:
-            raise exceptions.OmEigerHttpInterfaceInitializationError(
+            raise OmEigerHttpInterfaceInitializationError(
                 "Cannot enable 'overwrite buffer' mode of the detector."
             )
 
@@ -158,7 +164,7 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             f"{self._source}/config/buffer_size", json={"value": buffer_size}
         )
         if not response.status_code == 200:
-            raise exceptions.OmEigerHttpInterfaceInitializationError(
+            raise OmEigerHttpInterfaceInitializationError(
                 "Cannot set the buffer size of the detector monitor mode."
             )
 
@@ -190,7 +196,7 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -342,7 +348,7 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -356,7 +362,7 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
         """
-        pass
+        raise NotImplementedError
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
@@ -376,4 +382,4 @@ class Eiger16MHttpDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
             All data related to the requested detector data frame.
         """
-        pass
+        raise NotImplementedError

@@ -26,12 +26,17 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
-from om.utils.rich_console import console, get_current_timestamp
+from om.abcs.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataSourceBase,
+    filter_data_sources,
+)
+from om.library.exceptions import OmDataExtractionError
+from om.library.parameters import MonitorParameters
+from om.library.rich_console import console, get_current_timestamp
 
 
-class Jungfrau1MZmqDataEventHandler(drl_abcs.OmDataEventHandlerBase):
+class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -40,8 +45,8 @@ class Jungfrau1MZmqDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M's ZMQ stream.
@@ -71,11 +76,11 @@ class Jungfrau1MZmqDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                   corresponding
                   [Data Source][om.abcs.data_retrieval_layer.OmDataSourceBase] class.
 
-            monitor_parameters: A [MonitorParams][om.utils.parameters.MonitorParams]
+            monitor_parameters: A [MonitorParameters][om.library.parameters.MonitorParameters]
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -123,7 +128,7 @@ class Jungfrau1MZmqDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -193,8 +198,8 @@ class Jungfrau1MZmqDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        Jungfrau 1M data events retrived from a ZMQ stream do not need to be opened, so
-        this function actually does nothing.
+        Jungfrau 1M data events retrieved from a ZMQ stream do not need to be opened,
+        so this function actually does nothing.
 
         Arguments:
 
@@ -276,9 +281,38 @@ class Jungfrau1MZmqDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
 
         return data
+
+    def initialize_frame_data_retrieval(self) -> None:
+        """
+        Initializes frame data retrievals from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+        """
+        raise NotImplementedError
+
+    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+        """
+        Retrieves all data related to the requested detector frame from an event.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        Arguments:
+
+            event_id: a string that uniquely identifies a data event.
+
+            frame_id: a string that identifies a particular frame within the data
+                event.
+
+        Returns:
+
+            All data related to the requested detector data frame.
+        """
+        raise NotImplementedError

@@ -28,8 +28,8 @@ from mpi4py import MPI  # type: ignore
 from om.abcs import data_retrieval_layer as drl_abcs
 from om.abcs import parallelization_layer as parl_abcs
 from om.abcs import processing_layer as prol_abcs
-from om.utils import exceptions, parameters
-from om.utils.rich_console import console, get_current_timestamp
+from om.library import exceptions, parameters
+from om.library.rich_console import console, get_current_timestamp
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _DIETAG: int = 999
@@ -48,7 +48,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
         *,
         data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
         processing_layer: prol_abcs.OmProcessingBase,
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         MPI-based Parallelization Layer for OM.
@@ -73,7 +73,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
             data_retrieval_layer.get_data_event_handler()
         )
         self._processing_layer: prol_abcs.OmProcessingBase = processing_layer
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
             group="data_retrieval_layer",

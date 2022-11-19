@@ -32,8 +32,8 @@ from typing import Any, Dict, List, Tuple, Union
 from om.abcs import data_retrieval_layer as drl_abcs
 from om.abcs import parallelization_layer as parl_abcs
 from om.abcs import processing_layer as prol_abcs
-from om.utils import exceptions, parameters
-from om.utils.rich_console import console, get_current_timestamp
+from om.library import exceptions, parameters
+from om.library.rich_console import console, get_current_timestamp
 
 
 def _om_processing_node(
@@ -44,7 +44,7 @@ def _om_processing_node(
     message_pipe: multiprocessing.connection.Connection,
     data_event_handler: drl_abcs.OmDataEventHandlerBase,
     processing_layer: prol_abcs.OmProcessingBase,
-    monitor_params: parameters.MonitorParams,
+    monitor_params: parameters.MonitorParameters,
 ) -> None:
     # This function implements a processing node. It is designed to be run as a
     # subprocess
@@ -137,7 +137,7 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
         *,
         data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
         processing_layer: prol_abcs.OmProcessingBase,
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Multiprocessing-based Parallelization Layer for OM.
@@ -164,7 +164,7 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
             data_retrieval_layer.get_data_event_handler()
         )
         self._processing_layer: prol_abcs.OmProcessingBase = processing_layer
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
             group="data_retrieval_layer",

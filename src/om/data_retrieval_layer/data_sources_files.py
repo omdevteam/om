@@ -20,27 +20,26 @@ File-based data sources.
 
 This module contains Data Source classes that deal with data stored in files.
 """
-from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
+from typing import Any, Dict, List, Tuple, Union, cast
 
-import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.data_retrieval_layer import utils_generic as utils_gen
-from om.utils.parameters import MonitorParams
-from om.utils import exceptions
+from om.abcs.data_retrieval_layer import OmDataSourceBase
+from om.data_retrieval_layer.data_sources_generic import get_calibration_request
+from om.data_retrieval_layer.utils_generic import Jungfrau1MCalibration
+from om.library.exceptions import OmMissingDependencyError
+from om.library.parameters import MonitorParameters
 
 try:
     from PIL import Image  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: PIL.Image"
     )
 
 
-class PilatusSingleFrameFiles(drl_abcs.OmDataSourceBase):
+class PilatusSingleFrameFiles(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -49,7 +48,7 @@ class PilatusSingleFrameFiles(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
@@ -105,7 +104,7 @@ class PilatusSingleFrameFiles(drl_abcs.OmDataSourceBase):
         return cast(NDArray[numpy.float_], event["data"].data)
 
 
-class Jungfrau1MFiles(drl_abcs.OmDataSourceBase):
+class Jungfrau1MFiles(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -114,7 +113,7 @@ class Jungfrau1MFiles(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector data frames from Jungfrau 1M HDF5 files.
@@ -153,7 +152,7 @@ class Jungfrau1MFiles(drl_abcs.OmDataSourceBase):
         the required calibration constants from the entries `dark_filenames` and
         `gain_filenames` in the `calibration` parameter group.
         """
-        self._calibrated_data_required: bool = ds_generic.get_calibration_request(
+        self._calibrated_data_required: bool = get_calibration_request(
             source_protocols_name=self._data_source_name,
             monitor_parameters=self._monitor_parameters,
         )
@@ -177,7 +176,7 @@ class Jungfrau1MFiles(drl_abcs.OmDataSourceBase):
                 parameter_type=float,
             )
 
-            self._calibration = utils_gen.Jungfrau1MCalibration(
+            self._calibration = Jungfrau1MCalibration(
                 dark_filenames=dark_filenames,
                 gain_filenames=gain_filenames,
                 photon_energy_kev=photon_energy_kev,
@@ -195,8 +194,8 @@ class Jungfrau1MFiles(drl_abcs.OmDataSourceBase):
         This function extracts a detector data frame from an HDF5 file attached to the
         provided data event. It returns the frame as a 2D array storing pixel
         information. The data is retrieved in calibrated or non-calibrated form
-        depending on the value of the `{source_protocols_name}_calibration` entry in OM's
-        `data_retrieval_layer` configuration parameter group.
+        depending on the value of the `{source_protocols_name}_calibration` entry in
+        OM's `data_retrieval_layer` configuration parameter group.
 
         Arguments:
 
@@ -216,7 +215,7 @@ class Jungfrau1MFiles(drl_abcs.OmDataSourceBase):
             return data
 
 
-class Eiger16MFiles(drl_abcs.OmDataSourceBase):
+class Eiger16MFiles(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -225,7 +224,7 @@ class Eiger16MFiles(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector data frames from Eiger 16M HDF5 files.
@@ -242,8 +241,8 @@ class Eiger16MFiles(drl_abcs.OmDataSourceBase):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
+            monitor_parameters: A [MonitorParameters]
+                [om.library.parameters.MonitorParameters] object storing the OM monitor
                 parameters from the configuration file.
         """
         self._data_source_name = data_source_name
@@ -288,7 +287,7 @@ class Eiger16MFiles(drl_abcs.OmDataSourceBase):
         )
 
 
-class RayonixMccdSingleFrameFiles(drl_abcs.OmDataSourceBase):
+class RayonixMccdSingleFrameFiles(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -297,7 +296,7 @@ class RayonixMccdSingleFrameFiles(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector data frames from Rayonix MX340-HS single-frame mccd files.
@@ -357,7 +356,7 @@ class RayonixMccdSingleFrameFiles(drl_abcs.OmDataSourceBase):
         return data
 
 
-class Lambda1M5Files(drl_abcs.OmDataSourceBase):
+class Lambda1M5Files(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -366,7 +365,7 @@ class Lambda1M5Files(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector data frames from Lambda 1.5M HDF5 files.
@@ -433,7 +432,7 @@ class Lambda1M5Files(drl_abcs.OmDataSourceBase):
         )
 
 
-class TimestampFromFileModificationTime(drl_abcs.OmDataSourceBase):
+class TimestampFromFileModificationTime(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -442,7 +441,7 @@ class TimestampFromFileModificationTime(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Timestamp information from the modification date of files.
@@ -499,7 +498,7 @@ class TimestampFromFileModificationTime(drl_abcs.OmDataSourceBase):
         return cast(numpy.float64, event["additional_info"]["file_modification_time"])
 
 
-class TimestampJungfrau1MFiles(drl_abcs.OmDataSourceBase):
+class TimestampJungfrau1MFiles(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -508,7 +507,7 @@ class TimestampJungfrau1MFiles(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Timestamp information for Jungfrau 1M detector data frames.
@@ -582,7 +581,7 @@ class TimestampJungfrau1MFiles(drl_abcs.OmDataSourceBase):
         return file_timestamp + jf_clock_value / jf_clock_frequency
 
 
-class EventIdFromFilePath(drl_abcs.OmDataSourceBase):
+class EventIdFromFilePath(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -591,7 +590,7 @@ class EventIdFromFilePath(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Event identifier from a file's full path.
@@ -646,7 +645,7 @@ class EventIdFromFilePath(drl_abcs.OmDataSourceBase):
         return cast(str, event["additional_info"]["full_path"])
 
 
-class EventIdJungfrau1MFiles(drl_abcs.OmDataSourceBase):
+class EventIdJungfrau1MFiles(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -655,7 +654,7 @@ class EventIdJungfrau1MFiles(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Event identifier for Jungfrau 1M data events.
@@ -719,7 +718,7 @@ class EventIdJungfrau1MFiles(drl_abcs.OmDataSourceBase):
         return f"{filename} // {index:05d}"
 
 
-class EventIdEiger16MFiles(drl_abcs.OmDataSourceBase):
+class EventIdEiger16MFiles(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -728,7 +727,7 @@ class EventIdEiger16MFiles(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Event identifier for Eiger 16M data events.
@@ -792,7 +791,7 @@ class EventIdEiger16MFiles(drl_abcs.OmDataSourceBase):
         return f"{filename} // {index:04d}"
 
 
-class EventIdLambda1M5Files(drl_abcs.OmDataSourceBase):
+class EventIdLambda1M5Files(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -801,7 +800,7 @@ class EventIdLambda1M5Files(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Event identifier for Lambda 1.5M data events.

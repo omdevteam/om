@@ -32,33 +32,34 @@ import click
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms import crystallography as cryst_algs
-from om.graphical_interfaces import common as graph_interfaces_common
-from om.utils import crystfel_geometry, exceptions, parameters
-from om.utils.crystfel_geometry import TypePixelMaps
-from om.utils.rich_console import console, get_current_timestamp
+from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
+from om.graphical_interfaces.common import OmGuiBase
+from om.library.exceptions import OmMissingDependencyError
+from om.library.geometry import TypePixelMaps, pixel_maps_from_geometry_file
+from om.library.parameters import MonitorParameters
+from om.library.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
 try:
     import pyqtgraph  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: pyqtgraph"
     )
 
 
-class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
+class CrystallographyParameterTweaker(OmGuiBase):
     """
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, url: str, monitor_parameters: parameters.MonitorParams):
+    def __init__(self, *, url: str, monitor_parameters: MonitorParameters):
         """
         OM Parameter Tweaker for Crystallography.
 
@@ -67,7 +68,7 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
         GUI receives data frames from an OnDA Monitor, but only when the data is tagged
         with the `omframedata` label. The data must contain processed detector frames.
         The GUI will then display the frame images, and allow a user to choose
-        a set of peak-finding parameters. The
+        a set of peak-finding  The
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
         algorithm will be applied on the fly to each received frame, and the GUI will
         display the positions of all detected Bragg peaks on each frame image.
@@ -93,14 +94,12 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
 
         self._received_data: Dict[str, Any] = {}
 
-        self._pixelmaps: TypePixelMaps = (
-            crystfel_geometry.pixel_maps_from_geometry_file(
-                filename=self._monitor_params.get_parameter(
-                    group="crystallography",
-                    parameter="geometry_file",
-                    parameter_type=str,
-                    required=True,
-                )
+        self._pixelmaps: TypePixelMaps = pixel_maps_from_geometry_file(
+            filename=self._monitor_params.get_parameter(
+                group="crystallography",
+                parameter="geometry_file",
+                parameter_type=str,
+                required=True,
             )
         )
 
@@ -118,25 +117,23 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
         self._img_center_x: int = int(visual_img_shape[1] / 2)
         self._img_center_y: int = int(visual_img_shape[0] / 2)
 
-        pixelmap_x_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
-        self._visual_pixelmap_x: NDArray[numpy.int_] = (
-            pixelmap_x_int + visual_img_shape[1] // 2 - 1
+        pixel_map_x_int: NDArray[numpy.int_] = self._pixelmaps["x"].astype(int)
+        self._visual_pixel_map_x: NDArray[numpy.int_] = (
+            pixel_map_x_int + visual_img_shape[1] // 2 - 1
         ).flatten()
-        pixelmap_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
-        self._visual_pixelmap_y: NDArray[numpy.int_] = (
-            pixelmap_y_int + visual_img_shape[0] // 2 - 1
+        pixel_map_y_int: NDArray[numpy.int_] = self._pixelmaps["y"].astype(int)
+        self._visual_pixel_map_y: NDArray[numpy.int_] = (
+            pixel_map_y_int + visual_img_shape[0] // 2 - 1
         ).flatten()
         self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
             shape=visual_img_shape, dtype=numpy.float32
         )
 
-        self._peak_detection: cryst_algs.Peakfinder8PeakDetection = (
-            cryst_algs.Peakfinder8PeakDetection(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="peakfinder8_peak_detection"
-                ),
-                radius_pixel_map=cast(NDArray[numpy.float_], self._pixelmaps["radius"]),
-            )
+        self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
+            parameters=self._monitor_params.get_parameter_group(
+                group="peakfinder8_peak_detection"
+            ),
+            radius_pixel_map=cast(NDArray[numpy.float_], self._pixelmaps["radius"]),
         )
 
         pyqtgraph.setConfigOption("background", 0.2)
@@ -171,93 +168,95 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
 
         self._adc_threshold_label: Any = QtWidgets.QLabel(self)
         self._adc_threshold_label.setText("adc_threshold")
-        self._adc_threshold_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._adc_threshold_lineedit.setText(str(self._peak_detection.get_adc_thresh()))
-        self._adc_threshold_lineedit.setValidator(self._float_validator)
-        self._adc_threshold_lineedit.editingFinished.connect(
+        self._adc_threshold_line_edit: Any = QtWidgets.QLineEdit(self)
+        self._adc_threshold_line_edit.setText(
+            str(self._peak_detection.get_adc_thresh())
+        )
+        self._adc_threshold_line_edit.setValidator(self._float_validator)
+        self._adc_threshold_line_edit.editingFinished.connect(
             self._update_peak_detection_parameters
         )
         self._horizontal_layout2: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout2.addWidget(self._adc_threshold_label)
-        self._horizontal_layout2.addWidget(self._adc_threshold_lineedit)
+        self._horizontal_layout2.addWidget(self._adc_threshold_line_edit)
 
         self._min_snr_label: Any = QtWidgets.QLabel(self)
-        self._min_snr_label.setText("minmum_snr")
-        self._min_snr_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._min_snr_lineedit.setText(str(self._peak_detection.get_minimum_snr()))
-        self._min_snr_lineedit.setValidator(self._float_validator)
-        self._min_snr_lineedit.editingFinished.connect(
+        self._min_snr_label.setText("minimum_snr")
+        self._min_snr_line_edit: Any = QtWidgets.QLineEdit(self)
+        self._min_snr_line_edit.setText(str(self._peak_detection.get_minimum_snr()))
+        self._min_snr_line_edit.setValidator(self._float_validator)
+        self._min_snr_line_edit.editingFinished.connect(
             self._update_peak_detection_parameters
         )
         self._horizontal_layout3: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout3.addWidget(self._min_snr_label)
-        self._horizontal_layout3.addWidget(self._min_snr_lineedit)
+        self._horizontal_layout3.addWidget(self._min_snr_line_edit)
 
         self._min_pixel_count_label: Any = QtWidgets.QLabel(self)
         self._min_pixel_count_label.setText("min_pixel_count")
-        self._min_pixel_count_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._min_pixel_count_lineedit.setText(
+        self._min_pixel_count_line_edit: Any = QtWidgets.QLineEdit(self)
+        self._min_pixel_count_line_edit.setText(
             str(self._peak_detection.get_min_pixel_count())
         )
-        self._min_pixel_count_lineedit.setValidator(self._int_validator)
-        self._min_pixel_count_lineedit.editingFinished.connect(
+        self._min_pixel_count_line_edit.setValidator(self._int_validator)
+        self._min_pixel_count_line_edit.editingFinished.connect(
             self._update_peak_detection_parameters
         )
         self._horizontal_layout4: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout4.addWidget(self._min_pixel_count_label)
-        self._horizontal_layout4.addWidget(self._min_pixel_count_lineedit)
+        self._horizontal_layout4.addWidget(self._min_pixel_count_line_edit)
 
         self._max_pixel_count_label: Any = QtWidgets.QLabel(self)
         self._max_pixel_count_label.setText("max_pixel_count")
-        self._max_pixel_count_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._max_pixel_count_lineedit.setText(
+        self._max_pixel_count_line_edit: Any = QtWidgets.QLineEdit(self)
+        self._max_pixel_count_line_edit.setText(
             str(self._peak_detection.get_max_pixel_count())
         )
-        self._max_pixel_count_lineedit.setValidator(self._int_validator)
-        self._max_pixel_count_lineedit.editingFinished.connect(
+        self._max_pixel_count_line_edit.setValidator(self._int_validator)
+        self._max_pixel_count_line_edit.editingFinished.connect(
             self._update_peak_detection_parameters
         )
         self._horizontal_layout5: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout5.addWidget(self._max_pixel_count_label)
-        self._horizontal_layout5.addWidget(self._max_pixel_count_lineedit)
+        self._horizontal_layout5.addWidget(self._max_pixel_count_line_edit)
 
         self._local_bg_radius_label: Any = QtWidgets.QLabel(self)
         self._local_bg_radius_label.setText("local_bg_radius")
-        self._local_bg_radius_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._local_bg_radius_lineedit.setText(
+        self._local_bg_radius_line_edit: Any = QtWidgets.QLineEdit(self)
+        self._local_bg_radius_line_edit.setText(
             str(self._peak_detection.get_local_bg_radius())
         )
-        self._local_bg_radius_lineedit.setValidator(self._int_validator)
-        self._local_bg_radius_lineedit.editingFinished.connect(
+        self._local_bg_radius_line_edit.setValidator(self._int_validator)
+        self._local_bg_radius_line_edit.editingFinished.connect(
             self._update_peak_detection_parameters
         )
         self._horizontal_layout6: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout6.addWidget(self._local_bg_radius_label)
-        self._horizontal_layout6.addWidget(self._local_bg_radius_lineedit)
+        self._horizontal_layout6.addWidget(self._local_bg_radius_line_edit)
 
         self._min_res_label: Any = QtWidgets.QLabel(self)
         self._min_res_label.setText("min_res")
-        self._min_res_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._min_res_lineedit.setText(str(self._peak_detection.get_min_res()))
-        self._min_res_lineedit.setValidator(self._int_validator)
-        self._min_res_lineedit.editingFinished.connect(
+        self._min_res_line_edit: Any = QtWidgets.QLineEdit(self)
+        self._min_res_line_edit.setText(str(self._peak_detection.get_min_res()))
+        self._min_res_line_edit.setValidator(self._int_validator)
+        self._min_res_line_edit.editingFinished.connect(
             self._update_peak_detection_parameters
         )
         self._horizontal_layout7: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout7.addWidget(self._min_res_label)
-        self._horizontal_layout7.addWidget(self._min_res_lineedit)
+        self._horizontal_layout7.addWidget(self._min_res_line_edit)
 
         self._max_res_label: Any = QtWidgets.QLabel(self)
         self._max_res_label.setText("max_res")
-        self._max_res_lineedit: Any = QtWidgets.QLineEdit(self)
-        self._max_res_lineedit.setText(str(self._peak_detection.get_max_res()))
-        self._max_res_lineedit.setValidator(self._int_validator)
-        self._max_res_lineedit.editingFinished.connect(
+        self._max_res_line_edit: Any = QtWidgets.QLineEdit(self)
+        self._max_res_line_edit.setText(str(self._peak_detection.get_max_res()))
+        self._max_res_line_edit.setValidator(self._int_validator)
+        self._max_res_line_edit.editingFinished.connect(
             self._update_peak_detection_parameters
         )
         self._horizontal_layout8: Any = QtWidgets.QHBoxLayout()
         self._horizontal_layout8.addWidget(self._max_res_label)
-        self._horizontal_layout8.addWidget(self._max_res_lineedit)
+        self._horizontal_layout8.addWidget(self._max_res_line_edit)
 
         self._splitter: Any = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self._horizontal_layout1: Any = QtWidgets.QHBoxLayout()
@@ -315,13 +314,13 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
         # Updates the peak detection parameters
 
         try:
-            pf8_adc_threshold: float = float(self._adc_threshold_lineedit.text())
-            pf8_minimum_snr: float = float(self._min_snr_lineedit.text())
-            pf8_min_pixel_count: int = int(self._min_pixel_count_lineedit.text())
-            pf8_max_pixel_count: int = int(self._max_pixel_count_lineedit.text())
-            pf8_local_bg_radius: int = int(self._local_bg_radius_lineedit.text())
-            pf8_min_res: int = int(self._min_res_lineedit.text())
-            pf8_max_res: int = int(self._max_res_lineedit.text())
+            pf8_adc_threshold: float = float(self._adc_threshold_line_edit.text())
+            pf8_minimum_snr: float = float(self._min_snr_line_edit.text())
+            pf8_min_pixel_count: int = int(self._min_pixel_count_line_edit.text())
+            pf8_max_pixel_count: int = int(self._max_pixel_count_line_edit.text())
+            pf8_local_bg_radius: int = int(self._local_bg_radius_line_edit.text())
+            pf8_min_res: int = int(self._min_res_line_edit.text())
+            pf8_max_res: int = int(self._max_res_line_edit.text())
         except ValueError:
             return
 
@@ -344,7 +343,7 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
             # If the framebuffer is empty, returns without drawing anything.
             return
 
-        peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
+        peak_list: TypePeakList = self._peak_detection.find_peaks(
             data=current_data["detector_data"]
         )
 
@@ -363,8 +362,8 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
             peak_index_in_slab: int = int(round(peak_ss)) * data_shape[1] + int(
                 round(peak_fs)
             )
-            x_in_frame: float = self._visual_pixelmap_x[peak_index_in_slab]
-            y_in_frame: float = self._visual_pixelmap_y[peak_index_in_slab]
+            x_in_frame: float = self._visual_pixel_map_x[peak_index_in_slab]
+            y_in_frame: float = self._visual_pixel_map_y[peak_index_in_slab]
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
 
@@ -384,7 +383,7 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
 
         QtWidgets.QApplication.processEvents()
 
-        self._assembled_img[self._visual_pixelmap_y, self._visual_pixelmap_x] = (
+        self._assembled_img[self._visual_pixel_map_y, self._visual_pixel_map_x] = (
             current_data["detector_data"].ravel().astype(self._assembled_img.dtype)
         )
 
@@ -404,8 +403,8 @@ class CrystallographyParameterTweaker(graph_interfaces_common.OmGuiBase):
         # Computes the estimated age of the received data and prints it into the status
         # bar (a GUI is supposed to be a Qt MainWindow widget, so it is supposed to
         # have a status bar).
-        timenow: float = time.time()
-        estimated_delay: float = round(timenow - current_data["timestamp"], 6)
+        time_now: float = time.time()
+        estimated_delay: float = round(time_now - current_data["timestamp"], 6)
         self.statusBar().showMessage(f"Estimated delay: {estimated_delay} seconds")
 
     def update_gui(self) -> None:
@@ -502,7 +501,7 @@ def main(*, url: str, config: str) -> None:
     disconnect from the monitor, and any of the last 10 displayed frames can be
     recalled and reprocessed.
 
-    The GUI conects to and OnDA Monitor running at the IP address (or hostname)
+    The GUI connects to and OnDA Monitor running at the IP address (or hostname)
     specified by the URL string. This is a string in the format used by the ZeroMQ
     protocol. The URL string is optional. If not provided, URL defaults to
     tcp://127.0.0.1:12321: the GUI will connect, using the tcp protocol, to a monitor
@@ -515,9 +514,7 @@ def main(*, url: str, config: str) -> None:
     if url is None:
         url = "tcp://127.0.0.1:12321"
 
-    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
-        config=config
-    )
+    monitor_parameters: MonitorParameters = MonitorParameters(config=config)
 
     app: Any = QtWidgets.QApplication(sys.argv)
     _ = CrystallographyParameterTweaker(url=url, monitor_parameters=monitor_parameters)

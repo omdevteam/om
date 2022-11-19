@@ -24,7 +24,6 @@ format used by the CrystFEL software package.
 import collections
 import copy
 import math
-import re
 import sys
 from typing import Any, Dict, List, TextIO, Tuple, Union
 
@@ -32,8 +31,7 @@ import numpy
 from mypy_extensions import TypedDict
 from numpy.typing import NDArray
 
-from om.utils import exceptions
-from om.utils.rich_console import console
+from om.library.exceptions import OmConfigurationFileReadingError, OmGeometryError
 
 
 class TypeBeam(TypedDict):
@@ -142,7 +140,7 @@ class TypePanel(TypedDict, total=True):
             the rail along which the detector moves.
 
         clen_for_centering: The perpendicular distance of the origin of the detector
-            reference system from the interation point, as reported by the facility,
+            reference system from the interaction point, as reported by the facility,
 
         xfs: The x->fs component of the matrix used to transform detector reference
             system coordinates into pixel indexes.
@@ -273,12 +271,12 @@ class TypeDetector(TypedDict):
         panels: The panels in the detector. The value corresponding to this key is
             dictionary containing information about the panels that make up the
             detector. In the dictionary, the keys are the panel names, and the values
-            are [TypePanel][om.utils.crystfel_geometry.TypePanel] dictionaries.
+            are [TypePanel][om.library.crystfel_geometry.TypePanel] dictionaries.
 
         bad: The bad regions in the detector. The value corresponding to this key is a
             dictionary containing information about the bad regions in the detector. In
             the dictionary, the keys are bad region names, and the values are
-            [TypeBadRegion][om.utils.crystfel_geometry.TypeBadRegion] dictionaries.
+            [TypeBadRegion][om.library.crystfel_geometry.TypeBadRegion] dictionaries.
 
         mask_bad: The value used in a bad pixel mask to label a pixel as bad.
 
@@ -430,7 +428,7 @@ def _parse_panel_entry(
                 string_to_parse=value,
             )
         except RuntimeError:
-            raise exceptions.OmGeometryError("Invalid rail direction. ")
+            raise OmGeometryError("Invalid rail direction. ")
     elif key == "clen_for_centering":
         panel["clen_for_centering"] = float(value)
     elif key == "adu_per_eV":
@@ -533,7 +531,7 @@ def _parse_panel_entry(
 def _validate_detector_geometry(detector: TypeDetector) -> None:
     # Validates the geometry file, checking for errors
     if not detector["panels"]:
-        raise exceptions.OmGeometryError("No panel descriptions in geometry file.")
+        raise OmGeometryError("No panel descriptions in geometry file.")
     panel: TypePanel
     panel_name: str
     num_placeholders_in_panels: int = -1
@@ -549,7 +547,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
             num_placeholders_in_panels = curr_num_placeholders
         else:
             if curr_num_placeholders != num_placeholders_in_panels:
-                raise exceptions.OmGeometryError(
+                raise OmGeometryError(
                     "All panels' data and mask entries must have the same "
                     "number of placeholders."
                 )
@@ -563,7 +561,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
             num_placeholders_in_masks = curr_num_placeholders
         else:
             if curr_num_placeholders != num_placeholders_in_masks:
-                raise exceptions.OmGeometryError(
+                raise OmGeometryError(
                     "All panels' data and mask entries must have the same "
                     "number of placeholders."
                 )
@@ -575,7 +573,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
         entry: Union[int, str, None]
         for dim_index, entry in enumerate(panel["dim_structure"]):
             if entry is None:
-                raise exceptions.OmGeometryError(
+                raise OmGeometryError(
                     f"Dimension {dim_index} for panel {panel_name} is " "undefined."
                 )
             if entry == "ss":
@@ -585,17 +583,17 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
             elif entry == "%":
                 found_placeholder += 1
         if found_ss != 1:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Exactly one slow scan dim coordinate is needed (found "
                 f"{found_ss} for panel {panel_name})."
             )
         if found_fs != 1:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Exactly one fast scan dim coordinate is needed (found "
                 f"{found_fs} for panel {panel_name})."
             )
         if found_placeholder > 1:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Only one placeholder dim coordinate is allowed. Maximum one "
                 "placeholder dim coordinate is allowed "
                 f"(found {found_placeholder} for panel {panel_name})"
@@ -603,55 +601,51 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
         if dim_length == -1:
             dim_length = len(panel["dim_structure"])
         elif dim_length != len(panel["dim_structure"]):
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Number of dim coordinates must be the same for all panels."
             )
         if dim_length == 1:
-            raise exceptions.OmGeometryError(
-                "Number of dim coordinates must be at least two."
-            )
+            raise OmGeometryError("Number of dim coordinates must be at least two.")
 
         if panel["orig_min_fs"] < 0:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Please specify the minimum fs coordinate for panel " f"{panel_name}."
             )
         if panel["orig_max_fs"] < 0:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Please specify the maximum fs coordinate for panel " f"{panel_name}."
             )
         if panel["orig_min_ss"] < 0:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Please specify the minimum ss coordinate for panel " f"{panel_name}."
             )
         if panel["orig_max_ss"] < 0:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Please specify the maximum ss coordinate for panel " f"{panel_name}."
             )
         if panel["cnx"] is None:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Please specify the corner X coordinate for panel " f"{panel_name}."
             )
         if panel["clen"] is None and panel["clen_from"] is None:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 f"Please specify the camera length for panel {panel_name}."
             )
         if panel["res"] < 0:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 f"Please specify the resolution or panel {panel_name}."
             )
         if panel["adu_per_eV"] is None and panel["adu_per_photon"] is None:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Please specify either adu_per_eV or adu_per_photon for panel "
                 f"{panel_name}."
             )
 
         if (panel["fsx"] * panel["ssy"] - panel["ssx"] * panel["fsy"]) == 0.0:
-            raise exceptions.OmGeometryError(
-                f"Panel {name} transformation is singular."
-            )
+            raise OmGeometryError(f"Panel {panel_name} transformation is singular.")
 
     if num_placeholders_in_masks > num_placeholders_in_panels:
-        raise exceptions.OmGeometryError(
+        raise OmGeometryError(
             "Number of placeholders in mask cannot be larger the number than "
             "for data."
         )
@@ -660,7 +654,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
     bad_region: TypeBadRegion
     for bad_region_name, bad_region in detector["bad"].items():
         if bad_region["is_fsss"] == 99:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Please specify the coordinate ranges for bad "
                 f"region {bad_region_name}."
             )
@@ -669,7 +663,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
         name: str
         for name in detector["rigid_groups"][group]:
             if name not in detector["panels"]:
-                raise exceptions.OmGeometryError(
+                raise OmGeometryError(
                     "Cannot add panel to rigid_group. Panel not " f"found: {name}."
                 )
     group_collection: str
@@ -677,9 +671,9 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
         group_name: str
         for group_name in detector["rigid_group_collections"][group_collection]:
             if group_name not in detector["rigid_groups"]:
-                raise exceptions.OmGeometryError(
+                raise OmGeometryError(
                     "Cannot add rigid_group to collection. Rigid group not "
-                    f"found: {name}."
+                    f"found: {group_name}."
                 )
 
 
@@ -713,11 +707,11 @@ def read_crystfel_geometry(  # noqa: C901
         A tuple with the information loaded from the file.
 
             * The first entry in the tuple is a
-            [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
+            [TypeDetector][om.library.crystfel_geometry.TypeDetector] dictionary storing
             information related to the detector geometry.
 
             * The second entry in the tuple is a
-            [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
+            [TypeBeam] [om.library.crystfel_geometry.TypeBeam] dictionary storing
             information about the beam properties.
 
             * The third entry is the internal path, in an HDF5 data file, to the
@@ -903,7 +897,7 @@ def read_crystfel_geometry(  # noqa: C901
                 )
 
         except RuntimeError as exp:
-            raise exceptions.OmGeometryError(
+            raise OmGeometryError(
                 "Cannot interpret the following line in the geometry file: "
                 f" {line.strip()}\n"
                 f"Reason: {str(exp)}",
@@ -963,7 +957,7 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     Computes pixel maps from CrystFEL geometry information.
 
     This function takes as input the geometry information read from a
-    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),  # noqa: E501
     and returns a set of pixel maps. The pixel maps can be used to determine the
     exact coordinates, in the detector reference system, of each pixel of the array
     that stores the detector data.
@@ -982,7 +976,7 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     Arguments:
 
         geometry: A dictionary returned by the
-            [load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
+            [load_crystfel_geometry][om.library.crystfel_geometry.load_crystfel_geometry]
             function, storing the detector geometry information.
 
     Returns:
@@ -1112,11 +1106,11 @@ def load_crystfel_geometry(  # noqa: C901
         A tuple with the information loaded from the file.
 
             * The first entry in the tuple is a
-            [TypeDetector][om.utils.crystfel_geometry.TypeDetector] dictionary storing
+            [TypeDetector][om.library.crystfel_geometry.TypeDetector] dictionary storing
             information related to the detector geometry.
 
             * The second entry in the tuple is a
-            [TypeBeam] [om.utils.crystfel_geometry.TypeBeam] dictionary storing
+            [TypeBeam] [om.library.crystfel_geometry.TypeBeam] dictionary storing
             information about the beam properties.
 
             * The third entry is the internal path, in an HDF5 data file, to the
@@ -1131,23 +1125,33 @@ def load_crystfel_geometry(  # noqa: C901
             file_lines: List[str] = file_handle.readlines()
     except (IOError, OSError) as exc:
         exc_type, exc_value = sys.exc_info()[:2]
-        raise exceptions.OmConfigurationFileReadingError(
+        raise OmConfigurationFileReadingError(
             f"The following error occurred while reading the "  # type: ignore
             f"{filename} geometry file {exc_type.__name__}: {exc_value}"
         ) from exc
     return read_crystfel_geometry(text_lines=file_lines)
 
 
-def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
+def compute_min_size(*, pixel_maps: TypePixelMaps) -> Tuple[int, int]:
+    y_minimum: int = (
+        2 * int(max(abs(pixel_maps["y"].max()), abs(pixel_maps["y"].min()))) + 2
+    )
+    x_minimum: int = (
+        2 * int(max(abs(pixel_maps["x"].max()), abs(pixel_maps["x"].min()))) + 2
+    )
+    return (y_minimum, x_minimum)
+
+
+def compute_visualization_pix_maps(*, pixel_maps: TypePixelMaps) -> TypePixelMaps:
     """
     Computes pixel maps for data visualization from CrystFEL geometry information.
 
     This function takes as input the geometry information read from a
-    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),  # noqa: E501
     and returns a set of pixel maps that can be used to display the detector data in a
     Qt ImageView widget (from the [PyQtGraph](http://pyqtgraph.org) library). These
     pixel maps are different from the ones generated by the
-    [`compute_pix_maps`][om.utils.crystfel_geometry.compute_pix_maps]
+    [`compute_pix_maps`][om.library.crystfel_geometry.compute_pix_maps]
     function. The main differences are:
 
     * The origin of the reference system is not the beam interaction point, but first
@@ -1159,7 +1163,7 @@ def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     Arguments:
 
         geometry: A dictionary returned by the
-            [load_crystfel_geometry][om.utils.crystfel_geometry.load_crystfel_geometry]
+            [load_crystfel_geometry][om.library.crystfel_geometry.load_crystfel_geometry]
             function, storing the detector geometry information.
 
     Returns:
@@ -1171,16 +1175,7 @@ def compute_visualization_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     # of the image that will be displayed. Computes the size of the array needed to
     # display the data, then use this information to estimate the magnitude of the
     # shift.
-    pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
-    x_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-    y_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-    x_map, y_map = (
-        pixel_maps["x"],
-        pixel_maps["y"],
-    )
-    y_minimum: int = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
-    x_minimum: int = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
-    min_shape: Tuple[int, int] = (y_minimum, x_minimum)
+    min_shape: Tuple[int, int] = compute_min_size(pixel_maps=pixel_maps)
     new_x_map: NDArray[numpy.int_] = (
         numpy.array(object=pixel_maps["x"], dtype=int) + min_shape[1] // 2 - 1
     )
@@ -1205,7 +1200,7 @@ def pixel_maps_from_geometry_file(
     Loads a CrystFEL geometry file and computes pixel maps.
 
     This function takes as input the absolute or relative path to a
-    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),  # noqa: E501
     and returns a set of pre-computed pixel maps. The pixel maps can be used to
     determine the exact coordinates, in the detector reference system, of each pixel of
     the detector data array.
@@ -1244,12 +1239,12 @@ def visualization_pixel_maps_from_geometry_file(
     Loads a CrystFEL geometry file and computes pixel maps for data visualization.
 
     This function takes as input the absolute or relative path to a
-    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),
+    [CrystFEL geometry file](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html),  # noqa: E501
     and returns a set of pre-computed pixel maps that can be used to display data in a
     Qt ImageView widget (from the [PyQtGraph](http://pyqtgraph.org) library).
 
     These pixel maps are different from the ones generated by the
-    [`pixel_maps_from_geometry_file`][om.utils.crystfel_geometry.pixel_maps_from_geometry_file]
+    [`pixel_maps_from_geometry_file`][om.library.crystfel_geometry.pixel_maps_from_geometry_file]  # noqa: E501
     function. The main differences are:
 
     * The origin of the reference system is not the beam interaction point, but first
@@ -1271,52 +1266,111 @@ def visualization_pixel_maps_from_geometry_file(
     _: Any
     __: Any
     geometry, _, __ = load_crystfel_geometry(filename=filename)
-    return compute_visualization_pix_maps(geometry=geometry)
-
-
-def apply_geometry_to_data(
-    *, data: NDArray[numpy.float_], geometry: TypeDetector
-) -> NDArray[numpy.float_]:
-    """
-    Applies CrystFEL geometry information to some data.
-
-    This function takes as input the geometry information read from a
-    [`CrystFEL geometry file`](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
-    and some data to which the geometry information should be applied. It returns
-    an array that can be displayed using libraries like
-    [`matplotlib`](https://matplotlib.org/) or [`PyQtGraph`](http://pyqtgraph.org).
-
-    The shape of the returned array is big enough to display all the pixel values in
-    the input data, and is symmetric around the center of the detector reference system
-    (i.e: the beam interaction point). These restrictions often cause the returned
-    array to be bigger than the minimum size needed to store the physical layout of the
-    pixels in the detector, particularly if the beam interaction point does not lie
-    close to the center of the detector.
-
-    Arguments:
-
-        data: The data to which the geometry information should be applied.
-
-        geometry: A dictionary storing the detector geometry information.
-
-    Returns:
-
-        An array containing the detector data, with geometry information applied to it.
-    """
     pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
-    x_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-    y_map: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-    x_map, y_map = (
-        pixel_maps["x"],
-        pixel_maps["y"],
-    )
-    y_minimum: int = 2 * int(max(abs(y_map.max()), abs(y_map.min()))) + 2
-    x_minimum: int = 2 * int(max(abs(x_map.max()), abs(x_map.min()))) + 2
-    min_shape: Tuple[int, int] = (y_minimum, x_minimum)
-    visualization_array: NDArray[numpy.float_] = numpy.zeros(min_shape, dtype=float)
-    visual_pixel_maps: TypePixelMaps = compute_visualization_pix_maps(geometry=geometry)
-    visualization_array[
-        visual_pixel_maps["y"].flatten(), visual_pixel_maps["x"].flatten()
-    ] = data.ravel().astype(visualization_array.dtype)
+    return compute_visualization_pix_maps(pixel_maps=pixel_maps)
 
-    return visualization_array
+
+class GeomttryInformation:
+    """
+    See documentation for the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        geometry_filename: str,
+        geometry_format: str,
+    ) -> None:
+        """
+        TODO: Documentation.
+        """
+
+        if geometry_format == "crystfel":
+            geometry: TypeDetector
+            geometry, _, __ = load_crystfel_geometry(filename=geometry_filename)
+            self._pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
+            self._visual_pixel_maps: TypePixelMaps = compute_visualization_pix_maps(
+                pixel_maps=self._pixel_maps
+            )
+            self._min_shape: Tuple[int, int] = compute_min_size(
+                pixel_maps=self._pixel_maps
+            )
+
+            # Theoretically, the pixel size could be different for every module of the
+            # detector. The pixel size of the first module is taken as the pixel size
+            # of the whole detector.
+            self._pixel_size: float = geometry["panels"][
+                tuple(geometry["panels"].keys())[0]
+            ]["res"]
+            # Theoretically, panel coffset could be different for every module of the
+            # detector. The panel coffset of the first module is taken as the pixel
+            # size of the whole detector.
+            self._detector_distance_offset: float = geometry["panels"][
+                list(geometry["panels"].keys())[0]
+            ]["coffset"]
+        else:
+            raise RuntimeError("Geometry format is not supported.")
+
+    def get_pixel_maps(self) -> TypePixelMaps:
+        """
+        TODO: Add documentation.
+        """
+        return self._pixel_maps
+
+    def get_visual_pixel_maps(self) -> TypePixelMaps:
+        """
+        TODO: Add documentation.
+        """
+        return self._visual_pixel_maps
+
+    def get_pixel_size(self) -> float:
+        """
+        TODO: Add documentation.
+        """
+        return self._pixel_size
+
+    def get_detector_distance_offset(self) -> float:
+        """
+        TODO: Add documentation.
+        """
+        return self._detector_distance_offset
+
+    def apply_visualization_geometry_to_data(
+        self, *, data: numpy.ndarray
+    ) -> NDArray[numpy.float_]:
+        """
+        Applies CrystFEL geometry information to some data.
+
+        This function takes as input the geometry information read from a
+        [`CrystFEL geometry file`](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)  # noqa: E501
+        and some data to which the geometry information should be applied. It returns
+        an array that can be displayed using libraries like
+        [`matplotlib`](https://matplotlib.org/) or [`PyQtGraph`](http://pyqtgraph.org).
+
+        The shape of the returned array is big enough to display all the pixel values
+        in the input data, and is symmetric around the center of the detector reference
+        system (i.e: the beam interaction point). These restrictions often cause the
+        returned array to be bigger than the minimum size needed to store the physical
+        layout of the pixels in the detector, particularly if the beam interaction
+        point does not lie close to the center of the detector.
+
+        Arguments:
+
+            data: The data to which the geometry information should be applied.
+
+            geometry: A dictionary storing the detector geometry information.
+
+        Returns:
+
+            An array containing the detector data, with geometry information applied to
+            it.
+        """
+        visualization_array: NDArray[numpy.float_] = numpy.zeros(
+            self._min_shape, dtype=float
+        )
+        visualization_array[
+            self._visual_pixel_maps["y"].flatten(),
+            self._visual_pixel_maps["x"].flatten(),
+        ] = data.ravel().astype(visualization_array.dtype)
+
+        return visualization_array

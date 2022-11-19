@@ -21,20 +21,18 @@ HTTP-based data sources.
 This module contains Data Source classes that deal with data retrieved from http/REST
 detector interface.
 """
+import time
+from typing import Any, Dict, Union
+
 import numpy
 from numpy.typing import NDArray
-import time
-
-from datetime import datetime
 from PIL import Image  # type: ignore
-from typing import Any, BinaryIO, Dict, List, Tuple, Union, cast
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.utils.parameters import MonitorParams
+from om.abcs.data_retrieval_layer import OmDataSourceBase
+from om.library.parameters import MonitorParameters
 
 
-class Eiger16MHttp(drl_abcs.OmDataSourceBase):
+class Eiger16MHttp(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -43,7 +41,7 @@ class Eiger16MHttp(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector frame data from Eiger 16M http/REST interface.
@@ -60,8 +58,8 @@ class Eiger16MHttp(drl_abcs.OmDataSourceBase):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
+            monitor_parameters: A [MonitorParameters]
+                [om.library.parameters.MonitorParameters] object storing the OM monitor
                 parameters from the configuration file.
         """
         self._data_source_name = data_source_name
@@ -107,7 +105,7 @@ class Eiger16MHttp(drl_abcs.OmDataSourceBase):
         return numpy.asarray(image, dtype=int)
 
 
-class TimestampEiger16MHttp(drl_abcs.OmDataSourceBase):
+class TimestampEiger16MHttp(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -116,7 +114,7 @@ class TimestampEiger16MHttp(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Timestamp information for Eiger 16M http/REST event.
@@ -133,8 +131,8 @@ class TimestampEiger16MHttp(drl_abcs.OmDataSourceBase):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
+            monitor_parameters: A [MonitorParameters]
+                [om.library.parameters.MonitorParameters] object storing the OM monitor
                 parameters from the configuration file.
         """
         self._data_source_name = data_source_name
@@ -172,7 +170,6 @@ class TimestampEiger16MHttp(drl_abcs.OmDataSourceBase):
             The timestamp of the Jungfrau 1M data event.
         """
         event["additional_info"]["image_file"].seek(162)
-        time_str: str = event["additional_info"]["image_file"].read(29).decode()
 
         # temporary fix to get some realistic delays in the GUI because Eiger gives
         # the same timestamp for all images in the run:
@@ -185,7 +182,7 @@ class TimestampEiger16MHttp(drl_abcs.OmDataSourceBase):
         # )
 
 
-class EventIdEiger16MHttp(drl_abcs.OmDataSourceBase):
+class EventIdEiger16MHttp(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -194,7 +191,7 @@ class EventIdEiger16MHttp(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Event identifier for Eiger 16M http/REST events.
@@ -214,8 +211,8 @@ class EventIdEiger16MHttp(drl_abcs.OmDataSourceBase):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
+            monitor_parameters: A [MonitorParameters]
+                [om.library.parameters.MonitorParameters] object storing the OM monitor
                 parameters from the configuration file.
         """
         self._data_source_name = data_source_name
@@ -254,7 +251,7 @@ class EventIdEiger16MHttp(drl_abcs.OmDataSourceBase):
         event["additional_info"]["image_file"].seek(42)
         series_id: int
         frame_id: int
-        series_id, _, _, frame_id = numpy.frombuffer(  # type: ignore
+        series_id, _, _, frame_id = numpy.frombuffer(
             event["additional_info"]["image_file"].read(16), "i4"
         )
         return f"{series_id}_{frame_id}"

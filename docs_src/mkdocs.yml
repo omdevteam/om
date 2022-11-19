@@ -106,7 +106,7 @@ nav:
         - parameters: reference/om/utils/parameters.md
         - rich_console: reference/om/utils/rich_console.md
         - zmq_gui: reference/om/utils/zmq_gui.md
-        - zmq_monitor: reference/om/utils/zmq_monitor.md
+        - zmq_collecting: reference/om/utils/zmq_collecting.md
       - monitor: reference/om/monitor.md
   - Quick Links:
     - OM's Configuration Parameters: parameters.md

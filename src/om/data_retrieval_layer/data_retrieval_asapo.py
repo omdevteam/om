@@ -23,19 +23,29 @@ This module contains Data Retrieval classes that deal with the ASAPO software fr
 """
 from typing import Dict
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_event_handlers_asapo as deh_asapo
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.data_retrieval_layer import data_sources_asapo as ds_asapo
-from om.utils import parameters
+from om.abcs.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
+from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler
+from om.data_retrieval_layer.data_sources_asapo import (
+    BeamEnergyAsapo,
+    DetectorDistanceAsapo,
+    EigerAsapo,
+    EventIdAsapo,
+    TimestampAsapo,
+)
+from om.data_retrieval_layer.data_sources_generic import FrameIdZero
+from om.library.parameters import MonitorParameters
 
 
-class EigerAsapoDataRetrieval(drl_abcs.OmDataRetrievalBase):
+class EigerAsapoDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
         Data Retrieval from ASAPO at the PETRA III facility, with Eiger 16M detector.
 
@@ -57,45 +67,43 @@ class EigerAsapoDataRetrieval(drl_abcs.OmDataRetrievalBase):
 
         Arguments:
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
+            monitor_parameters: A [MonitorParameters]
+                [om.library.parameters.MonitorParameters] object storing the OM monitor
                 parameters from the configuration file.
 
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
-            "timestamp": ds_asapo.TimestampAsapo(
+        data_sources: Dict[str, OmDataSourceBase] = {
+            "timestamp": TimestampAsapo(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
-            "event_id": ds_asapo.EventIdAsapo(
+            "event_id": EventIdAsapo(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
             ),
-            "frame_id": ds_generic.FrameIdZero(
+            "frame_id": FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_asapo.EigerAsapo(
+            "detector_data": EigerAsapo(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_asapo.BeamEnergyAsapo(
+            "beam_energy": BeamEnergyAsapo(
                 data_source_name="beam_energy",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": ds_asapo.DetectorDistanceAsapo(
+            "detector_distance": DetectorDistanceAsapo(
                 data_source_name="detector_distance",
                 monitor_parameters=monitor_parameters,
             ),
         }
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
-            deh_asapo.AsapoDataEventHandler(
-                source=source,
-                monitor_parameters=monitor_parameters,
-                data_sources=data_sources,
-            )
+        self._data_event_handler: OmDataEventHandlerBase = AsapoDataEventHandler(
+            source=source,
+            monitor_parameters=monitor_parameters,
+            data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 

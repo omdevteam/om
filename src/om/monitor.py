@@ -29,11 +29,11 @@ from typing import Any, Callable, Dict, Type, TypeVar, Union, cast
 
 import click
 
-from om.utils import exceptions, parameters
 from om.abcs import data_retrieval_layer as drl_abcs
 from om.abcs import parallelization_layer as parl_abcs
 from om.abcs import processing_layer as prol_abcs
-from om.utils.rich_console import console, set_null_theme, set_custom_theme
+from om.library import exceptions, parameters
+from om.library.rich_console import console, set_custom_theme, set_null_theme
 
 T = TypeVar("T")
 
@@ -96,7 +96,7 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
+    monitor_parameters: parameters.MonitorParameters = parameters.MonitorParameters(
         config=config
     )
 

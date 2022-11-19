@@ -26,7 +26,7 @@ import numpy
 from numpy.typing import NDArray
 from scipy import ndimage  # type: ignore
 
-from om.utils import parameters as param_utils
+from om.library.parameters import get_parameter_from_parameter_group
 
 
 class XESAnalysis:
@@ -71,26 +71,25 @@ class XESAnalysis:
                 * `max_row_in_pix_for_integration` The row index defining the end of
                   the integration region for the spectrum information.
         """
-        self._intensity_threshold: float = (
-            param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="intensity_threshold_in_ADU",
-                parameter_type=float,
-            )
+        self._intensity_threshold: float = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="intensity_threshold_in_ADU",
+            parameter_type=float,
         )
-        self._rotation: float = param_utils.get_parameter_from_parameter_group(
+
+        self._rotation: float = get_parameter_from_parameter_group(
             group=parameters,
             parameter="rotation_in_degrees",
             parameter_type=float,
             required=True,
         )
-        self._min_row: int = param_utils.get_parameter_from_parameter_group(
+        self._min_row: int = get_parameter_from_parameter_group(
             group=parameters,
             parameter="min_row_in_pix_for_integration",
             parameter_type=int,
             required=True,
         )
-        self._max_row: int = param_utils.get_parameter_from_parameter_group(
+        self._max_row: int = get_parameter_from_parameter_group(
             group=parameters,
             parameter="max_row_in_pix_for_integration",
             parameter_type=int,
