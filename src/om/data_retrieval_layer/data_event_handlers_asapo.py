@@ -72,10 +72,10 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         * For this Event Handler, a data event corresponds to the content of an
           individual ASAP::O event.
 
-        * The source string required by this Data Event Handler is either the ID of the
-          beamtime for which OM is being used (for online data retrieval) or the ID of
-          the beamtime and the ASAP::O stream name, separated by a colon (for offline
-          data retrieval).
+        * The source string required by this Data Event Handler is either just the ID
+          of the current beamtime for online data retrieval, or the ID of a beamtime
+          and the name of an ASAP::O stream name separated by a colon for offline
+          data retrieval.
 
         Arguments:
 
@@ -408,10 +408,13 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from ASAP::O.
+        Initializes frame data retrieval from ASAP::O.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         This function initializes the retrieval of a single standalone detector data
-        frame from ASAP::O, with all the information that refers to it.
+        frame, with all its related information, from ASAP::O.
         """
         required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -432,19 +435,16 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data related to the requested detector frame from an event.
+        Retrieves from ASAP::O all data related to the requested detector frame.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves, from the event specified by the provided unique event
-        identifier, data related to a specific detector frame, determined by the
-        provided unique frame identifier.
-
-        The ASAP::O event identifier corresponds to the ASAP::O stream name and the ID
-        of the ASAP::O event within the stream separated by the "//" symbol. Since
-        ASAP::O data events are based around single detector frames, the unique frame
-        identifier must always be the string "0".
+        This function retrieves frame data,  from the event specified by the provided
+        psana unique event identifier. An ASAP::O event identifier corresponds to the name of an ASAP::O stream and
+        the ID of an ASAP::O event within the stream separated by the "//" symbol.
+        Since ASAP::O data events are based around single detector frames, the unique
+        frame identifier must always be the string "0".
 
         Arguments:
 

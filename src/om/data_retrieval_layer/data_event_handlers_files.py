@@ -322,10 +322,14 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from psana.
+        Initializes frame data retrieval from Pilatus single-frame files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         This function initializes the retrieval of a single standalone detector data
-        frame from psana, with all the information that refers to it.
+        frame, with all its related information, from Pilatus single-frame data files.
+
         """
         required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -346,13 +350,14 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves from an event all the data related to the requested detector frame.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves the CBF file associated with the event specified by
-        the provided identifier, and returns the only frame it contains.
+        A Pilatus single-frame file event identifier is the relative or absolute path
+        to a file containing the event data. Since each even only contains information
+        about a single frame, the frame identifier must always be the string "0".
 
         Arguments:
 
@@ -692,10 +697,13 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from Jungfrau 1M HDF5 files.
+        Initializes frame data retrieval from Jungfrau 1M HDF5 files.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
         This function initializes the retrieval of a single standalone detector data
-        frame from Jungfrau 1M HDF5 files, with all the information that refers to it.
+        frame, with all its related information, from Jungfrau 1M HDF5 files.
         """
         required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -716,17 +724,16 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves from an event all the data related to the requested detector frame.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves frame data from the event specified by the provided
-        Jungfrau 1M unique event identifier. The identifier is a string consisting of
-        the path of the master HDF5 file attached to the event and the index of the
-        event within the file, separated by '//' symbol. Since Jungfrau 1M data events
-        are based around single detector frames, the unique frame identifier provided
-        to this function must be the string "0".
+        A Jungfrau 1M unique event identifier is a string consisting of the absolute
+        or relative path to the master HDF5 file attached to the event, together with
+        the index of the event within the file, separated by '//' symbol. Since
+        Jungfrau 1M data events are based around single detector frames, the unique
+        frame identifier must be the string "0".
 
         Arguments:
 
@@ -1056,10 +1063,10 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from Eiger 16M files.
+        Initializes frame data retrieval from Eiger 16M files.
 
         This function initializes the retrieval of a single standalone detector data
-        frame from Eiger 16M files, with all the information that refers to it.
+        frame, with all its related information, from Eiger 16M files.
         """
         required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -1080,17 +1087,16 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves from an event all the data related to the requested detector frame.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This function retrieves frame data from the event specified by the provided
-        Eiger 16M unique event identifier. The identifier is a string consisting of
-        the path of the HDF5 file attached to the event and the index of the event
-        within the file, separated by '//' symbol. Since Eiger 16M data events are
-        based around single detector frames, the unique frame identifier provided to
-        this function must be the string "0".
+        An Eiger 16M unique event identifier is a string consisting of the absolute or
+        relative path to an HDF5 file attached to the event, together with the index
+        of the event within the file, separated by '//' symbol. Since Eiger 16M data
+        events are based around single detector frames, the unique frame identifier
+        must be the string "0".
 
         Arguments:
 
