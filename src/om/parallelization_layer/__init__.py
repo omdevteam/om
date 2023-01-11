@@ -24,7 +24,8 @@ dedicated to a different communication approach or technique.
 """
 
 try:
-    import mpi4py  # type: ignore  # noqa: F401
+    import mpi4py  # noqa: F401
+
     from .mpi import MpiParallelization  # noqa: F401
 except ModuleNotFoundError:
     pass

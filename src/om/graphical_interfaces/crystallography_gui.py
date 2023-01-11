@@ -84,7 +84,7 @@ class CrystallographyGui(OmGuiBase):
         self._last_pixel_size: float = 0
         self._last_detector_distance: float = 0
         self._last_beam_energy: float = 0
-        self._last_coffset: float = 0
+        self._last_detector_distance_offset: float = 0
         self._resolution_rings_in_a: List[float] = [
             10.0,
             9.0,
@@ -248,7 +248,10 @@ class CrystallographyGui(OmGuiBase):
                 [
                     2.0
                     * self._last_pixel_size
-                    * (self._last_detector_distance * 1e-3 + self._last_coffset)
+                    * (
+                        self._last_detector_distance * 1e-3
+                        + self._last_detector_distance_offset
+                    )
                     * numpy.tan(
                         2.0 * numpy.arcsin(lambda_ / (2.0 * resolution * 1e-10))
                     )
@@ -307,7 +310,7 @@ class CrystallographyGui(OmGuiBase):
         self._last_pixel_size = local_data["pixel_size"]
         self._last_detector_distance = local_data["detector_distance"]
         self._last_beam_energy = local_data["beam_energy"]
-        self._last_coffset = local_data["first_panel_coffset"]
+        self._last_detector_distance_offset = local_data["detector_distance_offset"]
 
         virt_powd_plot_img_shape: Tuple[int, int] = local_data[
             "virtual_powder_plot"

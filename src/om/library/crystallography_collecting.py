@@ -22,10 +22,10 @@ from typing import Any, Deque, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms import generic as gen_algs
 from om.algorithms.crystallography import TypePeakList
+from om.algorithms.generic import Binning
 from om.library.geometry import (
-    GeomttryInformation,
+    GeometryInformation,
     TypePixelMaps,
     compute_min_size,
     compute_visualization_pix_maps,
@@ -42,8 +42,8 @@ class CrystallographyPlots:
         self,
         *,
         crystallography_parameters: Dict[str, Any],
-        geometry_information: GeomttryInformation,
-        binning_algorithm: Union[gen_algs.Binning, None],
+        geometry_information: GeometryInformation,
+        binning_algorithm: Union[Binning, None],
         pump_probe_experiment: bool,
     ) -> None:
 
@@ -59,9 +59,11 @@ class CrystallographyPlots:
         else:
             self._bin_size = 1
             self._pixel_maps = geometry_information.get_pixel_maps()
-        self._visual_pixel_maps: TypePixelMaps = compute_visualization_pix_maps(
+        visual_pixel_maps: TypePixelMaps = compute_visualization_pix_maps(
             pixel_maps=self._pixel_maps
         )
+        self._visual_pixel_maps_x: numpy.ndarray = visual_pixel_maps["x"].flatten()
+        self._visual_pixel_maps_y: numpy.ndarray = visual_pixel_maps["y"].flatten()
         visual_img_shape: Tuple[int, int] = compute_min_size(
             pixel_maps=self._pixel_maps
         )
@@ -108,8 +110,11 @@ class CrystallographyPlots:
             5000 * [0.0], maxlen=5000
         )
 
+        self._hit_rate_running_window_dark: Union[Deque[float], None] = None
+        self._hit_rate_timestamp_history_dark: Union[Deque[float], None] = None
+        self._hit_rate_history_dark: Union[Deque[float], None] = None
         if self._pump_probe_experiment:
-            self._hit_rate_running_window_dark: Deque[float] = collections.deque(
+            self._hit_rate_running_window_dark = collections.deque(
                 [0.0] * self._running_average_window_size,
                 maxlen=self._running_average_window_size,
             )
@@ -204,8 +209,8 @@ class CrystallographyPlots:
             peak_index_in_slab: int = int(round(peak_ss)) * data_shape[1] + int(
                 round(peak_fs)
             )
-            y_in_frame: float = self._visual_pixel_maps["y"][peak_index_in_slab]
-            x_in_frame: float = self._visual_pixel_maps["x"][peak_index_in_slab]
+            y_in_frame: float = self._visual_pixel_maps_y[peak_index_in_slab]
+            x_in_frame: float = self._visual_pixel_maps_x[peak_index_in_slab]
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[int(y_in_frame), int(x_in_frame)] += peak_value

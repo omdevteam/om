@@ -1270,7 +1270,7 @@ def visualization_pixel_maps_from_geometry_file(
     return compute_visualization_pix_maps(pixel_maps=pixel_maps)
 
 
-class GeomttryInformation:
+class GeometryInformation:
     """
     See documentation for the `__init__` function.
     """

@@ -159,7 +159,9 @@ class CspadPsana(OmDataSourceBase):
             monitor_parameters=self._monitor_parameters,
         )
 
-    def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_ | numpy.int_]:
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
         Retrieves a CSPAD detector data frame from psana.
 
@@ -190,7 +192,7 @@ class CspadPsana(OmDataSourceBase):
         cspad_reshaped: Union[
             NDArray[numpy.float_], NDArray[numpy.int_]
         ] = cspad_psana.reshape((4, 8, 185, 388))
-        cspad_slab: NDArray[numpy.float_ | numpy.int_] = numpy.zeros(
+        cspad_slab: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = numpy.zeros(
             shape=(1480, 1552), dtype=cspad_reshaped.dtype
         )
         index: int

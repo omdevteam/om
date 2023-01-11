@@ -21,8 +21,8 @@ from typing import Any, Dict, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms import crystallography as cryst_algs
-from om.algorithms import generic as gen_algs
+from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
+from om.algorithms.generic import Binning
 from om.library.geometry import TypePixelMaps
 from om.library.parameters import get_parameter_from_parameter_group
 
@@ -38,22 +38,20 @@ class CrystallographyPeakFinding:
         crystallography_parameters: Dict[str, Any],
         peak_finding_parameters: Dict[str, Any],
         pixel_maps: TypePixelMaps,
-        binning_algorithm: Union[gen_algs.Binning, None],
+        binning_algorithm: Union[Binning, None],
         binning_before_peak_finding: Union[bool, None],
     ) -> None:
         """
         TODO: Add documentation
         """
 
-        self._peak_detection: cryst_algs.Peakfinder8PeakDetection = (
-            cryst_algs.Peakfinder8PeakDetection(
-                parameters=peak_finding_parameters,
-                radius_pixel_map=cast(NDArray[numpy.float_], pixel_maps["radius"]),
-            )
+        self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
+            parameters=peak_finding_parameters,
+            radius_pixel_map=cast(NDArray[numpy.float_], pixel_maps["radius"]),
         )
-        if binning_algorithm is not None:
+        self._binning: Union[Binning, None] = binning_algorithm
+        if self._binning is not None:
 
-            self._binning: gen_algs.Binning = binning_algorithm
             self._binning_before_peak_finding: Union[
                 bool, None
             ] = binning_before_peak_finding
@@ -91,16 +89,12 @@ class CrystallographyPeakFinding:
             required=True,
         )
 
-    def find_peaks(
-        self, detector_data: numpy.ndarray
-    ) -> Tuple[cryst_algs.TypePeakList, bool]:
+    def find_peaks(self, detector_data: numpy.ndarray) -> Tuple[TypePeakList, bool]:
         """
         TODO: Add documentation.
         """
 
-        peak_list: cryst_algs.TypePeakList = self._peak_detection.find_peaks(
-            data=detector_data
-        )
+        peak_list: TypePeakList = self._peak_detection.find_peaks(data=detector_data)
 
         if self._binning is not None and not self._binning_before_peak_finding:
             peak_index: int

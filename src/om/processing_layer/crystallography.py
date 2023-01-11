@@ -30,16 +30,19 @@ from numpy.typing import NDArray
 from om.abcs.processing_layer import OmProcessingBase
 from om.algorithms.crystallography import TypePeakList
 from om.algorithms.generic import Binning, Correction
-from om.library import exceptions, geometry, parameters, zmq_collecting
 from om.library.crystallography_collecting import CrystallographyPlots
 from om.library.crystallography_processing import CrystallographyPeakFinding
+from om.library.exceptions import OmMissingDependencyError
 from om.library.generic_collecting import EventCounter
+from om.library.geometry import GeometryInformation
+from om.library.parameters import MonitorParameters
 from om.library.rich_console import console, get_current_timestamp
+from om.library.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
 
 try:
     import msgpack  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: msgpack"
     )
 
@@ -49,7 +52,7 @@ class CrystallographyProcessing(OmProcessingBase):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
+    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
         """
         OnDA Monitor for Crystallography.
 
@@ -69,14 +72,14 @@ class CrystallographyProcessing(OmProcessingBase):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
 
         # Parameters
-        self._monitor_params: parameters.MonitorParameters = monitor_parameters
+        self._monitor_params: MonitorParameters = monitor_parameters
 
         # Geometry
-        self._geometry_info = geometry.GeomttryInformation(
+        self._geometry_info = GeometryInformation(
             geometry_filename=self._monitor_params.get_parameter(
                 group="crystallography",
                 parameter="geometry_file",
@@ -199,12 +202,8 @@ class CrystallographyProcessing(OmProcessingBase):
         )
 
         # Data broadcast
-        self._data_broadcast_socket: zmq_collecting.ZmqDataBroadcaster = (
-            zmq_collecting.ZmqDataBroadcaster(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="crystallography"
-                )
-            )
+        self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
         # Plots
@@ -229,12 +228,8 @@ class CrystallographyProcessing(OmProcessingBase):
             maxlen=request_list_size
         )
 
-        self._responding_socket: zmq_collecting.ZmqResponder = (
-            zmq_collecting.ZmqResponder(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="crystallography"
-                )
-            )
+        self._responding_socket: ZmqResponder = ZmqResponder(
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
         self._source: str = self._monitor_params.get_parameter(
@@ -446,6 +441,11 @@ class CrystallographyProcessing(OmProcessingBase):
                 )
                 _ = self._request_list.popleft()
 
+        if self._pump_probe_experiment:
+            optical_laser_active: bool = received_data["optical_laser_active"]
+        else:
+            optical_laser_active = False
+
         # Plots
         curr_hit_rate_timestamp_history: Deque[float]
         curr_hit_rate_history: Deque[float]
@@ -469,7 +469,7 @@ class CrystallographyProcessing(OmProcessingBase):
             peak_list=received_data["peak_list"],
             frame_is_hit=received_data["frame_is_hit"],
             data_shape=received_data["data_shape"],
-            optical_laser_active=received_data["optical_laser_active"],
+            optical_laser_active=optical_laser_active,
         )
 
         if self._event_counter.should_broadcast_data():
@@ -481,7 +481,7 @@ class CrystallographyProcessing(OmProcessingBase):
                 "virtual_powder_plot": curr_virt_powd_plot_img,
                 "beam_energy": received_data["beam_energy"],
                 "detector_distance": received_data["detector_distance"],
-                "detector_distance_coffset": self._detector_distance_offset,
+                "detector_distance_offset": self._detector_distance_offset,
                 "pixel_size": self._pixel_size,
                 "pump_probe_experiment": self._pump_probe_experiment,
                 "start_timestamp": self._event_counter.get_start_timestamp(),

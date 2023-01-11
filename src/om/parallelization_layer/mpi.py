@@ -23,22 +23,23 @@ This module contains a Parallelization Layer based on the MPI protocol.
 import sys
 from typing import Any, Dict, Tuple, Union
 
-from mpi4py import MPI  # type: ignore
+from mpi4py import MPI
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.abcs import parallelization_layer as parl_abcs
-from om.abcs import processing_layer as prol_abcs
-from om.library import exceptions, parameters
+from om.abcs.data_retrieval_layer import OmDataEventHandlerBase, OmDataRetrievalBase
+from om.abcs.parallelization_layer import OmParallelizationBase
+from om.abcs.processing_layer import OmProcessingBase
+from om.library.exceptions import OmDataExtractionError
+from om.library.parameters import MonitorParameters
 from om.library.rich_console import console, get_current_timestamp
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
-_DIETAG: int = 999
-_DEADTAG: int = 1000
-_DATATAG: int = 1001
-_FEEDBACKTAG: int = 1002
+_DIE_TAG: int = 999
+_DEAD_TAG: int = 1000
+_DATA_TAG: int = 1001
+_FEEDBACK_TAG: int = 1002
 
 
-class MpiParallelization(parl_abcs.OmParallelizationBase):
+class MpiParallelization(OmParallelizationBase):
     """
     See documentation of the `__init__` function.
     """
@@ -46,9 +47,9 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
     def __init__(
         self,
         *,
-        data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
-        processing_layer: prol_abcs.OmProcessingBase,
-        monitor_parameters: parameters.MonitorParameters,
+        data_retrieval_layer: OmDataRetrievalBase,
+        processing_layer: OmProcessingBase,
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         MPI-based Parallelization Layer for OM.
@@ -67,13 +68,13 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
+        self._data_event_handler: OmDataEventHandlerBase = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: prol_abcs.OmProcessingBase = processing_layer
-        self._monitor_params: parameters.MonitorParameters = monitor_parameters
+        self._processing_layer: OmProcessingBase = processing_layer
+        self._monitor_params: MonitorParameters = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -88,7 +89,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
             self._data_event_handler.initialize_event_handling_on_collecting_node(
                 node_rank=self._rank, node_pool_size=self._mpi_size
             )
-            self._num_nomore: int = 0
+            self._num_no_more: int = 0
             self._num_collected_events: int = 0
         else:
             self._data_event_handler.initialize_event_handling_on_processing_node(
@@ -120,9 +121,9 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
 
             while True:
                 try:
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATATAG):
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATA_TAG):
                         received_data: Tuple[Dict[str, Any], int] = MPI.COMM_WORLD.recv(
-                            source=MPI.ANY_SOURCE, tag=_DATATAG
+                            source=MPI.ANY_SOURCE, tag=_DATA_TAG
                         )
                         if "end" in received_data[0].keys():
                             # If the received message announces that a processing node
@@ -132,11 +133,11 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                                 f"{get_current_timestamp()} Finalizing "
                                 f"{received_data[1]}"
                             )
-                            self._num_nomore += 1
+                            self._num_no_more += 1
                             # When all processing nodes have finished, calls the
                             # 'end_processing_on_collecting_node' function then shuts
                             # down.
-                            if self._num_nomore == self._mpi_size - 1:
+                            if self._num_no_more == self._mpi_size - 1:
                                 console.print(
                                     f"{get_current_timestamp()} All processing nodes "
                                     f"have run out of events."
@@ -171,7 +172,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                                         req = MPI.COMM_WORLD.isend(
                                             feedback_data[0],
                                             dest=target_rank,
-                                            tag=_FEEDBACKTAG,
+                                            tag=_FEEDBACK_TAG,
                                         )
                                 else:
                                     if req:
@@ -179,7 +180,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                                     req = MPI.COMM_WORLD.isend(
                                         feedback_data[receiving_rank],
                                         dest=receiving_rank,
-                                        tag=_FEEDBACKTAG,
+                                        tag=_FEEDBACK_TAG,
                                     )
                     else:
                         self._processing_layer.wait_for_data(
@@ -209,12 +210,12 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
             event: Dict[str, Any]
             for event in events:
                 # Listens for requests to shut down.
-                if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIETAG):
+                if MPI.COMM_WORLD.Iprobe(source=0, tag=_DIE_TAG):
                     self.shutdown(msg=f"Shutting down RANK: {self._rank}.")
 
                 feedback_dict: Dict[str, Any] = {}
-                if MPI.COMM_WORLD.Iprobe(source=0, tag=_FEEDBACKTAG):
-                    feedback_dict = MPI.COMM_WORLD.recv(source=0, tag=_FEEDBACKTAG)
+                if MPI.COMM_WORLD.Iprobe(source=0, tag=_FEEDBACK_TAG):
+                    feedback_dict = MPI.COMM_WORLD.recv(source=0, tag=_FEEDBACK_TAG)
 
                 self._data_event_handler.open_event(event=event)
                 n_frames_in_evt: int = self._data_event_handler.get_num_frames_in_event(
@@ -235,7 +236,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                         data: Dict[str, Any] = self._data_event_handler.extract_data(
                             event=event
                         )
-                    except exceptions.OmDataExtractionError as exc:
+                    except OmDataExtractionError as exc:
                         console.print(
                             f"{get_current_timestamp()} {exc}", style="warning"
                         )
@@ -252,7 +253,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                     )
                     if req:
                         req.Wait()
-                    req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=_DATATAG)
+                    req = MPI.COMM_WORLD.isend(processed_data, dest=0, tag=_DATA_TAG)
                 # Makes sure that the last MPI message has processed.
                 if req:
                     req.Wait()
@@ -270,7 +271,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                 if req:
                     req.Wait()
                 req = MPI.COMM_WORLD.isend(
-                    (final_data, self._rank), dest=0, tag=_DATATAG
+                    (final_data, self._rank), dest=0, tag=_DATA_TAG
                 )
                 if req:
                     req.Wait()
@@ -280,7 +281,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
             end_dict = {"end": True}
             if req:
                 req.Wait()
-            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=_DATATAG)
+            req = MPI.COMM_WORLD.isend((end_dict, self._rank), dest=0, tag=_DATA_TAG)
             if req:
                 req.Wait()
             MPI.Finalize()
@@ -311,12 +312,12 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
             try:
                 node_num: int
                 for node_num in range(1, self._mpi_size):
-                    MPI.COMM_WORLD.isend(0, dest=node_num, tag=_DIETAG)
+                    MPI.COMM_WORLD.isend(0, dest=node_num, tag=_DIE_TAG)
                 num_shutdown_confirm = 0
                 while True:
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATATAG):
-                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=_DATATAG)
-                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DEADTAG):
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DATA_TAG):
+                        _ = MPI.COMM_WORLD.recv(source=MPI.ANY_SOURCE, tag=_DATA_TAG)
+                    if MPI.COMM_WORLD.Iprobe(source=MPI.ANY_SOURCE, tag=_DEAD_TAG):
                         num_shutdown_confirm += 1
                     if num_shutdown_confirm == self._mpi_size - 1:
                         break
@@ -329,7 +330,7 @@ class MpiParallelization(parl_abcs.OmParallelizationBase):
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
         else:
-            req = MPI.COMM_WORLD.send(dest=0, tag=_DEADTAG)
+            req = MPI.COMM_WORLD.send(dest=0, tag=_DEAD_TAG)
             if req:
                 req.Wait()
             MPI.Finalize()

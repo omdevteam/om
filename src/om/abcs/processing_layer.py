@@ -23,7 +23,7 @@ This module contains base abstract classes for OM's Processing Layer.
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple, Union
 
-from om.library import parameters
+from om.library.parameters import MonitorParameters
 
 
 class OmProcessingBase(ABC):
@@ -32,7 +32,7 @@ class OmProcessingBase(ABC):
     """
 
     @abstractmethod
-    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
+    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
         """
         Base class for an OM's Monitor.
 
