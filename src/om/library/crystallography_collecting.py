@@ -271,3 +271,107 @@ class CrystallographyPlots:
         )
 
         self._peakogram = numpy.zeros_like(self._peakogram)
+
+
+class SwaxsPlots:
+    def __init__(
+        self,
+        *,
+        swaxs__parameters: Dict[str, Any],
+    ):
+        self._droplet_detection_enabled: Union[
+            bool, None
+        ] = get_parameter_from_parameter_group(
+            group=swaxs__parameters,
+            parameter="droplet_detection_enabled",
+            parameter_type=bool,
+            default=False,
+        )
+
+        if self._droplet_detection_enabled:
+
+            # self._save_radials: bool = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="save_radials",
+            #     parameter_type=bool,
+            #     required=True,
+            # )
+
+            # if self._save_radials:
+            #     self._radials_filename: str = self._monitor_params.get_param(
+            #         group="droplet_detection",
+            #         parameter="radials_filename",
+            #         parameter_type=str,
+            #         required=True,
+            #     )
+
+            # droplet hitrate
+            self._droplet_hit_rate_running_window: Deque[float] = collections.deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._avg_droplet_hit_rate: int = 0
+            self._droplet_hit_rate_timestamp_history: Deque[float] = collections.deque(
+                5000 * [0.0], maxlen=5000
+            )
+            self._droplet_hit_rate_history: Deque[float] = collections.deque(
+                5000 * [0.0], maxlen=5000
+            )
+
+            # self._q_tosave: List[numpy.ndarray] = []
+            # self._image_sum_tosave: List[float] = []
+            # self._radials_tosave: List[numpy.ndarray] = []
+            # self._errors_tosave: List[numpy.ndarray] = []
+            self._frame_is_droplet: List[bool] = []
+            self._frame_is_crystal: List[bool] = []
+            self._frame_is_jet: List[bool] = []
+            self._q: List[numpy.ndarrray] = None
+
+            # self._roi1_qmin: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="roi1_qmin",
+            #     parameter_type=float,
+            #     required=True,
+            # )
+            # self._roi1_qmax: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="roi1_qmax",
+            #     parameter_type=float,
+            #     required=True,
+            # )
+            # self._roi2_qmin: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="roi2_qmin",
+            #     parameter_type=float,
+            #     required=True,
+            # )
+            # self._roi2_qmax: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="roi2_qmax",
+            #     parameter_type=float,
+            #     required=True,
+            # )
+            # self._estimate_particle_size: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="estimate_particle_size",
+            #     parameter_type=bool,
+            #     required=True,
+            # )
+            # self._use_guinier_peak: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="use_guinier_peak",
+            #     parameter_type=bool,
+            #     required=False,
+            # )
+            # self._guinier_qmin: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="guinier_qmin",
+            #     parameter_type=float,
+            #     required=False,
+            # )
+            # self._guinier_qmax: float = self._monitor_params.get_param(
+            #     group="droplet_detection",
+            #     parameter="guinier_qmax",
+            #     parameter_type=float,
+            #     required=False,
+            # )

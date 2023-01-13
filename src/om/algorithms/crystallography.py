@@ -55,29 +55,6 @@ def _read_profile(*, profile_filename: str) -> Union[numpy.ndarray, None]:
         return None
 
 
-def _fit_by_least_squares(
-    *,
-    radial_profile: numpy.ndarray,
-    vectors: numpy.ndarray,
-    start_bin: Union[int, None] = None,
-    stop_bin: Union[int, None] = None,
-) -> numpy.ndarray:
-    # This function fits a set of linearly combined vectors to a radial profile,
-    # using a least-squares-based approach. The fit only takes into account the
-    # range of radial bins defined by the xmin and xmax arguments.
-    if start_bin is None:
-        start_bin = 0
-    if stop_bin is None:
-        stop_bin = len(radial_profile)
-    a: numpy.ndarray = numpy.nan_to_num(numpy.atleast_2d(vectors).T)
-    b: numpy.ndarray = numpy.nan_to_num(radial_profile)
-    a = a[start_bin:stop_bin]
-    b = b[start_bin:stop_bin]
-    coefficients: numpy.ndarray
-    coefficients, _, _, _ = numpy.linalg.lstsq(a, b, rcond=None)
-    return coefficients
-
-
 class TypePeakfinder8Info(TypedDict, total=True):
     """
     Detector layout information for the peakfinder8 algorithm.
@@ -790,15 +767,16 @@ class Peakfinder8PeakDetection:
         }
 
 
-class DropletDetection:
+class RadialProfileAnalysisWithSampleDetection:
     """
     See documentation of the '__init__' function.
     """
 
     def __init__(
         self,
+        *,
         radius_pixel_map: NDArray[numpy.float_],
-        parameters: Dict[str, Any],
+        swaxs_parameters: Dict[str, Any],
     ) -> None:
         """
         Algorithm for aqueous droplet detection.
@@ -806,24 +784,24 @@ class DropletDetection:
         This class stores the parameters needed by a droplet detection algorithm, and
         detects droplets in a detector data frame upon request. The algorithm has two
         modes of operation. The simple mode measures the ratio of the water peak height
-        to the oil peak height. The more complex mode uses least squares to fit the
-        radial profile with a pure oil and water profile and decide if its oil or
+        to the sample peak height. The more complex mode uses least squares to fit the
+        radial profile with a pure sample and water profile and decide if its sample or
         water.
 
         Arguments:
 
-            droplet_detection_enabled: Whether to apply or not droplet detection.
+            sample_detection_enabled: Whether to apply or not droplet detection.
 
             save_radials: Whether or not to save radials and droplet detection results
                 in an hdf5 file. This should be False if running on shared memory, but
                 can be True when accessing data on disk, and can be useful for creating
-                pure oil and water profiles.
+                pure sample and water profiles.
 
-            oil_peak_min_i: The minimum radial distance from the center of the detector
-                reference system defining the oil peak (in pixels).
+            sample_peak_min_i: The minimum radial distance from the center of the
+                detector reference system defining the sample peak (in pixels).
 
-            oil_peak_max_i: The maximum radial distance from the center of the detector
-                reference system defining the oil peak (in pixels).
+            sample_peak_max_i: The maximum radial distance from the center of the
+                detector reference system defining the sample peak (in pixels).
 
             water_peak_min_i: The minimum radial distance from the center of the
                 detector reference system defining the water peak (in pixels).
@@ -831,7 +809,7 @@ class DropletDetection:
             water_peak_max_i: The maximum radial distance from the center of the
                 detector reference system defining the water peak (in pixels).
 
-            oil_profile: The radial profile for pure oil.
+            sample_profile: The radial profile for pure sample.
 
             water_profile: The radial profile for pure water or buffer.
 
@@ -864,56 +842,57 @@ class DropletDetection:
                   is not modified in any way.
 
         #TODO: Fix documentation
-
         """
 
-        self._oil_peak_min_bin: int = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="oil_peak_min_bin",
+        self._sample_peak_min_bin: int = get_parameter_from_parameter_group(
+            group=swaxs_parameters,
+            parameter="sample_peak_min_bin",
             parameter_type=int,
             required=True,
         )
-        self._oil_peak_max_bin: int = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="oil_peak_max_bin",
+        self._sample_peak_max_bin: int = get_parameter_from_parameter_group(
+            group=swaxs_parameters,
+            parameter="sample_peak_max_bin",
             parameter_type=int,
             required=True,
         )
         self._water_peak_min_bin: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=swaxs_parameters,
             parameter="water_peak_min_bin",
             parameter_type=int,
             required=True,
         )
         self._water_peak_max_bin: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=swaxs_parameters,
             parameter="water_peak_max_bin",
             parameter_type=int,
             required=True,
         )
         self._threshold_min: float = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="minimum_oil_to_water_ratio_for_droplet_hit",
+            group=swaxs_parameters,
+            parameter="minimum_sample_to_water_ratio_for_sample",
             parameter_type=float,
             required=True,
         )
         self._threshold_max: float = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="maximum_oil_to_water_ratio_for_droplet_hit",
+            group=swaxs_parameters,
+            parameter="maximum_sample_to_water_ratio_for_sample",
             parameter_type=float,
             required=True,
         )
-        oil_profile_filename: str = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="oil_profile_filename",
+        sample_profile_filename: str = get_parameter_from_parameter_group(
+            group=swaxs_parameters,
+            parameter="sample_profile_filename",
             parameter_type=str,
         )
 
-        if oil_profile_filename is not None:
-            self._oil_profile = _read_profile(profile_filename=oil_profile_filename)
+        if sample_profile_filename is not None:
+            self._sample_profile = _read_profile(
+                profile_filename=sample_profile_filename
+            )
 
         water_profile_filename: str = get_parameter_from_parameter_group(
-            group=parameters,
+            group=swaxs_parameters,
             parameter="water_profile_filename",
             parameter_type=str,
         )
@@ -922,7 +901,7 @@ class DropletDetection:
             self._water_profile = _read_profile(profile_filename=water_profile_filename)
 
         bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters,
+            group=swaxs_parameters,
             parameter="bad_pixel_map_filename",
             parameter_type=str,
         )
@@ -930,7 +909,7 @@ class DropletDetection:
             bad_pixel_map_hdf5_path: Union[
                 str, None
             ] = get_parameter_from_parameter_group(
-                group=parameters,
+                group=swaxs_parameters,
                 parameter="bad_pixel_map_hdf5_path",
                 parameter_type=str,
                 required=True,
@@ -969,14 +948,12 @@ class DropletDetection:
         self._radial_bin_labels -= 1
         self._mask_initialized: bool = False
         self._mask: Union[numpy.ndarray, None] = None
-        self._first_time: bool = True
 
-    def radial_profile(
+    def compute_radial_profile(
         self,
+        *,
         data: numpy.ndarray,
-        median_filter: bool = True,
-        return_errors: bool = False,
-    ) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]:
+    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
         Calculate radial profile from a detector data frame.
 
@@ -1009,22 +986,17 @@ class DropletDetection:
         with numpy.errstate(divide="ignore", invalid="ignore"):
             # numpy.errstate just allows us to ignore the divide by zero warning
             radial: numpy.ndarray = numpy.nan_to_num(bin_sum / bin_count)
-        if median_filter:
-            radial = scipy.signal.medfilt(radial, 21)
-        if return_errors:
-            errors: numpy.ndarray = scipy.stats.binned_statistic(
-                self._radial_bin_labels[self._mask].ravel(),
-                data[self._mask].ravel(),
-                "std",
-            )[0]
-            # TODO: What are the next lines for?
-            if len(errors) != len(radial):
-                errors = radial * 0.03
-            return radial, errors
-        else:
-            return radial
+        errors: numpy.ndarray = scipy.stats.binned_statistic(
+            self._radial_bin_labels[self._mask].ravel(),
+            data[self._mask].ravel(),
+            "std",
+        )[0]
+        # TODO: What are the next lines for?
+        if len(errors) != len(radial):
+            errors = radial * 0.03
+        return radial, errors
 
-    def is_droplet(self, radial_profile: numpy.ndarray) -> Tuple[bool, float]:
+    def detect_sample(self, radial_profile: numpy.ndarray) -> bool:
         """
         Decides whether a radial profile is from an aqueous droplet.
 
@@ -1041,40 +1013,63 @@ class DropletDetection:
 
             True if the radial profile matches an aqueous droplet, False otherwise.
         """
-        if self._oil_profile is not None and self._water_profile is not None:
+        if self._sample_profile is not None and self._water_profile is not None:
             # More complex algorithm where the radial is fit with a linear combination
-            # of user defined oil and water profiles using least squares
+            # of user defined sample and water profiles using least squares
             vectors: numpy.ndarray = numpy.vstack(
-                (self._oil_profile, self._water_profile)
+                (self._sample_profile, self._water_profile)
             )
-            coefficients = _fit_by_least_squares(
+            coefficients = fit_by_least_squares(
                 radial_profile=radial_profile, vectors=vectors
             )
-            water_profile_to_oil_profile_ratio: float = (
+            water_profile_to_sample_profile_ratio: float = (
                 coefficients[1] / coefficients[0]
             )
             if coefficients[0] < 0:
-                # If oil coefficient is negative, it's all water
-                water_profile_to_oil_profile_ratio = 1.0
+                # If sample coefficient is negative, it's all water
+                water_profile_to_sample_profile_ratio = 1.0
             if coefficients[1] < 0:
-                # If water coefficient is negative, it's all oil
-                water_profile_to_oil_profile_ratio = 0.0
+                # If water coefficient is negative, it's all sample
+                water_profile_to_sample_profile_ratio = 0.0
         else:
             # TODO: Why a try/except?
-            # Simple ratio of water peak intensity to oil peak intensity
-            oil_profile_mean: float = numpy.mean(
-                radial_profile[self._oil_peak_min_bin : self._oil_peak_max_bin]
+            # Simple ratio of water peak intensity to sample peak intensity
+            sample_profile_mean: float = numpy.mean(
+                radial_profile[self._sample_peak_min_bin : self._sample_peak_max_bin]
             )
             water_profile_mean: float = numpy.mean(
                 radial_profile[self._water_peak_min_bin : self._water_peak_max_bin]
             )
-            water_profile_to_oil_profile_ratio = water_profile_mean / oil_profile_mean
-        frame_is_droplet = (
+            water_profile_to_sample_profile_ratio = (
+                water_profile_mean / sample_profile_mean
+            )
+        sample_detected: bool = (
             # Having a threshold maximum helps filtering out nozzle hits too
-            (water_profile_to_oil_profile_ratio > self._threshold_min)
-            and (water_profile_to_oil_profile_ratio < self._threshold_max)
+            (water_profile_to_sample_profile_ratio > self._threshold_min)
+            and (water_profile_to_sample_profile_ratio < self._threshold_max)
         )
-        if self._first_time:
-            self._first_time = False
 
-        return frame_is_droplet, water_profile_to_oil_profile_ratio
+        return sample_detected
+
+
+def fit_by_least_squares(
+    *,
+    radial_profile: numpy.ndarray,
+    vectors: numpy.ndarray,
+    start_bin: Union[int, None] = None,
+    stop_bin: Union[int, None] = None,
+) -> numpy.ndarray:
+    # This function fits a set of linearly combined vectors to a radial profile,
+    # using a least-squares-based approach. The fit only takes into account the
+    # range of radial bins defined by the xmin and xmax arguments.
+    if start_bin is None:
+        start_bin = 0
+    if stop_bin is None:
+        stop_bin = len(radial_profile)
+    a: numpy.ndarray = numpy.nan_to_num(numpy.atleast_2d(vectors).T)
+    b: numpy.ndarray = numpy.nan_to_num(radial_profile)
+    a = a[start_bin:stop_bin]
+    b = b[start_bin:stop_bin]
+    coefficients: numpy.ndarray
+    coefficients, _, _, _ = numpy.linalg.lstsq(a, b, rcond=None)
+    return coefficients
