@@ -196,6 +196,8 @@ class CrystallographyProcessing(OmProcessingBase):
         )
 
         self._pixel_size = self._geometry_info.get_pixel_size()
+        if self._binning is not None:
+            self._pixel_size /= self._binning.get_bin_size()
 
         self._detector_distance_offset: float = (
             self._geometry_info.get_detector_distance_offset()
