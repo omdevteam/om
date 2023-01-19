@@ -455,19 +455,16 @@ class Peakfinder8PeakDetection:
             self._fast_mode = fast_mode
 
         if self._fast_mode is True:
-            num_pixels_per_bin_param: Union[
-                int, None
-            ] = get_parameter_from_parameter_group(
+            self._num_pixels_per_bin: int = get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="rstats_numpix_per_bin",
                 parameter_type=int,
                 required=False,
+                default=100,
             )
-            if num_pixels_per_bin_param is None:
-                num_pixels_per_bin: int = 100
-            else:
-                num_pixels_per_bin = num_pixels_per_bin_param
-            self._compute_radial_stats_pixels(num_pixels_per_bin=num_pixels_per_bin)
+            self._compute_radial_stats_pixels(
+                num_pixels_per_bin=self._num_pixels_per_bin
+            )
 
     def _compute_radial_stats_pixels(self, *, num_pixels_per_bin: int) -> None:
         radius_pixel_map_as_int: NDArray[numpy.int_] = (
@@ -507,6 +504,7 @@ class Peakfinder8PeakDetection:
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
+        self._compute_radial_stats_pixels(num_pixels_per_bin=self._num_pixels_per_bin)
 
     def get_adc_thresh(self) -> float:
         """
