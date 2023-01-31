@@ -1,4 +1,4 @@
-::: om.utils
+::: om.library
     selection:
       members: false
 
@@ -8,4 +8,4 @@
   * [parameters](parameters.md)
   * [rich_console](rich_console.md)
   * [zmq_gui](zmq_gui.md)
-  * [zmq_moitor](zmq_monitor.md)
+  * [zmq_moitor](zmq_collecting.md)

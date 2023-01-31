@@ -23,7 +23,7 @@ This module contains base abstract classes for OM's Data Extraction Layer.
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Generator, List
 
-from om.utils import exceptions, parameters
+from om.library import exceptions, parameters
 
 
 class OmDataSourceBase(ABC):
@@ -36,7 +36,7 @@ class OmDataSourceBase(ABC):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Base class for OM's Data Source classes.
@@ -110,7 +110,7 @@ class OmDataEventHandlerBase(ABC):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Base class for OM's Data Event Handler classes.
@@ -351,7 +351,7 @@ class OmDataRetrievalBase(ABC):
     def __init__(
         self,
         *,
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
         source: str,
     ) -> None:
         """

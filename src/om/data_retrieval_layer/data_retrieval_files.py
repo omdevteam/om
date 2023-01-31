@@ -22,19 +22,44 @@ This module contains Data Retrieval classes that deal with files.
 """
 from typing import Dict
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_event_handlers_files as deh_files
-from om.data_retrieval_layer import data_sources_files as ds_files
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.utils import parameters
+from om.abcs.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
+from om.data_retrieval_layer.data_event_handlers_files import (
+    Eiger16MFilesDataEventHandler,
+    Jungfrau1MFilesDataEventHandler,
+    Lambda1M5FilesDataEventHandler,
+    PilatusFilesEventHandler,
+    RayonixMccdFilesEventHandler,
+)
+from om.data_retrieval_layer.data_sources_files import (
+    Eiger16MFiles,
+    EventIdEiger16MFiles,
+    EventIdFromFilePath,
+    EventIdJungfrau1MFiles,
+    EventIdLambda1M5Files,
+    Jungfrau1MFiles,
+    Lambda1M5Files,
+    PilatusSingleFrameFiles,
+    RayonixMccdSingleFrameFiles,
+    TimestampFromFileModificationTime,
+    TimestampJungfrau1MFiles,
+)
+from om.data_retrieval_layer.data_sources_generic import (
+    FloatEntryFromConfiguration,
+    FrameIdZero,
+)
+from om.library.parameters import MonitorParameters
 
 
-class PilatusFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
+class PilatusFilesDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
         Data Retrieval for Pilatus single-frame CBF files.
 
@@ -69,38 +94,36 @@ class PilatusFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
-            "timestamp": ds_files.TimestampFromFileModificationTime(
+        data_sources: Dict[str, OmDataSourceBase] = {
+            "timestamp": TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
-            "event_id": ds_files.EventIdFromFilePath(
+            "event_id": EventIdFromFilePath(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
             ),
-            "frame_id": ds_generic.FrameIdZero(
+            "frame_id": FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_files.PilatusSingleFrameFiles(
+            "detector_data": PilatusSingleFrameFiles(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+            "beam_energy": FloatEntryFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+            "detector_distance": FloatEntryFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
                 monitor_parameters=monitor_parameters,
             ),
         }
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
-            deh_files.PilatusFilesEventHandler(
-                source=source,
-                monitor_parameters=monitor_parameters,
-                data_sources=data_sources,
-            )
+        self._data_event_handler: OmDataEventHandlerBase = PilatusFilesEventHandler(
+            source=source,
+            monitor_parameters=monitor_parameters,
+            data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -114,12 +137,12 @@ class PilatusFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class Jungfrau1MFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
+class Jungfrau1MFilesDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
         Data Retrieval for Jungfrau 1M HDF5 files.
 
@@ -158,38 +181,38 @@ class Jungfrau1MFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
-            "timestamp": ds_files.TimestampJungfrau1MFiles(
+        data_sources: Dict[str, OmDataSourceBase] = {
+            "timestamp": TimestampJungfrau1MFiles(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
-            "event_id": ds_files.EventIdJungfrau1MFiles(
+            "event_id": EventIdJungfrau1MFiles(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
             ),
-            "frame_id": ds_generic.FrameIdZero(
+            "frame_id": FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_files.Jungfrau1MFiles(
+            "detector_data": Jungfrau1MFiles(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+            "beam_energy": FloatEntryFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+            "detector_distance": FloatEntryFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
                 monitor_parameters=monitor_parameters,
             ),
         }
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
-            deh_files.Jungfrau1MFilesDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerBase = (
+            Jungfrau1MFilesDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
                 data_sources=data_sources,
             )
         )
 
-    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -203,12 +226,12 @@ class Jungfrau1MFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class Eiger16MFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
+class Eiger16MFilesDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
         Data Retrieval for Eiger 16M HDF5 files.
 
@@ -244,38 +267,38 @@ class Eiger16MFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
-            "timestamp": ds_files.TimestampFromFileModificationTime(
+        data_sources: Dict[str, OmDataSourceBase] = {
+            "timestamp": TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
-            "event_id": ds_files.EventIdEiger16MFiles(
+            "event_id": EventIdEiger16MFiles(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
             ),
-            "frame_id": ds_generic.FrameIdZero(
+            "frame_id": FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_files.Eiger16MFiles(
+            "detector_data": Eiger16MFiles(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+            "beam_energy": FloatEntryFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+            "detector_distance": FloatEntryFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
                 monitor_parameters=monitor_parameters,
             ),
         }
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
-            deh_files.Eiger16MFilesDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerBase = (
+            Eiger16MFilesDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
                 data_sources=data_sources,
             )
         )
 
-    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -289,12 +312,12 @@ class Eiger16MFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class RayonixMccdFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
+class RayonixMccdFilesDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
         Data Retrieval for Rayonix MX340-HS single-frame mccd files.
 
@@ -329,38 +352,36 @@ class RayonixMccdFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
-            "timestamp": ds_files.TimestampFromFileModificationTime(
+        data_sources: Dict[str, OmDataSourceBase] = {
+            "timestamp": TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
-            "event_id": ds_files.EventIdFromFilePath(
+            "event_id": EventIdFromFilePath(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
             ),
-            "frame_id": ds_generic.FrameIdZero(
+            "frame_id": FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_files.RayonixMccdSingleFrameFiles(
+            "detector_data": RayonixMccdSingleFrameFiles(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+            "beam_energy": FloatEntryFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+            "detector_distance": FloatEntryFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
                 monitor_parameters=monitor_parameters,
             ),
         }
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
-            deh_files.RayonixMccdFilesEventHandler(
-                source=source,
-                monitor_parameters=monitor_parameters,
-                data_sources=data_sources,
-            )
+        self._data_event_handler: OmDataEventHandlerBase = RayonixMccdFilesEventHandler(
+            source=source,
+            monitor_parameters=monitor_parameters,
+            data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 
@@ -374,12 +395,12 @@ class RayonixMccdFilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class Lambda1M5FilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
+class Lambda1M5FilesDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
         Data Retrieval for Lambda 1.5M HDF5 files.
 
@@ -417,38 +438,38 @@ class Lambda1M5FilesDataRetrieval(drl_abcs.OmDataRetrievalBase):
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
-            "timestamp": ds_files.TimestampFromFileModificationTime(
+        data_sources: Dict[str, OmDataSourceBase] = {
+            "timestamp": TimestampFromFileModificationTime(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
-            "event_id": ds_files.EventIdLambda1M5Files(
+            "event_id": EventIdLambda1M5Files(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
             ),
-            "frame_id": ds_generic.FrameIdZero(
+            "frame_id": FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_files.Lambda1M5Files(
+            "detector_data": Lambda1M5Files(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+            "beam_energy": FloatEntryFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+            "detector_distance": FloatEntryFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
                 monitor_parameters=monitor_parameters,
             ),
         }
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
-            deh_files.Lambda1M5FilesDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerBase = (
+            Lambda1M5FilesDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
                 data_sources=data_sources,
             )
         )
 
-    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 

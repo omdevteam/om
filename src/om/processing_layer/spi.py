@@ -28,10 +28,10 @@ from typing import Any, Deque, Dict, Tuple, Union
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms import generic as gen_algs
 from om.abcs import processing_layer as prol_abcs
-from om.utils import parameters, zmq_monitor
-from om.utils.rich_console import console, get_current_timestamp
+from om.algorithms import generic as gen_algs
+from om.library import parameters, zmq_collecting
+from om.library.rich_console import console, get_current_timestamp
 
 
 class SpiProcessing(prol_abcs.OmProcessingBase):
@@ -39,7 +39,7 @@ class SpiProcessing(prol_abcs.OmProcessingBase):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
         """
         OnDA Test Monitor.
 
@@ -140,14 +140,16 @@ class SpiProcessing(prol_abcs.OmProcessingBase):
             required=True,
         )
 
-        self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-            zmq_monitor.ZmqDataBroadcaster(
+        self._data_broadcast_socket: zmq_collecting.ZmqDataBroadcaster = (
+            zmq_collecting.ZmqDataBroadcaster(
                 parameters=self._monitor_params.get_parameter_group(group="spi")
             )
         )
 
-        self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
-            parameters=self._monitor_params.get_parameter_group(group="spi")
+        self._responding_socket: zmq_collecting.ZmqResponder = (
+            zmq_collecting.ZmqResponder(
+                parameters=self._monitor_params.get_parameter_group(group="spi")
+            )
         )
 
         self._num_events: int = 0

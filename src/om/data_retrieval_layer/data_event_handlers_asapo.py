@@ -23,18 +23,19 @@ the ASAP::O software framework (used at the PETRA III facility).
 """
 import sys
 import time
-from typing import Any, Dict, Generator, List, Union, NamedTuple
+from typing import Any, Dict, Generator, List, NamedTuple, Union
 
 import numpy
 from numpy.typing import NDArray
 
 from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
+from om.library.exceptions import OmDataExtractionError, OmMissingDependencyError
+from om.library.parameters import MonitorParameters
 
 try:
     import asapo_consumer  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: asapo_consumer"
     )
 
@@ -58,7 +59,7 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for ASAP::O events.
@@ -72,10 +73,10 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         * For this Event Handler, a data event corresponds to the content of an
           individual ASAP::O event.
 
-        * The source string required by this Data Event Handler is either just the ID
-          of the current beamtime for online data retrieval, or the ID of a beamtime
-          and the name of an ASAP::O stream name separated by a colon for offline
-          data retrieval.
+        * The source string required by this Data Event Handler is either the ID of the
+          beamtime for which OM is being used (for online data retrieval) or the ID of
+          the beamtime and the ASAP::O stream name, separated by a colon (for offline
+          data retrieval).
 
         Arguments:
 
@@ -93,7 +94,7 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         """
 
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
@@ -399,7 +400,7 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -408,13 +409,20 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def initialize_frame_data_retrieval(self) -> None:
         """
-        Initializes frame data retrieval from ASAP::O.
+        <<<<<<< HEAD
+                Initializes frame data retrieval from ASAP::O.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+                This method overrides the corresponding method of the base class: please also
+                refer to the documentation of that class for more information.
 
-        This function initializes the retrieval of a single standalone detector data
-        frame, with all its related information, from ASAP::O.
+                This function initializes the retrieval of a single standalone detector data
+                frame, with all its related information, from ASAP::O.
+        =======
+                Initializes frame data retrievals from ASAP::O.
+
+                This function initializes the retrieval of a single standalone detector data
+                frame from ASAP::O, with all the information that refers to it.
+        >>>>>>> feature/library
         """
         required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -435,27 +443,42 @@ class AsapoDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves from ASAP::O all data related to the requested detector frame.
+        <<<<<<< HEAD
+                Retrieves from ASAP::O all data related to the requested detector frame.
+        =======
+                Retrieves all data related to the requested detector frame from an event.
+        >>>>>>> feature/library
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+                This method overrides the corresponding method of the base class: please also
+                refer to the documentation of that class for more information.
 
-        This function retrieves frame data,  from the event specified by the provided
-        psana unique event identifier. An ASAP::O event identifier corresponds to the name of an ASAP::O stream and
-        the ID of an ASAP::O event within the stream separated by the "//" symbol.
-        Since ASAP::O data events are based around single detector frames, the unique
-        frame identifier must always be the string "0".
+        <<<<<<< HEAD
+                This function retrieves frame data,  from the event specified by the provided
+                psana unique event identifier. An ASAP::O event identifier corresponds to the name of an ASAP::O stream and
+                the ID of an ASAP::O event within the stream separated by the "//" symbol.
+                Since ASAP::O data events are based around single detector frames, the unique
+                frame identifier must always be the string "0".
+        =======
+                This function retrieves, from the event specified by the provided unique event
+                identifier, data related to a specific detector frame, determined by the
+                provided unique frame identifier.
 
-        Arguments:
+                The ASAP::O event identifier corresponds to the ASAP::O stream name and the ID
+                of the ASAP::O event within the stream separated by the "//" symbol. Since
+                ASAP::O data events are based around single detector frames, the unique frame
+                identifier must always be the string "0".
+        >>>>>>> feature/library
 
-            event_id: a string that uniquely identifies a data event.
+                Arguments:
 
-            frame_id: a string that identifies a particular frame within the data
-                event.
+                    event_id: a string that uniquely identifies a data event.
 
-        Returns:
+                    frame_id: a string that identifies a particular frame within the data
+                        event.
 
-            All data related to the requested detector data frame.
+                Returns:
+
+                    All data related to the requested detector data frame.
         """
         event_id_parts: List[str] = event_id.split("//")
         stream: str = event_id_parts[0].strip()

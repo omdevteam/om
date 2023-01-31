@@ -25,12 +25,13 @@ import copy
 from abc import ABCMeta, abstractmethod
 from typing import Any, Callable, Dict, List, Union  # noqa: F401
 
-from om.utils import exceptions, zmq_gui
+from om.library.exceptions import OmMissingDependencyError
+from om.library.zmq_gui import ZmqDataListener
 
 try:
     from PyQt5 import QtCore, QtWidgets
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
@@ -88,9 +89,7 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         self.statusBar().showMessage("")
 
         self._data_listener_thread: Any = QtCore.QThread(parent=self)
-        self._data_listener: zmq_gui.ZmqDataListener = zmq_gui.ZmqDataListener(
-            url=url, tag=tag
-        )
+        self._data_listener: ZmqDataListener = ZmqDataListener(url=url, tag=tag)
         self._data_listener.zmqmessage.connect(self._data_received)
         self._listening_thread_start_processing.connect(
             self._data_listener.start_listening
@@ -122,7 +121,7 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         Disconnects from an OnDA Monitor and stops listening for data.
 
         This function instructs the listening thread to disconnect from an
-        OnDA Monitor and to stop receiveing data.
+        OnDA Monitor and to stop receiving data.
         """
         if self.listening:
             self.listening = False

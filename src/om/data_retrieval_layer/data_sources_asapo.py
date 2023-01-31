@@ -27,20 +27,19 @@ import numpy
 from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.utils import exceptions
-from om.utils.parameters import MonitorParams
+from om.abcs.data_retrieval_layer import OmDataSourceBase
+from om.library.exceptions import OmMissingDependencyError
+from om.library.parameters import MonitorParameters
 
 try:
     import seedee  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: seedee"
     )
 
 
-class EigerAsapo(drl_abcs.OmDataSourceBase):
+class EigerAsapo(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -49,7 +48,7 @@ class EigerAsapo(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Eiger 16M detector data frames from the ASAPO software framework at the PETRA
@@ -104,12 +103,13 @@ class EigerAsapo(drl_abcs.OmDataSourceBase):
 
             One detector data frame.
         """
+        # TODO: Fix type hinting
         return seedee.deserialize(
             event["data"], event["metadata"]["meta"]["_data_format"]
         )
 
 
-class TimestampAsapo(drl_abcs.OmDataSourceBase):
+class TimestampAsapo(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -118,7 +118,7 @@ class TimestampAsapo(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Timestamp information from ASAPO at the PETRA III facility.
@@ -173,7 +173,7 @@ class TimestampAsapo(drl_abcs.OmDataSourceBase):
         return cast(numpy.float64, event["metadata"]["timestamp"] / 1e9)
 
 
-class EventIdAsapo(drl_abcs.OmDataSourceBase):
+class EventIdAsapo(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -182,7 +182,7 @@ class EventIdAsapo(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Data event identifier from the ASAPO software framework at the PETRA III
@@ -247,7 +247,7 @@ class EventIdAsapo(drl_abcs.OmDataSourceBase):
         )
 
 
-class BeamEnergyAsapo(drl_abcs.OmDataSourceBase):
+class BeamEnergyAsapo(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -256,7 +256,7 @@ class BeamEnergyAsapo(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Beam energy information from the ASAPO software framework at the PETRA III
@@ -318,7 +318,7 @@ class BeamEnergyAsapo(drl_abcs.OmDataSourceBase):
         return cast(float, constants.h * constants.c / (wavelength * constants.e))
 
 
-class DetectorDistanceAsapo(drl_abcs.OmDataSourceBase):
+class DetectorDistanceAsapo(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -327,7 +327,7 @@ class DetectorDistanceAsapo(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Detector distance information from the ASAPO software framework at the PETRA

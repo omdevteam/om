@@ -8,7 +8,7 @@ import h5py
 import numpy
 from numpy.typing import NDArray
 
-from om.utils.rich_console import console
+from om.library.rich_console import console
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -62,9 +62,9 @@ def main(input: str, output: str, s: int) -> None:
             for frame in f[h5_data_path][s:]:
                 d: NDArray[numpy.int_] = frame.flatten()
                 where_gain: List[Tuple[NDArray[numpy.int_]]] = [
-                    numpy.where((d & 2 ** 14 == 0) & (d > 0)),
-                    numpy.where((d & (2 ** 14) > 0) & (d & 2 ** 15 == 0)),
-                    numpy.where(d & 2 ** 15 > 0),
+                    numpy.where((d & 2**14 == 0) & (d > 0)),
+                    numpy.where((d & (2**14) > 0) & (d & 2**15 == 0)),
+                    numpy.where(d & 2**15 > 0),
                 ]
                 i: int
                 for i in range(3):

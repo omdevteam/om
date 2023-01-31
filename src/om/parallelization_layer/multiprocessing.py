@@ -20,31 +20,28 @@ MPI-based Parallelization Layer for OM.
 
 This module contains a Parallelization Layer based on the MPI protocol.
 """
-import multiprocessing
 import queue
 import sys
-from concurrent.futures import process
-from email import message
-from pickle import NONE
-from sqlite3 import connect
+from multiprocessing import Pipe, Process, Queue, connection, queues
 from typing import Any, Dict, List, Tuple, Union
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.abcs import parallelization_layer as parl_abcs
-from om.abcs import processing_layer as prol_abcs
-from om.utils import exceptions, parameters
-from om.utils.rich_console import console, get_current_timestamp
+from om.abcs.data_retrieval_layer import OmDataEventHandlerBase, OmDataRetrievalBase
+from om.abcs.parallelization_layer import OmParallelizationBase
+from om.abcs.processing_layer import OmProcessingBase
+from om.library.exceptions import OmDataExtractionError
+from om.library.parameters import MonitorParameters
+from om.library.rich_console import console, get_current_timestamp
 
 
 def _om_processing_node(
     *,
     rank: int,
     node_pool_size: int,
-    data_queue: "multiprocessing.Queue[Tuple[Dict[str, Any], int]]",
-    message_pipe: multiprocessing.connection.Connection,
-    data_event_handler: drl_abcs.OmDataEventHandlerBase,
-    processing_layer: prol_abcs.OmProcessingBase,
-    monitor_params: parameters.MonitorParams,
+    data_queue: "Queue[Tuple[Dict[str, Any], int]]",
+    message_pipe: connection.Connection,
+    data_event_handler: OmDataEventHandlerBase,
+    processing_layer: OmProcessingBase,
+    monitor_params: MonitorParameters,
 ) -> None:
     # This function implements a processing node. It is designed to be run as a
     # subprocess
@@ -95,7 +92,7 @@ def _om_processing_node(
             event["current_frame"] = current_frame
             try:
                 data: Dict[str, Any] = data_event_handler.extract_data(event=event)
-            except exceptions.OmDataExtractionError as exc:
+            except OmDataExtractionError as exc:
                 console.print(f"{get_current_timestamp()} {exc}", style="warning")
                 console.print(
                     f"{get_current_timestamp()} Skipping event...", style="warning"
@@ -127,7 +124,7 @@ def _om_processing_node(
     return
 
 
-class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
+class MultiprocessingParallelization(OmParallelizationBase):
     """
     See documentation of the `__init__` function.
     """
@@ -135,9 +132,9 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
     def __init__(
         self,
         *,
-        data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
-        processing_layer: prol_abcs.OmProcessingBase,
-        monitor_parameters: parameters.MonitorParams,
+        data_retrieval_layer: OmDataRetrievalBase,
+        processing_layer: OmProcessingBase,
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Multiprocessing-based Parallelization Layer for OM.
@@ -148,7 +145,7 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
         This class implements a Parallelization Layer based on Python's multiprocessing
         module. Each processing node is spawned as a subprocess. The parent process
         acts as a collecting node and additionally manages the child processes. This
-        method generates all the subprocesses, and sets up all the comunication
+        method generates all the subprocesses, and sets up all the communication
         channels through which data and control commands are received and dispatched.
 
         Arguments:
@@ -158,13 +155,13 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
+        self._data_event_handler: OmDataEventHandlerBase = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: prol_abcs.OmProcessingBase = processing_layer
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._processing_layer: OmProcessingBase = processing_layer
+        self._monitor_params: MonitorParameters = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -176,20 +173,18 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
             group="om", parameter="node_pool_size", parameter_type=int, required=True
         )
 
-        self._processing_nodes: List[multiprocessing.Process] = []
-        self._message_pipes: List[multiprocessing.connection.Connection] = []
-        self._data_queue: multiprocessing.queues.Queue[
-            Tuple[Dict[str, Any], int]
-        ] = multiprocessing.Queue()
+        self._processing_nodes: List[Process] = []
+        self._message_pipes: List[connection.Connection] = []
+        self._data_queue: queues.Queue[Tuple[Dict[str, Any], int]] = Queue()
 
         processing_node_rank: int
         for processing_node_rank in range(1, self._node_pool_size):
             message_pipe: Tuple[
-                multiprocessing.connection.Connection,
-                multiprocessing.connection.Connection,
-            ] = multiprocessing.Pipe(duplex=False)
+                connection.Connection,
+                connection.Connection,
+            ] = Pipe(duplex=False)
             self._message_pipes.append(message_pipe[1])
-            processing_node = multiprocessing.Process(
+            processing_node = Process(
                 target=_om_processing_node,
                 kwargs={
                     "rank": processing_node_rank,
@@ -207,7 +202,7 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
         self._data_event_handler.initialize_event_handling_on_collecting_node(
             node_rank=self._rank, node_pool_size=self._node_pool_size
         )
-        self._num_nomore: int = 0
+        self._num_no_more: int = 0
         self._num_collected_events: int = 0
 
     def start(self) -> None:  # noqa: C901
@@ -242,13 +237,13 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
                         console.print(
                             f"{get_current_timestamp()} Finalizing {received_data[1]}"
                         )
-                        self._num_nomore += 1
+                        self._num_no_more += 1
                         # When all processing nodes have finished, calls the
                         # 'end_processing_on_collecting_node' function then shuts down.
-                        if self._num_nomore == self._node_pool_size - 1:
+                        if self._num_no_more == self._node_pool_size - 1:
                             console.print(
-                                f"{get_current_timestamp()} All processing nodes have run "
-                                "out of events."
+                                f"{get_current_timestamp()} All processing nodes have "
+                                "run out of events."
                             )
                             console.print(f"{get_current_timestamp()} Shutting down.")
                             sys.stdout.flush()
@@ -273,7 +268,7 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
                         receiving_rank: int
                         for receiving_rank in feedback_data.keys():
                             if receiving_rank == 0:
-                                message_pipe: multiprocessing.connection.Connection
+                                message_pipe: connection.Connection
                                 for message_pipe in self._message_pipes:
                                     message_pipe.send(feedback_data[0])
                             else:
@@ -302,7 +297,7 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
 
         This function stops OM, closing all the communication channels between the
         nodes and managing a controlled shutdown of OM's resources. Additionally, it
-        terminates the processing node subprocesseses in an orderly fashion.
+        terminates the processing node subprocesses in an orderly fashion.
 
         Arguments:
 
@@ -316,7 +311,7 @@ class MultiprocessingParallelization(parl_abcs.OmParallelizationBase):
             # messages from the nodes (MPI cannot shut down if there are unreceived
             # messages).
             try:
-                message_pipe: multiprocessing.connection.Connection
+                message_pipe: connection.Connection
                 for message_pipe in self._message_pipes:
                     message_pipe.send({"stop": True})
                 num_shutdown_confirm = 0

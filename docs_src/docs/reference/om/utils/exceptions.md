@@ -1,1 +1,1 @@
-::: om.utils.exceptions
+::: om.library.exceptions

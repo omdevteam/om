@@ -21,70 +21,46 @@ MPI-based Parallelization Layer for OM.
 This module contains a Parallelization Layer based on the MPI protocol.
 """
 import multiprocessing
-import queue
 import sys
-import zmq
-from concurrent.futures import process
-from email import message
-from pickle import NONE
-from sqlite3 import connect
 from typing import Any, Dict, List, Tuple, Union
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.abcs import parallelization_layer as parl_abcs
-from om.abcs import processing_layer as prol_abcs
-from om.utils import exceptions, parameters, zmq_monitor
-from om.utils.rich_console import console, get_current_timestamp
+import zmq
+
+from om.abcs.data_retrieval_layer import OmDataEventHandlerBase, OmDataRetrievalBase
+from om.abcs.parallelization_layer import OmParallelizationBase
+from om.abcs.processing_layer import OmProcessingBase
+from om.library.exceptions import OmDataExtractionError
+from om.library.parameters import MonitorParameters
+from om.library.rich_console import console, get_current_timestamp
+from om.library.zmq_collecting import get_current_machine_ip
 
 
 def _om_processing_node(
     *,
     rank: int,
     node_pool_size: int,
-    #data_queue: "multiprocessing.Queue[Tuple[Dict[str, Any], int]]",
-    #message_pipe: multiprocessing.connection.Connection,
-    data_event_handler: drl_abcs.OmDataEventHandlerBase,
-    processing_layer: prol_abcs.OmProcessingBase,
-    monitor_params: parameters.MonitorParams,
+    # data_queue: "multiprocessing.Queue[Tuple[Dict[str, Any], int]]",
+    # message_pipe: multiprocessing.connection.Connection,
+    data_event_handler: OmDataEventHandlerBase,
+    processing_layer: OmProcessingBase,
+    monitor_params: MonitorParameters,
 ) -> None:
-    # This function implements a processing node. It is designed to be run as a
-    # subprocess
-    # We need to creat two ZMQ sockets (Push, Sub) e.g. taskwork.py, wuproxy.py 
     num_frames_in_event_to_process: int = monitor_params.get_parameter(
         group="data_retrieval_layer",
         parameter="num_frames_in_event_to_process",
         parameter_type=int,
     )
-    
+
     context = zmq.Context()
 
     sender_push = context.socket(zmq.PUSH)
-    sender_push.connect(f"tcp://{zmq_monitor.get_current_machine_ip()}:5555")
+    sender_push.connect(f"tcp://{get_current_machine_ip()}:5555")
 
-    
-    # This is where the worker servers recieve instruction (Sub)
-    # from collecting layer (Pub)
-    
     socket_sub = context.socket(zmq.SUB)
-    socket_sub.connect(f"tcp://{zmq_monitor.get_current_machine_ip()}:5556")
+    socket_sub.connect(f"tcp://{get_current_machine_ip()}:5556")
 
-    
-    # subscription to specific string that matches with rank/string number
-    # "{}#".format(rank)  [i.e. "hello {}".format(name)
-    # f"Hello {name}" 
-    # Hence, we can use, f"{rank}#" to avoid partial matching
-    # i.e rank = 4,  string output : "4#" for rank = 4
-    # socket.setsockopt_string(zmq.SUBSCRIBE, zip_filter)
-
-    socket_sub.setsockopt_string(
-        option=zmq.SUBSCRIBE,
-        optval=f"{rank}#"
-    )
-    
-    socket_sub.setsockopt_string(
-        option=zmq.SUBSCRIBE,
-        optval="all#"
-    )
+    socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"{rank}#")
+    socket_sub.setsockopt_string(zmq.SUBSCRIBE, "all#")
 
     zmq_poller = zmq.Poller()
     zmq_poller.register(socket_sub, zmq.POLLIN)
@@ -106,14 +82,10 @@ def _om_processing_node(
     for event in events:
 
         feedback_dict: Dict[str, Any] = {}
-        # We need to check if there's message in the (Sub) socket, instead of message in the pipe. 
-        # Remember to initilize the ZMQ context first.  
-        
+
         socks = dict(zmq_poller.poll(0))
         if socket_sub in socks and socks[socket_sub] == zmq.POLLIN:
-  
-        # Look into: send_pyobj, recieve_obj 
-        #------------------------------------------------------------------  
+
             _ = socket_sub.recv_string()
             message: Dict[str, Any] = socket_sub.recv_pyobj()
             if "stop" in message:
@@ -122,8 +94,6 @@ def _om_processing_node(
                 return
             else:
                 feedback_dict = message
-                
-
 
         data_event_handler.open_event(event=event)
         n_frames_in_evt: int = data_event_handler.get_num_frames_in_event(event=event)
@@ -133,16 +103,14 @@ def _om_processing_node(
             )
         else:
             num_frames_to_process = n_frames_in_evt
-        # Iterates over the last 'num_frames_to_process' frames in the event.
-        
-        
+
         frame_offset: int
         for frame_offset in range(-num_frames_to_process, 0):
             current_frame: int = n_frames_in_evt + frame_offset
             event["current_frame"] = current_frame
             try:
                 data: Dict[str, Any] = data_event_handler.extract_data(event=event)
-            except exceptions.OmDataExtractionError as exc:
+            except OmDataExtractionError as exc:
                 console.print(f"{get_current_timestamp()} {exc}", style="warning")
                 console.print(
                     f"{get_current_timestamp()} Skipping event...", style="warning"
@@ -174,7 +142,7 @@ def _om_processing_node(
     return
 
 
-class ZmqParallelization(parl_abcs.OmParallelizationBase):
+class ZmqParallelization(OmParallelizationBase):
     """
     See documentation of the `__init__` function.
     """
@@ -182,9 +150,9 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
     def __init__(
         self,
         *,
-        data_retrieval_layer: drl_abcs.OmDataRetrievalBase,
-        processing_layer: prol_abcs.OmProcessingBase,
-        monitor_parameters: parameters.MonitorParams,
+        data_retrieval_layer: OmDataRetrievalBase,
+        processing_layer: OmProcessingBase,
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Multiprocessing-based Parallelization Layer for OM.
@@ -195,7 +163,7 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
         This class implements a Parallelization Layer based on Python's multiprocessing
         module. Each processing node is spawned as a subprocess. The parent process
         acts as a collecting node and additionally manages the child processes. This
-        method generates all the subprocesses, and sets up all the comunication
+        method generates all the subprocesses, and sets up all the communication
         channels through which data and control commands are received and dispatched.
 
         Arguments:
@@ -205,27 +173,26 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
-        
-        #self._subscription_string: str = tag
+
+        # self._subscription_string: str = tag
         self._zmq_context: Any = zmq.Context()
 
         self._receiver_pull = self._zmq_context.socket(zmq.PULL)
-        self._receiver_pull.bind(f"tcp://{zmq_monitor.get_current_machine_ip()}:5555")
+        self._receiver_pull.bind(f"tcp://{get_current_machine_ip()}:5555")
 
         self._socket_pub = self._zmq_context.socket(zmq.PUB)
-        self._socket_pub.bind(f"tcp://{zmq_monitor.get_current_machine_ip()}:5556")
-    
+        self._socket_pub.bind(f"tcp://{get_current_machine_ip()}:5556")
+
         self._zmq_poller = zmq.Poller()
         self._zmq_poller.register(self._receiver_pull, zmq.POLLIN)
-     
- 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
+
+        self._data_event_handler: OmDataEventHandlerBase = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: prol_abcs.OmProcessingBase = processing_layer
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._processing_layer: OmProcessingBase = processing_layer
+        self._monitor_params: MonitorParameters = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -237,40 +204,15 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
             group="om", parameter="node_pool_size", parameter_type=int, required=True
         )
 
-
-        #Initilize two the ZMQ sockets (Pull, Pub) e.g. tasksink.py, wuserver.py
         self._processing_nodes: List[multiprocessing.Process] = []
-        #self._message_pipes: List[multiprocessing.connection.Connection] = []
-        #self._data_queue: multiprocessing.queues.Queue[
-        #    Tuple[Dict[str, Any], int]
-        #] = multiprocessing.Queue()
-        
-        # context = zmq.Context()
-
-        # receiver_pull = context.socket(zmq.PULL)
-        # receiver_pull.bind("tcp://127.0.0.1:5555")
-        
-        # socket_pub = context.socket(zmq.PUB)
-        # socket_pub.bind("tcp://127.0.0.1:5556")
-
-
 
         processing_node_rank: int
         for processing_node_rank in range(1, self._node_pool_size):
-            #message_pipe: Tuple[
-            #    multiprocessing.connection.Connection,
-            #   multiprocessing.connection.Connection,
-            #] = multiprocessing.Pipe(duplex=False)
-            #self._message_pipes.append(message_pipe[1])
-            
-            
             processing_node = multiprocessing.Process(
                 target=_om_processing_node,
                 kwargs={
                     "rank": processing_node_rank,
                     "node_pool_size": self._node_pool_size,
-            #        "data_queue": self._data_queue,
-            #        "message_pipe": message_pipe[0],
                     "data_event_handler": self._data_event_handler,
                     "processing_layer": self._processing_layer,
                     "monitor_params": self._monitor_params,
@@ -282,7 +224,7 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
         self._data_event_handler.initialize_event_handling_on_collecting_node(
             node_rank=self._rank, node_pool_size=self._node_pool_size
         )
-        self._num_nomore: int = 0
+        self._num_no_more: int = 0
         self._num_collected_events: int = 0
         print("debug ZMQ")
 
@@ -305,15 +247,16 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
         self._processing_layer.initialize_collecting_node(
             node_rank=self._rank, node_pool_size=self._node_pool_size
         )
-        
-      
-        
+
         while True:
             try:
                 socks = dict(self._zmq_poller.poll(0))
-                if self._receiver_pull in socks and socks[self._receiver_pull] == zmq.POLLIN:
-                    received_data: Tuple[ 
-                        Dict[str, Any], int 
+                if (
+                    self._receiver_pull in socks
+                    and socks[self._receiver_pull] == zmq.POLLIN
+                ):
+                    received_data: Tuple[
+                        Dict[str, Any], int
                     ] = self._receiver_pull.recv_pyobj()
 
                     if "end" in received_data[0]:
@@ -323,13 +266,13 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
                         console.print(
                             f"{get_current_timestamp()} Finalizing {received_data[1]}"
                         )
-                        self._num_nomore += 1
+                        self._num_no_more += 1
                         # When all processing nodes have finished, calls the
                         # 'end_processing_on_collecting_node' function then shuts down.
-                        if self._num_nomore == self._node_pool_size - 1:
+                        if self._num_no_more == self._node_pool_size - 1:
                             console.print(
-                                f"{get_current_timestamp()} All processing nodes have run "
-                                "out of events."
+                                f"{get_current_timestamp()} All processing nodes have "
+                                "run out of events."
                             )
                             console.print(f"{get_current_timestamp()} Shutting down.")
                             sys.stdout.flush()
@@ -339,7 +282,8 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
                             )
                             for processing_node in self._processing_nodes:
                                 processing_node.join()
-                                # join() means wait for processing to close and terminate
+                                # join() means wait for processing to close and
+                                # terminate
                             sys.exit(0)
                         else:
                             continue
@@ -355,24 +299,15 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
                         receiving_rank: int
                         for receiving_rank in feedback_data.keys():
                             if receiving_rank == 0:
-                                   #send the string to all
-                                   #send_pyobj through the pub socket  f"all#" and f"rankno.#" 
-                                   #send one object through the socket to all. 
-                                   # self._sock.send_string(tag, zmq.SNDMORE)
-                                   # self._sock.send_pyobj(message)
-                                   #self._socket_pub
-                                   
                                 self._socket_pub.send_string("all#", zmq.SNDMORE)
-                                self._socket_pub.send_pyobj(feedback_data[0])   
+                                self._socket_pub.send_pyobj(feedback_data[0])
                             else:
-                                self._socket_pub.send_string(f"{receiving_rank}#", zmq.SNDMORE)
-                                self._socket_pub.send_pyobj(feedback_data[receiving_rank])
-                                
-                                # self._message_pipes[receiving_rank - 1].send(
-                                    # feedback_data[receiving_rank]    #send_pyobj through the pub socket  
-                                # )
-            
-                                
+                                self._socket_pub.send_string(
+                                    f"{receiving_rank}#", zmq.SNDMORE
+                                )
+                                self._socket_pub.send_pyobj(
+                                    feedback_data[receiving_rank]
+                                )
                 else:
                     self._processing_layer.wait_for_data(
                         node_rank=self._rank,
@@ -395,13 +330,13 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
 
         This function stops OM, closing all the communication channels between the
         nodes and managing a controlled shutdown of OM's resources. Additionally, it
-        terminates the processing node subprocesseses in an orderly fashion.
+        terminates the processing node subprocesses in an orderly fashion.
 
         Arguments:
 
             msg: Reason for shutting down. Defaults to "Reason not provided".
         """
-        
+
         console.print(f"{get_current_timestamp()} Shutting down: {msg}")
         sys.stdout.flush()
         if self._rank == 0:
@@ -413,14 +348,14 @@ class ZmqParallelization(parl_abcs.OmParallelizationBase):
                 # message_pipe: multiprocessing.connection.Connection
                 # for message_pipe in self._message_pipes:
                 # message_pipe.send({"stop": True})
-                
-                self._sock.send_string("all#", zmq.SNDMORE)
-                self._sock.send_pyobj({"stop": True})   
+
+                self._socket_pub.send_string("all#", zmq.SNDMORE)
+                self._socket_pub.send_pyobj({"stop": True})
                 num_shutdown_confirm = 0
                 while True:
                     # message: Tuple[Dict[str, Any], int] = self._data_queue.get()
-                    message: Tuple[ 
-                        Dict[str, Any], int 
+                    message: Tuple[
+                        Dict[str, Any], int
                     ] = self._receiver_pull.recv_pyobj()
                     if "stopped" in message[0]:
                         num_shutdown_confirm += 1

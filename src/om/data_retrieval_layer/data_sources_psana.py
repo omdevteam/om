@@ -26,21 +26,25 @@ from typing import Any, Callable, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.utils import exceptions
-from om.utils.parameters import MonitorParams
+from om.abcs.data_retrieval_layer import OmDataSourceBase
+from om.data_retrieval_layer.data_sources_generic import get_calibration_request
+from om.library.exceptions import (
+    OmDataExtractionError,
+    OmMissingDependencyError,
+    OmWrongParameterTypeError,
+)
+from om.library.parameters import MonitorParameters
 
 try:
     import psana  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: psana"
     )
 
 
 def _get_psana_epics_name(
-    *, source_protocols_name: str, monitor_parameters: MonitorParams
+    *, source_protocols_name: str, monitor_parameters: MonitorParameters
 ) -> str:
     # Helper function that retrieves an epics variable's name from the monitor
     # configuration parameters or from the source base name, if the name begins with
@@ -57,7 +61,7 @@ def _get_psana_epics_name(
 
 
 def _get_psana_detector_name(
-    *, source_protocols_name: str, monitor_parameters: MonitorParams
+    *, source_protocols_name: str, monitor_parameters: MonitorParameters
 ) -> str:
     # Helper function that retrieves a detector's name from the monitor configuration
     # parameters or from the source base name, if the name begins with the string
@@ -79,14 +83,14 @@ def _get_psana_data_retrieval_function(
     # (raw or calib) depending on what is required.
     *,
     source_protocols_name: str,
-    monitor_parameters: MonitorParams,
+    monitor_parameters: MonitorParameters,
 ) -> Callable[[Any], Any]:
     detector_name: str = _get_psana_detector_name(
         source_protocols_name=source_protocols_name,
         monitor_parameters=monitor_parameters,
     )
     detector_interface: Any = psana.Detector(detector_name)
-    calibrated_data_required: bool = ds_generic.get_calibration_request(
+    calibrated_data_required: bool = get_calibration_request(
         source_protocols_name=source_protocols_name,
         monitor_parameters=monitor_parameters,
     )
@@ -97,7 +101,7 @@ def _get_psana_data_retrieval_function(
     return data_retrieval_function
 
 
-class CspadPsana(drl_abcs.OmDataSourceBase):
+class CspadPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -106,7 +110,7 @@ class CspadPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         CSPAD detector data frames at the LCLS facility.
@@ -167,8 +171,8 @@ class CspadPsana(drl_abcs.OmDataSourceBase):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_protocols_name}_calibration` entry in OM's `data_retrieval_layer`
-        configuration parameter group.
+        value of the `{source_protocols_name}_calibration` entry in OM's
+        `data_retrieval_layer` configuration parameter group.
 
         Arguments:
 
@@ -182,9 +186,7 @@ class CspadPsana(drl_abcs.OmDataSourceBase):
             NDArray[numpy.float_], NDArray[numpy.int_]
         ] = self._data_retrieval_function(event["data"])
         if cspad_psana is None:
-            raise exceptions.OmDataExtractionError(
-                "Could not retrieve detector data from psana."
-            )
+            raise OmDataExtractionError("Could not retrieve detector data from psana.")
 
         # Rearranges the data into 'slab' format.
         cspad_reshaped: Union[
@@ -208,7 +210,7 @@ class CspadPsana(drl_abcs.OmDataSourceBase):
         return cspad_slab
 
 
-class Epix10kaPsana(drl_abcs.OmDataSourceBase):
+class Epix10kaPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -217,7 +219,7 @@ class Epix10kaPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Epix10KA 2M detector data frames at the LCLS facility.
@@ -278,8 +280,8 @@ class Epix10kaPsana(drl_abcs.OmDataSourceBase):
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
         Data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_protocols_name}_calibration` entry in OM's `data_retrieval_layer`
-        configuration parameter group.
+        value of the `{source_protocols_name}_calibration` entry in OM's
+        `data_retrieval_layer` configuration parameter group.
 
         Arguments:
 
@@ -293,9 +295,7 @@ class Epix10kaPsana(drl_abcs.OmDataSourceBase):
             NDArray[numpy.float_], NDArray[numpy.int_]
         ] = self._data_retrieval_function(event["data"])
         if epixka2m_psana is None:
-            raise exceptions.OmDataExtractionError(
-                "Could not retrieve detector data from psana."
-            )
+            raise OmDataExtractionError("Could not retrieve detector data from psana.")
 
         # Rearranges the data into 'slab' format.
         epixka2m_reshaped: Union[
@@ -305,7 +305,7 @@ class Epix10kaPsana(drl_abcs.OmDataSourceBase):
         return epixka2m_reshaped
 
 
-class Jungfrau4MPsana(drl_abcs.OmDataSourceBase):
+class Jungfrau4MPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -314,7 +314,7 @@ class Jungfrau4MPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Jungfrau 4M detector data frames at the LCLS facility.
@@ -390,9 +390,7 @@ class Jungfrau4MPsana(drl_abcs.OmDataSourceBase):
             NDArray[numpy.float_], NDArray[numpy.int_]
         ] = self._data_retrieval_function(event["data"])
         if jungfrau_psana is None:
-            raise exceptions.OmDataExtractionError(
-                "Could not retrieve detector data from psana."
-            )
+            raise OmDataExtractionError("Could not retrieve detector data from psana.")
 
         # Rearranges the data into 'slab' format.
         jungfrau_reshaped: Union[
@@ -402,7 +400,7 @@ class Jungfrau4MPsana(drl_abcs.OmDataSourceBase):
         return jungfrau_reshaped
 
 
-class Epix100Psana(drl_abcs.OmDataSourceBase):
+class Epix100Psana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -411,7 +409,7 @@ class Epix100Psana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Epix100 detector data frames at the LCLS facility.
@@ -487,14 +485,12 @@ class Epix100Psana(drl_abcs.OmDataSourceBase):
             NDArray[numpy.float_], NDArray[numpy.int_]
         ] = self._data_retrieval_function(event["data"])
         if epix_psana is None:
-            raise exceptions.OmDataExtractionError(
-                "Could not retrieve detector data from psana."
-            )
+            raise OmDataExtractionError("Could not retrieve detector data from psana.")
 
         return epix_psana
 
 
-class RayonixPsana(drl_abcs.OmDataSourceBase):
+class RayonixPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -503,7 +499,7 @@ class RayonixPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Rayonix detector data frames at the LCLS facility.
@@ -571,14 +567,12 @@ class RayonixPsana(drl_abcs.OmDataSourceBase):
             event["data"]
         )
         if rayonix_psana is None:
-            raise exceptions.OmDataExtractionError(
-                "Could not retrieve detector data from psana."
-            )
+            raise OmDataExtractionError("Could not retrieve detector data from psana.")
 
         return rayonix_psana
 
 
-class OpalPsana(drl_abcs.OmDataSourceBase):
+class OpalPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -587,7 +581,7 @@ class OpalPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Opal camera data frames at the LCLS facility.
@@ -597,10 +591,10 @@ class OpalPsana(drl_abcs.OmDataSourceBase):
 
         This class deals with the retrieval of an Opal camera data frame from the psana
         software framework. Data is normally retrieved for the camera whose psana name
-        matches the `psana_{source_protocols_name}_name` entry in OM's `data_retrieval_layer`
-        configuration parameter group. However, it is also possible to provide the
-        psana name of the camera directly in the `source_protocols_name` argument, by
-        prefixing it with the string "psana-".
+        matches the `psana_{source_protocols_name}_name` entry in OM's
+        `data_retrieval_layer` configuration parameter group. However, it is also
+        possible to provide the psana name of the camera directly in the
+        `source_protocols_name` argument, by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -654,14 +648,12 @@ class OpalPsana(drl_abcs.OmDataSourceBase):
             event["data"]
         )
         if opal_psana is None:
-            raise exceptions.OmDataExtractionError(
-                "Could not retrieve detector data from psana."
-            )
+            raise OmDataExtractionError("Could not retrieve detector data from psana.")
 
         return opal_psana
 
 
-class AcqirisPsana(drl_abcs.OmDataSourceBase):
+class AcqirisPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -670,20 +662,21 @@ class AcqirisPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
-        Acqiris time/voltage waverform data at the LCLS facility.
+        Acqiris time/voltage waveform data at the LCLS facility.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This class deals with the retrieval of waveform data from an Acqiris
         time/voltage detector at the LCLS facility. Data is normally retrieved for the
-        Acqiris detector whose psana name matches the `psana_{source_protocols_name}_name`
-        entry in OM's `data_retrieval_layer` configuration parameter group. However, it
-        is also possible to provide the psana name of the Acqiris detector directly in
-        the `source_protocols_name` argument, by prefixing it with the string "psana-".
+        Acqiris detector whose psana name matches the
+        `psana_{source_protocols_name}_name` entry in OM's `data_retrieval_layer`
+        configuration parameter group. However, it is also possible to provide the
+        psana name of the Acqiris detector directly in the `source_protocols_name`
+        argument, by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -766,7 +759,7 @@ class AcqirisPsana(drl_abcs.OmDataSourceBase):
         )
 
 
-class AssembledDetectorPsana(drl_abcs.OmDataSourceBase):
+class AssembledDetectorPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -775,7 +768,7 @@ class AssembledDetectorPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Assembled detector data frames at the LCLS facility.
@@ -786,10 +779,11 @@ class AssembledDetectorPsana(drl_abcs.OmDataSourceBase):
         This class deals with the retrieval of an assembled detector data frame from
         the psana software framework. It retrieves detector data to which geometry
         information has already been applied. The assembled data is normally retrieved
-        for the detector whose psana name matches the `psana_{source_protocols_name}_name`
-        entry in OM's `data_retrieval_layer` configuration parameter group. However, it
-        is also possible to provide the psana name of the detector directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-".
+        for the detector whose psana name matches the
+        `psana_{source_protocols_name}_name` entry in OM's `data_retrieval_layer`
+        configuration parameter group. However, it is also possible to provide the
+        psana name of the detector directly in the `source_protocols_name` argument,
+        by prefixing it with the string "psana-".
 
         Arguments:
 
@@ -844,14 +838,14 @@ class AssembledDetectorPsana(drl_abcs.OmDataSourceBase):
             event["data"]
         )
         if assembled_data is None:
-            raise exceptions.OmDataExtractionError(
+            raise OmDataExtractionError(
                 "Could not retrieve assembled detector data from psana."
             )
 
         return assembled_data
 
 
-class Wave8Psana(drl_abcs.OmDataSourceBase):
+class Wave8Psana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -860,7 +854,7 @@ class Wave8Psana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Wave8 detector data at the LCLS facility.
@@ -926,7 +920,7 @@ class Wave8Psana(drl_abcs.OmDataSourceBase):
         return cast(float, self._detector_interface())
 
 
-class TimestampPsana(drl_abcs.OmDataSourceBase):
+class TimestampPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -935,7 +929,7 @@ class TimestampPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Timestamp information from psana at the LCLS facility.
@@ -995,7 +989,7 @@ class TimestampPsana(drl_abcs.OmDataSourceBase):
         )
 
 
-class EventIdPsana(drl_abcs.OmDataSourceBase):
+class EventIdPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1004,7 +998,7 @@ class EventIdPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Data event identifier at the LCLS facility.
@@ -1070,7 +1064,7 @@ class EventIdPsana(drl_abcs.OmDataSourceBase):
         return f"{timestamp_epoch_format[0]}-{timestamp_epoch_format[1]}-{fiducials}"
 
 
-class EpicsVariablePsana(drl_abcs.OmDataSourceBase):
+class EpicsVariablePsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1079,7 +1073,7 @@ class EpicsVariablePsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Epics variable values at the LCLS facility.
@@ -1115,8 +1109,8 @@ class EpicsVariablePsana(drl_abcs.OmDataSourceBase):
         This function initializes the psana Detector interface for the variable whose
         psana name matches the `psana_{source_protocols_name}_name` entry in the
         OM's `data_retrieval_layer` configuration parameter group, or for the Epics
-        variable with a given psana name, if the `source_protocols_name` argument has the
-        format `psana-{psana detector name}`.
+        variable with a given psana name, if the `source_protocols_name` argument has
+        the format `psana-{psana detector name}`.
         """
         epics_variable_name: str = _get_psana_epics_name(
             source_protocols_name=self._data_source_name,
@@ -1150,7 +1144,7 @@ class EpicsVariablePsana(drl_abcs.OmDataSourceBase):
         return self._detector_interface()
 
 
-class BeamEnergyPsana(drl_abcs.OmDataSourceBase):
+class BeamEnergyPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1159,7 +1153,7 @@ class BeamEnergyPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Beam energy information at the LCLS facility.
@@ -1216,7 +1210,7 @@ class BeamEnergyPsana(drl_abcs.OmDataSourceBase):
         )
 
 
-class BeamEnergyFromEpicsVariablePsana(drl_abcs.OmDataSourceBase):
+class BeamEnergyFromEpicsVariablePsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1225,7 +1219,7 @@ class BeamEnergyFromEpicsVariablePsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Beam energy information at the LCLS facility.
@@ -1281,7 +1275,7 @@ class BeamEnergyFromEpicsVariablePsana(drl_abcs.OmDataSourceBase):
         """
         wavelength: Union[float, None] = self._detector_interface(event)
         if wavelength is None:
-            raise exceptions.OmDataExtractionError(
+            raise OmDataExtractionError(
                 "Could not retrieve beam energy information from psana."
             )
         h: float = 6.626070e-34  # J.m
@@ -1291,7 +1285,8 @@ class BeamEnergyFromEpicsVariablePsana(drl_abcs.OmDataSourceBase):
 
         return photon_energy
 
-class EvrCodesPsana(drl_abcs.OmDataSourceBase):
+
+class EvrCodesPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1300,7 +1295,7 @@ class EvrCodesPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         EVR event codes at the LCLS facility.
@@ -1375,14 +1370,12 @@ class EvrCodesPsana(drl_abcs.OmDataSourceBase):
             event["data"]
         )
         if current_evr_codes is None:
-            raise exceptions.OmDataExtractionError(
-                "Could not retrieve event codes from psana."
-            )
+            raise OmDataExtractionError("Could not retrieve event codes from psana.")
 
         return self._requested_event_code in current_evr_codes
 
 
-class LclsExtraPsana(drl_abcs.OmDataSourceBase):
+class LclsExtraPsana(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1391,7 +1384,7 @@ class LclsExtraPsana(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         TODO: Documentation
@@ -1424,13 +1417,13 @@ class LclsExtraPsana(drl_abcs.OmDataSourceBase):
         data_item: List[str]
         for data_item in lcls_extra_items:
             if not isinstance(data_item, list) or len(data_item) != 3:
-                raise exceptions.OmWrongParameterTypeError(
+                raise OmWrongParameterTypeError(
                     "The 'lcls_extra' entry of the 'data_retrieval_layer' group "
                     "in the configuration file is not formatted correctly."
                 )
             for entry in data_item:
                 if not isinstance(entry, str):
-                    raise exceptions.OmWrongParameterTypeError(
+                    raise OmWrongParameterTypeError(
                         "The 'lcls_extra' entry of the 'data_retrieval_layer' "
                         "group in the configuration file is not formatted "
                         "correctly."
@@ -1464,7 +1457,7 @@ class LclsExtraPsana(drl_abcs.OmDataSourceBase):
                         monitor_parameters=self._monitor_parameters,
                     )
                 else:
-                    raise exceptions.OmWrongParameterTypeError(
+                    raise OmWrongParameterTypeError(
                         f"The requested '{data_type}' LCLS-specific data type is "
                         "not supported."
                     )

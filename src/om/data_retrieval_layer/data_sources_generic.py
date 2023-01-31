@@ -24,12 +24,12 @@ from typing import Any, Dict, Union, cast
 
 import numpy
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils.parameters import MonitorParams
+from om.abcs.data_retrieval_layer import OmDataSourceBase
+from om.library.parameters import MonitorParameters
 
 
 def get_calibration_request(
-    *, source_protocols_name: str, monitor_parameters: MonitorParams
+    *, source_protocols_name: str, monitor_parameters: MonitorParameters
 ) -> bool:
     # Helper function to retrieve from the monitor configuration parameters a flag
     # that determines if calibrated data should be retrieved for a specific detector.
@@ -43,7 +43,7 @@ def get_calibration_request(
     return calibrated_data_required
 
 
-class TimestampFromEvent(drl_abcs.OmDataSourceBase):
+class TimestampFromEvent(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -52,7 +52,7 @@ class TimestampFromEvent(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Timestamp information from data events.
@@ -109,7 +109,7 @@ class TimestampFromEvent(drl_abcs.OmDataSourceBase):
         return cast(numpy.float64, event["additional_info"]["timestamp"])
 
 
-class FloatEntryFromConfiguration(drl_abcs.OmDataSourceBase):
+class FloatEntryFromConfiguration(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -118,7 +118,7 @@ class FloatEntryFromConfiguration(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Numerical values from configuration parameters.
@@ -184,7 +184,7 @@ class FloatEntryFromConfiguration(drl_abcs.OmDataSourceBase):
         return self._value
 
 
-class FrameIdZero(drl_abcs.OmDataSourceBase):
+class FrameIdZero(OmDataSourceBase):
     """
     See documentation of the `__init__` function.
     """
@@ -193,7 +193,7 @@ class FrameIdZero(drl_abcs.OmDataSourceBase):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParams,
+        monitor_parameters: MonitorParameters,
     ):
         """
         Frame identifier for single-frame data files.

@@ -1,1 +1,1 @@
-::: om.utils.crystfel_geometry
+::: om.library.crystfel_geometry

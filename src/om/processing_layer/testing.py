@@ -25,8 +25,8 @@ import time
 from typing import Any, Dict, Tuple, Union
 
 from om.abcs import processing_layer as prol_abcs
-from om.utils import parameters, zmq_monitor
-from om.utils.rich_console import console, get_current_timestamp
+from om.library import parameters, zmq_collecting
+from om.library.rich_console import console, get_current_timestamp
 
 
 class TestProcessing(prol_abcs.OmProcessingBase):
@@ -34,7 +34,7 @@ class TestProcessing(prol_abcs.OmProcessingBase):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams) -> None:
+    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
         """
         OnDA Test Monitor.
 
@@ -104,16 +104,20 @@ class TestProcessing(prol_abcs.OmProcessingBase):
             required=True,
         )
 
-        self._data_broadcast_socket: zmq_monitor.ZmqDataBroadcaster = (
-            zmq_monitor.ZmqDataBroadcaster(
+        self._data_broadcast_socket: zmq_collecting.ZmqDataBroadcaster = (
+            zmq_collecting.ZmqDataBroadcaster(
                 parameters=self._monitor_params.get_parameter_group(
                     group="crystallography"
                 )
             )
         )
 
-        self._responding_socket: zmq_monitor.ZmqResponder = zmq_monitor.ZmqResponder(
-            parameters=self._monitor_params.get_parameter_group(group="crystallography")
+        self._responding_socket: zmq_collecting.ZmqResponder = (
+            zmq_collecting.ZmqResponder(
+                parameters=self._monitor_params.get_parameter_group(
+                    group="crystallography"
+                )
+            )
         )
 
         self._num_events: int = 0

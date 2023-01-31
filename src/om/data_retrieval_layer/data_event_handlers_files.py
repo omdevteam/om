@@ -37,8 +37,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
-from om.utils.rich_console import console, get_current_timestamp
+from om.library import exceptions, parameters
 
 try:
     import fabio  # type: ignore
@@ -66,7 +65,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Pilatus single-frame files.
@@ -99,7 +98,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -350,7 +349,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves from an event all the data related to the requested detector frame.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -402,7 +401,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M files.
@@ -436,7 +435,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -724,27 +723,31 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves from an event all the data related to the requested detector frame.
+        <<<<<<< HEAD
+                Retrieves from an event all the data related to the requested detector frame.
+        =======
+                Retrieves all data related to the requested detector frame from an event.
+        >>>>>>> feature/library
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+                This method overrides the corresponding method of the base class: please also
+                refer to the documentation of that class for more information.
 
-        A Jungfrau 1M unique event identifier is a string consisting of the absolute
-        or relative path to the master HDF5 file attached to the event, together with
-        the index of the event within the file, separated by '//' symbol. Since
-        Jungfrau 1M data events are based around single detector frames, the unique
-        frame identifier must be the string "0".
+                A Jungfrau 1M unique event identifier is a string consisting of the absolute
+                or relative path to the master HDF5 file attached to the event, together with
+                the index of the event within the file, separated by '//' symbol. Since
+                Jungfrau 1M data events are based around single detector frames, the unique
+                frame identifier must be the string "0".
 
-        Arguments:
+                Arguments:
 
-            event_id: a string that uniquely identifies a data event.
+                    event_id: a string that uniquely identifies a data event.
 
-            frame_id: a string that identifies a particular frame within the data
-                event.
+                    frame_id: a string that identifies a particular frame within the data
+                        event.
 
-        Returns:
+                Returns:
 
-            All data related to the requested detector data frame.
+                    All data related to the requested detector data frame.
         """
         data_event: Dict[str, Any] = {}
 
@@ -760,7 +763,8 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 "%a %b %d %H:%M:%S %Y",
             ).timestamp()
         except:
-            file_timestamp: float = datetime.strptime(
+            # TODO: Bare except
+            file_timestamp = datetime.strptime(
                 h5file["/entry/instrument/detector/Timestamp"][()]
                 .decode("utf-8")
                 .strip(),
@@ -799,7 +803,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Eiger 16M files.
@@ -833,7 +837,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -1038,7 +1042,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key identifies a Data Source in the event for which
                 data has been retrieved.
 
-                * The corresponding dictionary value stores the data extraced from the
+                * The corresponding dictionary value stores the data extracted from the
                 Data Source for the frame being processed.
         """
         data: Dict[str, Any] = {}
@@ -1087,27 +1091,31 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves from an event all the data related to the requested detector frame.
+        <<<<<<< HEAD
+                Retrieves from an event all the data related to the requested detector frame.
+        =======
+                Retrieves all data related to the requested detector frame from an event.
+        >>>>>>> feature/library
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+                This method overrides the corresponding method of the base class: please also
+                refer to the documentation of that class for more information.
 
-        An Eiger 16M unique event identifier is a string consisting of the absolute or
-        relative path to an HDF5 file attached to the event, together with the index
-        of the event within the file, separated by '//' symbol. Since Eiger 16M data
-        events are based around single detector frames, the unique frame identifier
-        must be the string "0".
+                An Eiger 16M unique event identifier is a string consisting of the absolute or
+                relative path to an HDF5 file attached to the event, together with the index
+                of the event within the file, separated by '//' symbol. Since Eiger 16M data
+                events are based around single detector frames, the unique frame identifier
+                must be the string "0".
 
-        Arguments:
+                Arguments:
 
-            event_id: a string that uniquely identifies a data event.
+                    event_id: a string that uniquely identifies a data event.
 
-            frame_id: a string that identifies a particular frame within the data
-                event.
+                    frame_id: a string that identifies a particular frame within the data
+                        event.
 
-        Returns:
+                Returns:
 
-            All data related to the requested detector data frame.
+                    All data related to the requested detector data frame.
         """
 
         event_id_parts: List[str] = event_id.split("//")
@@ -1146,7 +1154,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Rayonix MX340-HS single-frame files.
@@ -1179,7 +1187,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -1433,7 +1441,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -1483,7 +1491,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         *,
         source: str,
         data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParams,
+        monitor_parameters: parameters.MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Lambda 1.5M files.
@@ -1518,7 +1526,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParams = monitor_parameters
+        self._monitor_params: parameters.MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
@@ -1785,7 +1793,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data realted to the requested detector frame from an event.
+        Retrieves all data related to the requested detector frame from an event.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.

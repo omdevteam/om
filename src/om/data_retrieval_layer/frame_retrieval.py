@@ -16,12 +16,17 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.utils import exceptions, parameters
-from types import ModuleType
-from typing import Any, Dict, Type
 import importlib
 import sys
+from types import ModuleType
+from typing import Any, Dict, Type
+
+from om.abcs.data_retrieval_layer import OmDataEventHandlerBase, OmDataRetrievalBase
+from om.library.exceptions import (
+    OmInvalidDataBroadcastUrl,
+    OmMissingDataRetrievalClassError,
+)
+from om.library.parameters import MonitorParameters
 
 
 class OmFrameDataRetrieval:
@@ -29,9 +34,7 @@ class OmFrameDataRetrieval:
     See documentation for the `__init__` function.
     """
 
-    def __init__(
-        self, *, monitor_parameters: parameters.MonitorParams, source: str
-    ) -> None:
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str) -> None:
         """
         Retrieval of single detector frame data.
 
@@ -47,7 +50,7 @@ class OmFrameDataRetrieval:
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
 
             source: A string describing the data event source.
         """
@@ -60,39 +63,39 @@ class OmFrameDataRetrieval:
 
         try:
             data_retrieval_layer_module: ModuleType = importlib.import_module(
-                "data_retrieval_layer"
+                f"data_retrieval_layer.{data_retrieval_layer_class_name}"
             )
         except ImportError:
             try:
                 data_retrieval_layer_module = importlib.import_module(
-                    f"om.data_retrieval_layer"
+                    f"om.data_retrieval_layer.{data_retrieval_layer_class_name}"
                 )
             except ImportError as exc:
                 exc_type, exc_value = sys.exc_info()[:2]
                 # TODO: Fix types
                 if exc_type is not None:
-                    raise exceptions.OmInvalidDataBroadcastUrl(
+                    raise OmInvalidDataBroadcastUrl(
                         f"The python module file data_retrieval_layer.py cannot be "
                         "found or loaded due to the following "
                         f"error: {exc_type.__name__}: {exc_value}"
                     ) from exc
 
         try:
-            data_retrieval_layer_class: Type[drl_abcs.OmDataRetrievalBase] = getattr(
+            data_retrieval_layer_class: Type[OmDataRetrievalBase] = getattr(
                 data_retrieval_layer_module, data_retrieval_layer_class_name
             )
         except AttributeError:
-            raise exceptions.OmMissingDataRetrievalClassError(
+            raise OmMissingDataRetrievalClassError(
                 f"The {data_retrieval_layer_class_name} class cannot be found in the "
                 "data_retrieval_layer file."
             )
 
-        data_retrieval_layer: drl_abcs.OmDataRetrievalBase = data_retrieval_layer_class(
+        data_retrieval_layer: OmDataRetrievalBase = data_retrieval_layer_class(
             monitor_parameters=monitor_parameters,
             source=source,
         )
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
+        self._data_event_handler: OmDataEventHandlerBase = (
             data_retrieval_layer.get_data_event_handler()
         )
 

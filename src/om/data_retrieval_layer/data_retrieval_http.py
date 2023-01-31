@@ -23,21 +23,34 @@ retrieved from the http/REST interface.
 """
 from typing import Dict
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.data_retrieval_layer import data_event_handlers_http as deh_http
-from om.data_retrieval_layer import data_sources_http as ds_http
-from om.data_retrieval_layer import data_sources_generic as ds_generic
-from om.utils import parameters
+from om.abcs.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
+from om.data_retrieval_layer.data_event_handlers_http import (
+    Eiger16MHttpDataEventHandler,
+)
+from om.data_retrieval_layer.data_sources_generic import (
+    FloatEntryFromConfiguration,
+    FrameIdZero,
+)
+from om.data_retrieval_layer.data_sources_http import (
+    Eiger16MHttp,
+    EventIdEiger16MHttp,
+    TimestampEiger16MHttp,
+)
+from om.library.parameters import MonitorParameters
 
 
-class Eiger16MHttpDataRetrieval(drl_abcs.OmDataRetrievalBase):
+class Eiger16MHttpDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
 
     Base class: [`OmDataRetrieval`][om.abcs.data_retrieval_layer.OmDataRetrievalBase]
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParams, source: str):
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
         Data Retrieval from Eiger 16M http/REST interface.
 
@@ -64,45 +77,43 @@ class Eiger16MHttpDataRetrieval(drl_abcs.OmDataRetrievalBase):
 
         Arguments:
 
-            monitor_parameters: A [MonitorParams]
-                [om.utils.parameters.MonitorParams] object storing the OM monitor
+            monitor_parameters: A [MonitorParameters]
+                [om.library.parameters.MonitorParameters] object storing the OM monitor
                 parameters from the configuration file.
 
             source: A string describing the data source.
         """
 
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase] = {
-            "timestamp": ds_http.TimestampEiger16MHttp(
+        data_sources: Dict[str, OmDataSourceBase] = {
+            "timestamp": TimestampEiger16MHttp(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
-            "event_id": ds_http.EventIdEiger16MHttp(
+            "event_id": EventIdEiger16MHttp(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
             ),
-            "frame_id": ds_generic.FrameIdZero(
+            "frame_id": FrameIdZero(
                 data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
-            "detector_data": ds_http.Eiger16MHttp(
+            "detector_data": Eiger16MHttp(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": ds_generic.FloatEntryFromConfiguration(
+            "beam_energy": FloatEntryFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": ds_generic.FloatEntryFromConfiguration(
+            "detector_distance": FloatEntryFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
                 monitor_parameters=monitor_parameters,
             ),
         }
 
-        self._data_event_handler: drl_abcs.OmDataEventHandlerBase = (
-            deh_http.Eiger16MHttpDataEventHandler(
-                source=source,
-                monitor_parameters=monitor_parameters,
-                data_sources=data_sources,
-            )
+        self._data_event_handler: OmDataEventHandlerBase = Eiger16MHttpDataEventHandler(
+            source=source,
+            monitor_parameters=monitor_parameters,
+            data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> drl_abcs.OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerBase:
         """
         Retrieves the Data Event Handler used by the class.
 

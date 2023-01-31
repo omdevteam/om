@@ -25,15 +25,19 @@ import importlib
 import signal
 import sys
 from types import ModuleType
-from typing import Any, Callable, Dict, Type, TypeVar, Union, cast
+from typing import Dict, Type, TypeVar, Union
 
 import click
 
-from om.utils import exceptions, parameters
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.abcs import parallelization_layer as parl_abcs
-from om.abcs import processing_layer as prol_abcs
-from om.utils.rich_console import console, set_null_theme, set_custom_theme
+from om.abcs.data_retrieval_layer import OmDataRetrievalBase
+from om.abcs.parallelization_layer import OmParallelizationBase
+from om.abcs.processing_layer import OmProcessingBase
+from om.library.exceptions import (
+    OmInvalidDataBroadcastUrl,
+    OmMissingDataRetrievalClassError,
+)
+from om.library.parameters import MonitorParameters
+from om.library.rich_console import console, set_custom_theme, set_null_theme
 
 T = TypeVar("T")
 
@@ -48,14 +52,14 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
             exc_type, exc_value = sys.exc_info()[:2]
             # TODO: Fix types
             if exc_type is not None:
-                raise exceptions.OmInvalidDataBroadcastUrl(
+                raise OmInvalidDataBroadcastUrl(
                     f"The python module file {layer}.py cannot be found or loaded due "
                     f"to the following error: {exc_type.__name__}: {exc_value}"
                 ) from exc
     try:
         imported_class: Type[T] = getattr(imported_layer, class_name)
     except AttributeError:
-        raise exceptions.OmMissingDataRetrievalClassError(
+        raise OmMissingDataRetrievalClassError(
             f"The {class_name} class cannot be found in the {layer} file."
         )
 
@@ -96,9 +100,7 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    monitor_parameters: parameters.MonitorParams = parameters.MonitorParams(
-        config=config
-    )
+    monitor_parameters: MonitorParameters = MonitorParameters(config=config)
 
     colors_in_rich_console: Union[bool, None] = monitor_parameters.get_parameter(
         group="om",
@@ -129,7 +131,7 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
 
     if parallelization_layer_class_name == "MpiParallelization":
         try:
-            from mpi4py import MPI  # type: ignore
+            from mpi4py import MPI
 
             mpi_size: int = MPI.COMM_WORLD.Get_size()
             mpi_rank: int = MPI.COMM_WORLD.Get_rank()
@@ -180,32 +182,30 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
         required=True,
     )
 
-    parallelization_layer_class: Type[parl_abcs.OmParallelizationBase] = _import_class(
+    parallelization_layer_class: Type[OmParallelizationBase] = _import_class(
         layer="parallelization_layer",
         class_name=parallelization_layer_class_name,
     )
-    data_retrieval_layer_class: Type[drl_abcs.OmDataRetrievalBase] = _import_class(
+    data_retrieval_layer_class: Type[OmDataRetrievalBase] = _import_class(
         layer="data_retrieval_layer",
         class_name=data_retrieval_layer_class_name,
     )
-    processing_layer_class: Type[prol_abcs.OmProcessingBase] = _import_class(
+    processing_layer_class: Type[OmProcessingBase] = _import_class(
         layer="processing_layer",
         class_name=processing_layer_class_name,
     )
 
-    processing_layer: prol_abcs.OmProcessingBase = processing_layer_class(
+    processing_layer: OmProcessingBase = processing_layer_class(
         monitor_parameters=monitor_parameters
     )
-    data_retrieval_layer: drl_abcs.OmDataRetrievalBase = data_retrieval_layer_class(
+    data_retrieval_layer: OmDataRetrievalBase = data_retrieval_layer_class(
         monitor_parameters=monitor_parameters,
         source=source,
     )
-    parallelization_layer: parl_abcs.OmParallelizationBase = (
-        parallelization_layer_class(
-            data_retrieval_layer=data_retrieval_layer,
-            processing_layer=processing_layer,
-            monitor_parameters=monitor_parameters,
-        )
+    parallelization_layer: OmParallelizationBase = parallelization_layer_class(
+        data_retrieval_layer=data_retrieval_layer,
+        processing_layer=processing_layer,
+        monitor_parameters=monitor_parameters,
     )
 
     parallelization_layer.start()

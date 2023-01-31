@@ -26,13 +26,13 @@ from typing import Any, Dict, Union
 
 import zmq
 
-from om.utils import exceptions
-from om.utils.rich_console import console, get_current_timestamp
+from om.library.exceptions import OmMissingDependencyError
+from om.library.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: PyQt5"
     )
 
@@ -72,7 +72,7 @@ class ZmqDataListener(QtCore.QObject):
         This class is designed to be executed in a Qt thread. It creates a ZMQ SUB
         socket that connects to an OM's PUB socket, subscribing to a single specific
         topic. When the socket receives data, this class emits a
-        [`zmqmessage`][om.utils.zmq_gui.ZmqDataListener.zmqmessage] Qt signal that
+        [`zmqmessage`][om.library.zmq_gui.ZmqDataListener.zmqmessage] Qt signal that
         other threads can listen to. The signal carries the received data.
 
         Arguments:
@@ -114,8 +114,8 @@ class ZmqDataListener(QtCore.QObject):
                 "correct permissions to access the socket."
             ) from exc
         self._zmq_subscribe.setsockopt_string(
-            option=zmq.SUBSCRIBE,
-            optval=unicode_str(self._subscription_string),
+            zmq.SUBSCRIBE,
+            unicode_str(self._subscription_string),
         )
 
         # Sets a high water mark of 1 (A messaging queue that is 1 message long, so no
@@ -132,8 +132,8 @@ class ZmqDataListener(QtCore.QObject):
 
         This function completely disconnects the listening socket from the broadcasting
         source. The socket needs to be reconnected (using the
-        [`start_listening`][om.utils.zmq_gui.ZmqDataListener.start_listening] function)
-        to start receiving data again.
+        [`start_listening`][om.library.zmq_gui.ZmqDataListener.start_listening]
+        function) to start receiving data again.
         """
         self._listening_timer.stop()
         console.print(f"{get_current_timestamp()} Disconnecting from {self._url}.")

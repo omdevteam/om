@@ -27,16 +27,16 @@ from typing import Any, Dict, Tuple, Union
 
 import zmq
 
-from om.utils import exceptions
-from om.utils import parameters as param_utils
-from om.utils.rich_console import console, get_current_timestamp
+from om.library.exceptions import OmInvalidDataBroadcastUrl, OmInvalidRespondingUrl
+from om.library.parameters import get_parameter_from_parameter_group
+from om.library.rich_console import console, get_current_timestamp
 
 
 def get_current_machine_ip() -> str:
     """
     Retrieves the IP address of the local machine.
 
-    This function uses Python's `socket` module to autodetect the IP addess of the
+    This function uses Python's `socket` module to autodetect the IP address of the
     the machine where it is invoked.
 
     Returns:
@@ -91,7 +91,7 @@ class ZmqDataBroadcaster:
                 the socket will be opened at port 12321 using the 'tcp://' protocol.
                 Defaults to None.
         """
-        url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+        url: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="data_broadcast_url", parameter_type=str
         )
         if url is None:
@@ -110,7 +110,7 @@ class ZmqDataBroadcaster:
             # TODO: fix_types
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
-                raise exceptions.OmInvalidDataBroadcastUrl(
+                raise OmInvalidDataBroadcastUrl(
                     "The setup of the data broadcasting socket failed due to the "
                     f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
@@ -135,7 +135,7 @@ class ZmqDataBroadcaster:
                   broadcast.
 
                 * The corresponding dictionary values must store the data content to be
-                  transsmitted (strictly in the format of Python objects).
+                  transmitted (strictly in the format of Python objects).
         """
         self._sock.send_string(tag, zmq.SNDMORE)
         self._sock.send_pyobj(message)
@@ -183,7 +183,7 @@ class ZmqResponder:
 
             blocking: whether the socket should be of blocking type. Defaults to False.
         """
-        url: Union[str, None] = param_utils.get_parameter_from_parameter_group(
+        url: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="responding_url", parameter_type=str
         )
         if url is None:
@@ -204,7 +204,7 @@ class ZmqResponder:
             # TODO: fix_types
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
-                raise exceptions.OmInvalidRespondingUrl(
+                raise OmInvalidRespondingUrl(
                     "The setup of the responding socket failed due to the "
                     f"following error: {exc_type.__name__}: {exc_value}."
                 ) from exc
@@ -225,7 +225,7 @@ class ZmqResponder:
         instead non-blocking, the function will return the same information if a
         request is available when the function is called, and None otherwise. The
         identity of the requester must be stored and provided later to the
-        [send_data][om.utils.zmq_monitor.ZmqResponder.send_data] function to answer the
+        [send_data][om.library.zmq_collecting.ZmqResponder.send_data] function to answer the  # noqa: E501
         request.
 
         Returns:
@@ -260,7 +260,7 @@ class ZmqResponder:
 
             identity: The identity of the requester to which the data should sent. This
                 information is returned by the
-                [get_request][om.utils.zmq_monitor.ZmqResponder.get_request].
+                [get_request][om.library.zmq_collecting.ZmqResponder.get_request].
 
             message: A dictionary containing information to be transmitted.
         """

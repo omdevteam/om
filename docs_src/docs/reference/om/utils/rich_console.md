@@ -1,1 +1,1 @@
-::: om.utils.rich_console
+::: om.library.rich_console
