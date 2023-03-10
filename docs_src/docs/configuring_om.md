@@ -13,7 +13,7 @@ are instead stored in a configuration file that OM reads before starting.
 ##  The Source String
 
 The source string contains information about the origin of the data events that OM will
-process. The information is encoded in a string that is passed as a command line
+process. The information is encoded in a string that is ...ed as a command line
 argument to the `om_monitor.py` script:
 
 ``` bash

@@ -23,26 +23,26 @@ This module contains Data Event Handler classes that manipulate file-based event
 import pathlib
 import re
 import sys
-from typing import Any, Dict, Generator, List, TextIO, Tuple
-
-try:
-    from typing import TypedDict
-except ImportError:
-    from mypy_extensions import TypedDict
-
 from datetime import datetime
+from typing import Any, Dict, Generator, List, TextIO, Tuple, TypedDict
 
 import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs import data_retrieval_layer as drl_abcs
-from om.library import exceptions, parameters
+from om.data_retrieval_layer.utils_generic import filter_data_sources
+from om.lib.exceptions import (
+    OmDataExtractionError,
+    OmMissingDependencyError,
+    OmMissingFrameDataError,
+)
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataEventHandlerBase, OmDataSourceBase
 
 try:
     import fabio  # type: ignore
 except ImportError:
-    raise exceptions.OmMissingDependencyError(
+    raise OmMissingDependencyError(
         "The following required module cannot be imported: fabio"
     )
 
@@ -55,7 +55,7 @@ class _TypeJungfrau1MFrameInfo(TypedDict):
     file_timestamp: float
 
 
-class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
+class PilatusFilesEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -64,8 +64,8 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParameters,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Pilatus single-frame files.
@@ -92,14 +92,14 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -147,7 +147,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -312,7 +312,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -337,7 +337,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -380,7 +380,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         )
         data_event["data"] = fabio.open(pathlib.Path(event_id))
         if frame_id != "0":
-            raise exceptions.OmMissingFrameDataError(
+            raise OmMissingFrameDataError(
                 f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
                 "the  data event source"
             )
@@ -391,7 +391,7 @@ class PilatusFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         return self.extract_data(event=data_event)
 
 
-class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
+class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -400,8 +400,8 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParameters,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M files.
@@ -429,14 +429,14 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -484,7 +484,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -687,7 +687,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -711,7 +711,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -723,31 +723,27 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        <<<<<<< HEAD
-                Retrieves from an event all the data related to the requested detector frame.
-        =======
-                Retrieves all data related to the requested detector frame from an event.
-        >>>>>>> feature/library
+        Retrieves all data related to the requested detector frame from an event.
 
-                This method overrides the corresponding method of the base class: please also
-                refer to the documentation of that class for more information.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-                A Jungfrau 1M unique event identifier is a string consisting of the absolute
-                or relative path to the master HDF5 file attached to the event, together with
-                the index of the event within the file, separated by '//' symbol. Since
-                Jungfrau 1M data events are based around single detector frames, the unique
-                frame identifier must be the string "0".
+        A Jungfrau 1M unique event identifier is a string consisting of the absolute
+        or relative path to the master HDF5 file attached to the event, together with
+        the index of the event within the file, separated by '//' symbol. Since
+        Jungfrau 1M data events are based around single detector frames, the unique
+        frame identifier must be the string "0".
 
-                Arguments:
+        Arguments:
 
-                    event_id: a string that uniquely identifies a data event.
+            event_id: a string that uniquely identifies a data event.
 
-                    frame_id: a string that identifies a particular frame within the data
-                        event.
+            frame_id: a string that identifies a particular frame within the data
+                event.
 
-                Returns:
+        Returns:
 
-                    All data related to the requested detector data frame.
+            All data related to the requested detector data frame.
         """
         data_event: Dict[str, Any] = {}
 
@@ -778,7 +774,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         }
 
         if frame_id != "0":
-            raise exceptions.OmMissingFrameDataError(
+            raise OmMissingFrameDataError(
                 f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
                 "the data event source."
             )
@@ -793,7 +789,7 @@ class Jungfrau1MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         return extracted_data
 
 
-class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
+class Eiger16MFilesDataEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -802,8 +798,8 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParameters,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Eiger 16M files.
@@ -831,14 +827,14 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -886,7 +882,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1058,7 +1054,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -1079,7 +1075,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1091,31 +1087,27 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """
-        <<<<<<< HEAD
-                Retrieves from an event all the data related to the requested detector frame.
-        =======
-                Retrieves all data related to the requested detector frame from an event.
-        >>>>>>> feature/library
+        Retrieves all data related to the requested detector frame from an event.
 
-                This method overrides the corresponding method of the base class: please also
-                refer to the documentation of that class for more information.
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
 
-                An Eiger 16M unique event identifier is a string consisting of the absolute or
-                relative path to an HDF5 file attached to the event, together with the index
-                of the event within the file, separated by '//' symbol. Since Eiger 16M data
-                events are based around single detector frames, the unique frame identifier
-                must be the string "0".
+        An Eiger 16M unique event identifier is a string consisting of the absolute or
+        relative path to an HDF5 file attached to the event, together with the index
+        of the event within the file, separated by '//' symbol. Since Eiger 16M data
+        events are based around single detector frames, the unique frame identifier
+        must be the string "0".
 
-                Arguments:
+        Arguments:
 
-                    event_id: a string that uniquely identifies a data event.
+            event_id: a string that uniquely identifies a data event.
 
-                    frame_id: a string that identifies a particular frame within the data
-                        event.
+            frame_id: a string that identifies a particular frame within the data
+                event.
 
-                Returns:
+        Returns:
 
-                    All data related to the requested detector data frame.
+            All data related to the requested detector data frame.
         """
 
         event_id_parts: List[str] = event_id.split("//")
@@ -1144,7 +1136,7 @@ class Eiger16MFilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         return extracted_data
 
 
-class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
+class RayonixMccdFilesEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1153,8 +1145,8 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParameters,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Rayonix MX340-HS single-frame files.
@@ -1181,14 +1173,14 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -1238,7 +1230,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1322,8 +1314,8 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
         Since `detector_data` is the only event data which is retrieved from the mccd
         files the corresponding
-        [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase] takes care of
-        opening and closing the files. This function therefore does nothing.
+        [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase] takes
+        care of opening and closing the files. This function therefore does nothing.
 
         Arguments:
 
@@ -1340,8 +1332,8 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
 
         Since `detector_data` is the only event data which is retrieved from the mccd
         files the corresponding
-        [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase] takes care
-        of opening and closing the files. This function therefore does nothing.
+        [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase] takes
+        care of opening and closing the files. This function therefore does nothing.
 
         Arguments:
 
@@ -1407,7 +1399,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -1429,7 +1421,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1470,7 +1462,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
             pathlib.Path(event_id).stat().st_mtime
         )
         if frame_id != "0":
-            raise exceptions.OmMissingFrameDataError(
+            raise OmMissingFrameDataError(
                 f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
                 "the data event source."
             )
@@ -1481,7 +1473,7 @@ class RayonixMccdFilesEventHandler(drl_abcs.OmDataEventHandlerBase):
         return self.extract_data(event=data_event)
 
 
-class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
+class Lambda1M5FilesDataEventHandler(OmDataEventHandlerBase):
     """
     See documentation of the `__init__` function.
     """
@@ -1490,8 +1482,8 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, drl_abcs.OmDataSourceBase],
-        monitor_parameters: parameters.MonitorParameters,
+        data_sources: Dict[str, OmDataSourceBase],
+        monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for Lambda 1.5M files.
@@ -1520,14 +1512,14 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._source: str = source
-        self._monitor_params: parameters.MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, drl_abcs.OmDataSourceBase] = data_sources
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -1575,7 +1567,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1760,7 +1752,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             except Exception:
                 exc_type, exc_value = sys.exc_info()[:2]
                 if exc_type is not None:
-                    raise exceptions.OmDataExtractionError(
+                    raise OmDataExtractionError(
                         f"OM Warning: Cannot interpret {source_name} event data due "
                         f"to the following error: {exc_type.__name__}: {exc_value}"
                     )
@@ -1781,7 +1773,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             required=True,
         )
 
-        self._required_data_sources = drl_abcs.filter_data_sources(
+        self._required_data_sources = filter_data_sources(
             data_sources=self._data_sources,
             required_data=required_data,
         )
@@ -1817,7 +1809,7 @@ class Lambda1M5FilesDataEventHandler(drl_abcs.OmDataEventHandlerBase):
             All data related to the requested detector data frame.
         """
         if frame_id != "0":
-            raise exceptions.OmMissingFrameDataError(
+            raise OmMissingFrameDataError(
                 f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
                 "the data event source."
             )

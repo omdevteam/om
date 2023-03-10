@@ -70,7 +70,7 @@ affecting the former.
 
 This clean separation is the reason why a developer who wants to write a monitoring
 program for a supported facility does not need to worry how data is retrieved, or
-passed around the nodes. All he or she needs to learn is how the data can be accessed
+...ed around the nodes. All he or she needs to learn is how the data can be accessed
 and manipulated in the Processing Layer. No knowledge of the other two layers is
 required. Furthermore, a monitoring program written for a facility can in most cases be
 run at other facilities just by switching to different implementations of the Data
@@ -97,7 +97,7 @@ The processing nodes start retrieving *data events* from the data source. After
 retrieving and unpacking an event, each processing node extracts all the data requested
 by the configuration file (specified in the `required_data` entry in the
 `data_retrieval_layer` parameter group). It then stores the retrieved data in a Python
-dictionary and calls the `process_data` function implemented by the Monitor, passing
+dictionary and calls the `process_data` function implemented by the Monitor, ...ing
 the dictionary as an argument.
 
 When the function finishes running and processing the data, the processing node
@@ -110,7 +110,7 @@ Once a processing node  has transferred the data to the collecting node, it retr
 the next data event and the cycle begins again.
 
 The collecting node executes the `collect_data` function implemented by the Monitor
-every time it receives data from a processing node, passing the received tuple as an
+every time it receives data from a processing node, ...ing the received tuple as an
 argument to the function.
 
 This process continues indefinitely, or until the data stream ends. In the latter case,
@@ -123,7 +123,7 @@ OM then shuts down.
 Writing a monitoring program consists mainly in writing a Python class (a *Monitor*
 class), that lives in the Processing Layer and implements a data analysis pipeline.
 The whole processing logic should be implemented in this class, which must be a
-subclass of the [OmProcessingBase][om.abcs.processing_layer.OmProcessingBase] abstract
+subclass of the [OmProcessingBase][om.Protocols.processing_layer.OmProcessingBase] abstract
 class.
 
 The Monitor class must implement all the methods that are abstract in the base class.
@@ -149,7 +149,7 @@ The methods are:
     external programs are usually opened and initialized in this function.
 
   * **process_data**: this function is executed on each processing node when data is
-    retrieved from the data source. The retrieved data gets passed to this function as
+    retrieved from the data source. The retrieved data gets ...ed to this function as
     an argument.
 
     All the logic related to the processing of a single data event should be
@@ -164,7 +164,7 @@ The methods are:
    
   * **collect_data**: this function is executed on the collecting node every time data
     is received from a processing node. The data received from the processing node is
-    passed to this function as an argument.
+    ...ed to this function as an argument.
 
     This function should implement all the processing logic that involves more than one
     event (for example: averaging over many events, accumulation of events, etc.).

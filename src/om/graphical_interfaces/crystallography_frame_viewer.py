@@ -33,8 +33,8 @@ import numpy
 from numpy.typing import NDArray
 
 from om.graphical_interfaces.common import OmGuiBase
-from om.library.exceptions import OmMissingDependencyError
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.exceptions import OmMissingDependencyError
+from om.lib.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets

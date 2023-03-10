@@ -25,10 +25,10 @@ from typing import Any, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs.data_retrieval_layer import OmDataSourceBase
 from om.data_retrieval_layer.data_sources_generic import get_calibration_request
 from om.data_retrieval_layer.utils_generic import Jungfrau1MCalibration
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataSourceBase
 
 
 class Jungfrau1MZmq(OmDataSourceBase):
@@ -173,7 +173,7 @@ class TimestampJungfrau1MZmq(OmDataSourceBase):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParameters] [om.library.parameters.MonitorParameters]
+            monitor_parameters: A [MonitorParameters][om.library.parameters.MonitorParameters]  # noqa: E501
                 object storing the OM monitor parameters from the configuration file.
         """
         self._data_source_name = data_source_name

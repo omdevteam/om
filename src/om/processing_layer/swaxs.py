@@ -47,7 +47,7 @@ except ImportError:
     )
 
 
-class CrystallographyProcessing(OmProcessingBase):
+class SwaxsProcessing(OmProcessingBase):
     """
     See documentation for the `__init__` function.
     """
@@ -56,19 +56,7 @@ class CrystallographyProcessing(OmProcessingBase):
         """
         OnDA Monitor for Crystallography.
 
-        This Processing class implements an OnDA Monitor for serial crystallography
-        experiments. The monitor processes detector data frames, optionally applying
-        detector calibration, dark correction and gain correction. It then detects
-        Bragg peaks in each detector frame using the
-        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm, retrieving information about the location, size, intensity, SNR and
-        maximum pixel value of each peak. Additionally, the monitor calculates the
-        evolution of the hit rate over time. It can also optionally collect examples of
-        hit and non-hit calibrated detector data frames. All the information is
-        broadcast over a ZMQ socket for visualization by external programs like
-        [OM's Crystallography GUI][om.graphical_interfaces.crystallography_gui.CrystallographyGui]  # noqa: E501
-        or
-        [OM's Frame Viewer][om.graphical_interfaces.crystallography_frame_viewer.CrystallographyFrameViewer].  # noqa: E501
+        # TODO: Documentation
 
         Arguments:
 
@@ -196,8 +184,6 @@ class CrystallographyProcessing(OmProcessingBase):
         )
 
         self._pixel_size = self._geometry_info.get_pixel_size()
-        if self._binning is not None:
-            self._pixel_size /= self._binning.get_bin_size()
 
         self._detector_distance_offset: float = (
             self._geometry_info.get_detector_distance_offset()
@@ -307,10 +293,10 @@ class CrystallographyProcessing(OmProcessingBase):
 
         # Peak-finding
         data_for_peak_finding: Union[
-            NDArray[numpy.int_], NDArray[numpy.float_]
+            NDArray[numpy.float_], NDArray[numpy.int_]
         ] = corrected_detector_data
         data_to_send: Union[
-            NDArray[numpy.int_], NDArray[numpy.float_]
+            NDArray[numpy.float_], NDArray[numpy.int_]
         ] = corrected_detector_data
 
         if self._binning is not None:

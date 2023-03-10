@@ -24,21 +24,16 @@ files in HDF5 format.
 import pathlib
 import sys
 import time
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import Any, Dict, List, Literal, Set, Tuple, Union
 
 import h5py  # type: ignore
 import numpy
 from numpy.typing import DTypeLike, NDArray
 
 from om.algorithms import crystallography as cryst_algs
-from om.library.exceptions import OmHdf5UnsupportedDataFormat
-from om.library.parameters import get_parameter_from_parameter_group
-from om.library.rich_console import console, get_current_timestamp
-
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
+from om.lib.exceptions import OmHdf5UnsupportedDataFormat
+from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.rich_console import console, get_current_timestamp
 
 
 class HDF5Writer:
@@ -207,7 +202,7 @@ class HDF5Writer:
             self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
                 name=self._hdf5_fields["detector_data"],
                 shape=(0,) + processed_data["detector_data"].shape,
-                maxshape=(None,) + processed_data["detector_data"].shape,
+                max_shape=(None,) + processed_data["detector_data"].shape,
                 dtype=self._data_type,
                 chunks=(1,) + processed_data["detector_data"].shape,
                 compression=self._compression,
@@ -219,7 +214,7 @@ class HDF5Writer:
             self._resizable_datasets["event_id"] = self._h5file.create_dataset(
                 name=self._hdf5_fields["event_id"],
                 shape=(0,),
-                maxshape=(None,),
+                max_shape=(None,),
                 dtype=h5py.special_dtype(vlen=str),
             )
         if "optical_laser_active" in self._hdf5_fields.keys():
@@ -228,7 +223,7 @@ class HDF5Writer:
             ] = self._h5file.create_dataset(
                 name=self._hdf5_fields["optical_laser_active"],
                 shape=(0,),
-                maxshape=(None,),
+                max_shape=(None,),
                 dtype=numpy.bool_,
             )
         # Creating all requested 1D float64 datasets:
@@ -238,7 +233,7 @@ class HDF5Writer:
                 self._resizable_datasets[key] = self._h5file.create_dataset(
                     name=self._hdf5_fields[key],
                     shape=(0,),
-                    maxshape=(None,),
+                    max_shape=(None,),
                     dtype=numpy.float64,
                 )
         if "peak_list" in self._hdf5_fields.keys():
@@ -247,43 +242,43 @@ class HDF5Writer:
                     "npeaks": self._h5file.create_dataset(
                         name=self._hdf5_fields["peak_list"] + "/nPeaks",
                         shape=(0,),
-                        maxshape=(None,),
+                        max_shape=(None,),
                         dtype=numpy.int64,
                     ),
                     "fs": self._h5file.create_dataset(
                         name=self._hdf5_fields["peak_list"] + "/peakXPosRaw",
                         shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        max_shape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "ss": self._h5file.create_dataset(
                         name=self._hdf5_fields["peak_list"] + "/peakYPosRaw",
                         shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        max_shape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "intensity": self._h5file.create_dataset(
                         name=self._hdf5_fields["peak_list"] + "/peakTotalIntensity",
                         shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        max_shape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "num_pixels": self._h5file.create_dataset(
                         name=self._hdf5_fields["peak_list"] + "/peakNPixels",
                         shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        max_shape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "max_pixel_intensity": self._h5file.create_dataset(
                         name=self._hdf5_fields["peak_list"] + "/peakMaximumValue",
                         shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        max_shape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                     "snr": self._h5file.create_dataset(
                         name=self._hdf5_fields["peak_list"] + "/peakSNR",
                         shape=(0, self._max_num_peaks),
-                        maxshape=(None, self._max_num_peaks),
+                        max_shape=(None, self._max_num_peaks),
                         dtype=numpy.float32,
                     ),
                 }
@@ -320,7 +315,7 @@ class HDF5Writer:
                 ].create_dataset(
                     name=key,
                     shape=(0, *value.shape),
-                    maxshape=(None, *value.shape),
+                    max_shape=(None, *value.shape),
                     dtype=value.dtype,
                 )
             elif isinstance(value, str):
@@ -329,7 +324,7 @@ class HDF5Writer:
                 ].create_dataset(
                     name=key,
                     shape=(0,),
-                    maxshape=(None,),
+                    max_shape=(None,),
                     dtype=h5py.special_dtype(vlen=str),
                 )
             elif (
@@ -342,7 +337,7 @@ class HDF5Writer:
                 ].create_dataset(
                     name=key,
                     shape=(0,),
-                    maxshape=(None,),
+                    max_shape=(None,),
                     dtype=type(value),
                 )
             else:
@@ -560,7 +555,7 @@ class SumHDF5Writer:
                 return
             except OSError:
                 time.sleep(2)
-                pass
+                ...
         console.print(
             f"{get_current_timestamp()} Another application is reading the file "
             f"{self._class_filename} exclusively. Five attempts to open the files "

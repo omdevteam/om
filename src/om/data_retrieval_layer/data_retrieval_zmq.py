@@ -22,11 +22,6 @@ This module contains Data Retrieval classes that deal with ZMQ streams.
 """
 from typing import Dict
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
-)
 from om.data_retrieval_layer.data_event_handlers_zmq import (
     Jungfrau1MZmqDataEventHandler,
 )
@@ -39,7 +34,12 @@ from om.data_retrieval_layer.data_sources_zmq import (
     Jungfrau1MZmq,
     TimestampJungfrau1MZmq,
 )
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
 
 
 class Jungfrau1MZmqDataRetrieval(OmDataRetrievalBase):

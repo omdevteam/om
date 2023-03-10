@@ -34,10 +34,10 @@ from numpy.typing import NDArray
 
 from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
 from om.graphical_interfaces.common import OmGuiBase
-from om.library.exceptions import OmMissingDependencyError
-from om.library.geometry import GeometryInformation, TypePixelMaps, compute_min_size
-from om.library.parameters import MonitorParameters
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.exceptions import OmMissingDependencyError
+from om.lib.geometry import GeometryInformation, TypePixelMaps, _compute_min_shape
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
@@ -107,7 +107,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
 
         visual_pixel_maps: TypePixelMaps = self._geometry_info.get_visual_pixel_maps()
         pixel_maps: TypePixelMaps = self._geometry_info.get_pixel_maps()
-        visual_img_shape: Tuple[int, int] = compute_min_size(pixel_maps=pixel_maps)
+        visual_img_shape: Tuple[int, int] = _compute_min_shape(pixel_maps=pixel_maps)
         self._visual_pixel_map_x: NDArray[numpy.int_] = visual_pixel_maps["x"].flatten()
         self._visual_pixel_map_y: NDArray[numpy.int_] = visual_pixel_maps["y"].flatten()
 

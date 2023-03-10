@@ -25,12 +25,15 @@ from typing import Any, Dict, Tuple, Union
 
 from mpi4py import MPI
 
-from om.abcs.data_retrieval_layer import OmDataEventHandlerBase, OmDataRetrievalBase
-from om.abcs.parallelization_layer import OmParallelizationBase
-from om.abcs.processing_layer import OmProcessingBase
-from om.library.exceptions import OmDataExtractionError
-from om.library.parameters import MonitorParameters
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.exceptions import OmDataExtractionError
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+)
+from om.protocols.parallelization_layer import OmParallelizationBase
+from om.protocols.processing_layer import OmProcessingBase
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _DIE_TAG: int = 999
@@ -146,7 +149,7 @@ class MpiParallelization(OmParallelizationBase):
                                     f"{get_current_timestamp()} Shutting down."
                                 )
                                 sys.stdout.flush()
-                                self._processing_layer.end_processing_on_collecting_node(
+                                self._processing_layer.end_processing_on_collecting_node(  # noqa: E501
                                     node_rank=self._rank, node_pool_size=self._mpi_size
                                 )
                                 MPI.Finalize()
@@ -330,8 +333,6 @@ class MpiParallelization(OmParallelizationBase):
                 MPI.COMM_WORLD.Abort(0)
                 exit(0)
         else:
-            req = MPI.COMM_WORLD.send(dest=0, tag=_DEAD_TAG)
-            if req:
-                req.Wait()
+            MPI.COMM_WORLD.send(None, dest=0, tag=_DEAD_TAG)
             MPI.Finalize()
             exit(0)

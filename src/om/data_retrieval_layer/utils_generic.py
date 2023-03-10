@@ -21,11 +21,14 @@ Generic utilities for data retrieval.
 This module contains utility classes and functions used by several Data Retrieval
 Layer modules.
 """
-from typing import Any, BinaryIO, List, Tuple
+from typing import Any, BinaryIO, Dict, List, Tuple
 
 import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
+
+from om.lib.exceptions import OmMissingDataSourceClassError
+from om.protocols.data_retrieval_layer import OmDataSourceBase
 
 
 class Jungfrau1MCalibration:
@@ -38,7 +41,7 @@ class Jungfrau1MCalibration:
         *,
         dark_filenames: List[str],
         gain_filenames: List[str],
-        photon_energy_kev: float
+        photon_energy_kev: float,
     ) -> None:
         """
         Calibration of the Jungfrau 1M detector.
@@ -104,9 +107,9 @@ class Jungfrau1MCalibration:
         calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float32)
 
         where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
-            numpy.where(data & 2 ** 14 == 0),
-            numpy.where((data & (2 ** 14) > 0) & (data & 2 ** 15 == 0)),
-            numpy.where(data & 2 ** 15 > 0),
+            numpy.where(data & 2**14 == 0),
+            numpy.where((data & (2**14) > 0) & (data & 2**15 == 0)),
+            numpy.where(data & 2**15 > 0),
         ]
 
         gain: int
@@ -117,3 +120,39 @@ class Jungfrau1MCalibration:
             )
 
         return calibrated_data
+
+
+def filter_data_sources(
+    *,
+    data_sources: Dict[str, OmDataSourceBase],
+    required_data: List[str],
+) -> List[str]:
+    """
+    Selects only the required Data Sources.
+
+    This function filters the list of all Data Sources associated with a
+    Data Retrieval class, returning only the subset of Data Sources needed to retrieve
+    the data requested by the user.
+
+    Arguments:
+
+        data_sources: A list containing the names of all
+            Data Sources available for a Data Retrieval class.
+
+        required_data: A list containing the names of the data items requested by the
+            user.
+
+    Returns:
+
+        A list of Data Source names containing only the required Data Sources.
+    """
+    required_data_sources: List[str] = []
+    entry: str
+    for entry in required_data:
+        if entry == "timestamp":
+            continue
+        if entry in data_sources:
+            required_data_sources.append(entry)
+        else:
+            raise OmMissingDataSourceClassError(f"Data source {entry} is not defined")
+    return required_data_sources

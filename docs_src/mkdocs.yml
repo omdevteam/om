@@ -48,11 +48,11 @@ nav:
   - Code Reference:
     - om:
       - __init__: reference/om/index.md
-      - abcs:
-        - __init__: reference/om/abcs/index.md
-        - data_retrieval_layer: reference/om/abcs/data_retrieval_layer.md
-        - parallelization_layer: reference/om/abcs/parallelization_layer.md
-        - processing_layer: reference/om/abcs/processing_layer.md
+      - Protocols:
+        - __init__: reference/om/Protocols/index.md
+        - data_retrieval_layer: reference/om/Protocols/data_retrieval_layer.md
+        - parallelization_layer: reference/om/Protocols/parallelization_layer.md
+        - processing_layer: reference/om/Protocols/processing_layer.md
       - algorithms:
         - __init__: reference/om/algorithms/index.md
         - crystallography: reference/om/algorithms/crystallography.md

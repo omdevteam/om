@@ -26,13 +26,16 @@ from typing import Any, Dict, List, Tuple, Union
 
 import zmq
 
-from om.abcs.data_retrieval_layer import OmDataEventHandlerBase, OmDataRetrievalBase
-from om.abcs.parallelization_layer import OmParallelizationBase
-from om.abcs.processing_layer import OmProcessingBase
-from om.library.exceptions import OmDataExtractionError
-from om.library.parameters import MonitorParameters
-from om.library.rich_console import console, get_current_timestamp
-from om.library.zmq_collecting import get_current_machine_ip
+from om.lib.exceptions import OmDataExtractionError
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
+from om.lib.zmq_collecting import get_current_machine_ip
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+)
+from om.protocols.parallelization_layer import OmParallelizationBase
+from om.protocols.processing_layer import OmProcessingBase
 
 
 def _om_processing_node(

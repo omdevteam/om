@@ -27,9 +27,9 @@ import numpy
 from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
-from om.abcs.data_retrieval_layer import OmDataSourceBase
-from om.library.exceptions import OmMissingDependencyError
-from om.library.parameters import MonitorParameters
+from om.lib.exceptions import OmMissingDependencyError
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataSourceBase
 
 try:
     import seedee  # type: ignore
@@ -104,8 +104,11 @@ class EigerAsapo(OmDataSourceBase):
             One detector data frame.
         """
         # TODO: Fix type hinting
-        return seedee.deserialize(
-            event["data"], event["metadata"]["meta"]["_data_format"]
+        return cast(
+            Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+            seedee.deserialize(
+                event["data"], event["metadata"]["meta"]["_data_format"]
+            ),
         )
 
 

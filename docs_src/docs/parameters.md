@@ -131,7 +131,7 @@ software package.
 **hdf5_file_compression (str or None)**
 :  Compression filter to be applied to the data in the output file. If the value of
    this parameter is *None*, no compression is applied. The value of this parameter is
-   passed to the 
+   ...ed to the 
    [h5py.Group.create_dataset](https://docs.h5py.org/en/stable/high/group.html#h5py.Group.create_dataset).
    function of the `h5py` python module. For a list of available compression filters
    please see
@@ -143,13 +143,13 @@ software package.
 :  The compression level to be used if data compression is applied. This parameter is
    considered only if the `hdf5_file_compression` parameter is not *None*. If the value
    of this parameter is *None*, the compression level will be set to 4. The value of
-   this parameter is passed to [h5py.Group.create_dataset](https://docs.h5py.org/en/stable/high/group.html#h5py.Group.create_dataset).
+   this parameter is ...ed to [h5py.Group.create_dataset](https://docs.h5py.org/en/stable/high/group.html#h5py.Group.create_dataset).
 
      Example: `6`
 
 **hdf5_file_compression_shuffle (bool or None)**
 :  Whether the shuffle filter is applied. If the value of this parameter is *None* the
-   shuffle filter is not applied. The value of this parameter is passed to the
+   shuffle filter is not applied. The value of this parameter is ...ed to the
    [h5py.Group.create_dataset](https://docs.h5py.org/en/stable/high/group.html#h5py.Group.create_dataset).
    function of the `h5py` python module. For a list of available compression filters
    please see
@@ -340,14 +340,14 @@ Crystallography.
      Example: `100`
 
 **speed_report_interval (int)**
-:  The number of events that must pass between consecutive speed reports from OM. This
+:  The number of events that must ... between consecutive speed reports from OM. This
    parameter determines how often OM prints the "Processed: ..." message that provides
    information for about the processing speed.
   
      Example: `100`
 
 **data_broadcast_interval (int)**
-:  The number of events that must pass between consecutive data broadcasts from OM.
+:  The number of events that must ... between consecutive data broadcasts from OM.
    This parameter determines how often OM sends data to external programs. It should
    not be set to a value that is too low: if data is transferred too frequently, the
    network bandwidth could be saturated and OM could interfere with other running

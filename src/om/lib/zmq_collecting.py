@@ -27,9 +27,9 @@ from typing import Any, Dict, Tuple, Union
 
 import zmq
 
-from om.library.exceptions import OmInvalidDataBroadcastUrl, OmInvalidRespondingUrl
-from om.library.parameters import get_parameter_from_parameter_group
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.exceptions import OmInvalidDataBroadcastUrl, OmInvalidRespondingUrl
+from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.rich_console import console, get_current_timestamp
 
 
 def get_current_machine_ip() -> str:

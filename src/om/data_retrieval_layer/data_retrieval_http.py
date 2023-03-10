@@ -23,11 +23,6 @@ retrieved from the http/REST interface.
 """
 from typing import Dict
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
-)
 from om.data_retrieval_layer.data_event_handlers_http import (
     Eiger16MHttpDataEventHandler,
 )
@@ -40,14 +35,17 @@ from om.data_retrieval_layer.data_sources_http import (
     EventIdEiger16MHttp,
     TimestampEiger16MHttp,
 )
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
 
 
 class Eiger16MHttpDataRetrieval(OmDataRetrievalBase):
     """
     See documentation of the `__init__` function.
-
-    Base class: [`OmDataRetrieval`][om.abcs.data_retrieval_layer.OmDataRetrievalBase]
     """
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):

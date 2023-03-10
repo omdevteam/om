@@ -21,29 +21,24 @@ Cheetah
 This module contains Cheetah, a data-processing program for serial x-ray
 crystallography, based on OM but not designed to be run in real time.
 """
-import collections
 import pathlib
 import sys
 import time
-from typing import Any, Deque, Dict, List, NamedTuple, TextIO, Tuple, Union, cast
+from typing import Any, Dict, List, NamedTuple, TextIO, Tuple, TypedDict, Union, cast
 
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs import processing_layer as prol_abcs
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
-from om.library import geometry, hdf5_writers, parameters
-from om.library.geometry import TypeDetector
-from om.library.rich_console import console, get_current_timestamp
-
-try:
-    from typing import TypedDict
-except ImportError:
-    from mypy_extensions import TypedDict
+from om.lib.geometry import TypeDetector, _load_crystfel_geometry, compute_pix_maps
+from om.lib.hdf5_writers import HDF5Writer, SumHDF5Writer
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
+from om.protocols.processing_layer import OmProcessingBase
 
 
-class _TypeClassSumData(TypedDict, total=False):
+class _TypeClassSumData(TypedDict):
     # This typed dictionary is used internally to store the number of detector frames
     # belonging to a certain data class, their sum and, optionally, the virtual peak
     # powder.
@@ -64,12 +59,12 @@ class _TypeFrameListData(NamedTuple):
     average_intensity: numpy.float64
 
 
-class CheetahProcessing(prol_abcs.OmProcessingBase):
+class CheetahProcessing(OmProcessingBase):
     """
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
+    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
         """
         Cheetah.
 
@@ -88,7 +83,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._monitor_params = monitor_parameters
 
@@ -113,7 +108,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
                 processing nodes and the collecting node.
         """
         self._geometry: TypeDetector
-        self._geometry, _, __ = geometry.load_crystfel_geometry(
+        self._geometry, _, __ = _load_crystfel_geometry(
             filename=self._monitor_params.get_parameter(
                 group="crystallography",
                 parameter="geometry_file",
@@ -121,7 +116,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
                 required=True,
             )
         )
-        self._pixelmaps = geometry.compute_pix_maps(geometry=self._geometry)
+        self._pixelmaps = compute_pix_maps(geometry=self._geometry)
         self._data_shape: Tuple[int, ...] = self._pixelmaps["x"].shape
 
         self._correction = gen_algs.Correction(
@@ -168,8 +163,10 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
                 self._peak_detection.set_radius_pixel_map(
                     cast(
                         NDArray[numpy.float_],
-                        self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps),
-                    )["radius"]
+                        self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)[
+                            "radius"
+                        ],
+                    )
                 )
             self._data_shape = self._binning.get_binned_data_shape()
         else:
@@ -204,7 +201,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
             parameter_type=int,
             required=True,
         )
-        self._file_writer: hdf5_writers.HDF5Writer = hdf5_writers.HDF5Writer(
+        self._file_writer: HDF5Writer = HDF5Writer(
             parameters=self._monitor_params.get_parameter_group(group="cheetah"),
             node_rank=node_rank,
         )
@@ -277,7 +274,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
             required=True,
         )
 
-        self._geometry, _, __ = geometry.load_crystfel_geometry(
+        self._geometry, _, __ = _load_crystfel_geometry(
             filename=self._monitor_params.get_parameter(
                 group="crystallography",
                 parameter="geometry_file",
@@ -285,7 +282,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
                 required=True,
             )
         )
-        self._pixelmaps = geometry.compute_pix_maps(geometry=self._geometry)
+        self._pixelmaps = compute_pix_maps(geometry=self._geometry)
         self._data_shape = self._pixelmaps["x"].shape
 
         binning: Union[bool, None] = self._monitor_params.get_parameter(
@@ -370,7 +367,7 @@ class CheetahProcessing(prol_abcs.OmProcessingBase):
             )
             class_number: int
             self._sum_writers = [
-                hdf5_writers.SumHDF5Writer(
+                SumHDF5Writer(
                     directory_for_processed_data=processed_directory,
                     powder_class=class_number,
                     detector_data_shape=self._data_shape,

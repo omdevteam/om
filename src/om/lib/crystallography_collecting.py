@@ -24,13 +24,13 @@ from numpy.typing import NDArray
 
 from om.algorithms.crystallography import TypePeakList
 from om.algorithms.generic import Binning
-from om.library.geometry import (
+from om.lib.geometry import (
     GeometryInformation,
     TypePixelMaps,
     compute_min_size,
     compute_visualization_pix_maps,
 )
-from om.library.parameters import get_parameter_from_parameter_group
+from om.lib.parameters import get_parameter_from_parameter_group
 
 
 class CrystallographyPlots:

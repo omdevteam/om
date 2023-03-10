@@ -28,6 +28,6 @@ try:
 
     from .mpi import MpiParallelization  # noqa: F401
 except ModuleNotFoundError:
-    pass
+    ...
 
 from .multiprocessing import MultiprocessingParallelization  # noqa: F401

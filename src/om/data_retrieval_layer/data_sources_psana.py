@@ -26,14 +26,14 @@ from typing import Any, Callable, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs.data_retrieval_layer import OmDataSourceBase
 from om.data_retrieval_layer.data_sources_generic import get_calibration_request
-from om.library.exceptions import (
+from om.lib.exceptions import (
     OmDataExtractionError,
     OmMissingDependencyError,
     OmWrongParameterTypeError,
 )
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataSourceBase
 
 try:
     import psana  # type: ignore
@@ -192,8 +192,9 @@ class CspadPsana(OmDataSourceBase):
         cspad_reshaped: Union[
             NDArray[numpy.float_], NDArray[numpy.int_]
         ] = cspad_psana.reshape((4, 8, 185, 388))
-        cspad_slab: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = numpy.zeros(
-            shape=(1480, 1552), dtype=cspad_reshaped.dtype
+        cspad_slab: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = cast(
+            Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+            numpy.zeros(shape=(1480, 1552), dtype=cspad_reshaped.dtype),
         )
         index: int
         for index in range(cspad_reshaped.shape[0]):
@@ -982,7 +983,9 @@ class TimestampPsana(OmDataSourceBase):
 
             The timestamp for the data event.
         """
-        psana_event_id: Any = event["data"].get(psana.EventId)
+        psana_event_id: Any = event["data"].get(
+            psana.EventId  # pyright: ignore[reportGeneralTypeIssues]
+        )
         timestamp_epoch_format: Any = psana_event_id.time()
         return numpy.float64(
             str(timestamp_epoch_format[0]) + "." + str(timestamp_epoch_format[1])
@@ -1058,7 +1061,9 @@ class EventIdPsana(OmDataSourceBase):
 
             A unique event identifier.
         """
-        psana_event_id: Any = event["data"].get(psana.EventId)
+        psana_event_id: Any = event["data"].get(
+            psana.EventId  # pyright: ignore[reportGeneralTypeIssues]
+        )
         timestamp_epoch_format: Any = psana_event_id.time()
         fiducials: Any = psana_event_id.fiducials()
         return f"{timestamp_epoch_format[0]}-{timestamp_epoch_format[1]}-{fiducials}"

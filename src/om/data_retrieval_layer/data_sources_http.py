@@ -28,8 +28,8 @@ import numpy
 from numpy.typing import NDArray
 from PIL import Image  # type: ignore
 
-from om.abcs.data_retrieval_layer import OmDataSourceBase
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataSourceBase
 
 
 class Eiger16MHttp(OmDataSourceBase):
@@ -203,7 +203,7 @@ class EventIdEiger16MHttp(OmDataSourceBase):
         Eiger 16M data events retrieved as tif files from http/REST detector interface.
         The combination of the series_id and frame_id retrieved from the header of the
         tif file are used as event identifier. This class is a subclass of the
-        [OmDataSourceBase][om.abcs.data_retrieval_layer.OmDataSourceBase] class.
+        [OmDataSourceBase][om.Protocols.data_retrieval_layer.OmDataSourceBase] class.
 
         Arguments:
 

@@ -21,12 +21,15 @@ import sys
 from types import ModuleType
 from typing import Any, Dict, Type
 
-from om.abcs.data_retrieval_layer import OmDataEventHandlerBase, OmDataRetrievalBase
-from om.library.exceptions import (
+from om.lib.exceptions import (
     OmInvalidDataBroadcastUrl,
     OmMissingDataRetrievalClassError,
 )
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+)
 
 
 class OmFrameDataRetrieval:

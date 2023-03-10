@@ -20,18 +20,17 @@ Parallelization Layer's base classes.
 
 This module contains base abstract classes for OM's Processing Layer.
 """
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Tuple, Union
 
-from om.library.parameters import MonitorParameters
+from typing import Any, Dict, Protocol, Tuple, Union
+
+from om.lib.parameters import MonitorParameters
 
 
-class OmProcessingBase(ABC):
+class OmProcessingBase(Protocol):
     """
     See documentation for the `__init__` function.
     """
 
-    @abstractmethod
     def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
         """
         Base class for an OM's Monitor.
@@ -50,9 +49,8 @@ class OmProcessingBase(ABC):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        pass
+        ...
 
-    @abstractmethod
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -72,9 +70,8 @@ class OmProcessingBase(ABC):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        pass
+        ...
 
-    @abstractmethod
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -94,9 +91,8 @@ class OmProcessingBase(ABC):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        pass
+        ...
 
-    @abstractmethod
     def process_data(
         self,
         *,
@@ -136,9 +132,8 @@ class OmProcessingBase(ABC):
                 processed data that should be sent to the collecting node. The second
                 entry is the OM rank number of the node that processed the information.
         """
-        pass
+        ...
 
-    @abstractmethod
     def wait_for_data(
         self,
         *,
@@ -150,7 +145,7 @@ class OmProcessingBase(ABC):
 
         This function is called on the collecting node continuously, when the node is
         not receiving data from any processing node (When data is received, the
-        [`collect_data`][om.abcs.processing_layer.OmProcessingBase.collect_data] is
+        [`collect_data`][om.Protocols.processing_layer.OmProcessingBase.collect_data] is
         invoked instead). This function can be used to perform operations that need to
         be carried out when the data stream is not active (reacting to external
         commands and requests, updating graphical interfaces, etc.)
@@ -164,9 +159,8 @@ class OmProcessingBase(ABC):
                 processing nodes and the collecting node.
 
         """
-        pass
+        ...
 
-    @abstractmethod
     def collect_data(
         self,
         *,
@@ -180,12 +174,12 @@ class OmProcessingBase(ABC):
         This function is invoked on the collecting node every time data is received
         from a processing node (When data is not being received, the collecting node
         continuously calls the
-        [`wait_for_data`][om.abcs.processing_layer.OmProcessingBase.wait_for_data]
+        [`wait_for_data`][om.Protocols.processing_layer.OmProcessingBase.wait_for_data]
         function instead). The function accepts as input the data received from
         the processing node (the tuple returned by the
-        [`process_data`][om.abcs.processing_layer.OmProcessingBase.process_data] method
-        of this class). It can be used to compute aggregate statistics on the data
-        received from all nodes, to forwards data to external programs for
+        [`process_data`][om.Protocols.processing_layer.OmProcessingBase.process_data]
+        method of this class). It can be used to compute aggregate statistics on the
+        data received from all nodes, to forwards data to external programs for
         visualization, etc.
 
         The function usually does not return any value, but can optionally return a
@@ -202,7 +196,7 @@ class OmProcessingBase(ABC):
 
         * On each processing node, the feedback data dictionary, if received, will be
         merged into with the `data` argument of the
-        [`process_data`][om.abcs.processing_layer.OmProcessingBase.process_data]
+        [`process_data`][om.Protocols.processing_layer.OmProcessingBase.process_data]
         function the next time the function is called.
 
         Arguments:
@@ -223,9 +217,8 @@ class OmProcessingBase(ABC):
             Usually nothing. Optionally, a dictionary of dictionaries that can be used
                 to send feedback data to the processing nodes.
         """
-        pass
+        ...
 
-    @abstractmethod
     def end_processing_on_processing_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
@@ -251,9 +244,8 @@ class OmProcessingBase(ABC):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        pass
+        ...
 
-    @abstractmethod
     def end_processing_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
@@ -272,4 +264,4 @@ class OmProcessingBase(ABC):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        pass
+        ...

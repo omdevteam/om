@@ -31,11 +31,11 @@ from numpy.typing import DTypeLike, NDArray
 
 from om.algorithms import crystallography as cryst_algs
 from om.lib.binning_extension import bin_detector_data  # type: ignore
-from om.library import exceptions
-from om.library import parameters as param_utils
-from om.library.geometry import TypePixelMaps
+from om.lib.exceptions import OmHdf5PathError
+from om.lib.geometry import TypePixelMaps
+from om.lib.parameters import get_parameter_from_parameter_group
 
-A = TypeVar("A", NDArray[numpy.float_], NDArray[numpy.int_])
+A = TypeVar("A", numpy.float_, numpy.int_)
 
 
 class Correction:
@@ -43,7 +43,7 @@ class Correction:
     See documentation of the `__init__` function.
     """
 
-    def __init__(  # noqa: C901
+    def __init__(
         self,
         *,
         parameters: Dict[str, Any],
@@ -115,34 +115,22 @@ class Correction:
                       provided, and cannot be None. Otherwise it is ignored.
         """
 
-        dark_filename: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        dark_filename: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="dark_filename", parameter_type=str
         )
-        dark_hdf5_path: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        dark_hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="dark_hdf5_path", parameter_type=str
         )
-        mask_filename: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        mask_filename: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="mask_filename", parameter_type=str
         )
-        mask_hdf5_path: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        mask_hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="mask_hdf5_path", parameter_type=str
         )
-        gain_filename: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        gain_filename: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="gain_filename", parameter_type=str
         )
-        gain_hdf5_path: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        gain_hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="gain_hdf5_path", parameter_type=str
         )
 
@@ -152,7 +140,7 @@ class Correction:
                     mask_hdf5_file_handle: Any
                     with h5py.File(mask_filename, "r") as mask_hdf5_file_handle:
                         self._mask: Union[
-                            NDArray[numpy.int_], bool, None
+                            NDArray[numpy.int_], int
                         ] = mask_hdf5_file_handle[mask_hdf5_path][:]
                 except (IOError, OSError, KeyError) as exc:
                     exc_type, exc_value = sys.exc_info()[:2]
@@ -162,19 +150,19 @@ class Correction:
                         f"map HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
-                raise exceptions.OmHdf5PathError(
+                raise OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for mask."
                 )
         else:
             # True here is equivalent to an all-one mask.
-            self._mask = True
+            self._mask = 1
 
         if dark_filename is not None:
             if dark_hdf5_path is not None:
                 try:
                     dark_hdf5_file_handle: Any
                     with h5py.File(dark_filename, "r") as dark_hdf5_file_handle:
-                        self._dark: Union[NDArray[numpy.float_], bool, None] = (
+                        self._dark: Union[NDArray[numpy.float_], int] = (
                             dark_hdf5_file_handle[dark_hdf5_path][:] * self._mask
                         )
                 except (IOError, OSError, KeyError) as exc:
@@ -185,19 +173,19 @@ class Correction:
                         f"data HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
-                raise exceptions.OmHdf5PathError(
+                raise OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for dark frame data."
                 )
         else:
             # False here is equivalent to an all-zero mask.
-            self._dark = False
+            self._dark = 0
 
         if gain_filename is not None:
             if gain_hdf5_path is not None:
                 try:
                     gain_hdf5_file_handle: Any
                     with h5py.File(gain_filename, "r") as gain_hdf5_file_handle:
-                        self._gain: Union[NDArray[numpy.float_], None] = (
+                        self._gain: Union[NDArray[numpy.float_], int] = (
                             gain_hdf5_file_handle[gain_hdf5_path][:] * self._mask
                         )
                 except (IOError, OSError, KeyError) as exc:
@@ -208,12 +196,12 @@ class Correction:
                         f"data HDF5 file: {exc_type.__name__}: {exc_value}"
                     ) from exc
             else:
-                raise exceptions.OmHdf5PathError(
+                raise OmHdf5PathError(
                     "Correction Algorithm: missing HDF5 path for gain map."
                 )
         else:
             # True here is equivalent to an all-one map.
-            self._gain_map = True
+            self._gain_map = 1
 
     def apply_correction(self, data: NDArray[numpy.float_]) -> NDArray[numpy.float_]:
         """
@@ -296,15 +284,13 @@ class RadialProfile:
                   the data frame, its distance (in pixels) from the origin of the
                   detector reference system (usually the center of the detector).
         """
-        bad_pixel_map_filename: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="bad_pixel_map_filename", parameter_type=str
         )
         if bad_pixel_map_filename is not None:
             bad_pixel_map_hdf5_path: Union[
                 str, None
-            ] = param_utils.get_parameter_from_parameter_group(
+            ] = get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="bad_pixel_map_hdf5_path",
                 parameter_type=str,
@@ -336,7 +322,7 @@ class RadialProfile:
         else:
             self._mask = bad_pixel_map.astype(bool)
 
-        radius_step: float = param_utils.get_parameter_from_parameter_group(
+        radius_step: float = get_parameter_from_parameter_group(
             group=parameters,
             parameter="radius_step",
             parameter_type=float,
@@ -412,12 +398,10 @@ class DataAccumulation:
                 * `num_events_to_accumulate`: the number of data entries that can be
                    added to the accumulator before the collected data is returned.
         """
-        self._num_events_to_accumulate: int = (
-            param_utils.get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="num_events_to_accumulate",
-                parameter_type=int,
-            )
+        self._num_events_to_accumulate: int = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="num_events_to_accumulate",
+            parameter_type=int,
         )
 
         self._accumulator: List[Dict[str, Any]] = []
@@ -543,7 +527,7 @@ class Binning:
         """
         self._layout_info: cryst_algs.TypePeakfinder8Info = (
             cryst_algs.get_peakfinder8_info(
-                detector_type=param_utils.get_parameter_from_parameter_group(
+                detector_type=get_parameter_from_parameter_group(
                     group=parameters,
                     parameter="detector_type",
                     parameter_type=str,
@@ -551,15 +535,13 @@ class Binning:
                 )
             )
         )
-        self._bin_size: int = param_utils.get_parameter_from_parameter_group(
+        self._bin_size: int = get_parameter_from_parameter_group(
             group=parameters,
             parameter="bin_size",
             parameter_type=int,
             required=True,
         )
-        min_good_pix_count: Union[
-            int, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        min_good_pix_count: Union[int, None] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="min_good_pix_count",
             parameter_type=int,
@@ -568,14 +550,12 @@ class Binning:
             self._min_good_pix_count: int = self._bin_size**2
         else:
             self._min_good_pix_count = min_good_pix_count
-        self._bad_pixel_value: int = param_utils.get_parameter_from_parameter_group(
+        self._bad_pixel_value: Union[int, float] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="bad_pixel_value",
             parameter_type=int,
         )
-        bad_pixel_map_filename: Union[
-            str, None
-        ] = param_utils.get_parameter_from_parameter_group(
+        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters,
             parameter="bad_pixel_map_filename",
             parameter_type=str,
@@ -583,7 +563,7 @@ class Binning:
         if bad_pixel_map_filename is not None:
             bad_pixel_map_hdf5_path: Union[
                 str, None
-            ] = param_utils.get_parameter_from_parameter_group(
+            ] = get_parameter_from_parameter_group(
                 group=parameters,
                 parameter="bad_pixel_map_hdf5_path",
                 parameter_type=str,
@@ -640,7 +620,9 @@ class Binning:
         self._binned_ny: int = self._extended_ny // self._bin_size
 
         # Binned mask = num good pixels per bin
-        self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(data=self._mask)
+        self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(
+            data=cast(NDArray[numpy.int_], self._mask)
+        )
 
         self._float_data_array: NDArray[numpy.float_] = numpy.zeros(
             (self._original_nx, self._original_ny), dtype=numpy.float64
@@ -650,10 +632,10 @@ class Binning:
         )
         self._saturation_value: float = -1.0
 
-    def _extend_data_array(self, *, data: A) -> A:
+    def _extend_data_array(self, *, data: NDArray[A]) -> NDArray[A]:
         # Extends the original data array with zeros making the asic size divisible by
         # bin_size. Returns new array of size (self._extended_nx, self._extended_ny)
-        extended_data: A = numpy.zeros(
+        extended_data: NDArray[A] = numpy.zeros(
             (self._extended_nx, self._extended_ny), dtype=data.dtype
         )
         i: int
@@ -671,11 +653,11 @@ class Binning:
                 ]
         return extended_data
 
-    def _bin_data_array(self, *, data: A) -> A:
+    def _bin_data_array(self, *, data: NDArray[A]) -> NDArray[A]:
         # Gets an extended data array with dimensions divisible by bin size and sums
         # pixel values in the bins. Returns the binned data array.
-        extended_data: A = self._extend_data_array(data=data)
-        binned_data: A = (
+        extended_data: NDArray[A] = self._extend_data_array(data=data)
+        binned_data: NDArray[A] = (
             extended_data.reshape(
                 self._binned_nx, self._bin_size, self._binned_ny, self._bin_size
             )

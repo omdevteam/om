@@ -24,8 +24,8 @@ from typing import Any, Dict, Union, cast
 
 import numpy
 
-from om.abcs.data_retrieval_layer import OmDataSourceBase
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataSourceBase
 
 
 def get_calibration_request(

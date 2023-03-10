@@ -26,19 +26,16 @@ from typing import Any, Dict, Generator, List
 
 import numpy
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataSourceBase,
-    filter_data_sources,
-)
-from om.library.exceptions import (
+from om.data_retrieval_layer.utils_generic import filter_data_sources
+from om.lib.exceptions import (
     OmDataExtractionError,
     OmMissingDataEventError,
     OmMissingDependencyError,
     OmMissingFrameDataError,
 )
-from om.library.parameters import MonitorParameters
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
+from om.protocols.data_retrieval_layer import OmDataEventHandlerBase, OmDataSourceBase
 
 try:
     import psana  # type: ignore
@@ -106,7 +103,7 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -411,7 +408,7 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         evt_id_timestamp: int = int(event_id_parts[0])
         evt_id_timestamp_ns: int = int(event_id_parts[1])
         evt_id_fiducials: int = int(event_id_parts[2])
-        event_time: Any = psana.EventTime(
+        event_time: Any = psana.EventTime(  # pyright: ignore[reportGeneralTypeIssues]
             int((evt_id_timestamp << 32) | evt_id_timestamp_ns), evt_id_fiducials
         )
         retrieved_event: Any = self._run.event(event_time)

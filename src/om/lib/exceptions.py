@@ -163,6 +163,12 @@ class OmMissingParameterGroupError(OmException):
     """
 
 
+class OmWrongArrayShape(OmException):
+    """
+    Raised if the shape of an array is not for the data it should contain.
+    """
+
+
 class OmWrongParameterTypeError(OmException):
     """
     Raised if the type of an OM's configuration parameter is not correct.

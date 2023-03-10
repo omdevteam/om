@@ -29,7 +29,7 @@ from typing import Any
 import click
 
 from om.graphical_interfaces.common import OmGuiBase
-from om.library.exceptions import OmMissingDependencyError
+from om.lib.exceptions import OmMissingDependencyError
 
 try:
     from PyQt5 import QtWidgets

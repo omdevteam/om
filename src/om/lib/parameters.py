@@ -26,7 +26,7 @@ from typing import Any, Dict, TextIO, Union
 
 import yaml  # type: ignore
 
-from om.library import exceptions
+from om.lib import exceptions
 
 
 def get_parameter_from_parameter_group(
@@ -160,7 +160,7 @@ class MonitorParameters:
             raise exceptions.OmConfigurationFileReadingError(
                 f"Cannot open or read the configuration file {config}."
             )
-        except yaml.parser.ParserError as exc:
+        except yaml.parser.ParserError as exc:  # pyright: ignore[reportGeneralTypeIssues]  # noqa: E501
             raise exceptions.OmConfigurationFileSyntaxError(
                 f"Syntax error in the configuration file: {exc}."
             ) from exc
@@ -282,7 +282,7 @@ class MonitorParameters:
         adds it to the parameter set stored by this class, and makes it available as a
         parameter with the name `source` within the `om` group. If, additionally, the
         total number of  nodes in OM's node pool is provided as one of the input
-        parameters, this information will added to the parameter set and made availabe
+        parameters, this information will added to the parameter set and made available
         as a parameter named `node_pool_size` within the `om` group.
 
         Arguments:

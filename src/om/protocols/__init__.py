@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's utility functions and classes.
+OM's Protocols (Abstract Base Classes).
 
-This package contains several helper functions and classes that perform tasks needed
-by other parts of OM.  They are split in several categories. Each module in the
-package contains functions and classes belonging to one of them.
+This module contains Abstract Base Classes for OM's Data Retrieval, Parallelization,
+and Processing Layers, subdivided in one submodule for each layer. The Abstract
+Base Classes define the interfaces that the classes in the layers must implement.
 """

@@ -22,11 +22,6 @@ This module contains Data Retrieval classes that deal with files.
 """
 from typing import Dict
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
-)
 from om.data_retrieval_layer.data_event_handlers_files import (
     Eiger16MFilesDataEventHandler,
     Jungfrau1MFilesDataEventHandler,
@@ -51,7 +46,12 @@ from om.data_retrieval_layer.data_sources_generic import (
     FloatEntryFromConfiguration,
     FrameIdZero,
 )
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
 
 
 class PilatusFilesDataRetrieval(OmDataRetrievalBase):

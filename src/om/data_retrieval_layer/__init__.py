@@ -24,26 +24,27 @@ facilities and software frameworks are implemented in separate modules in the pa
 Other modules contain utility functions and classes.
 """
 
-from .data_retrieval_zmq import Jungfrau1MZmqDataRetrieval  # noqa: F401
 from .data_retrieval_files import (  # noqa: F401
-    Jungfrau1MFilesDataRetrieval,
-    PilatusFilesDataRetrieval,
     Eiger16MFilesDataRetrieval,
-    RayonixMccdFilesDataRetrieval,
+    Jungfrau1MFilesDataRetrieval,
     Lambda1M5FilesDataRetrieval,
+    RayonixMccdFilesDataRetrieval,
 )
+from .data_retrieval_zmq import Jungfrau1MZmqDataRetrieval  # noqa: F401
 
 try:
     import fabio  # type: ignore  # noqa: F401
+
     from .data_retrieval_files import PilatusFilesDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
     pass
 
 try:
     import psana  # type: ignore  # noqa: F401
+
     from .data_retrieval_psana import (  # noqa: F401
-        CxiLclsDataRetrieval,
         CxiLclsCspadDataRetrieval,
+        CxiLclsDataRetrieval,
         LclsEpix100DataRetrieval,
         MfxLclsDataRetrieval,
         MfxLclsRayonixDataRetrieval,
@@ -52,15 +53,17 @@ except ModuleNotFoundError:
     pass
 
 try:
-    import asapo_consumer  # type: ignore
-    from .data_retrieval_asapo import EigerAsapoDataRetrieval
+    import asapo_consumer  # type: ignore  # noqa: F401
+
+    from .data_retrieval_asapo import EigerAsapoDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
-    pass
+    ...
 
 try:
     import PIL  # type: ignore  # noqa: F401
-    from .data_retrieval_http import Eiger16MHttpDataRetrieval
+
+    from .data_retrieval_http import Eiger16MHttpDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
     pass
 
-from .frame_retrieval import OmFrameDataRetrieval
+from .frame_retrieval import OmFrameDataRetrieval  # noqa: F401

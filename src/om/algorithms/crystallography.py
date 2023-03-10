@@ -24,19 +24,18 @@ dictionaries that store the data needed or produced by these algorithms.
 """
 import random
 import sys
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, TypedDict, Union
 
 import h5py  # type: ignore
 import numpy
 import scipy  # type: ignore
 from numpy.typing import NDArray
-from typing_extensions import TypedDict
 
+from om.lib.parameters import get_parameter_from_parameter_group
 from om.lib.peakfinder8_extension import peakfinder_8  # type: ignore
-from om.library.parameters import get_parameter_from_parameter_group
 
 
-def _read_profile(*, profile_filename: str) -> Union[numpy.ndarray, None]:
+def _read_profile(*, profile_filename: str) -> Union[NDArray[numpy.float_], None]:
     if profile_filename is not None:
         try:
             return numpy.loadtxt(profile_filename)
@@ -940,18 +939,17 @@ class RadialProfileAnalysisWithSampleDetection:
         radial_bins = numpy.linspace(0, num_bins * radial_step, num_bins + 1)
 
         # Create an array labeling each pixel according to the radial bin it belongs to
-        self._radial_bin_labels: numpy.ndarray = numpy.searchsorted(
+        self._radial_bin_labels: NDArray[numpy.int_] = numpy.searchsorted(
             radial_bins, radius_pixel_map, "right"
         )
         self._radial_bin_labels -= 1
-        self._mask_initialized: bool = False
-        self._mask: Union[numpy.ndarray, None] = None
+        self._mask: Union[NDArray[numpy.float_], None] = None
 
     def compute_radial_profile(
         self,
         *,
-        data: numpy.ndarray,
-    ) -> Tuple[numpy.ndarray, numpy.ndarray]:
+        data: Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+    ) -> Tuple[NDArray[numpy.float_], NDArray[numpy.float_]]:
         """
         Calculate radial profile from a detector data frame.
 
@@ -970,21 +968,21 @@ class RadialProfileAnalysisWithSampleDetection:
 
         #TODO: Fix documentation
         """
-        if not self._mask_initialized:
+        if self._mask is None:
             if self._bad_pixel_map is None:
                 self._mask = numpy.ones_like(data, dtype=bool)
             else:
                 self._mask = self._bad_pixel_map.astype(bool)
-        bin_sum: numpy.ndarray = numpy.bincount(
+        bin_sum: NDArray[numpy.int_] = numpy.bincount(
             self._radial_bin_labels[self._mask].ravel(), data[self._mask].ravel()
         )
-        bin_count: numpy.ndarray = numpy.bincount(
+        bin_count: NDArray[numpy.int_] = numpy.bincount(
             self._radial_bin_labels[self._mask].ravel()
         )
         with numpy.errstate(divide="ignore", invalid="ignore"):
             # numpy.errstate just allows us to ignore the divide by zero warning
-            radial: numpy.ndarray = numpy.nan_to_num(bin_sum / bin_count)
-        errors: numpy.ndarray = scipy.stats.binned_statistic(
+            radial: NDArray[numpy.float_] = numpy.nan_to_num(bin_sum / bin_count)
+        errors: NDArray[numpy.float_] = scipy.stats.binned_statistic(
             self._radial_bin_labels[self._mask].ravel(),
             data[self._mask].ravel(),
             "std",
@@ -994,7 +992,7 @@ class RadialProfileAnalysisWithSampleDetection:
             errors = radial * 0.03
         return radial, errors
 
-    def detect_sample(self, radial_profile: numpy.ndarray) -> bool:
+    def detect_sample(self, radial_profile: NDArray[numpy.float_]) -> bool:
         """
         Decides whether a radial profile is from an aqueous droplet.
 
@@ -1014,13 +1012,13 @@ class RadialProfileAnalysisWithSampleDetection:
         if self._sample_profile is not None and self._water_profile is not None:
             # More complex algorithm where the radial is fit with a linear combination
             # of user defined sample and water profiles using least squares
-            vectors: numpy.ndarray = numpy.vstack(
+            vectors: NDArray[numpy.float_] = numpy.vstack(
                 (self._sample_profile, self._water_profile)
             )
             coefficients = fit_by_least_squares(
                 radial_profile=radial_profile, vectors=vectors
             )
-            water_profile_to_sample_profile_ratio: float = (
+            water_profile_to_sample_profile_ratio: float = float(
                 coefficients[1] / coefficients[0]
             )
             if coefficients[0] < 0:
@@ -1032,13 +1030,13 @@ class RadialProfileAnalysisWithSampleDetection:
         else:
             # TODO: Why a try/except?
             # Simple ratio of water peak intensity to sample peak intensity
-            sample_profile_mean: float = numpy.mean(
+            sample_profile_mean: numpy.float_ = numpy.mean(
                 radial_profile[self._sample_peak_min_bin : self._sample_peak_max_bin]
             )
-            water_profile_mean: float = numpy.mean(
+            water_profile_mean: numpy.float_ = numpy.mean(
                 radial_profile[self._water_peak_min_bin : self._water_peak_max_bin]
             )
-            water_profile_to_sample_profile_ratio = (
+            water_profile_to_sample_profile_ratio = float(
                 water_profile_mean / sample_profile_mean
             )
         sample_detected: bool = (
@@ -1052,11 +1050,11 @@ class RadialProfileAnalysisWithSampleDetection:
 
 def fit_by_least_squares(
     *,
-    radial_profile: numpy.ndarray,
-    vectors: numpy.ndarray,
+    radial_profile: NDArray[numpy.float_],
+    vectors: NDArray[numpy.float_],
     start_bin: Union[int, None] = None,
     stop_bin: Union[int, None] = None,
-) -> numpy.ndarray:
+) -> NDArray[numpy.float_]:
     # This function fits a set of linearly combined vectors to a radial profile,
     # using a least-squares-based approach. The fit only takes into account the
     # range of radial bins defined by the xmin and xmax arguments.
@@ -1064,10 +1062,10 @@ def fit_by_least_squares(
         start_bin = 0
     if stop_bin is None:
         stop_bin = len(radial_profile)
-    a: numpy.ndarray = numpy.nan_to_num(numpy.atleast_2d(vectors).T)
-    b: numpy.ndarray = numpy.nan_to_num(radial_profile)
+    a: NDArray[numpy.float_] = numpy.nan_to_num(numpy.atleast_2d(vectors).T)
+    b: NDArray[numpy.float_] = numpy.nan_to_num(radial_profile)
     a = a[start_bin:stop_bin]
     b = b[start_bin:stop_bin]
-    coefficients: numpy.ndarray
+    coefficients: NDArray[numpy.float_]
     coefficients, _, _, _ = numpy.linalg.lstsq(a, b, rcond=None)
     return coefficients

@@ -22,11 +22,11 @@ This module contains base classes and functions used by several of OM's graphica
 interfaces and viewers.
 """
 import copy
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from typing import Any, Callable, Dict, List, Union  # noqa: F401
 
-from om.library.exceptions import OmMissingDependencyError
-from om.library.zmq_gui import ZmqDataListener
+from om.lib.exceptions import OmMissingDependencyError
+from om.lib.zmq_gui import ZmqDataListener
 
 try:
     from PyQt5 import QtCore, QtWidgets
@@ -133,7 +133,6 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         # entries, each stored in a dictionary.
         self._received_data = copy.deepcopy(received_data)
 
-    @abstractmethod
     def update_gui(self) -> None:
         """
         Updates GUI elements.

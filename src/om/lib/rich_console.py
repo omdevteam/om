@@ -65,7 +65,7 @@ def set_custom_theme(*, theme_dict: Dict[str, str]) -> None:
     Sets a custom theme for OM's rich console.
 
     This function configures OM's rich console to use a custom theme. A dictionary
-    passed to this function as an input parameter must stores the theme definition,
+    ...ed to this function as an input parameter must stores the theme definition,
     using the syntax defined by the python
     [Rich library][https://rich.readthedocs.io/en/stable/style.html].
     The custom theme is applied on top of OM's base rich console's theme: the console

@@ -24,25 +24,17 @@ the http/REST interface.
 import sys
 import time
 from io import BytesIO
-from typing import Any, Dict, Generator, List, Union, cast
+from typing import Any, Dict, Generator, List, Literal, Union, cast
 
 import requests  # type: ignore
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataSourceBase,
-    filter_data_sources,
-)
-from om.library.exceptions import (
+from om.data_retrieval_layer.utils_generic import filter_data_sources
+from om.lib.exceptions import (
     OmDataExtractionError,
     OmEigerHttpInterfaceInitializationError,
 )
-from om.library.parameters import MonitorParameters
-
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataEventHandlerBase, OmDataSourceBase
 
 
 class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
@@ -82,7 +74,7 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.abcs.data_retrieval_layer.OmDataSourceBase]
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -131,7 +123,7 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        print("Configuring detector...")
+        print("Configuring detectorpass")
         if not self._check_detector_monitor_mode():
             raise OmEigerHttpInterfaceInitializationError(
                 "Cannot connect to the detector: "

@@ -25,24 +25,26 @@ import importlib
 import signal
 import sys
 from types import ModuleType
-from typing import Dict, Type, TypeVar, Union
+from typing import Dict, Type, Union, cast
 
 import click
 
-from om.abcs.data_retrieval_layer import OmDataRetrievalBase
-from om.abcs.parallelization_layer import OmParallelizationBase
-from om.abcs.processing_layer import OmProcessingBase
-from om.library.exceptions import (
+from om.lib.exceptions import (
     OmInvalidDataBroadcastUrl,
     OmMissingDataRetrievalClassError,
 )
-from om.library.parameters import MonitorParameters
-from om.library.rich_console import console, set_custom_theme, set_null_theme
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, set_custom_theme, set_null_theme
+from om.protocols.data_retrieval_layer import OmDataRetrievalBase
+from om.protocols.parallelization_layer import OmParallelizationBase
+from om.protocols.processing_layer import OmProcessingBase
 
-T = TypeVar("T")
 
-
-def _import_class(*, layer: str, class_name: str) -> Type[T]:
+def _import_class(
+    *, layer: str, class_name: str
+) -> Union[
+    Type[OmParallelizationBase], Type[OmProcessingBase], Type[OmDataRetrievalBase]
+]:
     try:
         imported_layer: ModuleType = importlib.import_module(name=layer)
     except ImportError:
@@ -57,7 +59,11 @@ def _import_class(*, layer: str, class_name: str) -> Type[T]:
                     f"to the following error: {exc_type.__name__}: {exc_value}"
                 ) from exc
     try:
-        imported_class: Type[T] = getattr(imported_layer, class_name)
+        imported_class: Union[
+            Type[OmParallelizationBase],
+            Type[OmProcessingBase],
+            Type[OmDataRetrievalBase],
+        ] = getattr(imported_layer, class_name)
     except AttributeError:
         raise OmMissingDataRetrievalClassError(
             f"The {class_name} class cannot be found in the {layer} file."
@@ -182,17 +188,26 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
         required=True,
     )
 
-    parallelization_layer_class: Type[OmParallelizationBase] = _import_class(
-        layer="parallelization_layer",
-        class_name=parallelization_layer_class_name,
+    parallelization_layer_class: Type[OmParallelizationBase] = cast(
+        Type[OmParallelizationBase],
+        _import_class(
+            layer="parallelization_layer",
+            class_name=parallelization_layer_class_name,
+        ),
     )
-    data_retrieval_layer_class: Type[OmDataRetrievalBase] = _import_class(
-        layer="data_retrieval_layer",
-        class_name=data_retrieval_layer_class_name,
+    data_retrieval_layer_class: Type[OmDataRetrievalBase] = cast(
+        Type[OmDataRetrievalBase],
+        _import_class(
+            layer="data_retrieval_layer",
+            class_name=data_retrieval_layer_class_name,
+        ),
     )
-    processing_layer_class: Type[OmProcessingBase] = _import_class(
-        layer="processing_layer",
-        class_name=processing_layer_class_name,
+    processing_layer_class: Type[OmProcessingBase] = cast(
+        Type[OmProcessingBase],
+        _import_class(
+            layer="processing_layer",
+            class_name=processing_layer_class_name,
+        ),
     )
 
     processing_layer: OmProcessingBase = processing_layer_class(

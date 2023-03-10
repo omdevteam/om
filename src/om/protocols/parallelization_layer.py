@@ -20,19 +20,19 @@ Parallelization Layer's base classes.
 
 This module contains base abstract classes for OM's Parallelization Layer.
 """
-from abc import ABC, abstractmethod
 
-from om.abcs.data_retrieval_layer import OmDataRetrievalBase
-from om.abcs.processing_layer import OmProcessingBase
-from om.library.parameters import MonitorParameters
+from typing import Protocol
+
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataRetrievalBase
+from om.protocols.processing_layer import OmProcessingBase
 
 
-class OmParallelizationBase(ABC):
+class OmParallelizationBase(Protocol):
     """
     See documentation of the `__init__` function.
     """
 
-    @abstractmethod
     def __init__(
         self,
         *,
@@ -50,9 +50,10 @@ class OmParallelizationBase(ABC):
           processing nodes, plus a single collecting node.
 
         * The Parallelization class associates an instance of a Data Retrieval class
-          (see [OmDataRetrievalBase][om.abcs.data_retrieval_layer.OmDataRetrievalBase])
+          (see [OmDataRetrievalBase][om.Protocols.data_retrieval_layer.OmDataRetrievalBase])  # noqa: E501
           and an instance of a Processing class (see
-          [OmProcessingBase][om.abcs.processing_layer.OmProcessingBase]) to the nodes.
+          [OmProcessingBase][om.Protocols.processing_layer.OmProcessingBase]) to the
+          nodes.
 
         * Each processing node retrieves an event from a data event source by calling
           the relevant Data Retrieval class methods. It then invokes the appropriate
@@ -81,9 +82,8 @@ class OmParallelizationBase(ABC):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
-        pass
+        ...
 
-    @abstractmethod
     def start(self) -> None:
         """
         Starts OM.
@@ -96,9 +96,8 @@ class OmParallelizationBase(ABC):
         * When this function is called on the collecting node, the node starts
           receiving data from the processing nodes and aggregating it.
         """
-        pass
+        ...
 
-    @abstractmethod
     def shutdown(self, *, msg: str = "Reason not provided.") -> None:
         """
         Shuts down OM.
@@ -117,4 +116,4 @@ class OmParallelizationBase(ABC):
 
             msg: Reason for shutting down. Defaults to "Reason not provided".
         """
-        pass
+        ...

@@ -28,13 +28,13 @@ from typing import Any, Deque, Dict, Tuple, Union
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs import processing_layer as prol_abcs
 from om.algorithms import generic as gen_algs
-from om.library import parameters, zmq_collecting
-from om.library.rich_console import console, get_current_timestamp
+from om.lib import parameters, zmq_collecting
+from om.lib.rich_console import console, get_current_timestamp
+from om.protocols import processing_layer as prol_Protocols
 
 
-class SpiProcessing(prol_abcs.OmProcessingBase):
+class SpiProcessing(prol_Protocols.OmProcessingBase):
     """
     See documentation for the `__init__` function.
     """

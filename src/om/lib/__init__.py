@@ -16,8 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's C/C++ extensions.
+OM's utility functions and classes.
 
-This package contains OM's C/C++-language extensions. Each module in this package
-contains an extension and its Cython wrapper.
+This package contains several helper functions and classes that perform tasks needed
+by other parts of OM.  They are split in several categories. Each module in the
+package contains functions and classes belonging to one of them.
 """

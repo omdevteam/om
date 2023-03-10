@@ -23,11 +23,6 @@ This module contains Data Retrieval classes that deal with the psana software fr
 """
 from typing import Dict
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
-)
 from om.data_retrieval_layer.data_event_handlers_psana import PsanaDataEventHandler
 from om.data_retrieval_layer.data_sources_generic import FrameIdZero
 from om.data_retrieval_layer.data_sources_psana import (
@@ -44,7 +39,12 @@ from om.data_retrieval_layer.data_sources_psana import (
     RayonixPsana,
     TimestampPsana,
 )
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
 
 
 class CxiLclsDataRetrieval(OmDataRetrievalBase):

@@ -25,11 +25,11 @@ from typing import Any, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs.data_retrieval_layer import OmDataSourceBase
 from om.data_retrieval_layer.data_sources_generic import get_calibration_request
 from om.data_retrieval_layer.utils_generic import Jungfrau1MCalibration
-from om.library.exceptions import OmMissingDependencyError
-from om.library.parameters import MonitorParameters
+from om.lib.exceptions import OmMissingDependencyError
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import OmDataSourceBase
 
 try:
     from PIL import Image  # type: ignore

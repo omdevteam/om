@@ -23,11 +23,6 @@ This module contains Data Retrieval classes that deal with the ASAPO software fr
 """
 from typing import Dict
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
-)
 from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler
 from om.data_retrieval_layer.data_sources_asapo import (
     BeamEnergyAsapo,
@@ -37,7 +32,12 @@ from om.data_retrieval_layer.data_sources_asapo import (
     TimestampAsapo,
 )
 from om.data_retrieval_layer.data_sources_generic import FrameIdZero
-from om.library.parameters import MonitorParameters
+from om.lib.parameters import MonitorParameters
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerBase,
+    OmDataRetrievalBase,
+    OmDataSourceBase,
+)
 
 
 class EigerAsapoDataRetrieval(OmDataRetrievalBase):

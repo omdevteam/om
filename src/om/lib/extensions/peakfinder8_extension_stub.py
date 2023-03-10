@@ -150,4 +150,4 @@ def peakfinder_8(
             * The seventh entry is a list storing the signal-to-noise ratio of each
             detected peak.
     """
-    pass
+    ...

@@ -24,17 +24,18 @@ import sys
 import time
 from typing import Any, Dict, Tuple, Union
 
-from om.abcs import processing_layer as prol_abcs
-from om.library import parameters, zmq_collecting
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
+from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
+from om.protocols.processing_layer import OmProcessingBase
 
 
-class TestProcessing(prol_abcs.OmProcessingBase):
+class TestProcessing(OmProcessingBase):
     """
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
+    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
         """
         OnDA Test Monitor.
 
@@ -44,7 +45,7 @@ class TestProcessing(prol_abcs.OmProcessingBase):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._monitor_params = monitor_parameters
 
@@ -104,20 +105,12 @@ class TestProcessing(prol_abcs.OmProcessingBase):
             required=True,
         )
 
-        self._data_broadcast_socket: zmq_collecting.ZmqDataBroadcaster = (
-            zmq_collecting.ZmqDataBroadcaster(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="crystallography"
-                )
-            )
+        self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
-        self._responding_socket: zmq_collecting.ZmqResponder = (
-            zmq_collecting.ZmqResponder(
-                parameters=self._monitor_params.get_parameter_group(
-                    group="crystallography"
-                )
-            )
+        self._responding_socket: ZmqResponder = ZmqResponder(
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
         self._num_events: int = 0

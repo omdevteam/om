@@ -36,13 +36,13 @@ peakfinder8_ext = Extension(
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
     sources=[
-        "lib_src/peakfinder8_extension/peakfinder8.cpp",
-        "lib_src/peakfinder8_extension/peakfinder8_extension.pyx",
+        "src/om/lib/extensions/peakfinder8.cpp",
+        "src/om/lib/extensions/peakfinder8_extension.pyx",
     ]
     if OM_USE_CYTHON
     else [
-        "lib_src/peakfinder8_extension/peakfinder8_extension.cpp",
-        "lib_src/peakfinder8_extension/peakfinder8.cpp",
+        "src/om/lib/extensions/peakfinder8_extension.cpp",
+        "src/om/lib/extensions/peakfinder8.cpp",
     ],
     language="c++",
 )
@@ -52,13 +52,13 @@ binning_ext = Extension(
     name="om.lib.binning_extension",
     libraries=["stdc++"],
     sources=[
-        "lib_src/binning_extension/binning.cpp",
-        "lib_src/binning_extension/binning_extension.pyx",
+        "src/om/lib/extensions/binning.cpp",
+        "src/om/lib/extensions/binning_extension.pyx",
     ]
     if OM_USE_CYTHON
     else [
-        "lib_src/binning_extension/binning_extension.cpp",
-        "lib_src/binning_extension/binning.cpp",
+        "src/om/lib/extensions/binning_extension.cpp",
+        "src/om/lib/extensions/binning.cpp",
     ],
     language="c++",
 )
@@ -158,7 +158,10 @@ setup(
             "om_xes_gui.py=om.graphical_interfaces." "xes_gui:main",
         ],
     },
-    scripts=["bin_src/om_jungfrau_dark.py", "bin_src/om_jungfrau_zmq_receiver.py"],
+    scripts=[
+        "src/scripts/om_jungfrau_dark.py",
+        "src/scripts/om_jungfrau_zmq_receiver.py",
+    ],
     ext_modules=extensions,
     packages=find_packages(where="src"),
     package_dir={"": "src"},

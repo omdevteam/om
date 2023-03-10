@@ -29,20 +29,21 @@ from typing import Any, Dict, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.abcs import processing_layer as prol_abcs
 from om.algorithms import generic as gen_algs
 from om.algorithms import xes as xes_algs
-from om.library import geometry, parameters, zmq_collecting
-from om.library.geometry import TypePixelMaps
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.geometry import TypePixelMaps
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
+from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
+from om.protocols.processing_layer import OmProcessingBase
 
 
-class XesProcessing(prol_abcs.OmProcessingBase):
+class XesProcessing(OmProcessingBase):
     """
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: parameters.MonitorParameters) -> None:
+    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
         """
         OnDA Monitor for X-ray Emission Spectroscopy.
 
@@ -61,7 +62,7 @@ class XesProcessing(prol_abcs.OmProcessingBase):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            monitor_parameters: An object storing OM's configuration
         """
         self._monitor_params = monitor_parameters
 
@@ -86,7 +87,7 @@ class XesProcessing(prol_abcs.OmProcessingBase):
                 processing nodes and the collecting node.
         """
 
-        self._pixelmaps: TypePixelMaps = geometry.pixel_maps_from_geometry_file(
+        self._pixelmaps: TypePixelMaps = pixel_maps_from_geometry_file(
             filename=self._monitor_params.get_parameter(
                 group="xes",
                 parameter="geometry_file",
@@ -187,16 +188,12 @@ class XesProcessing(prol_abcs.OmProcessingBase):
         self._num_events_pumped: int = 0
         self._num_events_dark: int = 0
 
-        self._data_broadcast_socket: zmq_collecting.ZmqDataBroadcaster = (
-            zmq_collecting.ZmqDataBroadcaster(
-                parameters=self._monitor_params.get_parameter_group(group="xes")
-            )
+        self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
+            parameters=self._monitor_params.get_parameter_group(group="xes")
         )
 
-        self._responding_socket: zmq_collecting.ZmqResponder = (
-            zmq_collecting.ZmqResponder(
-                parameters=self._monitor_params.get_parameter_group(group="xes")
-            )
+        self._responding_socket: ZmqResponder = ZmqResponder(
+            parameters=self._monitor_params.get_parameter_group(group="xes")
         )
 
         self._num_events: int = 0

@@ -26,14 +26,11 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
-from om.abcs.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataSourceBase,
-    filter_data_sources,
-)
-from om.library.exceptions import OmDataExtractionError
-from om.library.parameters import MonitorParameters
-from om.library.rich_console import console, get_current_timestamp
+from om.data_retrieval_layer.utils_generic import filter_data_sources
+from om.lib.exceptions import OmDataExtractionError
+from om.lib.parameters import MonitorParameters
+from om.lib.rich_console import console, get_current_timestamp
+from om.protocols.data_retrieval_layer import OmDataEventHandlerBase, OmDataSourceBase
 
 
 class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerBase):
@@ -74,9 +71,10 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerBase):
 
                 * The corresponding dictionary value must store an instance of the
                   corresponding
-                  [Data Source][om.abcs.data_retrieval_layer.OmDataSourceBase] class.
+                  [Data Source][om.Protocols.data_retrieval_layer.OmDataSourceBase]
+                  class.
 
-            monitor_parameters: A [MonitorParameters][om.library.parameters.MonitorParameters]
+            monitor_parameters: A [MonitorParameters][om.library.parameters.MonitorParameters]  # noqa: E501
         """
         self._source: str = source
         self._monitor_params: MonitorParameters = monitor_parameters

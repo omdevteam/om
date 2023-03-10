@@ -21,8 +21,8 @@ import time
 from itertools import cycle
 from typing import Any, Dict, Iterator, Union
 
-from om.library.parameters import get_parameter_from_parameter_group
-from om.library.rich_console import console, get_current_timestamp
+from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.rich_console import console, get_current_timestamp
 
 
 class EventCounter:
