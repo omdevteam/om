@@ -68,6 +68,26 @@ class OmFrameDataRetrieval:
             data_retrieval_layer_module: ModuleType = importlib.import_module(
                 f"data_retrieval_layer.{data_retrieval_layer_class_name}"
             )
+            try:
+                data_retrieval_layer_class: Type[OmDataRetrievalBase] = getattr(
+                    data_retrieval_layer_module, data_retrieval_layer_class_name
+                )
+            except AttributeError:
+                raise OmMissingDataRetrievalClassError(
+                    f"The {data_retrieval_layer_class_name} class cannot be found in "
+                    "the data_retrieval_layer file."
+                )
+
+            data_retrieval_layer: OmDataRetrievalBase = data_retrieval_layer_class(
+                monitor_parameters=monitor_parameters,
+                source=source,
+            )
+
+            self._data_event_handler: OmDataEventHandlerBase = (
+                data_retrieval_layer.get_data_event_handler()
+            )
+
+            self._data_event_handler.initialize_frame_data_retrieval()
         except ImportError:
             try:
                 data_retrieval_layer_module = importlib.import_module(
@@ -82,27 +102,6 @@ class OmFrameDataRetrieval:
                         "found or loaded due to the following "
                         f"error: {exc_type.__name__}: {exc_value}"
                     ) from exc
-
-        try:
-            data_retrieval_layer_class: Type[OmDataRetrievalBase] = getattr(
-                data_retrieval_layer_module, data_retrieval_layer_class_name
-            )
-        except AttributeError:
-            raise OmMissingDataRetrievalClassError(
-                f"The {data_retrieval_layer_class_name} class cannot be found in the "
-                "data_retrieval_layer file."
-            )
-
-        data_retrieval_layer: OmDataRetrievalBase = data_retrieval_layer_class(
-            monitor_parameters=monitor_parameters,
-            source=source,
-        )
-
-        self._data_event_handler: OmDataEventHandlerBase = (
-            data_retrieval_layer.get_data_event_handler()
-        )
-
-        self._data_event_handler.initialize_frame_data_retrieval()
 
     def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
         """

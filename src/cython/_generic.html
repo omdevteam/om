@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Cython: binning_extension.pyx</title>
+    <title>Cython: _generic.pyx</title>
     <style type="text/css">
     
 body.cython { font-family: courier; font-size: 12; }
@@ -368,7 +368,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     <span style="background-color: #FFFF00">Yellow lines</span> hint at Python interaction.<br />
     Click on a line that starts with a "<code>+</code>" to see the C code that Cython generated for it.
 </p>
-<p>Raw output: <a href="binning_extension.cpp">binning_extension.cpp</a></p>
+<p>Raw output: <a href="_generic.cpp">_generic.cpp</a></p>
 <div class="cython"><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">01</span>: <span class="c"># This file is part of OM.</span></pre>
 <pre class='cython code score-8 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyDict_NewPresized</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
@@ -406,10 +406,10 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <pre class="cython line score-0">&#xA0;<span class="">31</span>: </pre>
 <pre class="cython line score-162" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">32</span>: <span class="k">def</span> <span class="nf">bin_detector_data</span><span class="p">(</span><span class="n">double</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">data</span><span class="p">,</span> <span class="n">double</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">binned_data</span><span class="p">,</span> <span class="n">char</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">mask</span><span class="p">,</span></pre>
 <pre class='cython code score-162 '>/* Python wrapper */
-static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_2om_3lib_17binning_extension_bin_detector_data[] = "\n    Docstring here\n    ";
-static PyMethodDef __pyx_mdef_2om_3lib_17binning_extension_1bin_detector_data = {"bin_detector_data", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data, METH_VARARGS|METH_KEYWORDS, __pyx_doc_2om_3lib_17binning_extension_bin_detector_data};
-static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_2om_10algorithms_8_generic_1bin_detector_data(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_2om_10algorithms_8_generic_bin_detector_data[] = "\n    Docstring here\n    ";
+static PyMethodDef __pyx_mdef_2om_10algorithms_8_generic_1bin_detector_data = {"bin_detector_data", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_2om_10algorithms_8_generic_1bin_detector_data, METH_VARARGS|METH_KEYWORDS, __pyx_doc_2om_10algorithms_8_generic_bin_detector_data};
+static PyObject *__pyx_pw_2om_10algorithms_8_generic_1bin_detector_data(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_data = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_binned_data = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_mask = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -556,11 +556,11 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
   __pyx_L5_argtuple_error:;
   <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("bin_detector_data", 1, 11, 11, <span class='py_macro_api'>PyTuple_GET_SIZE</span>(__pyx_args)); <span class='error_goto'>__PYX_ERR(0, 32, __pyx_L3_error)</span>
   __pyx_L3_error:;
-  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("om.lib.binning_extension.bin_detector_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("om.algorithms._generic.bin_detector_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2om_3lib_17binning_extension_bin_detector_data(__pyx_self, __pyx_v_data, __pyx_v_binned_data, __pyx_v_mask, __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss);
+  __pyx_r = __pyx_pf_2om_10algorithms_8_generic_bin_detector_data(__pyx_self, __pyx_v_data, __pyx_v_binned_data, __pyx_v_mask, __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss);
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -570,7 +570,7 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, double __pyx_v_bad_pixel_value, double __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss) {
+static PyObject *__pyx_pf_2om_10algorithms_8_generic_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, double __pyx_v_bad_pixel_value, double __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss) {
   PyObject *__pyx_r = NULL;
   <span class='refnanny'>__Pyx_RefNannyDeclarations</span>
   <span class='refnanny'>__Pyx_RefNannySetupContext</span>("bin_detector_data", 0);
@@ -579,7 +579,7 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   __pyx_r = Py_None; <span class='pyx_macro_api'>__Pyx_INCREF</span>(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("om.lib.binning_extension.bin_detector_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("om.algorithms._generic.bin_detector_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&amp;__pyx_v_data, 1);
@@ -594,15 +594,15 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_tuple__20);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_tuple__20);
 /* … */
-  __pyx_t_1 = PyCFunction_NewEx(&amp;__pyx_mdef_2om_3lib_17binning_extension_1bin_detector_data, NULL, __pyx_n_s_om_lib_binning_extension);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)</span>
+  __pyx_t_1 = PyCFunction_NewEx(&amp;__pyx_mdef_2om_10algorithms_8_generic_1bin_detector_data, NULL, __pyx_n_s_om_algorithms__generic);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   if (<span class='py_c_api'>PyDict_SetItem</span>(__pyx_d, __pyx_n_s_bin_detector_data, __pyx_t_1) &lt; 0) <span class='error_goto'>__PYX_ERR(0, 32, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_codeobj__21 = (PyObject*)<span class='pyx_c_api'>__Pyx_PyCode_New</span>(11, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_om_lib_extensions_binning_ex, __pyx_n_s_bin_detector_data, 32, __pyx_empty_bytes);<span class='error_goto'> if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 32, __pyx_L1_error)</span>
+  __pyx_codeobj__21 = (PyObject*)<span class='pyx_c_api'>__Pyx_PyCode_New</span>(11, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_cython__generic_pyx, __pyx_n_s_bin_detector_data, 32, __pyx_empty_bytes);<span class='error_goto'> if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 32, __pyx_L1_error)</span>
 </pre><pre class="cython line score-0">&#xA0;<span class="">33</span>:                        <span class="nb">int</span> <span class="n">bin_size</span><span class="p">,</span> <span class="nb">int</span> <span class="n">min_good_pixel_count</span><span class="p">,</span> <span class="n">double</span> <span class="n">bad_pixel_value</span><span class="p">,</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">34</span>:                        <span class="n">double</span> <span class="n">saturation_value</span><span class="p">,</span> <span class="nb">int</span> <span class="n">asic_size_fs</span><span class="p">,</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">35</span>:                        <span class="nb">int</span> <span class="n">asic_size_ss</span><span class="p">,</span> <span class="nb">int</span> <span class="n">num_asics_fs</span><span class="p">,</span> <span class="nb">int</span> <span class="n">num_asics_ss</span><span class="p">):</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">36</span>: <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">36</span>:     <span class="sd">&quot;&quot;&quot;</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">37</span>: <span class="sd">    Docstring here</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">38</span>: <span class="sd">    &quot;&quot;&quot;</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">39</span>: </pre>

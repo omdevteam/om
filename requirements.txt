@@ -3,11 +3,9 @@ fabio
 h5py
 msgpack
 msgpack_numpy
-mypy-extensions
 numpy
 pillow
 pyyaml
 pyzmq
 rich
 scipy
-typing_extensions

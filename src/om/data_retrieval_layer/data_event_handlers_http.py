@@ -123,7 +123,7 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        print("Configuring detectorpass")
+        print("Configuring detector...")
         if not self._check_detector_monitor_mode():
             raise OmEigerHttpInterfaceInitializationError(
                 "Cannot connect to the detector: "

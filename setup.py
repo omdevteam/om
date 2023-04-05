@@ -32,33 +32,33 @@ else:
     ext = ".c"
 
 peakfinder8_ext = Extension(
-    name="om.lib.peakfinder8_extension",
+    name="om.algorithms._crystallography",
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
     sources=[
-        "src/om/lib/extensions/peakfinder8.cpp",
-        "src/om/lib/extensions/peakfinder8_extension.pyx",
+        "src/cython/peakfinder8.cpp",
+        "src/cython/_crystallography.pyx",
     ]
     if OM_USE_CYTHON
     else [
-        "src/om/lib/extensions/peakfinder8_extension.cpp",
-        "src/om/lib/extensions/peakfinder8.cpp",
+        "src/cython/_crystallography.cpp",
+        "src/cython/peakfinder8.cpp",
     ],
     language="c++",
 )
 peakfinder8_ext.cython_directives = {"embedsignature": True}
 
 binning_ext = Extension(
-    name="om.lib.binning_extension",
+    name="om.algorithms._generic",
     libraries=["stdc++"],
     sources=[
-        "src/om/lib/extensions/binning.cpp",
-        "src/om/lib/extensions/binning_extension.pyx",
+        "src/cython/binning.cpp",
+        "src/cython/_generic.pyx",
     ]
     if OM_USE_CYTHON
     else [
-        "src/om/lib/extensions/binning_extension.cpp",
-        "src/om/lib/extensions/binning.cpp",
+        "src/cython/_generic.cpp",
+        "src/cython//binning.cpp",
     ],
     language="c++",
 )
@@ -125,14 +125,12 @@ setup(
         "h5py",
         "msgpack",
         "msgpack_numpy",
-        "mypy-extensions",
         "numpy",
         "pillow",
         "pyyaml",
         "pyzmq",
         "rich",
         "scipy",
-        "typing_extensions",
     ],
     extras_require={
         "qt": ["pyqt5", "pyqtgraph"],
@@ -146,22 +144,20 @@ setup(
         ],
     },
     entry_points={
-        "console_scripts": ["om_monitor.py=om.monitor:main"],
+        "console_scripts": [
+            "om_monitor.py=om.monitor:main",
+            "om_jungfrau_dark.py=om.tools.jungfrau_dark:main",
+            "om_jungfrau_zmq_receiver.py=om.tools.jungfrau_zmq_receiver:main",
+        ],
         "gui_scripts": [
-            "om_crystallography_gui.py=om.graphical_interfaces."
-            "crystallography_gui:main",
+            "om_crystallography_gui.py=om.graphical_interfaces.crystallography_gui:gui",
             "om_crystallography_frame_viewer.py=om.graphical_interfaces."
-            "crystallography_frame_viewer:main",
+            "crystallography_frame_viewer:gui",
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
-            "crystallography_parameter_tweaker:main",
-            "om_spi_gui.py=om.graphical_interfaces." "spi_gui:main",
-            "om_xes_gui.py=om.graphical_interfaces." "xes_gui:main",
+            "crystallography_parameter_tweaker:gui",
+            "om_xes_gui.py=om.graphical_interfaces." "xes_gui:gui",
         ],
     },
-    scripts=[
-        "src/scripts/om_jungfrau_dark.py",
-        "src/scripts/om_jungfrau_zmq_receiver.py",
-    ],
     ext_modules=extensions,
     packages=find_packages(where="src"),
     package_dir={"": "src"},

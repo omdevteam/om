@@ -35,7 +35,7 @@ from numpy.typing import NDArray
 from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.geometry import GeometryInformation, TypePixelMaps, _compute_min_shape
+from om.lib.geometry import GeometryInformation, TypePixelMaps
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 
@@ -105,11 +105,20 @@ class CrystallographyParameterTweaker(OmGuiBase):
             geometry_format="crystfel",
         )
 
-        visual_pixel_maps: TypePixelMaps = self._geometry_info.get_visual_pixel_maps()
         pixel_maps: TypePixelMaps = self._geometry_info.get_pixel_maps()
-        visual_img_shape: Tuple[int, int] = _compute_min_shape(pixel_maps=pixel_maps)
-        self._visual_pixel_map_x: NDArray[numpy.int_] = visual_pixel_maps["x"].flatten()
-        self._visual_pixel_map_y: NDArray[numpy.int_] = visual_pixel_maps["y"].flatten()
+        visual_pixel_maps: TypePixelMaps = (
+            self._geometry_info.get_visualization_pixel_maps()
+        )
+        visual_img_shape: Tuple[
+            int, int
+        ] = self._geometry_info.get_min_array_shape_for_visualization()
+
+        self._visual_pixel_map_x: NDArray[numpy.int_] = cast(
+            NDArray[numpy.int_], visual_pixel_maps["x"].flatten()
+        )
+        self._visual_pixel_map_y: NDArray[numpy.int_] = cast(
+            NDArray[numpy.int_], visual_pixel_maps["y"].flatten()
+        )
 
         self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
             shape=visual_img_shape, dtype=numpy.float32

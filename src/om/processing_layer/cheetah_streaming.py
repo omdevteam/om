@@ -44,7 +44,7 @@ from numpy.typing import NDArray
 from om.algorithms import crystallography as cryst_algs
 from om.algorithms import generic as gen_algs
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.geometry import TypeDetector, _load_crystfel_geometry, compute_pix_maps
+from om.lib.geometry import GeometryInformation, TypeDetector
 from om.lib.hdf5_writers import SumHDF5Writer
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
@@ -185,14 +185,14 @@ class StreamingCheetahProcessing(OmProcessingBase):
                     self._binning.get_binned_layout_info()
                 )
                 self._peak_detection.set_bad_pixel_map(
-                    self._binning.bin_bad_pixel_map(
+                    self._binning._bin_bad_pixel_map(
                         mask=self._peak_detection.get_bad_pixel_map()
                     )
                 )
                 self._peak_detection.set_radius_pixel_map(
                     cast(
                         NDArray[numpy.float_],
-                        self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)[
+                        self._binning._bin_pixel_maps(pixel_maps=self._pixelmaps)[
                             "radius"
                         ],
                     )
@@ -321,7 +321,7 @@ class StreamingCheetahProcessing(OmProcessingBase):
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
             self._bin_size: int = self._binning.get_bin_size()
-            self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
+            self._pixelmaps = self._binning._bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
         else:
             self._binning = None

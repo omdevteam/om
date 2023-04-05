@@ -20,8 +20,8 @@ OnDA Monitor for Crystallography.
 
 This module contains an OnDA Monitor for serial x-ray crystallography experiments.
 """
-import collections
 import sys
+from collections import deque
 from typing import Any, Deque, Dict, List, Tuple, Union
 
 import numpy
@@ -33,7 +33,11 @@ from om.lib.crystallography_collecting import CrystallographyPlots
 from om.lib.crystallography_processing import CrystallographyPeakFinding
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.generic_collecting import EventCounter
-from om.lib.geometry import GeometryInformation
+from om.lib.geometry import (
+    GeometryInformation,
+    TypePixelMaps,
+    apply_visualization_pixel_maps_to_data,
+)
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
@@ -79,7 +83,7 @@ class CrystallographyProcessing(OmProcessingBase):
         self._monitor_params: MonitorParameters = monitor_parameters
 
         # Geometry
-        self._geometry_info = GeometryInformation(
+        self._geometry_information = GeometryInformation(
             geometry_filename=self._monitor_params.get_parameter(
                 group="crystallography",
                 parameter="geometry_file",
@@ -99,6 +103,7 @@ class CrystallographyProcessing(OmProcessingBase):
         if binning_requested:
             self._binning: Union[Binning, None] = Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
+                geometry_information=self._geometry_information,
             )
             self._binning_before_peak_finding = self._monitor_params.get_parameter(
                 group="crystallography",
@@ -152,7 +157,7 @@ class CrystallographyProcessing(OmProcessingBase):
             peak_finding_parameters=self._monitor_params.get_parameter_group(
                 group="peakfinder8_peak_detection"
             ),
-            pixel_maps=self._geometry_info.get_pixel_maps(),
+            geometry_information=self._geometry_information,
             binning_algorithm=self._binning,
             binning_before_peak_finding=self._binning_before_peak_finding,
         )
@@ -195,12 +200,12 @@ class CrystallographyProcessing(OmProcessingBase):
             required=True,
         )
 
-        self._pixel_size = self._geometry_info.get_pixel_size()
+        self._pixel_size = self._geometry_information.get_pixel_size()
         if self._binning is not None:
             self._pixel_size /= self._binning.get_bin_size()
 
         self._detector_distance_offset: float = (
-            self._geometry_info.get_detector_distance_offset()
+            self._geometry_information.get_detector_distance_offset()
         )
 
         # Data broadcast
@@ -208,12 +213,21 @@ class CrystallographyProcessing(OmProcessingBase):
             parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
+        if self._binning:
+            self._visualization_pixel_maps: TypePixelMaps = (
+                self._binning.get_binned_visualization_pixel_maps()
+            )
+        else:
+            self._visualization_pixel_maps = (
+                self._geometry_information.get_visualization_pixel_maps()
+            )
+
         # Plots
         self._plots: CrystallographyPlots = CrystallographyPlots(
             crystallography_parameters=(
                 self._monitor_params.get_parameter_group(group="crystallography")
             ),
-            geometry_information=self._geometry_info,
+            geometry_information=self._geometry_information,
             binning_algorithm=self._binning,
             pump_probe_experiment=self._pump_probe_experiment,
         )
@@ -226,9 +240,7 @@ class CrystallographyProcessing(OmProcessingBase):
         )
         if request_list_size is None:
             request_list_size = 20
-        self._request_list: Deque[Tuple[bytes, bytes]] = collections.deque(
-            maxlen=request_list_size
-        )
+        self._request_list: Deque[Tuple[bytes, bytes]] = deque(maxlen=request_list_size)
 
         self._responding_socket: ZmqResponder = ZmqResponder(
             parameters=self._monitor_params.get_parameter_group(group="crystallography")
@@ -511,10 +523,9 @@ class CrystallographyProcessing(OmProcessingBase):
             # If detector frame data is found in the data received from the
             # processing node, it must be broadcasted to visualization programs.
 
-            self._frame_data_img = (
-                self._geometry_info.apply_visualization_geometry_to_data(
-                    data=received_data["detector_data"]
-                )
+            self._frame_data_img = apply_visualization_pixel_maps_to_data(
+                visualization_pixel_maps=self._visualization_pixel_maps,
+                data=received_data["detector_data"],
             )
 
             self._data_broadcast_socket.send_data(

@@ -20,7 +20,7 @@ This module contains algorithms that perform data processing operations related 
 x-ray emission spectroscopy (beam energy spectrum retrieval, etc.).
 """
 
-from typing import Any, Dict, TypeVar, cast
+from typing import Any, Dict, Union, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -28,10 +28,8 @@ from scipy import ndimage  # type: ignore
 
 from om.lib.parameters import get_parameter_from_parameter_group
 
-A = TypeVar("A", numpy.float_, numpy.int_)
 
-
-class XESAnalysis:
+class XesAnalysis:
     """
     See documentation of the `__init__` function.
     """
@@ -101,7 +99,7 @@ class XESAnalysis:
     # TODO: Enforce return dict content for the function below
 
     def generate_spectrum(
-        self, *, data: NDArray[A]
+        self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
     ) -> Dict[str, NDArray[numpy.float_]]:
         """
         Calculates beam energy spectrum information from a 2D camera data frame.
@@ -128,10 +126,13 @@ class XESAnalysis:
         """
 
         # Apply a threshold
+
+        # TODO: Perhaps better type hints can be found for this
         if self._intensity_threshold:
             data[data < self._intensity_threshold] = 0
-        imr: NDArray[A] = cast(
-            NDArray[A], ndimage.rotate(data, self._rotation, order=0)
+        imr: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = cast(
+            Union[NDArray[numpy.float_], NDArray[numpy.int_]],
+            ndimage.rotate(data, self._rotation, order=0),
         )
         spectrum: NDArray[numpy.float_] = numpy.mean(
             imr[:, self._min_row : self._max_row], axis=1

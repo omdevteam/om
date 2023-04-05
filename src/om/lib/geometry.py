@@ -680,7 +680,7 @@ def _validate_detector_geometry(detector: TypeDetector) -> None:
                 )
 
 
-def read_crystfel_geometry(  # noqa: C901
+def _read_crystfel_geometry_from_text(  # noqa: C901
     *,
     text_lines: List[str],
 ) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
@@ -955,7 +955,7 @@ def read_crystfel_geometry(  # noqa: C901
     return detector, beam, hdf5_peak_path
 
 
-def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
+def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     """
     Computes pixel maps from CrystFEL geometry information.
 
@@ -1081,7 +1081,7 @@ def compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     }
 
 
-def _load_crystfel_geometry(  # noqa: C901
+def _load_crystfel_geometry_from_file(  # noqa: C901
     *,
     filename: str,
 ) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
@@ -1132,10 +1132,10 @@ def _load_crystfel_geometry(  # noqa: C901
             f"The following error occurred while reading the "  # type: ignore
             f"{filename} geometry file {exc_type.__name__}: {exc_value}"
         ) from exc
-    return read_crystfel_geometry(text_lines=file_lines)
+    return _read_crystfel_geometry_from_text(text_lines=file_lines)
 
 
-def _compute_min_shape(*, pixel_maps: TypePixelMaps) -> Tuple[int, int]:
+def _compute_min_array_shape(*, pixel_maps: TypePixelMaps) -> Tuple[int, int]:
     y_minimum: int = (
         2 * int(max(abs(pixel_maps["y"].max()), abs(pixel_maps["y"].min()))) + 2
     )
@@ -1178,7 +1178,7 @@ def _compute_visualization_pix_maps(*, pixel_maps: TypePixelMaps) -> TypePixelMa
     # of the image that will be displayed. Computes the size of the array needed to
     # display the data, then use this information to estimate the magnitude of the
     # shift.
-    min_shape: Tuple[int, int] = _compute_min_shape(pixel_maps=pixel_maps)
+    min_shape: Tuple[int, int] = _compute_min_array_shape(pixel_maps=pixel_maps)
     new_x_map: NDArray[numpy.int_] = (
         numpy.array(object=pixel_maps["x"], dtype=int) + min_shape[1] // 2 - 1
     )
@@ -1212,12 +1212,14 @@ class GeometryInformation:
 
         if geometry_format == "crystfel":
             geometry: TypeDetector
-            geometry, _, __ = _load_crystfel_geometry(filename=geometry_filename)
-            self._pixel_maps: TypePixelMaps = compute_pix_maps(geometry=geometry)
+            geometry, _, __ = _load_crystfel_geometry_from_file(
+                filename=geometry_filename
+            )
+            self._pixel_maps: TypePixelMaps = _compute_pix_maps(geometry=geometry)
             self._visual_pixel_maps: TypePixelMaps = _compute_visualization_pix_maps(
                 pixel_maps=self._pixel_maps
             )
-            self._min_shape: Tuple[int, int] = _compute_min_shape(
+            self._min_array_shape: Tuple[int, int] = _compute_min_array_shape(
                 pixel_maps=self._pixel_maps
             )
 
@@ -1242,17 +1244,11 @@ class GeometryInformation:
         """
         return self._pixel_maps
 
-    def get_visual_pixel_maps(self) -> TypePixelMaps:
+    def get_visualization_pixel_maps(self) -> TypePixelMaps:
         """
         TODO: Add documentation.
         """
         return self._visual_pixel_maps
-
-    def get_pixel_size(self) -> float:
-        """
-        TODO: Add documentation.
-        """
-        return self._pixel_size
 
     def get_detector_distance_offset(self) -> float:
         """
@@ -1260,10 +1256,22 @@ class GeometryInformation:
         """
         return self._detector_distance_offset
 
+    def get_pixel_size(self) -> float:
+        """
+        TODO: Add documentation.
+        """
+        return self._pixel_size
+
+    def get_min_array_shape_for_visualization(self) -> Tuple[int, int]:
+        """
+        TODO: Add documentation.
+        """
+        return self._min_array_shape
+
 
 def apply_visualization_pixel_maps_to_data(
     *,
-    visual_pixel_maps: TypePixelMaps,
+    visualization_pixel_maps: TypePixelMaps,
     data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
     array_for_visualization: Union[
         NDArray[numpy.int_], NDArray[numpy.float_], None
@@ -1296,7 +1304,9 @@ def apply_visualization_pixel_maps_to_data(
         An array containing the detector data, with geometry information applied to
         it.
     """
-    min_shape: Tuple[int, int] = _compute_min_shape(pixel_maps=visual_pixel_maps)
+    min_shape: Tuple[int, int] = _compute_min_array_shape(
+        pixel_maps=visualization_pixel_maps
+    )
     if array_for_visualization is None:
         visualization_array: Union[
             NDArray[numpy.float_], NDArray[numpy.int_]
@@ -1309,8 +1319,8 @@ def apply_visualization_pixel_maps_to_data(
             )
         visualization_array = array_for_visualization
     visualization_array[
-        visual_pixel_maps["y"].flatten(),
-        visual_pixel_maps["x"].flatten(),
+        visualization_pixel_maps["y"].flatten(),
+        visualization_pixel_maps["x"].flatten(),
     ] = data.ravel().astype(visualization_array.dtype)
 
     return visualization_array

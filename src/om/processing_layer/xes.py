@@ -23,17 +23,18 @@ This module contains an OnDA Monitor for x-ray emission spectroscopy experiments
 from __future__ import absolute_import, division, print_function
 
 import sys
-import time
-from typing import Any, Dict, Tuple, Union, cast
+from typing import Any, Dict, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms import generic as gen_algs
-from om.algorithms import xes as xes_algs
-from om.lib.geometry import TypePixelMaps
+from om.algorithms.generic import Correction
+from om.algorithms.xes import XesAnalysis
+from om.lib.generic_collecting import EventCounter
+from om.lib.geometry import GeometryInformation
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
+from om.lib.xes_collecting import XesPlots
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
 from om.protocols.processing_layer import OmProcessingBase
 
@@ -64,7 +65,27 @@ class XesProcessing(OmProcessingBase):
 
             monitor_parameters: An object storing OM's configuration
         """
-        self._monitor_params = monitor_parameters
+        # Parameters
+        self._monitor_params: MonitorParameters = monitor_parameters
+
+        # Geometry
+        self._geometry_information = GeometryInformation(
+            geometry_filename=self._monitor_params.get_parameter(
+                group="xes",
+                parameter="geometry_file",
+                parameter_type=str,
+                required=True,
+            ),
+            geometry_format="crystfel",
+        )
+
+        # Pump probe
+        self._time_resolved: bool = self._monitor_params.get_parameter(
+            group="xes",
+            parameter="time_resolved",
+            parameter_type=bool,
+            required=True,
+        )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -86,48 +107,20 @@ class XesProcessing(OmProcessingBase):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-
-        self._pixelmaps: TypePixelMaps = pixel_maps_from_geometry_file(
-            filename=self._monitor_params.get_parameter(
-                group="xes",
-                parameter="geometry_file",
-                parameter_type=str,
-                required=True,
-            )
-        )
-
-        self._correction = gen_algs.Correction(
+        # Correction
+        self._correction = Correction(
             parameters=self._monitor_params.get_parameter_group(group="correction")
         )
 
-        self._xes_analysis = xes_algs.XESAnalysis(
+        self._xes_analysis = XesAnalysis(
             parameters=self._monitor_params.get_parameter_group(group="xes")
         )
 
-        self._time_resolved: bool = self._monitor_params.get_parameter(
-            group="xes",
-            parameter="time_resolved",
-            parameter_type=bool,
-            required=True,
-        )
+        # Frame sending
+        self._send_hit_frame: bool = False
+        self._send_non_hit_frame: bool = False
 
-        self._hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="xes",
-            parameter="hit_frame_sending_interval",
-            parameter_type=int,
-        )
-        self._non_hit_frame_sending_interval: Union[
-            int, None
-        ] = self._monitor_params.get_parameter(
-            group="xes",
-            parameter="non_hit_frame_sending_interval",
-        )
-
-        self._hit_frame_sending_counter: int = 0
-        self._non_hit_frame_sending_counter: int = 0
-
+        # Console
         console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
         sys.stdout.flush()
 
@@ -153,20 +146,6 @@ class XesProcessing(OmProcessingBase):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._speed_report_interval: int = self._monitor_params.get_parameter(
-            group="xes",
-            parameter="speed_report_interval",
-            parameter_type=int,
-            required=True,
-        )
-
-        self._data_broadcast_interval: int = self._monitor_params.get_parameter(
-            group="xes",
-            parameter="data_broadcast_interval",
-            parameter_type=int,
-            required=True,
-        )
-
         self._time_resolved = self._monitor_params.get_parameter(
             group="xes",
             parameter="time_resolved",
@@ -174,32 +153,31 @@ class XesProcessing(OmProcessingBase):
             required=True,
         )
 
-        self._xes_analysis = xes_algs.XESAnalysis(
-            parameters=self._monitor_params.get_parameter_group(group="xes")
+        # Plots
+        self._plots = XesPlots(
+            xes_parameters=self._monitor_params.get_parameter_group(group="xes"),
+            time_resolved=self._time_resolved,
         )
 
-        self._spectra_cumulative_sum: Union[NDArray[numpy.float_], None] = None
-        self._spectra_cumulative_sum_smoothed: Union[NDArray[numpy.float_], None] = None
-
-        self._cumulative_2d: Union[NDArray[numpy.float_], None] = None
-        self._cumulative_2d_pumped: Union[NDArray[numpy.float_], None] = None
-        self._cumulative_2d_dark: Union[NDArray[numpy.float_], None] = None
-
-        self._num_events_pumped: int = 0
-        self._num_events_dark: int = 0
-
+        # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            parameters=self._monitor_params.get_parameter_group(group="xes")
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
+        # Responding socket
         self._responding_socket: ZmqResponder = ZmqResponder(
-            parameters=self._monitor_params.get_parameter_group(group="xes")
+            parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
-        self._num_events: int = 0
-        self._old_time: float = time.time()
-        self._time: Union[float, None] = None
+        # Event counting
+        self._event_counter: EventCounter = EventCounter(
+            om_parameters=self._monitor_params.get_parameter_group(
+                group="crystallography"
+            ),
+            node_pool_size=node_pool_size,
+        )
 
+        # Console
         console.print(f"{get_current_timestamp()} Starting the monitor...")
         sys.stdout.flush()
 
@@ -270,7 +248,8 @@ class XesProcessing(OmProcessingBase):
         processed_data["detector_data"] = corrected_camera_data
         if self._time_resolved:
             processed_data["optical_laser_active"] = data["optical_laser_active"]
-
+        else:
+            processed_data["optical_laser_active"] = False
         return (processed_data, node_rank)
 
     def wait_for_data(
@@ -297,8 +276,7 @@ class XesProcessing(OmProcessingBase):
                 processing nodes and the collecting node.
 
         """
-        del node_rank
-        del node_pool_size
+        pass
 
     def collect_data(
         self,
@@ -330,136 +308,54 @@ class XesProcessing(OmProcessingBase):
                 second entry is the OM rank number of the node that processed the
                 information.
         """
+        del node_rank
+        del node_pool_size
         received_data: Dict[str, Any] = processed_data[0]
-        self._num_events += 1
-
-        if self._time_resolved:
-            if received_data["optical_laser_active"]:
-                self._num_events_pumped += 1
-            else:
-                self._num_events_dark += 1
-
-        if self._cumulative_2d is None:
-            self._cumulative_2d = cast(
-                NDArray[numpy.float_], received_data["detector_data"]
-            )
-        else:
-            self._cumulative_2d += (
-                (
-                    cast(NDArray[numpy.float_], received_data["detector_data"])
-                    - self._cumulative_2d * 1.0
-                )
-                / self._num_events
-                * 1.0
-            )
-
-        # Calculate normalized spectrum from cumulative 2D images.
-        cumulative_xes: Dict[
-            str, NDArray[numpy.float_]
-        ] = self._xes_analysis.generate_spectrum(data=self._cumulative_2d)
-        self._spectra_cumulative_sum = cumulative_xes["spectrum"]
-        self._spectra_cumulative_sum_smoothed = cumulative_xes["spectrum_smoothed"]
-
-        if numpy.mean(numpy.abs(self._spectra_cumulative_sum)) > 0:
-            self._spectra_cumulative_sum /= numpy.mean(
-                numpy.abs(self._spectra_cumulative_sum)
-            )
-        if numpy.mean(numpy.abs(self._spectra_cumulative_sum_smoothed)) > 0:
-            self._spectra_cumulative_sum_smoothed /= numpy.mean(
-                numpy.abs(self._spectra_cumulative_sum_smoothed)
-            )
+        return_dict: Dict[int, Dict[str, Any]] = {}
 
         spectrum_for_gui = received_data["spectrum"]
 
-        if self._time_resolved:
-            # Sum the spectra for pumped (optical_laser_active) and dark
-            if self._cumulative_2d_pumped is None:
-                self._cumulative_2d_pumped = received_data["detector_data"] * 0
-            if self._cumulative_2d_dark is None:
-                self._cumulative_2d_dark = received_data["detector_data"] * 0
+        spectra_cumulative_sum: Union[NDArray[numpy.float_], NDArray[numpy.int_], None]
+        spectra_cumulative_sum_smoothed: Union[NDArray[numpy.float_], None]
+        cumulative_2d: Union[NDArray[numpy.float_], NDArray[numpy.int_], None]
+        spectra_cumulative_sum_pumped: Union[NDArray[numpy.float_], None]
+        spectra_cumulative_sum_dark: Union[NDArray[numpy.float_], None]
+        spectra_cumulative_sum_difference: Union[NDArray[numpy.float_], None]
+        (
+            spectra_cumulative_sum,
+            spectra_cumulative_sum_smoothed,
+            cumulative_2d,
+            spectra_cumulative_sum_pumped,
+            spectra_cumulative_sum_dark,
+            spectra_cumulative_sum_difference,
+        ) = self._plots.update_plots(
+            detector_data=received_data["detector_data"],
+            optical_laser_active=received_data["optical_laser_active"],
+        )
 
-            # Need to calculate a running average
-            if received_data["optical_laser_active"]:
-                self._cumulative_2d_pumped += (
-                    (
-                        cast(NDArray[numpy.float_], received_data["detector_data"])
-                        - self._cumulative_2d_pumped * 1.0
-                    )
-                    / self._num_events_pumped
-                    * 1.0
-                )
-            else:
-                self._cumulative_2d_dark += (
-                    (
-                        cast(NDArray[numpy.float_], received_data["detector_data"])
-                        - self._cumulative_2d_dark * 1.0
-                    )
-                    / self._num_events_dark
-                    * 1.0
-                )
+        if self._event_counter.should_broadcast_data():
+            message: Dict[str, Any] = {
+                "timestamp": received_data["timestamp"],
+                "detector_data": cumulative_2d,
+                "spectrum": spectrum_for_gui,
+                "spectra_sum": spectra_cumulative_sum,
+                "spectra_sum_smoothed": spectra_cumulative_sum_smoothed,
+                "beam_energy": received_data["beam_energy"],
+            }
+            if self._time_resolved:
+                message["spectra_sum_pumped"] = spectra_cumulative_sum_pumped
+                message["spectra_sum_dark"] = spectra_cumulative_sum_dark
+                message["spectra_sum_difference"] = spectra_cumulative_sum_difference
 
-            # Calculate spectrum from cumulative 2D images
-            cumulative_xes_pumped: Dict[
-                str, NDArray[numpy.float_]
-            ] = self._xes_analysis.generate_spectrum(data=self._cumulative_2d_pumped)
-            spectra_cumulative_sum_pumped: NDArray[
-                numpy.float_
-            ] = cumulative_xes_pumped["spectrum"]
-
-            # calculate spectrum from cumulative 2D images
-            cumulative_xes_dark: Dict[
-                str, NDArray[numpy.float_]
-            ] = self._xes_analysis.generate_spectrum(data=self._cumulative_2d_dark)
-            spectra_cumulative_sum_dark: NDArray[numpy.float_] = cumulative_xes_dark[
-                "spectrum"
-            ]
-
-            # normalize spectra
-            if numpy.mean(numpy.abs(spectra_cumulative_sum_pumped)) > 0:
-                spectra_cumulative_sum_pumped /= numpy.mean(
-                    numpy.abs(spectra_cumulative_sum_pumped)
-                )
-            if numpy.mean(numpy.abs(spectra_cumulative_sum_dark)) > 0:
-                spectra_cumulative_sum_dark /= numpy.mean(
-                    numpy.abs(spectra_cumulative_sum_dark)
-                )
-
-            spectra_cumulative_sum_difference = (
-                spectra_cumulative_sum_pumped - spectra_cumulative_sum_dark
-            )
-
-        message: Dict[str, Any] = {
-            "timestamp": received_data["timestamp"],
-            "detector_data": self._cumulative_2d,
-            "spectrum": spectrum_for_gui,
-            "spectra_sum": self._spectra_cumulative_sum,
-            "spectra_sum_smoothed": self._spectra_cumulative_sum_smoothed,
-            "beam_energy": received_data["beam_energy"],
-        }
-        if self._time_resolved:
-            message["spectra_sum_pumped"] = spectra_cumulative_sum_pumped
-            message["spectra_sum_dark"] = spectra_cumulative_sum_dark
-            message["spectra_sum_difference"] = spectra_cumulative_sum_difference
-
-        if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
                 tag="omdata",
                 message=message,
             )
 
-        if self._num_events % self._speed_report_interval == 0:
-            now_time: float = time.time()
-            time_diff: float = now_time - self._old_time
-            events_per_second: float = float(self._speed_report_interval) / float(
-                now_time - self._old_time
-            )
-            console.print(
-                f"{get_current_timestamp()} Processed: {self._num_events} in "
-                f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
-            )
-            sys.stdout.flush()
-            self._old_time = now_time
+        self._event_counter.report_speed()
 
+        if return_dict:
+            return return_dict
         return None
 
     def end_processing_on_processing_node(
@@ -513,6 +409,6 @@ class XesProcessing(OmProcessingBase):
         """
         console.print(
             f"{get_current_timestamp()} Processing finished. OM has processed "
-            f"{self._num_events} events in total."
+            f"{self._event_counter.get_num_events()} events in total."
         )
         sys.stdout.flush()

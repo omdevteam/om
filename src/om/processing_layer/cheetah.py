@@ -156,14 +156,14 @@ class CheetahProcessing(OmProcessingBase):
                     self._binning.get_binned_layout_info()
                 )
                 self._peak_detection.set_bad_pixel_map(
-                    self._binning.bin_bad_pixel_map(
+                    self._binning._bin_bad_pixel_map(
                         mask=self._peak_detection.get_bad_pixel_map()
                     )
                 )
                 self._peak_detection.set_radius_pixel_map(
                     cast(
                         NDArray[numpy.float_],
-                        self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)[
+                        self._binning._bin_pixel_maps(pixel_maps=self._pixelmaps)[
                             "radius"
                         ],
                     )
@@ -296,7 +296,7 @@ class CheetahProcessing(OmProcessingBase):
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
             )
             self._bin_size: int = self._binning.get_bin_size()
-            self._pixelmaps = self._binning.bin_pixel_maps(pixel_maps=self._pixelmaps)
+            self._pixelmaps = self._binning._bin_pixel_maps(pixel_maps=self._pixelmaps)
             self._data_shape = self._binning.get_binned_data_shape()
         else:
             self._binning = None

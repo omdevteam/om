@@ -4,11 +4,11 @@ import re
 from typing import Any, List, TextIO, Tuple
 
 import click
-import h5py
+import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.library.rich_console import console
+from om.lib.rich_console import console
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -66,7 +66,6 @@ def main(input: str, output: str, s: int) -> None:
                     numpy.where((d & (2**14) > 0) & (d & 2**15 == 0)),
                     numpy.where(d & 2**15 > 0),
                 ]
-                i: int
                 for i in range(3):
                     sd[i][where_gain[i]] += d[where_gain[i]]
                     nd[i][where_gain[i]] += 1

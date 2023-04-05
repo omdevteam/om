@@ -707,7 +707,9 @@ class Peakfinder8PeakDetection:
         self._max_res = max_res
         self._mask = None
 
-    def find_peaks(self, *, data: NDArray[numpy.float_]) -> TypePeakList:
+    def find_peaks(
+        self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
+    ) -> TypePeakList:
         """
         Finds peaks in a detector data frame.
 

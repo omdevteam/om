@@ -4,22 +4,23 @@
 {
     "distutils": {
         "depends": [
-            "src/om/lib/extensions/binning.hh"
+            "src/cython/peakfinder8.hh"
         ],
         "include_dirs": [
-            "src/om/lib/extensions"
+            "src/cython",
+            "/sdf/group/lcls/ds/ana/sw/conda1/inst/envs/ana-4.0.48-py3/lib/python3.9/site-packages/numpy/core/include"
         ],
         "language": "c++",
         "libraries": [
             "stdc++"
         ],
-        "name": "om.lib.binning_extension",
+        "name": "om.algorithms._crystallography",
         "sources": [
-            "src/om/lib/extensions/binning_extension.pyx",
-            "src/om/lib/extensions/binning.cpp"
+            "src/cython/_crystallography.pyx",
+            "src/cython/peakfinder8.cpp"
         ]
     },
-    "module_name": "om.lib.binning_extension"
+    "module_name": "om.algorithms._crystallography"
 }
 END: Cython Metadata */
 
@@ -775,13 +776,19 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__om__lib__binning_extension
-#define __PYX_HAVE_API__om__lib__binning_extension
+#define __PYX_HAVE__om__algorithms___crystallography
+#define __PYX_HAVE_API__om__algorithms___crystallography
 /* Early includes */
-#include "binning.hh"
-#include "pythread.h"
+#include "ios"
+#include "new"
+#include "stdexcept"
+#include "typeinfo"
+#include <vector>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include "peakfinder8.hh"
+#include "pythread.h"
 #include <stdio.h>
 #include "pystate.h"
 #ifdef _OPENMP
@@ -993,7 +1000,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "src/om/lib/extensions/binning_extension.pyx",
+  "src/cython/_crystallography.pyx",
   "stringsource",
 };
 /* MemviewSliceStruct.proto */
@@ -1172,7 +1179,7 @@ struct __pyx_memoryview_obj {
  * 
  * @cname('__pyx_memoryviewslice')
  * cdef class _memoryviewslice(memoryview):             # <<<<<<<<<<<<<<
- *     "Internal class for ...ing memoryview slices to Python"
+ *     "Internal class for passing memoryview slices to Python"
  * 
  */
 struct __pyx_memoryviewslice_obj {
@@ -1223,7 +1230,7 @@ static struct __pyx_vtabstruct_memoryview *__pyx_vtabptr_memoryview;
  * 
  * @cname('__pyx_memoryviewslice')
  * cdef class _memoryviewslice(memoryview):             # <<<<<<<<<<<<<<
- *     "Internal class for ...ing memoryview slices to Python"
+ *     "Internal class for passing memoryview slices to Python"
  * 
  */
 
@@ -1296,6 +1303,16 @@ static struct __pyx_vtabstruct__memoryviewslice *__pyx_vtabptr__memoryviewslice;
 #define __Pyx_CLEAR(r)    do { PyObject* tmp = ((PyObject*)(r)); r = NULL; __Pyx_DECREF(tmp);} while(0)
 #define __Pyx_XCLEAR(r)   do { if((r) != NULL) {PyObject* tmp = ((PyObject*)(r)); r = NULL; __Pyx_DECREF(tmp);}} while(0)
 
+/* PyObjectGetAttrStr.proto */
+#if CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name);
+#else
+#define __Pyx_PyObject_GetAttrStr(o,n) PyObject_GetAttr(o,n)
+#endif
+
+/* GetBuiltinName.proto */
+static PyObject *__Pyx_GetBuiltinName(PyObject *name);
+
 /* RaiseArgTupleInvalid.proto */
 static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
     Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
@@ -1337,21 +1354,28 @@ static CYTHON_INLINE int __pyx_sub_acquisition_count_locked(
 static CYTHON_INLINE void __Pyx_INC_MEMVIEW(__Pyx_memviewslice *, int, int);
 static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *, int, int);
 
+/* ListCompAppend.proto */
+#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
+static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len)) {
+        Py_INCREF(x);
+        PyList_SET_ITEM(list, len, x);
+        __Pyx_SET_SIZE(list, len + 1);
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
+#endif
+
 /* ArgTypeTest.proto */
 #define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
     ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 :\
         __Pyx__ArgTypeTest(obj, type, name, exact))
 static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
-
-/* PyObjectGetAttrStr.proto */
-#if CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name);
-#else
-#define __Pyx_PyObject_GetAttrStr(o,n) PyObject_GetAttr(o,n)
-#endif
-
-/* GetBuiltinName.proto */
-static PyObject *__Pyx_GetBuiltinName(PyObject *name);
 
 /* PyObjectCall.proto */
 #if CYTHON_COMPILING_IN_CPYTHON
@@ -1644,23 +1668,6 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
 #define __Pyx_PyException_Check(obj) __Pyx_TypeCheck(obj, PyExc_Exception)
 
 static CYTHON_UNUSED int __pyx_memoryview_getbuffer(PyObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /*proto*/
-/* ListCompAppend.proto */
-#if CYTHON_USE_PYLIST_INTERNALS && CYTHON_ASSUME_SAFE_MACROS
-static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len)) {
-        Py_INCREF(x);
-        PyList_SET_ITEM(list, len, x);
-        __Pyx_SET_SIZE(list, len + 1);
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
-#endif
-
 /* PyIntBinop.proto */
 #if !CYTHON_COMPILING_IN_PYPY
 static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
@@ -1800,6 +1807,11 @@ static int __pyx_slices_overlap(__Pyx_memviewslice *slice1,
 /* Capsule.proto */
 static CYTHON_INLINE PyObject *__pyx_capsule_create(void *p, const char *sig);
 
+/* GCCDiagnostics.proto */
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#define __Pyx_HAS_GCC_DIAGNOSTIC
+#endif
+
 /* IsLittleEndian.proto */
 static CYTHON_INLINE int __Pyx_Is_Little_Endian(void);
 
@@ -1824,14 +1836,54 @@ static int __Pyx_ValidateAndInit_memviewslice(
                 PyObject *original_obj);
 
 /* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(PyObject *, int writable_flag);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(PyObject *, int writable_flag);
 
 /* ObjectToMemviewSlice.proto */
 static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_char(PyObject *, int writable_flag);
 
-/* GCCDiagnostics.proto */
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-#define __Pyx_HAS_GCC_DIAGNOSTIC
+/* ObjectToMemviewSlice.proto */
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *, int writable_flag);
+
+/* CppExceptionConversion.proto */
+#ifndef __Pyx_CppExn2PyErr
+#include <new>
+#include <typeinfo>
+#include <stdexcept>
+#include <ios>
+static void __Pyx_CppExn2PyErr() {
+  try {
+    if (PyErr_Occurred())
+      ; // let the latest Python exn pass through and ignore the current one
+    else
+      throw;
+  } catch (const std::bad_alloc& exn) {
+    PyErr_SetString(PyExc_MemoryError, exn.what());
+  } catch (const std::bad_cast& exn) {
+    PyErr_SetString(PyExc_TypeError, exn.what());
+  } catch (const std::bad_typeid& exn) {
+    PyErr_SetString(PyExc_TypeError, exn.what());
+  } catch (const std::domain_error& exn) {
+    PyErr_SetString(PyExc_ValueError, exn.what());
+  } catch (const std::invalid_argument& exn) {
+    PyErr_SetString(PyExc_ValueError, exn.what());
+  } catch (const std::ios_base::failure& exn) {
+    PyErr_SetString(PyExc_IOError, exn.what());
+  } catch (const std::out_of_range& exn) {
+    PyErr_SetString(PyExc_IndexError, exn.what());
+  } catch (const std::overflow_error& exn) {
+    PyErr_SetString(PyExc_OverflowError, exn.what());
+  } catch (const std::range_error& exn) {
+    PyErr_SetString(PyExc_ArithmeticError, exn.what());
+  } catch (const std::underflow_error& exn) {
+    PyErr_SetString(PyExc_ArithmeticError, exn.what());
+  } catch (const std::exception& exn) {
+    PyErr_SetString(PyExc_RuntimeError, exn.what());
+  }
+  catch (...)
+  {
+    PyErr_SetString(PyExc_RuntimeError, "Unknown exception");
+  }
+}
 #endif
 
 /* MemviewSliceCopyTemplate.proto */
@@ -1848,10 +1900,13 @@ static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+
+/* CIntFromPy.proto */
+static CYTHON_INLINE size_t __Pyx_PyInt_As_size_t(PyObject *);
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE char __Pyx_PyInt_As_char(PyObject *);
@@ -1873,7 +1928,15 @@ static PyObject *__pyx_memoryview_assign_item_from_object(struct __pyx_memoryvie
 static PyObject *__pyx_memoryviewslice_convert_item_to_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp); /* proto*/
 static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memoryviewslice_obj *__pyx_v_self, char *__pyx_v_itemp, PyObject *__pyx_v_value); /* proto*/
 
-/* Module declarations from 'om.lib.binning_extension' */
+/* Module declarations from 'libcpp.vector' */
+
+/* Module declarations from 'libc.string' */
+
+/* Module declarations from 'libc.stdlib' */
+
+/* Module declarations from 'libc.stdint' */
+
+/* Module declarations from 'om.algorithms._crystallography' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -1885,6 +1948,8 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
+static PyObject *__pyx_convert_vector_to_py_double(const std::vector<double>  &); /*proto*/
+static PyObject *__pyx_convert_vector_to_py_long(const std::vector<long>  &); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -1918,29 +1983,32 @@ static void __pyx_memoryview_refcount_objects_in_slice(char *, Py_ssize_t *, Py_
 static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size_t, void *, int); /*proto*/
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static PyObject *__pyx_unpickle_Enum__set_state(struct __pyx_MemviewEnum_obj *, PyObject *); /*proto*/
-static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
+static __Pyx_TypeInfo __Pyx_TypeInfo_float = { "float", NULL, sizeof(float), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_char = { "char", NULL, sizeof(char), { 0 }, 0, 'H', IS_UNSIGNED(char), 0 };
-#define __Pyx_MODULE_NAME "om.lib.binning_extension"
-extern int __pyx_module_is_main_om__lib__binning_extension;
-int __pyx_module_is_main_om__lib__binning_extension = 0;
+static __Pyx_TypeInfo __Pyx_TypeInfo_int = { "int", NULL, sizeof(int), { 0 }, 0, IS_UNSIGNED(int) ? 'U' : 'I', IS_UNSIGNED(int), 0 };
+#define __Pyx_MODULE_NAME "om.algorithms._crystallography"
+extern int __pyx_module_is_main_om__algorithms___crystallography;
+int __pyx_module_is_main_om__algorithms___crystallography = 0;
 
-/* Implementation of 'om.lib.binning_extension' */
+/* Implementation of 'om.algorithms._crystallography' */
+static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin_enumerate;
-static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
 static const char __pyx_k_O[] = "O";
 static const char __pyx_k_c[] = "c";
+static const char __pyx_k_i[] = "i";
 static const char __pyx_k_id[] = "id";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_data[] = "data";
 static const char __pyx_k_dict[] = "__dict__";
+static const char __pyx_k_fast[] = "fast";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_mask[] = "mask";
 static const char __pyx_k_mode[] = "mode";
@@ -1955,6 +2023,8 @@ static const char __pyx_k_ASCII[] = "ASCII";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
+static const char __pyx_k_numpy[] = "numpy";
+static const char __pyx_k_pix_r[] = "pix_r";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
@@ -1962,62 +2032,85 @@ static const char __pyx_k_encode[] = "encode";
 static const char __pyx_k_format[] = "format";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_name_2[] = "__name__";
+static const char __pyx_k_peak_x[] = "peak_x";
+static const char __pyx_k_peak_y[] = "peak_y";
 static const char __pyx_k_pickle[] = "pickle";
 static const char __pyx_k_reduce[] = "__reduce__";
 static const char __pyx_k_struct[] = "struct";
 static const char __pyx_k_unpack[] = "unpack";
 static const char __pyx_k_update[] = "update";
+static const char __pyx_k_asic_nx[] = "asic_nx";
+static const char __pyx_k_asic_ny[] = "asic_ny";
 static const char __pyx_k_fortran[] = "fortran";
 static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
-static const char __pyx_k_bin_size[] = "bin_size";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_itemsize[] = "itemsize";
+static const char __pyx_k_nasics_x[] = "nasics_x";
+static const char __pyx_k_nasics_y[] = "nasics_y";
+static const char __pyx_k_peak_snr[] = "peak_snr";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_enumerate[] = "enumerate";
+static const char __pyx_k_num_peaks[] = "num_peaks";
+static const char __pyx_k_peak_list[] = "peak_list";
+static const char __pyx_k_peak_maxi[] = "peak_maxi";
+static const char __pyx_k_peak_npix[] = "peak_npix";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_IndexError[] = "IndexError";
 static const char __pyx_k_ValueError[] = "ValueError";
+static const char __pyx_k_adc_thresh[] = "adc_thresh";
+static const char __pyx_k_peak_index[] = "peak_index";
+static const char __pyx_k_peak_sigma[] = "peak_sigma";
+static const char __pyx_k_peak_value[] = "peak_value";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
-static const char __pyx_k_binned_data[] = "binned_data";
-static const char __pyx_k_asic_size_fs[] = "asic_size_fs";
-static const char __pyx_k_asic_size_ss[] = "asic_size_ss";
-static const char __pyx_k_num_asics_fs[] = "num_asics_fs";
-static const char __pyx_k_num_asics_ss[] = "num_asics_ss";
+static const char __pyx_k_peak_list_x[] = "peak_list_x";
+static const char __pyx_k_peak_list_y[] = "peak_list_y";
+static const char __pyx_k_rstats_pidx[] = "rstats_pidx";
+static const char __pyx_k_peakfinder_8[] = "peakfinder_8";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
+static const char __pyx_k_max_num_peaks[] = "max_num_peaks";
+static const char __pyx_k_peak_list_snr[] = "peak_list_snr";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
+static const char __pyx_k_rstats_radius[] = "rstats_radius";
+static const char __pyx_k_peak_list_maxi[] = "peak_list_maxi";
+static const char __pyx_k_peak_list_npix[] = "peak_list_npix";
+static const char __pyx_k_rstats_num_pix[] = "rstats_num_pix";
 static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
-static const char __pyx_k_bad_pixel_value[] = "bad_pixel_value";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
+static const char __pyx_k_peak_list_index[] = "peak_list_index";
+static const char __pyx_k_peak_list_sigma[] = "peak_list_sigma";
+static const char __pyx_k_peak_list_value[] = "peak_list_value";
 static const char __pyx_k_pyx_PickleError[] = "__pyx_PickleError";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
-static const char __pyx_k_saturation_value[] = "saturation_value";
-static const char __pyx_k_bin_detector_data[] = "bin_detector_data";
+static const char __pyx_k_hitfinder_min_snr[] = "hitfinder_min_snr";
 static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
-static const char __pyx_k_min_good_pixel_count[] = "min_good_pixel_count";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
 static const char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
 static const char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>";
+static const char __pyx_k_hitfinder_max_pix_count[] = "hitfinder_max_pix_count";
+static const char __pyx_k_hitfinder_min_pix_count[] = "hitfinder_min_pix_count";
 static const char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
-static const char __pyx_k_om_lib_binning_extension[] = "om.lib.binning_extension";
 static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %d: %d.";
+static const char __pyx_k_hitfinder_local_bg_radius[] = "hitfinder_local_bg_radius";
 static const char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
 static const char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
+static const char __pyx_k_om_algorithms__crystallography[] = "om.algorithms._crystallography";
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static const char __pyx_k_Peakfinder8_extension_This_exte[] = "\nPeakfinder8 extension.\n\nThis extension contains an implementation of Cheetah's 'peakfinder8' peak detection\nalgorithm.\n";
+static const char __pyx_k_src_cython__crystallography_pyx[] = "src/cython/_crystallography.pyx";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
 static const char __pyx_k_Cannot_assign_to_read_only_memor[] = "Cannot assign to read-only memoryview";
@@ -2030,7 +2123,6 @@ static const char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on
 static const char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
 static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
-static const char __pyx_k_src_om_lib_extensions_binning_ex[] = "src/om/lib/extensions/binning_extension.pyx";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
@@ -2055,14 +2147,11 @@ static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_View_MemoryView;
+static PyObject *__pyx_n_s_adc_thresh;
 static PyObject *__pyx_n_s_allocate_buffer;
-static PyObject *__pyx_n_s_asic_size_fs;
-static PyObject *__pyx_n_s_asic_size_ss;
-static PyObject *__pyx_n_s_bad_pixel_value;
+static PyObject *__pyx_n_s_asic_nx;
+static PyObject *__pyx_n_s_asic_ny;
 static PyObject *__pyx_n_s_base;
-static PyObject *__pyx_n_s_bin_detector_data;
-static PyObject *__pyx_n_s_bin_size;
-static PyObject *__pyx_n_s_binned_data;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_u_c;
 static PyObject *__pyx_n_s_class;
@@ -2075,32 +2164,59 @@ static PyObject *__pyx_n_s_dtype_is_object;
 static PyObject *__pyx_n_s_encode;
 static PyObject *__pyx_n_s_enumerate;
 static PyObject *__pyx_n_s_error;
+static PyObject *__pyx_n_s_fast;
 static PyObject *__pyx_n_s_flags;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
+static PyObject *__pyx_n_s_hitfinder_local_bg_radius;
+static PyObject *__pyx_n_s_hitfinder_max_pix_count;
+static PyObject *__pyx_n_s_hitfinder_min_pix_count;
+static PyObject *__pyx_n_s_hitfinder_min_snr;
+static PyObject *__pyx_n_s_i;
 static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_mask;
+static PyObject *__pyx_n_s_max_num_peaks;
 static PyObject *__pyx_n_s_memview;
-static PyObject *__pyx_n_s_min_good_pixel_count;
 static PyObject *__pyx_n_s_mode;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_name_2;
+static PyObject *__pyx_n_s_nasics_x;
+static PyObject *__pyx_n_s_nasics_y;
 static PyObject *__pyx_n_s_ndim;
 static PyObject *__pyx_n_s_new;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
-static PyObject *__pyx_n_s_num_asics_fs;
-static PyObject *__pyx_n_s_num_asics_ss;
+static PyObject *__pyx_n_s_num_peaks;
+static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_n_s_obj;
-static PyObject *__pyx_n_s_om_lib_binning_extension;
+static PyObject *__pyx_n_s_om_algorithms__crystallography;
 static PyObject *__pyx_n_s_pack;
+static PyObject *__pyx_n_s_peak_index;
+static PyObject *__pyx_n_s_peak_list;
+static PyObject *__pyx_n_s_peak_list_index;
+static PyObject *__pyx_n_s_peak_list_maxi;
+static PyObject *__pyx_n_s_peak_list_npix;
+static PyObject *__pyx_n_s_peak_list_sigma;
+static PyObject *__pyx_n_s_peak_list_snr;
+static PyObject *__pyx_n_s_peak_list_value;
+static PyObject *__pyx_n_s_peak_list_x;
+static PyObject *__pyx_n_s_peak_list_y;
+static PyObject *__pyx_n_s_peak_maxi;
+static PyObject *__pyx_n_s_peak_npix;
+static PyObject *__pyx_n_s_peak_sigma;
+static PyObject *__pyx_n_s_peak_snr;
+static PyObject *__pyx_n_s_peak_value;
+static PyObject *__pyx_n_s_peak_x;
+static PyObject *__pyx_n_s_peak_y;
+static PyObject *__pyx_n_s_peakfinder_8;
 static PyObject *__pyx_n_s_pickle;
+static PyObject *__pyx_n_s_pix_r;
 static PyObject *__pyx_n_s_pyx_PickleError;
 static PyObject *__pyx_n_s_pyx_checksum;
 static PyObject *__pyx_n_s_pyx_getbuffer;
@@ -2113,12 +2229,14 @@ static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
 static PyObject *__pyx_n_s_reduce_ex;
-static PyObject *__pyx_n_s_saturation_value;
+static PyObject *__pyx_n_s_rstats_num_pix;
+static PyObject *__pyx_n_s_rstats_pidx;
+static PyObject *__pyx_n_s_rstats_radius;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_shape;
 static PyObject *__pyx_n_s_size;
-static PyObject *__pyx_kp_s_src_om_lib_extensions_binning_ex;
+static PyObject *__pyx_kp_s_src_cython__crystallography_pyx;
 static PyObject *__pyx_n_s_start;
 static PyObject *__pyx_n_s_step;
 static PyObject *__pyx_n_s_stop;
@@ -2132,7 +2250,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
-static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, double __pyx_v_bad_pixel_value, double __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss); /* proto */
+static PyObject *__pyx_pf_2om_10algorithms_16_crystallography_peakfinder_8(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_max_num_peaks, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_mask, __Pyx_memviewslice __pyx_v_pix_r, int __pyx_v_rstats_num_pix, __Pyx_memviewslice __pyx_v_rstats_pidx, __Pyx_memviewslice __pyx_v_rstats_radius, int __pyx_v_fast, long __pyx_v_asic_nx, long __pyx_v_asic_ny, long __pyx_v_nasics_x, long __pyx_v_nasics_y, float __pyx_v_adc_thresh, float __pyx_v_hitfinder_min_snr, long __pyx_v_hitfinder_min_pix_count, long __pyx_v_hitfinder_max_pix_count, long __pyx_v_hitfinder_local_bg_radius); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2215,43 +2333,61 @@ static PyObject *__pyx_codeobj__21;
 static PyObject *__pyx_codeobj__28;
 /* Late includes */
 
-/* "src/om/lib/extensions/binning_extension.pyx":32
- *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
+/* "src/cython/_crystallography.pyx":70
  * 
- * def bin_detector_data(double[:,::1] data, double[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
- *                        int bin_size, int min_good_pixel_count, double bad_pixel_value,
- *                        double saturation_value, int asic_size_fs,
+ * 
+ * def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,             # <<<<<<<<<<<<<<
+ *                  float[:,::1] pix_r, int rstats_num_pix, int[:] rstats_pidx,
+ *                  int[:] rstats_radius, int fast, long asic_nx, long asic_ny,
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_2om_3lib_17binning_extension_bin_detector_data[] = "\n    Docstring here\n    ";
-static PyMethodDef __pyx_mdef_2om_3lib_17binning_extension_1bin_detector_data = {"bin_detector_data", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data, METH_VARARGS|METH_KEYWORDS, __pyx_doc_2om_3lib_17binning_extension_bin_detector_data};
-static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_2om_10algorithms_16_crystallography_peakfinder_8[] = "\n    peakfinder_8(max_num_peaks, data, mask, pix_r, asic_nx, asic_ny, nasics_x,         nasics_y, adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count,         hitfinder_max_pix_count, hitfinder_local_bg_radius)\n    \n    Peakfinder8 peak detection.\n\n    This function finds peaks in a detector data frame using the 'peakfinder8'\n    strategy from the Cheetah software package. The 'peakfinder8' peak detection\n    strategy is described in the following publication:\n\n    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,\n    and H. N. Chapman, \"Cheetah: software for high-throughput reduction and\n    analysis of serial femtosecond x-ray diffraction data\", J Appl  Crystallogr,\n    vol. 47, pp. 1118-1131 (2014).\n\n    Arguments:\n\n        max_num_peaks (:obj:`int`): The maximum number of peaks that will be retrieved\n            from each data frame. Additional peaks will be ignored.\n\n        data (:obj:`numpy.ndarray`): The detector data frame on which the peak finding\n            must be performed (as an numpy array of float32).\n\n        mask (:obj:`numpy.ndarray`): A numpy array of int8 storing a mask.  The map can\n            be used to mark areas of the data frame that must be excluded from the peak\n            search. \n\n            * The map must be a numpy array of the same shape as the data frame on\n              which the algorithm will be applied.\n\n            * Each pixel in the map must have a value of either 0, meaning that\n              the corresponding pixel in the data frame should be ignored, or 1,\n              meaning that the corresponding pixel should be included in the\n              search.\n\n            * The map is only used to exclude areas from the peak search: the data\n              is not modified in any way.\n\n        pix_r (:obj:`numpy.ndarray`): A numpy array of float32 with radius information.\n\n            * The array must have the same shape as the data frame on which the\n   ""           algorithm will be applied.\n\n            * Each element of the array must store, for the corresponding pixel in the\n              data frame, the distance in pixels from the origin of the detector\n              reference system (usually the center of the detector).\n\n        asic_nx (:obj:`int`):: The fs size in pixels of each detector panel in the data\n            frame.\n\n        asic_ny (:obj:`int`):: The ss size in pixels of each detector panel in the data\n            frame.\n\n        nasics_x (:obj:`int`): The number of panels along the fs axis of the data\n            frame.\n\n        nasics_y (:obj:`int`): The number of panels along the ss axis of the data\n            frame.\n\n        adc_thresh (:obj:`float`):: The minimum ADC threshold for peak detection.\n\n        hitfinder_min_snr (:obj:`float`): The minimum signal-to-noise ratio for peak\n            detection.\n\n        hitfinder_min_pix_count (:obj:`int`): The minimum size of a peak in pixels.\n\n        hitfinder_max_pixel_count (:obj:`int`): The maximum size of a peak in pixels.\n\n        local_bg_radius: The radius for the estimation of the local background in\n            pixels.\n\n    Returns:\n\n        :obj:`Tuple[int, List[float], List[float], List[float], List[float], List[float], List[float]`: A tuple storing  information about the detected peaks. The\n        tuple has the following elements:\n\n            * The first entry stores the number of peaks that were detected in the data\n            frame.\n\n            * The second entry is a list storing the fractional fs indexes that locate\n            thedetected peaks in the data frame.\n    \n            * The third entry is a list storing the fractional ss indexes that locate the\n            the detected peaks in the data frame.\n    \n            * The fourth entry is a list storing the integrated intensities for the\n            detected peaks.\n    \n            * The fifth entry is a list storing the number"" of pixels that make up each\n            detected peak.\n\n            * The sixth entry is a list storing, for each peak, the value of the pixel\n            with the maximum intensity.\n    \n            * The seventh entry is a list storing the signal-to-noise ratio of each\n            detected peak.\n    ";
+static PyMethodDef __pyx_mdef_2om_10algorithms_16_crystallography_1peakfinder_8 = {"peakfinder_8", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8, METH_VARARGS|METH_KEYWORDS, __pyx_doc_2om_10algorithms_16_crystallography_peakfinder_8};
+static PyObject *__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  int __pyx_v_max_num_peaks;
   __Pyx_memviewslice __pyx_v_data = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_binned_data = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_mask = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_bin_size;
-  int __pyx_v_min_good_pixel_count;
-  double __pyx_v_bad_pixel_value;
-  double __pyx_v_saturation_value;
-  int __pyx_v_asic_size_fs;
-  int __pyx_v_asic_size_ss;
-  int __pyx_v_num_asics_fs;
-  int __pyx_v_num_asics_ss;
+  __Pyx_memviewslice __pyx_v_pix_r = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_rstats_num_pix;
+  __Pyx_memviewslice __pyx_v_rstats_pidx = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_rstats_radius = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_fast;
+  long __pyx_v_asic_nx;
+  long __pyx_v_asic_ny;
+  long __pyx_v_nasics_x;
+  long __pyx_v_nasics_y;
+  float __pyx_v_adc_thresh;
+  float __pyx_v_hitfinder_min_snr;
+  long __pyx_v_hitfinder_min_pix_count;
+  long __pyx_v_hitfinder_max_pix_count;
+  long __pyx_v_hitfinder_local_bg_radius;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("bin_detector_data (wrapper)", 0);
+  __Pyx_RefNannySetupContext("peakfinder_8 (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_data,&__pyx_n_s_binned_data,&__pyx_n_s_mask,&__pyx_n_s_bin_size,&__pyx_n_s_min_good_pixel_count,&__pyx_n_s_bad_pixel_value,&__pyx_n_s_saturation_value,&__pyx_n_s_asic_size_fs,&__pyx_n_s_asic_size_ss,&__pyx_n_s_num_asics_fs,&__pyx_n_s_num_asics_ss,0};
-    PyObject* values[11] = {0,0,0,0,0,0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_max_num_peaks,&__pyx_n_s_data,&__pyx_n_s_mask,&__pyx_n_s_pix_r,&__pyx_n_s_rstats_num_pix,&__pyx_n_s_rstats_pidx,&__pyx_n_s_rstats_radius,&__pyx_n_s_fast,&__pyx_n_s_asic_nx,&__pyx_n_s_asic_ny,&__pyx_n_s_nasics_x,&__pyx_n_s_nasics_y,&__pyx_n_s_adc_thresh,&__pyx_n_s_hitfinder_min_snr,&__pyx_n_s_hitfinder_min_pix_count,&__pyx_n_s_hitfinder_max_pix_count,&__pyx_n_s_hitfinder_local_bg_radius,0};
+    PyObject* values[17] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case 17: values[16] = PyTuple_GET_ITEM(__pyx_args, 16);
+        CYTHON_FALLTHROUGH;
+        case 16: values[15] = PyTuple_GET_ITEM(__pyx_args, 15);
+        CYTHON_FALLTHROUGH;
+        case 15: values[14] = PyTuple_GET_ITEM(__pyx_args, 14);
+        CYTHON_FALLTHROUGH;
+        case 14: values[13] = PyTuple_GET_ITEM(__pyx_args, 13);
+        CYTHON_FALLTHROUGH;
+        case 13: values[12] = PyTuple_GET_ITEM(__pyx_args, 12);
+        CYTHON_FALLTHROUGH;
+        case 12: values[11] = PyTuple_GET_ITEM(__pyx_args, 11);
+        CYTHON_FALLTHROUGH;
         case 11: values[10] = PyTuple_GET_ITEM(__pyx_args, 10);
         CYTHON_FALLTHROUGH;
         case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
@@ -2280,73 +2416,109 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
       kw_args = PyDict_Size(__pyx_kwds);
       switch (pos_args) {
         case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_max_num_peaks)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_binned_data)) != 0)) kw_args--;
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 1); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 1); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_mask)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 2); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 2); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
-        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bin_size)) != 0)) kw_args--;
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pix_r)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 3); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 3); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
-        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_min_good_pixel_count)) != 0)) kw_args--;
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rstats_num_pix)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 4); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 4); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
-        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bad_pixel_value)) != 0)) kw_args--;
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rstats_pidx)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 5); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 5); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
-        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_saturation_value)) != 0)) kw_args--;
+        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rstats_radius)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 6); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 6); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
-        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_asic_size_fs)) != 0)) kw_args--;
+        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_fast)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 7); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 7); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  8:
-        if (likely((values[8] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_asic_size_ss)) != 0)) kw_args--;
+        if (likely((values[8] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_asic_nx)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 8); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 8); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  9:
-        if (likely((values[9] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_asics_fs)) != 0)) kw_args--;
+        if (likely((values[9] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_asic_ny)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 9); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 9); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 10:
-        if (likely((values[10] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_num_asics_ss)) != 0)) kw_args--;
+        if (likely((values[10] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_nasics_x)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, 10); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 10); __PYX_ERR(0, 70, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case 11:
+        if (likely((values[11] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_nasics_y)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 11); __PYX_ERR(0, 70, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case 12:
+        if (likely((values[12] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_adc_thresh)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 12); __PYX_ERR(0, 70, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case 13:
+        if (likely((values[13] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hitfinder_min_snr)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 13); __PYX_ERR(0, 70, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case 14:
+        if (likely((values[14] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hitfinder_min_pix_count)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 14); __PYX_ERR(0, 70, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case 15:
+        if (likely((values[15] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hitfinder_max_pix_count)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 15); __PYX_ERR(0, 70, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case 16:
+        if (likely((values[16] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hitfinder_local_bg_radius)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, 16); __PYX_ERR(0, 70, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "bin_detector_data") < 0)) __PYX_ERR(0, 32, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "peakfinder_8") < 0)) __PYX_ERR(0, 70, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 11) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 17) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -2360,35 +2532,66 @@ static PyObject *__pyx_pw_2om_3lib_17binning_extension_1bin_detector_data(PyObje
       values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
       values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
       values[10] = PyTuple_GET_ITEM(__pyx_args, 10);
+      values[11] = PyTuple_GET_ITEM(__pyx_args, 11);
+      values[12] = PyTuple_GET_ITEM(__pyx_args, 12);
+      values[13] = PyTuple_GET_ITEM(__pyx_args, 13);
+      values[14] = PyTuple_GET_ITEM(__pyx_args, 14);
+      values[15] = PyTuple_GET_ITEM(__pyx_args, 15);
+      values[16] = PyTuple_GET_ITEM(__pyx_args, 16);
     }
-    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 32, __pyx_L3_error)
-    __pyx_v_binned_data = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_binned_data.memview)) __PYX_ERR(0, 32, __pyx_L3_error)
-    __pyx_v_mask = __Pyx_PyObject_to_MemoryviewSlice_d_dc_char(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_mask.memview)) __PYX_ERR(0, 32, __pyx_L3_error)
-    __pyx_v_bin_size = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_bin_size == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
-    __pyx_v_min_good_pixel_count = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_min_good_pixel_count == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
-    __pyx_v_bad_pixel_value = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_bad_pixel_value == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
-    __pyx_v_saturation_value = __pyx_PyFloat_AsDouble(values[6]); if (unlikely((__pyx_v_saturation_value == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
-    __pyx_v_asic_size_fs = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_asic_size_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
-    __pyx_v_asic_size_ss = __Pyx_PyInt_As_int(values[8]); if (unlikely((__pyx_v_asic_size_ss == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
-    __pyx_v_num_asics_fs = __Pyx_PyInt_As_int(values[9]); if (unlikely((__pyx_v_num_asics_fs == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
-    __pyx_v_num_asics_ss = __Pyx_PyInt_As_int(values[10]); if (unlikely((__pyx_v_num_asics_ss == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L3_error)
+    __pyx_v_max_num_peaks = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_max_num_peaks == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 70, __pyx_L3_error)
+    __pyx_v_data = __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 70, __pyx_L3_error)
+    __pyx_v_mask = __Pyx_PyObject_to_MemoryviewSlice_d_dc_char(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_mask.memview)) __PYX_ERR(0, 70, __pyx_L3_error)
+    __pyx_v_pix_r = __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_pix_r.memview)) __PYX_ERR(0, 71, __pyx_L3_error)
+    __pyx_v_rstats_num_pix = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_rstats_num_pix == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 71, __pyx_L3_error)
+    __pyx_v_rstats_pidx = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_rstats_pidx.memview)) __PYX_ERR(0, 71, __pyx_L3_error)
+    __pyx_v_rstats_radius = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_rstats_radius.memview)) __PYX_ERR(0, 72, __pyx_L3_error)
+    __pyx_v_fast = __Pyx_PyInt_As_int(values[7]); if (unlikely((__pyx_v_fast == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 72, __pyx_L3_error)
+    __pyx_v_asic_nx = __Pyx_PyInt_As_long(values[8]); if (unlikely((__pyx_v_asic_nx == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 72, __pyx_L3_error)
+    __pyx_v_asic_ny = __Pyx_PyInt_As_long(values[9]); if (unlikely((__pyx_v_asic_ny == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 72, __pyx_L3_error)
+    __pyx_v_nasics_x = __Pyx_PyInt_As_long(values[10]); if (unlikely((__pyx_v_nasics_x == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 73, __pyx_L3_error)
+    __pyx_v_nasics_y = __Pyx_PyInt_As_long(values[11]); if (unlikely((__pyx_v_nasics_y == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 73, __pyx_L3_error)
+    __pyx_v_adc_thresh = __pyx_PyFloat_AsFloat(values[12]); if (unlikely((__pyx_v_adc_thresh == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 73, __pyx_L3_error)
+    __pyx_v_hitfinder_min_snr = __pyx_PyFloat_AsFloat(values[13]); if (unlikely((__pyx_v_hitfinder_min_snr == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L3_error)
+    __pyx_v_hitfinder_min_pix_count = __Pyx_PyInt_As_long(values[14]); if (unlikely((__pyx_v_hitfinder_min_pix_count == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L3_error)
+    __pyx_v_hitfinder_max_pix_count = __Pyx_PyInt_As_long(values[15]); if (unlikely((__pyx_v_hitfinder_max_pix_count == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 75, __pyx_L3_error)
+    __pyx_v_hitfinder_local_bg_radius = __Pyx_PyInt_As_long(values[16]); if (unlikely((__pyx_v_hitfinder_local_bg_radius == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 75, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("bin_detector_data", 1, 11, 11, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 32, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("peakfinder_8", 1, 17, 17, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 70, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("om.lib.binning_extension.bin_detector_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("om.algorithms._crystallography.peakfinder_8", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_2om_3lib_17binning_extension_bin_detector_data(__pyx_self, __pyx_v_data, __pyx_v_binned_data, __pyx_v_mask, __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss);
+  __pyx_r = __pyx_pf_2om_10algorithms_16_crystallography_peakfinder_8(__pyx_self, __pyx_v_max_num_peaks, __pyx_v_data, __pyx_v_mask, __pyx_v_pix_r, __pyx_v_rstats_num_pix, __pyx_v_rstats_pidx, __pyx_v_rstats_radius, __pyx_v_fast, __pyx_v_asic_nx, __pyx_v_asic_ny, __pyx_v_nasics_x, __pyx_v_nasics_y, __pyx_v_adc_thresh, __pyx_v_hitfinder_min_snr, __pyx_v_hitfinder_min_pix_count, __pyx_v_hitfinder_max_pix_count, __pyx_v_hitfinder_local_bg_radius);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_binned_data, __Pyx_memviewslice __pyx_v_mask, int __pyx_v_bin_size, int __pyx_v_min_good_pixel_count, double __pyx_v_bad_pixel_value, double __pyx_v_saturation_value, int __pyx_v_asic_size_fs, int __pyx_v_asic_size_ss, int __pyx_v_num_asics_fs, int __pyx_v_num_asics_ss) {
+static PyObject *__pyx_pf_2om_10algorithms_16_crystallography_peakfinder_8(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_max_num_peaks, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_mask, __Pyx_memviewslice __pyx_v_pix_r, int __pyx_v_rstats_num_pix, __Pyx_memviewslice __pyx_v_rstats_pidx, __Pyx_memviewslice __pyx_v_rstats_radius, int __pyx_v_fast, long __pyx_v_asic_nx, long __pyx_v_asic_ny, long __pyx_v_nasics_x, long __pyx_v_nasics_y, float __pyx_v_adc_thresh, float __pyx_v_hitfinder_min_snr, long __pyx_v_hitfinder_min_pix_count, long __pyx_v_hitfinder_max_pix_count, long __pyx_v_hitfinder_local_bg_radius) {
+  tPeakList __pyx_v_peak_list;
+  int __pyx_v_i;
+  float __pyx_v_peak_x;
+  float __pyx_v_peak_y;
+  float __pyx_v_peak_value;
+  std::vector<double>  __pyx_v_peak_list_x;
+  std::vector<double>  __pyx_v_peak_list_y;
+  std::vector<long>  __pyx_v_peak_list_index;
+  std::vector<double>  __pyx_v_peak_list_value;
+  std::vector<double>  __pyx_v_peak_list_npix;
+  std::vector<double>  __pyx_v_peak_list_maxi;
+  std::vector<double>  __pyx_v_peak_list_sigma;
+  std::vector<double>  __pyx_v_peak_list_snr;
+  long __pyx_v_num_peaks;
+  long __pyx_v_peak_index;
+  PyObject *__pyx_v_peak_npix = NULL;
+  PyObject *__pyx_v_peak_maxi = NULL;
+  PyObject *__pyx_v_peak_sigma = NULL;
+  PyObject *__pyx_v_peak_snr = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   Py_ssize_t __pyx_t_1;
@@ -2398,17 +2601,42 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   Py_ssize_t __pyx_t_5;
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
+  int *__pyx_t_8;
+  Py_ssize_t __pyx_t_9;
+  int *__pyx_t_10;
+  long __pyx_t_11;
+  int __pyx_t_12;
+  long __pyx_t_13;
+  PyObject *__pyx_t_14 = NULL;
+  double __pyx_t_15;
+  PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_17 = NULL;
+  PyObject *__pyx_t_18 = NULL;
+  PyObject *__pyx_t_19 = NULL;
+  PyObject *__pyx_t_20 = NULL;
+  PyObject *__pyx_t_21 = NULL;
+  PyObject *__pyx_t_22 = NULL;
+  PyObject *__pyx_t_23 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("bin_detector_data", 0);
+  __Pyx_RefNannySetupContext("peakfinder_8", 0);
 
-  /* "src/om/lib/extensions/binning_extension.pyx":40
+  /* "src/cython/_crystallography.pyx":176
  *     """
+ *     cdef tPeakList peak_list
+ *     allocatePeakList(&peak_list, max_num_peaks)             # <<<<<<<<<<<<<<
  * 
- *     c_bin_detector_data(&data[0, 0], &binned_data[0,0], &mask[0, 0], bin_size,             # <<<<<<<<<<<<<<
- *                        min_good_pixel_count, bad_pixel_value,
- *                        saturation_value, asic_size_fs,
+ *     peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix,
+ */
+  allocatePeakList((&__pyx_v_peak_list), __pyx_v_max_num_peaks);
+
+  /* "src/cython/_crystallography.pyx":178
+ *     allocatePeakList(&peak_list, max_num_peaks)
+ * 
+ *     peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix,             # <<<<<<<<<<<<<<
+ *                 &rstats_pidx[0] if rstats_pidx is not None else NULL,
+ *                 &rstats_radius[0] if rstats_radius is not None else NULL,
  */
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
@@ -2423,64 +2651,573 @@ static PyObject *__pyx_pf_2om_3lib_17binning_extension_bin_detector_data(CYTHON_
   } else if (unlikely(__pyx_t_2 >= __pyx_v_data.shape[1])) __pyx_t_3 = 1;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 40, __pyx_L1_error)
+    __PYX_ERR(0, 178, __pyx_L1_error)
   }
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
   __pyx_t_3 = -1;
   if (__pyx_t_4 < 0) {
-    __pyx_t_4 += __pyx_v_binned_data.shape[0];
+    __pyx_t_4 += __pyx_v_mask.shape[0];
     if (unlikely(__pyx_t_4 < 0)) __pyx_t_3 = 0;
-  } else if (unlikely(__pyx_t_4 >= __pyx_v_binned_data.shape[0])) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_4 >= __pyx_v_mask.shape[0])) __pyx_t_3 = 0;
   if (__pyx_t_5 < 0) {
-    __pyx_t_5 += __pyx_v_binned_data.shape[1];
+    __pyx_t_5 += __pyx_v_mask.shape[1];
     if (unlikely(__pyx_t_5 < 0)) __pyx_t_3 = 1;
-  } else if (unlikely(__pyx_t_5 >= __pyx_v_binned_data.shape[1])) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_5 >= __pyx_v_mask.shape[1])) __pyx_t_3 = 1;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 40, __pyx_L1_error)
+    __PYX_ERR(0, 178, __pyx_L1_error)
   }
   __pyx_t_6 = 0;
   __pyx_t_7 = 0;
   __pyx_t_3 = -1;
   if (__pyx_t_6 < 0) {
-    __pyx_t_6 += __pyx_v_mask.shape[0];
+    __pyx_t_6 += __pyx_v_pix_r.shape[0];
     if (unlikely(__pyx_t_6 < 0)) __pyx_t_3 = 0;
-  } else if (unlikely(__pyx_t_6 >= __pyx_v_mask.shape[0])) __pyx_t_3 = 0;
+  } else if (unlikely(__pyx_t_6 >= __pyx_v_pix_r.shape[0])) __pyx_t_3 = 0;
   if (__pyx_t_7 < 0) {
-    __pyx_t_7 += __pyx_v_mask.shape[1];
+    __pyx_t_7 += __pyx_v_pix_r.shape[1];
     if (unlikely(__pyx_t_7 < 0)) __pyx_t_3 = 1;
-  } else if (unlikely(__pyx_t_7 >= __pyx_v_mask.shape[1])) __pyx_t_3 = 1;
+  } else if (unlikely(__pyx_t_7 >= __pyx_v_pix_r.shape[1])) __pyx_t_3 = 1;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 40, __pyx_L1_error)
+    __PYX_ERR(0, 178, __pyx_L1_error)
   }
 
-  /* "src/om/lib/extensions/binning_extension.pyx":43
- *                        min_good_pixel_count, bad_pixel_value,
- *                        saturation_value, asic_size_fs,
- *                        asic_size_ss, num_asics_fs, num_asics_ss)             # <<<<<<<<<<<<<<
- */
-  c_bin_detector_data((&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_1 * __pyx_v_data.strides[0]) )) + __pyx_t_2)) )))), (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_binned_data.data + __pyx_t_4 * __pyx_v_binned_data.strides[0]) )) + __pyx_t_5)) )))), (&(*((char *) ( /* dim=1 */ ((char *) (((char *) ( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_6 * __pyx_v_mask.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_bin_size, __pyx_v_min_good_pixel_count, __pyx_v_bad_pixel_value, __pyx_v_saturation_value, __pyx_v_asic_size_fs, __pyx_v_asic_size_ss, __pyx_v_num_asics_fs, __pyx_v_num_asics_ss);
-
-  /* "src/om/lib/extensions/binning_extension.pyx":32
- *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
+  /* "src/cython/_crystallography.pyx":179
  * 
- * def bin_detector_data(double[:,::1] data, double[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
- *                        int bin_size, int min_good_pixel_count, double bad_pixel_value,
- *                        double saturation_value, int asic_size_fs,
+ *     peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix,
+ *                 &rstats_pidx[0] if rstats_pidx is not None else NULL,             # <<<<<<<<<<<<<<
+ *                 &rstats_radius[0] if rstats_radius is not None else NULL,
+ *                 fast, asic_nx, asic_ny, nasics_x, nasics_y, adc_thresh,
+ */
+  if (((((PyObject *) __pyx_v_rstats_pidx.memview) != Py_None) != 0)) {
+    __pyx_t_9 = 0;
+    __pyx_t_3 = -1;
+    if (__pyx_t_9 < 0) {
+      __pyx_t_9 += __pyx_v_rstats_pidx.shape[0];
+      if (unlikely(__pyx_t_9 < 0)) __pyx_t_3 = 0;
+    } else if (unlikely(__pyx_t_9 >= __pyx_v_rstats_pidx.shape[0])) __pyx_t_3 = 0;
+    if (unlikely(__pyx_t_3 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_3);
+      __PYX_ERR(0, 179, __pyx_L1_error)
+    }
+    __pyx_t_8 = (&(*((int *) ( /* dim=0 */ (__pyx_v_rstats_pidx.data + __pyx_t_9 * __pyx_v_rstats_pidx.strides[0]) ))));
+  } else {
+    __pyx_t_8 = NULL;
+  }
+
+  /* "src/cython/_crystallography.pyx":180
+ *     peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix,
+ *                 &rstats_pidx[0] if rstats_pidx is not None else NULL,
+ *                 &rstats_radius[0] if rstats_radius is not None else NULL,             # <<<<<<<<<<<<<<
+ *                 fast, asic_nx, asic_ny, nasics_x, nasics_y, adc_thresh,
+ *                 hitfinder_min_snr, hitfinder_min_pix_count, hitfinder_max_pix_count,
+ */
+  if (((((PyObject *) __pyx_v_rstats_radius.memview) != Py_None) != 0)) {
+    __pyx_t_9 = 0;
+    __pyx_t_3 = -1;
+    if (__pyx_t_9 < 0) {
+      __pyx_t_9 += __pyx_v_rstats_radius.shape[0];
+      if (unlikely(__pyx_t_9 < 0)) __pyx_t_3 = 0;
+    } else if (unlikely(__pyx_t_9 >= __pyx_v_rstats_radius.shape[0])) __pyx_t_3 = 0;
+    if (unlikely(__pyx_t_3 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_3);
+      __PYX_ERR(0, 180, __pyx_L1_error)
+    }
+    __pyx_t_10 = (&(*((int *) ( /* dim=0 */ (__pyx_v_rstats_radius.data + __pyx_t_9 * __pyx_v_rstats_radius.strides[0]) ))));
+  } else {
+    __pyx_t_10 = NULL;
+  }
+
+  /* "src/cython/_crystallography.pyx":178
+ *     allocatePeakList(&peak_list, max_num_peaks)
+ * 
+ *     peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix,             # <<<<<<<<<<<<<<
+ *                 &rstats_pidx[0] if rstats_pidx is not None else NULL,
+ *                 &rstats_radius[0] if rstats_radius is not None else NULL,
+ */
+  (void)(peakfinder8((&__pyx_v_peak_list), (&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_1 * __pyx_v_data.strides[0]) )) + __pyx_t_2)) )))), (&(*((char *) ( /* dim=1 */ ((char *) (((char *) ( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_4 * __pyx_v_mask.strides[0]) )) + __pyx_t_5)) )))), (&(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_pix_r.data + __pyx_t_6 * __pyx_v_pix_r.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_rstats_num_pix, __pyx_t_8, __pyx_t_10, __pyx_v_fast, __pyx_v_asic_nx, __pyx_v_asic_ny, __pyx_v_nasics_x, __pyx_v_nasics_y, __pyx_v_adc_thresh, __pyx_v_hitfinder_min_snr, __pyx_v_hitfinder_min_pix_count, __pyx_v_hitfinder_max_pix_count, __pyx_v_hitfinder_local_bg_radius, NULL));
+
+  /* "src/cython/_crystallography.pyx":196
+ *     cdef vector[double] peak_list_snr
+ * 
+ *     num_peaks = peak_list.nPeaks             # <<<<<<<<<<<<<<
+ * 
+ *     if num_peaks > max_num_peaks:
+ */
+  __pyx_t_11 = __pyx_v_peak_list.nPeaks;
+  __pyx_v_num_peaks = __pyx_t_11;
+
+  /* "src/cython/_crystallography.pyx":198
+ *     num_peaks = peak_list.nPeaks
+ * 
+ *     if num_peaks > max_num_peaks:             # <<<<<<<<<<<<<<
+ *         num_peaks = max_num_peaks
+ * 
+ */
+  __pyx_t_12 = ((__pyx_v_num_peaks > __pyx_v_max_num_peaks) != 0);
+  if (__pyx_t_12) {
+
+    /* "src/cython/_crystallography.pyx":199
+ * 
+ *     if num_peaks > max_num_peaks:
+ *         num_peaks = max_num_peaks             # <<<<<<<<<<<<<<
+ * 
+ *     for i in range(0, num_peaks):
+ */
+    __pyx_v_num_peaks = __pyx_v_max_num_peaks;
+
+    /* "src/cython/_crystallography.pyx":198
+ *     num_peaks = peak_list.nPeaks
+ * 
+ *     if num_peaks > max_num_peaks:             # <<<<<<<<<<<<<<
+ *         num_peaks = max_num_peaks
+ * 
+ */
+  }
+
+  /* "src/cython/_crystallography.pyx":201
+ *         num_peaks = max_num_peaks
+ * 
+ *     for i in range(0, num_peaks):             # <<<<<<<<<<<<<<
+ * 
+ *         peak_x = peak_list.peak_com_x[i]
+ */
+  __pyx_t_11 = __pyx_v_num_peaks;
+  __pyx_t_13 = __pyx_t_11;
+  for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_13; __pyx_t_3+=1) {
+    __pyx_v_i = __pyx_t_3;
+
+    /* "src/cython/_crystallography.pyx":203
+ *     for i in range(0, num_peaks):
+ * 
+ *         peak_x = peak_list.peak_com_x[i]             # <<<<<<<<<<<<<<
+ *         peak_y = peak_list.peak_com_y[i]
+ *         peak_index = peak_list.peak_com_index[i]
+ */
+    __pyx_v_peak_x = (__pyx_v_peak_list.peak_com_x[__pyx_v_i]);
+
+    /* "src/cython/_crystallography.pyx":204
+ * 
+ *         peak_x = peak_list.peak_com_x[i]
+ *         peak_y = peak_list.peak_com_y[i]             # <<<<<<<<<<<<<<
+ *         peak_index = peak_list.peak_com_index[i]
+ *         peak_value = peak_list.peak_totalintensity[i]
+ */
+    __pyx_v_peak_y = (__pyx_v_peak_list.peak_com_y[__pyx_v_i]);
+
+    /* "src/cython/_crystallography.pyx":205
+ *         peak_x = peak_list.peak_com_x[i]
+ *         peak_y = peak_list.peak_com_y[i]
+ *         peak_index = peak_list.peak_com_index[i]             # <<<<<<<<<<<<<<
+ *         peak_value = peak_list.peak_totalintensity[i]
+ *         peak_npix = peak_list.peak_npix[i]
+ */
+    __pyx_v_peak_index = (__pyx_v_peak_list.peak_com_index[__pyx_v_i]);
+
+    /* "src/cython/_crystallography.pyx":206
+ *         peak_y = peak_list.peak_com_y[i]
+ *         peak_index = peak_list.peak_com_index[i]
+ *         peak_value = peak_list.peak_totalintensity[i]             # <<<<<<<<<<<<<<
+ *         peak_npix = peak_list.peak_npix[i]
+ *         peak_maxi = peak_list.peak_maxintensity[i]
+ */
+    __pyx_v_peak_value = (__pyx_v_peak_list.peak_totalintensity[__pyx_v_i]);
+
+    /* "src/cython/_crystallography.pyx":207
+ *         peak_index = peak_list.peak_com_index[i]
+ *         peak_value = peak_list.peak_totalintensity[i]
+ *         peak_npix = peak_list.peak_npix[i]             # <<<<<<<<<<<<<<
+ *         peak_maxi = peak_list.peak_maxintensity[i]
+ *         peak_sigma = peak_list.peak_sigma[i]
+ */
+    __pyx_t_14 = PyFloat_FromDouble((__pyx_v_peak_list.peak_npix[__pyx_v_i])); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 207, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_XDECREF_SET(__pyx_v_peak_npix, __pyx_t_14);
+    __pyx_t_14 = 0;
+
+    /* "src/cython/_crystallography.pyx":208
+ *         peak_value = peak_list.peak_totalintensity[i]
+ *         peak_npix = peak_list.peak_npix[i]
+ *         peak_maxi = peak_list.peak_maxintensity[i]             # <<<<<<<<<<<<<<
+ *         peak_sigma = peak_list.peak_sigma[i]
+ *         peak_snr = peak_list.peak_snr[i]
+ */
+    __pyx_t_14 = PyFloat_FromDouble((__pyx_v_peak_list.peak_maxintensity[__pyx_v_i])); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 208, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_XDECREF_SET(__pyx_v_peak_maxi, __pyx_t_14);
+    __pyx_t_14 = 0;
+
+    /* "src/cython/_crystallography.pyx":209
+ *         peak_npix = peak_list.peak_npix[i]
+ *         peak_maxi = peak_list.peak_maxintensity[i]
+ *         peak_sigma = peak_list.peak_sigma[i]             # <<<<<<<<<<<<<<
+ *         peak_snr = peak_list.peak_snr[i]
+ * 
+ */
+    __pyx_t_14 = PyFloat_FromDouble((__pyx_v_peak_list.peak_sigma[__pyx_v_i])); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 209, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_XDECREF_SET(__pyx_v_peak_sigma, __pyx_t_14);
+    __pyx_t_14 = 0;
+
+    /* "src/cython/_crystallography.pyx":210
+ *         peak_maxi = peak_list.peak_maxintensity[i]
+ *         peak_sigma = peak_list.peak_sigma[i]
+ *         peak_snr = peak_list.peak_snr[i]             # <<<<<<<<<<<<<<
+ * 
+ *         peak_list_x.push_back(peak_x)
+ */
+    __pyx_t_14 = PyFloat_FromDouble((__pyx_v_peak_list.peak_snr[__pyx_v_i])); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 210, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_XDECREF_SET(__pyx_v_peak_snr, __pyx_t_14);
+    __pyx_t_14 = 0;
+
+    /* "src/cython/_crystallography.pyx":212
+ *         peak_snr = peak_list.peak_snr[i]
+ * 
+ *         peak_list_x.push_back(peak_x)             # <<<<<<<<<<<<<<
+ *         peak_list_y.push_back(peak_y)
+ *         peak_list_index.push_back(peak_index)
+ */
+    try {
+      __pyx_v_peak_list_x.push_back(__pyx_v_peak_x);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 212, __pyx_L1_error)
+    }
+
+    /* "src/cython/_crystallography.pyx":213
+ * 
+ *         peak_list_x.push_back(peak_x)
+ *         peak_list_y.push_back(peak_y)             # <<<<<<<<<<<<<<
+ *         peak_list_index.push_back(peak_index)
+ *         peak_list_value.push_back(peak_value)
+ */
+    try {
+      __pyx_v_peak_list_y.push_back(__pyx_v_peak_y);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 213, __pyx_L1_error)
+    }
+
+    /* "src/cython/_crystallography.pyx":214
+ *         peak_list_x.push_back(peak_x)
+ *         peak_list_y.push_back(peak_y)
+ *         peak_list_index.push_back(peak_index)             # <<<<<<<<<<<<<<
+ *         peak_list_value.push_back(peak_value)
+ *         peak_list_npix.push_back(peak_npix)
+ */
+    try {
+      __pyx_v_peak_list_index.push_back(__pyx_v_peak_index);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 214, __pyx_L1_error)
+    }
+
+    /* "src/cython/_crystallography.pyx":215
+ *         peak_list_y.push_back(peak_y)
+ *         peak_list_index.push_back(peak_index)
+ *         peak_list_value.push_back(peak_value)             # <<<<<<<<<<<<<<
+ *         peak_list_npix.push_back(peak_npix)
+ *         peak_list_maxi.push_back(peak_maxi)
+ */
+    try {
+      __pyx_v_peak_list_value.push_back(__pyx_v_peak_value);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 215, __pyx_L1_error)
+    }
+
+    /* "src/cython/_crystallography.pyx":216
+ *         peak_list_index.push_back(peak_index)
+ *         peak_list_value.push_back(peak_value)
+ *         peak_list_npix.push_back(peak_npix)             # <<<<<<<<<<<<<<
+ *         peak_list_maxi.push_back(peak_maxi)
+ *         peak_list_sigma.push_back(peak_sigma)
+ */
+    __pyx_t_15 = __pyx_PyFloat_AsDouble(__pyx_v_peak_npix); if (unlikely((__pyx_t_15 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 216, __pyx_L1_error)
+    try {
+      __pyx_v_peak_list_npix.push_back(__pyx_t_15);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 216, __pyx_L1_error)
+    }
+
+    /* "src/cython/_crystallography.pyx":217
+ *         peak_list_value.push_back(peak_value)
+ *         peak_list_npix.push_back(peak_npix)
+ *         peak_list_maxi.push_back(peak_maxi)             # <<<<<<<<<<<<<<
+ *         peak_list_sigma.push_back(peak_sigma)
+ *         peak_list_snr.push_back(peak_snr)
+ */
+    __pyx_t_15 = __pyx_PyFloat_AsDouble(__pyx_v_peak_maxi); if (unlikely((__pyx_t_15 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 217, __pyx_L1_error)
+    try {
+      __pyx_v_peak_list_maxi.push_back(__pyx_t_15);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 217, __pyx_L1_error)
+    }
+
+    /* "src/cython/_crystallography.pyx":218
+ *         peak_list_npix.push_back(peak_npix)
+ *         peak_list_maxi.push_back(peak_maxi)
+ *         peak_list_sigma.push_back(peak_sigma)             # <<<<<<<<<<<<<<
+ *         peak_list_snr.push_back(peak_snr)
+ * 
+ */
+    __pyx_t_15 = __pyx_PyFloat_AsDouble(__pyx_v_peak_sigma); if (unlikely((__pyx_t_15 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 218, __pyx_L1_error)
+    try {
+      __pyx_v_peak_list_sigma.push_back(__pyx_t_15);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 218, __pyx_L1_error)
+    }
+
+    /* "src/cython/_crystallography.pyx":219
+ *         peak_list_maxi.push_back(peak_maxi)
+ *         peak_list_sigma.push_back(peak_sigma)
+ *         peak_list_snr.push_back(peak_snr)             # <<<<<<<<<<<<<<
+ * 
+ *     freePeakList(peak_list)
+ */
+    __pyx_t_15 = __pyx_PyFloat_AsDouble(__pyx_v_peak_snr); if (unlikely((__pyx_t_15 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 219, __pyx_L1_error)
+    try {
+      __pyx_v_peak_list_snr.push_back(__pyx_t_15);
+    } catch(...) {
+      __Pyx_CppExn2PyErr();
+      __PYX_ERR(0, 219, __pyx_L1_error)
+    }
+  }
+
+  /* "src/cython/_crystallography.pyx":221
+ *         peak_list_snr.push_back(peak_snr)
+ * 
+ *     freePeakList(peak_list)             # <<<<<<<<<<<<<<
+ * 
+ *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,
+ */
+  freePeakList(__pyx_v_peak_list);
+
+  /* "src/cython/_crystallography.pyx":223
+ *     freePeakList(peak_list)
+ * 
+ *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,             # <<<<<<<<<<<<<<
+ *             peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_14 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_x); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_14);
+  __pyx_t_16 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_y); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __pyx_t_17 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_value); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_17);
+  __pyx_t_18 = __pyx_convert_vector_to_py_long(__pyx_v_peak_list_index); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_18);
+
+  /* "src/cython/_crystallography.pyx":224
+ * 
+ *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,
+ *             peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)             # <<<<<<<<<<<<<<
+ */
+  __pyx_t_19 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_npix); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_19);
+  __pyx_t_20 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_maxi); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_20);
+  __pyx_t_21 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_sigma); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_21);
+  __pyx_t_22 = __pyx_convert_vector_to_py_double(__pyx_v_peak_list_snr); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_22);
+
+  /* "src/cython/_crystallography.pyx":223
+ *     freePeakList(peak_list)
+ * 
+ *     return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,             # <<<<<<<<<<<<<<
+ *             peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
+ */
+  __pyx_t_23 = PyTuple_New(8); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_23);
+  __Pyx_GIVEREF(__pyx_t_14);
+  PyTuple_SET_ITEM(__pyx_t_23, 0, __pyx_t_14);
+  __Pyx_GIVEREF(__pyx_t_16);
+  PyTuple_SET_ITEM(__pyx_t_23, 1, __pyx_t_16);
+  __Pyx_GIVEREF(__pyx_t_17);
+  PyTuple_SET_ITEM(__pyx_t_23, 2, __pyx_t_17);
+  __Pyx_GIVEREF(__pyx_t_18);
+  PyTuple_SET_ITEM(__pyx_t_23, 3, __pyx_t_18);
+  __Pyx_GIVEREF(__pyx_t_19);
+  PyTuple_SET_ITEM(__pyx_t_23, 4, __pyx_t_19);
+  __Pyx_GIVEREF(__pyx_t_20);
+  PyTuple_SET_ITEM(__pyx_t_23, 5, __pyx_t_20);
+  __Pyx_GIVEREF(__pyx_t_21);
+  PyTuple_SET_ITEM(__pyx_t_23, 6, __pyx_t_21);
+  __Pyx_GIVEREF(__pyx_t_22);
+  PyTuple_SET_ITEM(__pyx_t_23, 7, __pyx_t_22);
+  __pyx_t_14 = 0;
+  __pyx_t_16 = 0;
+  __pyx_t_17 = 0;
+  __pyx_t_18 = 0;
+  __pyx_t_19 = 0;
+  __pyx_t_20 = 0;
+  __pyx_t_21 = 0;
+  __pyx_t_22 = 0;
+  __pyx_r = __pyx_t_23;
+  __pyx_t_23 = 0;
+  goto __pyx_L0;
+
+  /* "src/cython/_crystallography.pyx":70
+ * 
+ * 
+ * def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,             # <<<<<<<<<<<<<<
+ *                  float[:,::1] pix_r, int rstats_num_pix, int[:] rstats_pidx,
+ *                  int[:] rstats_radius, int fast, long asic_nx, long asic_ny,
  */
 
   /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_AddTraceback("om.lib.binning_extension.bin_detector_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_XDECREF(__pyx_t_14);
+  __Pyx_XDECREF(__pyx_t_16);
+  __Pyx_XDECREF(__pyx_t_17);
+  __Pyx_XDECREF(__pyx_t_18);
+  __Pyx_XDECREF(__pyx_t_19);
+  __Pyx_XDECREF(__pyx_t_20);
+  __Pyx_XDECREF(__pyx_t_21);
+  __Pyx_XDECREF(__pyx_t_22);
+  __Pyx_XDECREF(__pyx_t_23);
+  __Pyx_AddTraceback("om.algorithms._crystallography.peakfinder_8", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_peak_npix);
+  __Pyx_XDECREF(__pyx_v_peak_maxi);
+  __Pyx_XDECREF(__pyx_v_peak_sigma);
+  __Pyx_XDECREF(__pyx_v_peak_snr);
   __PYX_XDEC_MEMVIEW(&__pyx_v_data, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_binned_data, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_v_mask, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_pix_r, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_rstats_pidx, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_v_rstats_radius, 1);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "vector.to_py":60
+ * 
+ * @cname("__pyx_convert_vector_to_py_double")
+ * cdef object __pyx_convert_vector_to_py_double(vector[X]& v):             # <<<<<<<<<<<<<<
+ *     return [v[i] for i in range(v.size())]
+ * 
+ */
+
+static PyObject *__pyx_convert_vector_to_py_double(const std::vector<double>  &__pyx_v_v) {
+  size_t __pyx_v_i;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  size_t __pyx_t_2;
+  size_t __pyx_t_3;
+  size_t __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__pyx_convert_vector_to_py_double", 0);
+
+  /* "vector.to_py":61
+ * @cname("__pyx_convert_vector_to_py_double")
+ * cdef object __pyx_convert_vector_to_py_double(vector[X]& v):
+ *     return [v[i] for i in range(v.size())]             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 61, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_v_v.size();
+  __pyx_t_3 = __pyx_t_2;
+  for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
+    __pyx_v_i = __pyx_t_4;
+    __pyx_t_5 = PyFloat_FromDouble((__pyx_v_v[__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 61, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(1, 61, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "vector.to_py":60
+ * 
+ * @cname("__pyx_convert_vector_to_py_double")
+ * cdef object __pyx_convert_vector_to_py_double(vector[X]& v):             # <<<<<<<<<<<<<<
+ *     return [v[i] for i in range(v.size())]
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("vector.to_py.__pyx_convert_vector_to_py_double", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_convert_vector_to_py_long(const std::vector<long>  &__pyx_v_v) {
+  size_t __pyx_v_i;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  size_t __pyx_t_2;
+  size_t __pyx_t_3;
+  size_t __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__pyx_convert_vector_to_py_long", 0);
+
+  /* "vector.to_py":61
+ * @cname("__pyx_convert_vector_to_py_long")
+ * cdef object __pyx_convert_vector_to_py_long(vector[X]& v):
+ *     return [v[i] for i in range(v.size())]             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 61, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __pyx_v_v.size();
+  __pyx_t_3 = __pyx_t_2;
+  for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
+    __pyx_v_i = __pyx_t_4;
+    __pyx_t_5 = __Pyx_PyInt_From_long((__pyx_v_v[__pyx_v_i])); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 61, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_5))) __PYX_ERR(1, 61, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "vector.to_py":60
+ * 
+ * @cname("__pyx_convert_vector_to_py_long")
+ * cdef object __pyx_convert_vector_to_py_long(vector[X]& v):             # <<<<<<<<<<<<<<
+ *     return [v[i] for i in range(v.size())]
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("vector.to_py.__pyx_convert_vector_to_py_long", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -15649,7 +16386,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "om.lib.binning_extension.array", /*tp_name*/
+  "om.algorithms._crystallography.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -15771,7 +16508,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "om.lib.binning_extension.Enum", /*tp_name*/
+  "om.algorithms._crystallography.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -16035,7 +16772,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "om.lib.binning_extension.memoryview", /*tp_name*/
+  "om.algorithms._crystallography.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -16176,7 +16913,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "om.lib.binning_extension._memoryviewslice", /*tp_name*/
+  "om.algorithms._crystallography._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -16213,7 +16950,7 @@ static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
-  "Internal class for ...ing memoryview slices to Python", /*tp_doc*/
+  "Internal class for passing memoryview slices to Python", /*tp_doc*/
   __pyx_tp_traverse__memoryviewslice, /*tp_traverse*/
   __pyx_tp_clear__memoryviewslice, /*tp_clear*/
   0, /*tp_richcompare*/
@@ -16261,17 +16998,17 @@ static PyMethodDef __pyx_methods[] = {
 #if PY_MAJOR_VERSION >= 3
 #if CYTHON_PEP489_MULTI_PHASE_INIT
 static PyObject* __pyx_pymod_create(PyObject *spec, PyModuleDef *def); /*proto*/
-static int __pyx_pymod_exec_binning_extension(PyObject* module); /*proto*/
+static int __pyx_pymod_exec__crystallography(PyObject* module); /*proto*/
 static PyModuleDef_Slot __pyx_moduledef_slots[] = {
   {Py_mod_create, (void*)__pyx_pymod_create},
-  {Py_mod_exec, (void*)__pyx_pymod_exec_binning_extension},
+  {Py_mod_exec, (void*)__pyx_pymod_exec__crystallography},
   {0, NULL}
 };
 #endif
 
 static struct PyModuleDef __pyx_moduledef = {
     PyModuleDef_HEAD_INIT,
-    "binning_extension",
+    "_crystallography",
     __pyx_k_Peakfinder8_extension_This_exte, /* m_doc */
   #if CYTHON_PEP489_MULTI_PHASE_INIT
     0, /* m_size */
@@ -16323,14 +17060,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_View_MemoryView, __pyx_k_View_MemoryView, sizeof(__pyx_k_View_MemoryView), 0, 0, 1, 1},
+  {&__pyx_n_s_adc_thresh, __pyx_k_adc_thresh, sizeof(__pyx_k_adc_thresh), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
-  {&__pyx_n_s_asic_size_fs, __pyx_k_asic_size_fs, sizeof(__pyx_k_asic_size_fs), 0, 0, 1, 1},
-  {&__pyx_n_s_asic_size_ss, __pyx_k_asic_size_ss, sizeof(__pyx_k_asic_size_ss), 0, 0, 1, 1},
-  {&__pyx_n_s_bad_pixel_value, __pyx_k_bad_pixel_value, sizeof(__pyx_k_bad_pixel_value), 0, 0, 1, 1},
+  {&__pyx_n_s_asic_nx, __pyx_k_asic_nx, sizeof(__pyx_k_asic_nx), 0, 0, 1, 1},
+  {&__pyx_n_s_asic_ny, __pyx_k_asic_ny, sizeof(__pyx_k_asic_ny), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
-  {&__pyx_n_s_bin_detector_data, __pyx_k_bin_detector_data, sizeof(__pyx_k_bin_detector_data), 0, 0, 1, 1},
-  {&__pyx_n_s_bin_size, __pyx_k_bin_size, sizeof(__pyx_k_bin_size), 0, 0, 1, 1},
-  {&__pyx_n_s_binned_data, __pyx_k_binned_data, sizeof(__pyx_k_binned_data), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
@@ -16343,32 +17077,59 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
   {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
+  {&__pyx_n_s_fast, __pyx_k_fast, sizeof(__pyx_k_fast), 0, 0, 1, 1},
   {&__pyx_n_s_flags, __pyx_k_flags, sizeof(__pyx_k_flags), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
+  {&__pyx_n_s_hitfinder_local_bg_radius, __pyx_k_hitfinder_local_bg_radius, sizeof(__pyx_k_hitfinder_local_bg_radius), 0, 0, 1, 1},
+  {&__pyx_n_s_hitfinder_max_pix_count, __pyx_k_hitfinder_max_pix_count, sizeof(__pyx_k_hitfinder_max_pix_count), 0, 0, 1, 1},
+  {&__pyx_n_s_hitfinder_min_pix_count, __pyx_k_hitfinder_min_pix_count, sizeof(__pyx_k_hitfinder_min_pix_count), 0, 0, 1, 1},
+  {&__pyx_n_s_hitfinder_min_snr, __pyx_k_hitfinder_min_snr, sizeof(__pyx_k_hitfinder_min_snr), 0, 0, 1, 1},
+  {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_mask, __pyx_k_mask, sizeof(__pyx_k_mask), 0, 0, 1, 1},
+  {&__pyx_n_s_max_num_peaks, __pyx_k_max_num_peaks, sizeof(__pyx_k_max_num_peaks), 0, 0, 1, 1},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
-  {&__pyx_n_s_min_good_pixel_count, __pyx_k_min_good_pixel_count, sizeof(__pyx_k_min_good_pixel_count), 0, 0, 1, 1},
   {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
+  {&__pyx_n_s_nasics_x, __pyx_k_nasics_x, sizeof(__pyx_k_nasics_x), 0, 0, 1, 1},
+  {&__pyx_n_s_nasics_y, __pyx_k_nasics_y, sizeof(__pyx_k_nasics_y), 0, 0, 1, 1},
   {&__pyx_n_s_ndim, __pyx_k_ndim, sizeof(__pyx_k_ndim), 0, 0, 1, 1},
   {&__pyx_n_s_new, __pyx_k_new, sizeof(__pyx_k_new), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
-  {&__pyx_n_s_num_asics_fs, __pyx_k_num_asics_fs, sizeof(__pyx_k_num_asics_fs), 0, 0, 1, 1},
-  {&__pyx_n_s_num_asics_ss, __pyx_k_num_asics_ss, sizeof(__pyx_k_num_asics_ss), 0, 0, 1, 1},
+  {&__pyx_n_s_num_peaks, __pyx_k_num_peaks, sizeof(__pyx_k_num_peaks), 0, 0, 1, 1},
+  {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
-  {&__pyx_n_s_om_lib_binning_extension, __pyx_k_om_lib_binning_extension, sizeof(__pyx_k_om_lib_binning_extension), 0, 0, 1, 1},
+  {&__pyx_n_s_om_algorithms__crystallography, __pyx_k_om_algorithms__crystallography, sizeof(__pyx_k_om_algorithms__crystallography), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_index, __pyx_k_peak_index, sizeof(__pyx_k_peak_index), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list, __pyx_k_peak_list, sizeof(__pyx_k_peak_list), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_index, __pyx_k_peak_list_index, sizeof(__pyx_k_peak_list_index), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_maxi, __pyx_k_peak_list_maxi, sizeof(__pyx_k_peak_list_maxi), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_npix, __pyx_k_peak_list_npix, sizeof(__pyx_k_peak_list_npix), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_sigma, __pyx_k_peak_list_sigma, sizeof(__pyx_k_peak_list_sigma), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_snr, __pyx_k_peak_list_snr, sizeof(__pyx_k_peak_list_snr), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_value, __pyx_k_peak_list_value, sizeof(__pyx_k_peak_list_value), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_x, __pyx_k_peak_list_x, sizeof(__pyx_k_peak_list_x), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_list_y, __pyx_k_peak_list_y, sizeof(__pyx_k_peak_list_y), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_maxi, __pyx_k_peak_maxi, sizeof(__pyx_k_peak_maxi), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_npix, __pyx_k_peak_npix, sizeof(__pyx_k_peak_npix), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_sigma, __pyx_k_peak_sigma, sizeof(__pyx_k_peak_sigma), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_snr, __pyx_k_peak_snr, sizeof(__pyx_k_peak_snr), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_value, __pyx_k_peak_value, sizeof(__pyx_k_peak_value), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_x, __pyx_k_peak_x, sizeof(__pyx_k_peak_x), 0, 0, 1, 1},
+  {&__pyx_n_s_peak_y, __pyx_k_peak_y, sizeof(__pyx_k_peak_y), 0, 0, 1, 1},
+  {&__pyx_n_s_peakfinder_8, __pyx_k_peakfinder_8, sizeof(__pyx_k_peakfinder_8), 0, 0, 1, 1},
   {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
+  {&__pyx_n_s_pix_r, __pyx_k_pix_r, sizeof(__pyx_k_pix_r), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_PickleError, __pyx_k_pyx_PickleError, sizeof(__pyx_k_pyx_PickleError), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_checksum, __pyx_k_pyx_checksum, sizeof(__pyx_k_pyx_checksum), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_getbuffer, __pyx_k_pyx_getbuffer, sizeof(__pyx_k_pyx_getbuffer), 0, 0, 1, 1},
@@ -16381,12 +17142,14 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
-  {&__pyx_n_s_saturation_value, __pyx_k_saturation_value, sizeof(__pyx_k_saturation_value), 0, 0, 1, 1},
+  {&__pyx_n_s_rstats_num_pix, __pyx_k_rstats_num_pix, sizeof(__pyx_k_rstats_num_pix), 0, 0, 1, 1},
+  {&__pyx_n_s_rstats_pidx, __pyx_k_rstats_pidx, sizeof(__pyx_k_rstats_pidx), 0, 0, 1, 1},
+  {&__pyx_n_s_rstats_radius, __pyx_k_rstats_radius, sizeof(__pyx_k_rstats_radius), 0, 0, 1, 1},
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
-  {&__pyx_kp_s_src_om_lib_extensions_binning_ex, __pyx_k_src_om_lib_extensions_binning_ex, sizeof(__pyx_k_src_om_lib_extensions_binning_ex), 0, 0, 1, 0},
+  {&__pyx_kp_s_src_cython__crystallography_pyx, __pyx_k_src_cython__crystallography_pyx, sizeof(__pyx_k_src_cython__crystallography_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
   {&__pyx_n_s_step, __pyx_k_step, sizeof(__pyx_k_step), 0, 0, 1, 1},
   {&__pyx_n_s_stop, __pyx_k_stop, sizeof(__pyx_k_stop), 0, 0, 1, 1},
@@ -16403,10 +17166,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 201, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 134, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 149, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 152, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 181, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(1, 406, __pyx_L1_error)
   __pyx_builtin_id = __Pyx_GetBuiltinName(__pyx_n_s_id); if (!__pyx_builtin_id) __PYX_ERR(1, 615, __pyx_L1_error)
@@ -16615,17 +17378,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
 
-  /* "src/om/lib/extensions/binning_extension.pyx":32
- *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
+  /* "src/cython/_crystallography.pyx":70
  * 
- * def bin_detector_data(double[:,::1] data, double[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
- *                        int bin_size, int min_good_pixel_count, double bad_pixel_value,
- *                        double saturation_value, int asic_size_fs,
+ * 
+ * def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,             # <<<<<<<<<<<<<<
+ *                  float[:,::1] pix_r, int rstats_num_pix, int[:] rstats_pidx,
+ *                  int[:] rstats_radius, int fast, long asic_nx, long asic_ny,
  */
-  __pyx_tuple__20 = PyTuple_Pack(11, __pyx_n_s_data, __pyx_n_s_binned_data, __pyx_n_s_mask, __pyx_n_s_bin_size, __pyx_n_s_min_good_pixel_count, __pyx_n_s_bad_pixel_value, __pyx_n_s_saturation_value, __pyx_n_s_asic_size_fs, __pyx_n_s_asic_size_ss, __pyx_n_s_num_asics_fs, __pyx_n_s_num_asics_ss); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_tuple__20 = PyTuple_Pack(36, __pyx_n_s_max_num_peaks, __pyx_n_s_data, __pyx_n_s_mask, __pyx_n_s_pix_r, __pyx_n_s_rstats_num_pix, __pyx_n_s_rstats_pidx, __pyx_n_s_rstats_radius, __pyx_n_s_fast, __pyx_n_s_asic_nx, __pyx_n_s_asic_ny, __pyx_n_s_nasics_x, __pyx_n_s_nasics_y, __pyx_n_s_adc_thresh, __pyx_n_s_hitfinder_min_snr, __pyx_n_s_hitfinder_min_pix_count, __pyx_n_s_hitfinder_max_pix_count, __pyx_n_s_hitfinder_local_bg_radius, __pyx_n_s_peak_list, __pyx_n_s_i, __pyx_n_s_peak_x, __pyx_n_s_peak_y, __pyx_n_s_peak_value, __pyx_n_s_peak_list_x, __pyx_n_s_peak_list_y, __pyx_n_s_peak_list_index, __pyx_n_s_peak_list_value, __pyx_n_s_peak_list_npix, __pyx_n_s_peak_list_maxi, __pyx_n_s_peak_list_sigma, __pyx_n_s_peak_list_snr, __pyx_n_s_num_peaks, __pyx_n_s_peak_index, __pyx_n_s_peak_npix, __pyx_n_s_peak_maxi, __pyx_n_s_peak_sigma, __pyx_n_s_peak_snr); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__20);
   __Pyx_GIVEREF(__pyx_tuple__20);
-  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(11, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_om_lib_extensions_binning_ex, __pyx_n_s_bin_detector_data, 32, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(17, 0, 36, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_cython__crystallography_pyx, __pyx_n_s_peakfinder_8, 70, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 70, __pyx_L1_error)
 
   /* "View.MemoryView":287
  *         return self.name
@@ -16856,11 +17619,11 @@ static int __Pyx_modinit_function_import_code(void) {
 
 
 #if PY_MAJOR_VERSION < 3
-__Pyx_PyMODINIT_FUNC initbinning_extension(void) CYTHON_SMALL_CODE; /*proto*/
-__Pyx_PyMODINIT_FUNC initbinning_extension(void)
+__Pyx_PyMODINIT_FUNC init_crystallography(void) CYTHON_SMALL_CODE; /*proto*/
+__Pyx_PyMODINIT_FUNC init_crystallography(void)
 #else
-__Pyx_PyMODINIT_FUNC PyInit_binning_extension(void) CYTHON_SMALL_CODE; /*proto*/
-__Pyx_PyMODINIT_FUNC PyInit_binning_extension(void)
+__Pyx_PyMODINIT_FUNC PyInit__crystallography(void) CYTHON_SMALL_CODE; /*proto*/
+__Pyx_PyMODINIT_FUNC PyInit__crystallography(void)
 #if CYTHON_PEP489_MULTI_PHASE_INIT
 {
   return PyModuleDef_Init(&__pyx_moduledef);
@@ -16927,7 +17690,7 @@ bad:
 }
 
 
-static CYTHON_SMALL_CODE int __pyx_pymod_exec_binning_extension(PyObject *__pyx_pyinit_module)
+static CYTHON_SMALL_CODE int __pyx_pymod_exec__crystallography(PyObject *__pyx_pyinit_module)
 #endif
 #endif
 {
@@ -16940,7 +17703,7 @@ static CYTHON_SMALL_CODE int __pyx_pymod_exec_binning_extension(PyObject *__pyx_
   #if CYTHON_PEP489_MULTI_PHASE_INIT
   if (__pyx_m) {
     if (__pyx_m == __pyx_pyinit_module) return 0;
-    PyErr_SetString(PyExc_RuntimeError, "Module 'binning_extension' has already been imported. Re-initialisation is not supported.");
+    PyErr_SetString(PyExc_RuntimeError, "Module '_crystallography' has already been imported. Re-initialisation is not supported.");
     return -1;
   }
   #elif PY_MAJOR_VERSION >= 3
@@ -16955,7 +17718,7 @@ if (!__Pyx_RefNanny) {
       Py_FatalError("failed to import 'refnanny' module");
 }
 #endif
-  __Pyx_RefNannySetupContext("__Pyx_PyMODINIT_FUNC PyInit_binning_extension(void)", 0);
+  __Pyx_RefNannySetupContext("__Pyx_PyMODINIT_FUNC PyInit__crystallography(void)", 0);
   if (__Pyx_check_binary_version() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #ifdef __Pxy_PyFrame_Initialize_Offsets
   __Pxy_PyFrame_Initialize_Offsets();
@@ -16992,7 +17755,7 @@ if (!__Pyx_RefNanny) {
   Py_INCREF(__pyx_m);
   #else
   #if PY_MAJOR_VERSION < 3
-  __pyx_m = Py_InitModule4("binning_extension", __pyx_methods, __pyx_k_Peakfinder8_extension_This_exte, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  __pyx_m = Py_InitModule4("_crystallography", __pyx_methods, __pyx_k_Peakfinder8_extension_This_exte, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
@@ -17010,14 +17773,14 @@ if (!__Pyx_RefNanny) {
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_om__lib__binning_extension) {
+  if (__pyx_module_is_main_om__algorithms___crystallography) {
     if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name_2, __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "om.lib.binning_extension")) {
-      if (unlikely(PyDict_SetItemString(modules, "om.lib.binning_extension", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "om.algorithms._crystallography")) {
+      if (unlikely(PyDict_SetItemString(modules, "om.algorithms._crystallography", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -17035,22 +17798,34 @@ if (!__Pyx_RefNanny) {
   (void)__Pyx_modinit_function_import_code();
   /*--- Execution code ---*/
   #if defined(__Pyx_Generator_USED) || defined(__Pyx_Coroutine_USED)
-  if (__Pyx_patch_Protocol() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "src/om/lib/extensions/binning_extension.pyx":32
- *                        int asic_size_ss, int num_asics_fs, int num_asics_ss);
+  /* "src/cython/_crystallography.pyx":28
+ * from libc.stdint cimport int8_t
  * 
- * def bin_detector_data(double[:,::1] data, double[:,::1] binned_data, char[:,::1] mask,             # <<<<<<<<<<<<<<
- *                        int bin_size, int min_good_pixel_count, double bad_pixel_value,
- *                        double saturation_value, int asic_size_fs,
+ * import numpy             # <<<<<<<<<<<<<<
+ * 
+ * cdef extern from "peakfinder8.hh":
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_2om_3lib_17binning_extension_1bin_detector_data, NULL, __pyx_n_s_om_lib_binning_extension); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_bin_detector_data, __pyx_t_1) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpy, __pyx_t_1) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "src/om/lib/extensions/binning_extension.pyx":1
+  /* "src/cython/_crystallography.pyx":70
+ * 
+ * 
+ * def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,             # <<<<<<<<<<<<<<
+ *                  float[:,::1] pix_r, int rstats_num_pix, int[:] rstats_pidx,
+ *                  int[:] rstats_radius, int fast, long asic_nx, long asic_ny,
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_2om_10algorithms_16_crystallography_1peakfinder_8, NULL, __pyx_n_s_om_algorithms__crystallography); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_peakfinder_8, __pyx_t_1) < 0) __PYX_ERR(0, 70, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "src/cython/_crystallography.pyx":1
  * # This file is part of OM.             # <<<<<<<<<<<<<<
  * #
  * # OM is free software: you can redistribute it and/or modify it under the terms of
@@ -17220,11 +17995,11 @@ if (!__Pyx_RefNanny) {
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init om.lib.binning_extension", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init om.algorithms._crystallography", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_CLEAR(__pyx_m);
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init om.lib.binning_extension");
+    PyErr_SetString(PyExc_ImportError, "init om.algorithms._crystallography");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -17254,6 +18029,34 @@ end:
     return (__Pyx_RefNannyAPIStruct *)r;
 }
 #endif
+
+/* PyObjectGetAttrStr */
+#if CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name) {
+    PyTypeObject* tp = Py_TYPE(obj);
+    if (likely(tp->tp_getattro))
+        return tp->tp_getattro(obj, attr_name);
+#if PY_MAJOR_VERSION < 3
+    if (likely(tp->tp_getattr))
+        return tp->tp_getattr(obj, PyString_AS_STRING(attr_name));
+#endif
+    return PyObject_GetAttr(obj, attr_name);
+}
+#endif
+
+/* GetBuiltinName */
+static PyObject *__Pyx_GetBuiltinName(PyObject *name) {
+    PyObject* result = __Pyx_PyObject_GetAttrStr(__pyx_b, name);
+    if (unlikely(!result)) {
+        PyErr_Format(PyExc_NameError,
+#if PY_MAJOR_VERSION >= 3
+            "name '%U' is not defined", name);
+#else
+            "name '%.200s' is not defined", PyString_AS_STRING(name));
+#endif
+    }
+    return result;
+}
 
 /* RaiseArgTupleInvalid */
 static void __Pyx_RaiseArgtupleInvalid(
@@ -17333,7 +18136,7 @@ static int __Pyx_ParseOptionalKeywords(
                     if ((**argname == key) || (
                             (CYTHON_COMPILING_IN_PYPY || PyString_GET_SIZE(**argname) == PyString_GET_SIZE(key))
                              && _PyString_Eq(**argname, key))) {
-                        goto arg_...ed_twice;
+                        goto arg_passed_twice;
                     }
                     argname++;
                 }
@@ -17364,7 +18167,7 @@ static int __Pyx_ParseOptionalKeywords(
                     #endif
                         PyUnicode_Compare(**argname, key);
                     if (cmp < 0 && unlikely(PyErr_Occurred())) goto bad;
-                    if (cmp == 0) goto arg_...ed_twice;
+                    if (cmp == 0) goto arg_passed_twice;
                     argname++;
                 }
             }
@@ -17377,7 +18180,7 @@ static int __Pyx_ParseOptionalKeywords(
         }
     }
     return 0;
-arg_...ed_twice:
+arg_passed_twice:
     __Pyx_RaiseDoubleKeywordsError(function_name, key);
     goto bad;
 invalid_keyword_type:
@@ -17554,34 +18357,6 @@ static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *nam
         "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
         name, type->tp_name, Py_TYPE(obj)->tp_name);
     return 0;
-}
-
-/* PyObjectGetAttrStr */
-#if CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject* attr_name) {
-    PyTypeObject* tp = Py_TYPE(obj);
-    if (likely(tp->tp_getattro))
-        return tp->tp_getattro(obj, attr_name);
-#if PY_MAJOR_VERSION < 3
-    if (likely(tp->tp_getattr))
-        return tp->tp_getattr(obj, PyString_AS_STRING(attr_name));
-#endif
-    return PyObject_GetAttr(obj, attr_name);
-}
-#endif
-
-/* GetBuiltinName */
-static PyObject *__Pyx_GetBuiltinName(PyObject *name) {
-    PyObject* result = __Pyx_PyObject_GetAttrStr(__pyx_b, name);
-    if (unlikely(!result)) {
-        PyErr_Format(PyExc_NameError,
-#if PY_MAJOR_VERSION >= 3
-            "name '%U' is not defined", name);
-#else
-            "name '%.200s' is not defined", PyString_AS_STRING(name));
-#endif
-    }
-    return result;
 }
 
 /* PyObjectCall */
@@ -19484,6 +20259,28 @@ __pyx_capsule_create(void *p, CYTHON_UNUSED const char *sig)
     return cobj;
 }
 
+/* CIntFromPyVerify */
+#define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)\
+    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 0)
+#define __PYX_VERIFY_RETURN_INT_EXC(target_type, func_type, func_value)\
+    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 1)
+#define __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, exc)\
+    {\
+        func_type value = func_value;\
+        if (sizeof(target_type) < sizeof(func_type)) {\
+            if (unlikely(value != (func_type) (target_type) value)) {\
+                func_type zero = 0;\
+                if (exc && unlikely(value == (func_type)-1 && PyErr_Occurred()))\
+                    return (target_type) -1;\
+                if (is_unsigned && unlikely(value < zero))\
+                    goto raise_neg_overflow;\
+                else\
+                    goto raise_overflow;\
+            }\
+        }\
+        return (target_type) value;\
+    }
+
 /* IsLittleEndian */
 static CYTHON_INLINE int __Pyx_Is_Little_Endian(void)
 {
@@ -20220,7 +21017,7 @@ no_fail:
 }
 
 /* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(PyObject *obj, int writable_flag) {
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_float(PyObject *obj, int writable_flag) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
     int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_FOLLOW), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_CONTIG) };
@@ -20231,7 +21028,7 @@ no_fail:
     }
     retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, __Pyx_IS_C_CONTIG,
                                                  (PyBUF_C_CONTIGUOUS | PyBUF_FORMAT) | writable_flag, 2,
-                                                 &__Pyx_TypeInfo_double, stack,
+                                                 &__Pyx_TypeInfo_float, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
         goto __pyx_fail;
@@ -20265,27 +21062,28 @@ __pyx_fail:
     return result;
 }
 
-/* CIntFromPyVerify */
-  #define __PYX_VERIFY_RETURN_INT(target_type, func_type, func_value)\
-    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 0)
-#define __PYX_VERIFY_RETURN_INT_EXC(target_type, func_type, func_value)\
-    __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, 1)
-#define __PYX__VERIFY_RETURN_INT(target_type, func_type, func_value, exc)\
-    {\
-        func_type value = func_value;\
-        if (sizeof(target_type) < sizeof(func_type)) {\
-            if (unlikely(value != (func_type) (target_type) value)) {\
-                func_type zero = 0;\
-                if (exc && unlikely(value == (func_type)-1 && PyErr_Occurred()))\
-                    return (target_type) -1;\
-                if (is_unsigned && unlikely(value < zero))\
-                    goto raise_neg_overflow;\
-                else\
-                    goto raise_overflow;\
-            }\
-        }\
-        return (target_type) value;\
+/* ObjectToMemviewSlice */
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *obj, int writable_flag) {
+    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
+    __Pyx_BufFmt_StackElem stack[1];
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int retcode;
+    if (obj == Py_None) {
+        result.memview = (struct __pyx_memoryview_obj *) Py_None;
+        return result;
     }
+    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
+                                                 PyBUF_RECORDS_RO | writable_flag, 1,
+                                                 &__Pyx_TypeInfo_int, stack,
+                                                 &result, obj);
+    if (unlikely(retcode == -1))
+        goto __pyx_fail;
+    return result;
+__pyx_fail:
+    result.memview = NULL;
+    result.data = NULL;
+    return result;
+}
 
 /* MemviewSliceCopyTemplate */
   static __Pyx_memviewslice
@@ -20747,44 +21545,6 @@ raise_neg_overflow:
 }
 
 /* CIntToPy */
-  static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const int neg_one = (int) -1, const_zero = (int) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(int) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(int) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-#endif
-        }
-    } else {
-        if (sizeof(int) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-#endif
-        }
-    }
-    {
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        unsigned char *bytes = (unsigned char *)&value;
-        return _PyLong_FromByteArray(bytes, sizeof(int),
-                                     little, !is_unsigned);
-    }
-}
-
-/* CIntToPy */
   static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
 #ifdef __Pyx_HAS_GCC_DIAGNOSTIC
 #pragma GCC diagnostic push
@@ -20818,6 +21578,240 @@ raise_neg_overflow:
         int one = 1; int little = (int)*(unsigned char *)&one;
         unsigned char *bytes = (unsigned char *)&value;
         return _PyLong_FromByteArray(bytes, sizeof(long),
+                                     little, !is_unsigned);
+    }
+}
+
+/* CIntFromPy */
+  static CYTHON_INLINE size_t __Pyx_PyInt_As_size_t(PyObject *x) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const size_t neg_one = (size_t) -1, const_zero = (size_t) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+#if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_Check(x))) {
+        if (sizeof(size_t) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(size_t, long, PyInt_AS_LONG(x))
+        } else {
+            long val = PyInt_AS_LONG(x);
+            if (is_unsigned && unlikely(val < 0)) {
+                goto raise_neg_overflow;
+            }
+            return (size_t) val;
+        }
+    } else
+#endif
+    if (likely(PyLong_Check(x))) {
+        if (is_unsigned) {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (size_t) 0;
+                case  1: __PYX_VERIFY_RETURN_INT(size_t, digit, digits[0])
+                case 2:
+                    if (8 * sizeof(size_t) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) >= 2 * PyLong_SHIFT) {
+                            return (size_t) (((((size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0]));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(size_t) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) >= 3 * PyLong_SHIFT) {
+                            return (size_t) (((((((size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0]));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(size_t) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) >= 4 * PyLong_SHIFT) {
+                            return (size_t) (((((((((size_t)digits[3]) << PyLong_SHIFT) | (size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0]));
+                        }
+                    }
+                    break;
+            }
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+            if (unlikely(Py_SIZE(x) < 0)) {
+                goto raise_neg_overflow;
+            }
+#else
+            {
+                int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
+                if (unlikely(result < 0))
+                    return (size_t) -1;
+                if (unlikely(result == 1))
+                    goto raise_neg_overflow;
+            }
+#endif
+            if (sizeof(size_t) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, unsigned long, PyLong_AsUnsignedLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(size_t) <= sizeof(unsigned PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+#endif
+            }
+        } else {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (size_t) 0;
+                case -1: __PYX_VERIFY_RETURN_INT(size_t, sdigit, (sdigit) (-(sdigit)digits[0]))
+                case  1: __PYX_VERIFY_RETURN_INT(size_t,  digit, +digits[0])
+                case -2:
+                    if (8 * sizeof(size_t) - 1 > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 2 * PyLong_SHIFT) {
+                            return (size_t) (((size_t)-1)*(((((size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 2:
+                    if (8 * sizeof(size_t) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 2 * PyLong_SHIFT) {
+                            return (size_t) ((((((size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case -3:
+                    if (8 * sizeof(size_t) - 1 > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 3 * PyLong_SHIFT) {
+                            return (size_t) (((size_t)-1)*(((((((size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(size_t) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 3 * PyLong_SHIFT) {
+                            return (size_t) ((((((((size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case -4:
+                    if (8 * sizeof(size_t) - 1 > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 4 * PyLong_SHIFT) {
+                            return (size_t) (((size_t)-1)*(((((((((size_t)digits[3]) << PyLong_SHIFT) | (size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(size_t) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(size_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(size_t) - 1 > 4 * PyLong_SHIFT) {
+                            return (size_t) ((((((((((size_t)digits[3]) << PyLong_SHIFT) | (size_t)digits[2]) << PyLong_SHIFT) | (size_t)digits[1]) << PyLong_SHIFT) | (size_t)digits[0])));
+                        }
+                    }
+                    break;
+            }
+#endif
+            if (sizeof(size_t) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, long, PyLong_AsLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(size_t) <= sizeof(PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(size_t, PY_LONG_LONG, PyLong_AsLongLong(x))
+#endif
+            }
+        }
+        {
+#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
+            PyErr_SetString(PyExc_RuntimeError,
+                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
+#else
+            size_t val;
+            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
+ #if PY_MAJOR_VERSION < 3
+            if (likely(v) && !PyLong_Check(v)) {
+                PyObject *tmp = v;
+                v = PyNumber_Long(tmp);
+                Py_DECREF(tmp);
+            }
+ #endif
+            if (likely(v)) {
+                int one = 1; int is_little = (int)*(unsigned char *)&one;
+                unsigned char *bytes = (unsigned char *)&val;
+                int ret = _PyLong_AsByteArray((PyLongObject *)v,
+                                              bytes, sizeof(val),
+                                              is_little, !is_unsigned);
+                Py_DECREF(v);
+                if (likely(!ret))
+                    return val;
+            }
+#endif
+            return (size_t) -1;
+        }
+    } else {
+        size_t val;
+        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
+        if (!tmp) return (size_t) -1;
+        val = __Pyx_PyInt_As_size_t(tmp);
+        Py_DECREF(tmp);
+        return val;
+    }
+raise_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "value too large to convert to size_t");
+    return (size_t) -1;
+raise_neg_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "can't convert negative value to size_t");
+    return (size_t) -1;
+}
+
+/* CIntToPy */
+  static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const int neg_one = (int) -1, const_zero = (int) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(int) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(int) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(int) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(int),
                                      little, !is_unsigned);
     }
 }

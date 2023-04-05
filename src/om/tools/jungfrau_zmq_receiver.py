@@ -9,7 +9,7 @@ from typing import Any, Deque, Dict, List
 import click
 import zmq
 
-from om.library.rich_console import console
+from om.lib.rich_console import console
 
 
 def listen(
