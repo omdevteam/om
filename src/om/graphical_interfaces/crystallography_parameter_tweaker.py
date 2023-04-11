@@ -36,7 +36,8 @@ from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.geometry import GeometryInformation, TypePixelMaps
-from om.lib.parameters import MonitorParameters
+from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
+from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 
 try:
@@ -94,15 +95,45 @@ class CrystallographyParameterTweaker(OmGuiBase):
 
         self._received_data: Dict[str, Any] = {}
 
+        crystallography_parameters = self._monitor_params.get_parameter_group(
+            group="crystallography"
+        )
+
         # Geometry
         self._geometry_info = GeometryInformation(
-            geometry_filename=self._monitor_params.get_parameter(
-                group="crystallography",
+            geometry_filename=get_parameter_from_parameter_group(
+                group=crystallography_parameters,
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
             ),
             geometry_format="crystfel",
+        )
+
+        # bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
+        #     group=crystallography_parameters,
+        #     parameter="bad_pixel_map_filename",
+        #     parameter_type=str,
+        # )
+        # if bad_pixel_map_filename is not None:
+        #     bad_pixel_map_hdf5_path: Union[
+        #         str, None
+        #     ] = get_parameter_from_parameter_group(
+        #         group=crystallography_parameters,
+        #         parameter="bad_pixel_map_hdf5_path",
+        #         parameter_type=str,
+        #         required=True,
+        #     )
+        # else:
+        #     bad_pixel_map_hdf5_path = None
+
+        bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=crystallography_parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
         )
 
         pixel_maps: TypePixelMaps = self._geometry_info.get_pixel_maps()
@@ -129,6 +160,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
                 group="peakfinder8_peak_detection"
             ),
             radius_pixel_map=cast(NDArray[numpy.float_], pixel_maps["radius"]),
+            bad_pixel_map=bad_pixel_map,
         )
 
         pyqtgraph.setConfigOption("background", 0.2)

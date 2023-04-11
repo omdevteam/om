@@ -26,13 +26,13 @@ import random
 import sys
 from typing import Any, Dict, List, Tuple, TypedDict, Union
 
-import h5py  # type: ignore
 import numpy
 import scipy  # type: ignore
 from numpy.typing import NDArray
 
 from om.lib.parameters import get_parameter_from_parameter_group
-from om.lib.peakfinder8_extension import peakfinder_8  # type: ignore
+
+from ._crystallography import peakfinder_8  # type: ignore
 
 
 def _read_profile(*, profile_filename: str) -> Union[NDArray[numpy.float_], None]:
@@ -248,6 +248,7 @@ class Peakfinder8PeakDetection:
         *,
         radius_pixel_map: NDArray[numpy.float_],
         parameters: Dict[str, Any],
+        bad_pixel_map: Union[NDArray[numpy.int_], None],
     ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
@@ -400,42 +401,8 @@ class Peakfinder8PeakDetection:
             parameter_type=int,
             required=True,
         )
-        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if bad_pixel_map_filename is not None:
-            bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            bad_pixel_map_hdf5_path = None
 
-        if bad_pixel_map_filename is not None:
-            try:
-                map_hdf5_file_handle: Any
-                with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
-                    self._bad_pixel_map: Union[
-                        NDArray[numpy.int_], None
-                    ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                # TODO: Fix type check
-                raise RuntimeError(
-                    "The following error occurred while reading the "  # type: ignore
-                    f"{bad_pixel_map_hdf5_path} field from the "
-                    f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
-                    f"{exc_type.__name__}: {exc_value}"
-                ) from exc
-        else:
-            self._bad_pixel_map = None
-
+        self._bad_pixel_map = bad_pixel_map
         self._mask: Union[NDArray[numpy.int_], None] = None
         self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
 
@@ -776,6 +743,7 @@ class RadialProfileAnalysisWithSampleDetection:
         *,
         radius_pixel_map: NDArray[numpy.float_],
         swaxs_parameters: Dict[str, Any],
+        bad_pixel_map: Union[NDArray[numpy.int_], None],
     ) -> None:
         """
         Algorithm for aqueous droplet detection.
@@ -899,41 +867,7 @@ class RadialProfileAnalysisWithSampleDetection:
         if water_profile_filename is not None:
             self._water_profile = _read_profile(profile_filename=water_profile_filename)
 
-        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=swaxs_parameters,
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if bad_pixel_map_filename is not None:
-            bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = get_parameter_from_parameter_group(
-                group=swaxs_parameters,
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            bad_pixel_map_hdf5_path = None
-
-        if bad_pixel_map_filename is not None:
-            try:
-                map_hdf5_file_handle: Any
-                with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
-                    self._bad_pixel_map: Union[
-                        NDArray[numpy.int_], None
-                    ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                # TODO: Fix type check
-                raise RuntimeError(
-                    "The following error occurred while reading the "  # type: ignore
-                    f"{bad_pixel_map_hdf5_path} field from the "
-                    f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
-                    f"{exc_type.__name__}: {exc_value}"
-                ) from exc
-        else:
-            self._bad_pixel_map = None
+        self._bad_pixel_map = bad_pixel_map
 
         # Calculate radial bins just on initialization
         radial_step: float = 1.0

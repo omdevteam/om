@@ -22,7 +22,7 @@ This module contains an OnDA Monitor for serial x-ray crystallography experiment
 """
 import collections
 import sys
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, List, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -33,8 +33,9 @@ from om.lib.crystallography_collecting import CrystallographyPlots
 from om.lib.crystallography_processing import CrystallographyPeakFinding
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.generic_collecting import EventCounter
-from om.lib.geometry import GeometryInformation
-from om.lib.parameters import MonitorParameters
+from om.lib.geometry import GeometryInformation, apply_visualization_pixel_maps_to_data
+from om.lib.hdf5 import load_parameters_and_hdf5_data
+from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
 from om.protocols.processing_layer import OmProcessingBase
@@ -65,11 +66,14 @@ class SwaxsProcessing(OmProcessingBase):
 
         # Parameters
         self._monitor_params: MonitorParameters = monitor_parameters
+        crystallography_parameters = self._monitor_params.get_parameter_group(
+            group="crystallography"
+        )
 
         # Geometry
-        self._geometry_info = GeometryInformation(
-            geometry_filename=self._monitor_params.get_parameter(
-                group="crystallography",
+        self._geometry_information = GeometryInformation(
+            geometry_filename=get_parameter_from_parameter_group(
+                group=crystallography_parameters,
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
@@ -77,9 +81,38 @@ class SwaxsProcessing(OmProcessingBase):
             geometry_format="crystfel",
         )
 
+        # Bad pixel map
+        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
+            group=crystallography_parameters,
+            parameter="bad_pixel_map_filename",
+            parameter_type=str,
+        )
+        if bad_pixel_map_filename is not None:
+            bad_pixel_map_hdf5_path: Union[
+                str, None
+            ] = get_parameter_from_parameter_group(
+                group=crystallography_parameters,
+                parameter="bad_pixel_map_hdf5_path",
+                parameter_type=str,
+                required=True,
+            )
+        else:
+            bad_pixel_map_hdf5_path = None
+
+        if bad_pixel_map_filename is not None:
+            self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+                NDArray[numpy.int_],
+                load_hdf5_data(
+                    hdf5_filename=bad_pixel_map_filename,
+                    hdf5_path=bad_pixel_map_hdf5_path,
+                ),
+            )
+        else:
+            self._bad_pixel_map = None
+
         # Binning
-        binning_requested: Union[bool, None] = self._monitor_params.get_parameter(
-            group="crystallography",
+        binning_requested: Union[bool, None] = get_parameter_from_parameter_group(
+            group=crystallography_parameters,
             parameter="binning",
             parameter_type=bool,
             default=False,
@@ -87,6 +120,8 @@ class SwaxsProcessing(OmProcessingBase):
         if binning_requested:
             self._binning: Union[Binning, None] = Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
+                geometry_information=self._geometry_information,
+                bad_pixel_map=self._bad_pixel_map,
             )
             self._binning_before_peak_finding = self._monitor_params.get_parameter(
                 group="crystallography",
@@ -140,7 +175,8 @@ class SwaxsProcessing(OmProcessingBase):
             peak_finding_parameters=self._monitor_params.get_parameter_group(
                 group="peakfinder8_peak_detection"
             ),
-            pixel_maps=self._geometry_info.get_pixel_maps(),
+            geometry_information=self._geometry_information,
+            bad_pixel_map=self._bad_pixel_map,
             binning_algorithm=self._binning,
             binning_before_peak_finding=self._binning_before_peak_finding,
         )
@@ -183,10 +219,12 @@ class SwaxsProcessing(OmProcessingBase):
             required=True,
         )
 
-        self._pixel_size = self._geometry_info.get_pixel_size()
+        self._visu
+
+        self._pixel_size = self._geometry_information.get_pixel_size()
 
         self._detector_distance_offset: float = (
-            self._geometry_info.get_detector_distance_offset()
+            self._geometry_information.get_detector_distance_offset()
         )
 
         # Data broadcast
@@ -199,7 +237,7 @@ class SwaxsProcessing(OmProcessingBase):
             crystallography_parameters=(
                 self._monitor_params.get_parameter_group(group="crystallography")
             ),
-            geometry_information=self._geometry_info,
+            geometry_information=self._geometry_information,
             binning_algorithm=self._binning,
             pump_probe_experiment=self._pump_probe_experiment,
         )
@@ -498,7 +536,7 @@ class SwaxsProcessing(OmProcessingBase):
             # processing node, it must be broadcasted to visualization programs.
 
             self._frame_data_img = (
-                self._geometry_info.apply_visualization_geometry_to_data(
+                self._geometry_information.apply_visualization_geometry_to_data(
                     data=received_data["detector_data"]
                 )
             )

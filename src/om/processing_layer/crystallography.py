@@ -22,7 +22,7 @@ This module contains an OnDA Monitor for serial x-ray crystallography experiment
 """
 import sys
 from collections import deque
-from typing import Any, Deque, Dict, List, Tuple, Union
+from typing import Any, Deque, Dict, List, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -38,7 +38,8 @@ from om.lib.geometry import (
     TypePixelMaps,
     apply_visualization_pixel_maps_to_data,
 )
-from om.lib.parameters import MonitorParameters
+from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
+from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
 from om.protocols.processing_layer import OmProcessingBase
@@ -81,16 +82,29 @@ class CrystallographyProcessing(OmProcessingBase):
 
         # Parameters
         self._monitor_params: MonitorParameters = monitor_parameters
+        crystallography_parameters = self._monitor_params.get_parameter_group(
+            group="crystallography"
+        )
 
         # Geometry
         self._geometry_information = GeometryInformation(
-            geometry_filename=self._monitor_params.get_parameter(
-                group="crystallography",
+            geometry_filename=get_parameter_from_parameter_group(
+                group=crystallography_parameters,
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
             ),
             geometry_format="crystfel",
+        )
+
+        # Bad pixel map
+        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=crystallography_parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
         )
 
         # Binning
@@ -104,6 +118,7 @@ class CrystallographyProcessing(OmProcessingBase):
             self._binning: Union[Binning, None] = Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
                 geometry_information=self._geometry_information,
+                bad_pixel_map=self._bad_pixel_map,
             )
             self._binning_before_peak_finding = self._monitor_params.get_parameter(
                 group="crystallography",
@@ -158,6 +173,7 @@ class CrystallographyProcessing(OmProcessingBase):
                 group="peakfinder8_peak_detection"
             ),
             geometry_information=self._geometry_information,
+            bad_pixel_map=self._bad_pixel_map,
             binning_algorithm=self._binning,
             binning_before_peak_finding=self._binning_before_peak_finding,
         )

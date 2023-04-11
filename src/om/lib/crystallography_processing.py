@@ -38,6 +38,7 @@ class CrystallographyPeakFinding:
         crystallography_parameters: Dict[str, Any],
         peak_finding_parameters: Dict[str, Any],
         geometry_information: GeometryInformation,
+        bad_pixel_map: Union[NDArray[numpy.int_], None],
         binning_algorithm: Union[Binning, None],
         binning_before_peak_finding: Union[bool, None],
     ) -> None:
@@ -50,6 +51,7 @@ class CrystallographyPeakFinding:
             radius_pixel_map=cast(
                 NDArray[numpy.float_], geometry_information.get_pixel_maps()["radius"]
             ),
+            bad_pixel_map=bad_pixel_map,
         )
 
         self._binning: Union[Binning, None] = binning_algorithm

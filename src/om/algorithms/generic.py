@@ -22,18 +22,17 @@ This module contains algorithms that perform generic data processing operations,
 tied to a specific experimental technique (e.g.: detector frame masking and correction,
 radial averaging, data accumulation, binning, etc.).
 """
-import sys
 from typing import Any, Dict, List, Tuple, TypeVar, Union, cast
 
-import h5py  # type:ignore
 import numpy
 from numpy.typing import DTypeLike, NDArray
 
 from om.algorithms import crystallography as cryst_algs
-from om.lib.binning_extension import bin_detector_data  # type: ignore
-from om.lib.exceptions import OmHdf5PathError
 from om.lib.geometry import GeometryInformation, TypePixelMaps
+from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import get_parameter_from_parameter_group
+
+from ._generic import bin_detector_data  # type: ignore
 
 A = TypeVar("A", numpy.float_, numpy.int_)
 
@@ -115,93 +114,47 @@ class Correction:
                       provided, and cannot be None. Otherwise it is ignored.
         """
 
-        dark_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="dark_filename", parameter_type=str
-        )
-        dark_hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="dark_hdf5_path", parameter_type=str
-        )
-        mask_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="mask_filename", parameter_type=str
-        )
-        mask_hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="mask_hdf5_path", parameter_type=str
-        )
-        gain_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="gain_filename", parameter_type=str
-        )
-        gain_hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="gain_hdf5_path", parameter_type=str
+        dark_data: Union[NDArray[numpy.float_], None] = cast(
+            Union[NDArray[numpy.float_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="dark_filename",
+                hdf5_path_parameter="dark_hdf5_path",
+            ),
         )
 
-        if mask_filename is not None:
-            if mask_hdf5_path is not None:
-                try:
-                    mask_hdf5_file_handle: Any
-                    with h5py.File(mask_filename, "r") as mask_hdf5_file_handle:
-                        self._mask: Union[
-                            NDArray[numpy.int_], int
-                        ] = mask_hdf5_file_handle[mask_hdf5_path][:]
-                except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[:2]
-                    raise RuntimeError(
-                        "The following error occurred while reading "  # type: ignore
-                        f"the {mask_hdf5_path} field from the {mask_filename} gain "
-                        f"map HDF5 file: {exc_type.__name__}: {exc_value}"
-                    ) from exc
-            else:
-                raise OmHdf5PathError(
-                    "Correction Algorithm: missing HDF5 path for mask."
-                )
+        if dark_data is not None:
+            self._dark: Union[NDArray[numpy.float_], int] = dark_data
         else:
-            # True here is equivalent to an all-one mask.
-            self._mask = 1
-
-        if dark_filename is not None:
-            if dark_hdf5_path is not None:
-                try:
-                    dark_hdf5_file_handle: Any
-                    with h5py.File(dark_filename, "r") as dark_hdf5_file_handle:
-                        self._dark: Union[NDArray[numpy.float_], int] = (
-                            dark_hdf5_file_handle[dark_hdf5_path][:] * self._mask
-                        )
-                except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[:2]
-                    raise RuntimeError(
-                        "The following error occurred while reading "  # type: ignore
-                        f"the {dark_hdf5_path} field from the {dark_filename} dark "
-                        f"data HDF5 file: {exc_type.__name__}: {exc_value}"
-                    ) from exc
-            else:
-                raise OmHdf5PathError(
-                    "Correction Algorithm: missing HDF5 path for dark frame data."
-                )
-        else:
-            # False here is equivalent to an all-zero mask.
             self._dark = 0
 
-        if gain_filename is not None:
-            if gain_hdf5_path is not None:
-                try:
-                    gain_hdf5_file_handle: Any
-                    with h5py.File(gain_filename, "r") as gain_hdf5_file_handle:
-                        self._gain: Union[NDArray[numpy.float_], int] = (
-                            gain_hdf5_file_handle[gain_hdf5_path][:] * self._mask
-                        )
-                except (IOError, OSError, KeyError) as exc:
-                    exc_type, exc_value = sys.exc_info()[:2]
-                    raise RuntimeError(
-                        "The following error occurred while reading "  # type: ignore
-                        f"the {gain_hdf5_path} field from the {gain_filename} dark "
-                        f"data HDF5 file: {exc_type.__name__}: {exc_value}"
-                    ) from exc
-            else:
-                raise OmHdf5PathError(
-                    "Correction Algorithm: missing HDF5 path for gain map."
-                )
+        mask_data: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="mask_filename",
+                hdf5_path_parameter="mask_hdf5_path",
+            ),
+        )
+
+        if mask_data is not None:
+            self._mask: Union[NDArray[numpy.int_], int] = mask_data
         else:
-            # True here is equivalent to an all-one map.
-            self._gain_map = 1
+            self._mask = 1
+
+        gain_data: Union[NDArray[numpy.float_], None] = cast(
+            Union[NDArray[numpy.float_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="gain_filename",
+                hdf5_path_parameter="gain_hdf5_path",
+            ),
+        )
+
+        if gain_data is not None:
+            self._gain_map: Union[NDArray[numpy.float_], float] = gain_data
+        else:
+            self._gain_map = 1.0
 
     def apply_correction(self, data: NDArray[numpy.float_]) -> NDArray[numpy.float_]:
         """
@@ -233,6 +186,7 @@ class RadialProfile:
         *,
         radius_pixel_map: NDArray[numpy.float_],
         parameters: Dict[str, Any],
+        bad_pixel_map: Union[NDArray[numpy.int_], None],
     ) -> None:
         """
         Radial average calculation.
@@ -284,39 +238,6 @@ class RadialProfile:
                   the data frame, its distance (in pixels) from the origin of the
                   detector reference system (usually the center of the detector).
         """
-        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters, parameter="bad_pixel_map_filename", parameter_type=str
-        )
-        if bad_pixel_map_filename is not None:
-            bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            bad_pixel_map_hdf5_path = None
-
-        if bad_pixel_map_filename is not None:
-            try:
-                map_hdf5_file_handle: Any
-                with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
-                    bad_pixel_map: Union[
-                        NDArray[numpy.int_], None
-                    ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                raise RuntimeError(
-                    "The following error occurred while reading "  # type: ignore
-                    f"the {bad_pixel_map_hdf5_path} field from the "
-                    f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
-                    f"{exc_type.__name__}: {exc_value}"
-                ) from exc
-        else:
-            bad_pixel_map = None
-
         if bad_pixel_map is None:
             self._mask: Union[NDArray[numpy.bool_], bool] = True
         else:
@@ -443,7 +364,11 @@ class Binning:
     """
 
     def __init__(
-        self, *, parameters: Dict[str, Any], geometry_information: GeometryInformation
+        self,
+        *,
+        parameters: Dict[str, Any],
+        geometry_information: GeometryInformation,
+        bad_pixel_map: Union[NDArray[numpy.int_], None],
     ) -> None:
         """
         Binning of detector data frames.
@@ -559,22 +484,6 @@ class Binning:
             parameter="bad_pixel_value",
             parameter_type=int,
         )
-        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if bad_pixel_map_filename is not None:
-            bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
-            )
-        else:
-            bad_pixel_map_hdf5_path = None
 
         self._original_asic_nx: int = self._layout_info["asic_ny"]
         self._original_asic_ny: int = self._layout_info["asic_nx"]
@@ -585,23 +494,6 @@ class Binning:
             self._layout_info["asic_nx"] * self._layout_info["nasics_x"]
         )
 
-        if bad_pixel_map_filename is not None:
-            try:
-                map_hdf5_file_handle: Any
-                with h5py.File(bad_pixel_map_filename, "r") as map_hdf5_file_handle:
-                    bad_pixel_map: Union[
-                        NDArray[numpy.int_], None
-                    ] = map_hdf5_file_handle[bad_pixel_map_hdf5_path][:]
-            except (IOError, OSError, KeyError) as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                raise RuntimeError(
-                    "The following error occurred while reading the "  # type: ignore
-                    f"{bad_pixel_map_hdf5_path} field from the "
-                    f"{bad_pixel_map_filename} bad pixel map HDF5 file:"
-                    f"{exc_type.__name__}: {exc_value}"
-                ) from exc
-        else:
-            bad_pixel_map = None
         if bad_pixel_map is None:
             self._mask: NDArray[numpy.int_] = numpy.ones(
                 (self._original_nx, self._original_ny), dtype=numpy.int8

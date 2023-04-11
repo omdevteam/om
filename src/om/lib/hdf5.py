@@ -36,6 +36,54 @@ from om.lib.parameters import get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 
 
+def load_hdf5_data(
+    *,
+    hdf5_filename: str,
+    hdf5_path,
+) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
+
+    try:
+        hdf5_file_handle: Any
+        with h5py.File(hdf5_filename, "r") as hdf5_file_handle:
+            data: Union[NDArray[numpy.float_], NDArray[numpy.int_]] = hdf5_file_handle[
+                hdf5_path
+            ][:]
+    except (IOError, OSError, KeyError) as exc:
+        exc_type, exc_value = sys.exc_info()[:2]
+        raise RuntimeError(
+            "The following error occurred while reading "  # type: ignore
+            f"the {hdf5_path} field from the {hdf5_filename} dark "
+            f"data HDF5 file: {exc_type.__name__}: {exc_value}"
+        ) from exc
+    return data
+
+
+def parse_parameters_and_load_hdf5_data(
+    *,
+    parameters: Dict[str, Any],
+    hdf5_filename_parameter: str,
+    hdf5_path_parameter,
+) -> Union[NDArray[numpy.int_], NDArray[numpy.float_], None]:
+
+    # Bad pixel map
+    hdf5_filename: Union[str, None] = get_parameter_from_parameter_group(
+        group=parameters,
+        parameter=hdf5_filename_parameter,
+        parameter_type=str,
+    )
+    if hdf5_filename is not None:
+        hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter=hdf5_path_parameter,
+            parameter_type=str,
+            required=True,
+        )
+
+        return load_hdf5_data(hdf5_filename=hdf5_filename, hdf5_path=hdf5_path)
+    else:
+        return None
+
+
 class HDF5Writer:
     """
     See documentation of the `__init__` function.
