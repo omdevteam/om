@@ -27,7 +27,8 @@ from typing import Any, Dict, List, Tuple, TypeVar, Union, cast
 import numpy
 from numpy.typing import DTypeLike, NDArray
 
-from om.algorithms import crystallography as cryst_algs
+from om.algorithms.crystallography import TypePeakfinder8Info, get_peakfinder8_info
+from om.lib.exceptions import OmWrongArrayShape
 from om.lib.geometry import GeometryInformation, TypePixelMaps
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import get_parameter_from_parameter_group
@@ -453,14 +454,12 @@ class Binning:
 
         self._geometry_information = geometry_information
 
-        self._layout_info: cryst_algs.TypePeakfinder8Info = (
-            cryst_algs.get_peakfinder8_info(
-                detector_type=get_parameter_from_parameter_group(
-                    group=parameters,
-                    parameter="detector_type",
-                    parameter_type=str,
-                    required=True,
-                )
+        self._layout_info: TypePeakfinder8Info = get_peakfinder8_info(
+            detector_type=get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="detector_type",
+                parameter_type=str,
+                required=True,
             )
         )
         self._bin_size: int = get_parameter_from_parameter_group(
@@ -534,12 +533,14 @@ class Binning:
             pixel_maps=self._geometry_information.get_pixel_maps()
         )
 
-        self._binned_visual_pixel_maps: TypePixelMaps = self._bin_pixel_maps(
+        self._binned_visualization_pixel_maps: TypePixelMaps = self._bin_pixel_maps(
             pixel_maps=self._geometry_information.get_visualization_pixel_maps()
         )
 
-        geometry_information.get_pixel_maps()
-        self._binned_visual_pixel_maps = geometry_information.get_pixel_maps()
+        self._binned_min_array_shape: Tuple[int, int] = (
+            self._extended_nx // self._bin_size,
+            self._extended_ny // self._bin_size,
+        )
 
     def _extend_data_array(self, *, data: NDArray[A]) -> NDArray[A]:
         # Extends the original data array with zeros making the asic size divisible by
@@ -607,7 +608,7 @@ class Binning:
         """
         return self._bin_size
 
-    def get_binned_layout_info(self) -> cryst_algs.TypePeakfinder8Info:
+    def get_binned_layout_info(self) -> TypePeakfinder8Info:
         """
         Gets the data layout information for the binned data frame.
 
@@ -640,7 +641,7 @@ class Binning:
             A tuple storing the shape (in numpy format) of the array which contains the
                 binned data frame.
         """
-        return self._extended_nx // self._bin_size, self._extended_ny // self._bin_size
+        return self._binned_min_array_shape
 
     def get_binned_pixel_maps(self) -> TypePixelMaps:
         """
@@ -652,13 +653,40 @@ class Binning:
         """
         TODO
         """
-        return self._binned_visual_pixel_maps
+        return self._binned_visualization_pixel_maps
 
     def get_binned_bad_pixel_map(self) -> NDArray[numpy.int_]:
         """
         TODO
         """
         return self._binned_mask
+
+    def apply_binned_geometry_to_data_for_visualization(
+        self,
+        *,
+        data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
+        array_for_visualization: Union[
+            NDArray[numpy.int_], NDArray[numpy.float_], None
+        ] = None,
+    ) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
+        if array_for_visualization is None:
+            visualization_array: Union[
+                NDArray[numpy.float_], NDArray[numpy.int_]
+            ] = numpy.zeros(self._binned_min_array_shape, dtype=float)
+        else:
+            if array_for_visualization.shape != self._binned_min_array_shape:
+                raise OmWrongArrayShape(
+                    "The provided array does not fit the data."
+                    "Please check the array size"
+                )
+            visualization_array = array_for_visualization
+
+        visualization_array[
+            self._binned_visualization_pixel_maps["y"].flatten(),
+            self._binned_visualization_pixel_maps["x"].flatten(),
+        ] = data.ravel().astype(visualization_array.dtype)
+
+        return visualization_array
 
     def bin_detector_data(
         self, *, data: NDArray[numpy.float_]

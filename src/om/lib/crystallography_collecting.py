@@ -41,7 +41,6 @@ class CrystallographyPlots:
         binning_algorithm: Union[Binning, None],
         pump_probe_experiment: bool,
     ) -> None:
-
         self._pump_probe_experiment: bool = pump_probe_experiment
 
         if binning_algorithm:
@@ -61,8 +60,12 @@ class CrystallographyPlots:
             plot_shape = geometry_information.get_min_array_shape_for_visualization()
             self._bin_size = 1
 
-        self._visual_pixel_maps_y = visualization_pixel_maps["y"]
-        self._visual_pixel_maps_x = visualization_pixel_maps["x"]
+        self._flattened_visualization_pixel_map_y = visualization_pixel_maps[
+            "y"
+        ].flatten()
+        self._flattened_visualization_pixel_map_x = visualization_pixel_maps[
+            "x"
+        ].flatten()
         self._radius_pixel_map = pixel_maps["radius"]
 
         peakogram_num_bins: int = 300
@@ -141,7 +144,6 @@ class CrystallographyPlots:
         List[float],
         List[float],
     ]:
-
         if self._pump_probe_experiment:
             if optical_laser_active:
                 self._hit_rate_running_window.append(float(frame_is_hit))
@@ -204,8 +206,12 @@ class CrystallographyPlots:
             peak_index_in_slab: int = int(round(peak_ss)) * data_shape[1] + int(
                 round(peak_fs)
             )
-            y_in_frame: float = self._visual_pixel_maps_y[peak_index_in_slab]
-            x_in_frame: float = self._visual_pixel_maps_x[peak_index_in_slab]
+            y_in_frame: float = self._flattened_visualization_pixel_map_y[
+                peak_index_in_slab
+            ]
+            x_in_frame: float = self._flattened_visualization_pixel_map_x[
+                peak_index_in_slab
+            ]
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
             self._virt_powd_plot_img[int(y_in_frame), int(x_in_frame)] += peak_value

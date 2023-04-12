@@ -172,6 +172,8 @@ class CrystallographyFrameViewer(OmGuiBase):
 
         QtWidgets.QApplication.processEvents()
 
+        print(current_data["frame_data"].T.shape)
+
         self._image_view.setImage(
             current_data["frame_data"].T,
             autoLevels=False,

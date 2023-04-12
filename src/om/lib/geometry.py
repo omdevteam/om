@@ -885,7 +885,6 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                 else:
                     raise RuntimeError("Unrecognized field: {}".format(key))
             else:
-
                 panel_name: str = key_parts[0]
                 panel_key: str = key_parts[1]
                 if key_parts[0] not in detector["panels"]:
@@ -1215,9 +1214,10 @@ class GeometryInformation:
             geometry, _, __ = _load_crystfel_geometry_from_file(
                 filename=geometry_filename
             )
+
             self._pixel_maps: TypePixelMaps = _compute_pix_maps(geometry=geometry)
-            self._visual_pixel_maps: TypePixelMaps = _compute_visualization_pix_maps(
-                pixel_maps=self._pixel_maps
+            self._visualization_pixel_maps: TypePixelMaps = (
+                _compute_visualization_pix_maps(pixel_maps=self._pixel_maps)
             )
             self._min_array_shape: Tuple[int, int] = _compute_min_array_shape(
                 pixel_maps=self._pixel_maps
@@ -1248,7 +1248,7 @@ class GeometryInformation:
         """
         TODO: Add documentation.
         """
-        return self._visual_pixel_maps
+        return self._visualization_pixel_maps
 
     def get_detector_distance_offset(self) -> float:
         """
@@ -1268,59 +1268,58 @@ class GeometryInformation:
         """
         return self._min_array_shape
 
+    def apply_geometry_to_data_for_visualization(
+        self,
+        *,
+        data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
+        array_for_visualization: Union[
+            NDArray[numpy.int_], NDArray[numpy.float_], None
+        ] = None,
+    ) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
+        """
+        TODO: Fix documentation.
 
-def apply_visualization_pixel_maps_to_data(
-    *,
-    visualization_pixel_maps: TypePixelMaps,
-    data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
-    array_for_visualization: Union[
-        NDArray[numpy.int_], NDArray[numpy.float_], None
-    ] = None,
-) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
-    """
-    Applies CrystFEL geometry information to some data.
+        Applies CrystFEL geometry information to some data.
 
-    This function takes as input the geometry information read from a
-    [`CrystFEL geometry file`](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)  # noqa: E501
-    and some data to which the geometry information should be applied. It returns
-    an array that can be displayed using libraries like
-    [`matplotlib`](https://matplotlib.org/) or [`PyQtGraph`](http://pyqtgraph.org).
+        This function takes as input the geometry information read from a
+        [`CrystFEL geometry file`](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)  # noqa: E501
+        and some data to which the geometry information should be applied. It returns
+        an array that can be displayed using libraries like
+        [`matplotlib`](https://matplotlib.org/) or [`PyQtGraph`](http://pyqtgraph.org).
 
-    The shape of the returned array is big enough to display all the pixel values
-    in the input data, and is symmetric around the center of the detector reference
-    system (i.e: the beam interaction point). These restrictions often cause the
-    returned array to be bigger than the minimum size needed to store the physical
-    layout of the pixels in the detector, particularly if the beam interaction
-    point does not lie close to the center of the detector.
+        The shape of the returned array is big enough to display all the pixel values
+        in the input data, and is symmetric around the center of the detector reference
+        system (i.e: the beam interaction point). These restrictions often cause the
+        returned array to be bigger than the minimum size needed to store the physical
+        layout of the pixels in the detector, particularly if the beam interaction
+        point does not lie close to the center of the detector.
 
-    Arguments:
+        Arguments:
 
-        data: The data to which the geometry information should be applied.
+            data: The data to which the geometry information should be applied.
 
-        geometry: A dictionary storing the detector geometry information.
+            geometry: A dictionary storing the detector geometry information.
 
-    Returns:
+        Returns:
 
-        An array containing the detector data, with geometry information applied to
-        it.
-    """
-    min_shape: Tuple[int, int] = _compute_min_array_shape(
-        pixel_maps=visualization_pixel_maps
-    )
-    if array_for_visualization is None:
-        visualization_array: Union[
-            NDArray[numpy.float_], NDArray[numpy.int_]
-        ] = numpy.zeros(min_shape, dtype=float)
-    else:
-        if array_for_visualization.shape != min_shape:
-            raise OmWrongArrayShape(
-                "The provided array does not fit the data."
-                "Please check the array size"
-            )
-        visualization_array = array_for_visualization
-    visualization_array[
-        visualization_pixel_maps["y"].flatten(),
-        visualization_pixel_maps["x"].flatten(),
-    ] = data.ravel().astype(visualization_array.dtype)
+            An array containing the detector data, with geometry information applied to
+            it.
+        """
+        if array_for_visualization is None:
+            visualization_array: Union[
+                NDArray[numpy.float_], NDArray[numpy.int_]
+            ] = numpy.zeros(self._min_array_shape, dtype=float)
+        else:
+            if array_for_visualization.shape != self._min_array_shape:
+                raise OmWrongArrayShape(
+                    "The provided array does not fit the data."
+                    "Please check the array size"
+                )
+            visualization_array = array_for_visualization
 
-    return visualization_array
+        visualization_array[
+            self._visualization_pixel_maps["y"].flatten(),
+            self._visualization_pixel_maps["x"].flatten(),
+        ] = data.ravel().astype(visualization_array.dtype)
+
+        return visualization_array

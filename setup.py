@@ -150,12 +150,12 @@ setup(
             "om_jungfrau_zmq_receiver.py=om.tools.jungfrau_zmq_receiver:main",
         ],
         "gui_scripts": [
-            "om_crystallography_gui.py=om.graphical_interfaces.crystallography_gui:gui",
+            "om_crystallography_gui.py=om.graphical_interfaces.crystallography_gui:main",
             "om_crystallography_frame_viewer.py=om.graphical_interfaces."
-            "crystallography_frame_viewer:gui",
+            "crystallography_frame_viewer:main",
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
-            "crystallography_parameter_tweaker:gui",
-            "om_xes_gui.py=om.graphical_interfaces." "xes_gui:gui",
+            "crystallography_parameter_tweaker:main",
+            "om_xes_gui.py=om.graphical_interfaces." "xes_gui:main",
         ],
     },
     ext_modules=extensions,

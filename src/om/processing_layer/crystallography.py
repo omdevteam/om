@@ -33,11 +33,7 @@ from om.lib.crystallography_collecting import CrystallographyPlots
 from om.lib.crystallography_processing import CrystallographyPeakFinding
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.generic_collecting import EventCounter
-from om.lib.geometry import (
-    GeometryInformation,
-    TypePixelMaps,
-    apply_visualization_pixel_maps_to_data,
-)
+from om.lib.geometry import GeometryInformation, TypePixelMaps
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
@@ -539,9 +535,10 @@ class CrystallographyProcessing(OmProcessingBase):
             # If detector frame data is found in the data received from the
             # processing node, it must be broadcasted to visualization programs.
 
-            self._frame_data_img = apply_visualization_pixel_maps_to_data(
-                visualization_pixel_maps=self._visualization_pixel_maps,
-                data=received_data["detector_data"],
+            self._frame_data_img = (
+                self._geometry_information.apply_geometry_to_data_for_visualization(
+                    data=received_data["detector_data"],
+                )
             )
 
             self._data_broadcast_socket.send_data(

@@ -109,24 +109,6 @@ class CrystallographyParameterTweaker(OmGuiBase):
             ),
             geometry_format="crystfel",
         )
-
-        # bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
-        #     group=crystallography_parameters,
-        #     parameter="bad_pixel_map_filename",
-        #     parameter_type=str,
-        # )
-        # if bad_pixel_map_filename is not None:
-        #     bad_pixel_map_hdf5_path: Union[
-        #         str, None
-        #     ] = get_parameter_from_parameter_group(
-        #         group=crystallography_parameters,
-        #         parameter="bad_pixel_map_hdf5_path",
-        #         parameter_type=str,
-        #         required=True,
-        #     )
-        # else:
-        #     bad_pixel_map_hdf5_path = None
-
         bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
             Union[NDArray[numpy.int_], None],
             parse_parameters_and_load_hdf5_data(

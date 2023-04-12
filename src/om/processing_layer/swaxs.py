@@ -33,8 +33,8 @@ from om.lib.crystallography_collecting import CrystallographyPlots
 from om.lib.crystallography_processing import CrystallographyPeakFinding
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.generic_collecting import EventCounter
-from om.lib.geometry import GeometryInformation, apply_visualization_pixel_maps_to_data
-from om.lib.hdf5 import load_parameters_and_hdf5_data
+from om.lib.geometry import GeometryInformation
+from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
