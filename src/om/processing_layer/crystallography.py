@@ -27,13 +27,13 @@ from typing import Any, Deque, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms.crystallography import TypePeakList
+from om.algorithms.crystallography import TypePeakList, Peakfinder8PeakDetection
 from om.algorithms.generic import Binning, Correction
 from om.lib.crystallography_collecting import CrystallographyPlots
 from om.lib.crystallography_processing import CrystallographyPeakFinding
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.generic_collecting import EventCounter
-from om.lib.geometry import GeometryInformation, TypePixelMaps
+from om.lib.geometry import GeometryInformation, TypePixelMaps, DataVisualizer
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
@@ -93,16 +93,6 @@ class CrystallographyProcessing(OmProcessingBase):
             geometry_format="crystfel",
         )
 
-        # Bad pixel map
-        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-            Union[NDArray[numpy.int_], None],
-            parse_parameters_and_load_hdf5_data(
-                parameters=crystallography_parameters,
-                hdf5_filename_parameter="bad_pixel_map_filename",
-                hdf5_path_parameter="bad_pixel_map_hdf5_path",
-            ),
-        )
-
         # Binning
         binning_requested: Union[bool, None] = self._monitor_params.get_parameter(
             group="crystallography",
@@ -113,18 +103,12 @@ class CrystallographyProcessing(OmProcessingBase):
         if binning_requested:
             self._binning: Union[Binning, None] = Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
-                geometry_information=self._geometry_information,
-                bad_pixel_map=self._bad_pixel_map,
+                layout_info=self._geometry_information.get_layout_info(),
             )
-            self._binning_before_peak_finding = self._monitor_params.get_parameter(
-                group="crystallography",
-                parameter="binning_before_peakfinding",
-                parameter_type=bool,
-                default=True,
-            )
+            self._bin_size: int = self._binning.get_bin_size()
         else:
             self._binning = None
-            self._binning_before_peak_finding = None
+            self._bin_size = 1
 
         # Pump probe
         self._pump_probe_experiment: bool = self._monitor_params.get_parameter(
@@ -161,17 +145,29 @@ class CrystallographyProcessing(OmProcessingBase):
         )
 
         # Peak finding
-        self._peak_finding: CrystallographyPeakFinding = CrystallographyPeakFinding(
-            crystallography_parameters=self._monitor_params.get_parameter_group(
-                group="crystallography"
-            ),
-            peak_finding_parameters=self._monitor_params.get_parameter_group(
+        self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
+            parameters=self._monitor_params.get_parameter_group(
                 group="peakfinder8_peak_detection"
             ),
-            geometry_information=self._geometry_information,
-            bad_pixel_map=self._bad_pixel_map,
-            binning_algorithm=self._binning,
-            binning_before_peak_finding=self._binning_before_peak_finding,
+            radius_pixel_map=cast(
+                NDArray[numpy.float_],
+                self._geometry_information.get_pixel_maps()["radius"],
+            ),
+            layout_info=self._geometry_information.get_layout_info(),
+        )
+
+        self._min_num_peaks_for_hit: int = get_parameter_from_parameter_group(
+            group=self._monitor_params.get_parameter_group(group="crystallography"),
+            parameter="min_num_peaks_for_hit",
+            parameter_type=int,
+            required=True,
+        )
+
+        self._max_num_peaks_for_hit: int = get_parameter_from_parameter_group(
+            group=self._monitor_params.get_parameter_group(group="crystallography"),
+            parameter="max_num_peaks_for_hit",
+            parameter_type=int,
+            required=True,
         )
 
         # Frame sending
@@ -211,13 +207,19 @@ class CrystallographyProcessing(OmProcessingBase):
             parameter_type=bool,
             required=True,
         )
-
-        self._pixel_size = self._geometry_information.get_pixel_size()
-        if self._binning is not None:
-            self._pixel_size /= self._binning.get_bin_size()
-
         self._detector_distance_offset: float = (
             self._geometry_information.get_detector_distance_offset()
+        )
+
+        self._pixel_size = self._geometry_information.get_pixel_size()
+        self._pixel_maps: TypePixelMaps = self._geometry_information.get_pixel_maps()
+        if self._binning is not None:
+            self._pixel_size /= self._bin_size
+            self._pixel_maps = self._binning.bin_pixel_maps(pixel_maps=self._pixel_maps)
+
+        # Data visualizer
+        self._data_visualizer: DataVisualizer = DataVisualizer(
+            pixel_maps=self._pixel_maps
         )
 
         # Data broadcast
@@ -225,23 +227,14 @@ class CrystallographyProcessing(OmProcessingBase):
             parameters=self._monitor_params.get_parameter_group(group="crystallography")
         )
 
-        if self._binning:
-            self._visualization_pixel_maps: TypePixelMaps = (
-                self._binning.get_binned_visualization_pixel_maps()
-            )
-        else:
-            self._visualization_pixel_maps = (
-                self._geometry_information.get_visualization_pixel_maps()
-            )
-
         # Plots
         self._plots: CrystallographyPlots = CrystallographyPlots(
             crystallography_parameters=(
                 self._monitor_params.get_parameter_group(group="crystallography")
             ),
-            geometry_information=self._geometry_information,
-            binning_algorithm=self._binning,
+            data_visualizer=self._data_visualizer,
             pump_probe_experiment=self._pump_probe_experiment,
+            bin_size=self._bin_size,
         )
 
         # Streaming to CrystFEL
@@ -328,27 +321,20 @@ class CrystallographyProcessing(OmProcessingBase):
         corrected_detector_data: NDArray[
             numpy.float_
         ] = self._correction.apply_correction(data=data["detector_data"])
-
-        # Peak-finding
-        data_for_peak_finding: Union[
-            NDArray[numpy.int_], NDArray[numpy.float_]
-        ] = corrected_detector_data
         data_to_send: Union[
             NDArray[numpy.int_], NDArray[numpy.float_]
         ] = corrected_detector_data
 
+        # Peak-finding
+        peak_list: TypePeakList = self._peak_detection.find_peaks(
+            data=corrected_detector_data
+        )
         if self._binning is not None:
-            binned_detector_data = self._binning.bin_detector_data(
-                data=corrected_detector_data
-            )
-            data_to_send = binned_detector_data
-            if self._binning_before_peak_finding:
-                data_for_peak_finding = binned_detector_data
-
-        peak_list: TypePeakList
-        frame_is_hit: bool
-        peak_list, frame_is_hit = self._peak_finding.find_peaks(
-            detector_data=data_for_peak_finding
+            peak_list = self._binning.bin_peak_positions(peak_list=peak_list)
+        frame_is_hit: bool = (
+            self._min_num_peaks_for_hit
+            < len(peak_list["intensity"])
+            < self._max_num_peaks_for_hit
         )
 
         # Data to send
@@ -370,13 +356,19 @@ class CrystallographyProcessing(OmProcessingBase):
             if data["requests"] == "non_hit_frame":
                 self._send_non_hit_frame = True
 
-        if frame_is_hit:
-            if self._send_hit_frame is True:
-                processed_data["detector_data"] = data_to_send
+        send_detector_data: bool = (frame_is_hit and self._send_hit_frame) or (
+            not frame_is_hit and self._send_non_hit_frame
+        )
+
+        if send_detector_data:
+            if self._binning is not None:
+                data_to_send = self._binning.bin_detector_data(
+                    data=corrected_detector_data
+                )
+            processed_data["detector_data"] = data_to_send
+            if frame_is_hit:
                 self._send_hit_frame = False
-        else:
-            if self._send_non_hit_frame is True:
-                processed_data["detector_data"] = data_to_send
+            else:
                 self._send_non_hit_frame = False
 
         return (processed_data, node_rank)
@@ -482,7 +474,9 @@ class CrystallographyProcessing(OmProcessingBase):
         curr_hit_rate_timestamp_history_dark: Union[Deque[float], None]
         curr_hit_rate_history_dark: Union[Deque[float], None]
         curr_virt_powd_plot_img: NDArray[numpy.int_]
-        curr_peakogram: NDArray[numpy.int_]
+        curr_peakogram: NDArray[numpy.float_]
+        peakogram_radius_bin_size: float
+        peakogram_intensity_bin_size: float
         peak_list_x_in_frame: List[float]
         peak_list_y_in_frame: List[float]
         (
@@ -492,13 +486,15 @@ class CrystallographyProcessing(OmProcessingBase):
             curr_hit_rate_history_dark,
             curr_virt_powd_plot_img,
             curr_peakogram,
+            peakogram_radius_bin_size,
+            peakogram_intensity_bin_size,
             peak_list_x_in_frame,
             peak_list_y_in_frame,
         ) = self._plots.update_plots(
             timestamp=received_data["timestamp"],
             peak_list=received_data["peak_list"],
             frame_is_hit=received_data["frame_is_hit"],
-            data_shape=received_data["data_shape"],
+            # data_shape=received_data["data_shape"],
             optical_laser_active=optical_laser_active,
         )
 
@@ -516,8 +512,8 @@ class CrystallographyProcessing(OmProcessingBase):
                 "pump_probe_experiment": self._pump_probe_experiment,
                 "start_timestamp": self._event_counter.get_start_timestamp(),
                 "peakogram": curr_peakogram,
-                # "peakogram_radius_bin_size": self._peakogram_radius_bin_size,
-                # "peakogram_intensity_bin_size": self._peakogram_intensity_bin_size,
+                "peakogram_radius_bin_size": peakogram_radius_bin_size,
+                "peakogram_intensity_bin_size": peakogram_intensity_bin_size,
             }
             if self._pump_probe_experiment:
                 omdata_message[
@@ -535,10 +531,8 @@ class CrystallographyProcessing(OmProcessingBase):
             # If detector frame data is found in the data received from the
             # processing node, it must be broadcasted to visualization programs.
 
-            self._frame_data_img = (
-                self._geometry_information.apply_geometry_to_data_for_visualization(
-                    data=received_data["detector_data"],
-                )
+            self._frame_data_img = self._data_visualizer.visualize_data(
+                data=received_data["detector_data"],
             )
 
             self._data_broadcast_socket.send_data(
@@ -550,13 +544,14 @@ class CrystallographyProcessing(OmProcessingBase):
                     "peak_list_y_in_frame": peak_list_y_in_frame,
                 },
             )
-            self._data_broadcast_socket.send_data(
-                tag="omtweakingdata",
-                message={
-                    "detector_data": received_data["detector_data"],
-                    "timestamp": received_data["timestamp"],
-                },
-            )
+            if self._bin_size == 1:
+                self._data_broadcast_socket.send_data(
+                    tag="omtweakingdata",
+                    message={
+                        "detector_data": received_data["detector_data"],
+                        "timestamp": received_data["timestamp"],
+                    },
+                )
 
         if self._event_counter.should_send_hit_frame():
             rank_for_request: int = self._event_counter.get_rank_for_frame_request()

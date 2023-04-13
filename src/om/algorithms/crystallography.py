@@ -24,13 +24,15 @@ dictionaries that store the data needed or produced by these algorithms.
 """
 import random
 import sys
-from typing import Any, Dict, List, Tuple, TypedDict, Union
+from typing import Any, Dict, List, Tuple, TypedDict, Union, cast
 
 import numpy
 import scipy  # type: ignore
 from numpy.typing import NDArray
 
 from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.geometry import TypeLayoutInfo
+from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 
 from ._crystallography import peakfinder_8  # type: ignore
 
@@ -52,35 +54,6 @@ def _read_profile(*, profile_filename: str) -> Union[NDArray[numpy.float_], None
             ) from exc
     else:
         return None
-
-
-class TypePeakfinder8Info(TypedDict, total=True):
-    """
-    Detector layout information for the peakfinder8 algorithm.
-
-    This typed dictionary stores information about the internal data layout of a
-    detector data frame (number and size of ASICs, etc.). The information
-    is needed by the
-    [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
-    algorithm, and is usually retrieved via the
-    [`get_peakfinder8_info`][om.algorithms.crystallography.get_peakfinder8_info]
-    function.
-
-    Attributes:
-
-        asic_nx: The fs size in pixels of each detector panel in the data frame.
-
-        asic_ny: The ss size in pixels of each detector panel in the data frame.
-
-        nasics_x: The number of detector panels along the fs axis of the data frame.
-
-        nasics_y: The number of detector panels along the ss axis of the data frame.
-    """
-
-    asic_nx: int
-    asic_ny: int
-    nasics_x: int
-    nasics_y: int
 
 
 class TypePeakList(TypedDict, total=True):
@@ -121,123 +94,6 @@ class TypePeakList(TypedDict, total=True):
     snr: List[float]
 
 
-def get_peakfinder8_info(*, detector_type: str) -> TypePeakfinder8Info:
-    """
-    Gets the peakfinder8 information for a detector.
-
-    This function retrieves, for supported detector types, the data layout information
-    needed by the
-    [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
-    algorithm.
-
-    Arguments:
-
-        detector_type: The type of detector for which the information needs to be
-            retrieved. The following detector types are currently supported:
-
-            * `cspad`: The CSPAD detector used at the CXI beamline of the LCLS facility
-            before 2020.
-
-            * `eiger16M`: The 16M version of the Eiger2 detector used at the PETRA III
-            facility.
-
-            * `epix10k2M`: The 2M version of the Epix10KA detector used at the MFX
-            beamline of the LCLS facility.
-
-            * `jungfrau1M`: The 1M version of the Jungfrau detector used at the PETRA
-            III facility.
-
-            * `jungfrau4M`: The 4M version of the Jungfrau detector used at the CXI
-            beamline of the LCLS facility.
-
-            * `lambda1M5`: The Lambda detector used at the P09 beamline of the PETRA
-            III facility.
-
-            * `pilatus`: The Pilatus detector used at the P11 beamline of the PETRA III
-            facility.
-
-            * `rayonix`: The Rayonix detector used at the MFX beamline of the LCLS
-            facility.
-
-            * `rayonix16M`: The 16M version of the Rayonix detector used at the BioCars
-            beamline of the APS facility.
-
-    Returns:
-
-        A dictionary storing the data layout information.
-    """
-    if detector_type == "cspad":
-        peakfinder8_info: TypePeakfinder8Info = {
-            "asic_nx": 194,
-            "asic_ny": 185,
-            "nasics_x": 8,
-            "nasics_y": 8,
-        }
-    elif detector_type == "pilatus":
-        peakfinder8_info = {
-            "asic_nx": 2463,
-            "asic_ny": 2527,
-            "nasics_x": 1,
-            "nasics_y": 1,
-        }
-    elif detector_type == "jungfrau1M":
-        peakfinder8_info = {
-            "asic_nx": 1024,
-            "asic_ny": 512,
-            "nasics_x": 1,
-            "nasics_y": 2,
-        }
-    elif detector_type == "jungfrau4M":
-        peakfinder8_info = {
-            "asic_nx": 1024,
-            "asic_ny": 512,
-            "nasics_x": 1,
-            "nasics_y": 8,
-        }
-    elif detector_type == "epix10k2M":
-        peakfinder8_info = {
-            "asic_nx": 384,
-            "asic_ny": 352,
-            "nasics_x": 1,
-            "nasics_y": 16,
-        }
-    elif detector_type == "rayonix":
-        peakfinder8_info = {
-            "asic_nx": 1920,
-            "asic_ny": 1920,
-            "nasics_x": 1,
-            "nasics_y": 1,
-        }
-    elif detector_type == "rayonix16M":
-        peakfinder8_info = {
-            "asic_nx": 3840,
-            "asic_ny": 3840,
-            "nasics_x": 1,
-            "nasics_y": 1,
-        }
-    elif detector_type == "eiger16M":
-        peakfinder8_info = {
-            "asic_nx": 4148,
-            "asic_ny": 4362,
-            "nasics_x": 1,
-            "nasics_y": 1,
-        }
-    elif detector_type == "lambda1M5":
-        peakfinder8_info = {
-            "asic_nx": 1556,
-            "asic_ny": 516,
-            "nasics_x": 1,
-            "nasics_y": 2,
-        }
-    else:
-        raise RuntimeError(
-            "The peakfinder8 information for the {0} detector "
-            "cannot be retrieved: detector type unknown"
-        )
-
-    return peakfinder8_info
-
-
 class Peakfinder8PeakDetection:
     """
     See documentation of the `__init__` function.
@@ -247,8 +103,8 @@ class Peakfinder8PeakDetection:
         self,
         *,
         radius_pixel_map: NDArray[numpy.float_],
+        layout_info: TypeLayoutInfo,
         parameters: Dict[str, Any],
-        bad_pixel_map: Union[NDArray[numpy.int_], None],
     ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
@@ -341,18 +197,10 @@ class Peakfinder8PeakDetection:
                   the data frame, its distance (in pixels) from the origin of the
                   detector reference system (usually the center of the detector).
         """
-        peakfinder8_info: TypePeakfinder8Info = get_peakfinder8_info(
-            detector_type=get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="detector_type",
-                parameter_type=str,
-                required=True,
-            )
-        )
-        self._asic_nx: int = peakfinder8_info["asic_nx"]
-        self._asic_ny: int = peakfinder8_info["asic_ny"]
-        self._nasics_x: int = peakfinder8_info["nasics_x"]
-        self._nasics_y: int = peakfinder8_info["nasics_y"]
+        self._asic_nx: int = layout_info["asic_nx"]
+        self._asic_ny: int = layout_info["asic_ny"]
+        self._nasics_x: int = layout_info["nasics_x"]
+        self._nasics_y: int = layout_info["nasics_y"]
         self._max_num_peaks: int = get_parameter_from_parameter_group(
             group=parameters,
             parameter="max_num_peaks",
@@ -402,23 +250,26 @@ class Peakfinder8PeakDetection:
             required=True,
         )
 
-        self._bad_pixel_map = bad_pixel_map
+        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
+        )
         self._mask: Union[NDArray[numpy.int_], None] = None
         self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
 
         self._radial_stats_pixel_index: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_radius: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_num_pixels: int = 0
-        fast_mode: Union[bool, None] = get_parameter_from_parameter_group(
+        self._fast_mode: bool = get_parameter_from_parameter_group(
             group=parameters,
             parameter="fast_mode",
             parameter_type=bool,
-            required=False,
+            default=False,
         )
-        if fast_mode is None:
-            self._fast_mode: bool = False
-        else:
-            self._fast_mode = fast_mode
 
         if self._fast_mode is True:
             self._num_pixels_per_bin: int = get_parameter_from_parameter_group(
@@ -454,11 +305,11 @@ class Peakfinder8PeakDetection:
         self._radial_stats_radius = numpy.array(radius).astype(numpy.int32)
         self._radial_stats_num_pixels = self._radial_stats_pixel_index.shape[0]
 
-    def set_peakfinder8_info(self, peakfinder8_info: TypePeakfinder8Info) -> None:
-        self._asic_nx = peakfinder8_info["asic_nx"]
-        self._asic_ny = peakfinder8_info["asic_ny"]
-        self._nasics_x = peakfinder8_info["nasics_x"]
-        self._nasics_y = peakfinder8_info["nasics_y"]
+    def set_layout_info(self, layout_info: TypeLayoutInfo) -> None:
+        self._asic_nx = layout_info["asic_nx"]
+        self._asic_ny = layout_info["asic_ny"]
+        self._nasics_x = layout_info["nasics_x"]
+        self._nasics_y = layout_info["nasics_y"]
 
     def get_bad_pixel_map(self) -> Union[NDArray[numpy.int_], None]:
         return self._bad_pixel_map
@@ -470,7 +321,10 @@ class Peakfinder8PeakDetection:
 
     def set_radius_pixel_map(self, radius_pixel_map: NDArray[numpy.float_]) -> None:
         self._radius_pixel_map = radius_pixel_map.astype(numpy.float32)
-        self._compute_radial_stats_pixels(num_pixels_per_bin=self._num_pixels_per_bin)
+        if self._fast_mode is True:
+            self._compute_radial_stats_pixels(
+                num_pixels_per_bin=self._num_pixels_per_bin
+            )
 
     def get_adc_thresh(self) -> float:
         """

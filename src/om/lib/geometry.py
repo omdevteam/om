@@ -329,6 +329,29 @@ class TypeDetector(TypedDict):
     furthest_in_ss: float
 
 
+class TypeLayoutInfo(TypedDict, total=True):
+    """
+    Detector layout information for the peakfinder8 algorithm.
+    This typed dictionary stores information about the internal data layout of a
+    detector data frame (number and size of ASICs, etc.). The information
+    is needed by the
+    [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+    algorithm, and is usually retrieved via the
+    [`get_peakfinder8_info`][om.algorithms.crystallography.get_peakfinder8_info]
+    function.
+    Attributes:
+        asic_nx: The fs size in pixels of each detector panel in the data frame.
+        asic_ny: The ss size in pixels of each detector panel in the data frame.
+        nasics_x: The number of detector panels along the fs axis of the data frame.
+        nasics_y: The number of detector panels along the ss axis of the data frame.
+    """
+
+    asic_nx: int
+    asic_ny: int
+    nasics_x: int
+    nasics_y: int
+
+
 class TypePixelMaps(TypedDict):
     """
     A dictionary storing a set of pixel maps,
@@ -1194,6 +1217,29 @@ def _compute_visualization_pix_maps(*, pixel_maps: TypePixelMaps) -> TypePixelMa
     }
 
 
+def _retrieve_layout_info_from_geometry(*, geometry: TypeDetector) -> TypeLayoutInfo:
+    """
+    TODO: Documentation
+    Arguments:
+        geometry: .
+    Returns:
+        A dictionary storing the data layout information.
+    """
+    panels: List[TypePanel] = list(geometry["panels"].values())
+    panel_fs_size: int = panels[0]["orig_max_fs"] - panels[0]["orig_min_fs"] + 1
+    panel_ss_size: int = panels[0]["orig_max_ss"] - panels[0]["orig_min_ss"] + 1
+
+    total_fs_size: int = max((panel["orig_max_fs"] for panel in panels))
+    total_ss_size: int = max((panel["orig_max_ss"] for panel in panels))
+
+    return {
+        "asic_nx": panel_fs_size,
+        "asic_ny": panel_ss_size,
+        "nasics_x": (total_fs_size + 1) // panel_fs_size,
+        "nasics_y": (total_ss_size + 1) // panel_ss_size,
+    }
+
+
 class GeometryInformation:
     """
     See documentation for the `__init__` function.
@@ -1215,13 +1261,10 @@ class GeometryInformation:
                 filename=geometry_filename
             )
 
+            self._layout_info: TypeLayoutInfo = _retrieve_layout_info_from_geometry(
+                geometry=geometry
+            )
             self._pixel_maps: TypePixelMaps = _compute_pix_maps(geometry=geometry)
-            self._visualization_pixel_maps: TypePixelMaps = (
-                _compute_visualization_pix_maps(pixel_maps=self._pixel_maps)
-            )
-            self._min_array_shape: Tuple[int, int] = _compute_min_array_shape(
-                pixel_maps=self._pixel_maps
-            )
 
             # Theoretically, the pixel size could be different for every module of the
             # detector. The pixel size of the first module is taken as the pixel size
@@ -1244,11 +1287,11 @@ class GeometryInformation:
         """
         return self._pixel_maps
 
-    def get_visualization_pixel_maps(self) -> TypePixelMaps:
+    def get_layout_info(self) -> TypeLayoutInfo:
         """
         TODO: Add documentation.
         """
-        return self._visualization_pixel_maps
+        return self._layout_info
 
     def get_detector_distance_offset(self) -> float:
         """
@@ -1262,13 +1305,47 @@ class GeometryInformation:
         """
         return self._pixel_size
 
+
+class DataVisualizer:
+    """
+    See documentation for the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        pixel_maps: TypePixelMaps,
+    ):
+        """
+        TODO: Documentation
+        """
+        self._pixel_maps = pixel_maps
+        self._visualization_pixel_maps: TypePixelMaps = _compute_visualization_pix_maps(
+            pixel_maps=self._pixel_maps
+        )
+        self._min_array_shape: Tuple[int, int] = _compute_min_array_shape(
+            pixel_maps=self._pixel_maps
+        )
+    
+    def get_pixel_maps(self) -> TypePixelMaps:
+        """
+        TODO: Add documentation.
+        """
+        return self._pixel_maps   
+
+    def get_visualization_pixel_maps(self) -> TypePixelMaps:
+        """
+        TODO: Add documentation.
+        """
+        return self._visualization_pixel_maps
+
     def get_min_array_shape_for_visualization(self) -> Tuple[int, int]:
         """
         TODO: Add documentation.
         """
         return self._min_array_shape
 
-    def apply_geometry_to_data_for_visualization(
+    def visualize_data(
         self,
         *,
         data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],

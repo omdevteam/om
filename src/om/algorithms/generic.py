@@ -27,9 +27,9 @@ from typing import Any, Dict, List, Tuple, TypeVar, Union, cast
 import numpy
 from numpy.typing import DTypeLike, NDArray
 
-from om.algorithms.crystallography import TypePeakfinder8Info, get_peakfinder8_info
 from om.lib.exceptions import OmWrongArrayShape
-from om.lib.geometry import GeometryInformation, TypePixelMaps
+from om.algorithms.crystallography import TypePeakList
+from om.lib.geometry import GeometryInformation, TypePixelMaps, TypeLayoutInfo
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import get_parameter_from_parameter_group
 
@@ -367,9 +367,8 @@ class Binning:
     def __init__(
         self,
         *,
+        layout_info: TypeLayoutInfo,
         parameters: Dict[str, Any],
-        geometry_information: GeometryInformation,
-        bad_pixel_map: Union[NDArray[numpy.int_], None],
     ) -> None:
         """
         Binning of detector data frames.
@@ -451,17 +450,7 @@ class Binning:
                   argument). Defaults to `MAXINT` if the input array is an array of
                   integers, otherwise defaults to `numpy.nan`.
         """
-
-        self._geometry_information = geometry_information
-
-        self._layout_info: TypePeakfinder8Info = get_peakfinder8_info(
-            detector_type=get_parameter_from_parameter_group(
-                group=parameters,
-                parameter="detector_type",
-                parameter_type=str,
-                required=True,
-            )
-        )
+        self._layout_info: TypeLayoutInfo = layout_info
         self._bin_size: int = get_parameter_from_parameter_group(
             group=parameters,
             parameter="bin_size",
@@ -474,7 +463,7 @@ class Binning:
             parameter_type=int,
         )
         if min_good_pix_count is None:
-            self._min_good_pix_count: int = self._bin_size**2
+            self._min_good_pix_count: int = self._bin_size ** 2
         else:
             self._min_good_pix_count = min_good_pix_count
 
@@ -492,7 +481,14 @@ class Binning:
         self._original_ny: int = (
             self._layout_info["asic_nx"] * self._layout_info["nasics_x"]
         )
-
+        bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
+        )
         if bad_pixel_map is None:
             self._mask: NDArray[numpy.int_] = numpy.ones(
                 (self._original_nx, self._original_ny), dtype=numpy.int8
@@ -515,9 +511,7 @@ class Binning:
         self._binned_ny: int = self._extended_ny // self._bin_size
 
         # Binned mask = num good pixels per bin
-        self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(
-            data=cast(NDArray[numpy.int_], self._mask)
-        )
+        self._binned_mask: NDArray[numpy.int_] = self._bin_data_array(data=self._mask)
 
         self._float_data_array: NDArray[numpy.float_] = numpy.zeros(
             (self._original_nx, self._original_ny), dtype=numpy.float64
@@ -528,19 +522,6 @@ class Binning:
 
         # TODO: What is the following?
         self._saturation_value: float = -1.0
-
-        self._binned_pixel_maps: TypePixelMaps = self._bin_pixel_maps(
-            pixel_maps=self._geometry_information.get_pixel_maps()
-        )
-
-        self._binned_visualization_pixel_maps: TypePixelMaps = self._bin_pixel_maps(
-            pixel_maps=self._geometry_information.get_visualization_pixel_maps()
-        )
-
-        self._binned_min_array_shape: Tuple[int, int] = (
-            self._extended_nx // self._bin_size,
-            self._extended_ny // self._bin_size,
-        )
 
     def _extend_data_array(self, *, data: NDArray[A]) -> NDArray[A]:
         # Extends the original data array with zeros making the asic size divisible by
@@ -581,19 +562,19 @@ class Binning:
 
         binned_pixel_maps: TypePixelMaps = {
             "x": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["x"]))
-            / self._bin_size**3,
+            / self._bin_size ** 3,
             "y": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["y"]))
-            / self._bin_size**3,
-            "z": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["z"]))
-            / self._bin_size**3,
-            "radius": self._bin_data_array(
-                data=cast(NDArray[numpy.float_], pixel_maps["radius"])
-            )
-            / self._bin_size**3,
-            "phi": self._bin_data_array(
-                data=cast(NDArray[numpy.float_], pixel_maps["phi"])
-            )
-            / self._bin_size**2,
+            / self._bin_size ** 3,
+            "z": self._bin_data_array(data=pixel_maps["z"]) / self._bin_size ** 3
+            if pixel_maps["z"] is not None
+            else None,
+            "radius": self._bin_data_array(data=pixel_maps["radius"])
+            / self._bin_size ** 3
+            if pixel_maps["radius"] is not None
+            else None,
+            "phi": self._bin_data_array(data=pixel_maps["phi"]) / self._bin_size ** 2
+            if pixel_maps["phi"] is not None
+            else None,
         }
 
         return binned_pixel_maps
@@ -608,7 +589,7 @@ class Binning:
         """
         return self._bin_size
 
-    def get_binned_layout_info(self) -> TypePeakfinder8Info:
+    def get_binned_layout_info(self) -> TypeLayoutInfo:
         """
         Gets the data layout information for the binned data frame.
 
@@ -628,65 +609,6 @@ class Binning:
             "nasics_x": self._layout_info["nasics_x"],
             "nasics_y": self._layout_info["nasics_y"],
         }
-
-    def get_binned_min_array_shape_for_visualization(self) -> Tuple[int, int]:
-        """
-        Gets the shape of the binned version of the data frame.
-
-        This function returns the shape, in numpy format, of the binned data frame
-        generated by the algorithm.
-
-        Returns:
-
-            A tuple storing the shape (in numpy format) of the array which contains the
-                binned data frame.
-        """
-        return self._binned_min_array_shape
-
-    def get_binned_pixel_maps(self) -> TypePixelMaps:
-        """
-        TODO
-        """
-        return self._binned_pixel_maps
-
-    def get_binned_visualization_pixel_maps(self) -> TypePixelMaps:
-        """
-        TODO
-        """
-        return self._binned_visualization_pixel_maps
-
-    def get_binned_bad_pixel_map(self) -> NDArray[numpy.int_]:
-        """
-        TODO
-        """
-        return self._binned_mask
-
-    def apply_binned_geometry_to_data_for_visualization(
-        self,
-        *,
-        data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
-        array_for_visualization: Union[
-            NDArray[numpy.int_], NDArray[numpy.float_], None
-        ] = None,
-    ) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
-        if array_for_visualization is None:
-            visualization_array: Union[
-                NDArray[numpy.float_], NDArray[numpy.int_]
-            ] = numpy.zeros(self._binned_min_array_shape, dtype=float)
-        else:
-            if array_for_visualization.shape != self._binned_min_array_shape:
-                raise OmWrongArrayShape(
-                    "The provided array does not fit the data."
-                    "Please check the array size"
-                )
-            visualization_array = array_for_visualization
-
-        visualization_array[
-            self._binned_visualization_pixel_maps["y"].flatten(),
-            self._binned_visualization_pixel_maps["x"].flatten(),
-        ] = data.ravel().astype(visualization_array.dtype)
-
-        return visualization_array
 
     def bin_detector_data(
         self, *, data: NDArray[numpy.float_]
@@ -737,3 +659,79 @@ class Binning:
             self._layout_info["nasics_x"],
         )
         return self._binned_data_array
+
+    def bin_bad_pixel_map(
+        self, *, mask: Union[NDArray[numpy.int_], None]
+    ) -> Union[NDArray[numpy.int_], None]:
+        """
+        Computes a bad pixel mask for the binned data frame.
+        Starting from a mask designed for the original detector frame, this function
+        calculates a bad pixel mask that can be used with the binned frame generated by
+        the algorithm.
+        In the mask computed by this function, pixels originating from binning areas
+        containing only good pixels in the original mask are marked as good. However,
+        even a single bad pixel in the original binning area will generate a bad pixel
+        in the computed binned mask.
+        Arguments:
+            mask: An array storing a bad pixel map for the original data frame.
+                * The map must be a numpy array of the same shape as the data frame on
+                  which the binning algorithm will be applied.
+                * Each pixel in the map must have a value of either 0, meaning that
+                  the corresponding pixel in the data frame should be considered bad,
+                  or 1, meaning that the corresponding pixel should be considered good.
+                * This argument is mandatory. However, the argument can be set to None,
+                  in which case the function will do nothing and return None.
+        Returns:
+            Either an array containing the binned mask (if the input `mask` argument is
+                not None) or None.
+        """
+        if mask is None:
+            return None
+        else:
+            return self._bin_data_array(data=mask) // self._bin_size ** 2
+
+    def bin_pixel_maps(self, *, pixel_maps: TypePixelMaps) -> TypePixelMaps:
+        """
+        Computes pixel maps for a binned data frame.
+        Starting from pixel masks designed for the original detector data frame, this
+        function calculates pixel maps that can be applied to the binned data frame.
+        The pixel maps can be used to determine the exact coordinates of each pixel of
+        the binned data frame in the detector reference system.
+        Arguments:
+            pixel_maps: A dictionary storing the pixel maps for the original data frame.
+        Returns:
+            A dictionary storing the pixel maps for the binned frame.
+        """
+
+        binned_pixel_maps: TypePixelMaps = {
+            "x": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["x"]))
+            / self._bin_size ** 3,
+            "y": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["y"]))
+            / self._bin_size ** 3,
+            "z": self._bin_data_array(data=cast(NDArray[numpy.float_], pixel_maps["z"]))
+            / self._bin_size ** 3,
+            "radius": self._bin_data_array(
+                data=cast(NDArray[numpy.float_], pixel_maps["radius"])
+            )
+            / self._bin_size ** 3,
+            "phi": self._bin_data_array(
+                data=cast(NDArray[numpy.float_], pixel_maps["phi"])
+            )
+            / self._bin_size ** 2,
+        }
+
+        return binned_pixel_maps
+
+    def bin_peak_positions(self, peak_list: TypePeakList) -> TypePeakList:
+        """
+        TODO: documentation
+        """
+        peak_index: int
+        for peak_index in range(peak_list["num_peaks"]):
+            peak_list["fs"][peak_index] = (
+                peak_list["fs"][peak_index] + 0.5
+            ) / self._bin_size - 0.5
+            peak_list["ss"][peak_index] = (
+                peak_list["ss"][peak_index] + 0.5
+            ) / self._bin_size - 0.5
+        return peak_list

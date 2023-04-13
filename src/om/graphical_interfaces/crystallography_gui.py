@@ -382,10 +382,10 @@ class CrystallographyGui(OmGuiBase):
         self._peakogram_plot_image_view.setImage(
             numpy.log(peakogram),
             pos=(0, 0),
-            # scale=(
-            #     local_data["peakogram_radius_bin_size"],
-            #     local_data["peakogram_intensity_bin_size"],
-            # ),
+            scale=(
+                local_data["peakogram_radius_bin_size"],
+                local_data["peakogram_intensity_bin_size"],
+            ),
             autoRange=False,
             autoLevels=False,
             autoHistogramRange=False,

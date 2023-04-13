@@ -24,7 +24,7 @@ from numpy.typing import NDArray
 
 from om.algorithms.crystallography import TypePeakList
 from om.algorithms.generic import Binning
-from om.lib.geometry import GeometryInformation, TypePixelMaps
+from om.lib.geometry import GeometryInformation, TypePixelMaps, DataVisualizer
 from om.lib.parameters import get_parameter_from_parameter_group
 
 
@@ -37,28 +37,20 @@ class CrystallographyPlots:
         self,
         *,
         crystallography_parameters: Dict[str, Any],
-        geometry_information: GeometryInformation,
-        binning_algorithm: Union[Binning, None],
+        data_visualizer: DataVisualizer,
         pump_probe_experiment: bool,
+        bin_size: int,
     ) -> None:
         self._pump_probe_experiment: bool = pump_probe_experiment
+        self._bin_size: int = bin_size
 
-        if binning_algorithm:
-            pixel_maps: TypePixelMaps = binning_algorithm.get_binned_pixel_maps()
-            visualization_pixel_maps: TypePixelMaps = (
-                binning_algorithm.get_binned_visualization_pixel_maps()
-            )
-            plot_shape: Tuple[
-                int, int
-            ] = binning_algorithm.get_binned_min_array_shape_for_visualization()
-            self._bin_size: int = binning_algorithm.get_bin_size()
-        else:
-            pixel_maps = geometry_information.get_pixel_maps()
-            visualization_pixel_maps = (
-                geometry_information.get_visualization_pixel_maps()
-            )
-            plot_shape = geometry_information.get_min_array_shape_for_visualization()
-            self._bin_size = 1
+        pixel_maps: TypePixelMaps = data_visualizer.get_pixel_maps()
+        visualization_pixel_maps: TypePixelMaps = (
+            data_visualizer.get_visualization_pixel_maps()
+        )
+        plot_shape: Tuple[
+            int, int
+        ] = data_visualizer.get_min_array_shape_for_visualization()
 
         self._flattened_visualization_pixel_map_y = visualization_pixel_maps[
             "y"
@@ -67,27 +59,30 @@ class CrystallographyPlots:
             "x"
         ].flatten()
         self._radius_pixel_map = pixel_maps["radius"]
+        self._data_shape: Tuple[int, int] = self._radius_pixel_map.shape
 
-        peakogram_num_bins: int = 300
         self._peakogram_intensity_bin_size: float = get_parameter_from_parameter_group(
             group=crystallography_parameters,
             parameter="peakogram_intensity_bin_size",
             parameter_type=float,
             default=100,
         )
+        peakogram_num_bins_intensity: int = 300
 
-        self._peakogram_radius_bin_size: float = (
-            get_parameter_from_parameter_group(
-                group=crystallography_parameters,
-                parameter="peakogram_radius_bin_size",
-                parameter_type=int,
-                required=True,
-            )
-            / peakogram_num_bins
+        self._peakogram_radius_bin_size: float = get_parameter_from_parameter_group(
+            group=crystallography_parameters,
+            parameter="peakogram_radius_bin_size",
+            parameter_type=float,
+            default=5,
+        )
+        peakogram_num_bins_radius: int = int(
+            self._radius_pixel_map.max()
+            * self._bin_size
+            / self._peakogram_radius_bin_size
         )
 
-        self._peakogram: NDArray[numpy.int_] = numpy.zeros(
-            (peakogram_num_bins, peakogram_num_bins), dtype=numpy.int_
+        self._peakogram: NDArray[numpy.float_] = numpy.zeros(
+            (peakogram_num_bins_radius, peakogram_num_bins_intensity)
         )
 
         self._running_average_window_size: int = get_parameter_from_parameter_group(
@@ -132,7 +127,7 @@ class CrystallographyPlots:
         timestamp: float,
         peak_list: TypePeakList,
         frame_is_hit: bool,
-        data_shape: Tuple[int, ...],
+        # data_shape: Tuple[int, ...],
         optical_laser_active: bool,
     ) -> Tuple[
         Deque[float],
@@ -140,7 +135,9 @@ class CrystallographyPlots:
         Deque[float],
         Deque[float],
         NDArray[numpy.int_],
-        NDArray[numpy.int_],
+        NDArray[numpy.float_],
+        float,
+        float,
         List[float],
         List[float],
     ]:
@@ -203,7 +200,7 @@ class CrystallographyPlots:
             peak_list["intensity"],
             peak_list["max_pixel_intensity"],
         ):
-            peak_index_in_slab: int = int(round(peak_ss)) * data_shape[1] + int(
+            peak_index_in_slab: int = int(round(peak_ss)) * self._data_shape[1] + int(
                 round(peak_fs)
             )
             y_in_frame: float = self._flattened_visualization_pixel_map_y[
@@ -239,6 +236,8 @@ class CrystallographyPlots:
             self._hit_rate_history_dark,
             self._virt_powd_plot_img,
             self._peakogram,
+            self._peakogram_radius_bin_size,
+            self._peakogram_intensity_bin_size,
             peak_list_x_in_frame,
             peak_list_y_in_frame,
         )
