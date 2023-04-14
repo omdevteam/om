@@ -25,6 +25,7 @@ import collections
 import copy
 import math
 import sys
+from pathlib import Path
 from typing import Dict, List, TextIO, Tuple, TypedDict, Union
 
 import numpy
@@ -329,7 +330,7 @@ class TypeDetector(TypedDict):
     furthest_in_ss: float
 
 
-class TypeLayoutInfo(TypedDict, total=True):
+class TypeDetectorLayoutInformation(TypedDict, total=True):
     """
     Detector layout information for the peakfinder8 algorithm.
     This typed dictionary stores information about the internal data layout of a
@@ -371,11 +372,28 @@ class TypePixelMaps(TypedDict):
             the pixel, the center of the detector reference system, and the x axis.
     """
 
-    x: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-    y: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
-    z: Union[NDArray[numpy.float_], None]
-    radius: Union[NDArray[numpy.float_], None]
-    phi: Union[NDArray[numpy.float_], None]
+    x: NDArray[numpy.float_]
+    y: NDArray[numpy.float_]
+    z: NDArray[numpy.float_]
+    radius: NDArray[numpy.float_]
+    phi: NDArray[numpy.float_]
+
+
+class TypeVisualizationPixelMaps(TypedDict):
+    """
+    # TODO: Fix documentation
+
+    A dictionary storing a set of pixel maps,
+
+    Attributes:
+
+        x: A pixel map for the x coordinate.
+
+        y: A pixel map for the y coordinate.
+    """
+
+    x: NDArray[numpy.int_]
+    y: NDArray[numpy.int_]
 
 
 def _parse_direction(
@@ -1167,7 +1185,9 @@ def _compute_min_array_shape(*, pixel_maps: TypePixelMaps) -> Tuple[int, int]:
     return (y_minimum, x_minimum)
 
 
-def _compute_visualization_pix_maps(*, pixel_maps: TypePixelMaps) -> TypePixelMaps:
+def _compute_visualization_pix_maps(
+    *, pixel_maps: TypePixelMaps
+) -> TypeVisualizationPixelMaps:
     """
     Computes pixel maps for data visualization from CrystFEL geometry information.
 
@@ -1211,13 +1231,12 @@ def _compute_visualization_pix_maps(*, pixel_maps: TypePixelMaps) -> TypePixelMa
     return {
         "x": new_x_map,
         "y": new_y_map,
-        "z": None,
-        "radius": None,
-        "phi": None,
     }
 
 
-def _retrieve_layout_info_from_geometry(*, geometry: TypeDetector) -> TypeLayoutInfo:
+def _retrieve_layout_info_from_geometry(
+    *, geometry: TypeDetector
+) -> TypeDetectorLayoutInformation:
     """
     TODO: Documentation
     Arguments:
@@ -1249,11 +1268,17 @@ class GeometryInformation:
         self,
         *,
         geometry_filename: str,
-        geometry_format: str,
+        geometry_format: Union[str, None] = None,
     ) -> None:
         """
         TODO: Documentation.
         """
+
+        format_extension_dict: Dict[str, str] = {".geom": "crystfel"}
+
+        if geometry_format is None:
+            extension = Path(geometry_filename).suffix
+            geometry_format = format_extension_dict[extension]
 
         if geometry_format == "crystfel":
             geometry: TypeDetector
@@ -1261,8 +1286,8 @@ class GeometryInformation:
                 filename=geometry_filename
             )
 
-            self._layout_info: TypeLayoutInfo = _retrieve_layout_info_from_geometry(
-                geometry=geometry
+            self._layout_info: TypeDetectorLayoutInformation = (
+                _retrieve_layout_info_from_geometry(geometry=geometry)
             )
             self._pixel_maps: TypePixelMaps = _compute_pix_maps(geometry=geometry)
 
@@ -1287,7 +1312,7 @@ class GeometryInformation:
         """
         return self._pixel_maps
 
-    def get_layout_info(self) -> TypeLayoutInfo:
+    def get_layout_info(self) -> TypeDetectorLayoutInformation:
         """
         TODO: Add documentation.
         """
@@ -1320,20 +1345,20 @@ class DataVisualizer:
         TODO: Documentation
         """
         self._pixel_maps = pixel_maps
-        self._visualization_pixel_maps: TypePixelMaps = _compute_visualization_pix_maps(
-            pixel_maps=self._pixel_maps
+        self._visualization_pixel_maps: TypeVisualizationPixelMaps = (
+            _compute_visualization_pix_maps(pixel_maps=self._pixel_maps)
         )
         self._min_array_shape: Tuple[int, int] = _compute_min_array_shape(
             pixel_maps=self._pixel_maps
         )
-    
+
     def get_pixel_maps(self) -> TypePixelMaps:
         """
         TODO: Add documentation.
         """
-        return self._pixel_maps   
+        return self._pixel_maps
 
-    def get_visualization_pixel_maps(self) -> TypePixelMaps:
+    def get_visualization_pixel_maps(self) -> TypeVisualizationPixelMaps:
         """
         TODO: Add documentation.
         """

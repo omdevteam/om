@@ -30,9 +30,9 @@ import numpy
 import scipy  # type: ignore
 from numpy.typing import NDArray
 
-from om.lib.parameters import get_parameter_from_parameter_group
-from om.lib.geometry import TypeLayoutInfo
+from om.lib.geometry import TypeDetectorLayoutInformation
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
+from om.lib.parameters import get_parameter_from_parameter_group
 
 from ._crystallography import peakfinder_8  # type: ignore
 
@@ -103,7 +103,7 @@ class Peakfinder8PeakDetection:
         self,
         *,
         radius_pixel_map: NDArray[numpy.float_],
-        layout_info: TypeLayoutInfo,
+        layout_info: TypeDetectorLayoutInformation,
         parameters: Dict[str, Any],
     ) -> None:
         """
@@ -305,7 +305,7 @@ class Peakfinder8PeakDetection:
         self._radial_stats_radius = numpy.array(radius).astype(numpy.int32)
         self._radial_stats_num_pixels = self._radial_stats_pixel_index.shape[0]
 
-    def set_layout_info(self, layout_info: TypeLayoutInfo) -> None:
+    def set_layout_info(self, layout_info: TypeDetectorLayoutInformation) -> None:
         self._asic_nx = layout_info["asic_nx"]
         self._asic_ny = layout_info["asic_ny"]
         self._nasics_x = layout_info["nasics_x"]

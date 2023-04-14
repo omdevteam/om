@@ -28,7 +28,6 @@ from typing import Any, Dict, Tuple, Union
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms.generic import Correction
 from om.algorithms.xes import XesAnalysis
 from om.lib.generic_collecting import EventCounter
 from om.lib.geometry import GeometryInformation

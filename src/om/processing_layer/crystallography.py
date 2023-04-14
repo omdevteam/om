@@ -22,19 +22,17 @@ This module contains an OnDA Monitor for serial x-ray crystallography experiment
 """
 import sys
 from collections import deque
-from typing import Any, Deque, Dict, List, Tuple, Union, cast
+from typing import Any, Deque, Dict, List, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms.crystallography import TypePeakList, Peakfinder8PeakDetection
-from om.algorithms.generic import Binning, Correction
-from om.lib.crystallography_collecting import CrystallographyPlots
-from om.lib.crystallography_processing import CrystallographyPeakFinding
+from om.algorithms.crystallography import TypePeakList
+from om.algorithms.generic import Binning, BinningPassthrough
+from om.lib.crystallography import CrystallographyPeakFinding, CrystallographyPlots
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.generic_collecting import EventCounter
-from om.lib.geometry import GeometryInformation, TypePixelMaps, DataVisualizer
-from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
+from om.lib.geometry import DataVisualizer, GeometryInformation, TypePixelMaps
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
@@ -90,25 +88,27 @@ class CrystallographyProcessing(OmProcessingBase):
                 parameter_type=str,
                 required=True,
             ),
-            geometry_format="crystfel",
         )
 
-        # Binning
-        binning_requested: Union[bool, None] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="binning",
+        # Post-processing binning
+        binning_requested = get_parameter_from_parameter_group(
+            group=crystallography_parameters,
+            parameter="post_processing_binning",
             parameter_type=bool,
             default=False,
         )
+
+        print(f"DEBUG: Binning requested {binning_requested}")
+
         if binning_requested:
-            self._binning: Union[Binning, None] = Binning(
+            self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
                 layout_info=self._geometry_information.get_layout_info(),
             )
-            self._bin_size: int = self._binning.get_bin_size()
         else:
-            self._binning = None
-            self._bin_size = 1
+            self._post_processing_binning = BinningPassthrough(
+                layout_info=self._geometry_information.get_layout_info()
+            )
 
         # Pump probe
         self._pump_probe_experiment: bool = self._monitor_params.get_parameter(
@@ -139,21 +139,10 @@ class CrystallographyProcessing(OmProcessingBase):
                 processing nodes and the collecting node.
         """
 
-        # Correction
-        self._correction = Correction(
-            parameters=self._monitor_params.get_parameter_group(group="correction")
-        )
-
         # Peak finding
-        self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-            parameters=self._monitor_params.get_parameter_group(
-                group="peakfinder8_peak_detection"
-            ),
-            radius_pixel_map=cast(
-                NDArray[numpy.float_],
-                self._geometry_information.get_pixel_maps()["radius"],
-            ),
-            layout_info=self._geometry_information.get_layout_info(),
+        self._peak_detection: CrystallographyPeakFinding = CrystallographyPeakFinding(
+            parameters=self._monitor_params,
+            geometry_information=self._geometry_information,
         )
 
         self._min_num_peaks_for_hit: int = get_parameter_from_parameter_group(
@@ -212,15 +201,13 @@ class CrystallographyProcessing(OmProcessingBase):
         )
 
         self._pixel_size = self._geometry_information.get_pixel_size()
-        self._pixel_maps: TypePixelMaps = self._geometry_information.get_pixel_maps()
-        if self._binning is not None:
-            self._pixel_size /= self._bin_size
-            self._pixel_maps = self._binning.bin_pixel_maps(pixel_maps=self._pixel_maps)
+        pixel_maps: TypePixelMaps = self._geometry_information.get_pixel_maps()
+
+        self._pixel_size /= self._post_processing_binning.get_bin_size()
+        pixel_maps = self._post_processing_binning.bin_pixel_maps(pixel_maps=pixel_maps)
 
         # Data visualizer
-        self._data_visualizer: DataVisualizer = DataVisualizer(
-            pixel_maps=self._pixel_maps
-        )
+        self._data_visualizer: DataVisualizer = DataVisualizer(pixel_maps=pixel_maps)
 
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
@@ -234,7 +221,7 @@ class CrystallographyProcessing(OmProcessingBase):
             ),
             data_visualizer=self._data_visualizer,
             pump_probe_experiment=self._pump_probe_experiment,
-            bin_size=self._bin_size,
+            bin_size=self._post_processing_binning.get_bin_size(),
         )
 
         # Streaming to CrystFEL
@@ -316,21 +303,17 @@ class CrystallographyProcessing(OmProcessingBase):
                 entry is the OM rank number of the node that processed the information.
         """
 
-        # Correction
         processed_data: Dict[str, Any] = {}
-        corrected_detector_data: NDArray[
-            numpy.float_
-        ] = self._correction.apply_correction(data=data["detector_data"])
-        data_to_send: Union[
-            NDArray[numpy.int_], NDArray[numpy.float_]
-        ] = corrected_detector_data
 
         # Peak-finding
         peak_list: TypePeakList = self._peak_detection.find_peaks(
-            data=corrected_detector_data
+            detector_data=data["detector_data"]
         )
-        if self._binning is not None:
-            peak_list = self._binning.bin_peak_positions(peak_list=peak_list)
+
+        peak_list = self._post_processing_binning.bin_peak_positions(
+            peak_list=peak_list
+        )
+
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
             < len(peak_list["intensity"])
@@ -344,7 +327,6 @@ class CrystallographyProcessing(OmProcessingBase):
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["event_id"] = data["event_id"]
         processed_data["frame_id"] = data["frame_id"]
-        processed_data["data_shape"] = data_to_send.shape
         processed_data["peak_list"] = peak_list
         if self._pump_probe_experiment:
             processed_data["optical_laser_active"] = data["optical_laser_active"]
@@ -361,10 +343,14 @@ class CrystallographyProcessing(OmProcessingBase):
         )
 
         if send_detector_data:
-            if self._binning is not None:
-                data_to_send = self._binning.bin_detector_data(
-                    data=corrected_detector_data
-                )
+            data_to_send: Union[NDArray[numpy.int_], NDArray[numpy.float_]] = data[
+                "detector_data"
+            ]
+
+            data_to_send = self._post_processing_binning.bin_detector_data(
+                data=data_to_send
+            )
+
             processed_data["detector_data"] = data_to_send
             if frame_is_hit:
                 self._send_hit_frame = False
@@ -494,7 +480,6 @@ class CrystallographyProcessing(OmProcessingBase):
             timestamp=received_data["timestamp"],
             peak_list=received_data["peak_list"],
             frame_is_hit=received_data["frame_is_hit"],
-            # data_shape=received_data["data_shape"],
             optical_laser_active=optical_laser_active,
         )
 
@@ -544,7 +529,7 @@ class CrystallographyProcessing(OmProcessingBase):
                     "peak_list_y_in_frame": peak_list_y_in_frame,
                 },
             )
-            if self._bin_size == 1:
+            if self._post_processing_binning.is_passthrough():
                 self._data_broadcast_socket.send_data(
                     tag="omtweakingdata",
                     message={

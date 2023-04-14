@@ -22,10 +22,188 @@ from typing import Any, Deque, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms.crystallography import TypePeakList
-from om.algorithms.generic import Binning
-from om.lib.geometry import GeometryInformation, TypePixelMaps, DataVisualizer
-from om.lib.parameters import get_parameter_from_parameter_group
+from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
+from om.lib.geometry import (
+    DataVisualizer,
+    GeometryInformation,
+    TypePixelMaps,
+    TypeVisualizationPixelMaps,
+)
+from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
+
+
+class CrystallographyPeakFinding:
+    """
+    See documentation for the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        parameters: MonitorParameters,
+        geometry_information: GeometryInformation,
+    ) -> None:
+        """
+        TODO: Add documentation
+        """
+
+        crystallography_parameters = parameters.get_parameter_group(
+            group="crystallography"
+        )
+
+        peakfinder_algorithm: str = get_parameter_from_parameter_group(
+            group=crystallography_parameters,
+            parameter="peakfinding_algorithm",
+            parameter_type=str,
+            default="peakfinder8",
+        )
+
+        if peakfinder_algorithm == "peakfinder8":
+            self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
+                parameters=parameters.get_parameter_group(
+                    group="peakfinder8_peak_detection"
+                ),
+                radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
+                layout_info=geometry_information.get_layout_info(),
+            )
+        else:
+            # Put PeakNet peak finder's initialization here
+
+            self._peak_detection = Peakfinder8PeakDetection(
+                parameters=parameters.get_parameter_group(
+                    group="peakfinder8_peak_detection"
+                ),
+                radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
+                layout_info=geometry_information.get_layout_info(),
+            )
+
+        self._min_num_peaks_for_hit: int = get_parameter_from_parameter_group(
+            group=crystallography_parameters,
+            parameter="min_num_peaks_for_hit",
+            parameter_type=int,
+            required=True,
+        )
+
+        self._max_num_peaks_for_hit: int = get_parameter_from_parameter_group(
+            group=crystallography_parameters,
+            parameter="max_num_peaks_for_hit",
+            parameter_type=int,
+            required=True,
+        )
+
+    def find_peaks(
+        self, detector_data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
+    ) -> TypePeakList:
+        """
+        TODO: Add documentation.
+        """
+
+        peak_list: TypePeakList = self._peak_detection.find_peaks(data=detector_data)
+
+        return peak_list
+
+
+# class RadialProfileAnalysis:
+#     """
+#     See documentation of the '__init__' function.
+#     """
+
+#     def __init__(
+#         self,
+#         *,
+#         radius_pixel_map: NDArray[numpy.float_],
+#         swaxs_parameters: Dict[str, Any],
+#     ) -> None:
+#         """
+#         #TODO: Add documentation.
+#         """
+
+#         self._radial_profile_analysis = RadialProfileAnalysisWithSampleDetection(
+#             swaxs_parameters=swaxs_parameters, radius_pixel_map=radius_pixel_map
+#         )
+
+#         self._jet_threshold: float = get_parameter_from_parameter_group(
+#             group=swaxs_parameters,
+#             parameter="threshold_for_jet_hit",
+#             parameter_type=float,
+#             required=True,
+#         )
+
+#         self._subtract_background: bool = get_parameter_from_parameter_group(
+#             group=swaxs_parameters,
+#             parameter="subtract_background",
+#             parameter_type=bool,
+#             default=False,
+#         )
+
+#         if self._subtract_background:
+
+#             background_vectors_filename: str = get_parameter_from_parameter_group(
+#                 group=swaxs_parameters,
+#                 parameter="background_vectors_npy_filename",
+#                 parameter_type=str,
+#                 required=True,
+#             )
+
+#             try:
+#                 self._background_vectors: numpy.ndarray = numpy.atleast_2d(
+#                     numpy.load(background_vectors_filename)
+#                 )
+#             except (IOError, OSError, KeyError) as exc:
+#                 # TODO: type this
+#                 exc_type, exc_value = sys.exc_info()[:2]
+#                 raise RuntimeError(
+#                     "The following error occurred while reading the {0} water "
+#                     "profile file: {1}: {2}".format(
+#                         background_vectors_filename,
+#                         exc_type.__name__,  # type: ignore
+#                         exc_value,
+#                     )
+#                 ) from exc
+
+#     def analyze_radial_profile(
+#         self, *, detector_data: numpy.ndarray
+#     ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, float, bool, bool]:
+#         """
+#         # TODO: Add documentation
+#         """
+#         radial: numpy.ndarray
+#         errors: numpy.ndarray
+#         radial, errors = self._radial_profile_analysis.compute_radial_profile(
+#             data=detector_data
+#         )
+
+#         detector_data_sum: float = detector_data.sum()
+#         frame_is_jet: bool = detector_data_sum > self._jet_threshold
+#         if not frame_is_jet:
+#             frame_is_droplet: bool = False
+#         else:
+#             frame_is_droplet = self._radial_profile_analysis.detect_sample(
+#                 radial_profile=radial
+#             )
+
+#         if self._subtract_background:
+#             coefficients = fit_by_least_squares(
+#                 radial_profile=radial,
+#                 vectors=self._background_vectors,
+#                 start_bin=800,
+#                 stop_bin=1000,
+#             )
+#             background: numpy.ndarray = radial * 0
+#             for i in range(len(coefficients)):
+#                 background += coefficients[i] * self._background_vectors[i]
+#             subtracted_radial: numpy.ndarray = radial - background
+#         else:
+#             subtracted_radial = radial
+
+#         return (
+#             radial,
+#             subtracted_radial,
+#             errors,
+#             detector_data_sum,
+#             frame_is_droplet,
+#             frame_is_jet,
+#         )
 
 
 class CrystallographyPlots:
@@ -45,7 +223,7 @@ class CrystallographyPlots:
         self._bin_size: int = bin_size
 
         pixel_maps: TypePixelMaps = data_visualizer.get_pixel_maps()
-        visualization_pixel_maps: TypePixelMaps = (
+        visualization_pixel_maps: TypeVisualizationPixelMaps = (
             data_visualizer.get_visualization_pixel_maps()
         )
         plot_shape: Tuple[
@@ -59,7 +237,7 @@ class CrystallographyPlots:
             "x"
         ].flatten()
         self._radius_pixel_map = pixel_maps["radius"]
-        self._data_shape: Tuple[int, int] = self._radius_pixel_map.shape
+        self._data_shape: Tuple[int, ...] = self._radius_pixel_map.shape
 
         self._peakogram_intensity_bin_size: float = get_parameter_from_parameter_group(
             group=crystallography_parameters,
