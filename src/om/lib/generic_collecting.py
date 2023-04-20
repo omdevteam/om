@@ -107,6 +107,9 @@ class EventCounter:
     def get_num_events(self) -> int:
         return self._num_events
 
+    def get_num_hits(self) -> int:
+        return self._num_hits
+
     def report_speed(self) -> None:
         if self._speed_report_interval:
             if self._num_events % self._speed_report_interval == 0:
