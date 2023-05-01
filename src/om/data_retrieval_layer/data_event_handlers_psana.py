@@ -31,11 +31,13 @@ from om.lib.exceptions import (
     OmDataExtractionError,
     OmMissingDataEventError,
     OmMissingDependencyError,
-    OmMissingFrameDataError,
 )
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
-from om.protocols.data_retrieval_layer import OmDataEventHandlerBase, OmDataSourceBase
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerProtocol,
+    OmDataSourceProtocol,
+)
 
 try:
     import psana  # type: ignore
@@ -63,11 +65,10 @@ def _psana_offline_event_generator(
         ]
         evt: Any
         for evt in events_curr_node:
-
             yield run.event(evt)
 
 
-class PsanaDataEventHandler(OmDataEventHandlerBase):
+class PsanaDataEventHandler(OmDataEventHandlerProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -76,17 +77,18 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceBase],
+        data_sources: Dict[str, OmDataSourceProtocol],
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for psana events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class handles data events retrieved from the psana software framework at
         the LCLS facility.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         * For this Event Handler, a data event corresponds to the content of an
           individual psana event.
@@ -98,12 +100,13 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Sources class
+                instances.
 
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -111,7 +114,7 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
 
         self._source: str = source
         self._monitor_params: MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
+        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
     def _initialize_psana_data_source(self) -> Any:
         # This private method contains all the common psana initialization code needed
@@ -148,10 +151,10 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         """
         Initializes psana event handling on the collecting node.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        Psana event sources do not need to be initialized on the collecting node, so
+        Psana event handling does not need to be initialized on the collecting node, so
         this function actually does nothing.
 
         Arguments:
@@ -170,8 +173,11 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         """
         Initializes psana event handling on the processing nodes.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Psana event handling does not need to be initialized on the processing nodes,
+        so this function actually does nothing.
 
         Arguments:
 
@@ -202,23 +208,23 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         """
         Retrieves psana events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function retrieves events for processing (each event corresponds to a
-        single psana event). When OM retrieves real-time data at the LCLS facility,
-        each processing node receives data from a shared memory server operated by the
-        facility, running on the same machine as the node. The sever takes care of
-        distributing the data events. When instead OM uses the psana framework to read
-        offline data, this function tries to distribute the events as evenly as
-        possible across all the processing nodes. Each node should ideally process the
-        same number of events. Only the last node might process fewer, depending on how
-        evenly the total number can be split.
+        Each event retrieved by this function corresponds to a single psana event. When
+        OM retrieves real-time data at the LCLS facility, each processing node receives
+        data from a shared memory server operated by the facility, running on the same
+        machine as the node. The sever takes care of distributing the data events. When
+        instead OM uses the psana framework to read offline data, this function tries
+        to distribute the events as evenly as possible across all the processing nodes,
+        with each node ideally processing the same number of events. If the total
+        number of events cannot be split evenly, the last last node processes fewer
+        events then the others.
 
         Arguments:
 
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -263,14 +269,14 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         """
         Opens a psana event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Psana events do not need to be opened, so this function actually does nothing.
 
         Arguments:
 
-            event: a dictionary storing the event data.
+            event: A dictionary storing the event data.
         """
         pass
 
@@ -278,36 +284,16 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         """
         Closes a psana event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Psana events do not need to be closed, so this function actually does nothing.
 
         Arguments:
 
-            event: a dictionary storing the event data.
+            event: A dictionary storing the event data.
         """
         pass
-
-    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
-        """
-        Gets the number of frames in a psana event.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        Each psana event stores data associated with a single detector frame, so this
-        function always returns 1.
-
-        Arguments:
-
-            event: a dictionary storing the event data.
-
-        Returns:
-
-            int: the number of frames in the event.
-        """
-        return 1
 
     def extract_data(
         self,
@@ -317,8 +303,8 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         """
         Extracts data from a psana data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -332,7 +318,7 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
                 data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the frame being processed.
+                Data Source for the event being processed.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
@@ -354,12 +340,15 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
 
         return data
 
-    def initialize_frame_data_retrieval(self) -> None:
+    def initialize_event_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from psana.
+        Initializes event data retrievals from psana.
 
-        This function initializes the retrieval of a single standalone detector data
-        frame from psana, with all the information that refers to it.
+        This function initializes the retrieval of a single standalone data events
+        from psana.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
         """
         if self._source[-4:] != ":idx":
             self._source += ":idx"
@@ -379,30 +368,24 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
         psana_source: Any = self._initialize_psana_data_source()
         self._run = next(psana_source.runs())
 
-    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data related to the requested detector frame from an event.
+        Retrieves all data related to the requested event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function retrieves frame data from the event specified by the provided
-        psana unique event identifier. The identifier is a string of combining
-        psana timestamp and fiducial information, with the following format:
-        `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`. Since psana
-        data events are based around single detector frames, the unique frame
-        identifier provided to this function must be the string "0".
+        The psana unique event identifier is a string combining psana's timestamp and
+        fiducial information, with the following format:
+        `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`.
 
         Arguments:
 
-            event_id: a string that uniquely identifies a data event.
-
-            frame_id: a string that identifies a particular frame within the data
-                event.
+            event_id: A string that uniquely identifies a data event.
 
         Returns:
 
-            All data related to the requested detector data frame.
+            All data related to the requested event.
         """
         event_id_parts: List[str] = event_id.split("-")
         evt_id_timestamp: int = int(event_id_parts[0])
@@ -416,12 +399,6 @@ class PsanaDataEventHandler(OmDataEventHandlerBase):
             raise OmMissingDataEventError(
                 f"Data event {event_id} cannot be retrieved from the data event source"
             )
-        if frame_id != "0":
-            raise OmMissingFrameDataError(
-                f"Frame {frame_id} in data event {event_id} cannot be retrieved from "
-                "the  data event source"
-            )
-
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
         data_event["data"] = retrieved_event

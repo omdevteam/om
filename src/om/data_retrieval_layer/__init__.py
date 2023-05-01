@@ -19,13 +19,13 @@
 OM's Data Retrieval Layer.
 
 This package contains OM's Data Retrieval Layer (which manages the retrieval of data
-and data events from various sources). Functions and classes for different detectors,
-facilities and software frameworks are implemented in separate modules in the package.
-Other modules contain utility functions and classes.
+and data events from various sources). Modules in the package contain Functions and
+classes for specific detectors, facilities and software frameworks. A separate  module
+contain utility functions and classes.
 """
 
 from .data_retrieval_files import (  # noqa: F401
-    Eiger16MFilesDataRetrieval,
+    EigerFilesDataRetrieval,
     Jungfrau1MFilesDataRetrieval,
     Lambda1M5FilesDataRetrieval,
     RayonixMccdFilesDataRetrieval,
@@ -62,7 +62,7 @@ except ModuleNotFoundError:
 try:
     import PIL  # type: ignore  # noqa: F401
 
-    from .data_retrieval_http import Eiger16MHttpDataRetrieval  # noqa: F401
+    from .data_retrieval_http import EigerHttpDataRetrieval  # noqa: F401
 except ModuleNotFoundError:
     pass
 

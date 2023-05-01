@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Data Extraction Layer's base classes.
+Data Extraction Layer's Protocol classes.
 
-This module contains base abstract classes for OM's Data Extraction Layer.
+This module contains base Protocol classes for OM's Data Extraction Layer classes.
 """
 
 from typing import Any, Dict, Generator, Protocol
@@ -26,7 +26,7 @@ from typing import Any, Dict, Generator, Protocol
 from om.lib.parameters import MonitorParameters
 
 
-class OmDataSourceBase(Protocol):
+class OmDataSourceProtocol(Protocol):
     """
     See documentation of the `__init__` function.
     """
@@ -38,21 +38,19 @@ class OmDataSourceBase(Protocol):
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
-        Base class for OM's Data Source classes.
+        Protocol for OM's Data Source classes.
 
         Data Sources are classes that perform all the operations needed to retrieve
-        data, in OM, from a specific sensor or detector. A data source can be anything
-        from a simple diode or wave digitizer, to big x-ray or optical detector.
+        data from a single specific sensor or detector. A Data Source class can refer
+        to anything from a simple diode or wave digitizer, to big x-ray or optical
+        detector.
 
-        A data source class must be initialized with the full set of OM's configuration
+        This class Protocol describes the interface that every Data Source class in OM
+        must implement.
+
+        A Data Source class must be initialized with the full set of OM's configuration
         parameters, from which information about the sensor will be extracted. An
-        identifying name for the sensor must also be provided. A Data Source class
-        always provides one method that prepares OM to read data from the sensor, and
-        another one that retrieves data from it.
-
-        This class is the base class from which every other Data Source class should
-        inherit. All its methods are abstract. Each derived class must provide its own
-        detector- or sensor-specific implementations.
+        identifying name for the sensor must also be provided.
 
         Arguments:
 
@@ -98,7 +96,7 @@ class OmDataSourceBase(Protocol):
         ...
 
 
-class OmDataEventHandlerBase(Protocol):
+class OmDataEventHandlerProtocol(Protocol):
     """
     See documentation of the `__init__` function.
     """
@@ -107,35 +105,33 @@ class OmDataEventHandlerBase(Protocol):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceBase],
+        data_sources: Dict[str, OmDataSourceProtocol],
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
-        Base class for OM's Data Event Handler classes.
+        Protocol class for OM's Data Event Handler classes.
 
-        Data Event Handlers are classes that deal, in OM, with data events and their
-        sources. They have methods to initialize data event sources, retrieve events
-        from them, open and close events, and examine the events' content.
+        Data Event Handlers are classes that deal with data events and their sources.
+        They have methods to initialize data event sources, retrieve events from them,
+        open and close events, and examine the events' content.
+
+        This Protocol class describes the interface that every Data Event Handler class
+        in OM must implement.
 
         A Data Event Handler class must be initialized with a string describing its
-        data event source. Additionally, a set of Data Sources must be provided. They
-        instruct the Data Event Handler on how to retrieve data from the events.
-
-        This class is the base class from which every Data Event Handler should
-        inherit. All its methods are abstract. Each derived class must provide its own
-        specific implementations, tailored to a particular facility, detector or
-        software framework.
+        data event source, and with a set of Data Source class instances that instruct
+        the Data Event Handler on how to retrieve data from the events.
 
         Arguments:
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
+                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration
@@ -215,7 +211,7 @@ class OmDataEventHandlerBase(Protocol):
 
         This function processes a data event and makes its content accessible for OM.
         OM calls this function on each processing node before the
-        [extract_data][om.Protocols.data_retrieval_layer.OmDataEventHandlerBase.extract_data]
+        [extract_data][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
         function.
 
         Arguments:
@@ -230,29 +226,12 @@ class OmDataEventHandlerBase(Protocol):
 
         This function processes a data event and prepares it to be discarded by OM. OM
         calls this function on each processing node after the
-        [extract_data][om.Protocols.data_retrieval_layer.OmDataEventHandlerBase.extract_data]
+        [extract_data][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
         function.
 
         Arguments:
 
             event: A dictionary storing the event data.
-        """
-        ...
-
-    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
-        """
-        Gets the number of detector frames in an event.
-
-        This function returns the number of detector frames stored in a data event. OM
-        calls it after retrieving each event, to determine how many frames it contains.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-
-        Returns:
-
-            The number of frames in the event.
         """
         ...
 
@@ -270,8 +249,8 @@ class OmDataEventHandlerBase(Protocol):
         them. The data extracted by each function is then returned to the caller.
 
         For data events with multiple frames, OM calls this function once for each
-        frame in the event. The function always ...es the full event to each data
-        extracting function: an internal flag keeps track of which frame should be
+        frame in the event. The function always passes the full event to each data
+        extracting function: an internal flag keeps track of which frame must be
         processed in each particular call.
 
         Arguments:
@@ -285,44 +264,47 @@ class OmDataEventHandlerBase(Protocol):
                 * Each dictionary key identifies a Data Source in the event for which
                 data has been retrieved.
 
-                * The corresponding dictionary value stores the data extracted from the
-                Data Source for the frame being processed.
+                * The corresponding dictionary value stores the data that could be
+                extracted for the frame being processed.
         """
         ...
 
-    def initialize_frame_data_retrieval(self) -> None:
+    def initialize_event_data_retrieval(self) -> None:
         """
         Initializes frame data retrieval.
 
-        This function initializes the retrieval of a single standalone detector data
-        frame from a data event source, with all its related information. This is
+        This function initializes the retrieval of data for a single standalone data
+        event from a data event source, with all its related information. This is
         completely different from the way OM usually operates, retrieving a series of
-        events and frames in sequence. The function can be called on any type of node
-        in OM and even outside of an OnDA Monitor: it prepares the system to retrieve
-        the frame data, it initializes the Data Sources, etc. After this function has
-        been called, single frame data can be retrieved using the
-        [`retrieval_frame_data`][om.Protocols.data_retrieval_layer.OmDataEventHandlerBase.retrieve_frame_data]
+        events in sequence.
+
+        This function can be called on any type of node in OM and even outside of an
+        OnDA Monitor class instance. It prepares the system to retrieve the event data,
+        it initializes the relevant Data Sources, etc.
+
+        After this function has been called, data for single events can be retrieved by
+        invoking the
+        [`retrieve_event_data`][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.retrieve_event_data]
         function.
         """
         ...
 
-    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
         Retrieves all data related to the requested detector frame.
 
-        This function retrieves a standalone detector frame from a data event source,
-        together with all the data associated with it. Before this function can be
-        called, frame data retrieval must be initialized by calling the
-        [`initialize_frame_data_retrieval`][om.Protocols.data_retrieval_layer.OmDataEventHandlerBase.initialize_frame_data_retrieval]
+        This function retrieves from a data event source all the data associated with a
+        single standalone event.
+
+        Before this function can be called, frame data retrieval must be initialized by
+        calling the
+        [`initialize_event_data_retrieval`][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.initialize_event_data_retrieval]
         function. This function can then be used to retrieve all the data related to
-        the frame specified by the provided unique event and frame identifiers.
+        the event specified by the provided identifiers.
 
         Arguments:
 
             event_id: a string that uniquely identifies a data event.
-
-            frame_id: a string that identifies a particular frame within the data
-                event.
 
         Returns:
 
@@ -331,7 +313,7 @@ class OmDataEventHandlerBase(Protocol):
         ...
 
 
-class OmDataRetrievalBase(Protocol):
+class OmDataRetrievalProtocol(Protocol):
     """
     See documentation of the `__init__` function.
     """
@@ -343,27 +325,27 @@ class OmDataRetrievalBase(Protocol):
         source: str,
     ) -> None:
         """
-        Base class for OM's Data Retrieval classes.
+        Protocol for OM's Data Retrieval classes.
 
         Data Retrieval classes implement OM's Data Retrieval Layer for a specific
-        beamline, experiment or facility. They dictate how data is retrieved and
+        beamline, experiment or facility. They describe how data is retrieved and
         data events are managed.
 
-        A Data Retrieval class must be initialized with a string describing a data
-        event source, and the full set of OM's configuration
+        This Protocol class describes the interface that every Data Retrieval class in
+        OM must implement.
 
-        This class is the base class from which every Data Retrieval class should
-        inherit. All its methods are abstract. Each derived class must provide its own
-        implementations tailored to a specific beamline, facility or experiment.
+        A Data Retrieval class must be initialized with a string describing a data
+        event source, and the full set of OM's configuration parameters.
 
         Arguments:
 
             monitor_parameters: An object storing OM's configuration
+
             source: A string describing the data event source.
         """
         ...
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
 

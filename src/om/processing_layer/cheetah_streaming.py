@@ -45,7 +45,7 @@ from om.lib.geometry import GeometryInformation, TypeDetectorLayoutInformation
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqResponder
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.processing_layer import OmProcessingProtocol
 
 try:
     import msgpack  # type: ignore
@@ -63,7 +63,7 @@ except ImportError:
 msgpack_numpy.patch()
 
 
-class StreamingCheetahProcessing(OmProcessingBase):
+class StreamingCheetahProcessing(OmProcessingProtocol):
     """
     See documentation for the `__init__` function.
     """

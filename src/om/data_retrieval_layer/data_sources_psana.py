@@ -33,7 +33,7 @@ from om.lib.exceptions import (
     OmWrongParameterTypeError,
 )
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataSourceBase
+from om.protocols.data_retrieval_layer import OmDataSourceProtocol
 
 try:
     import psana  # type: ignore
@@ -101,7 +101,7 @@ def _get_psana_data_retrieval_function(
     return data_retrieval_function
 
 
-class CspadPsana(OmDataSourceBase):
+class CspadPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -211,7 +211,7 @@ class CspadPsana(OmDataSourceBase):
         return cspad_slab
 
 
-class Epix10kaPsana(OmDataSourceBase):
+class Epix10kaPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -306,7 +306,7 @@ class Epix10kaPsana(OmDataSourceBase):
         return epixka2m_reshaped
 
 
-class Jungfrau4MPsana(OmDataSourceBase):
+class Jungfrau4MPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -401,7 +401,7 @@ class Jungfrau4MPsana(OmDataSourceBase):
         return jungfrau_reshaped
 
 
-class Epix100Psana(OmDataSourceBase):
+class Epix100Psana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -491,7 +491,7 @@ class Epix100Psana(OmDataSourceBase):
         return epix_psana
 
 
-class RayonixPsana(OmDataSourceBase):
+class RayonixPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -573,7 +573,7 @@ class RayonixPsana(OmDataSourceBase):
         return rayonix_psana
 
 
-class OpalPsana(OmDataSourceBase):
+class OpalPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -654,7 +654,7 @@ class OpalPsana(OmDataSourceBase):
         return opal_psana
 
 
-class AcqirisPsana(OmDataSourceBase):
+class AcqirisPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -760,7 +760,7 @@ class AcqirisPsana(OmDataSourceBase):
         )
 
 
-class AssembledDetectorPsana(OmDataSourceBase):
+class AssembledDetectorPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -846,7 +846,7 @@ class AssembledDetectorPsana(OmDataSourceBase):
         return assembled_data
 
 
-class Wave8Psana(OmDataSourceBase):
+class Wave8Psana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -921,7 +921,7 @@ class Wave8Psana(OmDataSourceBase):
         return cast(float, self._detector_interface())
 
 
-class TimestampPsana(OmDataSourceBase):
+class TimestampPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -992,7 +992,7 @@ class TimestampPsana(OmDataSourceBase):
         )
 
 
-class EventIdPsana(OmDataSourceBase):
+class EventIdPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -1069,7 +1069,7 @@ class EventIdPsana(OmDataSourceBase):
         return f"{timestamp_epoch_format[0]}-{timestamp_epoch_format[1]}-{fiducials}"
 
 
-class EpicsVariablePsana(OmDataSourceBase):
+class EpicsVariablePsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -1149,7 +1149,7 @@ class EpicsVariablePsana(OmDataSourceBase):
         return self._detector_interface()
 
 
-class BeamEnergyPsana(OmDataSourceBase):
+class BeamEnergyPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -1215,7 +1215,7 @@ class BeamEnergyPsana(OmDataSourceBase):
         )
 
 
-class BeamEnergyFromEpicsVariablePsana(OmDataSourceBase):
+class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -1291,7 +1291,7 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceBase):
         return photon_energy
 
 
-class EvrCodesPsana(OmDataSourceBase):
+class EvrCodesPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -1380,7 +1380,7 @@ class EvrCodesPsana(OmDataSourceBase):
         return self._requested_event_code in current_evr_codes
 
 
-class LclsExtraPsana(OmDataSourceBase):
+class LclsExtraPsana(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """

@@ -29,11 +29,11 @@ from om.lib.exceptions import OmDataExtractionError
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
+    OmDataEventHandlerProtocol,
+    OmDataRetrievalProtocol,
 )
-from om.protocols.parallelization_layer import OmParallelizationBase
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.parallelization_layer import OmParallelizationProtocol
+from om.protocols.processing_layer import OmProcessingProtocol
 
 
 def _om_processing_node(
@@ -42,8 +42,8 @@ def _om_processing_node(
     node_pool_size: int,
     data_queue: "Queue[Tuple[Dict[str, Any], int]]",
     message_pipe: connection.Connection,
-    data_event_handler: OmDataEventHandlerBase,
-    processing_layer: OmProcessingBase,
+    data_event_handler: OmDataEventHandlerProtocol,
+    processing_layer: OmProcessingProtocol,
     monitor_params: MonitorParameters,
 ) -> None:
     # This function implements a processing node. It is designed to be run as a
@@ -69,7 +69,6 @@ def _om_processing_node(
 
     event: Dict[str, Any]
     for event in events:
-
         feedback_dict: Dict[str, Any] = {}
         if message_pipe.poll():
             message: Dict[str, Any] = message_pipe.recv()
@@ -81,32 +80,19 @@ def _om_processing_node(
                 feedback_dict = message
 
         data_event_handler.open_event(event=event)
-        n_frames_in_evt: int = data_event_handler.get_num_frames_in_event(event=event)
-        if num_frames_in_event_to_process is not None:
-            num_frames_to_process: int = min(
-                n_frames_in_evt, num_frames_in_event_to_process
+        try:
+            data: Dict[str, Any] = data_event_handler.extract_data(event=event)
+        except OmDataExtractionError as exc:
+            console.print(f"{get_current_timestamp()} {exc}", style="warning")
+            console.print(
+                f"{get_current_timestamp()} Skipping event...", style="warning"
             )
-        else:
-            num_frames_to_process = n_frames_in_evt
-        # Iterates over the last 'num_frames_to_process' frames in the event.
-        frame_offset: int
-        for frame_offset in range(-num_frames_to_process, 0):
-            current_frame: int = n_frames_in_evt + frame_offset
-            event["current_frame"] = current_frame
-            try:
-                data: Dict[str, Any] = data_event_handler.extract_data(event=event)
-            except OmDataExtractionError as exc:
-                console.print(f"{get_current_timestamp()} {exc}", style="warning")
-                console.print(
-                    f"{get_current_timestamp()} Skipping event...", style="warning"
-                )
-                continue
-            data.update(feedback_dict)
-            processed_data: Tuple[Dict[str, Any], int] = processing_layer.process_data(
-                node_rank=rank, node_pool_size=node_pool_size, data=data
-            )
-            data_queue.put(processed_data)
-        # Makes sure that the last MPI message has processed.
+            continue
+        data.update(feedback_dict)
+        processed_data: Tuple[Dict[str, Any], int] = processing_layer.process_data(
+            node_rank=rank, node_pool_size=node_pool_size, data=data
+        )
+        data_queue.put(processed_data)
         data_event_handler.close_event(event=event)
 
     # After finishing iterating over the events to process, calls the
@@ -127,7 +113,7 @@ def _om_processing_node(
     return
 
 
-class MultiprocessingParallelization(OmParallelizationBase):
+class MultiprocessingParallelization(OmParallelizationProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -135,8 +121,8 @@ class MultiprocessingParallelization(OmParallelizationBase):
     def __init__(
         self,
         *,
-        data_retrieval_layer: OmDataRetrievalBase,
-        processing_layer: OmProcessingBase,
+        data_retrieval_layer: OmDataRetrievalProtocol,
+        processing_layer: OmProcessingProtocol,
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
@@ -160,10 +146,10 @@ class MultiprocessingParallelization(OmParallelizationBase):
 
             monitor_parameters: An object storing OM's configuration
         """
-        self._data_event_handler: OmDataEventHandlerBase = (
+        self._data_event_handler: OmDataEventHandlerProtocol = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: OmProcessingBase = processing_layer
+        self._processing_layer: OmProcessingProtocol = processing_layer
         self._monitor_params: MonitorParameters = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(

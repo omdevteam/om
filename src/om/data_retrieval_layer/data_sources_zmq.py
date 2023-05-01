@@ -28,10 +28,10 @@ from numpy.typing import NDArray
 from om.data_retrieval_layer.data_sources_generic import get_calibration_request
 from om.data_retrieval_layer.utils_generic import Jungfrau1MCalibration
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataSourceBase
+from om.protocols.data_retrieval_layer import OmDataSourceProtocol
 
 
-class Jungfrau1MZmq(OmDataSourceBase):
+class Jungfrau1MZmq(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -144,7 +144,7 @@ class Jungfrau1MZmq(OmDataSourceBase):
             return data
 
 
-class TimestampJungfrau1MZmq(OmDataSourceBase):
+class TimestampJungfrau1MZmq(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -214,7 +214,7 @@ class TimestampJungfrau1MZmq(OmDataSourceBase):
         return cast(numpy.float64, event["data"][0]["timestamp"])
 
 
-class EventIdJungfrau1MZmq(OmDataSourceBase):
+class EventIdJungfrau1MZmq(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """

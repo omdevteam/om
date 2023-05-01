@@ -18,7 +18,7 @@
 """
 Retrieval of data from a ZMQ stream.
 
-This module contains Data Retrieval classes that deal with ZMQ streams.
+This module contains Data Retrieval classes that deal with ZMQ data streams.
 """
 from typing import Dict
 
@@ -36,13 +36,13 @@ from om.data_retrieval_layer.data_sources_zmq import (
 )
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
+    OmDataEventHandlerProtocol,
+    OmDataRetrievalProtocol,
+    OmDataSourceProtocol,
 )
 
 
-class Jungfrau1MZmqDataRetrieval(OmDataRetrievalBase):
+class Jungfrau1MZmqDataRetrieval(OmDataRetrievalProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -51,11 +51,12 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalBase):
         """
         Data Retrieval for a Jungfrau 1M's ZMQ stream.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements OM's Data Retrieval Layer for a Jungfrau 1M detector
         broadcasting data via a ZMQ stream.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         * This class considers an individual data event corresponding to the content of
           a single ZMQ message sent by the Jungfrau 1M. Each message sent by the
@@ -70,26 +71,21 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalBase):
           parameter group).
 
         * The source string required by this Data Retrieval class is the URL where the
-          Jungfrau 1M detector broadcasts its data stream.
+          Jungfrau 1M detector broadcasts data.
 
         Arguments:
 
-            monitor_parameters: A [MonitorParameters]
-                [om.library.MonitorParameters] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
 
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceBase] = {
+        data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampJungfrau1MZmq(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
             "event_id": EventIdJungfrau1MZmq(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "frame_id": FrameIdZero(
-                data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
             "detector_data": Jungfrau1MZmq(
                 data_source_name="detector", monitor_parameters=monitor_parameters
@@ -104,7 +100,7 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalBase):
             ),
         }
 
-        self._data_event_handler: OmDataEventHandlerBase = (
+        self._data_event_handler: OmDataEventHandlerProtocol = (
             Jungfrau1MZmqDataEventHandler(
                 source=source,
                 monitor_parameters=monitor_parameters,
@@ -112,12 +108,12 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalBase):
             )
         )
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Returns:
 

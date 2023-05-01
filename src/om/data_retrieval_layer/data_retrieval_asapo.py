@@ -18,8 +18,8 @@
 """
 Retrieval of data from ASAP::O.
 
-This module contains Data Retrieval classes that deal with the ASAPO software framework
-(used at the PETRA III facility).
+This module contains Data Retrieval classes that deal with the ASAP::O software
+framework (used at the PETRA III facility).
 """
 from typing import Dict
 
@@ -34,55 +34,55 @@ from om.data_retrieval_layer.data_sources_asapo import (
 from om.data_retrieval_layer.data_sources_generic import FrameIdZero
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
+    OmDataEventHandlerProtocol,
+    OmDataRetrievalProtocol,
+    OmDataSourceProtocol,
 )
 
 
-class EigerAsapoDataRetrieval(OmDataRetrievalBase):
+class EigerAsapoDataRetrieval(OmDataRetrievalProtocol):
     """
     See documentation of the `__init__` function.
     """
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval from ASAPO at the PETRA III facility, with Eiger 16M detector.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Data Retrieval from ASAP::O at the PETRA III facility, with Eiger 16M detector.
 
         This class implements OM's Data Retrieval Layer for an Eiger 16M detector using
-        ASAPO software framework.
+        ASAP::O software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         * This class considers an individual data event as equivalent to the content of
-          an ASAPO event, which stores data related to a single detector frame.
+          an ASAP::O event, which stores data related to a single detector frame.
 
-        * ASAPO provides timestamp, beam energy and detector distance information for
+        * The ASAP::O stream name and the ID of the ASAP::O event within the stream,
+          combined into a single string, are used as event identifier.
+
+        * ASAP::O provides timestamp, beam energy and detector distance information for
           each event.
 
-        * The source string required by this Data Event Handler is either beamtime ID
-          (for online data retrieval) or beamtime ID and ASAPO stream name separated by
-          ":" (for offline data retrieval).
+        * The source string required by this Data Retrieval class is either the ID of
+          the beamtime for which OM is being used (for online data retrieval) or the ID
+          of the beamtime and the name of the ASAP::O stream separated by a colon (for
+          offline data retrieval).
 
         Arguments:
 
-            monitor_parameters: A [MonitorParameters]
-                [om.library.parameters.MonitorParameters] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
 
             source: A string describing the data event source.
         """
 
-        data_sources: Dict[str, OmDataSourceBase] = {
+        data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampAsapo(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
             "event_id": EventIdAsapo(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "frame_id": FrameIdZero(
-                data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
             "detector_data": EigerAsapo(
                 data_source_name="detector", monitor_parameters=monitor_parameters
@@ -97,18 +97,18 @@ class EigerAsapoDataRetrieval(OmDataRetrievalBase):
             ),
         }
 
-        self._data_event_handler: OmDataEventHandlerBase = AsapoDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerProtocol = AsapoDataEventHandler(
             source=source,
             monitor_parameters=monitor_parameters,
             data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Returns:
 

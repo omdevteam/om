@@ -16,19 +16,19 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Parallelization Layer's base classes.
+Parallelization Layer's Protocol classes.
 
-This module contains base abstract classes for OM's Parallelization Layer.
+This module contains base Protocol classes for OM's Parallelization Layer.
 """
 
 from typing import Protocol
 
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataRetrievalBase
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.data_retrieval_layer import OmDataRetrievalProtocol
+from om.protocols.processing_layer import OmProcessingProtocol
 
 
-class OmParallelizationBase(Protocol):
+class OmParallelizationProtocol(Protocol):
     """
     See documentation of the `__init__` function.
     """
@@ -36,31 +36,29 @@ class OmParallelizationBase(Protocol):
     def __init__(
         self,
         *,
-        data_retrieval_layer: OmDataRetrievalBase,
-        processing_layer: OmProcessingBase,
+        data_retrieval_layer: OmDataRetrievalProtocol,
+        processing_layer: OmProcessingProtocol,
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
-        Base class for OM's Parallelization Layer.
+        Protocol for OM's Parallelization classes.
 
         Parallelization classes orchestrate OM's processing and collecting nodes, and
         take care of the communication between them.
 
         * When OM start, a Parallelization class instance initializes several
-          processing nodes, plus a single collecting node.
-
-        * The Parallelization class associates an instance of a Data Retrieval class
-          (see [OmDataRetrievalBase][om.Protocols.data_retrieval_layer.OmDataRetrievalBase])  # noqa: E501
+          processing nodes, plus a single collecting node. The class then associates an
+          instance of a Data Retrieval class (see
+          [OmDataRetrievalProtocol;][om.Protocols.data_retrieval_layer.OmDataRetrievalProtocol])  # noqa: E501
           and an instance of a Processing class (see
-          [OmProcessingBase][om.Protocols.processing_layer.OmProcessingBase]) to the
-          nodes.
+          OmProcessingProtocol][om.Protocols.processing_layer.OmProcessingProtocol]) to
+          each node.
 
         * Each processing node retrieves an event from a data event source by calling
           the relevant Data Retrieval class methods. It then invokes the appropriate
-          Processing class methods on every frame in the event. Finally, it transfers
-          the processed data to the collecting node. The node then retrieves another
-          event, and the cycle continues until there are no more data events or OM
-          shuts down.
+          Processing class methods on the event. Finally, it transfers the processed
+          data to the collecting node. The node then retrieves another event, and the
+          cycle continues until there are no more data events or OM shuts down.
 
         * Every time it receives data from a processing node, the collecting node
           invokes the relevant Processing class methods to aggregate the received data.
@@ -69,16 +67,15 @@ class OmParallelizationBase(Protocol):
           final clean-up tasks by calling the appropriate methods of the Processing
           class. All nodes then shut down.
 
-        This class is the base abstract class from which every Parallelization class
-        should inherit. All its methods are abstract: each derived class must provide
-        its own implementations tailored to its specific parallelization strategy.
+        This Protocol class describes the interface that every Parallelization class in
+        OM must implement.
 
         Arguments:
 
-            data_retrieval_layer: A class defining how data and data events are
+            data_retrieval_layer: A class instance defining how data and data events are
                 retrieved and handled.
 
-            processing_layer: A class defining how retrieved data is processed.
+            processing_layer: A class instance defining how retrieved data is processed.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
@@ -90,11 +87,10 @@ class OmParallelizationBase(Protocol):
 
         This function begins operations on the processing and collecting nodes.
 
-        * When this function is called on a processing node, the node starts retrieving
-          data events and processing them.
-
-        * When this function is called on the collecting node, the node starts
-          receiving data from the processing nodes and aggregating it.
+        When this function is called on a processing node, the processing node starts
+        retrieving data events and processing them. When instead this function is
+        called on the collecting node, the node starts receiving data from the
+        processing nodes and aggregating it.
         """
         ...
 
@@ -104,13 +100,11 @@ class OmParallelizationBase(Protocol):
 
         This function stops the processing and collecting nodes.
 
-        * When this function is called on a processing node, the processing node
-          communicates to the collecting node that it is shutting down, then shuts
-          down.
-
-        * When this function is called on the collecting node, the collecting node
-          tells every processing node to shut down, waits for all the processing nodes
-          to confirm that they have stopped operating, then shuts itself down.
+        When this function is called on a processing node, the processing node
+        communicates to the collecting node that it is shutting down, then shuts down.
+        When instead this function is called on the collecting node, the collecting
+        node tells every processing node to shut down, waits for all the processing
+        nodes to confirm that they have stopped operating, then shuts itself down.
 
         Arguments:
 

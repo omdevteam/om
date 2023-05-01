@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Handling of HTTP-based data events.
+Handling of HTTP/REST-based data events.
 
 This module contains Data Event Handler classes that manipulate events originating from
-the http/REST interface.
+the HTTP/REST interface used by detectors from the Dectris company.
 """
 import sys
 import time
@@ -34,10 +34,13 @@ from om.lib.exceptions import (
     OmEigerHttpInterfaceInitializationError,
 )
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataEventHandlerBase, OmDataSourceBase
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerProtocol,
+    OmDataSourceProtocol,
+)
 
 
-class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
+class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
     """
     See documentation of the `__init__` function.
 
@@ -47,41 +50,45 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceBase],
+        data_sources: Dict[str, OmDataSourceProtocol],
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
-        Data Event Handler for events recovered from Eiger 16M http/REST interface.
+        Data Event Handler for events recovered from Eiger's HTTP/REST interface.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This class handles data events recovered from the HTTP/REST interface of an
+        Eiger detector.
 
-        This class handles data events recovered from the Eiger 16M http/REST interface.
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         * For this Event Handler, a data event corresponds to the content of an
-          individual Eiger 16M event.
+          individual event retrieved from the HTTP/REST interface (usually
+          a single detector data frame)
 
         * The source string for this Data Event Handler is the base URL of the
-          'monitor' subsystem of the Eiger detector http/REST interface:
-          http://<address_of_dcu>/monitor/api/<version>.
+          'monitor' subsystem of the Eiger detector HTTP/REST interface, with the form:
+          `http://<address_of_dcu>/monitor/api/<version>`.
 
         Arguments:
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Sources class
+                instances.
 
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
         self._source: str = source
         self._monitor_params: MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
+        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
@@ -107,18 +114,18 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes Eiger 16M http/REST event handling on the collecting node.
+        Initializes Eiger's HTTP/REST event handling on the collecting node.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes Eiger 16M http/REST monitor mode and sets its
+        This function initializes Eiger's http/REST monitor mode and sets its
         parameters.
 
         Arguments:
 
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -164,15 +171,15 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
         self, *, node_rank: int, node_pool_size: int
     ) -> Any:
         """
-        Initializes Eiger 16M http/REST event handling on the processing nodes.
+        Initializes Eiger's HTTP/REST event handling on the processing nodes.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -203,18 +210,18 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
         node_pool_size: int,
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Retrieves Eiger 16M events from http/REST interface.
+        Retrieves events from Eiger's HTTP/REST interface.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This Data Event Handler retrieved events for processing (each event corresponds
-        to a single Eiger 16M http/REST event).
+        Each event retrieved by this function corresponds to a single event from
+        Eiger's HTTP/REST interface (a single detector data frame).
 
         Arguments:
 
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -252,12 +259,12 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
 
     def open_event(self, *, event: Dict[str, Any]) -> None:
         """
-        Opens an Eiger 16M http/REST event.
+        Opens an Eiger HTTP/REST event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        Eiger 16M http/REST events do not need to be opened, so this function actually
+        Eiger's HTTP/REST events do not need to be opened, so this function actually
         does nothing.
 
         Arguments:
@@ -268,39 +275,19 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
 
     def close_event(self, *, event: Dict[str, Any]) -> None:
         """
-        Closes an Eiger 16M http/REST event.
+        Closes an Eiger HTTP/REST event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        Eiger 16M http/REST events do not need to be closed, so this function actually
-        does nothing.
+        Eiger HTTP/REST events do not need to be closed, so this function actually does
+        nothing.
 
         Arguments:
 
-            event: a dictionary storing the event data.
+            event: A dictionary storing the event data.
         """
         pass
-
-    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
-        """
-        Gets the number of frames in an Eiger 16M http/REST event.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        Each Eiger 16M http/REST event stores data associated with a single detector
-        frame, so this function always returns 1.
-
-        Arguments:
-
-            event: a dictionary storing the event data.
-
-        Returns:
-
-            int: the number of frames in the event.
-        """
-        return 1
 
     def extract_data(
         self,
@@ -308,10 +295,10 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
         event: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
-        Extracts data from a Eiger 16M http/REST event.
+        Extracts data from an Eiger HTTP/REST event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -321,11 +308,11 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
 
             A dictionary storing the extracted data.
 
-                * Each dictionary key identifies the Data Source from which the data
-                has been retrieved.
+                * Each dictionary key identifies a Data Source in the event for which
+                data has been retrieved.
 
-                * The corresponding dictionary value stores the data that was extracted
-                from the Data Source for the provided event.
+                * The corresponding dictionary value stores the data extracted from the
+                Data Source for the event being processed.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
@@ -347,31 +334,38 @@ class Eiger16MHttpDataEventHandler(OmDataEventHandlerBase):
 
         return data
 
-    def initialize_frame_data_retrieval(self) -> None:
+    def initialize_event_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from psana.
+        Initializes event data retrievals from from Eiger's HTTP/REST interface.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
+
+        Eiger's HTTP/REST interface does not allow the retrieval of standalone data
+        events, so this function has no implementation.
         """
         raise NotImplementedError
 
-    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data related to the requested detector frame from an event.
+        Retrieves all data related to the requested event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        The event identifier fot Eiger's HTTP/REST interface corresponds to a string
+        with the format: `{SeriesID_FrameID}`, where SeriesID and FrameID are two
+        values generated for each event by the HTTP/REST interface.
+
+        Eiger's HTTP/REST interface does not allow the retrieval of standalone data
+        events, so this function has no implementation.
 
         Arguments:
 
-            event_id: a string that uniquely identifies a data event.
-
-            frame_id: a string that identifies a particular frame within the data
-                event.
+            event_id: A string that uniquely identifies a data event.
 
         Returns:
 
-            All data related to the requested detector data frame.
+            All data related to the requested detector eventss.
         """
         raise NotImplementedError

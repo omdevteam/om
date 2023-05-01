@@ -27,8 +27,8 @@ from om.lib.exceptions import (
 )
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
+    OmDataEventHandlerProtocol,
+    OmDataRetrievalProtocol,
 )
 
 
@@ -69,7 +69,7 @@ class OmFrameDataRetrieval:
                 f"data_retrieval_layer.{data_retrieval_layer_class_name}"
             )
             try:
-                data_retrieval_layer_class: Type[OmDataRetrievalBase] = getattr(
+                data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = getattr(
                     data_retrieval_layer_module, data_retrieval_layer_class_name
                 )
             except AttributeError:
@@ -78,12 +78,12 @@ class OmFrameDataRetrieval:
                     "the data_retrieval_layer file."
                 )
 
-            data_retrieval_layer: OmDataRetrievalBase = data_retrieval_layer_class(
+            data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
                 monitor_parameters=monitor_parameters,
                 source=source,
             )
 
-            self._data_event_handler: OmDataEventHandlerBase = (
+            self._data_event_handler: OmDataEventHandlerProtocol = (
                 data_retrieval_layer.get_data_event_handler()
             )
 
@@ -103,7 +103,7 @@ class OmFrameDataRetrieval:
                         f"error: {exc_type.__name__}: {exc_value}"
                     ) from exc
 
-    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+    def retrieve_frame_data(self, event_id: str) -> Dict[str, Any]:
         """
         Retrieves all data related to the requested detector frame.
 
@@ -114,13 +114,10 @@ class OmFrameDataRetrieval:
 
             event_id: a string that uniquely identifies a data event.
 
-            frame_id: a string that identifies a particular frame within the data
-                event.
-
         Returns:
 
             All data related to the requested detector data frame.
         """
         return self._data_event_handler.retrieve_frame_data(
-            event_id=event_id, frame_id=frame_id
+            event_id=event_id
         )

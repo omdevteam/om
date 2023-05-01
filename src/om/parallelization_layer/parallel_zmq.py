@@ -31,11 +31,11 @@ from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import get_current_machine_ip
 from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
+    OmDataEventHandlerProtocol,
+    OmDataRetrievalProtocol,
 )
-from om.protocols.parallelization_layer import OmParallelizationBase
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.parallelization_layer import OmParallelizationProtocol
+from om.protocols.processing_layer import OmProcessingProtocol
 
 
 def _om_processing_node(
@@ -44,8 +44,8 @@ def _om_processing_node(
     node_pool_size: int,
     # data_queue: "multiprocessing.Queue[Tuple[Dict[str, Any], int]]",
     # message_pipe: multiprocessing.connection.Connection,
-    data_event_handler: OmDataEventHandlerBase,
-    processing_layer: OmProcessingBase,
+    data_event_handler: OmDataEventHandlerProtocol,
+    processing_layer: OmProcessingProtocol,
     monitor_params: MonitorParameters,
 ) -> None:
     num_frames_in_event_to_process: int = monitor_params.get_parameter(
@@ -83,12 +83,10 @@ def _om_processing_node(
 
     event: Dict[str, Any]
     for event in events:
-
         feedback_dict: Dict[str, Any] = {}
 
         socks = dict(zmq_poller.poll(0))
         if socket_sub in socks and socks[socket_sub] == zmq.POLLIN:
-
             _ = socket_sub.recv_string()
             message: Dict[str, Any] = socket_sub.recv_pyobj()
             if "stop" in message:
@@ -99,31 +97,19 @@ def _om_processing_node(
                 feedback_dict = message
 
         data_event_handler.open_event(event=event)
-        n_frames_in_evt: int = data_event_handler.get_num_frames_in_event(event=event)
-        if num_frames_in_event_to_process is not None:
-            num_frames_to_process: int = min(
-                n_frames_in_evt, num_frames_in_event_to_process
+        try:
+            data: Dict[str, Any] = data_event_handler.extract_data(event=event)
+        except OmDataExtractionError as exc:
+            console.print(f"{get_current_timestamp()} {exc}", style="warning")
+            console.print(
+                f"{get_current_timestamp()} Skipping event...", style="warning"
             )
-        else:
-            num_frames_to_process = n_frames_in_evt
-
-        frame_offset: int
-        for frame_offset in range(-num_frames_to_process, 0):
-            current_frame: int = n_frames_in_evt + frame_offset
-            event["current_frame"] = current_frame
-            try:
-                data: Dict[str, Any] = data_event_handler.extract_data(event=event)
-            except OmDataExtractionError as exc:
-                console.print(f"{get_current_timestamp()} {exc}", style="warning")
-                console.print(
-                    f"{get_current_timestamp()} Skipping event...", style="warning"
-                )
-                continue
-            data.update(feedback_dict)
-            processed_data: Tuple[Dict[str, Any], int] = processing_layer.process_data(
-                node_rank=rank, node_pool_size=node_pool_size, data=data
-            )
-            sender_push.send_pyobj(processed_data)
+            continue
+        data.update(feedback_dict)
+        processed_data: Tuple[Dict[str, Any], int] = processing_layer.process_data(
+            node_rank=rank, node_pool_size=node_pool_size, data=data
+        )
+        sender_push.send_pyobj(processed_data)
         # Makes sure that the last MPI message has processed.
         data_event_handler.close_event(event=event)
 
@@ -145,7 +131,7 @@ def _om_processing_node(
     return
 
 
-class ZmqParallelization(OmParallelizationBase):
+class ZmqParallelization(OmParallelizationProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -153,8 +139,8 @@ class ZmqParallelization(OmParallelizationBase):
     def __init__(
         self,
         *,
-        data_retrieval_layer: OmDataRetrievalBase,
-        processing_layer: OmProcessingBase,
+        data_retrieval_layer: OmDataRetrievalProtocol,
+        processing_layer: OmProcessingProtocol,
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
@@ -191,10 +177,10 @@ class ZmqParallelization(OmParallelizationBase):
         self._zmq_poller = zmq.Poller()
         self._zmq_poller.register(self._receiver_pull, zmq.POLLIN)
 
-        self._data_event_handler: OmDataEventHandlerBase = (
+        self._data_event_handler: OmDataEventHandlerProtocol = (
             data_retrieval_layer.get_data_event_handler()
         )
-        self._processing_layer: OmProcessingBase = processing_layer
+        self._processing_layer: OmProcessingProtocol = processing_layer
         self._monitor_params: MonitorParameters = monitor_parameters
 
         self._num_frames_in_event_to_process: int = self._monitor_params.get_parameter(

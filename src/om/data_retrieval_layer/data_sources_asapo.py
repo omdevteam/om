@@ -18,7 +18,7 @@
 """
 ASAPO-related data sources.
 
-This module contains Data Source classes that deal with data retrieved from the ASAPO
+This module contains Data Source classes that deal with data retrieved from the ASAP::O
 software framework (used at the PETRA III facility).
 """
 from typing import Any, Dict, Union, cast
@@ -29,7 +29,7 @@ from scipy import constants  # type: ignore
 
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataSourceBase
+from om.protocols.data_retrieval_layer import OmDataSourceProtocol
 
 try:
     import seedee  # type: ignore
@@ -39,7 +39,7 @@ except ImportError:
     )
 
 
-class EigerAsapo(OmDataSourceBase):
+class EigerAsapo(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -51,14 +51,14 @@ class EigerAsapo(OmDataSourceBase):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Eiger 16M detector data frames from the ASAPO software framework at the PETRA
-        III facility.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Eiger 16M detector data from the ASAP::O at the PETRA III facility.
 
         This class deals with the retrieval of a EIGER 16M detector data frame from the
-        ASAPO software framework.
+        ASAPO software framework, as used at the PETRA III facility.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -73,12 +73,12 @@ class EigerAsapo(OmDataSourceBase):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Eiger 16M detector frame data source.
+        Initializes the ASAP::O Eiger 16M detector data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        No initialization is needed to retrieve a detector data frame from ASAPO, so
+        No initialization is needed to retrieve a detector data frame from ASAP::O, so
         this function actually does nothing.
         """
         pass
@@ -87,13 +87,14 @@ class EigerAsapo(OmDataSourceBase):
         self, *, event: Dict[str, Any]
     ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
-        Retrieves an Eiger 16M detector data frame from ASAPO.
+        Retrieves an Eiger 16M detector data frame from ASAP::O.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function retrieves from ASAPO the detector data frame associated with the
-        provided event. It returns the frame as a 2D array storing pixel information.
+        This function retrieves from ASAP::O the detector data frame associated with
+        the provided event, and returns the detector frame as a 2D array storing pixel
+        information.
 
         Arguments:
 
@@ -112,7 +113,7 @@ class EigerAsapo(OmDataSourceBase):
         )
 
 
-class TimestampAsapo(OmDataSourceBase):
+class TimestampAsapo(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -124,13 +125,14 @@ class TimestampAsapo(OmDataSourceBase):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Timestamp information from ASAPO at the PETRA III facility.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Timestamp information from ASAP::O at the PETRA III facility.
 
         This class deals with the retrieval of timestamp information from the ASAPO
-        software framework. ASAPO provides this information for each event.
+        software framework. ASAP::O provides this information for each event.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -145,10 +147,10 @@ class TimestampAsapo(OmDataSourceBase):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ASAPO timestamp data source.
+        Initializes the ASAP::O timestamp data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve timestamp information from ASAPO,
         so this function actually does nothing.
@@ -157,13 +159,13 @@ class TimestampAsapo(OmDataSourceBase):
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        Retrieves timestamp information from ASAPO.
+        Retrieves timestamp information from ASAP::O.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function retrieves from ASAPO the timestamp information for the provided
-        event.
+        This function retrieves from ASAP::O the timestamp information associated with
+        the provided event.
 
         Arguments:
 
@@ -176,7 +178,7 @@ class TimestampAsapo(OmDataSourceBase):
         return cast(numpy.float64, event["metadata"]["timestamp"] / 1e9)
 
 
-class EventIdAsapo(OmDataSourceBase):
+class EventIdAsapo(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -188,16 +190,18 @@ class EventIdAsapo(OmDataSourceBase):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Data event identifier from the ASAPO software framework at the PETRA III
-        facility.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Data event identifier from ASAPO at the PETRA III facility.
 
         This class deals with the retrieval of a unique event identifier for
-        ASAPO-based data events. With ASAPO, an OM's data event corresponds to the
-        content of an individual ASAPO event. The combination of ASAPO stream name and
-        ASAPO event ID is used to generate an event identifier.
+        ASAP::O-based data events.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        With ASAP::O, an OM's data event corresponds to the content of an individual
+        ASAP::O event. The combination of ASAPO stream name and ASAPO event ID is used
+        to generate an event identifier.
 
         Arguments:
 
@@ -212,10 +216,10 @@ class EventIdAsapo(OmDataSourceBase):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ASAPO event identifier data source.
+        Initializes the ASAP::O event identifier data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is required to retrieve an event identifier for a ASAPO-based
         data event, so this function actually does nothing.
@@ -224,16 +228,16 @@ class EventIdAsapo(OmDataSourceBase):
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for an ASAPO-based data event.
+        Retrieves an event identifier for an ASAP::O-based data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function constructs the event identifier for the provided event by joining
         the following elements in a single string, with the "//" symbol placed between
         them.
 
-        * The name of the ASAPO stream.
+        * The name of the ASAP::O stream.
 
         * The ID of the event in the stream.
 
@@ -250,7 +254,7 @@ class EventIdAsapo(OmDataSourceBase):
         )
 
 
-class BeamEnergyAsapo(OmDataSourceBase):
+class BeamEnergyAsapo(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -262,14 +266,14 @@ class BeamEnergyAsapo(OmDataSourceBase):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Beam energy information from the ASAPO software framework at the PETRA III
-        facility.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Beam energy information from ASAP::O at the PETRA III facility.
 
         This class deals with the retrieval of beam energy information from ASAPO.
-        ASAPO provides this information for each event.
+        ASAP::O provides this information for each event.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -284,10 +288,10 @@ class BeamEnergyAsapo(OmDataSourceBase):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ASAPO beam energy data source.
+        Initializes the ASAP::O beam energy data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is required to retrieve the beam energy for an ASAPO-based
         data event, so this function actually does nothing.
@@ -296,13 +300,13 @@ class BeamEnergyAsapo(OmDataSourceBase):
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
-        Retrieves beam energy information from ASAPO.
+        Retrieves beam energy information from ASAP::O.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function retrieves from ASAPO the beam energy information for the provided
-        event.
+        This function retrieves from ASAP::O the beam energy information associated
+        with the provided event.
 
         Arguments:
 
@@ -321,7 +325,7 @@ class BeamEnergyAsapo(OmDataSourceBase):
         return cast(float, constants.h * constants.c / (wavelength * constants.e))
 
 
-class DetectorDistanceAsapo(OmDataSourceBase):
+class DetectorDistanceAsapo(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -333,14 +337,14 @@ class DetectorDistanceAsapo(OmDataSourceBase):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector distance information from the ASAPO software framework at the PETRA
-        III facility.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Detector distance information from ASAPO at the PETRA III facility.
 
         This class deals with the retrieval of detector distance information from
-        ASAPO. ASAPO provides this information for each event.
+        ASAP::O. ASAP::O provides this information for each event.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -355,25 +359,25 @@ class DetectorDistanceAsapo(OmDataSourceBase):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ASAPO detector distance data source.
+        Initializes the ASAP::O detector distance data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is required to retrieve the detector distance for an
-        ASAPO-based data event, so this function actually does nothing.
+        ASAP::O-based data event, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
-        Retrieves detector distance information from ASAPO.
+        Retrieves detector distance information from ASAP::O.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function retrieves from ASAPO the detector distance information for the
-        provided event.
+        This function retrieves from ASAP::O the detector distance information
+        associated with the provided event.
 
         Arguments:
 

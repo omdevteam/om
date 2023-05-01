@@ -31,7 +31,10 @@ from numpy.typing import NDArray
 from om.data_retrieval_layer.utils_generic import filter_data_sources
 from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataEventHandlerBase, OmDataSourceBase
+from om.protocols.data_retrieval_layer import (
+    OmDataEventHandlerProtocol,
+    OmDataSourceProtocol,
+)
 
 try:
     import asapo_consumer  # type: ignore
@@ -42,15 +45,15 @@ except ImportError:
 
 
 class _TypeAsapoEvent(NamedTuple):
-    # This named tuple is used internally to store ASAPO event data, metadata and
-    # corresponding ASAPO stream information.
+    # This named tuple is used internally to store ASAP::O event data, metadata and
+    # corresponding ASAP::O stream information.
     event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
     event_metadata: Dict[str, Any]
     stream_name: str
     stream_metadata: Dict[str, Any]
 
 
-class AsapoDataEventHandler(OmDataEventHandlerBase):
+class AsapoDataEventHandler(OmDataEventHandlerProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -59,36 +62,38 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         self,
         *,
         source: str,
-        data_sources: Dict[str, OmDataSourceBase],
+        data_sources: Dict[str, OmDataSourceProtocol],
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
         Data Event Handler for ASAP::O events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class handles data events retrieved from the ASAP::O software framework at
         the PETRA III facility.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         * For this Event Handler, a data event corresponds to the content of an
           individual ASAP::O event.
 
         * The source string required by this Data Event Handler is either the ID of the
           beamtime for which OM is being used (for online data retrieval) or the ID of
-          the beamtime and the ASAP::O stream name, separated by a colon (for offline
-          data retrieval).
+          the beamtime and the name of the ASAP::O stream separated by a colon (for
+          offline data retrieval).
 
         Arguments:
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Sources class
+                instances.
 
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceBase]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -96,7 +101,7 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
 
         self._source: str = source
         self._monitor_params: MonitorParameters = monitor_parameters
-        self._data_sources: Dict[str, OmDataSourceBase] = data_sources
+        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
 
     def _initialize_asapo_consumer(self) -> Any:
         asapo_url: str = self._monitor_params.get_parameter(
@@ -200,16 +205,16 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         """
         Initializes ASAP::O event handling on the collecting node.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        ASAP::O event sources do not need to be initialized on the collecting node, so
-        this function actually does nothing.
+        ASAP::O event handling does not need to be initialized on the collecting node,
+        so this function actually does nothing.
 
         Arguments:
 
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -220,15 +225,15 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         self, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes ASAPO event handling on the processing nodes.
+        Initializes ASAP::O event handling on the processing nodes.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -254,16 +259,15 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         """
         Retrieves ASAP::O events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function retrieves events for processing (each event corresponds to a
-        single ASAP::O event).
+        Each event retrieved by this function corresponds to a single ASAP::O event.
 
         Arguments:
 
-            node_rank: The rank, in the OM pool, of the processing node calling the
-                function.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -315,14 +319,15 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         """
         Opens an ASAP::O event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        ASAP::O events do not need to be opened, so this function actually does nothing.
+        ASAP::O events do not need to be opened, so this function actually does
+        nothing.
 
         Arguments:
 
-            event: a dictionary storing the event data.
+            event: A dictionary storing the event data.
         """
         pass
 
@@ -330,37 +335,17 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         """
         Closes an ASAP::O event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         ASAP::O events do not need to be closed, so this function actually does
         nothing.
 
         Arguments:
 
-            event: a dictionary storing the event data.
+            event: A dictionary storing the event data.
         """
         pass
-
-    def get_num_frames_in_event(self, *, event: Dict[str, Any]) -> int:
-        """
-        Gets the number of frames in an ASAP::O event.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        Each ASAPO event stores data associated with a single detector frame, so this
-        function always returns 1.
-
-        Arguments:
-
-            event: a dictionary storing the event data.
-
-        Returns:
-
-            int: the number of frames in the event.
-        """
-        return 1
 
     def extract_data(
         self,
@@ -370,8 +355,8 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         """
         Extracts data from an ASAP::O data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -385,7 +370,7 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
                 data has been retrieved.
 
                 * The corresponding dictionary value stores the data extracted from the
-                Data Source for the frame being processed.
+                Data Source for the event being processed.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
@@ -407,12 +392,15 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
 
         return data
 
-    def initialize_frame_data_retrieval(self) -> None:
+    def initialize_event_data_retrieval(self) -> None:
         """
-        Initializes frame data retrievals from ASAP::O.
+        Initializes event data retrievals from ASAP::O.
 
-        This function initializes the retrieval of a single standalone detector data
-        frame from ASAP::O, with all the information that refers to it.
+        This function initializes the retrieval of single standalone data
+        events from ASAP::O.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
         """
         required_data: List[str] = self._monitor_params.get_parameter(
             group="data_retrieval_layer",
@@ -431,32 +419,23 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
         for source_name in self._required_data_sources:
             self._data_sources[source_name].initialize_data_source()
 
-    def retrieve_frame_data(self, event_id: str, frame_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data related to the requested detector frame from an event.
+        Retrieves all data related to the requested event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        This function retrieves, from the event specified by the provided unique event
-        identifier, data related to a specific detector frame, determined by the
-        provided unique frame identifier.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         The ASAP::O event identifier corresponds to the ASAP::O stream name and the ID
-        of the ASAP::O event within the stream separated by the "//" symbol. Since
-        ASAP::O data events are based around single detector frames, the unique frame
-        identifier must always be the string "0".
+        of the ASAP::O event within the stream separated by the "//" symbol.
 
         Arguments:
 
-            event_id: a string that uniquely identifies a data event.
-
-            frame_id: a string that identifies a particular frame within the data
-                event.
+            event_id: A string that uniquely identifies a data event.
 
         Returns:
 
-            All data related to the requested detector data frame.
+            All data related to the requested event.
         """
         event_id_parts: List[str] = event_id.split("//")
         stream: str = event_id_parts[0].strip()
@@ -479,7 +458,7 @@ class AsapoDataEventHandler(OmDataEventHandlerBase):
             "stream_name": stream,
         }
 
-        # Recovers the timestamp from the ASAPO event (as seconds from the Epoch)
+        # Recovers the timestamp from the ASAP::O event (as seconds from the Epoch)
         # and stores it in the event dictionary.
         data_event["additional_info"]["timestamp"] = self._data_sources[
             "timestamp"

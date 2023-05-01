@@ -135,13 +135,6 @@ class OmMissingDependencyError(OmException):
     """
 
 
-class OmMissingFrameDataError(OmException):
-    """
-    Raised if detector frame data cannot be retrieved from a data event.
-
-    """
-
-
 class OmMissingLayerModuleFileError(OmException):
     """
     Raised if the python implementation of an OM layer cannot be found on the system.

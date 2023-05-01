@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's Protocols (Abstract Base Classes).
+OM's Protocols.
 
-This module contains Abstract Base Classes for OM's Data Retrieval, Parallelization,
-and Processing Layers, subdivided in one submodule for each layer. The Abstract
-Base Classes define the interfaces that the classes in the layers must implement.
+This package contains the base Protocol classes that describe the interfaces
+implemented by the classes in OM's Data Retrieval, Parallelization, and Processing
+Layers. Each module in the package contains the Protocols for one of the three layers.
 """

@@ -28,7 +28,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.lib.exceptions import OmMissingDataSourceClassError
-from om.protocols.data_retrieval_layer import OmDataSourceBase
+from om.protocols.data_retrieval_layer import OmDataSourceProtocol
 
 
 class Jungfrau1MCalibration:
@@ -89,7 +89,6 @@ class Jungfrau1MCalibration:
         self._photon_energy_kev: float = photon_energy_kev
 
     def apply_calibration(self, *, data: NDArray[numpy.int_]) -> NDArray[numpy.float_]:
-
         """
         Applies the calibration to a detector data frame.
 
@@ -124,7 +123,7 @@ class Jungfrau1MCalibration:
 
 def filter_data_sources(
     *,
-    data_sources: Dict[str, OmDataSourceBase],
+    data_sources: Dict[str, OmDataSourceProtocol],
     required_data: List[str],
 ) -> List[str]:
     """

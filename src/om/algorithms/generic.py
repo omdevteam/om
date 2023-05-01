@@ -19,8 +19,7 @@
 Generic algorithms.
 
 This module contains algorithms that perform generic data processing operations, not
-tied to a specific experimental technique (e.g.: detector frame masking and correction,
-radial averaging, data accumulation, binning, etc.).
+tied to a specific experimental technique (e.g.: data accumulation, binning, etc.).
 """
 from typing import Any, Dict, List, TypeVar, Union, cast
 
@@ -53,44 +52,15 @@ class RadialProfile:
         Radial average calculation.
 
         This algorithm stores all the parameters needed to calculate the pixel-based
-        radial profile of a detector data frame. It can then compute the profile for
-        a provided frame.
+        radial profile of a detector data frame. After the algorithm has been
+        initialized, it can be invoked to compute the radial profile of a provided
+        data frame.
 
         Arguments:
 
-            parameters: A set of OM configuration parameters collected together in a
-                parameter group. The parameter group must contain the following
-                entries:
+            radius_pixel_map: A pixel map storing radius information for the detector
+                data frame on which the algorithm will be applied.
 
-                * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
-                   file containing a bad pixel map. The map can be used to exclude
-                   regions of the data frame from the calculation of the radial profile.
-                   If he value of this entry is None, the full frame will be used in
-                   the calculation. Defaults to None.
-
-                    * The map must be a numpy array of the same shape as the data frame
-                      on which the algorithm will be applied.
-
-                    * Each pixel in the map must have a value of either 0, meaning that
-                      the corresponding pixel in the data frame should be ignored, or
-                      1, meaning that the corresponding pixel should be included in the
-                      calculation of the profile.
-
-                    * The map is only used to exclude regions from the calculation: the
-                      data is not modified in any way.
-
-                * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
-                  where the bad pixel map data is located. Defaults to None.
-
-                    * If the `bad_pixel_map_filename` entry is not None, this entry
-                      must also be provided, and cannot be None. Otherwise it is
-                      ignored.
-
-                * `radius_step`: The width (in pixels) of each step of the radial
-                  average.
-
-            radius_pixel_map: A numpy array with radius information for the detector
-                data frame.
 
                 * The array must have the same shape as the data frame on which the
                   algorithm will be applied.
@@ -98,6 +68,29 @@ class RadialProfile:
                 * Each element of the array must store, for the corresponding pixel in
                   the data frame, its distance (in pixels) from the origin of the
                   detector reference system (usually the center of the detector).
+
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
+
+                * `radius_step`: The width (in pixels) of each step of the radial
+                  average.
+
+            bad_pixel_map`: A pixel map storing information on the regions of the
+                data frame that must be excluded from the calculation of the radial
+                profile. If he value of this entry is None, the calculation wil
+                include the full frame. Defaults to None.
+
+                * The map must be a numpy array of the same shape as the data frame
+                  on which the algorithm will be applied.
+
+                * Each pixel in the map must have a value of either 0, meaning that
+                  the corresponding pixel in the data frame should be ignored, or
+                  1, meaning that the corresponding pixel should be included in the
+                  calculation of the profile.
+
+                * The map is only used to exclude regions from the calculation: the
+                  data is not modified in any way.
         """
         if bad_pixel_map is None:
             self._mask: Union[NDArray[numpy.bool_], bool] = True
@@ -178,7 +171,8 @@ class DataAccumulation:
                 entries:
 
                 * `num_events_to_accumulate`: the number of data entries that can be
-                   added to the accumulator before the collected data is returned.
+                   added to the accumulation algorithm before the collected data is
+                   returned.
         """
         self._num_events_to_accumulate: int = get_parameter_from_parameter_group(
             group=parameters,
@@ -191,7 +185,7 @@ class DataAccumulation:
 
     def add_data(self, *, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
         """
-        Adds data to the accumulator.
+        Adds data to the accumulation algorithm.
 
         This function adds the provided data entry to the algorithm. If, after adding
         the data, the algorithm has reached its maximum predefined number of
@@ -233,52 +227,30 @@ class Binning:
         """
         Binning of detector data frames.
 
-        This algorithm stores all the parameters needed to bin the data of a detector
-        data frame. Starting from a provided frame, it can then generate a version of
-        the frame with binned pixel values, and additionally provide pixel maps and
-        masks that can be used with it.
+        This algorithm stores all the parameters needed to bin the data in a detector
+        data frame. After the algorithm has been initialized, it can be invoked to bin
+        the data in a provided data frame, or to generate pixel maps and masks that are
+        compatible with the binned data.
 
         Arguments:
+
+            layout_info: An object storing information about the internal layout of the
+                detector data frame on which the algorithm will be applied (number and
+                size of ASICs, etc.).
 
             parameters: A set of OM configuration parameters collected together in a
                 parameter group. The parameter group must contain the following
                 entries:
-
-                * `detector_type`: The type of detector on which binning operation will
-                  be performed. The following detector types are currently supported:
-
-                    * `cspad`: The CSPAD detector used at the CXI beamline of the LCLS
-                      facility before 2020.
-
-                    * `pilatus`: The Pilatus detector used at the P11 beamline of the
-                      PETRA III facility.
-
-                    * `jungfrau1M`: The 1M version of the Jungfrau detector used at the
-                      PETRA III facility.
-
-                    * `jungfrau4M`: The 4M version of the Jungfrau detector used at the
-                      CXI beamline of the LCLS facility.
-
-                    * `epix10k2M`: The 2M version of the Epix10KA detector used at the
-                      MFX beamline of the LCLS facility.
-
-                    * `rayonix`: The Rayonix detector used at the MFX beamline of the
-                      LCLS facility.
-
-                    * `eiger16M`: The 16M version of Eiger2 detector used at the PETRA
-                      III facility.
-
-                * `geometry information`: TODO
 
                 * `bin_size`: The size of the binning area in pixels (A square of
                    pixels of size `bin_size` x `bin_size` in the original data frame
                    will be collapsed into a single binned pixel).
 
                 * `bad_pixel_map_filename`: The absolute or relative path to an HDF5
-                  file containing a pixel map which can be used to exclude regions of
-                  the data frame from the binning calculation. If the value of this
-                  entry is None, the full frame will be used to compute the binned
-                  data. Defaults to None.
+                  file containing a pixel map with information on the regions of the
+                  the detector data frame that must be excluded from the binning
+                  calculation. If the value of this entry is None, the full frame will
+                  be used to compute the binned data. Defaults to None.
 
                     * If this and the `bad_pixel_map_hdf5_path` entry are not None, the
                       pixel map will be loaded and used by the algorithm.
@@ -287,9 +259,9 @@ class Binning:
                       frame on which the algorithm will be applied.
 
                     * Each pixel in the map must have a value of either 0, meaning
-                      that the corresponding pixel in the data frame should be ignored
+                      that the corresponding pixel in the data frame must be ignored
                       in the binning calculation, or 1, meaning that the pixel
-                      should be included in the calculation.
+                      must be included in the calculation.
 
                 * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
                   where the bad pixel map is stored.
@@ -422,11 +394,15 @@ class Binning:
 
     def get_bin_size(self) -> int:
         """
-        Gets the binning area's size.
+        Gets the size of the binning area.
+
+        This value represents the size of the area in the original data that will end
+        up in the same pixel in the binned data. Specifically, an area of size
+        `bin size x bin size` ends up in a single binned pixel.
 
         Returns:
 
-            The size of the binning area, in pixels, along each axis.
+            The size of the edge of binning area.
         """
         return self._bin_size
 
@@ -435,10 +411,7 @@ class Binning:
         Gets the data layout information for the binned data frame.
 
         This function returns information about the internal data layout of the binned
-        data frame generated by the algorithm. This is the information needed, for
-        example, by the
-        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm.
+        data frame generated by the algorithm.
 
         Returns:
 
@@ -458,13 +431,13 @@ class Binning:
         Computes a binned version of the detector data frame.
 
         This function generates a binned version of the provided detector data frame.
-        For each binning area, it initially computes the average value of all
-        non-ignored pixels. The function then multiplies it by the total number of
-        pixels in the area. The resulting value is finally used to fill the output
-        frame pixel that corresponds to the binning area. If, however, the pixel is
-        determined to be invalid (see the `min_good_pix_count` argument of the class's
-        constructor), a fallback value (defined by the `bad_pixel_value` argument of
-        the constructor) is used to fill it.
+        For each source region in the original data, the function initially computes
+        the average value of all pixels, excluding the ones that are marked to be
+        ignored. It then multiplies the average value by the total number of
+        pixels in the region, and uses the result to fill, in the binned frame, the
+        corresponding binned pixel. If, however, the binned pixel is determined to be
+        invalid (based on the `min_good_pix_count` argument provided when the algorithm
+        is initialized), a fallback value is used to fill it.
 
         Arguments:
 
@@ -505,25 +478,34 @@ class Binning:
         self, *, mask: Union[NDArray[numpy.int_], None]
     ) -> Union[NDArray[numpy.int_], None]:
         """
-        Computes a bad pixel mask for the binned data frame.
-        Starting from a mask designed for the original detector frame, this function
-        calculates a bad pixel mask that can be used with the binned frame generated by
-        the algorithm.
-        In the mask computed by this function, pixels originating from binning areas
-        containing only good pixels in the original mask are marked as good. However,
-        even a single bad pixel in the original binning area will generate a bad pixel
-        in the computed binned mask.
+        Computes a bad pixel map for the binned data frame.
+
+        Starting from a map designed for the original detector frame, this function
+        calculates a bad pixel map that can be used with the binned data frame
+        generated by the algorithm.
+
+        In the binned map computed by this function, only pixels originating from
+        good pixels in the original map are marked as good. If even a single bad pixel
+        in the original map ends up contributing to a pixel in the binned map, the
+        pixel n the binned map is marked as bad.
+
         Arguments:
+
             mask: An array storing a bad pixel map for the original data frame.
+
                 * The map must be a numpy array of the same shape as the data frame on
                   which the binning algorithm will be applied.
+
                 * Each pixel in the map must have a value of either 0, meaning that
                   the corresponding pixel in the data frame should be considered bad,
                   or 1, meaning that the corresponding pixel should be considered good.
+
                 * This argument is mandatory. However, the argument can be set to None,
                   in which case the function will do nothing and return None.
+
         Returns:
-            Either an array containing the binned mask (if the input `mask` argument is
+
+            Either an array containing the binned map (if the input `mask` argument is
                 not None) or None.
         """
         if mask is None:
@@ -534,13 +516,17 @@ class Binning:
     def bin_pixel_maps(self, *, pixel_maps: TypePixelMaps) -> TypePixelMaps:
         """
         Computes pixel maps for a binned data frame.
-        Starting from pixel masks designed for the original detector data frame, this
-        function calculates pixel maps that can be applied to the binned data frame.
-        The pixel maps can be used to determine the exact coordinates of each pixel of
-        the binned data frame in the detector reference system.
+
+        Starting from pixel maps designed for the original detector frame, this
+        function bad calculates pixel maps that can be used with the binned data frame
+        generated by the algorithm.
+
         Arguments:
+
             pixel_maps: A dictionary storing the pixel maps for the original data frame.
+
         Returns:
+
             A dictionary storing the pixel maps for the binned frame.
         """
 
@@ -565,7 +551,21 @@ class Binning:
 
     def bin_peak_positions(self, peak_list: TypePeakList) -> TypePeakList:
         """
-        TODO: documentation
+        Computes peaks positions for a binned data frame.
+
+        Starting from a list of peaks detected in the original data frame, this
+        function calculates the coordinates of the same peaks in the binned data frame
+        generated by the algorithm.
+
+        Arguments:
+
+            peak_list: An dictionary storing information about a set of peaks detected
+                in the original data frame.
+
+        Returns:
+
+            A dictionary which stores the information about the detected peaks and can
+                be used with the binned frame.
         """
         peak_index: int
         for peak_index in range(peak_list["num_peaks"]):
@@ -591,84 +591,31 @@ class BinningPassthrough:
         """
         Binning of detector data frames.
 
-        This algorithm stores all the parameters needed to bin the data of a detector
-        data frame. Starting from a provided frame, it can then generate a version of
-        the frame with binned pixel values, and additionally provide pixel maps and
-        masks that can be used with it.
+        This algorithm has the same methods as the
+        [Binning][om.algorithms.generic.Binning] algorithm. The methods, however,
+        perform no operation at all, simply returning the original detector layout
+        information, detector data frame, bad pixel map, or pixel maps.
+
+        This algorithm exists to avoid littering the code base with if statements that
+        just check if binning is required and call the Binning algorithm accordingly.
+        With a single initial check of the form:
+
+        ```
+        if binning_required:
+            binning = Binning(...)
+        else:
+            binning = BinningPassthrough(...)
+        ```
+
+        The rest of the code can avoid performing checks and simply call the methods of
+        the `binning` instance, expecting the correct behavior.
 
         Arguments:
 
-            parameters: A set of OM configuration parameters collected together in a
-                parameter group. The parameter group must contain the following
-                entries:
-
-                * `detector_type`: The type of detector on which binning operation will
-                  be performed. The following detector types are currently supported:
-
-                    * `cspad`: The CSPAD detector used at the CXI beamline of the LCLS
-                      facility before 2020.
-
-                    * `pilatus`: The Pilatus detector used at the P11 beamline of the
-                      PETRA III facility.
-
-                    * `jungfrau1M`: The 1M version of the Jungfrau detector used at the
-                      PETRA III facility.
-
-                    * `jungfrau4M`: The 4M version of the Jungfrau detector used at the
-                      CXI beamline of the LCLS facility.
-
-                    * `epix10k2M`: The 2M version of the Epix10KA detector used at the
-                      MFX beamline of the LCLS facility.
-
-                    * `rayonix`: The Rayonix detector used at the MFX beamline of the
-                      LCLS facility.
-
-                    * `eiger16M`: The 16M version of Eiger2 detector used at the PETRA
-                      III facility.
-
-                * `geometry information`: TODO
-
-                * `bin_size`: The size of the binning area in pixels (A square of
-                   pixels of size `bin_size` x `bin_size` in the original data frame
-                   will be collapsed into a single binned pixel).
-
-                * `bad_pixel_map_filename`: The absolute or relative path to an HDF5
-                  file containing a pixel map which can be used to exclude regions of
-                  the data frame from the binning calculation. If the value of this
-                  entry is None, the full frame will be used to compute the binned
-                  data. Defaults to None.
-
-                    * If this and the `bad_pixel_map_hdf5_path` entry are not None, the
-                      pixel map will be loaded and used by the algorithm.
-
-                    * The pixel map must be a numpy array of the same shape as the data
-                      frame on which the algorithm will be applied.
-
-                    * Each pixel in the map must have a value of either 0, meaning
-                      that the corresponding pixel in the data frame should be ignored
-                      in the binning calculation, or 1, meaning that the pixel
-                      should be included in the calculation.
-
-                * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
-                  where the bad pixel map is stored.
-
-                    * If the value of the `bad_pixel_map_filename` entry is not None,
-                      this parameter must also be provided, and cannot be None.
-                      Otherwise it is ignored.
-
-                * `min_good_pix_count`: The minimum number of non-excluded pixels that
-                  must be present in a binning area for the generated binned pixel to
-                  be considered valid (pixels of the original frame can be excluded
-                  from the binning calculation. See the `bad_pixel_map_filename`
-                  argument). Defaults to the same value as the `bin_size` argument.
-
-                * `bad_pixel_value`: The value to be written in the generated binned
-                  frame when a pixel is invalid (i.e.: the binning area in the original
-                  frame contains too many ignored pixels, see the `min_good_pix_count`
-                  argument). Defaults to `MAXINT` if the input array is an array of
-                  integers, otherwise defaults to `numpy.nan`.
+            layout_info: An object storing information about the internal layout of the
+                detector data frame on which the algorithm will be applied (number and
+                size of ASICs, etc.).
         """
-
         self._layout_info: TypeDetectorLayoutInformation = layout_info
 
     def is_passthrough(self) -> bool:
@@ -676,11 +623,18 @@ class BinningPassthrough:
 
     def get_bin_size(self) -> int:
         """
-        Gets the binning area's size.
+        Gets the size of the binning area.
+
+        This value represents the size of the area in the original data that will end
+        up in the same pixel in the binned data. Specifically, an area of size
+        `bin size x bin size` ends up in a single binned pixel.
+
+        Since the `BinningPassthrough` algorithm performs no binning operation at all,
+        this function always returns 1.
 
         Returns:
 
-            The size of the binning area, in pixels, along each axis.
+            The size of the edge of binning area.
         """
         return 1
 
@@ -689,21 +643,17 @@ class BinningPassthrough:
         Gets the data layout information for the binned data frame.
 
         This function returns information about the internal data layout of the binned
-        data frame generated by the algorithm. This is the information needed, for
-        example, by the
-        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm.
+        data frame generated by the algorithm.
+
+        Since the `BinningPassthrough` algorithm performs no binning operation at all,
+        this function always returns the layout information for the non-binned data
+        frame.
 
         Returns:
 
             A dictionary with the data layout information for the binned frame.
         """
-        return {
-            "asic_nx": self._layout_info["asic_ny"],
-            "asic_ny": self._layout_info["asic_nx"],
-            "nasics_x": self._layout_info["nasics_x"],
-            "nasics_y": self._layout_info["nasics_y"],
-        }
+        return self._layout_info
 
     def bin_detector_data(
         self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
@@ -712,13 +662,9 @@ class BinningPassthrough:
         Computes a binned version of the detector data frame.
 
         This function generates a binned version of the provided detector data frame.
-        For each binning area, it initially computes the average value of all
-        non-ignored pixels. The function then multiplies it by the total number of
-        pixels in the area. The resulting value is finally used to fill the output
-        frame pixel that corresponds to the binning area. If, however, the pixel is
-        determined to be invalid (see the `min_good_pix_count` argument of the class's
-        constructor), a fallback value (defined by the `bad_pixel_value` argument of
-        the constructor) is used to fill it.
+
+        Since the `BinningPassthrough` algorithm performs no binning operation at all,
+        this function always returns the detector data frame provided as input.
 
         Arguments:
 
@@ -734,25 +680,32 @@ class BinningPassthrough:
         self, *, mask: Union[NDArray[numpy.int_], None]
     ) -> Union[NDArray[numpy.int_], None]:
         """
-        Computes a bad pixel mask for the binned data frame.
-        Starting from a mask designed for the original detector frame, this function
-        calculates a bad pixel mask that can be used with the binned frame generated by
-        the algorithm.
-        In the mask computed by this function, pixels originating from binning areas
-        containing only good pixels in the original mask are marked as good. However,
-        even a single bad pixel in the original binning area will generate a bad pixel
-        in the computed binned mask.
+        Computes a bad pixel map for the binned data frame.
+
+        Starting from a map designed for the original detector frame, this function
+        calculates a bad pixel map that can be used with the binned data frame
+        generated by the algorithm.
+
+        Since the `BinningPassthrough` algorithm performs no binning operation at all,
+        this function always returns the bad pixel map provided as input.
+
         Arguments:
+
             mask: An array storing a bad pixel map for the original data frame.
+
                 * The map must be a numpy array of the same shape as the data frame on
                   which the binning algorithm will be applied.
+
                 * Each pixel in the map must have a value of either 0, meaning that
                   the corresponding pixel in the data frame should be considered bad,
                   or 1, meaning that the corresponding pixel should be considered good.
+
                 * This argument is mandatory. However, the argument can be set to None,
                   in which case the function will do nothing and return None.
+
         Returns:
-            Either an array containing the binned mask (if the input `mask` argument is
+
+            Either an array containing the binned map (if the input `mask` argument is
                 not None) or None.
         """
         if mask is None:
@@ -763,19 +716,43 @@ class BinningPassthrough:
     def bin_pixel_maps(self, *, pixel_maps: TypePixelMaps) -> TypePixelMaps:
         """
         Computes pixel maps for a binned data frame.
-        Starting from pixel masks designed for the original detector data frame, this
-        function calculates pixel maps that can be applied to the binned data frame.
-        The pixel maps can be used to determine the exact coordinates of each pixel of
-        the binned data frame in the detector reference system.
+
+        Starting from pixel maps designed for the original detector frame, this
+        function bad calculates pixel maps that can be used with the binned data frame
+        generated by the algorithm.
+
+        Since the `BinningPassthrough` algorithm performs no binning operation at all,
+        this function always returns the pixel maps provided as input.
+
         Arguments:
+
             pixel_maps: A dictionary storing the pixel maps for the original data frame.
+
         Returns:
+
             A dictionary storing the pixel maps for the binned frame.
         """
         return pixel_maps
 
     def bin_peak_positions(self, peak_list: TypePeakList) -> TypePeakList:
         """
-        TODO: documentation
+        Computes peaks positions for a binned data frame.
+
+        Starting from a list of peaks detected in the original data frame, this
+        function calculates the coordinates of the same peaks in the binned data frame
+        generated by the algorithm.
+
+        Since the `BinningPassthrough` algorithm performs no binning operation at all,
+        this function always returns the peak list provided as input.
+
+        Arguments:
+
+            peak_list: An dictionary storing information about a set of peaks detected
+                in the original data frame.
+
+        Returns:
+
+            A dictionary which stores the information about the detected peaks and can
+                be used with the binned frame.
         """
         return peak_list

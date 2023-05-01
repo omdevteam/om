@@ -41,13 +41,13 @@ from om.data_retrieval_layer.data_sources_psana import (
 )
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerBase,
-    OmDataRetrievalBase,
-    OmDataSourceBase,
+    OmDataEventHandlerProtocol,
+    OmDataRetrievalProtocol,
+    OmDataSourceProtocol,
 )
 
 
-class CxiLclsDataRetrieval(OmDataRetrievalBase):
+class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -56,15 +56,21 @@ class CxiLclsDataRetrieval(OmDataRetrievalBase):
         """
         Data Retrieval from psana at the CXI beamline (LCLS).
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements OM's Data Retrieval Layer for the CXI beamline of the
         LCLS facility, using the Jungfrau 4M x-ray detector, currently the main
         detector used at this beamline.
 
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
         * This class considers an individual data event as equivalent to the content of
           a psana event, which stores data related to a single detector frame.
+
+        * A string combining psana's timestamp and fiducial information, with the
+          following format:
+          `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`, is used as event
+          identifier.
 
         * Psana provides timestamp, beam energy and detector distance information for
           each event, retrieved from various sensors in the system.
@@ -75,18 +81,16 @@ class CxiLclsDataRetrieval(OmDataRetrievalBase):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
+
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceBase] = {
+        data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
             "event_id": EventIdPsana(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "frame_id": FrameIdZero(
-                data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
             "detector_data": Jungfrau4MPsana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
@@ -115,18 +119,18 @@ class CxiLclsDataRetrieval(OmDataRetrievalBase):
             ),
         }
 
-        self._data_event_handler: OmDataEventHandlerBase = PsanaDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
             monitor_parameters=monitor_parameters,
             data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Returns:
 
@@ -135,7 +139,7 @@ class CxiLclsDataRetrieval(OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class CxiLclsCspadDataRetrieval(OmDataRetrievalBase):
+class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -144,15 +148,21 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalBase):
         """
         Data Retrieval from psana at the CXI beamline (LCLS), with the CSPAD detector.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements OM's Data Retrieval Layer for the CXI beamline of the
         LCLS facility, using the CSPAD x-ray detector. This detector was used at the
         beamline until early 2020.
 
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
         * This class considers an individual data event as equivalent to the content of
           a psana event, which stores data related to a single detector frame.
+
+        * A string combining psana's timestamp and fiducial information, with the
+          following format:
+          `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`, is used as event
+          identifier.
 
         * Psana provides timestamp, beam energy and detector distance data for each
           event, retrieved from various sensors in the system.
@@ -169,15 +179,12 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalBase):
 
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceBase] = {
+        data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
             "event_id": EventIdPsana(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "frame_id": FrameIdZero(
-                data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
             "detector_data": CspadPsana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
@@ -206,18 +213,17 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalBase):
             ),
         }
 
-        self._data_event_handler: OmDataEventHandlerBase = PsanaDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
             monitor_parameters=monitor_parameters,
             data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Returns:
 
@@ -226,7 +232,7 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class LclsEpix100DataRetrieval(OmDataRetrievalBase):
+class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -235,37 +241,40 @@ class LclsEpix100DataRetrieval(OmDataRetrievalBase):
         """
         Data Retrieval from psana at the CXI beamline (LCLS), with the ePix100 detector.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements OM's Data Retrieval Layer for the CXI beamline of the
         LCLS facility, using the ePix100 x-ray detector. This detector is often used
         to record beam energy spectrum information in XES experiments.
 
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
         * This class considers an individual data event as equivalent to the content of
-        a psana event, which stores data related to a single detector frame.
+          a psana event, which stores data related to a single detector frame.
+
+        * A string combining psana's timestamp and fiducial information, with the
+          following format:
+          `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`, is used as event
+          identifier.
 
         * Psana provides timestamp, beam energy and detector distance data for each
-        event, retrieved from various sensors in the system.
+          event, retrieved from various sensors in the system.
 
         * The source string required by this Data Retrieval class is a string of the
-        type used by psana to identify specific runs, experiments, or live data
-        streams.
+          type used by psana to identify specific runs, experiments, or live data
+          streams.
 
         Arguments:
 
             monitor_parameters: An object storing OM's configuration
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceBase] = {
+        data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
             "event_id": EventIdPsana(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "frame_id": FrameIdZero(
-                data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
             "detector_data": Epix100Psana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
@@ -294,18 +303,18 @@ class LclsEpix100DataRetrieval(OmDataRetrievalBase):
             ),
         }
 
-        self._data_event_handler: OmDataEventHandlerBase = PsanaDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
             monitor_parameters=monitor_parameters,
             data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Returns:
 
@@ -314,7 +323,7 @@ class LclsEpix100DataRetrieval(OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class MfxLclsDataRetrieval(OmDataRetrievalBase):
+class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -323,15 +332,21 @@ class MfxLclsDataRetrieval(OmDataRetrievalBase):
         """
         Data Retrieval from psana at the MFX beamline (LCLS).
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements OM's Data Retrieval Layer for the MFX beamline of the
         LCLS facility, using the Epix10KA 2M x-ray detector, currently the main
         detector used at this beamline.
 
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
         * This class considers an individual data event as equivalent to the content of
           a psana event, which stores data related to a single detector frame.
+
+        * A string combining psana's timestamp and fiducial information, with the
+          following format:
+          `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`, is used as event
+          identifier.
 
         * Psana provides timestamp, beam energy and detector distance data for each
           event, retrieved from various sensors in the system.
@@ -342,18 +357,16 @@ class MfxLclsDataRetrieval(OmDataRetrievalBase):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
+
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceBase] = {
+        data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
             "event_id": EventIdPsana(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "frame_id": FrameIdZero(
-                data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
             "detector_data": Epix10kaPsana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
@@ -382,18 +395,18 @@ class MfxLclsDataRetrieval(OmDataRetrievalBase):
             ),
         }
 
-        self._data_event_handler: OmDataEventHandlerBase = PsanaDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
             monitor_parameters=monitor_parameters,
             data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Returns:
 
@@ -402,7 +415,7 @@ class MfxLclsDataRetrieval(OmDataRetrievalBase):
         return self._data_event_handler
 
 
-class MfxLclsRayonixDataRetrieval(OmDataRetrievalBase):
+class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -411,14 +424,20 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalBase):
         """
         Data Retrieval for events retrieved from psana at MFX (LCLS) with Rayonix.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements OM's Data Retrieval Layer for the MFX beamline of the
         LCLS facility, using the Rayonix x-ray detector.
 
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
         * This class considers an individual data event as equivalent to the content of
           a psana event, which stores data related to a single detector frame.
+
+        * A string combining psana's timestamp and fiducial information, with the
+          following format:
+          `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`, is used as event
+          identifier.
 
         * Psana provides timestamp, beam energy and detector distance data for each
           event, retrieved from various sensors in the system.
@@ -429,18 +448,16 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalBase):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
+
             source: A string describing the data event source.
         """
-        data_sources: Dict[str, OmDataSourceBase] = {
+        data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampPsana(
                 data_source_name="timestamp", monitor_parameters=monitor_parameters
             ),
             "event_id": EventIdPsana(
                 data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
-            "frame_id": FrameIdZero(
-                data_source_name="frameid", monitor_parameters=monitor_parameters
             ),
             "detector_data": RayonixPsana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
@@ -469,18 +486,18 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalBase):
             ),
         }
 
-        self._data_event_handler: OmDataEventHandlerBase = PsanaDataEventHandler(
+        self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
             source=source,
             monitor_parameters=monitor_parameters,
             data_sources=data_sources,
         )
 
-    def get_data_event_handler(self) -> OmDataEventHandlerBase:
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
         Retrieves the Data Event Handler used by the class.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Returns:
 

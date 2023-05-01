@@ -38,7 +38,7 @@ from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.processing_layer import OmProcessingProtocol
 
 try:
     import msgpack  # type: ignore
@@ -48,7 +48,7 @@ except ImportError:
     )
 
 
-class SwaxsProcessing(OmProcessingBase):
+class SwaxsProcessing(OmProcessingProtocol):
     """
     See documentation for the `__init__` function.
     """
@@ -357,7 +357,6 @@ class SwaxsProcessing(OmProcessingBase):
         processed_data["detector_distance"] = data["detector_distance"]
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["event_id"] = data["event_id"]
-        processed_data["frame_id"] = data["frame_id"]
         processed_data["data_shape"] = data_to_send.shape
         processed_data["peak_list"] = peak_list
         if self._pump_probe_experiment:
@@ -459,7 +458,6 @@ class SwaxsProcessing(OmProcessingBase):
                         "beam_energy": received_data["beam_energy"],
                         "detector_distance": received_data["detector_distance"],
                         "event_id": received_data["event_id"],
-                        "frame_id": received_data["frame_id"],
                         "timestamp": received_data["timestamp"],
                         "source": self._source,
                         "configuration_file": self._configuration_file,

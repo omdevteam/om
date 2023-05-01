@@ -43,10 +43,10 @@ from om.lib.generic_collecting import EventCounter
 from om.lib.geometry import GeometryInformation, TypeDetectorLayoutInformation
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.processing_layer import OmProcessingProtocol
 
 
-class CheetahProcessing(OmProcessingBase):
+class CheetahProcessing(OmProcessingProtocol):
     """
     See documentation for the `__init__` function.
     """
@@ -325,7 +325,6 @@ class CheetahProcessing(OmProcessingBase):
             "timestamp": data["timestamp"],
             "frame_is_hit": frame_is_hit,
             "event_id": data["event_id"],
-            "frame_id": data["frame_id"],
             "peak_list": peak_list,
             "class_sums": self._class_sum_accumulator.get_sums_for_sending(),
         }

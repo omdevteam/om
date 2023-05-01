@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Parallelization Layer's base classes.
+Processing Layer's Protocol classes.
 
-This module contains base abstract classes for OM's Processing Layer.
+This module contains base Protocol classes for OM's Processing Layer.
 """
 
 from typing import Any, Dict, Protocol, Tuple, Union
@@ -26,14 +26,14 @@ from typing import Any, Dict, Protocol, Tuple, Union
 from om.lib.parameters import MonitorParameters
 
 
-class OmProcessingBase(Protocol):
+class OmProcessingProtocol(Protocol):
     """
     See documentation for the `__init__` function.
     """
 
     def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
         """
-        Base class for an OM's Monitor.
+        Protocol for OM's Processing classes.
 
         Processing classes implement scientific data processing pipelines in OM. A
         Processing class defines how each individual retrieved data event is analyzed
@@ -41,9 +41,8 @@ class OmProcessingBase(Protocol):
         collecting node. A Processing class also determined which actions OM performs
         at the beginning and at the end of the data processing.
 
-        This class is the base class from which every Processing class should inherit.
-        All its methods are abstract. Each derived class must provide its own methods
-        that implement a specific data processing pipeline.
+        This Protocol class describes the interface that every Processing class in OM
+        must implement.
 
         Arguments:
 
@@ -57,15 +56,15 @@ class OmProcessingBase(Protocol):
         """
         Initializes an OM processing node.
 
-        This function is invoked on each processing node when OM starts. It prepares
-        the node to begin retrieving and processing data events. This function often
-        recovers additional needed external data, initializes the algorithms
-        with all required parameters, etc.
+        This function is invoked on each processing node when OM starts. It performs
+        all the operations needed to prepares the node to retrieve and process data
+        events (recovering additional needed external data, initializing the algorithms
+        with all required parameters, etc.)
 
         Arguments:
 
-            node_rank: The OM rank of the current node, which is an integer that
-                unambiguously identifies the current node in the OM node pool.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -78,15 +77,15 @@ class OmProcessingBase(Protocol):
         """
         Initializes an OM collecting node.
 
-        This function is invoked on the collecting node when OM starts. It prepares
-        the node to aggregate events received from the processing nodes. This function
-        often creates the memory buffers that will store the aggregated data,
-        initializes the collecting algorithms with all required parameters, etc.
+        This function is invoked on the collecting node when OM starts. It performs all
+        the operation needed to prepare the collecting node to aggregate events
+        received from the processing nodes (creating memory buffers,
+        initializing the collecting algorithm, etc.)
 
         Arguments:
 
-            node_rank: The OM rank of the current node, which is an integer that
-                unambiguously identifies the current node in the OM node pool.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -101,36 +100,37 @@ class OmProcessingBase(Protocol):
         data: Dict[str, Any],
     ) -> Tuple[Dict[str, Any], int]:
         """
-        Processes a single frame in a data event.
+        Processes a single data event.
 
-        This function is invoked on each processing node for every detector data frame
-        in each retrieved data event. It receives the data event as input and returns
-        processed data. The output of this function is transferred by OM to the
-        collecting node.
+        This function is invoked on each processing node for every retrieved data
+        event. It receives the data event as input and returns processed data. The
+        output of this function is transferred by OM to the collecting node.
 
         Arguments:
 
-            node_rank: The OM rank of the current node, which is an integer that
-                unambiguously identifies the current node in the OM node pool.
+            node_rank: The OM rank of the current node int the OM node pool. The rank
+                is an integer that unambiguously identifies the node in the pool.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
 
-            data: A dictionary containing the data that OM retrieved for the detector
-                data frame being processed.
+            data: A dictionary containing the data retrieved by OM for the data event
+                being processed.
 
-                * The dictionary keys describe the Data Sources for which OM has
-                  retrieved data. The keys must match the source names listed in the
-                  `required_data` entry of OM's `om` configuration parameter group.
+                * The dictionary keys must be the names of the Data Sources for which
+                  OM retrieves data. The keys in this dictionary must match the Data
+                  Source names listed in the `required_data` entry of OM's `om`
+                  configuration parameter group.
 
                 * The corresponding dictionary values must store the the data that OM
                   retrieved for each of the Data Sources.
 
         Returns:
 
-            A tuple with two entries. The first entry is a dictionary storing the
-                processed data that should be sent to the collecting node. The second
-                entry is the OM rank number of the node that processed the information.
+            A tuple with two entries, with the first entry being a dictionary storing
+                the processed data that should be sent to the collecting node, and the
+                second being the OM rank number of the node that processed the
+                information.
         """
         ...
 
@@ -145,9 +145,9 @@ class OmProcessingBase(Protocol):
 
         This function is called on the collecting node continuously, when the node is
         not receiving data from any processing node (When data is received, the
-        [`collect_data`][om.Protocols.processing_layer.OmProcessingBase.collect_data] is
-        invoked instead). This function can be used to perform operations that need to
-        be carried out when the data stream is not active (reacting to external
+        [`collect_data`][om.Protocols.processing_layer.OmProcessingProtocol.collect_data]
+        is invoked instead). This function can be used to perform operations that need
+        to be carried out even when the data stream is not active (reacting to external
         commands and requests, updating graphical interfaces, etc.)
 
         Arguments:
@@ -157,7 +157,6 @@ class OmProcessingBase(Protocol):
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
-
         """
         ...
 
@@ -174,17 +173,18 @@ class OmProcessingBase(Protocol):
         This function is invoked on the collecting node every time data is received
         from a processing node (When data is not being received, the collecting node
         continuously calls the
-        [`wait_for_data`][om.Protocols.processing_layer.OmProcessingBase.wait_for_data]
+        [`wait_for_data`][om.Protocols.processing_layer.OmProcessingProtocol.wait_for_data]
         function instead). The function accepts as input the data received from
         the processing node (the tuple returned by the
-        [`process_data`][om.Protocols.processing_layer.OmProcessingBase.process_data]
-        method of this class). It can be used to compute aggregate statistics on the
-        data received from all nodes, to forwards data to external programs for
-        visualization, etc.
+        [`process_data`][om.Protocols.processing_layer.OmProcessingProtocol.process_data]
+        method of this class), and performs calculations that must be carried out on
+        data received from multiple nodes (computing aggregate statistics, preparing
+        data for external programs or visualization, etc.)
 
         The function usually does not return any value, but can optionally return a
-        dictionary of dictionaries. When this happens, the data in the dictionary is
-        provided as feedback data to the processing nodes.
+        nested dictionary (a dictionary whose values are other dictionaries). When this
+        happens, the data in the dictionary is provided as feedback data to the
+        processing nodes.
 
         * The keys of the outer dictionary must match the OM rank numbers of the
         processing nodes which will receive the feedback data. A key value of 0
@@ -192,11 +192,12 @@ class OmProcessingBase(Protocol):
         time.
 
         * The value corresponding to each key of the outer dictionary must in turn be a
-        dictionary that stores the feedback data to send to the corresponding node.
+        dictionary that stores the feedback data that must be sent to the node defined
+        by the key.
 
         * On each processing node, the feedback data dictionary, if received, will be
-        merged into with the `data` argument of the
-        [`process_data`][om.Protocols.processing_layer.OmProcessingBase.process_data]
+        merged with the `data` argument of the
+        [`process_data`][om.Protocols.processing_layer.OmProcessingProtocol.process_data]
         function the next time the function is called.
 
         Arguments:
@@ -214,8 +215,8 @@ class OmProcessingBase(Protocol):
 
         Returns:
 
-            Usually nothing. Optionally, a dictionary of dictionaries that can be used
-                to send feedback data to the processing nodes.
+            Usually nothing. Optionally, a nested dictionary that can be used to send
+                feedback data to the processing nodes.
         """
         ...
 
@@ -226,10 +227,11 @@ class OmProcessingBase(Protocol):
         Executes end-of-processing actions on a processing node.
 
         This function is called on each processing node at the end of the data
-        processing, immediately before OM stops. It often performs clean up operations,
-        computes final statistics, etc. The function usually does not return any value,
-        but can optionally return a dictionary. If this happens, the dictionary is
-        transferred to the collecting node before the processing node shuts down.
+        processing, immediately before OM stops. It performs clean up and shut down
+        operations (closing communication sockets, computing final statistics, etc.).
+        This function usually does not return any value, but can optionally return a
+        dictionary. If this happens, the dictionary is transferred to the collecting
+        node before the processing node shuts down.
 
         Arguments:
 
@@ -241,8 +243,8 @@ class OmProcessingBase(Protocol):
 
         Returns:
 
-            Usually nothing. Optionally, a dictionary storing information to be sent to
-                the processing node.
+            Usually nothing. Optionally, a dictionary storing information that must be
+                sent to the processing node.
         """
         ...
 
@@ -253,8 +255,8 @@ class OmProcessingBase(Protocol):
         Executes end-of-processing actions on the collecting node.
 
         This function is called on the collecting node at the end of the data
-        processing, immediately before OM stops. It often performs clean up operations,
-        computes final statistics, etc.
+        processing, immediately before OM stops. It often performs clean up and shut
+        operations (closing communication sockets, computing final statistics, etc.).
 
         Arguments:
 

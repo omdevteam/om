@@ -43,13 +43,15 @@ class XesAnalysis:
         Beam energy spectrum retrieval.
 
         This algorithm stores all the parameters needed to extract beam energy
-        spectra from camera data frames. It can then extract a beam energy spectrum
-        from a provided camera frame. The algorithm rotates the frame image until the
-        beam energy information is aligned with the vertical axis. The data from the
-        area containing the information is then integrated in a direction parallel to
-        the axis. Optionally, this algorithm can apply an ADU threshold to the camera
-        data, and use only the pixels whose values exceeds the threshold to compute the
-        spectrum.
+        spectra from camera data frames. After the algorithm is initialized, it can be
+        invoked to extract a beam energy spectrum from a provided camera frame. The
+        algorithm initially rotates the camera image to align the beam information with
+        the vertical axis. It then computes the spectrum by integrating the beam
+        energy data in a direction parallel to the axis.
+
+        Optionally, an ADU threshold can be applied to the camera data. The algorithm
+        will compute the energy spectrum using only the pixels whose values exceeds the
+        threshold.
 
         Arguments:
 
@@ -66,10 +68,12 @@ class XesAnalysis:
                   axis.
 
                 * `min_row_in_pix_for_integration`: The row index defining the start of
-                  the integration region for the spectrum information.
+                  the region of the camera frame that contains the beam information
+                  (the area that will be integrated by the algorithm).
 
-                * `max_row_in_pix_for_integration` The row index defining the end of
-                  the integration region for the spectrum information.
+                * `min_row_in_pix_for_integration`: The row index defining the end of
+                  the region of the camera frame that contains the beam information
+                  (the area that will be integrated by the algorithm).
         """
         self._intensity_threshold: float = get_parameter_from_parameter_group(
             group=parameters,
@@ -145,11 +149,3 @@ class XesAnalysis:
             "spectrum": spectrum,
             "spectrum_smoothed": spectrum_smoothed,
         }
-
-
-def _running_mean(x: NDArray[numpy.float_], n: int) -> NDArray[numpy.float_]:
-    # TODO: Document this function.
-    return cast(
-        NDArray[numpy.float_],
-        ndimage.filters.uniform_filter1d(x, n, mode="constant")[: -(n - 1)],
-    )

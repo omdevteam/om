@@ -35,15 +35,17 @@ from om.lib.exceptions import (
 )
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, set_custom_theme, set_null_theme
-from om.protocols.data_retrieval_layer import OmDataRetrievalBase
-from om.protocols.parallelization_layer import OmParallelizationBase
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.data_retrieval_layer import OmDataRetrievalProtocol
+from om.protocols.parallelization_layer import OmParallelizationProtocol
+from om.protocols.processing_layer import OmProcessingProtocol
 
 
 def _import_class(
     *, layer: str, class_name: str
 ) -> Union[
-    Type[OmParallelizationBase], Type[OmProcessingBase], Type[OmDataRetrievalBase]
+    Type[OmParallelizationProtocol],
+    Type[OmProcessingProtocol],
+    Type[OmDataRetrievalProtocol],
 ]:
     try:
         imported_layer: ModuleType = importlib.import_module(name=layer)
@@ -60,9 +62,9 @@ def _import_class(
                 ) from exc
     try:
         imported_class: Union[
-            Type[OmParallelizationBase],
-            Type[OmProcessingBase],
-            Type[OmDataRetrievalBase],
+            Type[OmParallelizationProtocol],
+            Type[OmProcessingProtocol],
+            Type[OmDataRetrievalProtocol],
         ] = getattr(imported_layer, class_name)
     except AttributeError:
         raise OmMissingDataRetrievalClassError(
@@ -188,36 +190,36 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
         required=True,
     )
 
-    parallelization_layer_class: Type[OmParallelizationBase] = cast(
-        Type[OmParallelizationBase],
+    parallelization_layer_class: Type[OmParallelizationProtocol] = cast(
+        Type[OmParallelizationProtocol],
         _import_class(
             layer="parallelization_layer",
             class_name=parallelization_layer_class_name,
         ),
     )
-    data_retrieval_layer_class: Type[OmDataRetrievalBase] = cast(
-        Type[OmDataRetrievalBase],
+    data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
+        Type[OmDataRetrievalProtocol],
         _import_class(
             layer="data_retrieval_layer",
             class_name=data_retrieval_layer_class_name,
         ),
     )
-    processing_layer_class: Type[OmProcessingBase] = cast(
-        Type[OmProcessingBase],
+    processing_layer_class: Type[OmProcessingProtocol] = cast(
+        Type[OmProcessingProtocol],
         _import_class(
             layer="processing_layer",
             class_name=processing_layer_class_name,
         ),
     )
 
-    processing_layer: OmProcessingBase = processing_layer_class(
+    processing_layer: OmProcessingProtocol = processing_layer_class(
         monitor_parameters=monitor_parameters
     )
-    data_retrieval_layer: OmDataRetrievalBase = data_retrieval_layer_class(
+    data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
         monitor_parameters=monitor_parameters,
         source=source,
     )
-    parallelization_layer: OmParallelizationBase = parallelization_layer_class(
+    parallelization_layer: OmParallelizationProtocol = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
         processing_layer=processing_layer,
         monitor_parameters=monitor_parameters,

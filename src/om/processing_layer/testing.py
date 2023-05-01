@@ -27,10 +27,10 @@ from typing import Any, Dict, Tuple, Union
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
-from om.protocols.processing_layer import OmProcessingBase
+from om.protocols.processing_layer import OmProcessingProtocol
 
 
-class TestProcessing(OmProcessingBase):
+class TestProcessing(OmProcessingProtocol):
     """
     See documentation for the `__init__` function.
     """

@@ -25,7 +25,7 @@ from typing import Any, Dict, Union, cast
 import numpy
 
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataSourceBase
+from om.protocols.data_retrieval_layer import OmDataSourceProtocol
 
 
 def get_calibration_request(
@@ -43,7 +43,7 @@ def get_calibration_request(
     return calibrated_data_required
 
 
-class TimestampFromEvent(OmDataSourceBase):
+class TimestampFromEvent(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -109,7 +109,7 @@ class TimestampFromEvent(OmDataSourceBase):
         return cast(numpy.float64, event["additional_info"]["timestamp"])
 
 
-class FloatEntryFromConfiguration(OmDataSourceBase):
+class FloatEntryFromConfiguration(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -184,7 +184,7 @@ class FloatEntryFromConfiguration(OmDataSourceBase):
         return self._value
 
 
-class FrameIdZero(OmDataSourceBase):
+class FrameIdZero(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
