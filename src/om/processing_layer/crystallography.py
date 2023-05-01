@@ -98,8 +98,6 @@ class CrystallographyProcessing(OmProcessingProtocol):
             default=False,
         )
 
-        print(f"DEBUG: Binning requested {binning_requested}")
-
         if binning_requested:
             self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
                 parameters=self._monitor_params.get_parameter_group(group="binning"),
