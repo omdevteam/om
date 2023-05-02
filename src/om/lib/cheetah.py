@@ -381,7 +381,9 @@ class CheetahClassSumsAccumulator:
             The class sums if the sending interval has been reached or if the
             `disregard_counter` argument is `True`. Otherwise, `None`.
         """
-        if self._sum_sending_counter >= self._sum_sending_interval or disregard_counter:
+        if self._sum_sending_counter >= self._sum_sending_interval or (
+            self._sum_sending_counter > 0 and disregard_counter
+        ):
             self._sum_sending_counter = 0
             return self._sums
         else:

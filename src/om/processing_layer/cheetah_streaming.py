@@ -473,8 +473,8 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
             received_data["timestamp"],
             received_data["event_id"],
             int(received_data["frame_is_hit"]),
-            received_data["filename"],
-            received_data["index"],
+            "",
+            -1,
             received_data["peak_list"]["num_peaks"],
             numpy.mean(received_data["peak_list"]["intensity"]),
         )
