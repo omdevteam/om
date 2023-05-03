@@ -66,4 +66,4 @@ try:
 except ModuleNotFoundError:
     pass
 
-from .frame_retrieval import OmFrameDataRetrieval  # noqa: F401
+from .event_retrieval import OmEventDataRetrieval  # noqa: F401

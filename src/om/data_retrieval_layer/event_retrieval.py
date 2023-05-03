@@ -32,7 +32,7 @@ from om.protocols.data_retrieval_layer import (
 )
 
 
-class OmFrameDataRetrieval:
+class OmEventDataRetrieval:
     """
     See documentation for the `__init__` function.
     """
@@ -87,7 +87,7 @@ class OmFrameDataRetrieval:
                 data_retrieval_layer.get_data_event_handler()
             )
 
-            self._data_event_handler.initialize_frame_data_retrieval()
+            self._data_event_handler.initialize_event_data_retrieval()
         except ImportError:
             try:
                 data_retrieval_layer_module = importlib.import_module(
@@ -103,7 +103,7 @@ class OmFrameDataRetrieval:
                         f"error: {exc_type.__name__}: {exc_value}"
                     ) from exc
 
-    def retrieve_frame_data(self, event_id: str) -> Dict[str, Any]:
+    def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
         Retrieves all data related to the requested detector frame.
 
@@ -118,6 +118,4 @@ class OmFrameDataRetrieval:
 
             All data related to the requested detector data frame.
         """
-        return self._data_event_handler.retrieve_frame_data(
-            event_id=event_id
-        )
+        return self._data_event_handler.retrieve_event_data(event_id=event_id)
