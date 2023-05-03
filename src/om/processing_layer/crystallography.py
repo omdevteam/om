@@ -30,12 +30,12 @@ from numpy.typing import NDArray
 from om.algorithms.crystallography import TypePeakList
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.crystallography import CrystallographyPeakFinding, CrystallographyPlots
+from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.generic_collecting import EventCounter
 from om.lib.geometry import DataVisualizer, GeometryInformation, TypePixelMaps
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
-from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
+from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.protocols.processing_layer import OmProcessingProtocol
 
 try:
