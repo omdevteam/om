@@ -361,7 +361,7 @@ class CheetahClassSumsAccumulator:
             peak_list["fs"], peak_list["ss"], peak_list["intensity"]
         ):
             self._sums[class_number]["peak_powder"][
-                int(round(peak_fs)), int(round(peak_ss))
+                int(round(peak_ss)), int(round(peak_fs))
             ] += peak_value
 
         self._sum_sending_counter += 1
