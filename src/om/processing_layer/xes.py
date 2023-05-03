@@ -29,12 +29,12 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.xes import XesAnalysis
-from om.lib.generic_collecting import EventCounter
+from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.xes_collecting import XesPlots
-from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
+from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.protocols.processing_layer import OmProcessingProtocol
 
 
