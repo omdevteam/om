@@ -66,7 +66,7 @@ class OmEventDataRetrieval:
 
         try:
             data_retrieval_layer_module: ModuleType = importlib.import_module(
-                f"data_retrieval_layer.{data_retrieval_layer_class_name}"
+                f"om.data_retrieval_layer"
             )
             try:
                 data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = getattr(
