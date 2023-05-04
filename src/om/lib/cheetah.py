@@ -462,7 +462,7 @@ class CheetahClassSumsCollector:
                     self._sums[class_number][key] += class_sums[class_number][key]  # type: ignore
 
         self._class_sum_update_counter += 1
-        if self._class_sum_update_counter >= self._class_sum_update_interval:
+        if self._class_sum_update_counter % self._class_sum_update_interval == 0:
             self.save_sums()
 
     def save_sums(self) -> None:
@@ -472,13 +472,12 @@ class CheetahClassSumsCollector:
         This function is called automatically when the update interval has been
         reached. It can also be called manually.
         """
-        if self._write_class_sums:
+        if self._write_class_sums and self._class_sum_update_counter > 0:
             class_number: int
             for class_number in range(self._num_classes):
                 self._sum_writers[class_number].write_sums(
                     data=self._sums[class_number]
                 )
-            self._class_sum_update_counter = 0
 
 
 class HDF5Writer:
