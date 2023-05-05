@@ -1243,7 +1243,7 @@ class GeometryInformation:
 
     @classmethod
     def from_file(
-        cls, geometry_filename: str, geometry_format: Union[str, None] = None
+        cls, *, geometry_filename: str, geometry_format: Union[str, None] = None
     ) -> "GeometryInformation":
         """
         #TODO: Write docstring
