@@ -24,18 +24,13 @@ format used by the CrystFEL software package.
 import collections
 import copy
 import math
-import sys
 from pathlib import Path
-from typing import Dict, List, TextIO, Tuple, TypedDict, Union
+from typing import Dict, List, Tuple, TypedDict, Union
 
 import numpy
 from numpy.typing import NDArray
 
-from om.lib.exceptions import (
-    OmConfigurationFileReadingError,
-    OmGeometryError,
-    OmWrongArrayShape,
-)
+from om.lib.exceptions import OmGeometryError, OmWrongArrayShape
 
 
 class TypeBeam(TypedDict, total=True):
@@ -1121,60 +1116,6 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     }
 
 
-def _load_crystfel_geometry_from_file(  # noqa: C901
-    *,
-    filename: str,
-) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
-    """
-    Loads a CrystFEL geometry file.
-
-    This function is a Python re-implementation of the `get_detector_geometry_2` C
-    function from CrystFEL. It reads information from a CrystFEL geometry file (which
-    uses a format fully documented in the relevant
-    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),
-    and returns a set of nested dictionaries whose content matches CrystFEL's internal
-    representation of the information in the file (see the libcrystfel/src/detector.h
-    and the libcrystfel/src/image.c source code files from CrystFEL for more
-    information).
-
-    This function currently re-implements the `get_detector_geometry_2` function from
-    CrystFEL as it was at commit cff9159b4bc6.
-
-    Arguments:
-
-        filename: The absolute or relative path to a CrystFEL geometry file.
-
-    Returns:
-
-        A tuple with the information loaded from the file.
-
-            * The first entry in the tuple is a
-            [TypeDetector][om.library.crystfel_geometry.TypeDetector] dictionary storing
-            information related to the detector geometry.
-
-            * The second entry in the tuple is a
-            [TypeBeam] [om.library.crystfel_geometry.TypeBeam] dictionary storing
-            information about the beam properties.
-
-            * The third entry is the internal path, in an HDF5 data file, to the
-            location where Bragg peak information for the current detector can be
-            found. This is only used if CrystFEL extracts Bragg peak information from
-            files. If the geometry file does not provide this information, this entry
-            has the value of an empty string.
-    """
-    try:
-        file_handle: TextIO
-        with open(filename, mode="r") as file_handle:
-            file_lines: List[str] = file_handle.readlines()
-    except (IOError, OSError) as exc:
-        exc_type, exc_value = sys.exc_info()[:2]
-        raise OmConfigurationFileReadingError(
-            f"The following error occurred while reading the "  # type: ignore
-            f"{filename} geometry file {exc_type.__name__}: {exc_value}"
-        ) from exc
-    return _read_crystfel_geometry_from_text(text_lines=file_lines)
-
-
 def _compute_min_array_shape(*, pixel_maps: TypePixelMaps) -> Tuple[int, int]:
     y_minimum: int = (
         2 * int(max(abs(pixel_maps["y"].max()), abs(pixel_maps["y"].min()))) + 2
@@ -1317,7 +1258,7 @@ class GeometryInformation:
             except KeyError:
                 raise RuntimeError(
                     "Cannot infer the geometry file format from the file extension "
-                    f"{extension}. Supported exensions are: "
+                    f"{extension}. Supported extensions are: "
                     f"{format_extension_dict.keys()}"
                 )
 
