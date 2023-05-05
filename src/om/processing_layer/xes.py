@@ -68,14 +68,13 @@ class XesProcessing(OmProcessingProtocol):
         self._monitor_params: MonitorParameters = monitor_parameters
 
         # Geometry
-        self._geometry_information = GeometryInformation(
+        self._geometry_information = GeometryInformation.from_file(
             geometry_filename=self._monitor_params.get_parameter(
                 group="xes",
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
             ),
-            geometry_format="crystfel",
         )
 
         # Pump probe

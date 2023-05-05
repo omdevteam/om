@@ -1267,23 +1267,17 @@ class GeometryInformation:
     def __init__(
         self,
         *,
-        geometry_filename: str,
-        geometry_format: Union[str, None] = None,
+        geometry_description: List[str],
+        geometry_format: str,
     ) -> None:
         """
         TODO: Documentation.
         """
 
-        format_extension_dict: Dict[str, str] = {".geom": "crystfel"}
-
-        if geometry_format is None:
-            extension = Path(geometry_filename).suffix
-            geometry_format = format_extension_dict[extension]
-
         if geometry_format == "crystfel":
             geometry: TypeDetector
-            geometry, _, __ = _load_crystfel_geometry_from_file(
-                filename=geometry_filename
+            geometry, _, __ = _read_crystfel_geometry_from_text(
+                text_lines=geometry_description
             )
 
             self._layout_info: TypeDetectorLayoutInformation = (
@@ -1305,6 +1299,35 @@ class GeometryInformation:
             ]["coffset"]
         else:
             raise RuntimeError("Geometry format is not supported.")
+
+    @classmethod
+    def from_file(
+        cls, geometry_filename: str, geometry_format: Union[str, None] = None
+    ) -> "GeometryInformation":
+        """
+        #TODO: Write docstring
+        """
+
+        format_extension_dict: Dict[str, str] = {".geom": "crystfel"}
+
+        if geometry_format is None:
+            extension = Path(geometry_filename).suffix
+            try:
+                geometry_format = format_extension_dict[extension]
+            except KeyError:
+                raise RuntimeError(
+                    "Cannot infer the geometry file format from the file extension "
+                    f"{extension}. Supported exensions are: "
+                    f"{format_extension_dict.keys()}"
+                )
+
+        with open(Path(geometry_filename), "r") as file_handle:
+            geometry_file_content: List[str] = file_handle.readlines()
+
+        return cls(
+            geometry_description=geometry_file_content,
+            geometry_format=geometry_format,
+        )
 
     def get_pixel_maps(self) -> TypePixelMaps:
         """

@@ -71,14 +71,13 @@ class SwaxsProcessing(OmProcessingProtocol):
         )
 
         # Geometry
-        self._geometry_information = GeometryInformation(
+        self._geometry_information = GeometryInformation.from_file(
             geometry_filename=get_parameter_from_parameter_group(
                 group=crystallography_parameters,
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
             ),
-            geometry_format="crystfel",
         )
 
         # Bad pixel map

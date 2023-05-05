@@ -100,14 +100,13 @@ class CrystallographyParameterTweaker(OmGuiBase):
         )
 
         # Geometry
-        self._geometry_info = GeometryInformation(
+        self._geometry_info = GeometryInformation.from_file(
             geometry_filename=get_parameter_from_parameter_group(
                 group=crystallography_parameters,
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
             ),
-            geometry_format="crystfel",
         )
         bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
             Union[NDArray[numpy.int_], None],
