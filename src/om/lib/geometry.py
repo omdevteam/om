@@ -1258,8 +1258,8 @@ class GeometryInformation:
             except KeyError:
                 raise RuntimeError(
                     "Cannot infer the geometry file format from the file extension "
-                    f"{extension}. Supported extensions are: "
-                    f"{format_extension_dict.keys()}"
+                    f"'{extension}'. Supported extensions are: "
+                    f"{list(format_extension_dict.keys())}"
                 )
 
         with open(Path(geometry_filename), "r") as file_handle:
