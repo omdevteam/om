@@ -16,15 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 
-import importlib
-import sys
-from types import ModuleType
-from typing import Any, Dict, Type
+from typing import Any, Dict, Type, cast
 
-from om.lib.exceptions import (
-    OmInvalidDataBroadcastUrl,
-    OmMissingDataRetrievalClassError,
-)
+from om.lib.layer_management import import_class_from_layer
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
     OmDataEventHandlerProtocol,
@@ -45,8 +39,8 @@ class OmEventDataRetrieval:
         standalone detector data frame, with all the information that refers to it,
         as opposed to a series of events and frames as an OnDA Monitor does. This class
         has a single method that can be used to retrieve a detector frame and all its
-        related data. An event and a frame identifier are used to determine the frame
-        that should be retrieved.
+        related data. An event identifier is used to determine the frame that should be
+        retrieved.
 
         An instance of this class can be created on any type of OM node and even in a
         standalone program outside of an OnDA Monitor.
@@ -64,44 +58,24 @@ class OmEventDataRetrieval:
             required=True,
         )
 
-        try:
-            data_retrieval_layer_module: ModuleType = importlib.import_module(
-                f"om.data_retrieval_layer"
-            )
-            try:
-                data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = getattr(
-                    data_retrieval_layer_module, data_retrieval_layer_class_name
-                )
-            except AttributeError:
-                raise OmMissingDataRetrievalClassError(
-                    f"The {data_retrieval_layer_class_name} class cannot be found in "
-                    "the data_retrieval_layer file."
-                )
+        data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
+            Type[OmDataRetrievalProtocol],
+            import_class_from_layer(
+                layer="data_retrieval_layer",
+                class_name=data_retrieval_layer_class_name,
+            ),
+        )
 
-            data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
-                monitor_parameters=monitor_parameters,
-                source=source,
-            )
+        data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
+            monitor_parameters=monitor_parameters,
+            source=source,
+        )
 
-            self._data_event_handler: OmDataEventHandlerProtocol = (
-                data_retrieval_layer.get_data_event_handler()
-            )
+        self._data_event_handler: OmDataEventHandlerProtocol = (
+            data_retrieval_layer.get_data_event_handler()
+        )
 
-            self._data_event_handler.initialize_event_data_retrieval()
-        except ImportError:
-            try:
-                data_retrieval_layer_module = importlib.import_module(
-                    f"om.data_retrieval_layer.{data_retrieval_layer_class_name}"
-                )
-            except ImportError as exc:
-                exc_type, exc_value = sys.exc_info()[:2]
-                # TODO: Fix types
-                if exc_type is not None:
-                    raise OmInvalidDataBroadcastUrl(
-                        f"The python module file data_retrieval_layer.py cannot be "
-                        "found or loaded due to the following "
-                        f"error: {exc_type.__name__}: {exc_value}"
-                    ) from exc
+        self._data_event_handler.initialize_event_data_retrieval()
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """

@@ -26,12 +26,12 @@ from typing import Any, Dict, Generator, List
 
 import numpy
 
-from om.data_retrieval_layer.utils_generic import filter_data_sources
 from om.lib.exceptions import (
     OmDataExtractionError,
     OmMissingDataEventError,
     OmMissingDependencyError,
 )
+from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.protocols.data_retrieval_layer import (

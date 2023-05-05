@@ -21,57 +21,18 @@ OM's main function.
 This module contains the main function that tarts an OnDA Monitor.
 """
 
-import importlib
 import signal
 import sys
-from types import ModuleType
 from typing import Dict, Type, Union, cast
 
 import click
 
-from om.lib.exceptions import (
-    OmInvalidDataBroadcastUrl,
-    OmMissingDataRetrievalClassError,
-)
+from om.lib.layer_management import import_class_from_layer
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, set_custom_theme, set_null_theme
 from om.protocols.data_retrieval_layer import OmDataRetrievalProtocol
 from om.protocols.parallelization_layer import OmParallelizationProtocol
 from om.protocols.processing_layer import OmProcessingProtocol
-
-
-def _import_class(
-    *, layer: str, class_name: str
-) -> Union[
-    Type[OmParallelizationProtocol],
-    Type[OmProcessingProtocol],
-    Type[OmDataRetrievalProtocol],
-]:
-    try:
-        imported_layer: ModuleType = importlib.import_module(name=layer)
-    except ImportError:
-        try:
-            imported_layer = importlib.import_module(f"om.{layer}")
-        except ImportError as exc:
-            exc_type, exc_value = sys.exc_info()[:2]
-            # TODO: Fix types
-            if exc_type is not None:
-                raise OmInvalidDataBroadcastUrl(
-                    f"The python module file {layer}.py cannot be found or loaded due "
-                    f"to the following error: {exc_type.__name__}: {exc_value}"
-                ) from exc
-    try:
-        imported_class: Union[
-            Type[OmParallelizationProtocol],
-            Type[OmProcessingProtocol],
-            Type[OmDataRetrievalProtocol],
-        ] = getattr(imported_layer, class_name)
-    except AttributeError:
-        raise OmMissingDataRetrievalClassError(
-            f"The {class_name} class cannot be found in the {layer} file."
-        )
-
-    return imported_class
 
 
 @click.command()
@@ -192,21 +153,21 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
 
     parallelization_layer_class: Type[OmParallelizationProtocol] = cast(
         Type[OmParallelizationProtocol],
-        _import_class(
+        import_class_from_layer(
             layer="parallelization_layer",
             class_name=parallelization_layer_class_name,
         ),
     )
     data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
         Type[OmDataRetrievalProtocol],
-        _import_class(
+        import_class_from_layer(
             layer="data_retrieval_layer",
             class_name=data_retrieval_layer_class_name,
         ),
     )
     processing_layer_class: Type[OmProcessingProtocol] = cast(
         Type[OmProcessingProtocol],
-        _import_class(
+        import_class_from_layer(
             layer="processing_layer",
             class_name=processing_layer_class_name,
         ),

@@ -30,8 +30,8 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer.utils_generic import filter_data_sources
 from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
+from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
     OmDataEventHandlerProtocol,

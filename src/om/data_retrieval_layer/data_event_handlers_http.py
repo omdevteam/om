@@ -28,11 +28,11 @@ from typing import Any, Dict, Generator, List, Literal, Union, cast
 
 import requests  # type: ignore
 
-from om.data_retrieval_layer.utils_generic import filter_data_sources
 from om.lib.exceptions import (
     OmDataExtractionError,
     OmEigerHttpInterfaceInitializationError,
 )
+from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
     OmDataEventHandlerProtocol,
@@ -366,6 +366,6 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
         Returns:
 
-            All data related to the requested detector eventss.
+            All data related to the requested detector event.
         """
         raise NotImplementedError

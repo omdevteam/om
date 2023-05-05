@@ -108,9 +108,9 @@ class OmInvalidRespondingUrl(OmException):
     """
 
 
-class OmMissingDataRetrievalClassError(OmException):
+class OmMissingLayerClassError(OmException):
     """
-    Raised if a Data Retrieval class cannot be found in the Data Retrieval Layer.
+    Raised if a class that defines one of OM's layers cannot be found.
 
     """
 
