@@ -26,7 +26,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.data_retrieval_layer.data_sources_generic import get_calibration_request
-from om.data_retrieval_layer.utils_generic import Jungfrau1MCalibration
+from om.algorithms.calibration import Jungfrau1MCalibration
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import OmDataSourceProtocol
 
