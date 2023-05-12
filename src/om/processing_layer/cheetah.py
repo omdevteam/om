@@ -90,7 +90,7 @@ class CheetahProcessing(OmProcessingProtocol):
                 required=True,
             )
         )
-        processed_directory_path.mkdir(exist_oki=True)
+        processed_directory_path.mkdir(exist_ok=True)
 
         # Geometry
         self._geometry_information = GeometryInformation.from_file(
