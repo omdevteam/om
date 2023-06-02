@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 [build-system]
-requires = ["setuptools", "numpy"]
+requires = ["setuptools", "numpy", "cython"]
 build-backend = "setuptools.build_meta"
 
 [tool.isort]

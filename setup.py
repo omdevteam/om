@@ -121,6 +121,7 @@ setup(
     ),
     install_requires=[
         "click",
+        "cython",
         "fabio",
         "h5py",
         "msgpack",
