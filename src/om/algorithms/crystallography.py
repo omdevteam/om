@@ -37,6 +37,8 @@ from om.lib.parameters import get_parameter_from_parameter_group
 
 from ._crystallography import peakfinder_8  # type: ignore
 
+import torch
+from peaknet import app
 
 def _read_profile(*, profile_filename: str) -> Union[NDArray[numpy.float_], None]:
     if profile_filename is not None:
@@ -843,3 +845,158 @@ class Peakfinder8PeakDetection:
 #     coefficients: NDArray[numpy.float_]
 #     coefficients, _, _, _ = numpy.linalg.lstsq(a, b, rcond=None)
 #     return coefficients
+
+
+class PeakNetPeakDetection:
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        radius_pixel_map: NDArray[numpy.float_],
+        layout_info: TypeDetectorLayoutInformation,
+        parameters: Dict[str, Any],
+    ) -> None:
+        """
+        PeakNet algorithm for peak detection.
+
+        """
+        self._asic_nx: int = layout_info["asic_nx"]
+        self._asic_ny: int = layout_info["asic_ny"]
+        self._nasics_x: int = layout_info["nasics_x"]
+        self._nasics_y: int = layout_info["nasics_y"]
+        self._max_num_peaks: int = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_num_peaks",
+            parameter_type=int,
+            required=True,
+        )
+        self._adc_thresh: float = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="adc_threshold",
+            parameter_type=float,
+            required=True,
+        )
+        self._minimum_snr: float = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="minimum_snr",
+            parameter_type=float,
+            required=True,
+        )
+        self._min_pixel_count: int = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_pixel_count",
+            parameter_type=int,
+            required=True,
+        )
+        self._max_pixel_count: int = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_pixel_count",
+            parameter_type=int,
+            required=True,
+        )
+        self._local_bg_radius: int = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="local_bg_radius",
+            parameter_type=int,
+            required=True,
+        )
+        self._min_res: int = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_res",
+            parameter_type=int,
+            required=True,
+        )
+        self._max_res: int = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="max_res",
+            parameter_type=int,
+            required=True,
+        )
+
+        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
+        )
+        self._mask: Union[NDArray[numpy.int_], None] = None
+        self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
+
+        self._radial_stats_pixel_index: Union[None, NDArray[numpy.int_]] = None
+        self._radial_stats_radius: Union[None, NDArray[numpy.int_]] = None
+        self._radial_stats_num_pixels: int = 0
+        self._fast_mode: bool = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="fast_mode",
+            parameter_type=bool,
+            default=False,
+        )
+
+        if self._fast_mode is True:
+            self._num_pixels_per_bin: int = get_parameter_from_parameter_group(
+                group=parameters,
+                parameter="rstats_numpix_per_bin",
+                parameter_type=int,
+                required=False,
+                default=100,
+            )
+            self._compute_radial_stats_pixels(
+                num_pixels_per_bin=self._num_pixels_per_bin
+            )
+        self._mask = None
+        self.peaknet = app.PeakFinder(path_chkpt = None, path_cheetah_geom = None)
+        self.device = self.peaknet.device
+
+
+    def find_peaks(
+        self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
+    ) -> TypePeakList:
+        """
+        Finds peaks in a detector data frame.
+
+        This function detects peaks in a provided detector data frame, and returns
+        information about their location, size and intensity.
+
+        Arguments:
+
+            data: The detector data frame on which the peak-finding operation must be
+                performed.
+
+        Returns:
+
+            A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
+                with information about the detected peaks.
+        """
+        if self._mask is None:
+            if self._bad_pixel_map is None:
+                self._mask = numpy.ones_like(data, dtype=numpy.int8)
+            else:
+                self._mask = self._bad_pixel_map.astype(numpy.int8)
+
+            self._mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
+            self._mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
+
+        # Use peaknet peak finding...
+        peak_list = self.peaknet.find_peak_w_softmax(img, min_num_peaks = min_peaks, uses_geom = False, returns_prediction_map = False, uses_mixed_precision = True)
+
+        # Adapt the peak array to the psocake convention...
+        peak_list = [ (y, x, 0, 0, 0, 0, 0, ) for seg, y, x in self.peak_list ]
+        peak_list = np.round(self.peak_list.astype(np.int64))
+
+        return {
+            "num_peaks": len(peak_list[0]),
+            "fs": peak_list[0],
+            "ss": peak_list[1],
+            "intensity": peak_list[2],
+            "num_pixels": peak_list[4],
+            "max_pixel_intensity": peak_list[5],
+            "snr": peak_list[6],
+        }
+
+
+
