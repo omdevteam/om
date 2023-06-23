@@ -39,6 +39,9 @@ from ._crystallography import peakfinder_8  # type: ignore
 
 import torch
 from peaknet import app
+from peaknet.plugins import apply_mask
+
+import time
 
 def _read_profile(*, profile_filename: str) -> Union[NDArray[numpy.float_], None]:
     if profile_filename is not None:
@@ -854,13 +857,26 @@ class PeakNetPeakDetection:
 
     def __init__(
         self,
+        parameters: Dict[str, Any],
       ) -> None:
         """
         PeakNet algorithm for peak detection.
 
         """
+        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
+        )
+        print(f"No bad pixel map: {self._bad_pixel_map is None}")
+
+        # Initialize peak finder
         self.peaknet = app.PeakFinder(path_chkpt = None, path_cheetah_geom = None)
         self.device = self.peaknet.device
+        print(f"Device: {self.device}")
 
 
     def find_peaks(
@@ -883,14 +899,19 @@ class PeakNetPeakDetection:
                 with information about the detected peaks.
 
         """
-        data = torch.tensor(data).type(dtype=torch.float)[None,None,].to(self.device)
+        if self._bad_pixel_map is not None:
+            data = apply_mask(data, self._bad_pixel_map, mask_value = 0)
+
+        # Put data into a torch tensor...
+        data = torch.tensor(data)[None,None,].to(self.device, non_blocking = True)
+
         # Use peaknet peak finding...
-        peak_list = self.peaknet.find_peak_w_softmax(data, min_num_peaks = 5, uses_geom = False, returns_prediction_map = False, uses_mixed_precision = False)
+        peak_list = self.peaknet.find_peak_w_softmax(data, min_num_peaks = 5, uses_geom = False, returns_prediction_map = False, uses_mixed_precision = True)
 
         # Adapt the peak array to the psocake convention...
-        y=[entry[1] for entry in peak_list]
-        x=[entry[2] for entry in peak_list]
-        peak_list = [ y, x, [0]*len(y), [0]*len(y), [0]*len(y), [0]*len(y), [0]*len(y) ]# for seg, y, x in peak_list ]
+        x=[entry[1] for entry in peak_list]
+        y=[entry[2] for entry in peak_list]
+        peak_list = [ y, x, [0]*len(y), [0]*len(y), [0]*len(y), [0]*len(y), [0]*len(y) ] # for seg, y, x in peak_list ]
         # peak_list = numpy.round(peak_list).astype(numpy.int64)
 
         return {

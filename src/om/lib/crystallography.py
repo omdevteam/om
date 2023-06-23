@@ -69,7 +69,11 @@ class CrystallographyPeakFinding:
         else:
             # Put PeakNet peak finder's initialization here
 
-            self._peak_detection = PeakNetPeakDetection()
+            self._peak_detection = PeakNetPeakDetection(
+                parameters=parameters.get_parameter_group(
+                    group="peaknet"
+                ),
+            )
 
         self._min_num_peaks_for_hit: int = get_parameter_from_parameter_group(
             group=crystallography_parameters,
