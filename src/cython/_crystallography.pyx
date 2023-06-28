@@ -48,11 +48,7 @@ cdef extern from "peakfinder8.hh":
         float       *peak_com_x
         float       *peak_com_y
         long        *peak_com_index
-        float       *peak_com_x_assembled
-        float       *peak_com_y_assembled
-        float       *peak_com_r_assembled
-        float       *peak_com_q
-        float       *peak_com_res
+        int         *peak_panel_number
 
     void allocatePeakList(tPeakList* peak_list, long max_num_peaks)
     void freePeakList(tPeakList peak_list)
@@ -175,12 +171,28 @@ List[float], List[float]`: A tuple storing  information about the detected peaks
     cdef tPeakList peak_list
     allocatePeakList(&peak_list, max_num_peaks)
 
-    peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix, 
-                &rstats_pidx[0] if rstats_pidx is not None else NULL, 
-                &rstats_radius[0] if rstats_radius is not None else NULL, 
-                fast, asic_nx, asic_ny, nasics_x, nasics_y, adc_thresh, 
-                hitfinder_min_snr, hitfinder_min_pix_count, hitfinder_max_pix_count,
-                hitfinder_local_bg_radius, NULL)
+    # Shape
+    cdef vector[int] data_shape
+    for dim in data.shape:
+        data_shape.push_back(dim)
+
+    peakfinder8(&peak_list,
+                data,
+                mask,
+                pix_r,
+                data_shape,
+                adc_thresh,
+                hitfind_min_snr,
+                hitfinder_min_pix_count,
+                hitfinder_max_pix_count,
+                hitfinder_local_bg_radius)
+
+    #peakfinder8(&peak_list, &data[0, 0], &mask[0,0], &pix_r[0, 0], rstats_num_pix, 
+    #            &rstats_pidx[0] if rstats_pidx is not None else NULL, 
+    #            &rstats_radius[0] if rstats_radius is not None else NULL, 
+    #            fast, asic_nx, asic_ny, nasics_x, nasics_y, adc_thresh, 
+    #            hitfinder_min_snr, hitfinder_min_pix_count, hitfinder_max_pix_count,
+    #            hitfinder_local_bg_radius, NULL)
 
     cdef int i
     cdef float peak_x, peak_y, peak_value
