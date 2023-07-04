@@ -863,6 +863,7 @@ class PeakNetPeakDetection:
         PeakNet algorithm for peak detection.
 
         """
+        # Load param: bad pixel map
         self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
             Union[NDArray[numpy.int_], None],
             parse_parameters_and_load_hdf5_data(
@@ -873,8 +874,22 @@ class PeakNetPeakDetection:
         )
         print(f"No bad pixel map: {self._bad_pixel_map is None}")
 
+        # Load param: cheetah geom
+        self._cheetah_geom: Union(str, None) = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="cheetah_geom",
+            parameter_type=str,
+        )
+
+        # Load param: cheetah geom
+        self._min_num_peaks: Union(int, None) = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_num_peaks",
+            parameter_type=int,
+        )
+
         # Initialize peak finder
-        self.peaknet = app.PeakFinder(path_chkpt = None, path_cheetah_geom = None)
+        self.peaknet = app.PeakFinder(path_chkpt = None, path_cheetah_geom = self._cheetah_geom)
         self.device = self.peaknet.device
         print(f"Device: {self.device}")
 
@@ -906,7 +921,7 @@ class PeakNetPeakDetection:
         data = torch.tensor(data)[None,None,].to(self.device, non_blocking = True)
 
         # Use peaknet peak finding...
-        peak_list = self.peaknet.find_peak_w_softmax(data, min_num_peaks = 5, uses_geom = False, returns_prediction_map = False, uses_mixed_precision = True)
+        peak_list = self.peaknet.find_peak_w_softmax(data, min_num_peaks = self._min_num_peaks, uses_geom = True, returns_prediction_map = False, uses_mixed_precision = True)
 
         # Adapt the peak array to the psocake convention...
         x=[entry[1] for entry in peak_list]

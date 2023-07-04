@@ -71,7 +71,7 @@ class CrystallographyPeakFinding:
 
             self._peak_detection = PeakNetPeakDetection(
                 parameters=parameters.get_parameter_group(
-                    group="peaknet"
+                    group="peaknet_peak_detection"
                 ),
             )
 
