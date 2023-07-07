@@ -427,26 +427,19 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <pre class="cython line score-0">&#xA0;<span class="">048</span>:         <span class="nb">float</span>       <span class="o">*</span><span class="n">peak_com_x</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">049</span>:         <span class="nb">float</span>       <span class="o">*</span><span class="n">peak_com_y</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">050</span>:         <span class="nb">long</span>        <span class="o">*</span><span class="n">peak_com_index</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">051</span>:         <span class="nb">float</span>       <span class="o">*</span><span class="n">peak_com_x_assembled</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">052</span>:         <span class="nb">float</span>       <span class="o">*</span><span class="n">peak_com_y_assembled</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">053</span>:         <span class="nb">float</span>       <span class="o">*</span><span class="n">peak_com_r_assembled</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">054</span>:         <span class="nb">float</span>       <span class="o">*</span><span class="n">peak_com_q</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">055</span>:         <span class="nb">float</span>       <span class="o">*</span><span class="n">peak_com_res</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">056</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">057</span>:     <span class="n">void</span> <span class="n">allocatePeakList</span><span class="p">(</span><span class="n">tPeakList</span><span class="o">*</span> <span class="n">peak_list</span><span class="p">,</span> <span class="nb">long</span> <span class="n">max_num_peaks</span><span class="p">)</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">058</span>:     <span class="n">void</span> <span class="n">freePeakList</span><span class="p">(</span><span class="n">tPeakList</span> <span class="n">peak_list</span><span class="p">)</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">059</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">060</span>: <span class="k">cdef</span> <span class="kr">extern</span> <span class="k">from</span> <span class="s">&quot;peakfinder8.hh&quot;</span><span class="p">:</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">061</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">062</span>:     <span class="nb">int</span> <span class="n">peakfinder8</span><span class="p">(</span><span class="n">tPeakList</span> <span class="o">*</span><span class="n">peaklist</span><span class="p">,</span> <span class="nb">float</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">mask</span><span class="p">,</span> <span class="nb">float</span> <span class="o">*</span><span class="n">pix_r</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">063</span>:                     <span class="nb">int</span> <span class="n">rstats_num_pix</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">rstats_pidx</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">rstats_radius</span><span class="p">,</span> <span class="nb">int</span> <span class="n">fast</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">064</span>:                     <span class="nb">long</span> <span class="n">asic_nx</span><span class="p">,</span> <span class="nb">long</span> <span class="n">asic_ny</span><span class="p">,</span> <span class="nb">long</span> <span class="n">nasics_x</span><span class="p">,</span> <span class="nb">long</span> <span class="n">nasics_y</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">065</span>:                     <span class="nb">float</span> <span class="n">ADCthresh</span><span class="p">,</span> <span class="nb">float</span> <span class="n">hitfinderMinSNR</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">066</span>:                     <span class="nb">long</span> <span class="n">hitfinderMinPixCount</span><span class="p">,</span> <span class="nb">long</span> <span class="n">hitfinderMaxPixCount</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">067</span>:                     <span class="nb">long</span> <span class="n">hitfinderLocalBGRadius</span><span class="p">,</span> <span class="n">char</span><span class="o">*</span> <span class="n">outliersMask</span><span class="p">);</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">068</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">069</span>: </pre>
-<pre class="cython line score-242" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">070</span>: <span class="k">def</span> <span class="nf">peakfinder_8</span><span class="p">(</span><span class="nb">int</span> <span class="n">max_num_peaks</span><span class="p">,</span> <span class="nb">float</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">data</span><span class="p">,</span> <span class="n">char</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">mask</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">051</span>:         <span class="nb">int</span>         <span class="o">*</span><span class="n">peak_panel_number</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">052</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">053</span>:     <span class="n">void</span> <span class="n">allocatePeakList</span><span class="p">(</span><span class="n">tPeakList</span><span class="o">*</span> <span class="n">peak_list</span><span class="p">,</span> <span class="nb">long</span> <span class="n">max_num_peaks</span><span class="p">)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">054</span>:     <span class="n">void</span> <span class="n">freePeakList</span><span class="p">(</span><span class="n">tPeakList</span> <span class="n">peak_list</span><span class="p">)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">055</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">056</span>: <span class="k">cdef</span> <span class="kr">extern</span> <span class="k">from</span> <span class="s">&quot;peakfinder8.hh&quot;</span><span class="p">:</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">057</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">058</span>:     <span class="nb">int</span> <span class="n">peakfinder8</span><span class="p">(</span><span class="n">tPeakList</span> <span class="o">*</span><span class="n">peaklist</span><span class="p">,</span> <span class="nb">float</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">mask</span><span class="p">,</span> <span class="nb">float</span> <span class="o">*</span><span class="n">pix_r</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">059</span>:                     <span class="n">vector</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="n">data_shape</span><span class="p">,</span> <span class="nb">float</span> <span class="n">ADCthresh</span><span class="p">,</span> <span class="nb">float</span> <span class="n">hitfinderMinSNR</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">060</span>:                     <span class="nb">long</span> <span class="n">hitfinderMinPixCount</span><span class="p">,</span> <span class="nb">long</span> <span class="n">hitfinderMaxPixCount</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">061</span>:                     <span class="nb">long</span> <span class="n">hitfinderLocalBGRadius</span><span class="p">);</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">062</span>: </pre>
+<pre class="cython line score-242" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">063</span>: <span class="k">def</span> <span class="nf">peakfinder_8</span><span class="p">(</span><span class="nb">int</span> <span class="n">max_num_peaks</span><span class="p">,</span> <span class="nb">float</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">data</span><span class="p">,</span> <span class="n">char</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">mask</span><span class="p">,</span></pre>
 <pre class='cython code score-242 '>/* Python wrapper */
 static PyObject *__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static char __pyx_doc_2om_10algorithms_16_crystallography_peakfinder_8[] = "\n    peakfinder_8(max_num_peaks, data, mask, pix_r, asic_nx, asic_ny, nasics_x,         nasics_y, adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count,         hitfinder_max_pix_count, hitfinder_local_bg_radius)\n    \n    Peakfinder8 peak detection.\n\n    This function finds peaks in a detector data frame using the 'peakfinder8'\n    strategy from the Cheetah software package. The 'peakfinder8' peak detection\n    strategy is described in the following publication:\n\n    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,\n    and H. N. Chapman, \"Cheetah: software for high-throughput reduction and\n    analysis of serial femtosecond x-ray diffraction data\", J Appl  Crystallogr,\n    vol. 47, pp. 1118-1131 (2014).\n\n    Arguments:\n\n        max_num_peaks (:obj:`int`): The maximum number of peaks that will be retrieved\n            from each data frame. Additional peaks will be ignored.\n\n        data (:obj:`numpy.ndarray`): The detector data frame on which the peak finding\n            must be performed (as an numpy array of float32).\n\n        mask (:obj:`numpy.ndarray`): A numpy array of int8 storing a mask.  The map can\n            be used to mark areas of the data frame that must be excluded from the peak\n            search. \n\n            * The map must be a numpy array of the same shape as the data frame on\n              which the algorithm will be applied.\n\n            * Each pixel in the map must have a value of either 0, meaning that\n              the corresponding pixel in the data frame should be ignored, or 1,\n              meaning that the corresponding pixel should be included in the\n              search.\n\n            * The map is only used to exclude areas from the peak search: the data\n              is not modified in any way.\n\n        pix_r (:obj:`numpy.ndarray`): A numpy array of float32 with radius information.\n\n            * The array must have the same shape as the data frame on which the\n   ""           algorithm will be applied.\n\n            * Each element of the array must store, for the corresponding pixel in the\n              data frame, the distance in pixels from the origin of the detector\n              reference system (usually the center of the detector).\n\n        asic_nx (:obj:`int`):: The fs size in pixels of each detector panel in the data\n            frame.\n\n        asic_ny (:obj:`int`):: The ss size in pixels of each detector panel in the data\n            frame.\n\n        nasics_x (:obj:`int`): The number of panels along the fs axis of the data\n            frame.\n\n        nasics_y (:obj:`int`): The number of panels along the ss axis of the data\n            frame.\n\n        adc_thresh (:obj:`float`):: The minimum ADC threshold for peak detection.\n\n        hitfinder_min_snr (:obj:`float`): The minimum signal-to-noise ratio for peak\n            detection.\n\n        hitfinder_min_pix_count (:obj:`int`): The minimum size of a peak in pixels.\n\n        hitfinder_max_pixel_count (:obj:`int`): The maximum size of a peak in pixels.\n\n        local_bg_radius: The radius for the estimation of the local background in\n            pixels.\n\n    Returns:\n\n        :obj:`Tuple[int, List[float], List[float], List[float], List[float], List[float], List[float]`: A tuple storing  information about the detected peaks. The\n        tuple has the following elements:\n\n            * The first entry stores the number of peaks that were detected in the data\n            frame.\n\n            * The second entry is a list storing the fractional fs indexes that locate\n            thedetected peaks in the data frame.\n    \n            * The third entry is a list storing the fractional ss indexes that locate the\n            the detected peaks in the data frame.\n    \n            * The fourth entry is a list storing the integrated intensities for the\n            detected peaks.\n    \n            * The fifth entry is a list storing the number"" of pixels that make up each\n            detected peak.\n\n            * The sixth entry is a list storing, for each peak, the value of the pixel\n            with the maximum intensity.\n    \n            * The seventh entry is a list storing the signal-to-noise ratio of each\n            detected peak.\n    ";
@@ -455,15 +448,15 @@ static PyObject *__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8(PyOb
   int __pyx_v_max_num_peaks;
   __Pyx_memviewslice __pyx_v_data = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_mask = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_pix_r = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_rstats_num_pix;
-  __Pyx_memviewslice __pyx_v_rstats_pidx = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_rstats_radius = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_fast;
-  long __pyx_v_asic_nx;
-  long __pyx_v_asic_ny;
-  long __pyx_v_nasics_x;
-  long __pyx_v_nasics_y;
+  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_pix_r = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED int __pyx_v_rstats_num_pix;
+  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_rstats_pidx = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED __Pyx_memviewslice __pyx_v_rstats_radius = { 0, 0, { 0 }, { 0 }, { 0 } };
+  CYTHON_UNUSED int __pyx_v_fast;
+  CYTHON_UNUSED long __pyx_v_asic_nx;
+  CYTHON_UNUSED long __pyx_v_asic_ny;
+  CYTHON_UNUSED long __pyx_v_nasics_x;
+  CYTHON_UNUSED long __pyx_v_nasics_y;
   float __pyx_v_adc_thresh;
   float __pyx_v_hitfinder_min_snr;
   long __pyx_v_hitfinder_min_pix_count;
@@ -525,101 +518,101 @@ static PyObject *__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8(PyOb
         case  1:
         if (likely((values[1] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 1); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 1); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_mask)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 2); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 2); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_pix_r)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 3); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 3); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_rstats_num_pix)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 4); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 4); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_rstats_pidx)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 5); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 5); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_rstats_radius)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 6); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 6); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  7:
         if (likely((values[7] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_fast)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 7); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 7); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  8:
         if (likely((values[8] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_asic_nx)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 8); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 8); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  9:
         if (likely((values[9] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_asic_ny)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 9); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 9); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case 10:
         if (likely((values[10] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_nasics_x)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 10); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 10); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case 11:
         if (likely((values[11] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_nasics_y)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 11); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 11); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case 12:
         if (likely((values[12] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_adc_thresh)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 12); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 12); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case 13:
         if (likely((values[13] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_hitfinder_min_snr)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 13); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 13); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case 14:
         if (likely((values[14] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_hitfinder_min_pix_count)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 14); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 14); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case 15:
         if (likely((values[15] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_hitfinder_max_pix_count)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 15); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 15); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case 16:
         if (likely((values[16] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_hitfinder_local_bg_radius)) != 0)) kw_args--;
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 16); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, 16); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
         }
       }
       if (unlikely(kw_args &gt; 0)) {
-        if (unlikely(<span class='pyx_c_api'>__Pyx_ParseOptionalKeywords</span>(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "peakfinder_8") &lt; 0)) <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+        if (unlikely(<span class='pyx_c_api'>__Pyx_ParseOptionalKeywords</span>(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "peakfinder_8") &lt; 0)) <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
       }
     } else if (<span class='py_macro_api'>PyTuple_GET_SIZE</span>(__pyx_args) != 17) {
       goto __pyx_L5_argtuple_error;
@@ -642,27 +635,27 @@ static PyObject *__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8(PyOb
       values[15] = <span class='py_macro_api'>PyTuple_GET_ITEM</span>(__pyx_args, 15);
       values[16] = <span class='py_macro_api'>PyTuple_GET_ITEM</span>(__pyx_args, 16);
     }
-    __pyx_v_max_num_peaks = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(values[0]); if (unlikely((__pyx_v_max_num_peaks == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
-    __pyx_v_data = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_d_dc_float</span>(values[1], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 70, __pyx_L3_error)</span>
-    __pyx_v_mask = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_d_dc_char</span>(values[2], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_mask.memview)) __PYX_ERR(0, 70, __pyx_L3_error)</span>
-    __pyx_v_pix_r = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_d_dc_float</span>(values[3], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_pix_r.memview)) __PYX_ERR(0, 71, __pyx_L3_error)</span>
-    __pyx_v_rstats_num_pix = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(values[4]); if (unlikely((__pyx_v_rstats_num_pix == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 71, __pyx_L3_error)</span>
-    __pyx_v_rstats_pidx = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_ds_int</span>(values[5], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_rstats_pidx.memview)) __PYX_ERR(0, 71, __pyx_L3_error)</span>
-    __pyx_v_rstats_radius = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_ds_int</span>(values[6], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_rstats_radius.memview)) __PYX_ERR(0, 72, __pyx_L3_error)</span>
-    __pyx_v_fast = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(values[7]); if (unlikely((__pyx_v_fast == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 72, __pyx_L3_error)</span>
-    __pyx_v_asic_nx = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[8]); if (unlikely((__pyx_v_asic_nx == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 72, __pyx_L3_error)</span>
-    __pyx_v_asic_ny = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[9]); if (unlikely((__pyx_v_asic_ny == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 72, __pyx_L3_error)</span>
-    __pyx_v_nasics_x = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[10]); if (unlikely((__pyx_v_nasics_x == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 73, __pyx_L3_error)</span>
-    __pyx_v_nasics_y = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[11]); if (unlikely((__pyx_v_nasics_y == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 73, __pyx_L3_error)</span>
-    __pyx_v_adc_thresh = __pyx_<span class='py_c_api'>PyFloat_AsFloat</span>(values[12]); if (unlikely((__pyx_v_adc_thresh == (float)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 73, __pyx_L3_error)</span>
-    __pyx_v_hitfinder_min_snr = __pyx_<span class='py_c_api'>PyFloat_AsFloat</span>(values[13]); if (unlikely((__pyx_v_hitfinder_min_snr == (float)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L3_error)</span>
-    __pyx_v_hitfinder_min_pix_count = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[14]); if (unlikely((__pyx_v_hitfinder_min_pix_count == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L3_error)</span>
-    __pyx_v_hitfinder_max_pix_count = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[15]); if (unlikely((__pyx_v_hitfinder_max_pix_count == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 75, __pyx_L3_error)</span>
-    __pyx_v_hitfinder_local_bg_radius = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[16]); if (unlikely((__pyx_v_hitfinder_local_bg_radius == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 75, __pyx_L3_error)</span>
+    __pyx_v_max_num_peaks = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(values[0]); if (unlikely((__pyx_v_max_num_peaks == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
+    __pyx_v_data = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_d_dc_float</span>(values[1], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_data.memview)) __PYX_ERR(0, 63, __pyx_L3_error)</span>
+    __pyx_v_mask = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_d_dc_char</span>(values[2], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_mask.memview)) __PYX_ERR(0, 63, __pyx_L3_error)</span>
+    __pyx_v_pix_r = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_d_dc_float</span>(values[3], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_pix_r.memview)) __PYX_ERR(0, 64, __pyx_L3_error)</span>
+    __pyx_v_rstats_num_pix = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(values[4]); if (unlikely((__pyx_v_rstats_num_pix == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 64, __pyx_L3_error)</span>
+    __pyx_v_rstats_pidx = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_ds_int</span>(values[5], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_rstats_pidx.memview)) __PYX_ERR(0, 64, __pyx_L3_error)</span>
+    __pyx_v_rstats_radius = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_ds_int</span>(values[6], PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_v_rstats_radius.memview)) __PYX_ERR(0, 65, __pyx_L3_error)</span>
+    __pyx_v_fast = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(values[7]); if (unlikely((__pyx_v_fast == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 65, __pyx_L3_error)</span>
+    __pyx_v_asic_nx = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[8]); if (unlikely((__pyx_v_asic_nx == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 65, __pyx_L3_error)</span>
+    __pyx_v_asic_ny = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[9]); if (unlikely((__pyx_v_asic_ny == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 65, __pyx_L3_error)</span>
+    __pyx_v_nasics_x = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[10]); if (unlikely((__pyx_v_nasics_x == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 66, __pyx_L3_error)</span>
+    __pyx_v_nasics_y = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[11]); if (unlikely((__pyx_v_nasics_y == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 66, __pyx_L3_error)</span>
+    __pyx_v_adc_thresh = __pyx_<span class='py_c_api'>PyFloat_AsFloat</span>(values[12]); if (unlikely((__pyx_v_adc_thresh == (float)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 66, __pyx_L3_error)</span>
+    __pyx_v_hitfinder_min_snr = __pyx_<span class='py_c_api'>PyFloat_AsFloat</span>(values[13]); if (unlikely((__pyx_v_hitfinder_min_snr == (float)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 67, __pyx_L3_error)</span>
+    __pyx_v_hitfinder_min_pix_count = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[14]); if (unlikely((__pyx_v_hitfinder_min_pix_count == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 67, __pyx_L3_error)</span>
+    __pyx_v_hitfinder_max_pix_count = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[15]); if (unlikely((__pyx_v_hitfinder_max_pix_count == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 68, __pyx_L3_error)</span>
+    __pyx_v_hitfinder_local_bg_radius = <span class='pyx_c_api'>__Pyx_PyInt_As_long</span>(values[16]); if (unlikely((__pyx_v_hitfinder_local_bg_radius == (long)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 68, __pyx_L3_error)</span>
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, <span class='py_macro_api'>PyTuple_GET_SIZE</span>(__pyx_args)); <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L3_error)</span>
+  <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("peakfinder_8", 1, 17, 17, <span class='py_macro_api'>PyTuple_GET_SIZE</span>(__pyx_args)); <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L3_error)</span>
   __pyx_L3_error:;
   <span class='pyx_c_api'>__Pyx_AddTraceback</span>("om.algorithms._crystallography.peakfinder_8", __pyx_clineno, __pyx_lineno, __pyx_filename);
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
@@ -678,8 +671,11 @@ static PyObject *__pyx_pw_2om_10algorithms_16_crystallography_1peakfinder_8(PyOb
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_2om_10algorithms_16_crystallography_peakfinder_8(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_max_num_peaks, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_mask, __Pyx_memviewslice __pyx_v_pix_r, int __pyx_v_rstats_num_pix, __Pyx_memviewslice __pyx_v_rstats_pidx, __Pyx_memviewslice __pyx_v_rstats_radius, int __pyx_v_fast, long __pyx_v_asic_nx, long __pyx_v_asic_ny, long __pyx_v_nasics_x, long __pyx_v_nasics_y, float __pyx_v_adc_thresh, float __pyx_v_hitfinder_min_snr, long __pyx_v_hitfinder_min_pix_count, long __pyx_v_hitfinder_max_pix_count, long __pyx_v_hitfinder_local_bg_radius) {
+static PyObject *__pyx_pf_2om_10algorithms_16_crystallography_peakfinder_8(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_max_num_peaks, __Pyx_memviewslice __pyx_v_data, __Pyx_memviewslice __pyx_v_mask, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_pix_r, CYTHON_UNUSED int __pyx_v_rstats_num_pix, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_rstats_pidx, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_rstats_radius, CYTHON_UNUSED int __pyx_v_fast, CYTHON_UNUSED long __pyx_v_asic_nx, CYTHON_UNUSED long __pyx_v_asic_ny, CYTHON_UNUSED long __pyx_v_nasics_x, CYTHON_UNUSED long __pyx_v_nasics_y, float __pyx_v_adc_thresh, float __pyx_v_hitfinder_min_snr, long __pyx_v_hitfinder_min_pix_count, long __pyx_v_hitfinder_max_pix_count, long __pyx_v_hitfinder_local_bg_radius) {
   tPeakList __pyx_v_peak_list;
+  __Pyx_memviewslice __pyx_v_raveled_data = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_raveled_mask = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_raveled_pix_r = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_i;
   float __pyx_v_peak_x;
   float __pyx_v_peak_y;
@@ -704,18 +700,23 @@ static PyObject *__pyx_pf_2om_10algorithms_16_crystallography_peakfinder_8(CYTHO
 /* … */
   /* function exit code */
   __pyx_L1_error:;
-  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_14);
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_2);
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_3);
+  __PYX_XDEC_MEMVIEW(&amp;__pyx_t_4, 1);
+  __PYX_XDEC_MEMVIEW(&amp;__pyx_t_5, 1);
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_15);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_16);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_17);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_18);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_19);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_20);
-  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_21);
-  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_22);
-  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_23);
   <span class='pyx_c_api'>__Pyx_AddTraceback</span>("om.algorithms._crystallography.peakfinder_8", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
+  __PYX_XDEC_MEMVIEW(&amp;__pyx_v_raveled_data, 1);
+  __PYX_XDEC_MEMVIEW(&amp;__pyx_v_raveled_mask, 1);
+  __PYX_XDEC_MEMVIEW(&amp;__pyx_v_raveled_pix_r, 1);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_v_peak_npix);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_v_peak_maxi);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_v_peak_sigma);
@@ -730,377 +731,433 @@ static PyObject *__pyx_pf_2om_10algorithms_16_crystallography_peakfinder_8(CYTHO
   return __pyx_r;
 }
 /* … */
-  __pyx_tuple__20 = <span class='py_c_api'>PyTuple_Pack</span>(36, __pyx_n_s_max_num_peaks, __pyx_n_s_data, __pyx_n_s_mask, __pyx_n_s_pix_r, __pyx_n_s_rstats_num_pix, __pyx_n_s_rstats_pidx, __pyx_n_s_rstats_radius, __pyx_n_s_fast, __pyx_n_s_asic_nx, __pyx_n_s_asic_ny, __pyx_n_s_nasics_x, __pyx_n_s_nasics_y, __pyx_n_s_adc_thresh, __pyx_n_s_hitfinder_min_snr, __pyx_n_s_hitfinder_min_pix_count, __pyx_n_s_hitfinder_max_pix_count, __pyx_n_s_hitfinder_local_bg_radius, __pyx_n_s_peak_list, __pyx_n_s_i, __pyx_n_s_peak_x, __pyx_n_s_peak_y, __pyx_n_s_peak_value, __pyx_n_s_peak_list_x, __pyx_n_s_peak_list_y, __pyx_n_s_peak_list_index, __pyx_n_s_peak_list_value, __pyx_n_s_peak_list_npix, __pyx_n_s_peak_list_maxi, __pyx_n_s_peak_list_sigma, __pyx_n_s_peak_list_snr, __pyx_n_s_num_peaks, __pyx_n_s_peak_index, __pyx_n_s_peak_npix, __pyx_n_s_peak_maxi, __pyx_n_s_peak_sigma, __pyx_n_s_peak_snr);<span class='error_goto'> if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
+  __pyx_tuple__20 = <span class='py_c_api'>PyTuple_Pack</span>(39, __pyx_n_s_max_num_peaks, __pyx_n_s_data, __pyx_n_s_mask, __pyx_n_s_pix_r, __pyx_n_s_rstats_num_pix, __pyx_n_s_rstats_pidx, __pyx_n_s_rstats_radius, __pyx_n_s_fast, __pyx_n_s_asic_nx, __pyx_n_s_asic_ny, __pyx_n_s_nasics_x, __pyx_n_s_nasics_y, __pyx_n_s_adc_thresh, __pyx_n_s_hitfinder_min_snr, __pyx_n_s_hitfinder_min_pix_count, __pyx_n_s_hitfinder_max_pix_count, __pyx_n_s_hitfinder_local_bg_radius, __pyx_n_s_peak_list, __pyx_n_s_raveled_data, __pyx_n_s_raveled_mask, __pyx_n_s_raveled_pix_r, __pyx_n_s_i, __pyx_n_s_peak_x, __pyx_n_s_peak_y, __pyx_n_s_peak_value, __pyx_n_s_peak_list_x, __pyx_n_s_peak_list_y, __pyx_n_s_peak_list_index, __pyx_n_s_peak_list_value, __pyx_n_s_peak_list_npix, __pyx_n_s_peak_list_maxi, __pyx_n_s_peak_list_sigma, __pyx_n_s_peak_list_snr, __pyx_n_s_num_peaks, __pyx_n_s_peak_index, __pyx_n_s_peak_npix, __pyx_n_s_peak_maxi, __pyx_n_s_peak_sigma, __pyx_n_s_peak_snr);<span class='error_goto'> if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 63, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_tuple__20);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_tuple__20);
 /* … */
-  __pyx_t_1 = PyCFunction_NewEx(&amp;__pyx_mdef_2om_10algorithms_16_crystallography_1peakfinder_8, NULL, __pyx_n_s_om_algorithms__crystallography);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
+  __pyx_t_1 = PyCFunction_NewEx(&amp;__pyx_mdef_2om_10algorithms_16_crystallography_1peakfinder_8, NULL, __pyx_n_s_om_algorithms__crystallography);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  if (<span class='py_c_api'>PyDict_SetItem</span>(__pyx_d, __pyx_n_s_peakfinder_8, __pyx_t_1) &lt; 0) <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L1_error)</span>
+  if (<span class='py_c_api'>PyDict_SetItem</span>(__pyx_d, __pyx_n_s_peakfinder_8, __pyx_t_1) &lt; 0) <span class='error_goto'>__PYX_ERR(0, 63, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_codeobj__21 = (PyObject*)<span class='pyx_c_api'>__Pyx_PyCode_New</span>(17, 0, 36, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_cython__crystallography_pyx, __pyx_n_s_peakfinder_8, 70, __pyx_empty_bytes);<span class='error_goto'> if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
-</pre><pre class="cython line score-0">&#xA0;<span class="">071</span>:                  <span class="nb">float</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">pix_r</span><span class="p">,</span> <span class="nb">int</span> <span class="n">rstats_num_pix</span><span class="p">,</span> <span class="nb">int</span><span class="p">[:]</span> <span class="n">rstats_pidx</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">072</span>:                  <span class="nb">int</span><span class="p">[:]</span> <span class="n">rstats_radius</span><span class="p">,</span> <span class="nb">int</span> <span class="n">fast</span><span class="p">,</span> <span class="nb">long</span> <span class="n">asic_nx</span><span class="p">,</span> <span class="nb">long</span> <span class="n">asic_ny</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">073</span>:                  <span class="nb">long</span> <span class="n">nasics_x</span><span class="p">,</span> <span class="nb">long</span> <span class="n">nasics_y</span><span class="p">,</span> <span class="nb">float</span> <span class="n">adc_thresh</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">074</span>:                  <span class="nb">float</span> <span class="n">hitfinder_min_snr</span><span class="p">,</span> <span class="nb">long</span> <span class="n">hitfinder_min_pix_count</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">075</span>:                  <span class="nb">long</span> <span class="n">hitfinder_max_pix_count</span><span class="p">,</span> <span class="nb">long</span> <span class="n">hitfinder_local_bg_radius</span><span class="p">):</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">076</span>:     <span class="sd">&quot;&quot;&quot;</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">077</span>: <span class="sd">    peakfinder_8(max_num_peaks, data, mask, pix_r, asic_nx, asic_ny, nasics_x, \</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">078</span>: <span class="sd">        nasics_y, adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count, \</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">079</span>: <span class="sd">        hitfinder_max_pix_count, hitfinder_local_bg_radius)</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">080</span>: <span class="sd">    </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">081</span>: <span class="sd">    Peakfinder8 peak detection.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">082</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">083</span>: <span class="sd">    This function finds peaks in a detector data frame using the &#39;peakfinder8&#39;</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">084</span>: <span class="sd">    strategy from the Cheetah software package. The &#39;peakfinder8&#39; peak detection</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">085</span>: <span class="sd">    strategy is described in the following publication:</span></pre>
+  __pyx_codeobj__21 = (PyObject*)<span class='pyx_c_api'>__Pyx_PyCode_New</span>(17, 0, 39, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_cython__crystallography_pyx, __pyx_n_s_peakfinder_8, 63, __pyx_empty_bytes);<span class='error_goto'> if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 63, __pyx_L1_error)</span>
+</pre><pre class="cython line score-0">&#xA0;<span class="">064</span>:                  <span class="nb">float</span><span class="p">[:,::</span><span class="mf">1</span><span class="p">]</span> <span class="n">pix_r</span><span class="p">,</span> <span class="nb">int</span> <span class="n">rstats_num_pix</span><span class="p">,</span> <span class="nb">int</span><span class="p">[:]</span> <span class="n">rstats_pidx</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">065</span>:                  <span class="nb">int</span><span class="p">[:]</span> <span class="n">rstats_radius</span><span class="p">,</span> <span class="nb">int</span> <span class="n">fast</span><span class="p">,</span> <span class="nb">long</span> <span class="n">asic_nx</span><span class="p">,</span> <span class="nb">long</span> <span class="n">asic_ny</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">066</span>:                  <span class="nb">long</span> <span class="n">nasics_x</span><span class="p">,</span> <span class="nb">long</span> <span class="n">nasics_y</span><span class="p">,</span> <span class="nb">float</span> <span class="n">adc_thresh</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">067</span>:                  <span class="nb">float</span> <span class="n">hitfinder_min_snr</span><span class="p">,</span> <span class="nb">long</span> <span class="n">hitfinder_min_pix_count</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">068</span>:                  <span class="nb">long</span> <span class="n">hitfinder_max_pix_count</span><span class="p">,</span> <span class="nb">long</span> <span class="n">hitfinder_local_bg_radius</span><span class="p">):</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">069</span>: <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">070</span>: <span class="sd">    peakfinder_8(max_num_peaks, data, mask, pix_r, asic_nx, asic_ny, nasics_x, \</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">071</span>: <span class="sd">        nasics_y, adc_thresh, hitfinder_min_snr, hitfinder_min_pix_count, \</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">072</span>: <span class="sd">        hitfinder_max_pix_count, hitfinder_local_bg_radius)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">073</span>: <span class="sd">    </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">074</span>: <span class="sd">    Peakfinder8 peak detection.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">075</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">076</span>: <span class="sd">    This function finds peaks in a detector data frame using the &#39;peakfinder8&#39;</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">077</span>: <span class="sd">    strategy from the Cheetah software package. The &#39;peakfinder8&#39; peak detection</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">078</span>: <span class="sd">    strategy is described in the following publication:</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">079</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">080</span>: <span class="sd">    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">081</span>: <span class="sd">    and H. N. Chapman, &quot;Cheetah: software for high-throughput reduction and</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">082</span>: <span class="sd">    analysis of serial femtosecond x-ray diffraction data&quot;, J Appl  Crystallogr,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">083</span>: <span class="sd">    vol. 47, pp. 1118-1131 (2014).</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">084</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">085</span>: <span class="sd">    Arguments:</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">086</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">087</span>: <span class="sd">    A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">088</span>: <span class="sd">    and H. N. Chapman, &quot;Cheetah: software for high-throughput reduction and</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">089</span>: <span class="sd">    analysis of serial femtosecond x-ray diffraction data&quot;, J Appl  Crystallogr,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">090</span>: <span class="sd">    vol. 47, pp. 1118-1131 (2014).</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">091</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">092</span>: <span class="sd">    Arguments:</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">093</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">094</span>: <span class="sd">        max_num_peaks (:obj:`int`): The maximum number of peaks that will be retrieved</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">095</span>: <span class="sd">            from each data frame. Additional peaks will be ignored.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">087</span>: <span class="sd">        max_num_peaks (:obj:`int`): The maximum number of peaks that will be retrieved</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">088</span>: <span class="sd">            from each data frame. Additional peaks will be ignored.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">089</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">090</span>: <span class="sd">        data (:obj:`numpy.ndarray`): The detector data frame on which the peak finding</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">091</span>: <span class="sd">            must be performed (as an numpy array of float32).</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">092</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">093</span>: <span class="sd">        mask (:obj:`numpy.ndarray`): A numpy array of int8 storing a mask.  The map can</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">094</span>: <span class="sd">            be used to mark areas of the data frame that must be excluded from the peak</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">095</span>: <span class="sd">            search. </span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">096</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">097</span>: <span class="sd">        data (:obj:`numpy.ndarray`): The detector data frame on which the peak finding</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">098</span>: <span class="sd">            must be performed (as an numpy array of float32).</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">097</span>: <span class="sd">            * The map must be a numpy array of the same shape as the data frame on</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">098</span>: <span class="sd">              which the algorithm will be applied.</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">099</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">100</span>: <span class="sd">        mask (:obj:`numpy.ndarray`): A numpy array of int8 storing a mask.  The map can</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">101</span>: <span class="sd">            be used to mark areas of the data frame that must be excluded from the peak</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">102</span>: <span class="sd">            search. </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">103</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">104</span>: <span class="sd">            * The map must be a numpy array of the same shape as the data frame on</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">105</span>: <span class="sd">              which the algorithm will be applied.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">106</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">107</span>: <span class="sd">            * Each pixel in the map must have a value of either 0, meaning that</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">108</span>: <span class="sd">              the corresponding pixel in the data frame should be ignored, or 1,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">109</span>: <span class="sd">              meaning that the corresponding pixel should be included in the</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">110</span>: <span class="sd">              search.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">111</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">112</span>: <span class="sd">            * The map is only used to exclude areas from the peak search: the data</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">113</span>: <span class="sd">              is not modified in any way.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">114</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">115</span>: <span class="sd">        pix_r (:obj:`numpy.ndarray`): A numpy array of float32 with radius information.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">100</span>: <span class="sd">            * Each pixel in the map must have a value of either 0, meaning that</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">101</span>: <span class="sd">              the corresponding pixel in the data frame should be ignored, or 1,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">102</span>: <span class="sd">              meaning that the corresponding pixel should be included in the</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">103</span>: <span class="sd">              search.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">104</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">105</span>: <span class="sd">            * The map is only used to exclude areas from the peak search: the data</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">106</span>: <span class="sd">              is not modified in any way.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">107</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">108</span>: <span class="sd">        pix_r (:obj:`numpy.ndarray`): A numpy array of float32 with radius information.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">109</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">110</span>: <span class="sd">            * The array must have the same shape as the data frame on which the</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">111</span>: <span class="sd">              algorithm will be applied.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">112</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">113</span>: <span class="sd">            * Each element of the array must store, for the corresponding pixel in the</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">114</span>: <span class="sd">              data frame, the distance in pixels from the origin of the detector</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">115</span>: <span class="sd">              reference system (usually the center of the detector).</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">116</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">117</span>: <span class="sd">            * The array must have the same shape as the data frame on which the</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">118</span>: <span class="sd">              algorithm will be applied.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">117</span>: <span class="sd">        asic_nx (:obj:`int`):: The fs size in pixels of each detector panel in the data</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">118</span>: <span class="sd">            frame.</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">119</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">120</span>: <span class="sd">            * Each element of the array must store, for the corresponding pixel in the</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">121</span>: <span class="sd">              data frame, the distance in pixels from the origin of the detector</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">122</span>: <span class="sd">              reference system (usually the center of the detector).</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">123</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">124</span>: <span class="sd">        asic_nx (:obj:`int`):: The fs size in pixels of each detector panel in the data</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">125</span>: <span class="sd">            frame.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">126</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">127</span>: <span class="sd">        asic_ny (:obj:`int`):: The ss size in pixels of each detector panel in the data</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">128</span>: <span class="sd">            frame.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">129</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">130</span>: <span class="sd">        nasics_x (:obj:`int`): The number of panels along the fs axis of the data</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">131</span>: <span class="sd">            frame.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">132</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">133</span>: <span class="sd">        nasics_y (:obj:`int`): The number of panels along the ss axis of the data</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">134</span>: <span class="sd">            frame.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">120</span>: <span class="sd">        asic_ny (:obj:`int`):: The ss size in pixels of each detector panel in the data</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">121</span>: <span class="sd">            frame.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">122</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">123</span>: <span class="sd">        nasics_x (:obj:`int`): The number of panels along the fs axis of the data</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">124</span>: <span class="sd">            frame.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">125</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">126</span>: <span class="sd">        nasics_y (:obj:`int`): The number of panels along the ss axis of the data</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">127</span>: <span class="sd">            frame.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">128</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">129</span>: <span class="sd">        adc_thresh (:obj:`float`):: The minimum ADC threshold for peak detection.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">130</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">131</span>: <span class="sd">        hitfinder_min_snr (:obj:`float`): The minimum signal-to-noise ratio for peak</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">132</span>: <span class="sd">            detection.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">133</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">134</span>: <span class="sd">        hitfinder_min_pix_count (:obj:`int`): The minimum size of a peak in pixels.</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">135</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">136</span>: <span class="sd">        adc_thresh (:obj:`float`):: The minimum ADC threshold for peak detection.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">136</span>: <span class="sd">        hitfinder_max_pixel_count (:obj:`int`): The maximum size of a peak in pixels.</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">137</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">138</span>: <span class="sd">        hitfinder_min_snr (:obj:`float`): The minimum signal-to-noise ratio for peak</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">139</span>: <span class="sd">            detection.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">138</span>: <span class="sd">        local_bg_radius: The radius for the estimation of the local background in</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">139</span>: <span class="sd">            pixels.</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">140</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">141</span>: <span class="sd">        hitfinder_min_pix_count (:obj:`int`): The minimum size of a peak in pixels.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">141</span>: <span class="sd">    Returns:</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">142</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">143</span>: <span class="sd">        hitfinder_max_pixel_count (:obj:`int`): The maximum size of a peak in pixels.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">144</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">145</span>: <span class="sd">        local_bg_radius: The radius for the estimation of the local background in</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">146</span>: <span class="sd">            pixels.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">147</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">148</span>: <span class="sd">    Returns:</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">143</span>: <span class="sd">        :obj:`Tuple[int, List[float], List[float], List[float], List[float], \</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">144</span>: <span class="sd">List[float], List[float]`: A tuple storing  information about the detected peaks. The</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">145</span>: <span class="sd">        tuple has the following elements:</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">146</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">147</span>: <span class="sd">            * The first entry stores the number of peaks that were detected in the data</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">148</span>: <span class="sd">            frame.</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">149</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">150</span>: <span class="sd">        :obj:`Tuple[int, List[float], List[float], List[float], List[float], \</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">151</span>: <span class="sd">List[float], List[float]`: A tuple storing  information about the detected peaks. The</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">152</span>: <span class="sd">        tuple has the following elements:</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">153</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">154</span>: <span class="sd">            * The first entry stores the number of peaks that were detected in the data</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">155</span>: <span class="sd">            frame.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">156</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">157</span>: <span class="sd">            * The second entry is a list storing the fractional fs indexes that locate</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">158</span>: <span class="sd">            thedetected peaks in the data frame.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">159</span>: <span class="sd">    </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">160</span>: <span class="sd">            * The third entry is a list storing the fractional ss indexes that locate the</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">161</span>: <span class="sd">            the detected peaks in the data frame.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">162</span>: <span class="sd">    </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">163</span>: <span class="sd">            * The fourth entry is a list storing the integrated intensities for the</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">164</span>: <span class="sd">            detected peaks.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">165</span>: <span class="sd">    </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">166</span>: <span class="sd">            * The fifth entry is a list storing the number of pixels that make up each</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">167</span>: <span class="sd">            detected peak.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">168</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">169</span>: <span class="sd">            * The sixth entry is a list storing, for each peak, the value of the pixel</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">170</span>: <span class="sd">            with the maximum intensity.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">171</span>: <span class="sd">    </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">172</span>: <span class="sd">            * The seventh entry is a list storing the signal-to-noise ratio of each</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">173</span>: <span class="sd">            detected peak.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">174</span>: <span class="sd">    &quot;&quot;&quot;</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">175</span>:     <span class="k">cdef</span> <span class="kt">tPeakList</span> <span class="nf">peak_list</span></pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">176</span>:     <span class="n">allocatePeakList</span><span class="p">(</span><span class="o">&amp;</span><span class="n">peak_list</span><span class="p">,</span> <span class="n">max_num_peaks</span><span class="p">)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">150</span>: <span class="sd">            * The second entry is a list storing the fractional fs indexes that locate</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">151</span>: <span class="sd">            thedetected peaks in the data frame.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">152</span>: <span class="sd">    </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">153</span>: <span class="sd">            * The third entry is a list storing the fractional ss indexes that locate the</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">154</span>: <span class="sd">            the detected peaks in the data frame.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">155</span>: <span class="sd">    </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">156</span>: <span class="sd">            * The fourth entry is a list storing the integrated intensities for the</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">157</span>: <span class="sd">            detected peaks.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">158</span>: <span class="sd">    </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">159</span>: <span class="sd">            * The fifth entry is a list storing the number of pixels that make up each</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">160</span>: <span class="sd">            detected peak.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">161</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">162</span>: <span class="sd">            * The sixth entry is a list storing, for each peak, the value of the pixel</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">163</span>: <span class="sd">            with the maximum intensity.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">164</span>: <span class="sd">    </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">165</span>: <span class="sd">            * The seventh entry is a list storing the signal-to-noise ratio of each</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">166</span>: <span class="sd">            detected peak.</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">167</span>: <span class="sd">    &quot;&quot;&quot;</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">168</span>:     <span class="k">cdef</span> <span class="kt">tPeakList</span> <span class="nf">peak_list</span></pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">169</span>:     <span class="n">allocatePeakList</span><span class="p">(</span><span class="o">&amp;</span><span class="n">peak_list</span><span class="p">,</span> <span class="n">max_num_peaks</span><span class="p">)</span></pre>
 <pre class='cython code score-0 '>  allocatePeakList((&amp;__pyx_v_peak_list), __pyx_v_max_num_peaks);
-</pre><pre class="cython line score-0">&#xA0;<span class="">177</span>: </pre>
-<pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">178</span>:     <span class="n">peakfinder8</span><span class="p">(</span><span class="o">&amp;</span><span class="n">peak_list</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">data</span><span class="p">[</span><span class="mf">0</span><span class="p">,</span> <span class="mf">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">mask</span><span class="p">[</span><span class="mf">0</span><span class="p">,</span><span class="mf">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">pix_r</span><span class="p">[</span><span class="mf">0</span><span class="p">,</span> <span class="mf">0</span><span class="p">],</span> <span class="n">rstats_num_pix</span><span class="p">,</span></pre>
-<pre class='cython code score-6 '>  __pyx_t_1 = 0;
-  __pyx_t_2 = 0;
-  __pyx_t_3 = -1;
-  if (__pyx_t_1 &lt; 0) {
-    __pyx_t_1 += __pyx_v_data.shape[0];
-    if (unlikely(__pyx_t_1 &lt; 0)) __pyx_t_3 = 0;
-  } else if (unlikely(__pyx_t_1 &gt;= __pyx_v_data.shape[0])) __pyx_t_3 = 0;
-  if (__pyx_t_2 &lt; 0) {
-    __pyx_t_2 += __pyx_v_data.shape[1];
-    if (unlikely(__pyx_t_2 &lt; 0)) __pyx_t_3 = 1;
-  } else if (unlikely(__pyx_t_2 &gt;= __pyx_v_data.shape[1])) __pyx_t_3 = 1;
-  if (unlikely(__pyx_t_3 != -1)) {
-    <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_3);
-    <span class='error_goto'>__PYX_ERR(0, 178, __pyx_L1_error)</span>
+</pre><pre class="cython line score-0">&#xA0;<span class="">170</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">171</span>:     <span class="c"># Shape</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">172</span>:     <span class="c">#cdef vector[int] data_shape</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">173</span>:     <span class="c">#for dim in data.shape:</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">174</span>:     <span class="c">#    data_shape.push_back(dim)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">175</span>: </pre>
+<pre class="cython line score-22" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">176</span>:     <span class="k">cdef</span> <span class="kt">float</span>[<span class="p">::</span><span class="mf">1</span><span class="p">]</span> <span class="n">raveled_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></pre>
+<pre class='cython code score-22 '>  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_data, 2, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);;<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
+  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_2, __pyx_n_s_ravel);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 176, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS &amp;&amp; likely(<span class='py_c_api'>PyMethod_Check</span>(__pyx_t_3))) {
+    __pyx_t_2 = <span class='py_macro_api'>PyMethod_GET_SELF</span>(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = <span class='py_macro_api'>PyMethod_GET_FUNCTION</span>(__pyx_t_3);
+      <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_2);
+      <span class='pyx_macro_api'>__Pyx_INCREF</span>(function);
+      <span class='pyx_macro_api'>__Pyx_DECREF_SET</span>(__pyx_t_3, function);
+    }
   }
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_3 = -1;
-  if (__pyx_t_4 &lt; 0) {
-    __pyx_t_4 += __pyx_v_mask.shape[0];
-    if (unlikely(__pyx_t_4 &lt; 0)) __pyx_t_3 = 0;
-  } else if (unlikely(__pyx_t_4 &gt;= __pyx_v_mask.shape[0])) __pyx_t_3 = 0;
-  if (__pyx_t_5 &lt; 0) {
-    __pyx_t_5 += __pyx_v_mask.shape[1];
-    if (unlikely(__pyx_t_5 &lt; 0)) __pyx_t_3 = 1;
-  } else if (unlikely(__pyx_t_5 &gt;= __pyx_v_mask.shape[1])) __pyx_t_3 = 1;
-  if (unlikely(__pyx_t_3 != -1)) {
-    <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_3);
-    <span class='error_goto'>__PYX_ERR(0, 178, __pyx_L1_error)</span>
+  __pyx_t_1 = (__pyx_t_2) ? <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_t_3, __pyx_t_2) : <span class='pyx_c_api'>__Pyx_PyObject_CallNoArg</span>(__pyx_t_3);
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_1)) <span class='error_goto'>__PYX_ERR(0, 176, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_dc_float</span>(__pyx_t_1, PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 176, __pyx_L1_error)</span>
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_raveled_data = __pyx_t_4;
+  __pyx_t_4.memview = NULL;
+  __pyx_t_4.data = NULL;
+</pre><pre class="cython line score-22" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">177</span>:     <span class="k">cdef</span> <span class="kt">char</span>[<span class="p">::</span><span class="mf">1</span><span class="p">]</span> <span class="n">raveled_mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></pre>
+<pre class='cython code score-22 '>  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_mask, 2, (PyObject *(*)(char *)) __pyx_memview_get_char, (int (*)(char *, PyObject *)) __pyx_memview_set_char, 0);;<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_3, __pyx_n_s_ravel);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 177, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS &amp;&amp; likely(<span class='py_c_api'>PyMethod_Check</span>(__pyx_t_2))) {
+    __pyx_t_3 = <span class='py_macro_api'>PyMethod_GET_SELF</span>(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = <span class='py_macro_api'>PyMethod_GET_FUNCTION</span>(__pyx_t_2);
+      <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_3);
+      <span class='pyx_macro_api'>__Pyx_INCREF</span>(function);
+      <span class='pyx_macro_api'>__Pyx_DECREF_SET</span>(__pyx_t_2, function);
+    }
   }
-  __pyx_t_6 = 0;
-  __pyx_t_7 = 0;
-  __pyx_t_3 = -1;
+  __pyx_t_1 = (__pyx_t_3) ? <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_t_2, __pyx_t_3) : <span class='pyx_c_api'>__Pyx_PyObject_CallNoArg</span>(__pyx_t_2);
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_1)) <span class='error_goto'>__PYX_ERR(0, 177, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_dc_char</span>(__pyx_t_1, PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 177, __pyx_L1_error)</span>
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_raveled_mask = __pyx_t_5;
+  __pyx_t_5.memview = NULL;
+  __pyx_t_5.data = NULL;
+</pre><pre class="cython line score-22" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">178</span>:     <span class="k">cdef</span> <span class="kt">float</span>[<span class="p">::</span><span class="mf">1</span><span class="p">]</span> <span class="n">raveled_pix_r</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></pre>
+<pre class='cython code score-22 '>  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_mask, 2, (PyObject *(*)(char *)) __pyx_memview_get_char, (int (*)(char *, PyObject *)) __pyx_memview_set_char, 0);;<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 178, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
+  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_2, __pyx_n_s_ravel);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 178, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS &amp;&amp; likely(<span class='py_c_api'>PyMethod_Check</span>(__pyx_t_3))) {
+    __pyx_t_2 = <span class='py_macro_api'>PyMethod_GET_SELF</span>(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = <span class='py_macro_api'>PyMethod_GET_FUNCTION</span>(__pyx_t_3);
+      <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_2);
+      <span class='pyx_macro_api'>__Pyx_INCREF</span>(function);
+      <span class='pyx_macro_api'>__Pyx_DECREF_SET</span>(__pyx_t_3, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_2) ? <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_t_3, __pyx_t_2) : <span class='pyx_c_api'>__Pyx_PyObject_CallNoArg</span>(__pyx_t_3);
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_1)) <span class='error_goto'>__PYX_ERR(0, 178, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_to_MemoryviewSlice_dc_float</span>(__pyx_t_1, PyBUF_WRITABLE);<span class='error_goto'> if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 178, __pyx_L1_error)</span>
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_raveled_pix_r = __pyx_t_4;
+  __pyx_t_4.memview = NULL;
+  __pyx_t_4.data = NULL;
+</pre><pre class="cython line score-0">&#xA0;<span class="">179</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">180</span>:     <span class="n">peakfinder8</span><span class="p">(</span><span class="o">&amp;</span><span class="n">peak_list</span><span class="p">,</span></pre>
+<pre class='cython code score-0 '>  (void)(peakfinder8((&amp;__pyx_v_peak_list), (&amp;(*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_v_raveled_data.data) + __pyx_t_6)) )))), (&amp;(*((char *) ( /* dim=0 */ ((char *) (((char *) __pyx_v_raveled_mask.data) + __pyx_t_8)) )))), (&amp;(*((float *) ( /* dim=0 */ ((char *) (((float *) __pyx_v_raveled_pix_r.data) + __pyx_t_9)) )))), __pyx_t_10, __pyx_v_adc_thresh, __pyx_v_hitfinder_min_snr, __pyx_v_hitfinder_min_pix_count, __pyx_v_hitfinder_max_pix_count, __pyx_v_hitfinder_local_bg_radius));
+</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">181</span>:                 <span class="o">&amp;</span><span class="n">raveled_data</span><span class="p">[</span><span class="mf">0</span><span class="p">],</span></pre>
+<pre class='cython code score-2 '>  __pyx_t_6 = 0;
+  __pyx_t_7 = -1;
   if (__pyx_t_6 &lt; 0) {
-    __pyx_t_6 += __pyx_v_pix_r.shape[0];
-    if (unlikely(__pyx_t_6 &lt; 0)) __pyx_t_3 = 0;
-  } else if (unlikely(__pyx_t_6 &gt;= __pyx_v_pix_r.shape[0])) __pyx_t_3 = 0;
-  if (__pyx_t_7 &lt; 0) {
-    __pyx_t_7 += __pyx_v_pix_r.shape[1];
-    if (unlikely(__pyx_t_7 &lt; 0)) __pyx_t_3 = 1;
-  } else if (unlikely(__pyx_t_7 &gt;= __pyx_v_pix_r.shape[1])) __pyx_t_3 = 1;
-  if (unlikely(__pyx_t_3 != -1)) {
-    <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_3);
-    <span class='error_goto'>__PYX_ERR(0, 178, __pyx_L1_error)</span>
+    __pyx_t_6 += __pyx_v_raveled_data.shape[0];
+    if (unlikely(__pyx_t_6 &lt; 0)) __pyx_t_7 = 0;
+  } else if (unlikely(__pyx_t_6 &gt;= __pyx_v_raveled_data.shape[0])) __pyx_t_7 = 0;
+  if (unlikely(__pyx_t_7 != -1)) {
+    <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_7);
+    <span class='error_goto'>__PYX_ERR(0, 181, __pyx_L1_error)</span>
   }
-/* … */
-  (void)(peakfinder8((&amp;__pyx_v_peak_list), (&amp;(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_1 * __pyx_v_data.strides[0]) )) + __pyx_t_2)) )))), (&amp;(*((char *) ( /* dim=1 */ ((char *) (((char *) ( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_4 * __pyx_v_mask.strides[0]) )) + __pyx_t_5)) )))), (&amp;(*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_pix_r.data + __pyx_t_6 * __pyx_v_pix_r.strides[0]) )) + __pyx_t_7)) )))), __pyx_v_rstats_num_pix, __pyx_t_8, __pyx_t_10, __pyx_v_fast, __pyx_v_asic_nx, __pyx_v_asic_ny, __pyx_v_nasics_x, __pyx_v_nasics_y, __pyx_v_adc_thresh, __pyx_v_hitfinder_min_snr, __pyx_v_hitfinder_min_pix_count, __pyx_v_hitfinder_max_pix_count, __pyx_v_hitfinder_local_bg_radius, NULL));
-</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">179</span>:                 <span class="o">&amp;</span><span class="n">rstats_pidx</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">rstats_pidx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">NULL</span><span class="p">,</span></pre>
-<pre class='cython code score-2 '>  if (((((PyObject *) __pyx_v_rstats_pidx.memview) != Py_None) != 0)) {
-    __pyx_t_9 = 0;
-    __pyx_t_3 = -1;
-    if (__pyx_t_9 &lt; 0) {
-      __pyx_t_9 += __pyx_v_rstats_pidx.shape[0];
-      if (unlikely(__pyx_t_9 &lt; 0)) __pyx_t_3 = 0;
-    } else if (unlikely(__pyx_t_9 &gt;= __pyx_v_rstats_pidx.shape[0])) __pyx_t_3 = 0;
-    if (unlikely(__pyx_t_3 != -1)) {
-      <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_3);
-      <span class='error_goto'>__PYX_ERR(0, 179, __pyx_L1_error)</span>
-    }
-    __pyx_t_8 = (&amp;(*((int *) ( /* dim=0 */ (__pyx_v_rstats_pidx.data + __pyx_t_9 * __pyx_v_rstats_pidx.strides[0]) ))));
-  } else {
-    __pyx_t_8 = NULL;
+</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">182</span>:                 <span class="o">&amp;</span><span class="n">raveled_mask</span><span class="p">[</span><span class="mf">0</span><span class="p">],</span></pre>
+<pre class='cython code score-2 '>  __pyx_t_8 = 0;
+  __pyx_t_7 = -1;
+  if (__pyx_t_8 &lt; 0) {
+    __pyx_t_8 += __pyx_v_raveled_mask.shape[0];
+    if (unlikely(__pyx_t_8 &lt; 0)) __pyx_t_7 = 0;
+  } else if (unlikely(__pyx_t_8 &gt;= __pyx_v_raveled_mask.shape[0])) __pyx_t_7 = 0;
+  if (unlikely(__pyx_t_7 != -1)) {
+    <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_7);
+    <span class='error_goto'>__PYX_ERR(0, 182, __pyx_L1_error)</span>
   }
-</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">180</span>:                 <span class="o">&amp;</span><span class="n">rstats_radius</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">rstats_radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">NULL</span><span class="p">,</span></pre>
-<pre class='cython code score-2 '>  if (((((PyObject *) __pyx_v_rstats_radius.memview) != Py_None) != 0)) {
-    __pyx_t_9 = 0;
-    __pyx_t_3 = -1;
-    if (__pyx_t_9 &lt; 0) {
-      __pyx_t_9 += __pyx_v_rstats_radius.shape[0];
-      if (unlikely(__pyx_t_9 &lt; 0)) __pyx_t_3 = 0;
-    } else if (unlikely(__pyx_t_9 &gt;= __pyx_v_rstats_radius.shape[0])) __pyx_t_3 = 0;
-    if (unlikely(__pyx_t_3 != -1)) {
-      <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_3);
-      <span class='error_goto'>__PYX_ERR(0, 180, __pyx_L1_error)</span>
-    }
-    __pyx_t_10 = (&amp;(*((int *) ( /* dim=0 */ (__pyx_v_rstats_radius.data + __pyx_t_9 * __pyx_v_rstats_radius.strides[0]) ))));
-  } else {
-    __pyx_t_10 = NULL;
+</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">183</span>:                 <span class="o">&amp;</span><span class="n">raveled_pix_r</span><span class="p">[</span><span class="mf">0</span><span class="p">],</span></pre>
+<pre class='cython code score-2 '>  __pyx_t_9 = 0;
+  __pyx_t_7 = -1;
+  if (__pyx_t_9 &lt; 0) {
+    __pyx_t_9 += __pyx_v_raveled_pix_r.shape[0];
+    if (unlikely(__pyx_t_9 &lt; 0)) __pyx_t_7 = 0;
+  } else if (unlikely(__pyx_t_9 &gt;= __pyx_v_raveled_pix_r.shape[0])) __pyx_t_7 = 0;
+  if (unlikely(__pyx_t_7 != -1)) {
+    <span class='pyx_c_api'>__Pyx_RaiseBufferIndexError</span>(__pyx_t_7);
+    <span class='error_goto'>__PYX_ERR(0, 183, __pyx_L1_error)</span>
   }
-</pre><pre class="cython line score-0">&#xA0;<span class="">181</span>:                 <span class="n">fast</span><span class="p">,</span> <span class="n">asic_nx</span><span class="p">,</span> <span class="n">asic_ny</span><span class="p">,</span> <span class="n">nasics_x</span><span class="p">,</span> <span class="n">nasics_y</span><span class="p">,</span> <span class="n">adc_thresh</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">182</span>:                 <span class="n">hitfinder_min_snr</span><span class="p">,</span> <span class="n">hitfinder_min_pix_count</span><span class="p">,</span> <span class="n">hitfinder_max_pix_count</span><span class="p">,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">183</span>:                 <span class="n">hitfinder_local_bg_radius</span><span class="p">,</span> <span class="bp">NULL</span><span class="p">)</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">184</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">185</span>:     <span class="k">cdef</span> <span class="kt">int</span> <span class="nf">i</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">186</span>:     <span class="k">cdef</span> <span class="kt">float</span> <span class="nf">peak_x</span><span class="p">,</span> <span class="nf">peak_y</span><span class="p">,</span> <span class="nf">peak_value</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">187</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_x</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">188</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_y</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">189</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">long</span>] <span class="nf">peak_list_index</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">190</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_value</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">191</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_npix</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">192</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_maxi</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">193</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_sigma</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">194</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_snr</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">195</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">196</span>:     <span class="n">num_peaks</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">nPeaks</span></pre>
+</pre><pre class="cython line score-9" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">184</span>:                 <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span></pre>
+<pre class='cython code score-9 '>  __pyx_t_1 = __Pyx_carray_to_py_Py_ssize_t(__pyx_v_data.shape, 8);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 184, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  __pyx_t_3 = <span class='py_c_api'>PySequence_List</span>(__pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 184, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_10 = <span class='pyx_c_api'>__pyx_convert_vector_from_py_int</span>(__pyx_t_3);<span class='error_goto'> if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 184, __pyx_L1_error)</span>
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
+</pre><pre class="cython line score-0">&#xA0;<span class="">185</span>:                 <span class="n">adc_thresh</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">186</span>:                 <span class="n">hitfinder_min_snr</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">187</span>:                 <span class="n">hitfinder_min_pix_count</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">188</span>:                 <span class="n">hitfinder_max_pix_count</span><span class="p">,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">189</span>:                 <span class="n">hitfinder_local_bg_radius</span><span class="p">)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">190</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">191</span>:     <span class="c">#peakfinder8(&amp;peak_list, &amp;data[0, 0], &amp;mask[0,0], &amp;pix_r[0, 0], rstats_num_pix, </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">192</span>:     <span class="c">#            &amp;rstats_pidx[0] if rstats_pidx is not None else NULL, </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">193</span>:     <span class="c">#            &amp;rstats_radius[0] if rstats_radius is not None else NULL, </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">194</span>:     <span class="c">#            fast, asic_nx, asic_ny, nasics_x, nasics_y, adc_thresh, </span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">195</span>:     <span class="c">#            hitfinder_min_snr, hitfinder_min_pix_count, hitfinder_max_pix_count,</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">196</span>:     <span class="c">#            hitfinder_local_bg_radius, NULL)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">197</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">198</span>:     <span class="k">cdef</span> <span class="kt">int</span> <span class="nf">i</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">199</span>:     <span class="k">cdef</span> <span class="kt">float</span> <span class="nf">peak_x</span><span class="p">,</span> <span class="nf">peak_y</span><span class="p">,</span> <span class="nf">peak_value</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">200</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_x</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">201</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_y</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">202</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">long</span>] <span class="nf">peak_list_index</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">203</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_value</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">204</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_npix</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">205</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_maxi</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">206</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_sigma</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">207</span>:     <span class="k">cdef</span> <span class="kt">vector</span>[<span class="kt">double</span>] <span class="nf">peak_list_snr</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">208</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">209</span>:     <span class="n">num_peaks</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">nPeaks</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_11 = __pyx_v_peak_list.nPeaks;
   __pyx_v_num_peaks = __pyx_t_11;
-</pre><pre class="cython line score-0">&#xA0;<span class="">197</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">198</span>:     <span class="k">if</span> <span class="n">num_peaks</span> <span class="o">&gt;</span> <span class="n">max_num_peaks</span><span class="p">:</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">210</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">211</span>:     <span class="k">if</span> <span class="n">num_peaks</span> <span class="o">&gt;</span> <span class="n">max_num_peaks</span><span class="p">:</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_12 = ((__pyx_v_num_peaks &gt; __pyx_v_max_num_peaks) != 0);
   if (__pyx_t_12) {
 /* … */
   }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">199</span>:         <span class="n">num_peaks</span> <span class="o">=</span> <span class="n">max_num_peaks</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">212</span>:         <span class="n">num_peaks</span> <span class="o">=</span> <span class="n">max_num_peaks</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_num_peaks = __pyx_v_max_num_peaks;
-</pre><pre class="cython line score-0">&#xA0;<span class="">200</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">201</span>:     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span> <span class="n">num_peaks</span><span class="p">):</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">213</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">214</span>:     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span> <span class="n">num_peaks</span><span class="p">):</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_11 = __pyx_v_num_peaks;
   __pyx_t_13 = __pyx_t_11;
-  for (__pyx_t_3 = 0; __pyx_t_3 &lt; __pyx_t_13; __pyx_t_3+=1) {
-    __pyx_v_i = __pyx_t_3;
-</pre><pre class="cython line score-0">&#xA0;<span class="">202</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">203</span>:         <span class="n">peak_x</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_com_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+  for (__pyx_t_7 = 0; __pyx_t_7 &lt; __pyx_t_13; __pyx_t_7+=1) {
+    __pyx_v_i = __pyx_t_7;
+</pre><pre class="cython line score-0">&#xA0;<span class="">215</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">216</span>:         <span class="n">peak_x</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_com_x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_peak_x = (__pyx_v_peak_list.peak_com_x[__pyx_v_i]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">204</span>:         <span class="n">peak_y</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_com_y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">217</span>:         <span class="n">peak_y</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_com_y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_peak_y = (__pyx_v_peak_list.peak_com_y[__pyx_v_i]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">205</span>:         <span class="n">peak_index</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_com_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">218</span>:         <span class="n">peak_index</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_com_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_peak_index = (__pyx_v_peak_list.peak_com_index[__pyx_v_i]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">206</span>:         <span class="n">peak_value</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_totalintensity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">219</span>:         <span class="n">peak_value</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_totalintensity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_peak_value = (__pyx_v_peak_list.peak_totalintensity[__pyx_v_i]);
-</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">207</span>:         <span class="n">peak_npix</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_npix</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
-<pre class='cython code score-6 '>    __pyx_t_14 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_npix[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 207, __pyx_L1_error)</span>
-    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_14);
-    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_npix, __pyx_t_14);
-    __pyx_t_14 = 0;
-</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">208</span>:         <span class="n">peak_maxi</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_maxintensity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
-<pre class='cython code score-6 '>    __pyx_t_14 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_maxintensity[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 208, __pyx_L1_error)</span>
-    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_14);
-    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_maxi, __pyx_t_14);
-    __pyx_t_14 = 0;
-</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">209</span>:         <span class="n">peak_sigma</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_sigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
-<pre class='cython code score-6 '>    __pyx_t_14 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_sigma[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 209, __pyx_L1_error)</span>
-    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_14);
-    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_sigma, __pyx_t_14);
-    __pyx_t_14 = 0;
-</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">210</span>:         <span class="n">peak_snr</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_snr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
-<pre class='cython code score-6 '>    __pyx_t_14 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_snr[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 210, __pyx_L1_error)</span>
-    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_14);
-    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_snr, __pyx_t_14);
-    __pyx_t_14 = 0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">211</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">212</span>:         <span class="n">peak_list_x</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_x</span><span class="p">)</span></pre>
+</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">220</span>:         <span class="n">peak_npix</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_npix</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+<pre class='cython code score-6 '>    __pyx_t_3 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_npix[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 220, __pyx_L1_error)</span>
+    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_npix, __pyx_t_3);
+    __pyx_t_3 = 0;
+</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">221</span>:         <span class="n">peak_maxi</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_maxintensity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+<pre class='cython code score-6 '>    __pyx_t_3 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_maxintensity[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 221, __pyx_L1_error)</span>
+    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_maxi, __pyx_t_3);
+    __pyx_t_3 = 0;
+</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">222</span>:         <span class="n">peak_sigma</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_sigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+<pre class='cython code score-6 '>    __pyx_t_3 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_sigma[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 222, __pyx_L1_error)</span>
+    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_sigma, __pyx_t_3);
+    __pyx_t_3 = 0;
+</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">223</span>:         <span class="n">peak_snr</span> <span class="o">=</span> <span class="n">peak_list</span><span class="o">.</span><span class="n">peak_snr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre>
+<pre class='cython code score-6 '>    __pyx_t_3 = <span class='py_c_api'>PyFloat_FromDouble</span>((__pyx_v_peak_list.peak_snr[__pyx_v_i]));<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)</span>
+    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+    <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_v_peak_snr, __pyx_t_3);
+    __pyx_t_3 = 0;
+</pre><pre class="cython line score-0">&#xA0;<span class="">224</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">225</span>:         <span class="n">peak_list_x</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_x</span><span class="p">)</span></pre>
 <pre class='cython code score-0 '>    try {
       __pyx_v_peak_list_x.push_back(__pyx_v_peak_x);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 212, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 225, __pyx_L1_error)</span>
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">213</span>:         <span class="n">peak_list_y</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_y</span><span class="p">)</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">226</span>:         <span class="n">peak_list_y</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_y</span><span class="p">)</span></pre>
 <pre class='cython code score-0 '>    try {
       __pyx_v_peak_list_y.push_back(__pyx_v_peak_y);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 213, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 226, __pyx_L1_error)</span>
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">214</span>:         <span class="n">peak_list_index</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_index</span><span class="p">)</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">227</span>:         <span class="n">peak_list_index</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_index</span><span class="p">)</span></pre>
 <pre class='cython code score-0 '>    try {
       __pyx_v_peak_list_index.push_back(__pyx_v_peak_index);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 214, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 227, __pyx_L1_error)</span>
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">215</span>:         <span class="n">peak_list_value</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_value</span><span class="p">)</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">228</span>:         <span class="n">peak_list_value</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_value</span><span class="p">)</span></pre>
 <pre class='cython code score-0 '>    try {
       __pyx_v_peak_list_value.push_back(__pyx_v_peak_value);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 215, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 228, __pyx_L1_error)</span>
     }
-</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">216</span>:         <span class="n">peak_list_npix</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_npix</span><span class="p">)</span></pre>
-<pre class='cython code score-10 '>    __pyx_t_15 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_npix); if (unlikely((__pyx_t_15 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 216, __pyx_L1_error)</span>
+</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">229</span>:         <span class="n">peak_list_npix</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_npix</span><span class="p">)</span></pre>
+<pre class='cython code score-10 '>    __pyx_t_14 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_npix); if (unlikely((__pyx_t_14 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 229, __pyx_L1_error)</span>
     try {
-      __pyx_v_peak_list_npix.push_back(__pyx_t_15);
+      __pyx_v_peak_list_npix.push_back(__pyx_t_14);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 216, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 229, __pyx_L1_error)</span>
     }
-</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">217</span>:         <span class="n">peak_list_maxi</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_maxi</span><span class="p">)</span></pre>
-<pre class='cython code score-10 '>    __pyx_t_15 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_maxi); if (unlikely((__pyx_t_15 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 217, __pyx_L1_error)</span>
+</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">230</span>:         <span class="n">peak_list_maxi</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_maxi</span><span class="p">)</span></pre>
+<pre class='cython code score-10 '>    __pyx_t_14 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_maxi); if (unlikely((__pyx_t_14 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 230, __pyx_L1_error)</span>
     try {
-      __pyx_v_peak_list_maxi.push_back(__pyx_t_15);
+      __pyx_v_peak_list_maxi.push_back(__pyx_t_14);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 217, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 230, __pyx_L1_error)</span>
     }
-</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">218</span>:         <span class="n">peak_list_sigma</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_sigma</span><span class="p">)</span></pre>
-<pre class='cython code score-10 '>    __pyx_t_15 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_sigma); if (unlikely((__pyx_t_15 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 218, __pyx_L1_error)</span>
+</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">231</span>:         <span class="n">peak_list_sigma</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_sigma</span><span class="p">)</span></pre>
+<pre class='cython code score-10 '>    __pyx_t_14 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_sigma); if (unlikely((__pyx_t_14 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 231, __pyx_L1_error)</span>
     try {
-      __pyx_v_peak_list_sigma.push_back(__pyx_t_15);
+      __pyx_v_peak_list_sigma.push_back(__pyx_t_14);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 218, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 231, __pyx_L1_error)</span>
     }
-</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">219</span>:         <span class="n">peak_list_snr</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_snr</span><span class="p">)</span></pre>
-<pre class='cython code score-10 '>    __pyx_t_15 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_snr); if (unlikely((__pyx_t_15 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 219, __pyx_L1_error)</span>
+</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">232</span>:         <span class="n">peak_list_snr</span><span class="o">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">peak_snr</span><span class="p">)</span></pre>
+<pre class='cython code score-10 '>    __pyx_t_14 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(__pyx_v_peak_snr); if (unlikely((__pyx_t_14 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 232, __pyx_L1_error)</span>
     try {
-      __pyx_v_peak_list_snr.push_back(__pyx_t_15);
+      __pyx_v_peak_list_snr.push_back(__pyx_t_14);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      <span class='error_goto'>__PYX_ERR(0, 219, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 232, __pyx_L1_error)</span>
     }
   }
-</pre><pre class="cython line score-0">&#xA0;<span class="">220</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">221</span>:     <span class="n">freePeakList</span><span class="p">(</span><span class="n">peak_list</span><span class="p">)</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">233</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">234</span>:     <span class="n">freePeakList</span><span class="p">(</span><span class="n">peak_list</span><span class="p">)</span></pre>
 <pre class='cython code score-0 '>  freePeakList(__pyx_v_peak_list);
-</pre><pre class="cython line score-0">&#xA0;<span class="">222</span>: </pre>
-<pre class="cython line score-22" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">223</span>:     <span class="k">return</span> <span class="p">(</span><span class="n">peak_list_x</span><span class="p">,</span> <span class="n">peak_list_y</span><span class="p">,</span> <span class="n">peak_list_value</span><span class="p">,</span> <span class="n">peak_list_index</span><span class="p">,</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">235</span>: </pre>
+<pre class="cython line score-22" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">236</span>:     <span class="k">return</span> <span class="p">(</span><span class="n">peak_list_x</span><span class="p">,</span> <span class="n">peak_list_y</span><span class="p">,</span> <span class="n">peak_list_value</span><span class="p">,</span> <span class="n">peak_list_index</span><span class="p">,</span></pre>
 <pre class='cython code score-22 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_14 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_x);<span class='error_goto'> if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 223, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_14);
-  __pyx_t_16 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_y);<span class='error_goto'> if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 223, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_16);
-  __pyx_t_17 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_value);<span class='error_goto'> if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 223, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_17);
-  __pyx_t_18 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_long</span>(__pyx_v_peak_list_index);<span class='error_goto'> if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 223, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_18);
+  __pyx_t_3 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_x);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 236, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
+  __pyx_t_1 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_y);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 236, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  __pyx_t_2 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_value);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 236, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
+  __pyx_t_15 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_long</span>(__pyx_v_peak_list_index);<span class='error_goto'> if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 236, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_15);
 /* … */
-  __pyx_t_23 = <span class='py_c_api'>PyTuple_New</span>(8);<span class='error_goto'> if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 223, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_23);
-  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_14);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 0, __pyx_t_14);
+  __pyx_t_20 = <span class='py_c_api'>PyTuple_New</span>(8);<span class='error_goto'> if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 236, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_20);
+  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_3);
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 0, __pyx_t_3);
+  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_1);
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 1, __pyx_t_1);
+  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_2);
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 2, __pyx_t_2);
+  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_15);
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 3, __pyx_t_15);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_16);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 1, __pyx_t_16);
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 4, __pyx_t_16);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_17);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 2, __pyx_t_17);
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 5, __pyx_t_17);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_18);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 3, __pyx_t_18);
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 6, __pyx_t_18);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_19);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 4, __pyx_t_19);
-  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_20);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 5, __pyx_t_20);
-  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_21);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 6, __pyx_t_21);
-  <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_22);
-  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_23, 7, __pyx_t_22);
-  __pyx_t_14 = 0;
+  <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_20, 7, __pyx_t_19);
+  __pyx_t_3 = 0;
+  __pyx_t_1 = 0;
+  __pyx_t_2 = 0;
+  __pyx_t_15 = 0;
   __pyx_t_16 = 0;
   __pyx_t_17 = 0;
   __pyx_t_18 = 0;
   __pyx_t_19 = 0;
+  __pyx_r = __pyx_t_20;
   __pyx_t_20 = 0;
-  __pyx_t_21 = 0;
-  __pyx_t_22 = 0;
-  __pyx_r = __pyx_t_23;
-  __pyx_t_23 = 0;
   goto __pyx_L0;
-</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">224</span>:             <span class="n">peak_list_npix</span><span class="p">,</span> <span class="n">peak_list_maxi</span><span class="p">,</span> <span class="n">peak_list_sigma</span><span class="p">,</span> <span class="n">peak_list_snr</span><span class="p">)</span></pre>
-<pre class='cython code score-8 '>  __pyx_t_19 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_npix);<span class='error_goto'> if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 224, __pyx_L1_error)</span>
+</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">237</span>:             <span class="n">peak_list_npix</span><span class="p">,</span> <span class="n">peak_list_maxi</span><span class="p">,</span> <span class="n">peak_list_sigma</span><span class="p">,</span> <span class="n">peak_list_snr</span><span class="p">)</span></pre>
+<pre class='cython code score-8 '>  __pyx_t_16 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_npix);<span class='error_goto'> if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 237, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_16);
+  __pyx_t_17 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_maxi);<span class='error_goto'> if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 237, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_17);
+  __pyx_t_18 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_sigma);<span class='error_goto'> if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 237, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_18);
+  __pyx_t_19 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_snr);<span class='error_goto'> if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 237, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_19);
-  __pyx_t_20 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_maxi);<span class='error_goto'> if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 224, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_20);
-  __pyx_t_21 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_sigma);<span class='error_goto'> if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 224, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_21);
-  __pyx_t_22 = <span class='pyx_c_api'>__pyx_convert_vector_to_py_double</span>(__pyx_v_peak_list_snr);<span class='error_goto'> if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 224, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_22);
 </pre></div></body></html>

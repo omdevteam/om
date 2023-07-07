@@ -56,12 +56,9 @@ cdef extern from "peakfinder8.hh":
 cdef extern from "peakfinder8.hh":
 
     int peakfinder8(tPeakList *peaklist, float *data, char *mask, float *pix_r,
-                    int rstats_num_pix, int *rstats_pidx, int *rstats_radius, int fast,
-                    long asic_nx, long asic_ny, long nasics_x, long nasics_y,
-                    float ADCthresh, float hitfinderMinSNR,
+                    vector[int] data_shape, float ADCthresh, float hitfinderMinSNR,
                     long hitfinderMinPixCount, long hitfinderMaxPixCount,
-                    long hitfinderLocalBGRadius, char* outliersMask);
-
+                    long hitfinderLocalBGRadius);
 
 def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,
                  float[:,::1] pix_r, int rstats_num_pix, int[:] rstats_pidx, 
@@ -172,17 +169,21 @@ List[float], List[float]`: A tuple storing  information about the detected peaks
     allocatePeakList(&peak_list, max_num_peaks)
 
     # Shape
-    cdef vector[int] data_shape
-    for dim in data.shape:
-        data_shape.push_back(dim)
+    #cdef vector[int] data_shape
+    #for dim in data.shape:
+    #    data_shape.push_back(dim)
+
+    cdef float[::1] raveled_data = data.ravel()
+    cdef char[::1] raveled_mask = mask.ravel()
+    cdef float[::1] raveled_pix_r = mask.ravel()
 
     peakfinder8(&peak_list,
-                data,
-                mask,
-                pix_r,
-                data_shape,
+                &raveled_data[0],
+                &raveled_mask[0],
+                &raveled_pix_r[0],
+                list(data.shape),
                 adc_thresh,
-                hitfind_min_snr,
+                hitfinder_min_snr,
                 hitfinder_min_pix_count,
                 hitfinder_max_pix_count,
                 hitfinder_local_bg_radius)
