@@ -115,6 +115,10 @@ class RadialProfile:
             numpy.searchsorted(radial_bins, radius_pixel_map, "right") - 1
         )
 
+        # TODO: Make r not the r at the center of the bin, but the average of the
+        # rs all pixels in the bin. Call radial profile with r values rather than
+        # intensity to calculate it. We need to return it for further calculation.
+
     def calculate_profile(self, data: NDArray[numpy.float_]) -> NDArray[numpy.float_]:
         """
         Calculates the radial profile for a detector data frame.

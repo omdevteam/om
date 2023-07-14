@@ -203,14 +203,13 @@ class CrystallographyFrameViewer(OmGuiBase):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This method, which is executed at regular intervals, calls the internal
-        functions that update the displayed detector frame and Bragg peaks.
-        Additionally, this function manages the data storage buffer that allows the
-        last received frames to be re-inspected.
+        This method, which is called at regular intervals, updates the displayed
+        detector frame (and the position of the Bragg peaks) using the most recently
+        received data. Additionally, this function manages the data storage buffer that
+        allows the last received detector frames to be re-inspected.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
-
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
             # data has been received simply by checking wether the attribute is not
@@ -288,17 +287,17 @@ class CrystallographyFrameViewer(OmGuiBase):
 def main(*, url: str) -> None:
     """
     OM Frame Viewer for Crystallography. This program must connect to a running OnDA
-    Monitor for Crystallography. If the monitor broadcasts detector data frames, this
-    viewer will display them. The viewer will also show, superimposed on each frame,
-    any detected Bragg peak. The data stream from the monitor can also be temporarily
-    paused, and any of 10 most recently displayed detector frames can be recalled for
-    re-inspection.
+    Monitor for Crystallography. If the monitor broadcasts the necessary information,
+    this viewer will display the most recently received detector data frame, and will
+    also show, superimposed on the frame, the location of any detected Bragg peak.
+    The data stream from the monitor can also be temporarily paused, and any of 10 most
+    recently displayed detector frames can be recalled for re-inspection.
 
     The viewer connects to and OnDA Monitor running at the IP address (or hostname)
-    specified by the URL string. This is a string in the format used by the ZeroMQ
-    protocol. The URL string is optional. If not provided, it defaults to
-    "tcp://127.0.0.1:12321": the viewer will connect, using the tcp protocol, to a
-    monitor running on the local machine at port 12321.
+    + port specified by the URL string. This is a string in the format used by the
+    ZeroMQ protocol. The URL string is optional. If not provided, it defaults to
+    "tcp://127.0.0.1:12321": the viewer connects, using the tcp protocol, to a monitor
+    running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring
     # above becomes the help string for the script.

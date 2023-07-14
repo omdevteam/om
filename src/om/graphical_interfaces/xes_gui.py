@@ -139,8 +139,8 @@ class XesGui(OmGuiBase):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This method, which is executed at regular intervals, calls the internal
-        functions that update the displayed spectra.
+        This method, which is called at regular intervals, updates the displayed
+        spectra.
         """
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
@@ -196,11 +196,11 @@ def main(url: str, time_resolved: bool) -> None:
     collected spectra. For time resolved experiments, the GUI will display separate
     average spectra for pumped and dark events, and also show their difference.
 
-    The GUI connects to and OnDA Monitor running at the IP address (or hostname)
-    specified by the URL string. This is a string in the format used by the ZeroMQ
-    protocol. The URL string is optional. If not provided, it defaults to
-    "tcp://127.0.0.1:12321": the GUI will connect, using the tcp protocol, to a monitor
-    running on the local machine at port 12321.
+    The graphical interface connects to and OnDA Monitor running at the IP address
+    (or hostname) + port specified by the URL string. This is a string in the format
+    used by the ZeroMQ protocol. The URL string is optional. If not provided, it
+    defaults to "tcp://127.0.0.1:12321": the GUI connects, using the tcp protocol, to a
+    monitor running on the local machine at port 12321.
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 

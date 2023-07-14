@@ -663,14 +663,16 @@ class EventIdJungfrau1MFiles(OmDataSourceProtocol):
         """
         Event identifier for Jungfrau 1M data events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of a unique event identifier for a
-        Jungfrau 1M data event. For this detector, an individual event corresponds to
-        a single frame stored in an HDF5 data file. The combination of the full path to
-        the data file and the index of the frame within the file is used to generate
-        an event identifier.
+        Jungfrau 1M data event.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        For this detector, an individual event corresponds to a single frame stored in
+        an HDF5 data file. The combination of the full path to the data file and the
+        index of the frame within the file is used to generate the event identifier.
 
         Arguments:
 
@@ -678,7 +680,8 @@ class EventIdJungfrau1MFiles(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters."""
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
 
@@ -686,8 +689,8 @@ class EventIdJungfrau1MFiles(OmDataSourceProtocol):
         """
         Initializes the Jungfrau 1M event identifier data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve an event identifier for a Jungfrau 1M
         data event, so this function actually does nothing.
@@ -698,8 +701,8 @@ class EventIdJungfrau1MFiles(OmDataSourceProtocol):
         """
         Retrieves an event identifier for a Jungfrau 1M data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function constructs the event identifier for the provided event by joining
         the following elements in a single string, with the "//" symbol placed between
@@ -736,14 +739,16 @@ class EventIdEiger16MFiles(OmDataSourceProtocol):
         """
         Event identifier for Eiger 16M data events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This class deals with the retrieval of a unique event identifier for an Eiger
+        16M data event.
 
-        This class deals with the retrieval of a unique event identifier for an
-        Eiger 16M data event. For this detector, an individual event corresponds to a
-        single frame stored in an HDF5 file. The combination of the full path to the
-        data file and the index of the frame within the file is used to generate an
-        event identifier.
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        For this detector, an individual event corresponds to a single frame stored in
+        an HDF5 file. The combination of the full path to the data file and the index
+        of the frame within the file is used to generate the event identifier.
 
         Arguments:
 
@@ -759,8 +764,8 @@ class EventIdEiger16MFiles(OmDataSourceProtocol):
         """
         Initializes the Eiger 16M event identifier data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve an event identifier for an Eiger 16M
         data event, so this function actually does nothing.
@@ -771,14 +776,14 @@ class EventIdEiger16MFiles(OmDataSourceProtocol):
         """
         Retrieves an event identifier for an Eiger 16M data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function constructs the event identifier for the provided event by joining
         the following elements in a single string, with the "//" symbol placed between
         them.
 
-        * The full path to the HDF5 file attached to the event.
+        * The full path to the HDF5 file attached to the provided event.
 
         * The index, within the file, of the frame being processed.
 
@@ -809,15 +814,18 @@ class EventIdLambda1M5Files(OmDataSourceProtocol):
         """
         Event identifier for Lambda 1.5M data events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This class deals with the retrieval of a unique event identifier for a Lambda
+        1.5M data event.
 
-        This class deals with the retrieval of a unique event identifier for an
-        Lambda 1.5M data event. For this detector, an individual event corresponds to a
-        single frame stored in two separate HDF5 files written by two detector modules.
-        The combination of the full path to the data file corresponding to the first
-        detector module ("*_m01.nxs") and the index of the frame within the file is
-        used to generate an event identifier.
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        For this detector, an individual event corresponds to a single frame stored in
+        two separate HDF5 files written by two detector modules. The combination of the
+        full path to the data file corresponding to the first detector module
+        ("*_m01.nxs") and the index of the frame within the file is used to generate
+        the event identifier.
 
         Arguments:
 
@@ -834,8 +842,8 @@ class EventIdLambda1M5Files(OmDataSourceProtocol):
         """
         Initializes the Lambda 1.5M event identifier data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve an event identifier for an Lambda 1.5M
         data event, so this function actually does nothing.
@@ -846,15 +854,15 @@ class EventIdLambda1M5Files(OmDataSourceProtocol):
         """
         Retrieves an event identifier for an Lambda 1.5M data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function constructs the event identifier for the provided event by joining
         the following elements in a single string, with the "//" symbol placed between
         them.
 
-        * The full path to the HDF5 file written by the first detector module attached
-          to the event.
+        * The full path to the HDF5 file attached to the event and written by the first
+          detector module,
 
         * The index, within the file, of the frame being processed.
 

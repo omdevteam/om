@@ -34,8 +34,24 @@ from om.lib.parameters import get_parameter_from_parameter_group
 def load_hdf5_data(
     *,
     hdf5_filename: str,
-    hdf5_path,
+    hdf5_path: str,
 ) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
+    """
+    Loads data from an HDF5 file.
+
+    This function loads a data array from an HDF5 file.
+
+    Arguments:
+
+        hdf5_filename: The relative of absolute path to an HDF5 file containing the
+            data to load.
+
+        hdf5_path: The internal path within the HDF5 file where the data is located.
+
+    Returns:
+
+        The loaded data array.
+    """
 
     try:
         hdf5_file_handle: Any
@@ -57,9 +73,39 @@ def parse_parameters_and_load_hdf5_data(
     *,
     parameters: Dict[str, Any],
     hdf5_filename_parameter: str,
-    hdf5_path_parameter,
+    hdf5_path_parameter: str,
 ) -> Union[NDArray[numpy.int_], NDArray[numpy.float_], None]:
+    """
+    Loads data from an HDF5 file identified by a set of configuration parameters.
 
+    This function loads a data array from an HDF5 file. The function retrieves the
+    path to the data file, and the internal HDF5 path of the block storing the data
+    from a set of OM's configuration parameters.
+
+    Arguments:
+
+        parameters: A set of OM configuration parameters collected together in a
+            parameter group. The parameter group must contain the following
+            entries:
+
+            * An entry, whose name is identified by the `hdf5_filename_parameter`
+                argument, storing the relative of absolute path to an HDF5 file
+                containing the data to load.
+
+            * An entry, whose name is identified by the `hdf5_path_parameter`
+                argument, storing the internal path, within the HDF5 file, to the
+                block where the data is located.
+
+        hdf5_filename_parameter: The name of the entry in the parameter set that
+            stores the path to the data file.
+
+        hdf5_path_parameter: The name of the entry in the parameter set that stores
+            the internal HDF5 path to the block storing the data.
+
+    Returns:
+
+        The loaded data array.
+    """
     # Bad pixel map
     hdf5_filename: Union[str, None] = get_parameter_from_parameter_group(
         group=parameters,
@@ -74,6 +120,9 @@ def parse_parameters_and_load_hdf5_data(
             required=True,
         )
 
-        return load_hdf5_data(hdf5_filename=hdf5_filename, hdf5_path=hdf5_path)
+        if hdf5_path is not None:
+            return load_hdf5_data(hdf5_filename=hdf5_filename, hdf5_path=hdf5_path)
+        else:
+            return None
     else:
         return None

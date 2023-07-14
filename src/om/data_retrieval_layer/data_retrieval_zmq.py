@@ -25,10 +25,7 @@ from typing import Dict
 from om.data_retrieval_layer.data_event_handlers_zmq import (
     Jungfrau1MZmqDataEventHandler,
 )
-from om.data_retrieval_layer.data_sources_generic import (
-    FloatEntryFromConfiguration,
-    FrameIdZero,
-)
+from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
 from om.data_retrieval_layer.data_sources_zmq import (
     EventIdJungfrau1MZmq,
     Jungfrau1MZmq,

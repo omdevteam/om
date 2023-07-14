@@ -154,21 +154,21 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
     parallelization_layer_class: Type[OmParallelizationProtocol] = cast(
         Type[OmParallelizationProtocol],
         import_class_from_layer(
-            layer="parallelization_layer",
+            layer_name="parallelization_layer",
             class_name=parallelization_layer_class_name,
         ),
     )
     data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
         Type[OmDataRetrievalProtocol],
         import_class_from_layer(
-            layer="data_retrieval_layer",
+            layer_name="data_retrieval_layer",
             class_name=data_retrieval_layer_class_name,
         ),
     )
     processing_layer_class: Type[OmProcessingProtocol] = cast(
         Type[OmProcessingProtocol],
         import_class_from_layer(
-            layer="processing_layer",
+            layer_name="processing_layer",
             class_name=processing_layer_class_name,
         ),
     )

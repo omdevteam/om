@@ -71,12 +71,11 @@ class CrystallographyParameterTweaker(OmGuiBase):
         The GUI will then display the frame images, and allow a user to choose
         a set of peak-finding  The
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm will be applied on the fly to each received frame, and the GUI will
-        display the positions of all detected Bragg peaks on each frame image.
-
-        A data storage buffer allows the viewer to stop receiving data from the OnDA
-        Monitor, but still keep in memory the last 10 displayed frames for
-        re-inspection and re-processing (peak-finding with new parameters).
+        algorithm will be applied on the fly to each received frame, using the chosen
+        parameters, and the GUI will display the positions of all detected Bragg peaks
+        on each frame image. A data storage buffer allows the viewer to stop receiving
+        data from the OnDA Monitor, but still keep in memory the last 10 displayed
+        frames for re-inspection and re-processing (peak-finding with new parameters).
 
         Arguments:
 
@@ -422,11 +421,11 @@ class CrystallographyParameterTweaker(OmGuiBase):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This method, which is executed at regular intervals, calls the internal
-        functions that perform the hit finding with the current chosen parameters,
-        and update the displayed detector frame and Bragg peaks. Additionally, this
-        function manages the data storage buffer that allows the last received frames
-        to be re-inspected and re-processed.
+        This method, which is called at regular intervals, performs the hit finding
+        with the current chosen parameters, and updates the displayed detector frame
+        and the positions of the detected Bragg peaks. Additionally, this function
+        manages the data storage buffer that allows the last received frames to be
+        re-inspected and re-processed.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
@@ -501,19 +500,19 @@ class CrystallographyParameterTweaker(OmGuiBase):
 def main(*, url: str, config: str) -> None:
     """
     OM Parameter Tweaker for Crystallography. This program must connect to a running
-    OnDA Monitor for Crystallography. If the monitor broadcasts detector data frames,
-    this graphical interface will receive them. The user will be allowed to choose a
-    set  of peak-finding parameters which will be applied to each received detector
-    frame in real-time. Each frame image will then be displayed, together with the
-    positions of all the detected Bragg peaks. The program can also temporarily
-    disconnect from the monitor, and any of the last 10 displayed frames can be
-    recalled and reprocessed.
+    OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
+    information, this graphical interface will display detector frames received from
+    the monitor, and allow the user to choose a set of peak-finding parameters that
+    will be applied to each frame in real-time. The position of the detected Bragg
+    peaks will then be displayed over the detector image. The program can also
+    temporarily disconnect from the monitor, and any of the last 10 displayed frames
+    can be recalled and reprocessed.
 
-    The GUI connects to and OnDA Monitor running at the IP address (or hostname)
-    specified by the URL string. This is a string in the format used by the ZeroMQ
-    protocol. The URL string is optional. If not provided, URL defaults to
-    tcp://127.0.0.1:12321: the GUI will connect, using the tcp protocol, to a monitor
-    running on the local machine at port 12321.
+    The graphical interface connects to and OnDA Monitor running at the IP address
+    (or hostname) + port specified by the URL string. This is a string in the format
+    used by the ZeroMQ protocol. The URL string is optional. If not provided, it
+    defaults to "tcp://127.0.0.1:12321": the GUI connects, using the tcp protocol, to a
+    monitor running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring
     # above becomes the help string for the script.

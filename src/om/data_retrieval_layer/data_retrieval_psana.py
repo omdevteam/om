@@ -24,7 +24,6 @@ This module contains Data Retrieval classes that deal with the psana software fr
 from typing import Dict
 
 from om.data_retrieval_layer.data_event_handlers_psana import PsanaDataEventHandler
-from om.data_retrieval_layer.data_sources_generic import FrameIdZero
 from om.data_retrieval_layer.data_sources_psana import (
     BeamEnergyFromEpicsVariablePsana,
     BeamEnergyPsana,

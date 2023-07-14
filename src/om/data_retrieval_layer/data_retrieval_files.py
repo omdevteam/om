@@ -42,10 +42,7 @@ from om.data_retrieval_layer.data_sources_files import (
     TimestampFromFileModificationTime,
     TimestampJungfrau1MFiles,
 )
-from om.data_retrieval_layer.data_sources_generic import (
-    FloatEntryFromConfiguration,
-    FrameIdZero,
-)
+from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
     OmDataEventHandlerProtocol,
