@@ -25,8 +25,8 @@ from typing import Any, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.data_retrieval_layer.data_sources_generic import get_calibration_request
 from om.algorithms.calibration import Jungfrau1MCalibration
+from om.data_retrieval_layer.data_sources_generic import get_calibration_request
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import OmDataSourceProtocol
 
@@ -45,14 +45,12 @@ class Jungfrau1MZmq(OmDataSourceProtocol):
         """
         Detector data frames from a Jungfrau 1M ZMQ data stream.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This class deals with the retrieval of a Jungfrau 1M detector data frame from
+        a ZMQ stream broadcast by the detector.
 
-        This class deals with the retrieval of a Jungfrau 1M    detector data frame from
-        a ZMQ stream broadcast by the detector. The detector data frame can be
-        retrieved in calibrated or non-calibrated form, depending on the value of the
-        `{source_protocols_name}_calibration` entry in the OM's `data_retrieval_layer`
-        configuration parameter group.
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -69,8 +67,8 @@ class Jungfrau1MZmq(OmDataSourceProtocol):
         """
         Initializes the Jungfrau 1M detector frame data source for ZMQ data streams.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from OM's configuration parameters all the information
         needed to initialize the data source. It looks at the parameter
@@ -116,11 +114,14 @@ class Jungfrau1MZmq(OmDataSourceProtocol):
         """
         Retrieves a Jungfrau 1M detector data frame from a ZMQ data stream.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves the detector data frame associated with the provided
         ZMQ-based event. It returns the frame as a 2D array storing pixel information.
+        Data is retrieved in calibrated or non-calibrated form depending on the value
+        of the `{data_source_name}_calibration` entry in OM's `data_retrieval_layer`
+        configuration parameter group.
 
         Arguments:
 
@@ -158,14 +159,12 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
         """
         Timestamp information for Jungfrau 1M ZMQ-based events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of timestamp information for Jungfrau 1M
-        data events originating from a ZMQ stream. For this detector, an individual
-        data event corresponds to a single data frame. In the ZMQ stream, a frame
-        timestamp is associated to each event. This class retrieves this timestamp
-        information.
+        data events originating from a ZMQ stream.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -173,8 +172,7 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParameters][om.library.parameters.MonitorParameters]  # noqa: E501
-                object storing the OM monitor parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
@@ -183,8 +181,8 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
         """
         Initializes the ZMQ Jungfrau 1M timestamp data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve timestamp information for Jungfrau 1M
         data events originating from a ZMQ stream, so this function actually does
@@ -196,8 +194,8 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
         """
         Retrieves timestamp information for a Jungfrau 1M data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function returns the timestamp information associated, in the ZMQ data
         stream, to the provided event.
@@ -228,14 +226,12 @@ class EventIdJungfrau1MZmq(OmDataSourceProtocol):
         """
         Event identifier for Jungfrau 1M ZMQ-based events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of a unique identifier for Jungfrau 1M
-        data events originating from a ZMQ stream. For this detector, an individual
-        data event corresponds to a single data frame. In the ZMQ stream, a frame
-        number is used to label each event. This class uses the frame number as event
-        identifier.
+        data events originating from a ZMQ stream.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -243,9 +239,7 @@ class EventIdJungfrau1MZmq(OmDataSourceProtocol):
                 used, for example, for communication with the user or retrieval of
                 initialization parameters.
 
-            monitor_parameters: A [MonitorParameters]
-                [om.library.parameters.MonitorParameters] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_source_name = data_source_name
         self._monitor_parameters = monitor_parameters
@@ -254,8 +248,8 @@ class EventIdJungfrau1MZmq(OmDataSourceProtocol):
         """
         Initializes the ZMQ Jungfrau 1M event identifier data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve an event identifier for Jungfrau 1M
         data events originating from a ZMQ stream, so this function actually does
@@ -267,8 +261,8 @@ class EventIdJungfrau1MZmq(OmDataSourceProtocol):
         """
         Retrieves an event identifier for a Jungfrau 1M data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function returns the frame number associated, in the ZMQ data stream, to
         the provided event.

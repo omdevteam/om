@@ -24,10 +24,7 @@ used by detectors from the Dectris company.
 from typing import Dict
 
 from om.data_retrieval_layer.data_event_handlers_http import EigerHttpDataEventHandler
-from om.data_retrieval_layer.data_sources_generic import (
-    FloatEntryFromConfiguration,
-    FrameIdZero,
-)
+from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
 from om.data_retrieval_layer.data_sources_http import (
     Eiger16MHttp,
     EventIdEiger16MHttp,

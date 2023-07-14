@@ -33,7 +33,7 @@ from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
-from om.lib.xes_collecting import XesPlots
+from om.lib.xes import XesPlots
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.protocols.processing_layer import OmProcessingProtocol
 
@@ -169,7 +169,7 @@ class XesProcessing(OmProcessingProtocol):
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(
+            parameters=self._monitor_params.get_parameter_group(
                 group="crystallography"
             ),
             node_pool_size=node_pool_size,

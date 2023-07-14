@@ -28,7 +28,8 @@ import sys
 from typing import Any, Dict, List, Tuple, TypedDict, Union, cast
 
 import numpy
-import scipy  # type: ignore
+
+# import scipy  # type: ignore
 from numpy.typing import NDArray
 
 from om.lib.geometry import TypeDetectorLayoutInformation
@@ -395,7 +396,7 @@ class Peakfinder8PeakDetection:
         """
         Sets the minimum size for a peak (in pixels).
 
-        This function sets the minimum size, in pixels, that the algorithm expectd a
+        This function sets the minimum size, in pixels, that the algorithm expected a
         peak to have. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
         method will use, for the `min_pixel_count` parameter, the value provided here.
@@ -604,8 +605,8 @@ class Peakfinder8PeakDetection:
 
 #             save_radials: Whether or not to save radials and droplet detection results
 #                 in an hdf5 file. This should be False if running on shared memory, but
-#                 can be True when accessing data on disk, and can be useful for creating
-#                 pure sample and water profiles.
+#                 can be True when accessing data on disk, and can be useful for
+#                 creating pure sample and water profiles.
 
 #             sample_peak_min_i: The minimum radial distance from the center of the
 #                 detector reference system defining the sample peak (in pixels).
@@ -630,15 +631,15 @@ class Peakfinder8PeakDetection:
 #                 * The array must have the same shape as the data frame on which the
 #                   algorithm will be applied.
 
-#                 * Each element of the array must store, for the corresponding pixel in
-#                   the data frame, the distance in pixels from the origin
+#                 * Each element of the array must store, for the corresponding pixel
+#                   in the data frame, the distance in pixels from the origin
 #                   of the detector reference system (usually the center of the
 #                   detector).
 
 #             bad_pixel_map: An array storing a bad pixel map. The map can be used to
 #                 mark areas of the data frame that must be excluded from the peak
-#                 search. If the value of this argument is None, no area will be excluded
-#                 from the search. Defaults to None.
+#                 search. If the value of this argument is None, no area will be
+#                 excluded from the search. Defaults to None.
 
 #                 * The map must be a numpy array of the same shape as the data frame on
 #                   which the algorithm will be applied.
@@ -654,6 +655,8 @@ class Peakfinder8PeakDetection:
 #         #TODO: Fix documentation
 #         """
 
+#         # TODO: Make q-min, q-max
+#         # TODO: Make it region1/region2 rather than water/sample
 #         self._sample_peak_min_bin: int = get_parameter_from_parameter_group(
 #             group=swaxs_parameters,
 #             parameter="sample_peak_min_bin",
@@ -690,6 +693,8 @@ class Peakfinder8PeakDetection:
 #             parameter_type=float,
 #             required=True,
 #         )
+
+#          # TODO: Profiles for future development
 #         sample_profile_filename: str = get_parameter_from_parameter_group(
 #             group=swaxs_parameters,
 #             parameter="sample_profile_filename",
@@ -708,7 +713,9 @@ class Peakfinder8PeakDetection:
 #         )
 
 #         if water_profile_filename is not None:
-#             self._water_profile = _read_profile(profile_filename=water_profile_filename)
+#             self._water_profile = _read_profile(
+#                 profile_filename=water_profile_filename
+#             )
 
 #         self._bad_pixel_map = bad_pixel_map
 
@@ -717,7 +724,8 @@ class Peakfinder8PeakDetection:
 #         num_bins: int = int(radius_pixel_map.max() / radial_step)
 #         radial_bins = numpy.linspace(0, num_bins * radial_step, num_bins + 1)
 
-#         # Create an array labeling each pixel according to the radial bin it belongs to
+#         # Create an array labeling each pixel according to the radial bin it belongs
+#         # to
 #         self._radial_bin_labels: NDArray[numpy.int_] = numpy.searchsorted(
 #             radial_bins, radius_pixel_map, "right"
 #         )
@@ -788,25 +796,26 @@ class Peakfinder8PeakDetection:
 
 #             True if the radial profile matches an aqueous droplet, False otherwise.
 #         """
-#         if self._sample_profile is not None and self._water_profile is not None:
-#             # More complex algorithm where the radial is fit with a linear combination
-#             # of user defined sample and water profiles using least squares
-#             vectors: NDArray[numpy.float_] = numpy.vstack(
-#                 (self._sample_profile, self._water_profile)
-#             )
-#             coefficients = fit_by_least_squares(
-#                 radial_profile=radial_profile, vectors=vectors
-#             )
-#             water_profile_to_sample_profile_ratio: float = float(
-#                 coefficients[1] / coefficients[0]
-#             )
-#             if coefficients[0] < 0:
-#                 # If sample coefficient is negative, it's all water
-#                 water_profile_to_sample_profile_ratio = 1.0
-#             if coefficients[1] < 0:
-#                 # If water coefficient is negative, it's all sample
-#                 water_profile_to_sample_profile_ratio = 0.0
-#         else:
+#         # if self._sample_profile is not None and self._water_profile is not None:
+#         #     # More complex algorithm where the radial is fit with a linear
+#         #      #combination
+#         #     # of user defined sample and water profiles using least squares
+#         #     vectors: NDArray[numpy.float_] = numpy.vstack(
+#         #         (self._sample_profile, self._water_profile)
+#         #     )
+#         #     coefficients = fit_by_least_squares(
+#         #         radial_profile=radial_profile, vectors=vectors
+#         #     )
+#         #     water_profile_to_sample_profile_ratio: float = float(
+#         #         coefficients[1] / coefficients[0]
+#         #     )
+#         #     if coefficients[0] < 0:
+#         #         # If sample coefficient is negative, it's all water
+#         #         water_profile_to_sample_profile_ratio = 1.0
+#         #     if coefficients[1] < 0:
+#         #         # If water coefficient is negative, it's all sample
+#         #         water_profile_to_sample_profile_ratio = 0.0
+#         # else:
 #             # TODO: Why a try/except?
 #             # Simple ratio of water peak intensity to sample peak intensity
 #             sample_profile_mean: numpy.float_ = numpy.mean(

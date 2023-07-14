@@ -139,7 +139,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         # Peak finding
         self._peak_detection: CrystallographyPeakFinding = CrystallographyPeakFinding(
-            parameters=self._monitor_params,
+            monitor_parameters=self._monitor_params,
             geometry_information=self._geometry_information,
         )
 
@@ -214,7 +214,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         # Plots
         self._plots: CrystallographyPlots = CrystallographyPlots(
-            crystallography_parameters=(
+            parameters=(
                 self._monitor_params.get_parameter_group(group="crystallography")
             ),
             data_visualizer=self._data_visualizer,
@@ -252,7 +252,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(
+            parameters=self._monitor_params.get_parameter_group(
                 group="crystallography"
             ),
             node_pool_size=node_pool_size,

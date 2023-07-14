@@ -57,12 +57,13 @@ class MpiParallelization(OmParallelizationProtocol):
         """
         MPI-based Parallelization Layer for OM.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements a Parallelization Layer based on the MPI protocol. The
         nodes communicate with each other using an implementation of the MPI protocol
         supported by the Python language (OpenMPI or MPICH).
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -96,13 +97,13 @@ class MpiParallelization(OmParallelizationProtocol):
         """
         Starts the MPI parallelization.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function sets up the communication between OM's collecting and processing
         nodes using the MPI protocol. The function starts the nodes and manages all of
         their interactions, organizing the receiving and dispatching of data and
         control commands over MPI channels.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
         """
         if self._rank == 0:
             console.rule(
@@ -219,9 +220,7 @@ class MpiParallelization(OmParallelizationProtocol):
                         event=event
                     )
                 except OmDataExtractionError as exc:
-                    console.print(
-                        f"{get_current_timestamp()} {exc}", style="warning"
-                    )
+                    console.print(f"{get_current_timestamp()} {exc}", style="warning")
                     console.print(
                         f"{get_current_timestamp()} Skipping event...",
                         style="warning",
@@ -273,12 +272,12 @@ class MpiParallelization(OmParallelizationProtocol):
         """
         Shuts down the MPI parallelization.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function stops OM, closing all the communication channels between the
         nodes and managing a controlled shutdown of OM's resources. Additionally, it
         terminates the MPI processes in an orderly fashion.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

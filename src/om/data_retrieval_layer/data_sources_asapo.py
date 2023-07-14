@@ -280,7 +280,7 @@ class BeamEnergyAsapo(OmDataSourceProtocol):
             data_source_name: A name that identifies the current data source. It is
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
-
+    
             monitor_parameters: An object storing OM's configuration parameters.
         """
         del data_source_name

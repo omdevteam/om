@@ -170,7 +170,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
 
         # Peak finding
         self._peak_detection: CrystallographyPeakFinding = CrystallographyPeakFinding(
-            parameters=self._monitor_params,
+            monitor_parameters=self._monitor_params,
             geometry_information=self._geometry_information,
         )
         self._min_num_peaks_for_hit: int = get_parameter_from_parameter_group(
@@ -223,7 +223,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         """
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(
+            parameters=self._monitor_params.get_parameter_group(
                 group="crystallography"
             ),
             node_pool_size=node_pool_size,
@@ -231,7 +231,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
 
         # Status file
         self._status_file_writer: CheetahStatusFileWriter = CheetahStatusFileWriter(
-            cheetah_parameters=self._cheetah_parameters,
+            parameters=self._cheetah_parameters,
         )
         self._status_file_update_interval: int = self._monitor_params.get_parameter(
             group="cheetah",

@@ -61,11 +61,11 @@ class CrystallographyGui(OmGuiBase):
 
         This class implements a graphical user interface for serial crystallography
         experiments. The GUI receives reduced and aggregated data from an OnDA Monitor,
-        but only when it is tagged with the `view:omdata` label. The data
-        must contain information about the position of detected Bragg peaks, together
-        with information about the current hit rate. The GUI will then display a plot
+        but only when it is tagged with the `view:omdata` label. The data must contain
+        information about the position of detected Bragg peaks, together with
+        information about the current hit rate. The GUI will then display a plot
         showing the evolution of the hit rate over time, plus a virtual powder pattern
-        generated using the positions of the detected Bragg peaks on the detector .
+        generated using the positions of the detected Bragg peaks.
 
         Arguments:
 
@@ -293,8 +293,8 @@ class CrystallographyGui(OmGuiBase):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This method, which is executed at regular intervals, calls the internal
-        functions that update the hit rate history plot and the virtual powder pattern.
+        This method, which is called at regular intervals, updates the hit rate history
+        plot and the virtual powder pattern.
         """
 
         if self._received_data:
@@ -412,10 +412,10 @@ def main(*, url: str) -> None:
     real-time virtual powder pattern created using the positions, on the detector, of
     the detected Bragg peaks
 
-    The GUI connects to and OnDA Monitor running at the IP address (or hostname)
+    The GUI connects to and OnDA Monitor running at the IP address (or hostname) + port
     specified by the URL string. This is a string in the format used by the ZeroMQ
     protocol. The URL string is optional. If not provided, it defaults to
-    "tcp://127.0.0.1:12321": the GUI will connect, using the tcp protocol, to a monitor
+    "tcp://127.0.0.1:12321": the GUI connects, using the tcp protocol, to a monitor
     running on the local machine at port 12321.
     """
     # This function is turned into a script by the Click library. The docstring

@@ -55,22 +55,22 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         """
         Base class for OM's graphical user interfaces.
 
-        This class implements the common elements of all OM's graphical interfaces. The
-        constructor of this class creates a listening thread that receives data from
-        an OnDA Monitor. Additionally, it lays out the foundation of the GUI by setting
-        its basic widget structure. Finally, it also makes sure that a function that
-        updates the GUI elements is called at regular intervals.
+        This class implements the common elements of all OM's graphical interfaces.
+        When initialized, this class creates a listening thread that receives data from
+        an OnDA Monitor (filtered according to a provided tag). It additionally lays
+        out the basic widget structure of the graphical interface. Finally, it makes
+        sure that a function that updates the graphical elements of the interface is
+        called at regular intervals.
 
-        The class also has methods to start and stop the listening thread, effectively
-        attaching and detaching the GUI from the OnDA Monitor from which it receives
-        data.
+        The class has methods to start and stop the listening thread, effectively
+        attaching and detaching the graphical interface from the OnDA Monitor from
+        which it receives data.
 
         This base class should be subclassed to create specific graphical interfaces.
-        The derived classes should always call its constructor to initialize the the
-        GUI. Each derived class should also provide its specific implementation of the
+        Each derived class, which should always call the constructor of this class
+        during initialization. must provide its own specific implementation of the
         abstract [update_gui][om.graphical_interfaces.common.OmGuiBase.update_gui]
-        method. The implementation should take care of updating the specific widgets of
-        the derived class.
+        method, which takes care of updating the elements of the graphical interface.
 
         Arguments:
 
@@ -127,17 +127,19 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
             self.listening = False
             self._listening_thread_stop_processing.emit()
 
-    def _data_received(self, received_data: Dict[str, Any]) -> None:
-        # This function is called every time the listening thread receives data from an
-        # OM monitor. The received data has the format of a list of event data
-        # entries, each stored in a dictionary.
-        self._received_data = copy.deepcopy(received_data)
-
     def update_gui(self) -> None:
         """
         Updates GUI elements.
 
-        This function is called at regular intervals and updates plots and other
-        elements of the GUI, as required.
+        This function is called at regular intervals by this class. It updates plots
+        and other elements of the graphical interface. It is an abstract method: each
+        graphical interface which derives from this class must provide its own
+        implementation of this function.
         """
         pass
+
+    def _data_received(self, received_data: Dict[str, Any]) -> None:
+        # This function is called internally by this class every time the listening
+        # thread receives data from an OM monitor. It makes a copy of the received data
+        # which then made available to the main GUI thread for further processing.
+        self._received_data = copy.deepcopy(received_data)

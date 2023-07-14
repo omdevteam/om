@@ -15,7 +15,13 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+"""
+Classes and function for processing of crystallography data.
 
+This module contains classes and functions that aggregate common data processing
+operations related to serial crystallography (peak finding, radial profile analysis,
+plot generation, etc.).
+"""
 from collections import deque
 from typing import Any, Deque, Dict, List, Tuple, Union, cast
 
@@ -40,14 +46,46 @@ class CrystallographyPeakFinding:
     def __init__(
         self,
         *,
-        parameters: MonitorParameters,
+        monitor_parameters: MonitorParameters,
         geometry_information: GeometryInformation,
     ) -> None:
         """
-        TODO: Add documentation
-        """
+        Crystallography Bragg peak detection.
 
-        crystallography_parameters = parameters.get_parameter_group(
+        This class collects all the information required to perform crystallography
+        Bragg peak detection on a detector data frame.
+
+        After the class has been initialized, the [find_peaks][find_peaks] method can
+        be invoked to detect peaks in a provided data frame.
+
+        Arguments:
+
+            parameters: An object storing OM's configuration parameters. The set of
+                parameters must include a group called `crystallography`, which in
+                turn must contain the following entries:
+
+                * `peakfinding_algorithm`: The detection strategy that should be used to
+                    detect the Bragg peaks in a detector frame. Currently, the
+                    following strategies are available:
+
+                    - `peakfinder8_peak_detection`: Instructs OM to use the
+                      `peakfinder8` peak detection strategy. If this strategy is
+                      selected, the set of OM's configuration parameters must include a
+                      parameter group called `peakfinder8_peak_detection` with the
+                      entries required to fine-tune the peak-finding strategy. Pleas
+                      refer to the documentation of the
+                      [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+                      algorithm).
+
+                * `min_num_peaks_for_hit`: The minimum number of peaks that must be
+                    identified in a detector data frame attached to an data event for
+                    the event to be considered a hit.
+
+                * `max_num_peaks_for_hit`: The maximum number of peaks that must be
+                    identified in a detector data frame attached to an data event for
+                    the event to be considered a hit.
+        """
+        crystallography_parameters = monitor_parameters.get_parameter_group(
             group="crystallography"
         )
 
@@ -93,115 +131,128 @@ class CrystallographyPeakFinding:
         self, detector_data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
     ) -> TypePeakList:
         """
-        TODO: Add documentation.
-        """
+        Finds peaks in a detector data frame.
 
+        This function detects peaks in a provided detector data frame, using the
+        strategy that has been selected when the class was initialized. The function
+        returns information about the location, size and intensity of the peaks.
+
+        Arguments:
+
+            data: The detector data frame on which the peak-finding operation must be
+                performed.
+
+        Returns:
+
+            A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
+                with information about the detected peaks.
+        """
         peak_list: TypePeakList = self._peak_detection.find_peaks(data=detector_data)
 
         return peak_list
 
 
-# class RadialProfileAnalysis:
-#     """
-#     See documentation of the '__init__' function.
-#     """
+class RadialProfileAnalysis:
+    """
+    See documentation of the '__init__' function.
+    """
 
-#     def __init__(
-#         self,
-#         *,
-#         radius_pixel_map: NDArray[numpy.float_],
-#         swaxs_parameters: Dict[str, Any],
-#     ) -> None:
-#         """
-#         #TODO: Add documentation.
-#         """
+    # def __init__(
+    #     self,
+    #     *,
+    #     radius_pixel_map: NDArray[numpy.float_],
+    #     swaxs_parameters: Dict[str, Any],
+    # ) -> None:
+    #     """
 
-#         self._radial_profile_analysis = RadialProfileAnalysisWithSampleDetection(
-#             swaxs_parameters=swaxs_parameters, radius_pixel_map=radius_pixel_map
-#         )
+    #     """
 
-#         self._jet_threshold: float = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="threshold_for_jet_hit",
-#             parameter_type=float,
-#             required=True,
-#         )
+    #     self._radial_profile_analysis = RadialProfileAnalysisWithSampleDetection(
+    #         swaxs_parameters=swaxs_parameters, radius_pixel_map=radius_pixel_map
+    #     )
 
-#         self._subtract_background: bool = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="subtract_background",
-#             parameter_type=bool,
-#             default=False,
-#         )
+    #     self._jet_threshold: float = get_parameter_from_parameter_group(
+    #         group=swaxs_parameters,
+    #         parameter="threshold_for_jet_hit",
+    #         parameter_type=float,
+    #         required=True,
+    #     )
 
-#         if self._subtract_background:
+    #     self._subtract_background: bool = get_parameter_from_parameter_group(
+    #         group=swaxs_parameters,
+    #         parameter="subtract_background",
+    #         parameter_type=bool,
+    #         default=False,
+    #     )
 
-#             background_vectors_filename: str = get_parameter_from_parameter_group(
-#                 group=swaxs_parameters,
-#                 parameter="background_vectors_npy_filename",
-#                 parameter_type=str,
-#                 required=True,
-#             )
+    #     if self._subtract_background:
+    #         background_vectors_filename: str = get_parameter_from_parameter_group(
+    #             group=swaxs_parameters,
+    #             parameter="background_vectors_npy_filename",
+    #             parameter_type=str,
+    #             required=True,
+    #         )
 
-#             try:
-#                 self._background_vectors: numpy.ndarray = numpy.atleast_2d(
-#                     numpy.load(background_vectors_filename)
-#                 )
-#             except (IOError, OSError, KeyError) as exc:
-#                 # TODO: type this
-#                 exc_type, exc_value = sys.exc_info()[:2]
-#                 raise RuntimeError(
-#                     "The following error occurred while reading the {0} water "
-#                     "profile file: {1}: {2}".format(
-#                         background_vectors_filename,
-#                         exc_type.__name__,  # type: ignore
-#                         exc_value,
-#                     )
-#                 ) from exc
+    #         try:
+    #             self._background_vectors: numpy.ndarray = numpy.atleast_2d(
+    #                 numpy.load(background_vectors_filename)
+    #             )
+    #         except (IOError, OSError, KeyError) as exc:
+    #             # TODO: type this
+    #             exc_type, exc_value = sys.exc_info()[:2]
+    #             raise RuntimeError(
+    #                 "The following error occurred while reading the {0} water "
+    #                 "profile file: {1}: {2}".format(
+    #                     background_vectors_filename,
+    #                     exc_type.__name__,  # type: ignore
+    #                     exc_value,
+    #                 )
+    #             ) from exc
 
-#     def analyze_radial_profile(
-#         self, *, detector_data: numpy.ndarray
-#     ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, float, bool, bool]:
-#         """
-#         # TODO: Add documentation
-#         """
-#         radial: numpy.ndarray
-#         errors: numpy.ndarray
-#         radial, errors = self._radial_profile_analysis.compute_radial_profile(
-#             data=detector_data
-#         )
+    # def analyze_radial_profile(
+    #     self, *, detector_data: numpy.ndarray
+    # ) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, float, bool, bool]:
+    #     """
+    #     # TODO: Add documentation
+    #     """
+    #     radial: numpy.ndarray
+    #     errors: numpy.ndarray
+    #     radial, errors = self._radial_profile_analysis.compute_radial_profile(
+    #         data=detector_data
+    #     )
 
-#         detector_data_sum: float = detector_data.sum()
-#         frame_is_jet: bool = detector_data_sum > self._jet_threshold
-#         if not frame_is_jet:
-#             frame_is_droplet: bool = False
-#         else:
-#             frame_is_droplet = self._radial_profile_analysis.detect_sample(
-#                 radial_profile=radial
-#             )
+    #     # TODO: frame_is_droplet = frame_is_sample
+    #     detector_data_sum: float = detector_data.sum()
+    #     frame_is_jet: bool = detector_data_sum > self._jet_threshold
+    #     if not frame_is_jet:
+    #         frame_is_droplet: bool = False
+    #     else:
+    #         frame_is_droplet = self._radial_profile_analysis.detect_sample(
+    #             radial_profile=radial
+    #         )
 
-#         if self._subtract_background:
-#             coefficients = fit_by_least_squares(
-#                 radial_profile=radial,
-#                 vectors=self._background_vectors,
-#                 start_bin=800,
-#                 stop_bin=1000,
-#             )
-#             background: numpy.ndarray = radial * 0
-#             for i in range(len(coefficients)):
-#                 background += coefficients[i] * self._background_vectors[i]
-#             subtracted_radial: numpy.ndarray = radial - background
-#         else:
-#             subtracted_radial = radial
+    #     if self._subtract_background:
+    #         coefficients = fit_by_least_squares(
+    #             radial_profile=radial,
+    #             vectors=self._background_vectors,
+    #             start_bin=800,
+    #             stop_bin=1000,
+    #         )
+    #         background: numpy.ndarray = radial * 0
+    #         for i in range(len(coefficients)):
+    #             background += coefficients[i] * self._background_vectors[i]
+    #         subtracted_radial: numpy.ndarray = radial - background
+    #     else:
+    #         subtracted_radial = radial
 
-#         return (
-#             radial,
-#             subtracted_radial,
-#             errors,
-#             detector_data_sum,
-#             frame_is_droplet,
-#             frame_is_jet,
-#         )
+    #     return (
+    #         radial,
+    #         subtracted_radial,
+    #         errors,
+    #         detector_data_sum,
+    #         frame_is_droplet,
+    #         frame_is_jet,
+    #     )
 
 
 class CrystallographyPlots:
@@ -212,11 +263,40 @@ class CrystallographyPlots:
     def __init__(
         self,
         *,
-        crystallography_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
         data_visualizer: DataVisualizer,
         pump_probe_experiment: bool,
         bin_size: int,
     ) -> None:
+        """
+        Plots for crystallography data.
+
+        This class stores all the information needed to generate and update plots that
+        summarize crystallography related data, specifically a Virtual Powder Pattern
+        plot, a Hit Rate History plot and a Peakogram plot. This class can generate
+        separate Hit Rate History plots for dark and pumped events in a pump-probe
+        experiment.
+
+        After the class has been initialized, the [update_plots][update_plots] method
+        can be invoked to update the information displayed by the plots and recover
+        the plot data stored by this class.
+
+        Arguments:
+
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
+
+                * `peakogram_intensity_bin_size`: The size, in ADU units, for each of
+                  the intensity bins in the Peakogram plot.
+
+                * `peakogram_radius_bin_size`: The size, in degrees, for each of the
+                  radius bins in the Peakogram plot.
+
+                * `running_average_window_size`: The size, in number of processed
+                  events,  of the running window used to compute the smoothed Hit Rate
+                  History plot.
+        """
         self._pump_probe_experiment: bool = pump_probe_experiment
         self._bin_size: int = bin_size
 
@@ -238,7 +318,7 @@ class CrystallographyPlots:
         self._data_shape: Tuple[int, ...] = self._radius_pixel_map.shape
 
         self._peakogram_intensity_bin_size: float = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
+            group=parameters,
             parameter="peakogram_intensity_bin_size",
             parameter_type=float,
             default=100,
@@ -246,7 +326,7 @@ class CrystallographyPlots:
         peakogram_num_bins_intensity: int = 300
 
         self._peakogram_radius_bin_size: float = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
+            group=parameters,
             parameter="peakogram_radius_bin_size",
             parameter_type=float,
             default=5,
@@ -262,7 +342,7 @@ class CrystallographyPlots:
         )
 
         self._running_average_window_size: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
+            group=parameters,
             parameter="running_average_window_size",
             parameter_type=int,
             required=True,
@@ -303,7 +383,6 @@ class CrystallographyPlots:
         timestamp: float,
         peak_list: TypePeakList,
         frame_is_hit: bool,
-        # data_shape: Tuple[int, ...],
         optical_laser_active: bool,
     ) -> Tuple[
         Deque[float],
@@ -317,6 +396,71 @@ class CrystallographyPlots:
         List[float],
         List[float],
     ]:
+        """
+        Updates and recovers the crystallography data plots.
+
+        This function updates the crystallography data plots stored by this class with
+        the provided information. This function assumes that all the provided
+        information refers to the same data event. When called, the function returns all
+        the information to display the plots in a graphical interface.
+
+        Arguments:
+
+            timestamp: The timestamp of the event to which the provided data is
+                attached.float,
+
+            peak_list: Information about the Bragg peaks identified in the detector data
+                frame attached to the data event.
+
+            frame_is_hit: Whether the data event should be considered a hit, or not.
+
+            optical_laser_active: Whether the optical laser is active or not in the
+                provided data event. This information is only relevant for pump-probe
+                experiments.
+
+        Returns:
+
+            The information needed to display the plot in a graphical interface, in the
+            format of a tuple containing the following entries, in this order:
+
+            * A list of timestamps for the events in the Hit Rate History plot. For
+              pump-probe experiments, this list only includes events with an active
+              optical laser.
+
+            * The Hit Rate for all the events in the Hit Rate History plot.  For
+              pump-probe experiments, this list only includes events with an active
+              optical laser.
+
+            * A list of timestamp for events without an active optical laser in a
+              pump-probe experiments. For non-pump-probe experiments, this list just
+              just store zero values.
+
+            * The Hit Rate for all the events without an active optical laser in the
+              Hit Rate History plot of a pump-probe experiments.  For non-pump-probe
+              experiments, this list just stores zero values.
+
+            * A 2D array storing the pixel values of a Virtual Powder Plot image.
+
+            * A 2D array storing the pixel values of a Peakogram Plot image.
+
+            * The size, in degrees, for each of the radius bins in the Peakogram plot
+
+            * The size, in ADU units, for each of the intensity bins in the Peakogram
+              plot.
+
+            * A list storing the x coordinate of each detected brag peak in a 2D array
+              storing assembled detector image information. The array is assumed to
+              contain pixel values that describe a detector data frame to which
+              geometry information has been applied, with the origin of the coordinate
+              system in the top left of the image.
+
+            * A list storing the y coordinate of each detected brag peak in a 2D array
+              storing assembled detector image information. The array is assumed to
+              contain pixel values that describe a detector data frame to which
+              geometry information has been applied, with the origin of the coordinate
+              system in the top left of the image.
+        """
+
         if self._pump_probe_experiment:
             if optical_laser_active:
                 self._hit_rate_running_window.append(float(frame_is_hit))

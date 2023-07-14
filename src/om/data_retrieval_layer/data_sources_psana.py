@@ -18,8 +18,8 @@
 """
 Psana-related data sources.
 
-This module contains Data Source classes that deal with data retrieved from the psana
-software framework (used at the LCLS facility).
+This module contains Data Source classes that deal with the psana software framework
+(used at the LCLS facility).
 """
 from typing import Any, Callable, Dict, List, Tuple, Union, cast
 
@@ -115,18 +115,12 @@ class CspadPsana(OmDataSourceProtocol):
         """
         CSPAD detector data frames at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of a CSPAD detector data frame from the
-        psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the detector directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-". The
-        detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_protocols_name}_calibration` entry in the
-        `data_retrieval_layer` parameter group.
+        psana software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -143,11 +137,11 @@ class CspadPsana(OmDataSourceProtocol):
         """
         Initializes the psana CSPAD detector frame data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the detector
-        whose psana name matches the entry `psana_{source_protocols_name}_name` in OM's
+        This function initializes data retrieval for the detector whose psana name
+        matches the entry `psana_{source_protocols_name}_name` in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -165,8 +159,8 @@ class CspadPsana(OmDataSourceProtocol):
         """
         Retrieves a CSPAD detector data frame from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
@@ -225,18 +219,13 @@ class Epix10kaPsana(OmDataSourceProtocol):
         """
         Epix10KA 2M detector data frames at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This class deals with the retrieval of an Epix10Ka 2M detector data frame from
+        the psana software framework.
 
-        This class deals with the retrieval of an Epix10KA 2M detector data frame from
-        the psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the detector directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-". The
-        detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_protocols_name}_calibration` entry in the
-        `data_retrieval_layer` parameter group.
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
 
         Arguments:
 
@@ -253,11 +242,11 @@ class Epix10kaPsana(OmDataSourceProtocol):
         """
         Initializes the Epix10KA 2M detector frame data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
+        This function initializes data retrieval for the detector whose psana name
+        matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -320,18 +309,12 @@ class Jungfrau4MPsana(OmDataSourceProtocol):
         """
         Jungfrau 4M detector data frames at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of a Jungfrau 4M detector data frame from
-        the psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the detector directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-". The
-        detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_protocols_name}_calibration` entry in the
-        `data_retrieval_layer` parameter group.
+        the psana software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -348,11 +331,11 @@ class Jungfrau4MPsana(OmDataSourceProtocol):
         """
         Initializes the psana Jungfrau 4M detector frame data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in the
+        This function initializes the data retrieval interface for the detector whose
+        psana name matches the `psana_{source_protocols_name}_name` entry in the
         OM's `data_retrieval_layer` configuration parameter group, or for the detector
         with a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -370,8 +353,8 @@ class Jungfrau4MPsana(OmDataSourceProtocol):
         """
         Retrieves a Jungfrau 4M detector data frame from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
@@ -415,18 +398,12 @@ class Epix100Psana(OmDataSourceProtocol):
         """
         Epix100 detector data frames at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This class deals with the retrieval of an Epix 100 detector data frame from the
+        psana software framework.
 
-        This class deals with the retrieval of an Epix100 detector data frame from the
-        psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the detector directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-". The
-        detector data frame can be retrieved in calibrated or non-calibrated form,
-        depending on the value of the `{source_protocols_name}_calibration` entry in the
-        `data_retrieval_layer` parameter group.
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -443,11 +420,11 @@ class Epix100Psana(OmDataSourceProtocol):
         """
         Initializes the psana Epix100 detector frame data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
+        This function initializes data retrieval for the detector whose psana name
+        matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -465,8 +442,8 @@ class Epix100Psana(OmDataSourceProtocol):
         """
         Retrieves a Epix100 detector data frame from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
@@ -505,15 +482,12 @@ class RayonixPsana(OmDataSourceProtocol):
         """
         Rayonix detector data frames at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of a Rayonix detector data frame from the
-        psana software framework. Data is normally retrieved for the detector whose
-        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the detector directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-".
+        psana software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -531,11 +505,11 @@ class RayonixPsana(OmDataSourceProtocol):
         """
         Initializes the psana Rayonix detector frame data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
+        This function initializes data retrieval for the detector whose psana name
+        matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -550,8 +524,8 @@ class RayonixPsana(OmDataSourceProtocol):
         """
         Retrieves a Rayonix detector data frame from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the detector data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
@@ -587,15 +561,12 @@ class OpalPsana(OmDataSourceProtocol):
         """
         Opal camera data frames at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of an Opal camera data frame from the psana
-        software framework. Data is normally retrieved for the camera whose psana name
-        matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the camera directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-".
+        software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -612,11 +583,11 @@ class OpalPsana(OmDataSourceProtocol):
         """
         Initializes the psana Opal camera frame data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the camera
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
+        This function initializes data retrieval for the camera whose psana name
+        matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the camera with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -631,8 +602,8 @@ class OpalPsana(OmDataSourceProtocol):
         """
         Retrieves an Opal camera data frame from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the camera data frame associated with the
         provided event. It returns the frame as a 2D array storing pixel information.
@@ -668,16 +639,12 @@ class AcqirisPsana(OmDataSourceProtocol):
         """
         Acqiris time/voltage waveform data at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of waveform data from an Acqiris
-        time/voltage detector at the LCLS facility. Data is normally retrieved for the
-        Acqiris detector whose psana name matches the
-        `psana_{source_protocols_name}_name` entry in OM's `data_retrieval_layer`
-        configuration parameter group. However, it is also possible to provide the
-        psana name of the Acqiris detector directly in the `source_protocols_name`
-        argument, by prefixing it with the string "psana-".
+        time/voltage detector at the LCLS facility.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -694,11 +661,11 @@ class AcqirisPsana(OmDataSourceProtocol):
         """
         Initializes the psana Acqiris waveform data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the Acqiris detector
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
+        This function initializes the data retrieval for the Acqiris detector whose
+        psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -715,8 +682,8 @@ class AcqirisPsana(OmDataSourceProtocol):
         """
         Retrieves Acqiris waveform data from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the waveform data for the provided event.
         Data is retrieved for all of the detector's channels at the same time, and
@@ -774,17 +741,12 @@ class AssembledDetectorPsana(OmDataSourceProtocol):
         """
         Assembled detector data frames at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of an assembled detector data frame from
-        the psana software framework. It retrieves detector data to which geometry
-        information has already been applied. The assembled data is normally retrieved
-        for the detector whose psana name matches the
-        `psana_{source_protocols_name}_name` entry in OM's `data_retrieval_layer`
-        configuration parameter group. However, it is also possible to provide the
-        psana name of the detector directly in the `source_protocols_name` argument,
-        by prefixing it with the string "psana-".
+        the psana software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -801,11 +763,11 @@ class AssembledDetectorPsana(OmDataSourceProtocol):
         """
         Initializes the psana assembled detector frame data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the detector
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
+        This function initializes data retrieval for the detector whose psana name
+        matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -820,12 +782,13 @@ class AssembledDetectorPsana(OmDataSourceProtocol):
         """
         Retrieves an assembled detector data frame from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the assembled detector data frame associated
-        with the provided event. It returns the frame as a 2D array storing pixel
-        information.
+        with the provided event. It retrieves a detector data frame to which geometry
+        information has already been applied. It returns the frame as a 2D array
+        storing pixel information.
 
         Arguments:
 
@@ -860,15 +823,12 @@ class Wave8Psana(OmDataSourceProtocol):
         """
         Wave8 detector data at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of data from a Wave8 detector at the LCLS
-        facility. Data is normally retrieved for the Wave8 detector whose psana name
-        matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the Wave8 detector directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-".
+        facility.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -885,11 +845,11 @@ class Wave8Psana(OmDataSourceProtocol):
         """
         Initializes the Wave8 data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the Wave8 detector
-        whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
+        This function initializes the data retrieval for the Wave8 detector whose psana
+        name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format
         `psana-{psana detector name}`.
@@ -904,8 +864,8 @@ class Wave8Psana(OmDataSourceProtocol):
         """
         Retrieves Wave8 total intensity data from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the total intensity recorded by the detector
         for the provided event.
@@ -935,12 +895,12 @@ class TimestampPsana(OmDataSourceProtocol):
         """
         Timestamp information from psana at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of timestamp information from the psana
-        software framework. Psana provides this information for each event with a
-        nanosecond-level precision.
+        software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -957,8 +917,8 @@ class TimestampPsana(OmDataSourceProtocol):
         """
         Initializes the psana timestamp data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve timestamp information from psana,
         so this function actually does nothing.
@@ -969,11 +929,11 @@ class TimestampPsana(OmDataSourceProtocol):
         """
         Retrieves timestamp information from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the timestamp information for the provided
-        event.
+        event. Psana provides this information with nanosecond precision.
 
         Arguments:
 
@@ -1006,14 +966,15 @@ class EventIdPsana(OmDataSourceProtocol):
         """
         Data event identifier at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of a unique event identifier for
-        psana-based data events. With psana, an OM's data event corresponds to the
-        content of an individual psana event. The psana software framework provides
-        timestamp information with nanosecond-level precision for each event, plus a
-        specific fiducial string form more detailed identification. This class uses a
+        psana-based data events.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        With psana, an OM's data event corresponds to the
+        content of an individual psana event. This class uses a
         combination of these two items to generate a unique event identifier with the
         following format:
         `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`.
@@ -1033,8 +994,8 @@ class EventIdPsana(OmDataSourceProtocol):
         """
         Initializes the psana event identifier data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is required to retrieve an event identifier for a psana-based
         data event, so this function actually does nothing.
@@ -1045,12 +1006,15 @@ class EventIdPsana(OmDataSourceProtocol):
         """
         Retrieves an event identifier for a psana-based data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana a unique identifier for the provided event.
-        The identifier is generated by combining the timestamp and fiducial information
-        that psana provides for the event. It has the following format:
+        The psana software framework provides timestamp information with
+        nanosecond-level precision for each event, plus a specific fiducial string for
+        more detailed identification. The identifier is generated by combining the
+        timestamp and fiducial information that psana provides for the event. It has
+        the following format:
         `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`.
 
         Arguments:
@@ -1083,15 +1047,12 @@ class EpicsVariablePsana(OmDataSourceProtocol):
         """
         Epics variable values at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of an Epics variable's value from the
-        psana software framework. It retrieves the value of the variable whose psana
-        name matches the `psana_{source_protocols_name}_name` entry in OM's
-        `data_retrieval_layer` configuration parameter group. However, it is also
-        possible to provide the psana name of the variable directly in the
-        `source_protocols_name` argument, by prefixing it with the string "psana-".
+        psana software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -1108,12 +1069,12 @@ class EpicsVariablePsana(OmDataSourceProtocol):
         """
         Initializes the psana Epics variable data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the variable whose
-        psana name matches the `psana_{source_protocols_name}_name` entry in the
-        OM's `data_retrieval_layer` configuration parameter group, or for the Epics
+        This function initializes the data retrieval for the PV variable whose psana
+        name matches the `psana_{source_protocols_name}_name` entry in the OM's
+        `data_retrieval_layer` configuration parameter group, or for the Epics
         variable with a given psana name, if the `source_protocols_name` argument has
         the format `psana-{psana detector name}`.
         """
@@ -1132,8 +1093,8 @@ class EpicsVariablePsana(OmDataSourceProtocol):
         """
         Retrieves an Epics variable's value from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the Epics variable's value associated with
         the provided event.
@@ -1163,11 +1124,12 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         """
         Beam energy information at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of beam energy information at the LCLS
-        facility. Psana provides this information for each event.
+        facility.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -1184,8 +1146,8 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         """
         Initializes the psana beam energy data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function initializes the psana Detector interface for the retrieval of
         beam energy information.
@@ -1196,8 +1158,8 @@ class BeamEnergyPsana(OmDataSourceProtocol):
         """
         Retrieves beam energy information from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from psana the beam energy information for the provided
         event.
@@ -1229,13 +1191,14 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         """
         Beam energy information at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of beam energy information at the LCLS
         facility. It retrieves the information with a method that is different from
         how Psana usually provides this beam energy information: this class retrieves
         the information by reading an Epics variable.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -1245,27 +1208,31 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        self._monitor_parameters = monitor_parameters
         del data_source_name
-        del monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
         Initializes the psana beam energy data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the Epics variable
-        storing the beam energy information.
+        This function initializes the data retrieval only for the Epics variable
+        storing the beam energy information ("SIOC:SYS0:ML00:AO192").
         """
-        self._detector_interface: Any = psana.Detector("SIOC:SYS0:ML00:AO192")
+        self._beam_energy_epics_variable: Any = EpicsVariablePsana(
+            data_source_name="psana-SIOC:SYS0:ML00:AO192",
+            monitor_parameters=self._monitor_parameters,
+        )
+        self._beam_energy_epics_variable.initialize_data_source()
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
         Retrieves beam energy information from psana.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves from an Epics variable the beam energy information for
         the provided event.
@@ -1278,7 +1245,9 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
 
             The beam energy.
         """
-        wavelength: Union[float, None] = self._detector_interface(event)
+        wavelength: Union[float, None] = self._beam_energy_epics_variable.get_data(
+            event=event
+        )
         if wavelength is None:
             raise OmDataExtractionError(
                 "Could not retrieve beam energy information from psana."
@@ -1305,16 +1274,11 @@ class EvrCodesPsana(OmDataSourceProtocol):
         """
         EVR event codes at the LCLS facility.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of EVR event codes at the LCLS facility.
-        It gathers the information needed to determine if an EVR event code has been
-        emitted by an EVR source for a specific event. This class checks the EVR code
-        number corresponding to the value of the `{data_source_name}_evr_code` entry in
-        OM's `data_retrieval_layer` configuration parameter group. The name of the EVR
-        source is instead specified by the `psana_evr_source_name` entry in the same
-        parameter group.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -1331,12 +1295,14 @@ class EvrCodesPsana(OmDataSourceProtocol):
         """
         Initializes the psana EVR event code data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function initializes the psana Detector interface for the EVR event source
-        specified by the `psana_evr_source_name` entry in OM's `Data Retrieval Layer`
-        configuration parameter group.
+        This function initializes the data retrieval for the EVR event code number
+        specified  by the `{data_source_name}_evr_code` entry in OM's
+        `Data Retrieval Layer` configuration parameter group. The EVR event source
+        to monitor for the emission of the event is instead determined by the
+        `psana_evr_source_name` entry in the same parameter group.
         """
         evr_source_name: str = self._monitor_parameters.get_parameter(
             group="data_retrieval_layer",
@@ -1357,11 +1323,11 @@ class EvrCodesPsana(OmDataSourceProtocol):
         """
         Checks for EVR events codes in the current event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function checks if the event code associated with the data source class
-        is emitted by the monitored EVR source for the provided event.
+        This function checks whether the event code attached to the data source has
+        been emitted by the monitored EVR event source for the provided event.
 
         Arguments:
 
@@ -1392,7 +1358,18 @@ class LclsExtraPsana(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        TODO: Documentation
+        Additional facility-specific information at the LCLS facility.
+
+        This class deals with the retrieval of information that is specific to the LCLS
+        facility. Due to its non-generic nature, the nature of the information that can
+        be collected is limited to a few predefined types. The collected information,
+        due to its specific nature, should not be processed by OM at all, but only
+        saved to a storage media, or passed to a facility-specific downstream
+        application.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -1407,9 +1384,55 @@ class LclsExtraPsana(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        TODO: Documentation
-        """
+        Initializes the psana LCLS-specific information data source.
 
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function initializes the data retrieval for the LCLS-specific information
+        defined by the `lcls_extra` entry in the OM's `data_retrieval_layer`
+        configuration parameter group. The entry must have the
+        format of a list of tuples. Each tuple must be made up of three elements:
+
+        * The first entry must be a string that defines the nature of the information
+          to retrieve. Currently, only the following types of information are
+          supported:
+
+          - `acqiris_waveform`: A waveform from an Acqiris detector. For a description
+             of the format of the data, Please refer to the documentation of the
+             [`get_data`][om.data_retrieval_layer.data_sources_psana.AcqirisPsana.get_data]
+             function of the `AcqirisPsana` class.
+
+          - `epics_pv`: The value of an Epics variable. For a description
+             of the format of the data, Please refer to the documentation of the
+             [`get_data`][om.data_retrieval_layer.data_sources_psana.EpicsVariablePsana.get_data]
+             function of the `EpicsVariablePsana` class.
+
+          - `wave8_total_intensity`: The total intensity recorded by a Wave8 detector
+            (expressed as a float number).
+
+          - `opal_camera`: An data frame collected by an Opal camera. For a description
+             of the format of the data, Please refer to the documentation of the
+             [`get_data`][om.data_retrieval_layer.data_sources_psana.OpalPsana.get_data]
+             function of the `OpalPsana` class.
+
+          -  `assembled_detector_data`: A detector data frame with geometry applied, as
+             generated by the psana software framework. The frame is returned int he
+             format of a 2D array storing pixel information.
+
+        * The second entry must be a string identifying the source of the retrieved
+          information.
+
+          - or the `acqiris_waveform`, `wave8_total_intensity`, `opal_camera`, and
+            `assembled_detector_data` types, this is the name, in the psana software
+            framework, of the detector generating the data to be retrieved.
+
+          - For the `epics_pv` data type, this is the Epics name of the variable to
+            retrieve.
+
+        * The third entry is string that assigns an OM identifier to data, within the
+          collection of retrieved LCLS-specific data.
+        """
         lcls_extra_items: List[List[str]] = self._monitor_parameters.get_parameter(
             group="data_retrieval_layer",
             parameter="lcls_extra",
@@ -1470,7 +1493,16 @@ class LclsExtraPsana(OmDataSourceProtocol):
 
     def get_data(self, *, event: Dict[str, Any]) -> Dict[str, Any]:
         """
-        TODO: Documentation
+        Retrieves LCLS-specific information from psana.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves from psana the LCLS-specific information associated
+        with the provided event. It returns the data in the format of a dictionary. The
+        keys in the dictionary match the OM identifiers assigned to each data entry,
+        with yhe corresponding dictionary value storing the retrieved data for each
+        ke.
 
         Arguments:
 
@@ -1478,7 +1510,8 @@ class LclsExtraPsana(OmDataSourceProtocol):
 
         Returns:
 
-            Whether the required event code has been emitted for the provided event.
+            A dictionary storing the retrieved LCLS-specific information for the
+            provided event.
         """
         data: Dict[str, Any] = {}
 

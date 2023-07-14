@@ -31,7 +31,6 @@ from om.data_retrieval_layer.data_sources_asapo import (
     EventIdAsapo,
     TimestampAsapo,
 )
-from om.data_retrieval_layer.data_sources_generic import FrameIdZero
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
     OmDataEventHandlerProtocol,

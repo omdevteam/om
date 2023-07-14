@@ -38,6 +38,7 @@ class TypeFrameListData(NamedTuple):
     file.
 
     Arguments:
+
         timestamp: The timestamp of the frame.
 
         event_id: The event ID of the frame.
@@ -68,6 +69,7 @@ class TypeClassSumData(TypedDict):
     class, their sum and the virtual peak powder.
 
     Arguments:
+
         num_frames: The number of detector frames belonging to a certain data class.
 
         sum_frames: The sum of the detector frames belonging to a certain data class.
@@ -88,7 +90,7 @@ class CheetahStatusFileWriter:
     def __init__(
         self,
         *,
-        cheetah_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Cheetah status file writer.
@@ -96,10 +98,16 @@ class CheetahStatusFileWriter:
         This class writes a status file that the Cheetah GUI can inspect.
 
         Arguments:
-            cheetah_parameters: The Cheetah parameters.
+
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
+
+                * `processed_directory`
+
         """
         directory_for_processed_data: str = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
+            group=parameters,
             parameter="processed_directory",
             parameter_type=str,
             required=True,
@@ -120,6 +128,7 @@ class CheetahStatusFileWriter:
         Writes a status file that the Cheetah GUI can inspect.
 
         Arguments:
+
             status: A string describing the current status of the Cheetah processing.
 
             num_frames: The number of detector frames processed so far.
@@ -459,7 +468,7 @@ class CheetahClassSumsCollector:
                 key: str
                 for key in class_sums[0]:
                     # TODO: fix mypy error:
-                    self._sums[class_number][key] += class_sums[class_number][key]  # type: ignore
+                    self._sums[class_number][key] += class_sums[class_number][key]  # type: ignore  # noqa: E501
 
         self._class_sum_update_counter += 1
         if self._class_sum_update_counter % self._class_sum_update_interval == 0:
@@ -494,9 +503,9 @@ class HDF5Writer:
         """
         HDF5 file writer for Cheetah.
 
-        This class creates HDF5 data files to store the detector information processed
-        by the Cheetah software package. For each detector frame, this class saves into
-        an HDF5 file the processed data frame, the list of Bragg peaks detected in the
+        This class creates HDF5 data files to store the information processed by the
+        Cheetah software package. For each event, this class saves into an HDF5 file
+        a processed detector data frame, the list of Bragg peaks detected in the
         frame, and some additional information (timestamp, beam energy, detector
         distance, pump laser state).
 
@@ -509,10 +518,8 @@ class HDF5Writer:
                 directory_for_processed_data: A relative or absolute path to the
                     directory where the output files will be written.
 
-
                 compression: The compression filter to be applied to the data in the
                     output file.
-
 
                 hdf5_fields: A dictionary storing information about the internal HDF5
                     path where each data entry will be written.
@@ -533,21 +540,21 @@ class HDF5Writer:
                     None.
 
                 compression_opts: The compression level to be used, if data compression
-                    is applied to the output files. This is entry is considered only
-                    if the `compression` entry is not None, otherwise, it is ignored.
-                    Optional. If the value of this entry is None, the compression level
-                    will be set to 4. Defaults to None.
+                    is applied to the output files. The information in this entry only
+                    applies if the corresponding `compression` entry is not None,
+                    otherwise, it is ignored. Optional. If the value of this entry is
+                    None, the compression level is set to 4. Defaults to None.
 
                 compression_shuffle: Whether the `shuffle` filter is applied. If the
-                    value of this entry is True, the `shuffle` filter will be applied,
-                    otherwise it will not. Defaults to None.
+                    value of this entry is True, the filter is applied to the data
+                    being written, otherwise it is not. Defaults to None.
 
-                max_num_peaks: The maximum number of detected Bragg peaks that will be
-                    written in the HDF5 for each detector frame. Optional. If the value
+                max_num_peaks: The maximum number of detected Bragg peaks that are
+                    written in the HDF5 file for each event. Optional. If the value
                     of this entry is None, only the first 1024 peaks detected in each
-                    frame will be written to the output file. Defaults to None.
+                    frame are be written to the output file. Defaults to None.
 
-            node_rank: The rank of the OM node that will write the data in the output
+            node_rank: The rank of the OM node that writes the data in the output
                 files.
         """
         # Output file
@@ -815,7 +822,10 @@ class HDF5Writer:
 
     def write_frame(self, *, processed_data: Dict[str, Any]) -> None:  # noqa: C901
         """
-        Writes data related to one detector frame into an HDF5 data file.
+        Writes data into an HDF5 data file.
+
+        This function writes the provided data into the HDF5 data file, assuming that
+        all the data belongs to the same processed data event.
 
         Arguments:
 
@@ -898,7 +908,7 @@ class HDF5Writer:
 
     def get_num_written_frames(self) -> int:
         """
-        Retrieves the number frames that have been written into the current file.
+        Retrieves the number frames that have already been saved into the current file.
 
         Returns:
 

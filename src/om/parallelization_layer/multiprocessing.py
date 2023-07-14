@@ -16,9 +16,9 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-MPI-based Parallelization Layer for OM.
+Multiprocessing Parallelization Layer for OM.
 
-This module contains a Parallelization Layer based on the MPI protocol.
+This module contains a Parallelization Layer based on Python's multiprocessing module.
 """
 import queue
 import sys
@@ -47,13 +47,7 @@ def _om_processing_node(
     monitor_params: MonitorParameters,
 ) -> None:
     # This function implements a processing node. It is designed to be run as a
-    # subprocess
-    num_frames_in_event_to_process: int = monitor_params.get_parameter(
-        group="data_retrieval_layer",
-        parameter="num_frames_in_event_to_process",
-        parameter_type=int,
-    )
-
+    # subprocess.
     data_event_handler.initialize_event_handling_on_processing_node(
         node_rank=rank, node_pool_size=node_pool_size
     )
@@ -128,14 +122,15 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         """
         Multiprocessing-based Parallelization Layer for OM.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class implements a Parallelization Layer based on Python's multiprocessing
         module. Each processing node is spawned as a subprocess. The parent process
         acts as a collecting node and additionally manages the child processes. This
         method generates all the subprocesses, and sets up all the communication
         channels through which data and control commands are received and dispatched.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
@@ -198,10 +193,10 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         """
         Starts the multiprocessing parallelization.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         The function starts the nodes and manages all of their interactions
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
         """
         console.rule(
             "You are using an OM real-time monitor. Please cite: "
@@ -281,12 +276,12 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         """
         Shuts down the multiprocessing parallelization.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function stops OM, closing all the communication channels between the
         nodes and managing a controlled shutdown of OM's resources. Additionally, it
         terminates the processing node subprocesses in an orderly fashion.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

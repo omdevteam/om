@@ -18,7 +18,8 @@
 """
 Generic data sources.
 
-This module contains Data Source classes that deal with data of no specific origin.
+This module contains Data Source classes that deal with data whose origin is not tied
+to a specific facility or experiment.
 """
 from typing import Any, Dict, Union, cast
 
@@ -57,13 +58,16 @@ class TimestampFromEvent(OmDataSourceProtocol):
         """
         Timestamp information from data events.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of the timestamp information stored in a
-        data event. Several software frameworks provide direct timestamp information
-        about the events they generate. OM retrieves this information and stores it in
-        the data event structure, where it can be retrieved by this class.
+        data event.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Several software frameworks provide direct timestamp information about the
+        events they generate. OM retrieves this information and stores it in the data
+        event structure. This class retrieves it from there.
 
         Arguments:
 
@@ -80,8 +84,8 @@ class TimestampFromEvent(OmDataSourceProtocol):
         """
         Initializes the event timestamp data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         No initialization is needed to retrieve timestamp information from a data
         event, so this function actually does nothing.
@@ -92,8 +96,8 @@ class TimestampFromEvent(OmDataSourceProtocol):
         """
         Retrieves timestamp information from a data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves the timestamp information stored in the provided data
         event.
@@ -123,15 +127,15 @@ class FloatEntryFromConfiguration(OmDataSourceProtocol):
         """
         Numerical values from configuration parameters.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This class deals with the retrieval of a numerical value from one of OM's
-        configuration parameters. It retrieves the value of the `{data_source_name`}
-        entry from OM's `data_retrieval_layer` configuration parameter group. This
-        class treats the parameter as a required parameter (i.e.: it raises an
-        exception if the parameter is not available). Furthermore, it requires the
-        parameter value to be a float number.
+        configuration parameters.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        This class retrieves the value of the `{data_source_name`} entry from OM's
+        `data_retrieval_layer` configuration parameter group. .
 
         Arguments:
 
@@ -148,13 +152,14 @@ class FloatEntryFromConfiguration(OmDataSourceProtocol):
         """
         Initializes the numerical configuration parameter data source.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves the value of the `{data_source_name}` entry from OM's
-        `data_retrieval_layer` configuration parameter group, and stores it for fast
-        subsequent recall. It requires the entry to be present and to have a float
-        numerical value.
+        `data_retrieval_layer` configuration parameter group, and stores it for
+        subsequent recall. The function treats the entry as a required parameter (i.e.:
+        it raises an exception if the parameter is not available), and requires its
+        value to be a float number.
         """
         self._value: float = self._monitor_parameters.get_parameter(
             group="data_retrieval_layer",
@@ -167,11 +172,11 @@ class FloatEntryFromConfiguration(OmDataSourceProtocol):
         """
         Retrieves the numerical value.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
-        This function returns the value of the numerical configuration parameter to
-        which the data source refers.
+        This function returns the value of the configuration entry read by the Data
+        Source class.
 
         Arguments:
 
@@ -182,69 +187,3 @@ class FloatEntryFromConfiguration(OmDataSourceProtocol):
             The value of the configuration parameter.
         """
         return self._value
-
-
-class FrameIdZero(OmDataSourceProtocol):
-    """
-    See documentation of the `__init__` function.
-    """
-
-    def __init__(
-        self,
-        *,
-        data_source_name: str,
-        monitor_parameters: MonitorParameters,
-    ):
-        """
-        Frame identifier for single-frame data files.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        This class deals with the retrieval of a unique frame identifier for
-        single-frame files that do not store any frame-identifying information. When no
-        other information is available, OM labels a frame using the index of the frame
-        within the file that contains it. Since this class deals with single-frame
-        files, it always returns "0" as frame identifier.
-
-        Arguments:
-
-            data_source_name: A name that identifies the current data source. It is
-                used, for example, for communication with the user or retrieval of
-                initialization parameters.
-
-            monitor_parameters: An object storing OM's configuration parameters.
-        """
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
-
-    def initialize_data_source(self) -> None:
-        """
-        Initializes the single-frame file frame identifier data source.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        No initialization is needed to retrieve a frame identifier for a single-frame
-        data file, so this function actually does nothing.
-        """
-        pass
-
-    def get_data(self, *, event: Dict[str, Any]) -> str:
-        """
-        Retrieves the frame identifier.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        This function returns "0" as frame identifier.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-
-        Returns:
-
-            The frame identifier.
-        """
-        return "0"

@@ -16,7 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-#TODO: Write docstring.
+OM's layer management.
+
+This module contains classes and functions that allow OM monitors to assemble and
+import OM's various data processing and extraction layers.
 """
 import importlib
 import sys
@@ -37,37 +40,60 @@ from om.protocols.processing_layer import OmProcessingProtocol
 
 
 def import_class_from_layer(
-    *, layer: str, class_name: str
+    *, layer_name: str, class_name: str
 ) -> Union[
     Type[OmParallelizationProtocol],
     Type[OmProcessingProtocol],
     Type[OmDataRetrievalProtocol],
+    None,
 ]:
+    """
+    Imports a class from an OM's layer.
+
+    This function imports a class, identified by the `class_name` argument, from a
+    layer identified by the `layer_name` argument. The function looks for the python
+    module containing the layer code in the current directory first. Specifically, it
+    looks for a python file with the same name as the layer. If the file is not found
+    in the current directory, this function tries to import the layer from the OM's
+    normal installation directories.
+
+    Arguments:
+
+        layer_name: The name of the layer from which the class should be imported.
+
+        class_name: The name of the class to import.
+
+    Returns:
+
+        The imported class.
+    """
+
     try:
-        imported_layer: ModuleType = importlib.import_module(name=layer)
+        imported_layer: ModuleType = importlib.import_module(name=layer_name)
     except ImportError:
         try:
-            imported_layer = importlib.import_module(f"om.{layer}")
+            imported_layer = importlib.import_module(f"om.{layer_name}")
+            try:
+                imported_class: Union[
+                    Type[OmParallelizationProtocol],
+                    Type[OmProcessingProtocol],
+                    Type[OmDataRetrievalProtocol],
+                ] = getattr(imported_layer, class_name)
+                return imported_class
+            except AttributeError:
+                raise OmMissingLayerClassError(
+                    f"The {class_name} class cannot be found in the {layer_name} file."
+                )
         except ImportError as exc:
             exc_type, exc_value = sys.exc_info()[:2]
             # TODO: Fix types
             if exc_type is not None:
                 raise OmMissingLayerModuleFileError(
-                    f"The python module file {layer}.py cannot be found or loaded due "
-                    f"to the following error: {exc_type.__name__}: {exc_value}"
+                    f"The python module file {layer_name}.py cannot be found or loaded"
+                    f"due to the following error: "
+                    f"{exc_type.__name__}: {exc_value}"
                 ) from exc
-    try:
-        imported_class: Union[
-            Type[OmParallelizationProtocol],
-            Type[OmProcessingProtocol],
-            Type[OmDataRetrievalProtocol],
-        ] = getattr(imported_layer, class_name)
-    except AttributeError:
-        raise OmMissingLayerClassError(
-            f"The {class_name} class cannot be found in the {layer} file."
-        )
-
-    return imported_class
+    return None
 
 
 def filter_data_sources(
