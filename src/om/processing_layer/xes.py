@@ -169,7 +169,7 @@ class XesProcessing(OmProcessingProtocol):
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            parameters=self._monitor_params.get_parameter_group(
+            om_parameters=self._monitor_params.get_parameter_group(
                 group="crystallography"
             ),
             node_pool_size=node_pool_size,

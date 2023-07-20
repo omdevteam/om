@@ -202,10 +202,14 @@ class CrystallographyProcessing(OmProcessingProtocol):
         pixel_maps: TypePixelMaps = self._geometry_information.get_pixel_maps()
 
         self._pixel_size /= self._post_processing_binning.get_bin_size()
-        pixel_maps = self._post_processing_binning.bin_pixel_maps(pixel_maps=pixel_maps)
+        binned_pixel_maps = self._post_processing_binning.bin_pixel_maps(
+            pixel_maps=pixel_maps
+        )
 
         # Data visualizer
-        self._data_visualizer: DataVisualizer = DataVisualizer(pixel_maps=pixel_maps)
+        self._data_visualizer: DataVisualizer = DataVisualizer(
+            pixel_maps=binned_pixel_maps
+        )
 
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
@@ -252,7 +256,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            parameters=self._monitor_params.get_parameter_group(
+            om_parameters=self._monitor_params.get_parameter_group(
                 group="crystallography"
             ),
             node_pool_size=node_pool_size,

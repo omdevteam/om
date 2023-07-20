@@ -20,32 +20,19 @@ OnDA Monitor for Crystallography.
 
 This module contains an OnDA Monitor for serial x-ray crystallography experiments.
 """
-import collections
 import sys
-from typing import Any, Deque, Dict, List, Tuple, Union, cast
+from typing import Any, Deque, Dict, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms.crystallography import TypePeakList
-from om.algorithms.generic import Binning, Correction
-from om.lib.crystallography_collecting import CrystallographyPlots
-from om.lib.crystallography_processing import CrystallographyPeakFinding
-from om.lib.exceptions import OmMissingDependencyError
-from om.lib.generic_collecting import EventCounter
+from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
-from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
+from om.lib.radial_profile import RadialProfileAnalysis, RadialProfileAnalysisPlots
 from om.lib.rich_console import console, get_current_timestamp
-from om.lib.zmq_collecting import ZmqDataBroadcaster, ZmqResponder
+from om.lib.zmq import ZmqDataBroadcaster
 from om.protocols.processing_layer import OmProcessingProtocol
-
-try:
-    import msgpack  # type: ignore
-except ImportError:
-    raise OmMissingDependencyError(
-        "The following required module cannot be imported: msgpack"
-    )
 
 
 class SwaxsProcessing(OmProcessingProtocol):
@@ -63,81 +50,20 @@ class SwaxsProcessing(OmProcessingProtocol):
 
             monitor_parameters: An object storing OM's configuration
         """
-
         # Parameters
         self._monitor_params: MonitorParameters = monitor_parameters
-        crystallography_parameters = self._monitor_params.get_parameter_group(
-            group="crystallography"
-        )
+        self._radial_parameters: Dict[
+            str, Any
+        ] = self._monitor_params.get_parameter_group(group="radial")
 
         # Geometry
         self._geometry_information = GeometryInformation.from_file(
             geometry_filename=get_parameter_from_parameter_group(
-                group=crystallography_parameters,
+                group=self._radial_parameters,
                 parameter="geometry_file",
                 parameter_type=str,
                 required=True,
-            ),
-        )
-
-        # Bad pixel map
-        bad_pixel_map_filename: Union[str, None] = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="bad_pixel_map_filename",
-            parameter_type=str,
-        )
-        if bad_pixel_map_filename is not None:
-            bad_pixel_map_hdf5_path: Union[
-                str, None
-            ] = get_parameter_from_parameter_group(
-                group=crystallography_parameters,
-                parameter="bad_pixel_map_hdf5_path",
-                parameter_type=str,
-                required=True,
             )
-        else:
-            bad_pixel_map_hdf5_path = None
-
-        if bad_pixel_map_filename is not None:
-            self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-                NDArray[numpy.int_],
-                load_hdf5_data(
-                    hdf5_filename=bad_pixel_map_filename,
-                    hdf5_path=bad_pixel_map_hdf5_path,
-                ),
-            )
-        else:
-            self._bad_pixel_map = None
-
-        # Binning
-        binning_requested: Union[bool, None] = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="binning",
-            parameter_type=bool,
-            default=False,
-        )
-        if binning_requested:
-            self._binning: Union[Binning, None] = Binning(
-                parameters=self._monitor_params.get_parameter_group(group="binning"),
-                geometry_information=self._geometry_information,
-                bad_pixel_map=self._bad_pixel_map,
-            )
-            self._binning_before_peak_finding = self._monitor_params.get_parameter(
-                group="crystallography",
-                parameter="binning_before_peakfinding",
-                parameter_type=bool,
-                default=True,
-            )
-        else:
-            self._binning = None
-            self._binning_before_peak_finding = None
-
-        # Pump probe
-        self._pump_probe_experiment: bool = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="pump_probe_experiment",
-            parameter_type=bool,
-            default=False,
         )
 
     def initialize_processing_node(
@@ -160,24 +86,18 @@ class SwaxsProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        # Radial Profile Analysis
 
-        # Correction
-        self._correction = Correction(
-            parameters=self._monitor_params.get_parameter_group(group="correction")
+        # Sample detection
+        self._total_intensity_jet_threshold: float = get_parameter_from_parameter_group(
+            group=self._radial_parameters,
+            parameter="total_intensity_jet_threshold",
+            parameter_type=float,
+            required=True,
         )
-
-        # Peak finding
-        self._peak_finding: CrystallographyPeakFinding = CrystallographyPeakFinding(
-            crystallography_parameters=self._monitor_params.get_parameter_group(
-                group="crystallography"
-            ),
-            peak_finding_parameters=self._monitor_params.get_parameter_group(
-                group="peakfinder8_peak_detection"
-            ),
+        self._radial_profile_analysis: RadialProfileAnalysis = RadialProfileAnalysis(
             geometry_information=self._geometry_information,
-            bad_pixel_map=self._bad_pixel_map,
-            binning_algorithm=self._binning,
-            binning_before_peak_finding=self._binning_before_peak_finding,
+            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
         )
 
         # Frame sending
@@ -210,72 +130,19 @@ class SwaxsProcessing(OmProcessingProtocol):
                 processing nodes and the collecting node.
         """
 
-        # Geometry
-        self._geometry_is_optimized: bool = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="geometry_is_optimized",
-            parameter_type=bool,
-            required=True,
-        )
-
-        self._visu
-
-        self._pixel_size = self._geometry_information.get_pixel_size()
-
-        self._detector_distance_offset: float = (
-            self._geometry_information.get_detector_distance_offset()
-        )
-
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            parameters=self._monitor_params.get_parameter_group(group="crystallography")
+            parameters=self._monitor_params.get_parameter_group(group="radial")
         )
 
         # Plots
-        self._plots: CrystallographyPlots = CrystallographyPlots(
-            crystallography_parameters=(
-                self._monitor_params.get_parameter_group(group="crystallography")
-            ),
-            geometry_information=self._geometry_information,
-            binning_algorithm=self._binning,
-            pump_probe_experiment=self._pump_probe_experiment,
-        )
-
-        # Streaming to CrystFEL
-        request_list_size: Union[int, None] = self._monitor_params.get_parameter(
-            group="crystallography",
-            parameter="external_data_request_list_size",
-            parameter_type=int,
-        )
-        if request_list_size is None:
-            request_list_size = 20
-        self._request_list: Deque[Tuple[bytes, bytes]] = collections.deque(
-            maxlen=request_list_size
-        )
-
-        self._responding_socket: ZmqResponder = ZmqResponder(
-            parameters=self._monitor_params.get_parameter_group(group="crystallography")
-        )
-
-        self._source: str = self._monitor_params.get_parameter(
-            group="om",
-            parameter="source",
-            parameter_type=str,
-            required=True,
-        )
-
-        self._configuration_file: str = self._monitor_params.get_parameter(
-            group="om",
-            parameter="configuration_file",
-            parameter_type=str,
-            required=True,
+        self._plots: RadialProfileAnalysisPlots = RadialProfileAnalysisPlots(
+            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
         )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(
-                group="crystallography"
-            ),
+            om_parameters=self._monitor_params.get_parameter_group(group="om"),
             node_pool_size=node_pool_size,
         )
 
@@ -321,61 +188,41 @@ class SwaxsProcessing(OmProcessingProtocol):
                 processed data that should be sent to the collecting node. The second
                 entry is the OM rank number of the node that processed the information.
         """
-
-        # Correction
         processed_data: Dict[str, Any] = {}
-        corrected_detector_data: NDArray[
-            numpy.float_
-        ] = self._correction.apply_correction(data=data["detector_data"])
 
-        # Peak-finding
-        data_for_peak_finding: Union[
-            NDArray[numpy.float_], NDArray[numpy.int_]
-        ] = corrected_detector_data
-        data_to_send: Union[
-            NDArray[numpy.float_], NDArray[numpy.int_]
-        ] = corrected_detector_data
-
-        if self._binning is not None:
-            binned_detector_data = self._binning.bin_detector_data(
-                data=corrected_detector_data
-            )
-            data_to_send = binned_detector_data
-            if self._binning_before_peak_finding:
-                data_for_peak_finding = binned_detector_data
-
-        peak_list: TypePeakList
-        frame_is_hit: bool
-        peak_list, frame_is_hit = self._peak_finding.find_peaks(
-            detector_data=data_for_peak_finding
+        radial_profile: NDArray[numpy.float_]
+        q: NDArray[numpy.float_]
+        sample_detected: bool
+        roi1_intensity: float
+        roi2_intensity: float
+        rg: float
+        (
+            radial_profile,
+            q,
+            sample_detected,
+            roi1_intensity,
+            roi2_intensity,
+            rg,
+        ) = self._radial_profile_analysis.analyze_radial_profile(
+            data=data["detector_data"],
+            beam_energy=data["beam_energy"],
+            detector_distance=data["detector_distance="],
+            downstream_intensity=data["post_sample_interaction_intensity"],
         )
 
-        # Data to send
-        processed_data["timestamp"] = data["timestamp"]
-        processed_data["frame_is_hit"] = frame_is_hit
-        processed_data["detector_distance"] = data["detector_distance"]
-        processed_data["beam_energy"] = data["beam_energy"]
-        processed_data["event_id"] = data["event_id"]
-        processed_data["data_shape"] = data_to_send.shape
-        processed_data["peak_list"] = peak_list
-        if self._pump_probe_experiment:
-            processed_data["optical_laser_active"] = data["optical_laser_active"]
+        detector_data_sum: float = data["detector_data"].sum()
 
-        # Frame sending
-        if "requests" in data:
-            if data["requests"] == "hit_frame":
-                self._send_hit_frame = True
-            if data["requests"] == "non_hit_frame":
-                self._send_non_hit_frame = True
-
-        if frame_is_hit:
-            if self._send_hit_frame is True:
-                processed_data["detector_data"] = data_to_send
-                self._send_hit_frame = False
-        else:
-            if self._send_non_hit_frame is True:
-                processed_data["detector_data"] = data_to_send
-                self._send_non_hit_frame = False
+        processed_data["radial_profile"] = radial_profile
+        processed_data["detector_data_sum"] = detector_data_sum
+        processed_data["q"] = q
+        processed_data["upstream_intensity"] = data["pre_sample_interaction_intensity"]
+        processed_data["downstream_intensity"] = data[
+            "post_sample_interaction_intensity"
+        ]
+        processed_data["roi1_intensity"] = roi1_intensity
+        processed_data["roi2_intensity"] = roi2_intensity
+        processed_data["sample_detected"] = sample_detected
+        processed_data["rg"] = rg
 
         return (processed_data, node_rank)
 
@@ -402,9 +249,8 @@ class SwaxsProcessing(OmProcessingProtocol):
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
-
         """
-        self._handle_external_requests()
+        pass
 
     def collect_data(
         self,
@@ -437,130 +283,60 @@ class SwaxsProcessing(OmProcessingProtocol):
                 second entry is the OM rank number of the node that processed the
                 information.
         """
-        self._handle_external_requests()
         received_data: Dict[str, Any] = processed_data[0]
         return_dict: Dict[int, Dict[str, Any]] = {}
 
+        q_history: Deque[NDArray[numpy.float_]]
+        radials_history: Deque[NDArray[numpy.float_]]
+        image_sum_history: Deque[float]
+        upstream_intensity_history: Deque[float]
+        downstream_intensity_history: Deque[float]
+        roi1_intensity_history: Deque[float]
+        roi2_intensity_history: Deque[float]
+        (
+            q_history,
+            radials_history,
+            image_sum_history,
+            upstream_intensity_history,
+            downstream_intensity_history,
+            roi1_intensity_history,
+            roi2_intensity_history,
+            hit_rate_history,
+            rg_history,
+        ) = self._plots.update_plots(
+            radial_profile=received_data["radial_profile"],
+            detector_data_sum=received_data["detector_data_sum"],
+            q=received_data["q"],
+            upstream_intensity=received_data["upstream_intensity"],
+            downstream_intensity=received_data["downstream_intensity"],
+            roi1_intensity=received_data["roi1_intensity"],
+            roi2_intensity=received_data["roi2_intensity"],
+            sample_detected=received_data["sample_detected"],
+            rg=received_data["rg"],
+        )
+
         # Event counting
-        if received_data["frame_is_hit"] is True:
+        if received_data["sample_detected"] is True:
             self._event_counter.add_hit_event()
         else:
             self._event_counter.add_non_hit_event()
 
-        # Streaming to CrystfEL
-        if len(self._request_list) != 0:
-            first_request = self._request_list[0]
-            if received_data["frame_is_hit"] is True:
-                data_to_send: Any = msgpack.packb(
-                    {
-                        "peak_list": received_data["peak_list"],
-                        "beam_energy": received_data["beam_energy"],
-                        "detector_distance": received_data["detector_distance"],
-                        "event_id": received_data["event_id"],
-                        "timestamp": received_data["timestamp"],
-                        "source": self._source,
-                        "configuration_file": self._configuration_file,
-                    },
-                    use_bin_type=True,
-                )
-                self._responding_socket.send_data(
-                    identity=first_request[0], message=data_to_send
-                )
-                _ = self._request_list.popleft()
-
-        if self._pump_probe_experiment:
-            optical_laser_active: bool = received_data["optical_laser_active"]
-        else:
-            optical_laser_active = False
-
-        # Plots
-        curr_hit_rate_timestamp_history: Deque[float]
-        curr_hit_rate_history: Deque[float]
-        curr_hit_rate_timestamp_history_dark: Union[Deque[float], None]
-        curr_hit_rate_history_dark: Union[Deque[float], None]
-        curr_virt_powd_plot_img: NDArray[numpy.int_]
-        curr_peakogram: NDArray[numpy.int_]
-        peak_list_x_in_frame: List[float]
-        peak_list_y_in_frame: List[float]
-        (
-            curr_hit_rate_timestamp_history,
-            curr_hit_rate_history,
-            curr_hit_rate_timestamp_history_dark,
-            curr_hit_rate_history_dark,
-            curr_virt_powd_plot_img,
-            curr_peakogram,
-            peak_list_x_in_frame,
-            peak_list_y_in_frame,
-        ) = self._plots.update_plots(
-            timestamp=received_data["timestamp"],
-            peak_list=received_data["peak_list"],
-            frame_is_hit=received_data["frame_is_hit"],
-            data_shape=received_data["data_shape"],
-            optical_laser_active=optical_laser_active,
-        )
-
         if self._event_counter.should_broadcast_data():
             omdata_message: Dict[str, Any] = {
-                "geometry_is_optimized": self._geometry_is_optimized,
-                "timestamp": received_data["timestamp"],
-                "hit_rate_timestamp_history": curr_hit_rate_timestamp_history,
-                "hit_rate_history": curr_hit_rate_history,
-                "virtual_powder_plot": curr_virt_powd_plot_img,
-                "beam_energy": received_data["beam_energy"],
-                "detector_distance": received_data["detector_distance"],
-                "detector_distance_offset": self._detector_distance_offset,
-                "pixel_size": self._pixel_size,
-                "pump_probe_experiment": self._pump_probe_experiment,
-                "start_timestamp": self._event_counter.get_start_timestamp(),
-                "peakogram": curr_peakogram,
-                # "peakogram_radius_bin_size": self._peakogram_radius_bin_size,
-                # "peakogram_intensity_bin_size": self._peakogram_intensity_bin_size,
+                "q": q_history,
+                "radial": received_data["radial_profile"],
+                "radial_stack": numpy.array(radials_history),
+                "recent_radial_average": numpy.mean(numpy.array(radials_history)),
+                "upstream_monitor_history": upstream_intensity_history,
+                "downstream_monitor_history": downstream_intensity_history,
+                "roi1_int_history": roi1_intensity_history,
+                "roi2_int_history": roi2_intensity_history,
+                "rg": rg_history,
             }
-            if self._pump_probe_experiment:
-                omdata_message[
-                    "hit_rate_timestamp_history_dark"
-                ] = curr_hit_rate_timestamp_history_dark
-                omdata_message["hit_rate_history_dark"] = curr_hit_rate_history_dark
-
             self._data_broadcast_socket.send_data(
                 tag="omdata",
                 message=omdata_message,
             )
-
-        # Data broadcast
-        if "detector_data" in received_data:
-            # If detector frame data is found in the data received from the
-            # processing node, it must be broadcasted to visualization programs.
-
-            self._frame_data_img = (
-                self._geometry_information.apply_visualization_geometry_to_data(
-                    data=received_data["detector_data"]
-                )
-            )
-
-            self._data_broadcast_socket.send_data(
-                tag="omframedata",
-                message={
-                    "frame_data": self._frame_data_img,
-                    "timestamp": received_data["timestamp"],
-                    "peak_list_x_in_frame": peak_list_x_in_frame,
-                    "peak_list_y_in_frame": peak_list_y_in_frame,
-                },
-            )
-            self._data_broadcast_socket.send_data(
-                tag="omtweakingdata",
-                message={
-                    "detector_data": received_data["detector_data"],
-                    "timestamp": received_data["timestamp"],
-                },
-            )
-
-        if self._event_counter.should_send_hit_frame():
-            rank_for_request: int = self._event_counter.get_rank_for_frame_request()
-            return_dict[rank_for_request] = {"requests": "hit_frame"}
-        if self._event_counter.should_send_non_hit_frame():
-            rank_for_request = self._event_counter.get_rank_for_frame_request()
-            return_dict[rank_for_request] = {"requests": "non_hit_frame"}
 
         self._event_counter.report_speed()
 
@@ -622,30 +398,3 @@ class SwaxsProcessing(OmProcessingProtocol):
             f"{self._event_counter.get_num_events()} events in total."
         )
         sys.stdout.flush()
-
-    def _handle_external_requests(self) -> None:
-        # This function handles external requests sent to the crystallography monitor
-        # over the responding network socket. It either changes the state of the
-        # monitor (resetting accumulated data, for example) or returns some data to the
-        # requesting party.
-        request: Union[
-            Tuple[bytes, bytes], None
-        ] = self._responding_socket.get_request()
-        if request:
-            if request[1] == b"next":
-                self._request_list.append(request)
-            elif request[1] == b"resetplots":
-                console.print(
-                    f"{get_current_timestamp()} OM Warning: Resetting plots.",
-                    style="warning",
-                )
-                self._plots.clear_plots()
-
-                self._responding_socket.send_data(identity=request[0], message=b"Ok")
-            else:
-                console.print(
-                    f"{get_current_timestamp()} OM Warning: Could not understand "
-                    f"request '{str(request[1])}'.",
-                    style="warning",
-                )
-                self._responding_socket.send_data(identity=request[0], message=b"What?")

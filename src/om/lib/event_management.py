@@ -29,7 +29,7 @@ class EventCounter:
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, parameters: Dict[str, Any], node_pool_size: int) -> None:
+    def __init__(self, *, om_parameters: Dict[str, Any], node_pool_size: int) -> None:
         """
         Event count and management.
 
@@ -44,7 +44,7 @@ class EventCounter:
 
         Arguments:
 
-            parameters: A set of OM configuration parameters collected together in a
+            om_parameters: A set of OM configuration parameters collected together in a
                 parameter group. The parameter group must contain the following entries:
 
                 * `speed_report_interval`: The number of events that must pass between
@@ -71,13 +71,13 @@ class EventCounter:
                 processing nodes and the collecting node.
         """
         self._speed_report_interval: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=om_parameters,
             parameter="speed_report_interval",
             parameter_type=int,
         )
 
         self._data_broadcast_interval: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=om_parameters,
             parameter="data_broadcast_interval",
             parameter_type=int,
         )
@@ -85,14 +85,14 @@ class EventCounter:
         self._hit_frame_sending_interval: Union[
             int, None
         ] = get_parameter_from_parameter_group(
-            group=parameters,
+            group=om_parameters,
             parameter="hit_frame_sending_interval",
             parameter_type=int,
         )
         self._non_hit_frame_sending_interval: Union[
             int, None
         ] = get_parameter_from_parameter_group(
-            group=parameters,
+            group=om_parameters,
             parameter="non_hit_frame_sending_interval",
             parameter_type=int,
         )

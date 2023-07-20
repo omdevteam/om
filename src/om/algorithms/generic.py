@@ -45,8 +45,7 @@ class RadialProfile:
         self,
         *,
         radius_pixel_map: NDArray[numpy.float_],
-        parameters: Dict[str, Any],
-        bad_pixel_map: Union[NDArray[numpy.int_], None],
+        radial_parameters: Dict[str, Any],
     ) -> None:
         """
         Radial average calculation.
@@ -54,7 +53,7 @@ class RadialProfile:
         This algorithm stores all the parameters needed to calculate the pixel-based
         radial profile of a detector data frame. After the algorithm has been
         initialized, it can be invoked to compute the radial profile of a provided
-        data frame.
+        detector frame.
 
         Arguments:
 
@@ -69,37 +68,56 @@ class RadialProfile:
                   the data frame, its distance (in pixels) from the origin of the
                   detector reference system (usually the center of the detector).
 
-            parameters: A set of OM configuration parameters collected together in a
-                parameter group. The parameter group must contain the following
+            radial_parameters: A set of OM configuration parameters collected together
+                in a parameter group. The parameter group must contain the following
                 entries:
 
-                * `radius_step`: The width (in pixels) of each step of the radial
-                  average.
+                * `radius_bin_size`: The width (in pixels) of each radius bin in the
+                  radial profile.
 
-            bad_pixel_map`: A pixel map storing information on the regions of the
-                data frame that must be excluded from the calculation of the radial
-                profile. If he value of this entry is None, the calculation wil
-                include the full frame. Defaults to None.
+                * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
+                   file containing a bad pixel map. The map can be used to exclude
+                   regions of the data frame from the calculation of the radial
+                   profile. If the value of this entry is None, the calculation will
+                   include the full frame. Defaults to None.
 
-                * The map must be a numpy array of the same shape as the data frame
-                  on which the algorithm will be applied.
+                    - The map must be a numpy array with the same shape as the data
+                      frame on which the algorithm will be applied.
 
-                * Each pixel in the map must have a value of either 0, meaning that
-                  the corresponding pixel in the data frame should be ignored, or
-                  1, meaning that the corresponding pixel should be included in the
-                  calculation of the profile.
+                    - Each pixel in the map must have a value of either 0, meaning that
+                      the corresponding pixel in the data frame should be ignored, or
+                      1, meaning that the corresponding pixel should be included in the
+                      calculation of the profile.
 
-                * The map is only used to exclude regions from the calculation: the
-                  data is not modified in any way.
+                    - The map is only used to exclude regions from the calculation: the
+                      data is not modified in any way.
+
+                * `bad_pixel_map_hdf5_path`: The internal HDF5 path to the data block
+                  where the bad pixel map data is located. Defaults to None.
+
+                    - If the `bad_pixel_map_filename` entry is not None, this entry
+                      must also be provided, and cannot be None. Otherwise it is
+                      ignored.
+
         """
+
+        bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=radial_parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
+        )
+
         if bad_pixel_map is None:
             self._mask: Union[NDArray[numpy.bool_], bool] = True
         else:
             self._mask = bad_pixel_map.astype(bool)
 
         radius_step: float = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="radius_step",
+            group=radial_parameters,
+            parameter="radius_bin_size",
             parameter_type=float,
         )
 
@@ -119,7 +137,9 @@ class RadialProfile:
         # rs all pixels in the bin. Call radial profile with r values rather than
         # intensity to calculate it. We need to return it for further calculation.
 
-    def calculate_profile(self, data: NDArray[numpy.float_]) -> NDArray[numpy.float_]:
+    def calculate_profile(
+        self, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+    ) -> NDArray[numpy.float_]:
         """
         Calculates the radial profile for a detector data frame.
 

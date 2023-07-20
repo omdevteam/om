@@ -110,7 +110,7 @@ class Peakfinder8PeakDetection:
         *,
         radius_pixel_map: NDArray[numpy.float_],
         layout_info: TypeDetectorLayoutInformation,
-        parameters: Dict[str, Any],
+        crystallography_parameters: Dict[str, Any],
     ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
@@ -197,49 +197,49 @@ class Peakfinder8PeakDetection:
         self._nasics_x: int = layout_info["nasics_x"]
         self._nasics_y: int = layout_info["nasics_y"]
         self._max_num_peaks: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="max_num_peaks",
             parameter_type=int,
             required=True,
         )
         self._adc_thresh: float = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="adc_threshold",
             parameter_type=float,
             required=True,
         )
         self._minimum_snr: float = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="minimum_snr",
             parameter_type=float,
             required=True,
         )
         self._min_pixel_count: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="min_pixel_count",
             parameter_type=int,
             required=True,
         )
         self._max_pixel_count: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="max_pixel_count",
             parameter_type=int,
             required=True,
         )
         self._local_bg_radius: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="local_bg_radius",
             parameter_type=int,
             required=True,
         )
         self._min_res: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="min_res",
             parameter_type=int,
             required=True,
         )
         self._max_res: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="max_res",
             parameter_type=int,
             required=True,
@@ -248,7 +248,7 @@ class Peakfinder8PeakDetection:
         self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
             Union[NDArray[numpy.int_], None],
             parse_parameters_and_load_hdf5_data(
-                parameters=parameters,
+                parameters=crystallography_parameters,
                 hdf5_filename_parameter="bad_pixel_map_filename",
                 hdf5_path_parameter="bad_pixel_map_hdf5_path",
             ),
@@ -260,7 +260,7 @@ class Peakfinder8PeakDetection:
         self._radial_stats_radius: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_num_pixels: int = 0
         self._fast_mode: bool = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="fast_mode",
             parameter_type=bool,
             default=False,
@@ -268,7 +268,7 @@ class Peakfinder8PeakDetection:
 
         if self._fast_mode is True:
             self._num_pixels_per_bin: int = get_parameter_from_parameter_group(
-                group=parameters,
+                group=crystallography_parameters,
                 parameter="rstats_numpix_per_bin",
                 parameter_type=int,
                 required=False,
@@ -580,6 +580,7 @@ class Peakfinder8PeakDetection:
             "max_pixel_intensity": peak_list[5],
             "snr": peak_list[6],
         }
+<<<<<<< HEAD
 
 
 # class RadialProfileAnalysisWithSampleDetection:
@@ -968,3 +969,5 @@ class PeakNetPeakDetection:
 
 
 
+=======
+>>>>>>> bfd0d67 (New radial profile library and swaxs processing layer)

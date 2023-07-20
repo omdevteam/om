@@ -136,7 +136,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         )
 
         self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-            parameters=self._monitor_params.get_parameter_group(
+            crystallography_parameters=self._monitor_params.get_parameter_group(
                 group="peakfinder8_peak_detection"
             ),
             radius_pixel_map=cast(NDArray[numpy.float_], pixel_maps["radius"]),

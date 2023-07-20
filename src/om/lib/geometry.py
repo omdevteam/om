@@ -1210,9 +1210,13 @@ class GeometryInformation:
             # Theoretically, the pixel size could be different for every module of the
             # detector. The pixel size of the first module is taken as the pixel size
             # of the whole detector.
-            self._pixel_size: float = geometry["panels"][
+            res_first_panel: float = geometry["panels"][
                 tuple(geometry["panels"].keys())[0]
             ]["res"]
+
+            # res from crystfel, which is 1/pixel_size
+            self._pixel_size: float = 1.0 / res_first_panel
+
             # Theoretically, panel coffset could be different for every module of the
             # detector. The panel coffset of the first module is taken as the pixel
             # size of the whole detector.
@@ -1295,7 +1299,7 @@ class GeometryInformation:
         """
         return self._layout_info
 
-    def get_detector_distance_offset(self) -> Union[float, None]:
+    def get_detector_distance_offset(self) -> float:
         """
         Retrieves detector distance offset information.
 
