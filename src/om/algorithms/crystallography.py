@@ -105,7 +105,7 @@ class Peakfinder8PeakDetection:
         *,
         radius_pixel_map: NDArray[numpy.float_],
         layout_info: TypeDetectorLayoutInformation,
-        parameters: Dict[str, Any],
+        crystallography_parameters: Dict[str, Any],
     ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
@@ -192,49 +192,49 @@ class Peakfinder8PeakDetection:
         self._nasics_x: int = layout_info["nasics_x"]
         self._nasics_y: int = layout_info["nasics_y"]
         self._max_num_peaks: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="max_num_peaks",
             parameter_type=int,
             required=True,
         )
         self._adc_thresh: float = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="adc_threshold",
             parameter_type=float,
             required=True,
         )
         self._minimum_snr: float = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="minimum_snr",
             parameter_type=float,
             required=True,
         )
         self._min_pixel_count: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="min_pixel_count",
             parameter_type=int,
             required=True,
         )
         self._max_pixel_count: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="max_pixel_count",
             parameter_type=int,
             required=True,
         )
         self._local_bg_radius: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="local_bg_radius",
             parameter_type=int,
             required=True,
         )
         self._min_res: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="min_res",
             parameter_type=int,
             required=True,
         )
         self._max_res: int = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="max_res",
             parameter_type=int,
             required=True,
@@ -243,7 +243,7 @@ class Peakfinder8PeakDetection:
         self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
             Union[NDArray[numpy.int_], None],
             parse_parameters_and_load_hdf5_data(
-                parameters=parameters,
+                parameters=crystallography_parameters,
                 hdf5_filename_parameter="bad_pixel_map_filename",
                 hdf5_path_parameter="bad_pixel_map_hdf5_path",
             ),
@@ -255,7 +255,7 @@ class Peakfinder8PeakDetection:
         self._radial_stats_radius: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_num_pixels: int = 0
         self._fast_mode: bool = get_parameter_from_parameter_group(
-            group=parameters,
+            group=crystallography_parameters,
             parameter="fast_mode",
             parameter_type=bool,
             default=False,
@@ -263,7 +263,7 @@ class Peakfinder8PeakDetection:
 
         if self._fast_mode is True:
             self._num_pixels_per_bin: int = get_parameter_from_parameter_group(
-                group=parameters,
+                group=crystallography_parameters,
                 parameter="rstats_numpix_per_bin",
                 parameter_type=int,
                 required=False,
@@ -575,280 +575,3 @@ class Peakfinder8PeakDetection:
             "max_pixel_intensity": peak_list[5],
             "snr": peak_list[6],
         }
-
-
-# class RadialProfileAnalysisWithSampleDetection:
-#     """
-#     See documentation of the '__init__' function.
-#     """
-
-#     def __init__(
-#         self,
-#         *,
-#         radius_pixel_map: NDArray[numpy.float_],
-#         swaxs_parameters: Dict[str, Any],
-#         bad_pixel_map: Union[NDArray[numpy.int_], None],
-#     ) -> None:
-#         """
-#         Algorithm for aqueous droplet detection.
-
-#         #TODO: Documentation
-
-#         Arguments:
-
-#             sample_detection_enabled: Whether to apply or not droplet detection.
-
-#             save_radials: Whether or not to save radials and droplet detection results
-#                 in an hdf5 file. This should be False if running on shared memory, but
-#                 can be True when accessing data on disk, and can be useful for
-#                 creating pure sample and water profiles.
-
-#             sample_peak_min_i: The minimum radial distance from the center of the
-#                 detector reference system defining the sample peak (in pixels).
-
-#             sample_peak_max_i: The maximum radial distance from the center of the
-#                 detector reference system defining the sample peak (in pixels).
-
-#             water_peak_min_i: The minimum radial distance from the center of the
-#                 detector reference system defining the water peak (in pixels).
-
-#             water_peak_max_i: The maximum radial distance from the center of the
-#                 detector reference system defining the water peak (in pixels).
-
-#             sample_profile: The radial profile for pure sample.
-
-#             water_profile: The radial profile for pure water or buffer.
-
-#             threshold:
-
-#             radius_pixel_map: A numpy array with radius information.
-
-#                 * The array must have the same shape as the data frame on which the
-#                   algorithm will be applied.
-
-#                 * Each element of the array must store, for the corresponding pixel
-#                   in the data frame, the distance in pixels from the origin
-#                   of the detector reference system (usually the center of the
-#                   detector).
-
-#             bad_pixel_map: An array storing a bad pixel map. The map can be used to
-#                 mark areas of the data frame that must be excluded from the peak
-#                 search. If the value of this argument is None, no area will be
-#                 excluded from the search. Defaults to None.
-
-#                 * The map must be a numpy array of the same shape as the data frame on
-#                   which the algorithm will be applied.
-
-#                 * Each pixel in the map must have a value of either 0, meaning that
-#                   the corresponding pixel in the data frame should be ignored, or 1,
-#                   meaning that the corresponding pixel should be included in the
-#                   search.
-
-#                 * The map is only used to exclude areas from the peak search: the data
-#                   is not modified in any way.
-
-#         #TODO: Fix documentation
-#         """
-
-#         # TODO: Make q-min, q-max
-#         # TODO: Make it region1/region2 rather than water/sample
-#         self._sample_peak_min_bin: int = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="sample_peak_min_bin",
-#             parameter_type=int,
-#             required=True,
-#         )
-#         self._sample_peak_max_bin: int = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="sample_peak_max_bin",
-#             parameter_type=int,
-#             required=True,
-#         )
-#         self._water_peak_min_bin: int = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="water_peak_min_bin",
-#             parameter_type=int,
-#             required=True,
-#         )
-#         self._water_peak_max_bin: int = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="water_peak_max_bin",
-#             parameter_type=int,
-#             required=True,
-#         )
-#         self._threshold_min: float = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="minimum_sample_to_water_ratio_for_sample",
-#             parameter_type=float,
-#             required=True,
-#         )
-#         self._threshold_max: float = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="maximum_sample_to_water_ratio_for_sample",
-#             parameter_type=float,
-#             required=True,
-#         )
-
-#          # TODO: Profiles for future development
-#         sample_profile_filename: str = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="sample_profile_filename",
-#             parameter_type=str,
-#         )
-
-#         if sample_profile_filename is not None:
-#             self._sample_profile = _read_profile(
-#                 profile_filename=sample_profile_filename
-#             )
-
-#         water_profile_filename: str = get_parameter_from_parameter_group(
-#             group=swaxs_parameters,
-#             parameter="water_profile_filename",
-#             parameter_type=str,
-#         )
-
-#         if water_profile_filename is not None:
-#             self._water_profile = _read_profile(
-#                 profile_filename=water_profile_filename
-#             )
-
-#         self._bad_pixel_map = bad_pixel_map
-
-#         # Calculate radial bins just on initialization
-#         radial_step: float = 1.0
-#         num_bins: int = int(radius_pixel_map.max() / radial_step)
-#         radial_bins = numpy.linspace(0, num_bins * radial_step, num_bins + 1)
-
-#         # Create an array labeling each pixel according to the radial bin it belongs
-#         # to
-#         self._radial_bin_labels: NDArray[numpy.int_] = numpy.searchsorted(
-#             radial_bins, radius_pixel_map, "right"
-#         )
-#         self._radial_bin_labels -= 1
-#         self._mask: Union[NDArray[numpy.float_], None] = None
-
-#     def compute_radial_profile(
-#         self,
-#         *,
-#         data: Union[NDArray[numpy.float_], NDArray[numpy.int_]],
-#     ) -> Tuple[NDArray[numpy.float_], NDArray[numpy.float_]]:
-#         """
-#         Calculate radial profile from a detector data frame.
-
-#         This function calculates a radial profile based on the detector data frame
-#         provided to the function as input.
-
-#         Arguments:
-
-#             data: the detector data frame from which the radial profile will be
-#                 calculated.
-
-#         Returns:
-
-#             A radial profile whose value is the average radial intensity calculated
-#             from the data frame.
-
-#         #TODO: Fix documentation
-#         """
-#         if self._mask is None:
-#             if self._bad_pixel_map is None:
-#                 self._mask = numpy.ones_like(data, dtype=bool)
-#             else:
-#                 self._mask = self._bad_pixel_map.astype(bool)
-#         bin_sum: NDArray[numpy.int_] = numpy.bincount(
-#             self._radial_bin_labels[self._mask].ravel(), data[self._mask].ravel()
-#         )
-#         bin_count: NDArray[numpy.int_] = numpy.bincount(
-#             self._radial_bin_labels[self._mask].ravel()
-#         )
-#         with numpy.errstate(divide="ignore", invalid="ignore"):
-#             # numpy.errstate just allows us to ignore the divide by zero warning
-#             radial: NDArray[numpy.float_] = numpy.nan_to_num(bin_sum / bin_count)
-#         errors: NDArray[numpy.float_] = scipy.stats.binned_statistic(
-#             self._radial_bin_labels[self._mask].ravel(),
-#             data[self._mask].ravel(),
-#             "std",
-#         )[0]
-#         # TODO: What are the next lines for?
-#         if len(errors) != len(radial):
-#             errors = radial * 0.03
-#         return radial, errors
-
-#     def detect_sample(self, radial_profile: NDArray[numpy.float_]) -> bool:
-#         """
-#         Decides whether a radial profile is from an aqueous droplet.
-
-#         This function takes a input a radial profile. It analyzes the profile and
-#         estimates the likelihood that the scattering profile originates from a
-#         water droplet. From the estimation, the function then returns a binary
-#         assessment (the profile matches or does match a water droplet)
-
-#         Arguments:
-
-#             radial: The radial profile to assess.
-
-#         Returns:
-
-#             True if the radial profile matches an aqueous droplet, False otherwise.
-#         """
-#         # if self._sample_profile is not None and self._water_profile is not None:
-#         #     # More complex algorithm where the radial is fit with a linear
-#         #      #combination
-#         #     # of user defined sample and water profiles using least squares
-#         #     vectors: NDArray[numpy.float_] = numpy.vstack(
-#         #         (self._sample_profile, self._water_profile)
-#         #     )
-#         #     coefficients = fit_by_least_squares(
-#         #         radial_profile=radial_profile, vectors=vectors
-#         #     )
-#         #     water_profile_to_sample_profile_ratio: float = float(
-#         #         coefficients[1] / coefficients[0]
-#         #     )
-#         #     if coefficients[0] < 0:
-#         #         # If sample coefficient is negative, it's all water
-#         #         water_profile_to_sample_profile_ratio = 1.0
-#         #     if coefficients[1] < 0:
-#         #         # If water coefficient is negative, it's all sample
-#         #         water_profile_to_sample_profile_ratio = 0.0
-#         # else:
-#             # TODO: Why a try/except?
-#             # Simple ratio of water peak intensity to sample peak intensity
-#             sample_profile_mean: numpy.float_ = numpy.mean(
-#                 radial_profile[self._sample_peak_min_bin : self._sample_peak_max_bin]
-#             )
-#             water_profile_mean: numpy.float_ = numpy.mean(
-#                 radial_profile[self._water_peak_min_bin : self._water_peak_max_bin]
-#             )
-#             water_profile_to_sample_profile_ratio = float(
-#                 water_profile_mean / sample_profile_mean
-#             )
-#         sample_detected: bool = (
-#             # Having a threshold maximum helps filtering out nozzle hits too
-#             (water_profile_to_sample_profile_ratio > self._threshold_min)
-#             and (water_profile_to_sample_profile_ratio < self._threshold_max)
-#         )
-
-#         return sample_detected
-
-
-# def fit_by_least_squares(
-#     *,
-#     radial_profile: NDArray[numpy.float_],
-#     vectors: NDArray[numpy.float_],
-#     start_bin: Union[int, None] = None,
-#     stop_bin: Union[int, None] = None,
-# ) -> NDArray[numpy.float_]:
-#     # This function fits a set of linearly combined vectors to a radial profile,
-#     # using a least-squares-based approach. The fit only takes into account the
-#     # range of radial bins defined by the xmin and xmax arguments.
-#     if start_bin is None:
-#         start_bin = 0
-#     if stop_bin is None:
-#         stop_bin = len(radial_profile)
-#     a: NDArray[numpy.float_] = numpy.nan_to_num(numpy.atleast_2d(vectors).T)
-#     b: NDArray[numpy.float_] = numpy.nan_to_num(radial_profile)
-#     a = a[start_bin:stop_bin]
-#     b = b[start_bin:stop_bin]
-#     coefficients: NDArray[numpy.float_]
-#     coefficients, _, _, _ = numpy.linalg.lstsq(a, b, rcond=None)
-#     return coefficients

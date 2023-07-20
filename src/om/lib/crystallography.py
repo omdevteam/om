@@ -98,7 +98,7 @@ class CrystallographyPeakFinding:
 
         if peakfinder_algorithm == "peakfinder8":
             self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-                parameters=monitor_parameters.get_parameter_group(
+                crystallography_parameters=monitor_parameters.get_parameter_group(
                     group="peakfinder8_peak_detection"
                 ),
                 radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
