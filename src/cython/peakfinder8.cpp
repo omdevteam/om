@@ -28,19 +28,22 @@ struct DetectorData {
     : data{data}
     , mask{mask}
     , radius{radius}
-    , shape(data_shape)
     , fs_size(data_shape.back())
     , ss_size(data_shape[data_shape.size() - 2])
     , pixels_per_panel(0)
     , num_panels(1)
     , num_pixels(0l)
+    , shape(data_shape)
   {
-    for (int i = 0; i < shape.size() - 2; ++i) {
+    for (std::size_t i = 0; i < shape.size() - 2; ++i) {
       num_panels *= shape[i];
     }
     pixels_per_panel = fs_size * ss_size;
     num_pixels = num_panels * pixels_per_panel;
   }
+
+  DetectorData(const DetectorData&) = delete;
+  DetectorData &operator=(DetectorData&) = delete;
 };
 using DetData = DetectorData;
 
@@ -65,6 +68,9 @@ struct HitfinderOptions {
     , LocalBGRadius(BkgndRadius)
     , MaxNumPeaks(NumPeaksMax)
   {}
+
+  HitfinderOptions(const HitfinderOptions&) = delete;
+  HitfinderOptions &operator=(HitfinderOptions&) = delete;
 };
 using HfOpts = HitfinderOptions;
 
@@ -151,12 +157,12 @@ public:
   int n_rad_bins; ///<
 
   explicit RadialStats(int bins)
-    : n_rad_bins{bins}
-    , roffset(bins)
+    : roffset(bins)
     , rthreshold(bins)
     , lthreshold(bins)
     , rsigma(bins)
     , rcount(bins)
+    , n_rad_bins(bins)
   {}
 
   // Remove copy construction/assignment
@@ -459,7 +465,7 @@ int peak_search(int peak_pix, int panel_num, const DetData& img_data,
 
     // Calculate fs/ss indices for the current pixel
     int curr_fs = peak_fs + offset_fs;
-    int curr_ss = peak_fs + offset_ss;
+    int curr_ss = peak_ss + offset_ss;
 
     // Move on if out of panel bounds
     if (not_in_panel(curr_fs, curr_ss, 0, 0, img_data)) {
@@ -526,7 +532,7 @@ int process_panel(int panel_number, const DetData& img_data,
       int idx = start_idx + pix_ss*fs_size + pix_fs;
 
       int curr_rad = static_cast<int>(rint(img_data.radius[idx]));
-      int curr_thresh = rstats.rthreshold[idx];
+      int curr_thresh = rstats.rthreshold[curr_rad];
 
       /// Intensities and sums used for center of mass calculations
       com_sums sums{0.0, 0.0, 0.0};
