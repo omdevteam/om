@@ -119,6 +119,7 @@ class RadialProfile:
             group=radial_parameters,
             parameter="radius_bin_size",
             parameter_type=float,
+            required=True
         )
 
         # Calculate radial bins

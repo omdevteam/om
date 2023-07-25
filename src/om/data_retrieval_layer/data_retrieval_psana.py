@@ -37,6 +37,7 @@ from om.data_retrieval_layer.data_sources_psana import (
     LclsExtraPsana,
     RayonixPsana,
     TimestampPsana,
+    Wave8Psana,
 )
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
@@ -109,9 +110,13 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
                 monitor_parameters=monitor_parameters,
             ),
             "xrays_active": EvrCodesPsana(
-                data_source_name="active_optical_laser",
+                data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
+            "post_sample_intensity": Wave8Psana(
+                data_source_name="post_sample_intensity_wave8",
+                monitor_parameters=monitor_parameters,
+            ),           
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
                 monitor_parameters=monitor_parameters,
@@ -203,7 +208,7 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
                 monitor_parameters=monitor_parameters,
             ),
             "xrays_active": EvrCodesPsana(
-                data_source_name="active_optical_laser",
+                data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
             "lcls_extra": LclsExtraPsana(
@@ -293,7 +298,7 @@ class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
                 monitor_parameters=monitor_parameters,
             ),
             "xrays_active": EvrCodesPsana(
-                data_source_name="active_optical_laser",
+                data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
             "lcls_extra": LclsExtraPsana(
@@ -385,7 +390,7 @@ class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
                 monitor_parameters=monitor_parameters,
             ),
             "xrays_active": EvrCodesPsana(
-                data_source_name="active_optical_laser",
+                data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
             "lcls_extra": LclsExtraPsana(
@@ -476,7 +481,7 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
                 monitor_parameters=monitor_parameters,
             ),
             "xrays_active": EvrCodesPsana(
-                data_source_name="active_optical_laser",
+                data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
             "lcls_extra": LclsExtraPsana(
