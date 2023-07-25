@@ -140,9 +140,17 @@ class SwaxsProcessing(OmProcessingProtocol):
             radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
         )
 
+        # Data to send
+        self._num_radials_to_send = get_parameter_from_parameter_group(
+            group=self._radial_parameters,
+            parameter="num_radials_to_send",
+            parameter_type=int,
+            required=True,
+        )
+
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(group="om"),
+            om_parameters=self._monitor_params.get_parameter_group(group="radial"),
             node_pool_size=node_pool_size,
         )
 
@@ -206,8 +214,8 @@ class SwaxsProcessing(OmProcessingProtocol):
         ) = self._radial_profile_analysis.analyze_radial_profile(
             data=data["detector_data"],
             beam_energy=data["beam_energy"],
-            detector_distance=data["detector_distance="],
-            downstream_intensity=data["post_sample_interaction_intensity"],
+            detector_distance=data["detector_distance"],
+            downstream_intensity=data["post_sample_intensity"],
         )
 
         detector_data_sum: float = data["detector_data"].sum()
@@ -215,9 +223,8 @@ class SwaxsProcessing(OmProcessingProtocol):
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
         processed_data["q"] = q
-        processed_data["upstream_intensity"] = data["pre_sample_interaction_intensity"]
         processed_data["downstream_intensity"] = data[
-            "post_sample_interaction_intensity"
+            "post_sample_intensity"
         ]
         processed_data["roi1_intensity"] = roi1_intensity
         processed_data["roi2_intensity"] = roi2_intensity
@@ -289,7 +296,6 @@ class SwaxsProcessing(OmProcessingProtocol):
         q_history: Deque[NDArray[numpy.float_]]
         radials_history: Deque[NDArray[numpy.float_]]
         image_sum_history: Deque[float]
-        upstream_intensity_history: Deque[float]
         downstream_intensity_history: Deque[float]
         roi1_intensity_history: Deque[float]
         roi2_intensity_history: Deque[float]
@@ -297,7 +303,6 @@ class SwaxsProcessing(OmProcessingProtocol):
             q_history,
             radials_history,
             image_sum_history,
-            upstream_intensity_history,
             downstream_intensity_history,
             roi1_intensity_history,
             roi2_intensity_history,
@@ -307,7 +312,6 @@ class SwaxsProcessing(OmProcessingProtocol):
             radial_profile=received_data["radial_profile"],
             detector_data_sum=received_data["detector_data_sum"],
             q=received_data["q"],
-            upstream_intensity=received_data["upstream_intensity"],
             downstream_intensity=received_data["downstream_intensity"],
             roi1_intensity=received_data["roi1_intensity"],
             roi2_intensity=received_data["roi2_intensity"],
@@ -325,13 +329,12 @@ class SwaxsProcessing(OmProcessingProtocol):
             omdata_message: Dict[str, Any] = {
                 "q": q_history,
                 "radial": received_data["radial_profile"],
-                "radial_stack": numpy.array(radials_history),
-                "recent_radial_average": numpy.mean(numpy.array(radials_history)),
-                "upstream_monitor_history": upstream_intensity_history,
-                "downstream_monitor_history": downstream_intensity_history,
-                "roi1_int_history": roi1_intensity_history,
-                "roi2_int_history": roi2_intensity_history,
-                "rg": rg_history,
+                "radial_stack": numpy.array(radials_history[-self._num_radials_to_send:0]),
+                "recent_radial_average": numpy.mean(numpy.array(radials_history[-self._num_radials_to_send:0])),
+                "downstream_monitor_history": numpy.array(downstream_intensity_history),
+                "roi1_int_history": numpy.array(roi1_intensity_history),
+                "roi2_int_history": numpy.array(roi2_intensity_history),
+                "rg": numpy.array(rg_history),
             }
             self._data_broadcast_socket.send_data(
                 tag="omdata",

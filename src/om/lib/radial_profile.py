@@ -204,6 +204,14 @@ class RadialProfileAnalysis:
                 parameter="background_subtraction_max_fit_bin",
                 parameter_type=int,
             )
+        
+        # Sample detection
+        self._total_intensity_jet_threshold: float = get_parameter_from_parameter_group(
+            group=radial_parameters,
+            parameter="total_intensity_jet_threshold",
+            parameter_type=float,
+            required=True,
+        )
 
         self._roi1_qmin: float = get_parameter_from_parameter_group(
             group=radial_parameters,
@@ -294,13 +302,13 @@ class RadialProfileAnalysis:
                 group=radial_parameters,
                 parameter="guinier_qmin",
                 parameter_type=float,
-                required=False,
+                required=True,
             )
             self._guinier_qmax: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
                 parameter="guinier_qmax",
                 parameter_type=float,
-                required=False,
+                required=True,
             )
 
         self._coffset = geometry_information.get_detector_distance_offset()
@@ -389,41 +397,48 @@ class RadialProfileAnalysis:
             / downstream_intensity
         )
 
-        if self._sample_detection:
-            first_profile_mean: numpy.float_ = numpy.mean(
-                radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
-            )
-            second_profile_mean: numpy.float_ = numpy.mean(
-                radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
-            )
-            first_to_second_peak_ratio = float(first_profile_mean / second_profile_mean)
-            sample_detected: bool = (
-                # Having a threshold maximum helps filtering out nozzle hits too
-                (first_to_second_peak_ratio > self._ratio_threshold_min)
-                and (first_to_second_peak_ratio < self._ratio_threshold_max)
-            )
-        else:
-            sample_detected = False
+        frame_has_jet: bool = data.sum() > self._total_intensity_jet_threshold
 
-        if self._estimate_particle_size:
-            q_index: NDArray[numpy.int_] = numpy.where(
-                (q >= self._guinier_qmin) & (q <= self._guinier_qmax)
-            )
-            q_min_index: numpy.int_ = numpy.min(q_index)
-            q_max_index: numpy.int_ = numpy.max(q_index)
-            if self._use_guinier_peak:
-                # try to estimate Rg using Guinier Peak method
-                rg: float = _calc_rg_by_guinier_peak(
-                    q, radial_profile, nb=q_min_index, ne=q_max_index
+        if frame_has_jet:
+            if self._sample_detection:
+                first_profile_mean: numpy.float_ = numpy.mean(
+                    radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
+                )
+                second_profile_mean: numpy.float_ = numpy.mean(
+                    radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
+                )
+                first_to_second_peak_ratio = float(first_profile_mean / second_profile_mean)
+                sample_detected: bool = (
+                    # Having a threshold maximum helps filtering out nozzle hits too
+                    (first_to_second_peak_ratio > self._ratio_threshold_min)
+                    and (first_to_second_peak_ratio < self._ratio_threshold_max)
                 )
             else:
-                # try to estimate Rg using standard Guinier plot
-                rg = _calc_rg_by_guinier(
-                    q, radial_profile, nb=q_min_index, ne=q_max_index
-                )
-        else:
-            rg = 0.0
+                sample_detected = False
 
+            if self._estimate_particle_size:
+                q_index: NDArray[numpy.int_] = numpy.where(
+                    (q >= self._guinier_qmin) & (q <= self._guinier_qmax)
+                )
+                if len(q_index[0]) != 0:
+                    q_min_index: numpy.int_ = numpy.min(q_index)
+                    q_max_index: numpy.int_ = numpy.max(q_index)
+                    if self._use_guinier_peak:
+                        # try to estimate Rg using Guinier Peak method
+                        rg: float = _calc_rg_by_guinier_peak(
+                            q, radial_profile, nb=q_min_index, ne=q_max_index
+                        )
+                    else:
+                        # try to estimate Rg using standard Guinier plot
+                        rg = _calc_rg_by_guinier(
+                            q, radial_profile, nb=q_min_index, ne=q_max_index
+                        )
+                else:
+                    rg=0.0
+            else:
+                rg = 0.0
+        else:
+            return (radial_profile, q, False, roi1_intensity, roi2_intensity, 0.6)
         return (radial_profile, q, sample_detected, roi1_intensity, roi2_intensity, rg)
 
 
@@ -465,9 +480,6 @@ class RadialProfileAnalysisPlots:
         self._image_sum_history: Deque[float] = deque(
             [], maxlen=self._running_average_window_size
         )
-        self._upstream_intensity_history: Deque[float] = deque(
-            [], maxlen=self._running_average_window_size
-        )
         self._downstream_intensity_history: Deque[float] = deque(
             [], maxlen=self._running_average_window_size
         )
@@ -487,7 +499,6 @@ class RadialProfileAnalysisPlots:
         radial_profile: NDArray[numpy.float_],
         detector_data_sum: float,
         q: NDArray[numpy.float_],
-        upstream_intensity: float,
         downstream_intensity: float,
         roi1_intensity: float,
         roi2_intensity: float,
@@ -496,7 +507,6 @@ class RadialProfileAnalysisPlots:
     ) -> Tuple[
         Deque[NDArray[numpy.float_]],
         Deque[NDArray[numpy.float_]],
-        Deque[float],
         Deque[float],
         Deque[float],
         Deque[float],
@@ -511,7 +521,6 @@ class RadialProfileAnalysisPlots:
         self._q_history.append(q)
         self._radials_history.append(radial_profile)
         self._image_sum_history.append(detector_data_sum)
-        self._upstream_intensity_history.append(upstream_intensity)
         self._downstream_intensity_history.append(downstream_intensity)
         self._roi1_intensity_history.append(roi1_intensity)
         self._roi2_intensity_history.append(roi2_intensity)
@@ -522,7 +531,6 @@ class RadialProfileAnalysisPlots:
             self._q_history,
             self._radials_history,
             self._image_sum_history,
-            self._upstream_intensity_history,
             self._downstream_intensity_history,
             self._roi1_intensity_history,
             self._roi2_intensity_history,
@@ -538,9 +546,6 @@ class RadialProfileAnalysisPlots:
         self._q_history = deque([], maxlen=self._running_average_window_size)
         self._radials_history = deque([], maxlen=self._running_average_window_size)
         self._image_sum_history = deque([], maxlen=self._running_average_window_size)
-        self._upstream_intensity_history = deque(
-            [], maxlen=self._running_average_window_size
-        )
         self._downstream_intensity_history = deque(
             [], maxlen=self._running_average_window_size
         )
