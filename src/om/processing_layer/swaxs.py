@@ -26,6 +26,7 @@ from typing import Any, Deque, Dict, Tuple, Union
 import numpy
 from numpy.typing import NDArray
 
+from om.lib.cheetah import HDF5Writer
 from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
@@ -223,9 +224,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
         processed_data["q"] = q
-        processed_data["downstream_intensity"] = data[
-            "post_sample_intensity"
-        ]
+        processed_data["downstream_intensity"] = data["post_sample_intensity"]
         processed_data["roi1_intensity"] = roi1_intensity
         processed_data["roi2_intensity"] = roi2_intensity
         processed_data["sample_detected"] = sample_detected
@@ -329,8 +328,12 @@ class SwaxsProcessing(OmProcessingProtocol):
             omdata_message: Dict[str, Any] = {
                 "q": q_history,
                 "radial": received_data["radial_profile"],
-                "radial_stack": numpy.array(radials_history[-self._num_radials_to_send:0]),
-                "recent_radial_average": numpy.mean(numpy.array(radials_history[-self._num_radials_to_send:0])),
+                "radial_stack": numpy.array(
+                    radials_history[-self._num_radials_to_send : 0]
+                ),
+                "recent_radial_average": numpy.mean(
+                    numpy.array(radials_history[-self._num_radials_to_send : 0])
+                ),
                 "downstream_monitor_history": numpy.array(downstream_intensity_history),
                 "roi1_int_history": numpy.array(roi1_intensity_history),
                 "roi2_int_history": numpy.array(roi2_intensity_history),
@@ -340,6 +343,364 @@ class SwaxsProcessing(OmProcessingProtocol):
                 tag="omdata",
                 message=omdata_message,
             )
+
+        self._event_counter.report_speed()
+
+        if return_dict:
+            return return_dict
+        return None
+
+    def end_processing_on_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> Union[Dict[str, Any], None]:
+        """
+        Ends processing actions on the processing nodes.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function prints a message on the console and ends the processing.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+        Returns:
+
+            Usually nothing. Optionally, a dictionary storing information to be sent to
+                the processing node.
+        """
+        console.print(
+            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
+        )
+        sys.stdout.flush()
+        return None
+
+    def end_processing_on_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Ends processing on the collecting node.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function prints a message on the console and ends the processing.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        console.print(
+            f"{get_current_timestamp()} Processing finished. OM has processed "
+            f"{self._event_counter.get_num_events()} events in total."
+        )
+        sys.stdout.flush()
+
+
+class SwaxsCheetahProcessing(OmProcessingProtocol):
+    """
+    See documentation for the `__init__` function.
+    """
+
+    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
+        """
+        OnDA Monitor for Crystallography.
+
+        # TODO: Documentation
+
+        Arguments:
+
+            monitor_parameters: An object storing OM's configuration
+        """
+        # Parameters
+        self._monitor_params: MonitorParameters = monitor_parameters
+        self._radial_parameters: Dict[
+            str, Any
+        ] = self._monitor_params.get_parameter_group(group="radial")
+
+        # Geometry
+        self._geometry_information = GeometryInformation.from_file(
+            geometry_filename=get_parameter_from_parameter_group(
+                group=self._radial_parameters,
+                parameter="geometry_file",
+                parameter_type=str,
+                required=True,
+            )
+        )
+
+    def initialize_processing_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes the processing nodes for the Crystallography Monitor.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the correction and peak finding algorithms, plus some
+        internal counters.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # Radial Profile Analysis
+
+        # Sample detection
+        self._total_intensity_jet_threshold: float = get_parameter_from_parameter_group(
+            group=self._radial_parameters,
+            parameter="total_intensity_jet_threshold",
+            parameter_type=float,
+            required=True,
+        )
+        self._radial_profile_analysis: RadialProfileAnalysis = RadialProfileAnalysis(
+            geometry_information=self._geometry_information,
+            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
+        )
+
+        # Frame sending
+        self._send_hit_frame: bool = False
+        self._send_non_hit_frame: bool = False
+
+        # Console
+        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
+        sys.stdout.flush()
+
+    def initialize_collecting_node(
+        self, *, node_rank: int, node_pool_size: int
+    ) -> None:
+        """
+        Initializes the collecting node for the Crystallography Monitor.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function initializes the data accumulation algorithms and the storage
+        buffers used to compute statistics on the detected Bragg peaks. Additionally,
+        it prepares the data broadcasting socket to send data to external programs.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        # Plots
+        self._plots: RadialProfileAnalysisPlots = RadialProfileAnalysisPlots(
+            radial_parameters=self._monitor_params.get_parameter_group(group="radial"),
+        )
+
+        # File Writing
+        self._writer = HDF5Writer(
+            node_rank=node_rank,
+            cheetah_parameters=self._monitor_params.get_parameter_group(
+                group="radial_cheetah"
+            ),
+        )
+
+        # Event counting
+        self._event_counter: EventCounter = EventCounter(
+            om_parameters=self._monitor_params.get_parameter_group(group="radial"),
+            node_pool_size=node_pool_size,
+        )
+
+        # Console
+        console.print(f"{get_current_timestamp()} Starting the monitor...")
+        sys.stdout.flush()
+
+    def process_data(
+        self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
+    ) -> Tuple[Dict[str, Any], int]:
+        """
+        Processes a detector data frame and extracts Bragg peak information.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function processes retrieved data events, calibrating and correcting the
+        detector data frames and extracting the Bragg peak information. Finally, it
+        prepares the Bragg peak data (and optionally, the detector frame data) for
+        transmission to to the collecting node.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            data: A dictionary containing the data that OM retrieved for the detector
+                data frame being processed.
+
+                * The dictionary keys describe the Data Sources for which OM has
+                  retrieved data. The keys must match the source names listed in the
+                  `required_data` entry of OM's `om` configuration parameter group.
+
+                * The corresponding dictionary values must store the the data that OM
+                  retrieved for each of the Data Sources.
+
+        Returns:
+
+            A tuple with two entries. The first entry is a dictionary storing the
+                processed data that should be sent to the collecting node. The second
+                entry is the OM rank number of the node that processed the information.
+        """
+        processed_data: Dict[str, Any] = {}
+
+        radial_profile: NDArray[numpy.float_]
+        q: NDArray[numpy.float_]
+        sample_detected: bool
+        roi1_intensity: float
+        roi2_intensity: float
+        rg: float
+        (
+            radial_profile,
+            q,
+            sample_detected,
+            roi1_intensity,
+            roi2_intensity,
+            rg,
+        ) = self._radial_profile_analysis.analyze_radial_profile(
+            data=data["detector_data"],
+            beam_energy=data["beam_energy"],
+            detector_distance=data["detector_distance"],
+            downstream_intensity=data["post_sample_intensity"],
+        )
+
+        detector_data_sum: float = data["detector_data"].sum()
+
+        processed_data["radial_profile"] = radial_profile
+        processed_data["detector_data_sum"] = detector_data_sum
+        processed_data["q"] = q
+        processed_data["downstream_intensity"] = data["post_sample_intensity"]
+        processed_data["roi1_intensity"] = roi1_intensity
+        processed_data["roi2_intensity"] = roi2_intensity
+        processed_data["sample_detected"] = sample_detected
+        processed_data["rg"] = rg
+
+        return (processed_data, node_rank)
+
+    def wait_for_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+    ) -> None:
+        """
+        Receives and handles requests from external programs.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function receives requests from external programs over a network socket
+        and reacts according to the nature of the request, sending data back to the
+        source of the request or modifying the internal behavior of the monitor.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+        """
+        pass
+
+    def collect_data(
+        self,
+        *,
+        node_rank: int,
+        node_pool_size: int,
+        processed_data: Tuple[Dict[str, Any], int],
+    ) -> Union[Dict[int, Dict[str, Any]], None]:
+        """
+        Computes statistics on aggregated data and broadcasts them.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function collects Bragg peak information (and optionally, frame data) from
+        the processing nodes. It computes a rolling average estimation of the hit rate
+        and a virtual powder pattern. It then broadcasts the aggregated information
+        over a network socket for visualization by external programs.
+
+        Arguments:
+
+            node_rank: The OM rank of the current node, which is an integer that
+                unambiguously identifies the current node in the OM node pool.
+
+            node_pool_size: The total number of nodes in the OM pool, including all the
+                processing nodes and the collecting node.
+
+            processed_data (Tuple[Dict, int]): A tuple whose first entry is a
+                dictionary storing the data received from a processing node, and whose
+                second entry is the OM rank number of the node that processed the
+                information.
+        """
+        received_data: Dict[str, Any] = processed_data[0]
+        return_dict: Dict[int, Dict[str, Any]] = {}
+
+        q_history: Deque[NDArray[numpy.float_]]
+        radials_history: Deque[NDArray[numpy.float_]]
+        image_sum_history: Deque[float]
+        downstream_intensity_history: Deque[float]
+        roi1_intensity_history: Deque[float]
+        roi2_intensity_history: Deque[float]
+        (
+            q_history,
+            radials_history,
+            image_sum_history,
+            downstream_intensity_history,
+            roi1_intensity_history,
+            roi2_intensity_history,
+            hit_rate_history,
+            rg_history,
+        ) = self._plots.update_plots(
+            radial_profile=received_data["radial_profile"],
+            detector_data_sum=received_data["detector_data_sum"],
+            q=received_data["q"],
+            downstream_intensity=received_data["downstream_intensity"],
+            roi1_intensity=received_data["roi1_intensity"],
+            roi2_intensity=received_data["roi2_intensity"],
+            sample_detected=received_data["sample_detected"],
+            rg=received_data["rg"],
+        )
+
+        # Event counting
+        if received_data["sample_detected"] is True:
+            self._event_counter.add_hit_event()
+        else:
+            self._event_counter.add_non_hit_event()
+
+        # File writing
+        data_to_write: Dict[str, Any] = {
+            "q": received_data["q"],
+            "radial": received_data["radial_profile"],
+            "detector_data_sum": received_data["detector_data_sum"],
+            "timestamp": received_data["timestamp"],
+            "sample_detected": received_data["sample_detected"],
+            "detector_distance": received_data["detector_distance"],
+            "beam_energy": received_data["beam_energy"],
+            "event_id": received_data["event_id"],
+            "lcls_extra": received_data["lcls_extra"],
+        }
+        self._writer.write_frame(processed_data=data_to_write)
 
         self._event_counter.report_speed()
 
