@@ -319,6 +319,11 @@ class RadialProfileAnalysis:
             radial_parameters=radial_parameters,
         )
 
+        radial_bin_labels = self._radial_profile.get_radial_bin_labels()
+        self._radial_bin_centers = self._radial_profile.calculate_profile(
+            data=radial_bin_labels
+        )
+
     def analyze_radial_profile(
         self,
         *,
@@ -371,7 +376,7 @@ class RadialProfileAnalysis:
         )
         real_detector_distance: float = detector_distance * 1e-3 + self._coffset
         theta: NDArray[numpy.float_] = (
-            numpy.arctan(self._pixel_size * radial_profile / real_detector_distance)
+            numpy.arctan(self._pixel_size * self._radial_bin_centers / real_detector_distance)
             * 0.5
         )
         q: NDArray[numpy.float_] = (

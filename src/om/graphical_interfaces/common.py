@@ -26,7 +26,7 @@ from abc import ABCMeta
 from typing import Any, Callable, Dict, List, Union  # noqa: F401
 
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.zmq_gui import ZmqDataListener
+from om.lib.zmq_qt import ZmqDataListener
 
 try:
     from PyQt5 import QtCore, QtWidgets
