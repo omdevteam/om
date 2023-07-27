@@ -21,6 +21,7 @@ OnDA Monitor for Crystallography.
 This module contains an OnDA Monitor for serial x-ray crystallography experiments.
 """
 import sys
+from itertools import islice
 from typing import Any, Deque, Dict, Tuple, Union
 
 import numpy
@@ -329,14 +330,29 @@ class SwaxsProcessing(OmProcessingProtocol):
             self._event_counter.add_non_hit_event()
 
         if self._event_counter.should_broadcast_data():
-            omdata_message: Dict[str, Any] = {
-                "q": q_history,
+            message: Dict[str, Any] = {
+                "q": numpy.array(
+                    list(
+                        islice(
+                            q_history,
+                            (len(q_history) - self._num_radials_to_send)
+                            if (len(q_history) - self._num_radials_to_send) > 0
+                            else 0,
+                            len(q_history),
+                        )
+                    )
+                ),
                 "radial": received_data["radial_profile"],
                 "radial_stack": numpy.array(
-                    radials_history[-self._num_radials_to_send : 0]
-                ),
-                "recent_radial_average": numpy.mean(
-                    numpy.array(radials_history[-self._num_radials_to_send : 0])
+                    list(
+                        islice(
+                            radials_history,
+                            (len(radials_history) - self._num_radials_to_send)
+                            if (len(q_history) - self._num_radials_to_send) > 0
+                            else 0,
+                            len(q_history),
+                        )
+                    )
                 ),
                 "downstream_monitor_history": numpy.array(downstream_intensity_history),
                 "roi1_int_history": numpy.array(roi1_intensity_history),
@@ -346,9 +362,11 @@ class SwaxsProcessing(OmProcessingProtocol):
                 "detector_distance": received_data["detector_distance"],
                 "beam_energy": received_data["beam_energy"],
             }
+            message["recent_radial_average"] = numpy.mean(message["radial_stack"])
+
             self._data_broadcast_socket.send_data(
                 tag="omdata",
-                message=omdata_message,
+                message=message,
             )
 
         self._event_counter.report_speed()
