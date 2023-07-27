@@ -767,6 +767,8 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        # Sort frames and write final list files
+        # Write final status
         self._writer.close()
 
         console.print(
