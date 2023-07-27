@@ -398,7 +398,8 @@ class Jungfrau4MPsana(OmDataSourceProtocol):
             NDArray[numpy.float_], NDArray[numpy.int_]
         ] = jungfrau_psana.reshape(8 * 512, 1024)
 
-        return jungfrau_reshaped
+        #return jungfrau_reshaped
+        return jungfrau_psana
 
 
 class Epix100Psana(OmDataSourceProtocol):

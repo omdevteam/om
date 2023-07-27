@@ -569,10 +569,11 @@ class Peakfinder8PeakDetection:
             "num_peaks": len(peak_list[0]),
             "fs": peak_list[0],
             "ss": peak_list[1],
-            "intensity": peak_list[2],
-            "num_pixels": peak_list[4],
-            "max_pixel_intensity": peak_list[5],
-            "snr": peak_list[6],
+            "panel_num": peak_list[2],
+            "intensity": peak_list[3],
+            "num_pixels": peak_list[5],
+            "max_pixel_intensity": peak_list[6],
+            "snr": peak_list[7],
         }
 
 

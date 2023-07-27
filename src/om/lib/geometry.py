@@ -989,6 +989,33 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
 
     return detector, beam, hdf5_peak_path
 
+def _compute_panel_indices(
+        *,
+        geometry: TypeDetector,
+        panel_name: str
+) -> Tuple[int, ...]:
+    """
+    Helper function to compute the panel indices of `panel_name`
+    in a multi-dimensional detector array. This function is used to place the exact
+    calculated coordinates into a multi-dimensional pixel map which corresponds
+    to each pixel of the multi-dimensional array containing the detector data.
+
+    Arguments:
+
+        geometry: A dictionary returned by the
+            [load_crystfel_geometry][om.library.crystfel_geometry.load_crystfel_geometry]
+            function, storing the detector geometry information.
+    Returns:
+
+        A Tuple of indices to index the pixel map.
+    """
+    dim_structure: list = geometry["panels"][panel_name]["dim_structure"]
+    excluded: Tuple[str, str, str] = ("%", "ss", "fs")
+    panel_dims: Tuple[int, ...] = tuple(
+        dim for dim in dim_structure if dim not in excluded
+    )
+
+    return panel_dims
 
 def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
     """
@@ -1021,21 +1048,41 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
 
         A dictionary storing the pixel maps.
     """
-    max_fs_in_slab: int = numpy.array(
+    p0_name: str = list(geometry["panels"].keys())[0]
+    plast_name: str = list(geometry["panels"].keys())[-1]
+    num_panel_dims: int = len(geometry["panels"][p0_name]["dim_structure"]) - 3
+
+    max_fs_in_panel: int = numpy.array(
         [geometry["panels"][k]["orig_max_fs"] for k in geometry["panels"]]
     ).max()
-    max_ss_in_slab: int = numpy.array(
+    max_ss_in_panel: int = numpy.array(
         [geometry["panels"][k]["orig_max_ss"] for k in geometry["panels"]]
     ).max()
 
+    panel_shape: List[int] = [max_ss_in_panel + 1, max_fs_in_panel + 1]
+    pix_map_shape: List[int]
+    if num_panel_dims > 0:
+        max_panel_indices: Tuple[int, ...] = _compute_panel_indices(
+            geometry=geometry,
+            panel_name=plast_name
+        )
+        pix_map_shape = [idx + 1 for idx in max_panel_indices]
+        pix_map_shape.append(panel_shape[0])
+        pix_map_shape.append(panel_shape[1])
+    else:
+        pix_map_shape = panel_shape
+
     x_map: NDArray[numpy.float_] = numpy.zeros(
-        shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
+        shape=pix_map_shape,
+        dtype=numpy.float32
     )
     y_map: NDArray[numpy.float_] = numpy.zeros(
-        shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
+        shape=pix_map_shape,
+        dtype=numpy.float32
     )
     z_map: NDArray[numpy.float_] = numpy.zeros(
-        shape=(max_ss_in_slab + 1, max_fs_in_slab + 1), dtype=numpy.float32
+        shape=pix_map_shape,
+        dtype=numpy.float32
     )
 
     # Iterates over the panels. For each panel, determines the pixel indices, then
@@ -1063,6 +1110,7 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
             ),
             indexing="ij",
         )
+
         y_panel: NDArray[numpy.float_] = (
             ss_grid * geometry["panels"][panel_name]["ssy"]
             + fs_grid * geometry["panels"][panel_name]["fsy"]
@@ -1073,7 +1121,16 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
             + fs_grid * geometry["panels"][panel_name]["fsx"]
             + geometry["panels"][panel_name]["cnx"]
         )
+
+        panel_indices: Union[Tuple, None] = None
+        if num_panel_dims > 0:
+            panel_indices = _compute_panel_indices(
+                geometry = geometry,
+                panel_name = panel_name
+            )
+
         x_map[
+            panel_indices,
             geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
                 panel_name
             ]["orig_max_ss"]
@@ -1084,6 +1141,7 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
             + 1,
         ] = x_panel
         y_map[
+            panel_indices,
             geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
                 panel_name
             ]["orig_max_ss"]
@@ -1094,6 +1152,7 @@ def _compute_pix_maps(*, geometry: TypeDetector) -> TypePixelMaps:
             + 1,
         ] = y_panel
         z_map[
+            panel_indices,
             geometry["panels"][panel_name]["orig_min_ss"] : geometry["panels"][
                 panel_name
             ]["orig_max_ss"]

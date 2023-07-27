@@ -60,9 +60,9 @@ cdef extern from "peakfinder8.hh":
                     long hitfinderMinPixCount, long hitfinderMaxPixCount,
                     long hitfinderLocalBGRadius);
 
-def peakfinder_8(int max_num_peaks, float[:,::1] data, char[:,::1] mask,
-                 float[:,::1] pix_r, int rstats_num_pix, int[:] rstats_pidx, 
-                 int[:] rstats_radius, int fast, long asic_nx, long asic_ny, 
+def peakfinder_8(int max_num_peaks, data, mask, pix_r, int rstats_num_pix,
+                 int[:] rstats_pidx, int[:] rstats_radius,
+                 int fast, long asic_nx, long asic_ny, 
                  long nasics_x, long nasics_y, float adc_thresh, 
                  float hitfinder_min_snr, long hitfinder_min_pix_count, 
                  long hitfinder_max_pix_count, long hitfinder_local_bg_radius):
@@ -175,7 +175,7 @@ List[float], List[float]`: A tuple storing  information about the detected peaks
 
     cdef float[::1] raveled_data = data.ravel()
     cdef char[::1] raveled_mask = mask.ravel()
-    cdef float[::1] raveled_pix_r = mask.ravel()
+    cdef float[::1] raveled_pix_r = pix_r.ravel()
 
     peakfinder8(&peak_list,
                 &raveled_data[0],
@@ -205,6 +205,7 @@ List[float], List[float]`: A tuple storing  information about the detected peaks
     cdef vector[double] peak_list_maxi
     cdef vector[double] peak_list_sigma
     cdef vector[double] peak_list_snr
+    cdef vector[int] peak_list_panel_num
 
     num_peaks = peak_list.nPeaks
 
@@ -221,6 +222,7 @@ List[float], List[float]`: A tuple storing  information about the detected peaks
         peak_maxi = peak_list.peak_maxintensity[i]
         peak_sigma = peak_list.peak_sigma[i]
         peak_snr = peak_list.peak_snr[i]
+        peak_panel_num = peak_list.peak_panel_number[i]
 
         peak_list_x.push_back(peak_x)
         peak_list_y.push_back(peak_y)
@@ -230,8 +232,10 @@ List[float], List[float]`: A tuple storing  information about the detected peaks
         peak_list_maxi.push_back(peak_maxi)
         peak_list_sigma.push_back(peak_sigma)
         peak_list_snr.push_back(peak_snr)
+        peak_list_panel_num.push_back(peak_panel_num)
 
     freePeakList(peak_list)
 
-    return (peak_list_x, peak_list_y, peak_list_value, peak_list_index,
-            peak_list_npix, peak_list_maxi, peak_list_sigma, peak_list_snr)
+    return (peak_list_x, peak_list_y, peak_list_panel_num, peak_list_value,
+            peak_list_index, peak_list_npix, peak_list_maxi, peak_list_sigma,
+            peak_list_snr)
