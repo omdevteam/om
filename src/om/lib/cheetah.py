@@ -752,10 +752,11 @@ class HDF5Writer:
                 }
             )
 
-        if "lcls_extra" in self._hdf5_fields.keys():
-            self._extra_groups["lcls_extra"] = self._h5file.create_group(
-                self._hdf5_fields["lcls_extra"]
-            )
+        for key in self._requested_datasets:
+            if key.endswith("_extra"):
+                self._extra_groups[key] = self._h5file.create_group(
+                    self._hdf5_fields[key]
+                )
 
         extra_group_name: str
         for extra_group_name in self._extra_groups:
