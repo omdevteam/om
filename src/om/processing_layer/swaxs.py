@@ -228,6 +228,10 @@ class SwaxsProcessing(OmProcessingProtocol):
         processed_data["roi1_intensity"] = roi1_intensity
         processed_data["roi2_intensity"] = roi2_intensity
         processed_data["sample_detected"] = sample_detected
+        processed_data["timestamp"] = data["timestamp"]
+        processed_data["detector_distance"] = data["detector_distance"]
+        processed_data["beam_energy"] = data["beam_energy"]
+        processed_data["event_id"] = data["event_id"]
         processed_data["rg"] = rg
 
         return (processed_data, node_rank)
@@ -338,6 +342,9 @@ class SwaxsProcessing(OmProcessingProtocol):
                 "roi1_int_history": numpy.array(roi1_intensity_history),
                 "roi2_int_history": numpy.array(roi2_intensity_history),
                 "rg": numpy.array(rg_history),
+                "timestamp": received_data["timestamp"],
+                "detector_distance": received_data["detector_distance"],
+                "beam_energy": received_data["beam_energy"],
             }
             self._data_broadcast_socket.send_data(
                 tag="omdata",
@@ -592,6 +599,10 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         processed_data["roi1_intensity"] = roi1_intensity
         processed_data["roi2_intensity"] = roi2_intensity
         processed_data["sample_detected"] = sample_detected
+        processed_data["timestamp"] = data["timestamp"]
+        processed_data["detector_distance"] = data["detector_distance"]
+        processed_data["beam_energy"] = data["beam_energy"]
+        processed_data["event_id"] = data["event_id"]
         processed_data["rg"] = rg
 
         return (processed_data, node_rank)
@@ -698,7 +709,6 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             "detector_distance": received_data["detector_distance"],
             "beam_energy": received_data["beam_energy"],
             "event_id": received_data["event_id"],
-            "lcls_extra": received_data["lcls_extra"],
         }
         self._writer.write_frame(processed_data=data_to_write)
 
@@ -757,6 +767,8 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
+        self._writer.close()
+
         console.print(
             f"{get_current_timestamp()} Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
