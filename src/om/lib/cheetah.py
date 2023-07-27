@@ -291,6 +291,41 @@ class CheetahListFilesWriter:
                         f"{frame.average_intensity}\n"
                     )
 
+def calc_panel_indices(
+        *,
+        panel_num: int,
+        data_shape: NDArray[numpy.int_]
+) -> List[int]:
+    """
+    Returns the indices for the requested panel in the shape of the original
+    Python array. The final two dimensions of the object are assumed to be the
+    slow-scan and fast-scan dimensions of the individual panels, while the other
+    dimensions relate to ordering/organization of the panels. Only the panel
+    indices are returned.
+    E.g. for an ndarray of dimensionality (2, 4, 8, 156, 156) and a panel number
+    of 9 the indices (0, 1, 1) will be returned. Panels are numbered from 0.
+
+    Arguments:
+    
+        panel_num: The panel to find the indices of.
+
+        data_shape: Shape of the original data array.
+    Returns:
+
+        A List of panel indices without the ss/fs information.
+    """
+    num_panel_dims: int = len(data_shape) - 2
+    indices: List[int] = []
+
+    for i in range(num_panel_dims):
+        base_idx: int = 1
+        for j in range(i+1, num_panel_dims):
+            base_idx *= data_shape[j]
+
+        indices.append(panel_num // base_idx)
+        panel_num %= base_idx
+
+    return indices
 
 class CheetahClassSumsAccumulator:
     """
@@ -357,12 +392,19 @@ class CheetahClassSumsAccumulator:
         peak_fs: float
         peak_ss: float
         peak_value: float
-        for peak_fs, peak_ss, peak_value in zip(
-            peak_list["fs"], peak_list["ss"], peak_list["intensity"]
+        for peak_fs, peak_ss, peak_panel, peak_value in zip(
+                peak_list["fs"],
+                peak_list["ss"],
+                peak_list["panel_num"],
+                peak_list["intensity"]
         ):
-            self._sums[class_number]["peak_powder"][
-                int(round(peak_ss)), int(round(peak_fs))
-            ] += peak_value
+            indices = calc_panel_indices(
+                panel_num=peak_panel,
+                data_shape=frame_data.shape
+            )
+            indices.append(int(round(peak_ss)))
+            indices.append(int(round(peak_fs)))
+            self._sums[class_number]["peak_powder"][tuple(indices)] += peak_value
 
         self._sum_sending_counter += 1
 

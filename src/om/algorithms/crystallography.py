@@ -74,6 +74,9 @@ class TypePeakList(TypedDict, total=True):
         ss: A list of fractional ss indexes that locate the detected peaks in the data
             frame.
 
+        panel_num: A list of panel numbers that locate the detected peaks in the data
+            frame.
+
         intensity: A list of integrated intensities for the detected peaks.
 
         num_pixels: A list storing the number of pixels that make up each detected
@@ -88,6 +91,7 @@ class TypePeakList(TypedDict, total=True):
     num_peaks: int
     fs: List[float]
     ss: List[float]
+    panel_num: List[int]
     intensity: List[float]
     num_pixels: List[float]
     max_pixel_intensity: List[float]
