@@ -138,6 +138,9 @@ class RadialProfile:
         # rs all pixels in the bin. Call radial profile with r values rather than
         # intensity to calculate it. We need to return it for further calculation.
 
+    def get_radial_bin_labels(self):
+        return self._radial_bin_labels
+
     def calculate_profile(
         self, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
     ) -> NDArray[numpy.float_]:

@@ -157,6 +157,7 @@ setup(
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
             "crystallography_parameter_tweaker:main",
             "om_xes_gui.py=om.graphical_interfaces." "xes_gui:main",
+            "om_swaxs_gui.py=om.graphical_interfaces." "swaxs_gui:main",
         ],
     },
     ext_modules=extensions,
