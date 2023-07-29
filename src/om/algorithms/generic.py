@@ -119,13 +119,13 @@ class RadialProfile:
             group=radial_parameters,
             parameter="radius_bin_size",
             parameter_type=float,
-            required=True
+            required=True,
         )
 
         # Calculate radial bins
-        num_bins: int = int(radius_pixel_map.max() / radius_step)
+        self._num_bins: int = int(radius_pixel_map.max() / radius_step)
         radial_bins: NDArray[numpy.float_] = numpy.linspace(
-            0, num_bins * radius_step, num_bins + 1
+            0, self._num_bins * radius_step, self._num_bins + 1
         )
 
         # Create an array that labels each pixel according to the bin to which it
@@ -138,7 +138,10 @@ class RadialProfile:
         # rs all pixels in the bin. Call radial profile with r values rather than
         # intensity to calculate it. We need to return it for further calculation.
 
-    def get_radial_bin_labels(self):
+    def get_radial_bin_labels(self) -> NDArray[numpy.int_]:
+        """
+        # TODO: Documentation
+        """
         return self._radial_bin_labels
 
     def calculate_profile(

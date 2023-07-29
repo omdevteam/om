@@ -204,7 +204,7 @@ class RadialProfileAnalysis:
                 parameter="background_subtraction_max_fit_bin",
                 parameter_type=int,
             )
-        
+
         # Sample detection
         self._total_intensity_jet_threshold: float = get_parameter_from_parameter_group(
             group=radial_parameters,
@@ -376,7 +376,9 @@ class RadialProfileAnalysis:
         )
         real_detector_distance: float = detector_distance * 1e-3 + self._coffset
         theta: NDArray[numpy.float_] = (
-            numpy.arctan(self._pixel_size * self._radial_bin_centers / real_detector_distance)
+            numpy.arctan(
+                self._pixel_size * self._radial_bin_centers / real_detector_distance
+            )
             * 0.5
         )
         q: NDArray[numpy.float_] = (
@@ -412,7 +414,9 @@ class RadialProfileAnalysis:
                 second_profile_mean: numpy.float_ = numpy.mean(
                     radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
                 )
-                first_to_second_peak_ratio = float(first_profile_mean / second_profile_mean)
+                first_to_second_peak_ratio = float(
+                    first_profile_mean / second_profile_mean
+                )
                 sample_detected: bool = (
                     # Having a threshold maximum helps filtering out nozzle hits too
                     (first_to_second_peak_ratio > self._ratio_threshold_min)
@@ -439,7 +443,7 @@ class RadialProfileAnalysis:
                             q, radial_profile, nb=q_min_index, ne=q_max_index
                         )
                 else:
-                    rg=0.0
+                    rg = 0.0
             else:
                 rg = 0.0
         else:
@@ -473,30 +477,14 @@ class RadialProfileAnalysisPlots:
             required=True,
         )
 
-        self._hit_rate_history: Deque[bool] = deque(
-            [], maxlen=self._running_average_window_size
-        )
-        self._q_history: Deque[NDArray[numpy.float_]] = deque(
-            [], maxlen=self._running_average_window_size
-        )
-        self._radials_history: Deque[NDArray[numpy.float_]] = deque(
-            [], maxlen=self._running_average_window_size
-        )
-        self._image_sum_history: Deque[float] = deque(
-            [], maxlen=self._running_average_window_size
-        )
-        self._downstream_intensity_history: Deque[float] = deque(
-            [], maxlen=self._running_average_window_size
-        )
-        self._roi1_intensity_history: Deque[float] = deque(
-            [], maxlen=self._running_average_window_size
-        )
-        self._roi2_intensity_history: Deque[float] = deque(
-            [], maxlen=self._running_average_window_size
-        )
-        self._rg_history: Deque[float] = deque(
-            [], maxlen=self._running_average_window_size
-        )
+        self._hit_rate_history: Union[Deque[bool], None] = None
+        self._q_history: Union[Deque[NDArray[numpy.float_]], None] = None
+        self._radials_history: Union[Deque[NDArray[numpy.float_]], None] = None
+        self._image_sum_history: Union[Deque[float], None] = None
+        self._downstream_intensity_history: Union[Deque[float], None] = None
+        self._roi1_intensity_history: Union[Deque[float], None] = None
+        self._roi2_intensity_history: Union[Deque[float], None] = None
+        self._rg_history: Union[Deque[float], None] = None
 
     def update_plots(
         self,
@@ -522,6 +510,42 @@ class RadialProfileAnalysisPlots:
         """
         #TODO: Documentation.
         """
+
+        if self._hit_rate_history is None:
+            num_radial_bins: int = len(radial_profile)
+
+            self._hit_rate_history = deque(
+                [False] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._q_history = deque(
+                [numpy.zeros(num_radial_bins)] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._radials_history = deque(
+                [numpy.zeros(num_radial_bins)] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._image_sum_history = deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._downstream_intensity_history = deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._roi1_intensity_history = deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._roi2_intensity_history = deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
+            self._rg_history = deque(
+                [0.0] * self._running_average_window_size,
+                maxlen=self._running_average_window_size,
+            )
 
         self._q_history.append(q)
         self._radials_history.append(radial_profile)
