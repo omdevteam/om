@@ -201,6 +201,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         processed_data: Dict[str, Any] = {}
 
         radial_profile: NDArray[numpy.float_]
+        errors: NDArray[numpy.float_]
         q: NDArray[numpy.float_]
         sample_detected: bool
         roi1_intensity: float
@@ -208,6 +209,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         rg: float
         (
             radial_profile,
+            errors,
             q,
             sample_detected,
             roi1_intensity,
@@ -220,6 +222,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             downstream_intensity=data["post_sample_intensity"],
         )
 
+        print(f"DEBUG: {radial_profile.shape}")
         detector_data_sum: float = data["detector_data"].sum()
 
         processed_data["radial_profile"] = radial_profile
@@ -331,18 +334,8 @@ class SwaxsProcessing(OmProcessingProtocol):
 
         if self._event_counter.should_broadcast_data():
             message: Dict[str, Any] = {
-                "q": numpy.array(
-                    list(
-                        islice(
-                            q_history,
-                            (len(q_history) - self._num_radials_to_send)
-                            if (len(q_history) - self._num_radials_to_send) > 0
-                            else 0,
-                            len(q_history),
-                        )
-                    )
-                ),
-                "radial": received_data["radial_profile"],
+                "q": received_data["q"],
+                "radial_profile": received_data["radial_profile"],
                 "radial_stack": numpy.array(
                     list(
                         islice(
@@ -362,7 +355,9 @@ class SwaxsProcessing(OmProcessingProtocol):
                 "detector_distance": received_data["detector_distance"],
                 "beam_energy": received_data["beam_energy"],
             }
-            message["recent_radial_average"] = numpy.mean(message["radial_stack"])
+            message["recent_radial_average"] = numpy.mean(
+                message["radial_stack"], axis=0
+            )
 
             self._data_broadcast_socket.send_data(
                 tag="omdata",
