@@ -144,8 +144,12 @@ class RadialProfile:
         """
         return self._radial_bin_labels
 
+    def get_mask(self) -> Union[NDArray[numpy.bool_], bool]:
+        return self._mask
+
     def calculate_profile(
-        self, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
+        self,
+        data: Union[NDArray[numpy.float_], NDArray[numpy.int_]],
     ) -> NDArray[numpy.float_]:
         """
         Calculates the radial profile for a detector data frame.

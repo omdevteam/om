@@ -207,7 +207,7 @@ class SwaxsGui(OmGuiBase):
         # self._last_beam_energy: float = local_data["beam_energy"]
         # self._last_coffset: float = local_data["first_panel_coffset"]
 
-        radial: NDArray[numpy.float_] = local_data["radial"]
+        radial: NDArray[numpy.float_] = local_data["radial_profile"]
         q: NDArray[numpy.float_] = local_data["q"]
         self._radial_plot.setData(q, radial)
 

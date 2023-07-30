@@ -319,9 +319,9 @@ class RadialProfileAnalysis:
             radial_parameters=radial_parameters,
         )
 
-        radial_bin_labels = self._radial_profile.get_radial_bin_labels()
+        self._radial_bin_labels = self._radial_profile.get_radial_bin_labels()
         self._radial_bin_centers = self._radial_profile.calculate_profile(
-            data=radial_bin_labels
+            data=self._radial_bin_labels
         )
 
     def analyze_radial_profile(
@@ -331,7 +331,15 @@ class RadialProfileAnalysis:
         beam_energy: float,
         detector_distance: float,
         downstream_intensity: float,
-    ) -> Tuple[NDArray[numpy.float_], NDArray[numpy.float_], bool, float, float, float]:
+    ) -> Tuple[
+        NDArray[numpy.float_],
+        NDArray[numpy.float_],
+        NDArray[numpy.float_],
+        bool,
+        float,
+        float,
+        float,
+    ]:
         """
         Calculate radial profile from a detector data frame.
 
@@ -353,6 +361,17 @@ class RadialProfileAnalysis:
 
         radial_profile: NDArray[numpy.float_] = self._radial_profile.calculate_profile(
             data=data
+        )
+
+        radial_profile_mask: Union[
+            NDArray[numpy.bool_], bool
+        ] = self._radial_profile.get_mask()
+
+        errors: NDArray[numpy.float_]
+        errors, _, _ = stats.binned_statistic(
+            self._radial_bin_labels[radial_profile_mask].ravel(),
+            data[radial_profile_mask].ravel(),
+            "std",
         )
 
         if self._background_subtraction:
@@ -447,8 +466,24 @@ class RadialProfileAnalysis:
             else:
                 rg = 0.0
         else:
-            return (radial_profile, q, False, roi1_intensity, roi2_intensity, 0.6)
-        return (radial_profile, q, sample_detected, roi1_intensity, roi2_intensity, rg)
+            return (
+                radial_profile,
+                errors,
+                q,
+                False,
+                roi1_intensity,
+                roi2_intensity,
+                0.6,
+            )
+        return (
+            radial_profile,
+            errors,
+            q,
+            sample_detected,
+            roi1_intensity,
+            roi2_intensity,
+            rg,
+        )
 
 
 class RadialProfileAnalysisPlots:
