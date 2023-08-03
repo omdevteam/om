@@ -774,7 +774,7 @@ class HDF5Writer:
     ) -> None:
         # Creates empty dataset in the extra data group for each item in extra_data
         # dict using dict keys as dataset names. Supported data types: numpy arrays,
-        # str, float, int and bool
+        # str, float, int and bool.
         key: str
         value: Any
         for key, value in extra_data.items():

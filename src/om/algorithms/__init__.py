@@ -18,8 +18,9 @@
 """
 OM's Algorithms.
 
-This package contains OM's Algorithms (classes that implement various operations and
-calculations on the data). Each module in the package corresponds to set of algorithms
+This package contains OM's Algorithms, classes that perform various operations and
+calculations on the data. Each module in the package contains a set of algorithms
 designed for a specific scientific technique (crystallography, X-ray emission
-spectroscopy, etc), with a separate module for generic algorithms.
+spectroscopy, etc.) or a specific data processing operation (detector calibration,
+etc). A separate module stores generic algorithms.
 """

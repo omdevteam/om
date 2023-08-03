@@ -27,7 +27,7 @@ from typing import Any, Dict, Tuple, Union
 
 import zmq
 
-from om.lib.exceptions import OmInvalidDataBroadcastUrl, OmInvalidRespondingUrl
+from om.lib.exceptions import OmInvalidZmqUrl
 from om.lib.parameters import get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 
@@ -110,9 +110,10 @@ class ZmqDataBroadcaster:
             # TODO: fix_types
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
-                raise OmInvalidDataBroadcastUrl(
-                    "The setup of the data broadcasting socket failed due to the "
-                    f"following error: {exc_type.__name__}: {exc_value}."
+                raise OmInvalidZmqUrl(
+                    "The setup of the data broadcasting socket failed. The requested"
+                    "URL is not valid due to the following reason: "
+                    f"{exc_type.__name__}: {exc_value}."
                 ) from exc
         console.print(f"{get_current_timestamp()} Broadcasting data at {url}")
         sys.stdout.flush()
@@ -204,9 +205,10 @@ class ZmqResponder:
             # TODO: fix_types
             exc_type, exc_value = sys.exc_info()[:2]
             if exc_type is not None:
-                raise OmInvalidRespondingUrl(
-                    "The setup of the responding socket failed due to the "
-                    f"following error: {exc_type.__name__}: {exc_value}."
+                raise OmInvalidZmqUrl(
+                    "The setup of the data requesting socket failed. The requested"
+                    "URL is not valid due to the following reason: "
+                    f"{exc_type.__name__}: {exc_value}.
                 ) from exc
 
         self._zmq_poller: Any = zmq.Poller()

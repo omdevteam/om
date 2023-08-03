@@ -75,7 +75,7 @@ def _calc_rg_by_guinier(
         try:
             m: float
             m, _ = stats.linregress(q[nb:ne] ** 2, numpy.log(radial[nb:ne]))[:2]
-        except:
+        except:  # noqa: E722
             m = 0.0
         if m < 0.0:
             break
@@ -117,7 +117,7 @@ def _calc_rg_by_guinier_peak(
         a, b, _ = numpy.polyfit(qs, qdI, 2)
         # get the peak position
         qpeak: float = -b / (2 * a)
-    except:
+    except:  # noqa: E722
         # if polyfit fails, just grab the maximum position
         qpeaki: int = numpy.argmax(qdI)
         qpeak = qs[qpeaki]
@@ -213,31 +213,6 @@ class RadialProfileAnalysis:
             required=True,
         )
 
-        self._roi1_qmin: float = get_parameter_from_parameter_group(
-            group=radial_parameters,
-            parameter="roi1_qmin",
-            parameter_type=float,
-            required=True,
-        )
-        self._roi1_qmax: float = get_parameter_from_parameter_group(
-            group=radial_parameters,
-            parameter="roi1_qmax",
-            parameter_type=float,
-            required=True,
-        )
-        self._roi2_qmin: float = get_parameter_from_parameter_group(
-            group=radial_parameters,
-            parameter="roi2_qmin",
-            parameter_type=float,
-            required=True,
-        )
-        self._roi2_qmax: float = get_parameter_from_parameter_group(
-            group=radial_parameters,
-            parameter="roi2_qmax",
-            parameter_type=float,
-            required=True,
-        )
-
         self._sample_detection: bool = get_parameter_from_parameter_group(
             group=radial_parameters,
             parameter="sample_detection",
@@ -246,40 +221,40 @@ class RadialProfileAnalysis:
         )
 
         if self._sample_detection:
-            # TODO: Make q-min, q-max
-            self._first_peak_min_bin: int = get_parameter_from_parameter_group(
+            self._roi1_qmin: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="first_peak_min_bin",
-                parameter_type=int,
+                parameter="roi1_qmin",
+                parameter_type=float,
                 required=True,
             )
-            self._first_peak_max_bin: int = get_parameter_from_parameter_group(
+            self._roi1_qmax: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="first_peak_max_bin",
-                parameter_type=int,
+                parameter="roi1_qmax",
+                parameter_type=float,
                 required=True,
             )
-            self._second_peak_min_bin: int = get_parameter_from_parameter_group(
+            self._roi2_qmin: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="second_peak_min_bin",
-                parameter_type=int,
+                parameter="roi2_qmin",
+                parameter_type=float,
                 required=True,
             )
-            self._second_peak_max_bin: int = get_parameter_from_parameter_group(
+            self._roi2_qmax: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="second_peak_max_bin",
-                parameter_type=int,
+                parameter="roi2_qmax",
+                parameter_type=float,
                 required=True,
             )
+
             self._ratio_threshold_min: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="minimum_first_to_second_peak_ratio_for_sample",
+                parameter="minimum_roi1_to_roi2_intensity_ratio_for_sample",
                 parameter_type=float,
                 required=True,
             )
             self._ratio_threshold_max: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="maximum_first_to_second_peak_ratio_for_sample",
+                parameter="maximum_roi1_to_roi2_intensity_ratio_for_sample",
                 parameter_type=float,
                 required=True,
             )
@@ -324,6 +299,10 @@ class RadialProfileAnalysis:
             data=self._radial_bin_labels
         )
 
+        self._radial_profile_bad_pixel_map: Union[
+            NDArray[numpy.bool_], None
+        ] = self._radial_profile.get_bad_pixel_map()
+
     def analyze_radial_profile(
         self,
         *,
@@ -363,14 +342,10 @@ class RadialProfileAnalysis:
             data=data
         )
 
-        radial_profile_mask: Union[
-            NDArray[numpy.bool_], bool
-        ] = self._radial_profile.get_mask()
-
         errors: NDArray[numpy.float_]
         errors, _, _ = stats.binned_statistic(
-            self._radial_bin_labels[radial_profile_mask].ravel(),
-            data[radial_profile_mask].ravel(),
+            self._radial_bin_labels[self._radial_profile_bad_pixel_map].ravel(),
+            data[self._radial_profile_bad_pixel_map].ravel(),
             "std",
         )
 
@@ -412,7 +387,7 @@ class RadialProfileAnalysis:
                     numpy.where((q >= self._roi1_qmin) & (q <= self._roi1_qmax))
                 ]
             )
-            #/ downstream_intensity
+            # / downstream_intensity
         )
         roi2_intensity: float = (
             numpy.mean(
@@ -420,25 +395,13 @@ class RadialProfileAnalysis:
                     numpy.where((q >= self._roi2_qmin) & (q <= self._roi2_qmax))
                 ]
             )
-            #/ downstream_intensity
+            # / downstream_intensity
         )
 
         frame_has_jet: bool = data.sum() > self._total_intensity_jet_threshold
-
         if frame_has_jet:
             if self._sample_detection:
-                # first_profile_mean: numpy.float_ = numpy.mean(
-                #     radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
-                # )
-                # second_profile_mean: numpy.float_ = numpy.mean(
-                #     radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
-                # )
-                # first_to_second_peak_ratio = float(
-                #     first_profile_mean / second_profile_mean
-                # )
-                first_to_second_peak_ratio = float(
-                    roi1_intensity / roi2_intensity
-                )
+                first_to_second_peak_ratio = float(roi1_intensity / roi2_intensity)
                 sample_detected: bool = (
                     # Having a threshold maximum helps filtering out nozzle hits too
                     (first_to_second_peak_ratio > self._ratio_threshold_min)

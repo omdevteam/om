@@ -30,7 +30,11 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
-from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
+from om.lib.exceptions import (
+    OmDataExtractionError,
+    OmInvalidSourceError,
+    OmMissingDependencyError,
+)
 from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
@@ -188,7 +192,7 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
             with open(self._source, "r") as fhandle:
                 filelist: List[str] = fhandle.readlines()
         except (IOError, OSError) as exc:
-            raise RuntimeError(
+            raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
         num_files_curr_node: int = int(
@@ -279,6 +283,10 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         source_name: str
@@ -496,7 +504,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
             with open(self._source, "r") as fhandle:
                 filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
-            raise RuntimeError(
+            raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
         frame_list: List[_TypeJungfrau1MFrameInfo] = []
@@ -625,6 +633,10 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         f_name: str
@@ -865,7 +877,7 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
             with open(self._source, "r") as fhandle:
                 filelist: List[str] = fhandle.readlines()  # type
         except (IOError, OSError) as exc:
-            raise RuntimeError(
+            raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
         num_files_curr_node: int = int(
@@ -963,6 +975,10 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         f_name: str
@@ -1191,7 +1207,7 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
             with open(self._source, "r") as fhandle:
                 filelist: List[str] = fhandle.readlines()
         except (IOError, OSError) as exc:
-            raise RuntimeError(
+            raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
         num_files_curr_node: int = int(
@@ -1284,6 +1300,10 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         source_name: str
@@ -1508,7 +1528,7 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
                     if re.match(r".+_m01(_.+)?\.nxs", filename):
                         filelist.append(filename)
         except (IOError, OSError) as exc:
-            raise RuntimeError(
+            raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
         num_files_curr_node: int = int(
@@ -1614,8 +1634,13 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
+        source_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:

@@ -26,7 +26,7 @@ from typing import Any, Dict, Union
 
 import zmq
 
-from om.lib.exceptions import OmMissingDependencyError
+from om.lib.exceptions import OmInvalidZmqUrl, OmMissingDependencyError
 from om.lib.rich_console import console, get_current_timestamp
 
 try:
@@ -101,13 +101,15 @@ class ZmqDataListener(QtCore.QObject):
 
         This function connects the listening socket to the URL with which the class was
         initialized. The socket starts receiving data immediately.
+
+        Raises()
         """
         console.print(f"{get_current_timestamp()} Connecting to {self._url}")
         self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)
         try:
             self._zmq_subscribe.connect(self._url)
         except zmq.error.ZMQError as exc:
-            raise RuntimeError(
+            raise OmInvalidZmqUrl(
                 "The format of the provided URL is not valid. The URL must be in "
                 "the format tcp://hostname:port or in the format "
                 "ipc:///path/to/socket, and in the latter case the user must have the "

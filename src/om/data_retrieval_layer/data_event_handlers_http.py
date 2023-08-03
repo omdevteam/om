@@ -28,10 +28,7 @@ from typing import Any, Dict, Generator, List, Literal, Union, cast
 
 import requests  # type: ignore
 
-from om.lib.exceptions import (
-    OmDataExtractionError,
-    OmEigerHttpInterfaceInitializationError,
-)
+from om.lib.exceptions import OmDataExtractionError, OmHttpInterfaceInitializationError
 from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
@@ -119,7 +116,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function initializes Eiger's http/REST monitor mode and sets its
+        This function initializes Eiger's HTTP/REST monitor mode and sets its
         parameters.
 
         Arguments:
@@ -129,10 +126,15 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
+
+        Raises:
+
+            OmHttpInterfaceInitializationError: Raised when an error happens during the
+                initialization of the Eiger'S HTTP/REST interface.
         """
         print("Configuring detector...")
         if not self._check_detector_monitor_mode():
-            raise OmEigerHttpInterfaceInitializationError(
+            raise OmHttpInterfaceInitializationError(
                 "Cannot connect to the detector: "
                 "please make sure the detector is connected and switched on."
             )
@@ -141,7 +143,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             f"{self._source}/config/mode", json={"value": "enabled"}
         )
         if not response.status_code == 200:
-            raise OmEigerHttpInterfaceInitializationError(
+            raise OmHttpInterfaceInitializationError(
                 "Cannot enable 'monitor' mode of the detector."
             )
 
@@ -149,7 +151,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             f"{self._source}/config/discard_new", json={"value": False}
         )
         if not response.status_code == 200:
-            raise OmEigerHttpInterfaceInitializationError(
+            raise OmHttpInterfaceInitializationError(
                 "Cannot enable 'overwrite buffer' mode of the detector."
             )
 
@@ -163,7 +165,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
             f"{self._source}/config/buffer_size", json={"value": buffer_size}
         )
         if not response.status_code == 200:
-            raise OmEigerHttpInterfaceInitializationError(
+            raise OmHttpInterfaceInitializationError(
                 "Cannot set the buffer size of the detector monitor mode."
             )
 
@@ -313,6 +315,10 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
@@ -343,6 +349,11 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
         Eiger's HTTP/REST interface does not allow the retrieval of standalone data
         events, so this function has no implementation.
+
+        Raises:
+
+            NotImplementedError: This functionality has not been implemented for this
+                Data Event Handler.
         """
         raise NotImplementedError
 
@@ -367,5 +378,9 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         Returns:
 
             All data related to the requested detector event.
+        Raises:
+
+            NotImplementedError: This functionality has not been implemented for this
+                Data Event Handler.
         """
         raise NotImplementedError
