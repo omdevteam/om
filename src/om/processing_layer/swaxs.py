@@ -222,7 +222,6 @@ class SwaxsProcessing(OmProcessingProtocol):
             downstream_intensity=data["post_sample_intensity"],
         )
 
-        print(f"DEBUG: {radial_profile.shape}")
         detector_data_sum: float = data["detector_data"].sum()
 
         processed_data["radial_profile"] = radial_profile
@@ -350,6 +349,7 @@ class SwaxsProcessing(OmProcessingProtocol):
                 "downstream_monitor_history": numpy.array(downstream_intensity_history),
                 "roi1_int_history": numpy.array(roi1_intensity_history),
                 "roi2_int_history": numpy.array(roi2_intensity_history),
+                "hit_rate_history": numpy.array(hit_rate_history),
                 "rg": numpy.array(rg_history),
                 "timestamp": received_data["timestamp"],
                 "detector_distance": received_data["detector_distance"],

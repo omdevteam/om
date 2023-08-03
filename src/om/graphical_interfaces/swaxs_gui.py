@@ -100,6 +100,32 @@ class SwaxsGui(OmGuiBase):
             tuple(range(1000, 0)), [0.0] * 1000, pen=pyqtgraph.mkPen("y"), name="recent"
         )
 
+        self._hit_rate_widget: Any = pyqtgraph.PlotWidget()
+        self._hit_rate_widget.addLegend()
+        self._hit_rate_widget.setTitle("Hit Rate vs. Events")
+        self._hit_rate_widget.setLabel(axis="bottom", text="Events")
+        self._hit_rate_widget.setLabel(
+            axis="left", text="Hit Rate"
+        )
+        self._hit_rate_widget.showGrid(x=True, y=True)
+        self._hit_rate_widget.setYRange(0, 1.0)
+
+        self._hit_rate_plot: Any = self._hit_rate_widget.plot(
+            pen=None,
+            symbol="o",
+            symbolPen=pyqtgraph.mkPen("y"),
+            symbolSize=3,
+            name="Hit Rate",
+        )
+
+        # self._digitizer_sum_plot: Any = self._hit_rate_widget.plot(
+        #     pen=None,
+        #     symbol="o",
+        #     symbolPen=pyqtgraph.mkPen("c"),
+        #     symbolSize=3,
+        #     name="Digitizer Sum",
+        # )
+
         self._roi_widget: Any = pyqtgraph.PlotWidget()
         self._roi_widget.addLegend()
         self._roi_widget.setTitle("Intensity of ROI vs. Events")
@@ -127,33 +153,7 @@ class SwaxsGui(OmGuiBase):
             name="ROI2",
         )
 
-        # self._int_widget: Any = pyqtgraph.PlotWidget()
-        # self._int_widget.addLegend()
-        # self._int_widget.setTitle("Intensity Monitor vs. Events")
-        # self._int_widget.setLabel(axis="bottom", text="Events")
-        # self._int_widget.setLabel(
-        #     axis="left", text="Ratio of Transmitted/Incident Intensity"
-        # )
-        # self._int_widget.showGrid(x=True, y=True)
-        # self._int_widget.setYRange(0, 1.0)
 
-        # self._int_monitor_ratio_plot: Any = self._int_widget.plot(
-        #     pen=None,
-        #     symbol="o",
-        #     symbolPen=pyqtgraph.mkPen("y"),
-        #     symbolSize=3,
-        #     name="Int Ratio",
-        # )
-
-        # self._digitizer_sum_plot: Any = self._int_widget.plot(
-        #     pen=None,
-        #     symbol="o",
-        #     symbolPen=pyqtgraph.mkPen("c"),
-        #     symbolSize=3,
-        #     name="Digitizer Sum",
-        # )
-
-        #
         self._radial_stack_view: Any = pyqtgraph.ImageView()
         self._radial_stack_view.view.setAspectLocked(False)
         self._radial_stack_view.setLevels(0, 12.0)
@@ -171,8 +171,8 @@ class SwaxsGui(OmGuiBase):
 
         vertical_splitter: Any = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         vertical_splitter.addWidget(self._radial_widget)
+        vertical_splitter.addWidget(self._hit_rate_widget)
         vertical_splitter.addWidget(self._roi_widget)
-        # vertical_splitter.addWidget(self._int_widget)
         splitter_0.addWidget(vertical_splitter)
         horizontal_layout.addWidget(splitter_0)
         self._central_widget: Any = QtWidgets.QWidget()
@@ -219,6 +219,8 @@ class SwaxsGui(OmGuiBase):
             autoLevels=False,
             autoRange=False,
         )
+
+        self._hit_rate_plot.setData(tuple(range(-5000, 0)), local_data["hit_rate_history"])
 
         self._roi1_plot.setData(tuple(range(-5000, 0)), local_data["roi1_int_history"])
         self._roi2_plot.setData(tuple(range(-5000, 0)), local_data["roi2_int_history"])

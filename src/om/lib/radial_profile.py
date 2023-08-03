@@ -379,7 +379,7 @@ class RadialProfileAnalysis:
                 radial_profile=radial_profile,
                 vectors=self._background_profile_vectors,
                 start_bin=self._background_subtraction_min_bin,
-                stop_bin=self._background_subtraction_min_bin,
+                stop_bin=self._background_subtraction_max_bin,
             )
             background_fit: NDArray[numpy.float_] = radial_profile * 0
             index: int
@@ -412,7 +412,7 @@ class RadialProfileAnalysis:
                     numpy.where((q >= self._roi1_qmin) & (q <= self._roi1_qmax))
                 ]
             )
-            / downstream_intensity
+            #/ downstream_intensity
         )
         roi2_intensity: float = (
             numpy.mean(
@@ -420,21 +420,24 @@ class RadialProfileAnalysis:
                     numpy.where((q >= self._roi2_qmin) & (q <= self._roi2_qmax))
                 ]
             )
-            / downstream_intensity
+            #/ downstream_intensity
         )
 
         frame_has_jet: bool = data.sum() > self._total_intensity_jet_threshold
 
         if frame_has_jet:
             if self._sample_detection:
-                first_profile_mean: numpy.float_ = numpy.mean(
-                    radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
-                )
-                second_profile_mean: numpy.float_ = numpy.mean(
-                    radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
-                )
+                # first_profile_mean: numpy.float_ = numpy.mean(
+                #     radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
+                # )
+                # second_profile_mean: numpy.float_ = numpy.mean(
+                #     radial_profile[self._first_peak_min_bin : self._first_peak_max_bin]
+                # )
+                # first_to_second_peak_ratio = float(
+                #     first_profile_mean / second_profile_mean
+                # )
                 first_to_second_peak_ratio = float(
-                    first_profile_mean / second_profile_mean
+                    roi1_intensity / roi2_intensity
                 )
                 sample_detected: bool = (
                     # Having a threshold maximum helps filtering out nozzle hits too
@@ -499,7 +502,7 @@ class RadialProfileAnalysisPlots:
         """
         #TODO: Documentation.
         """
-        self._droplet_detection_enabled: bool = get_parameter_from_parameter_group(
+        self._radius_bin_size: bool = get_parameter_from_parameter_group(
             group=radial_parameters,
             parameter="radius_bin_size",
             parameter_type=float,
