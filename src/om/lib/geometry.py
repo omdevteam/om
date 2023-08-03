@@ -438,7 +438,7 @@ def _parse_direction(
     for item in items:
         axis: str = item[-1]
         if axis not in ("x", "y", "z"):
-            raise RuntimeError()
+            raise OmGeometryError()
         if item[:-1] == "-":
             value = "-1.0"
         elif item[:-1] == "":
@@ -482,7 +482,7 @@ def _parse_panel_entry(
                 direction_z=panel["rail_z"],
                 string_to_parse=value,
             )
-        except RuntimeError:
+        except OmGeometryError:
             raise OmGeometryError("Invalid rail direction. ")
     elif key == "clen_for_centering":
         panel["clen_for_centering"] = float(value)
@@ -546,8 +546,8 @@ def _parse_panel_entry(
                 direction_z=panel["fsz"],
                 string_to_parse=value,
             )
-        except RuntimeError:
-            raise RuntimeError("Invalid fast scan direction.")
+        except OmGeometryError:
+            raise OmGeometryError("Invalid fast scan direction.")
     elif key == "ss":
         try:
             panel["ssx"], panel["ssy"], panel["ssz"] = _parse_direction(
@@ -556,8 +556,8 @@ def _parse_panel_entry(
                 direction_z=panel["ssz"],
                 string_to_parse=value,
             )
-        except RuntimeError:
-            raise RuntimeError("Invalid slow scan direction.")
+        except OmGeometryError:
+            raise OmGeometryError("Invalid slow scan direction.")
     elif key.startswith("dim"):
         if panel["dim_structure"] is not None:
             dim: List[Union[int, str, None]] = panel["dim_structure"]
@@ -566,9 +566,9 @@ def _parse_panel_entry(
         try:
             dim_index: int = int(key[3])
         except IndexError:
-            raise RuntimeError("'dim' must be followed by a number, (e.g. 'dim0')")
+            raise OmGeometryError("'dim' must be followed by a number, (e.g. 'dim0')")
         except ValueError:
-            raise RuntimeError("Invalid dimension number {}".format(key[3]))
+            raise OmGeometryError("Invalid dimension number {}".format(key[3]))
         if dim_index > len(dim) - 1:
             for _ in range(len(dim), dim_index + 1):
                 dim.append(None)
@@ -577,10 +577,10 @@ def _parse_panel_entry(
         elif value.isdigit():
             dim[dim_index] = int(value)
         else:
-            raise RuntimeError("Invalid dim entry: {}.".format(value))
+            raise OmGeometryError("Invalid dim entry: {}.".format(value))
         panel["dim_structure"] = dim
     else:
-        RuntimeError(f"Unrecognized field: {key}")
+        OmGeometryError(f"Unrecognized field: {key}")
 
 
 def _validate_detector_geometry(detector: TypeDetector) -> None:
@@ -774,6 +774,11 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
             found. This is only used if CrystFEL extracts Bragg peak information from
             files. If the geometry file does not provide this information, this entry
             has the value of an empty string.
+
+    Raises:
+
+        OmGeometryError: Raised when an error is encountered during the parsing of the
+            geometry information.
     """
     beam: TypeBeam = {
         "photon_energy": 0.0,
@@ -857,7 +862,7 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
             line_without_comments: str = line.strip().split(";")[0]
             line_parts: List[str] = line_without_comments.split("=")
             if len(line_parts) != 2:
-                raise RuntimeError("The line does not have the format 'key=value'")
+                raise OmGeometryError("The line does not have the format 'key=value'")
             key: str = line_parts[0].strip()
             value: str = line_parts[1].strip()
             key_parts: List[str] = key.split("/")
@@ -915,7 +920,7 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                     "max_x",
                     "max_y",
                 ):
-                    raise RuntimeError("You can't mix x/y and fs/ss in a bad region")
+                    raise OmGeometryError("You can't mix x/y and fs/ss in a bad region")
                 if bad_region_key == "min_x":
                     curr_bad_region["min_x"] = float(value)
                 elif bad_region_key == "max_x":
@@ -935,7 +940,7 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                 elif bad_region_key == "panel":
                     curr_bad_region["panel"] = value
                 else:
-                    raise RuntimeError("Unrecognized field: {}".format(key))
+                    raise OmGeometryError"Unrecognized field: {}".format(key))
             else:
                 panel_name: str = key_parts[0]
                 panel_key: str = key_parts[1]
@@ -949,8 +954,7 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                     panel_name=panel_name,
                     detector=detector,
                 )
-
-        except RuntimeError as exp:
+        except OmGeometryError as exp:
             raise OmGeometryError(
                 "Cannot interpret the following line in the geometry file: "
                 f" {line.strip()}\n"
@@ -1194,6 +1198,11 @@ class GeometryInformation:
                   processing of crystallography data. The format is fully documented in
                   the CrystFEL's
                   [man pages](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),  # noqa: E501
+
+        Raises:
+
+            OmGeometryError: Raised if the format of the provided geometry information
+                is not supported.
         """
 
         if geometry_format == "crystfel":
@@ -1224,7 +1233,7 @@ class GeometryInformation:
                 list(geometry["panels"].keys())[0]
             ]["coffset"]
         else:
-            raise RuntimeError("Geometry format is not supported.")
+            raise OmGeometryError("Geometry format is not supported.")
 
     @classmethod
     def from_file(
@@ -1236,7 +1245,7 @@ class GeometryInformation:
         This class method initializes the [GeometryInformation][GeometryInformation]
         class from a file, rather than from a block of text as the class is normally
 
-        arguments:
+        Arguments:
 
             geometry_filename: the relative or absolute path to file containing the
                 description of the geometry of an area detector
@@ -1248,6 +1257,11 @@ class GeometryInformation:
                   processing of crystallography data. The format is fully documented in
                   the CrystFEL's
                   [man pages](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),  # noqa: E501
+        
+        Raises:
+
+            OmGeometryError: Raised if the format of the geometry file cannot be
+                inferred from the file's extension.
         """
 
         format_extension_dict: Dict[str, str] = {".geom": "crystfel"}
@@ -1257,7 +1271,7 @@ class GeometryInformation:
             try:
                 geometry_format = format_extension_dict[extension]
             except KeyError:
-                raise RuntimeError(
+                raise OmGeometryError(
                     "Cannot infer the geometry file format from the file extension "
                     f"'{extension}'. Supported extensions are: "
                     f"{list(format_extension_dict.keys())}"
@@ -1445,6 +1459,11 @@ class DataVisualizer:
 
             An array containing pixel information for the image representation of the
             provided detector data frame.
+
+        Raises:
+
+            OmWrongArrayShape: Raised if the provided array has the wrong shape and
+                cannot be used to store the pixel information.
         """
         if array_for_visualization is None:
             visualization_array: Union[

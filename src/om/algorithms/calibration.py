@@ -18,8 +18,8 @@
 """
 Algorithms for the calibration of raw detector data frames.
 
-This module contains algorithms that perform calibration of raw detector data frames,
-preparing them for data extraction,
+This module contains algorithms that calibrate raw detector data frames, preparing them
+for data extraction,
 """
 from typing import Any, BinaryIO, List, Tuple
 
@@ -43,9 +43,9 @@ class Jungfrau1MCalibration:
         """
         Calibration of Jungfrau 1M detector.
 
-        This algorithm stores all the parameters required to calibrate raw data frames
-        collected by a Jungfrau 1M detector. After the algorithm has been initialized,
-        it can be invoked calibrate a provided raw_data frame.
+        This algorithm stores all the parameters required to calibrate the raw data
+        frames collected by a Jungfrau 1M detector. After the algorithm has been
+        initialized, it can be invoked to apply the calibration to a data frame.
 
         Arguments:
 
@@ -55,7 +55,7 @@ class Jungfrau1MCalibration:
             gain_filenames: A list of relative or absolute paths to files containing
                 gain data for the calibration of the detector.
 
-            photon_energy_kev: the photon energy at which the detector will be
+            photon_energy_kev: the photon energy (in Kev) at which the detector is
                 operated.
         """
         num_panels: int = len(dark_filenames)
@@ -90,9 +90,9 @@ class Jungfrau1MCalibration:
         """
         Applies the calibration to a detector data frame.
 
-        This function calibrates a provided raw detector data frame. It determines the
-        gain stage for each pixel in the frame, and applies the corresponding gain and
-        offset corrections.
+        This function calibrates the provided raw detector data frame. It determines
+        the gain stage for each pixel in the frame, and applies the corresponding gain
+        and offset corrections.
 
         Arguments:
 
@@ -100,7 +100,7 @@ class Jungfrau1MCalibration:
 
         Returns:
 
-            The corrected data frame.
+            The calibrated data frame.
         """
         calibrated_data: NDArray[numpy.float_] = data.astype(numpy.float32)
 

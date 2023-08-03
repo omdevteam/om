@@ -18,13 +18,11 @@
 """
 Algorithms for the processing of crystallography data.
 
-This module contains algorithms that perform data processing operations related to
-serial crystallography (peak finding, etc.). Additionally, it contains the definitions
-of several typed dictionaries that store the data needed or produced by these
-algorithms.
+This module contains algorithms that perform data processing operations for Serial
+Crystallography. Additionally, it contains the definitions of several typed
+dictionaries that store data produced or required by these algorithms.
 """
 import random
-import sys
 from typing import Any, Dict, List, Tuple, TypedDict, Union, cast
 
 import numpy
@@ -44,25 +42,6 @@ from peaknet.plugins import apply_mask
 
 import time
 
-def _read_profile(*, profile_filename: str) -> Union[NDArray[numpy.float_], None]:
-    if profile_filename is not None:
-        try:
-            return numpy.loadtxt(profile_filename)
-        except (IOError, OSError, KeyError) as exc:
-            # TODO: type this
-            exc_type, exc_value = sys.exc_info()[:2]
-            raise RuntimeError(
-                "The following error occurred while reading the {0} profile file."
-                "file: {1}: {2}".format(
-                    profile_filename,
-                    exc_type.__name__,  # type: ignore
-                    exc_value,
-                )
-            ) from exc
-    else:
-        return None
-
-
 class TypePeakList(TypedDict, total=True):
     """
     Detected peaks information.
@@ -72,7 +51,7 @@ class TypePeakList(TypedDict, total=True):
 
     Attributes:
 
-        num_peaks: The number of peaks that were detected in the data frame.
+        num_peaks: The number of peaks detected in the data frame.
 
         fs: A list of fractional fs indexes that locate the detected peaks in the data
             frame.
@@ -82,8 +61,7 @@ class TypePeakList(TypedDict, total=True):
 
         intensity: A list of integrated intensities for the detected peaks.
 
-        num_pixels: A list storing the number of pixels that make up each detected
-            peak.
+        num_pixels: A list storing the number of pixels in each detected peak.
 
         max_pixel_intensity: A list storing, for each peak, the value of the pixel with
             the maximum intensity.
@@ -116,7 +94,7 @@ class Peakfinder8PeakDetection:
         Peakfinder8 algorithm for peak detection.
 
         This algorithm stores all the parameters required to perform peak-finding on a
-        detector data frame, using the `peakfinder8` strategy, described in the
+        detector data frame using the `peakfinder8` strategy, described in the
         following publication:
 
         A. Barty, R. A. Kirian, F. R. N. C. Maia, M. Hantke, C. H. Yoon, T. A. White,
@@ -125,30 +103,31 @@ class Peakfinder8PeakDetection:
         vol. 47, pp. 1118-1131 (2014).
 
         After the algorithm has been initialized, it can be invoked to detect peaks in
-        a provided data frame.
+        a data frame.
 
         Arguments:
 
             radius_pixel_map: A pixel map storing radius information for the detector
-                data frame on which the algorithm will be applied.
+                data frame on which the algorithm is applied.
 
                 * The array must have the same shape as the data frame on which the
-                  algorithm will be applied.
+                  algorithm is applied.
 
                 * Each element of the array must store, for the corresponding pixel in
                   the data frame, its distance (in pixels) from the origin of the
                   detector reference system (usually the center of the detector).
 
             layout_info: An object storing information about the internal layout of the
-                detector data frame on which the algorithm will be applied (number and
-                size of ASICs, etc.).
+                detector data frame on which the algorithm is applied (number and size
+                of ASICs, etc.).
 
             parameters: A set of OM configuration parameters collected together in a
                 parameter group. The parameter group must contain the following
                 entries:
 
-                * `max_num_peaks`: The maximum number of peaks that the algorithm will
-                   retrieve from each  data frame. Additional peaks will be ignored.
+                * `max_num_peaks`: The maximum number of peaks that the algorithm
+                   should retrieve from each  data frame. Additional peaks will be
+                   ignored.
 
                 * `adc_threshold`: The minimum ADC threshold for peak detection.
 
@@ -161,20 +140,20 @@ class Peakfinder8PeakDetection:
                 * `local_bg_radius`: The radius, in pixels, for the estimation of the
                   local background.
 
-                * `min_res`: The minimum distance (in pixels, from the center of the
+                * `min_res`: The minimum distance (in pixels from the center of the
                    detector) at which a peak can be located.
 
-                * `max_res`: The maximum distance (in pixels, from the center of the
+                * `max_res`: The maximum distance (in pixels from the center of the
                    detector) at which a peak can be located.
 
                 * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
                    file containing a bad pixel map. The map can be used to exclude
                    regions of the data frame from the peak search. If the value of this
-                   entry is None, the search will extend to the full frame. Defaults to
+                   entry is None, the search extends to the full frame. Defaults to
                    None.
 
                     - The map must be a numpy array with the same shape as the data
-                      frame on which the algorithm will be applied.
+                      frame on which the algorithm is applied.
 
                     - Each pixel in the map must have a value of either 0, meaning that
                       the corresponding pixel in the data frame should be ignored, or
@@ -269,7 +248,7 @@ class Peakfinder8PeakDetection:
         if self._fast_mode is True:
             self._num_pixels_per_bin: int = get_parameter_from_parameter_group(
                 group=crystallography_parameters,
-                parameter="rstats_numpix_per_bin",
+                parameter="number_of_pixel_per_bin_in_radial_statistics",
                 parameter_type=int,
                 required=False,
                 default=100,
@@ -338,7 +317,7 @@ class Peakfinder8PeakDetection:
         """
         Sets the current minimum ADC threshold for peak detection.
 
-        This function sets the minimum ADC threshold used by the algorithm use for peak
+        This function sets the minimum ADC threshold used by the algorithm for peak
         detection. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
         method will use, for the `adc_thresh` parameter, the value provided here.
@@ -396,7 +375,7 @@ class Peakfinder8PeakDetection:
         """
         Sets the minimum size for a peak (in pixels).
 
-        This function sets the minimum size, in pixels, that the algorithm expected a
+        This function sets the minimum size, in pixels, that the algorithm expects a
         peak to have. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
         method will use, for the `min_pixel_count` parameter, the value provided here.
@@ -437,7 +416,7 @@ class Peakfinder8PeakDetection:
 
     def get_local_bg_radius(self) -> int:
         """
-        Gets the radius, in pixels, currently used to estimate of the local background.
+        Gets the radius, in pixels, currently used to estimate the local background.
 
         This function returns the radius (in pixels) currently used by the algorithm to
         estimate the local background.
@@ -460,27 +439,28 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            local_bg_radius: The new radius, in pixels, that should be used for the
-                estimation of the local background.
+            local_bg_radius: The new radius, in pixels, to be used or the estimation of
+                the local background.
         """
         self._local_bg_radius = local_bg_radius
 
     def get_min_res(self) -> int:
         """
-        Gets the minimum resolution for a peak in pixels.
+        Gets the minimum distance from the detector's center for a peak (in pixels).
 
         This function returns the current minimum distance (in pixels) from the center
         of the detector that the algorithm expects a peak to have.
 
         Returns:
 
-            The minimum resolution (in pixels) for a peak.
+            The current minimum distance (in pixels) from the detector's center for a
+            peak.
         """
         return self._min_res
 
     def set_min_res(self, *, min_res: int) -> None:
         """
-        Sets the minimum resolution for a peak (in pixels).
+        Sets the minimum distance from the detector's center for a peak (in pixels).
 
         This function sets the minimum distance (in pixels) from the center of the
         detector that the algorithm expects a peak to have. Any future call to the
@@ -489,21 +469,23 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            min_res: The new minimum resolution (in pixels) for a peak.
+            min_res: The new minimum distance(in pixels) from the detector's center
+                for a peak.
         """
         self._min_res = min_res
         self._mask = None
 
     def get_max_res(self) -> int:
         """
-        Gets the maximum resolution a peak (in pixels).
+        Gets the maximum distance from the detector's center for a peak (in pixels).
 
         This function returns the current maximum distance (in pixels) from the center
         of the detector that the algorithm expects a peak to have.
 
         Returns:
 
-            The maximum resolution (in pixels) for a peak.
+            The current maximum distance (in pixels) from the detector's center for a
+            peak.
         """
         return self._max_res
 
@@ -518,7 +500,8 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            max_res: The new maximum resolution (in pixels) for a peak.
+            max_res: The new maximum distance(in pixels) from the detector's center
+                for a peak.
         """
         self._max_res = max_res
         self._mask = None

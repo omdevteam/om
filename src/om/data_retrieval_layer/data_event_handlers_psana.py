@@ -319,6 +319,10 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]
@@ -386,6 +390,11 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         Returns:
 
             All data related to the requested event.
+
+        Raises:
+
+            OmMissingDataEventError: Raised when an event cannot be retrieved from the
+                data source.
         """
         event_id_parts: List[str] = event_id.split("-")
         evt_id_timestamp: int = int(event_id_parts[0])

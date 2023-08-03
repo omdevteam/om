@@ -19,9 +19,10 @@
 Generic algorithms.
 
 This module contains algorithms that perform generic data processing operations, not
-tied to a specific experimental technique (e.g.: data accumulation, binning, etc.).
+tied to a specific experimental technique (e.g.: data accumulation, radial averaging,
+binning, etc.).
 """
-from typing import Any, Dict, List, TypeVar, Union, cast
+from typing import Any, Dict, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import DTypeLike, NDArray
@@ -52,17 +53,15 @@ class RadialProfile:
 
         This algorithm stores all the parameters needed to calculate the pixel-based
         radial profile of a detector data frame. After the algorithm has been
-        initialized, it can be invoked to compute the radial profile of a provided
-        detector frame.
+        initialized, it can be invoked to compute the radial profile of a data frame.
 
         Arguments:
 
             radius_pixel_map: A pixel map storing radius information for the detector
-                data frame on which the algorithm will be applied.
-
+                data frame on which the algorithm is applied.
 
                 * The array must have the same shape as the data frame on which the
-                  algorithm will be applied.
+                  algorithm is applied.
 
                 * Each element of the array must store, for the corresponding pixel in
                   the data frame, its distance (in pixels) from the origin of the
@@ -78,11 +77,11 @@ class RadialProfile:
                 * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
                    file containing a bad pixel map. The map can be used to exclude
                    regions of the data frame from the calculation of the radial
-                   profile. If the value of this entry is None, the calculation will
-                   include the full frame. Defaults to None.
+                   profile. If the value of this entry is None, the calculation
+                   includes the full frame. Defaults to None.
 
                     - The map must be a numpy array with the same shape as the data
-                      frame on which the algorithm will be applied.
+                      frame on which the algorithm is applied.
 
                     - Each pixel in the map must have a value of either 0, meaning that
                       the corresponding pixel in the data frame should be ignored, or
@@ -98,7 +97,6 @@ class RadialProfile:
                     - If the `bad_pixel_map_filename` entry is not None, this entry
                       must also be provided, and cannot be None. Otherwise it is
                       ignored.
-
         """
 
         bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
@@ -122,30 +120,51 @@ class RadialProfile:
             required=True,
         )
 
-        # Calculate radial bins
+        # Calculates the radial bins
         self._num_bins: int = int(radius_pixel_map.max() / radius_step)
         radial_bins: NDArray[numpy.float_] = numpy.linspace(
             0, self._num_bins * radius_step, self._num_bins + 1
         )
 
-        # Create an array that labels each pixel according to the bin to which it
+        # Creates an array that labels each pixel according to the bin to which it
         # belongs.
         self._radial_bin_labels: NDArray[numpy.int_] = (
             numpy.searchsorted(radial_bins, radius_pixel_map, "right") - 1
         )
 
-        # TODO: Make r not the r at the center of the bin, but the average of the
-        # rs all pixels in the bin. Call radial profile with r values rather than
-        # intensity to calculate it. We need to return it for further calculation.
-
     def get_radial_bin_labels(self) -> NDArray[numpy.int_]:
         """
-        # TODO: Documentation
+        Gets the radial bin label information.
+
+        This function returns an array, with the same shape as the data frame on which
+        the algorithm is applied, containing bin labelling information. Each element of
+        the array corresponds to a pixel in the data frame, and stores the index of
+        the radial bin in which the pixel falls according to the radius information
+        provided to the algorithm.
+
+        Returns:
+
+            An array containing the bin labelling information.
         """
         return self._radial_bin_labels
 
-    def get_mask(self) -> Union[NDArray[numpy.bool_], bool]:
-        return self._mask
+    def get_bad_pixel_map(self) -> Union[NDArray[numpy.bool_], None]:
+        """
+        Gets the mask provided to the algorithm.
+
+        This function returns the bad pixel map provided to the algorithm at
+        initialization. If no bad pixel map was provided, the function returns None.
+
+        Returns:
+
+            The bad pixel map provided to the algorithm at initialization, or None if
+            no map was provided.
+        """
+
+        if self._mask is not True and self._mask is not False:
+            return self._mask
+        else:
+            return None
 
     def calculate_profile(
         self,
@@ -181,73 +200,6 @@ class RadialProfile:
         return radial_average
 
 
-class DataAccumulation:
-    """
-    See documentation of the `__init__` function.
-    """
-
-    def __init__(
-        self,
-        *,
-        parameters: Dict[str, Any],
-    ) -> None:
-        """
-        Data accumulation and bulk retrieval.
-
-        This algorithm accumulates a predefined number of data entries (each data entry
-        must have the format of a dictionary). When the predetermined number of entries
-        has been reached, the algorithm returns the accumulated data in one go, and
-        resets itself.
-
-        Arguments:
-
-            parameters: A set of OM configuration parameters collected together in a
-                parameter group. The parameter group must contain the following
-                entries:
-
-                * `num_events_to_accumulate`: the number of data entries that can be
-                   added to the accumulation algorithm before the collected data is
-                   returned.
-        """
-        self._num_events_to_accumulate: int = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="num_events_to_accumulate",
-            parameter_type=int,
-        )
-
-        self._accumulator: List[Dict[str, Any]] = []
-        self._num_events_in_accumulator: int = 0
-
-    def add_data(self, *, data: Dict[str, Any]) -> Union[List[Dict[str, Any]], None]:
-        """
-        Adds data to the accumulation algorithm.
-
-        This function adds the provided data entry to the algorithm. If, after adding
-        the data, the algorithm has reached its maximum predefined number of
-        accumulated entries, the function returns all the accumulated data and resets
-        the algorithm. Otherwise, the function returns None.
-
-        Arguments:
-
-            data: A data entry to be added to the algorithm.
-
-        Returns:
-
-            Either a list containing the accumulated data, if the algorithm is reset,
-                or None, if more data entries can still be added to the algorithm.
-        """
-        self._accumulator.append(data)
-        self._num_events_in_accumulator += 1
-
-        if self._num_events_in_accumulator == self._num_events_to_accumulate:
-            data_to_return: List[Dict[str, Any]] = self._accumulator
-            self._accumulator = []
-            self._num_events_in_accumulator = 0
-            return data_to_return
-
-        return None
-
-
 class Binning:
     """
     See documentation of the `__init__` function.
@@ -264,31 +216,28 @@ class Binning:
 
         This algorithm stores all the parameters needed to bin the data in a detector
         data frame. After the algorithm has been initialized, it can be invoked to bin
-        the data in a provided data frame, or to generate pixel maps and masks that are
+        the data in a data frame, or to generate pixel maps and masks that are
         compatible with the binned data.
 
         Arguments:
 
             layout_info: An object storing information about the internal layout of the
-                detector data frame on which the algorithm will be applied (number and
-                size of ASICs, etc.).
+                detector data frame on which the algorithm is applied (number and size
+                of ASICs, etc.).
 
             parameters: A set of OM configuration parameters collected together in a
                 parameter group. The parameter group must contain the following
                 entries:
 
-                * `bin_size`: The size of the binning area in pixels (A square of
-                   pixels of size `bin_size` x `bin_size` in the original data frame
-                   will be collapsed into a single binned pixel).
+                * `bin_size`: The size of the binning area in pixels (A square area of
+                   `bin_size` x `bin_size` pixels in the original data frame
+                   is transformed by the algorithm into a single binned pixel).
 
                 * `bad_pixel_map_filename`: The absolute or relative path to an HDF5
                   file containing a pixel map with information on the regions of the
-                  the detector data frame that must be excluded from the binning
-                  calculation. If the value of this entry is None, the full frame will
-                  be used to compute the binned data. Defaults to None.
-
-                    * If this and the `bad_pixel_map_hdf5_path` entry are not None, the
-                      pixel map will be loaded and used by the algorithm.
+                  the data frame that must be excluded from the binning calculation. If
+                  the value of this entry is None, the full frame is used to compute
+                  the binned data. Defaults to None.
 
                     * The pixel map must be a numpy array of the same shape as the data
                       frame on which the algorithm will be applied.
@@ -308,14 +257,15 @@ class Binning:
                 * `min_good_pix_count`: The minimum number of non-excluded pixels that
                   must be present in a binning area for the generated binned pixel to
                   be considered valid (pixels of the original frame can be excluded
-                  from the binning calculation. See the `bad_pixel_map_filename`
-                  argument). Defaults to the same value as the `bin_size` argument.
+                  from the binning calculation using a bad pixel map). Defaults to a
+                  number corresponding to all the pixels in the binning area (the
+                  square value of the `bin_size` argument).
 
-                * `bad_pixel_value`: The value to be written in the generated binned
-                  frame when a pixel is invalid (i.e.: the binning area in the original
-                  frame contains too many ignored pixels, see the `min_good_pix_count`
-                  argument). Defaults to `MAXINT` if the input array is an array of
-                  integers, otherwise defaults to `numpy.nan`.
+                * `bad_pixel_value`: The value to be written in the binned data frame
+                  when a pixel is invalid (the binning area in the original
+                  frame contains too many pixels ignored by the calculation). Defaults
+                  to `MAXINT` if the input data is an array of integers, otherwise
+                  defaults to `numpy.nan`.
         """
         self._layout_info: TypeDetectorLayoutInformation = layout_info
         self._bin_size: int = get_parameter_from_parameter_group(
@@ -413,7 +363,7 @@ class Binning:
 
     def _bin_data_array(self, *, data: NDArray[A]) -> NDArray[A]:
         # Gets an extended data array with dimensions divisible by bin size and sums
-        # pixel values in the bins. Returns the binned data array.
+        # the pixel values in the bins. Returns the binned data array.
         extended_data: NDArray[A] = self._extend_data_array(data=data)
         binned_data: NDArray[A] = (
             extended_data.reshape(
@@ -425,19 +375,33 @@ class Binning:
         return binned_data
 
     def is_passthrough(self) -> bool:
+        """
+        Whether the algorithm performs a simple passthrough operation.
+
+        This function returns information on whether the algorithm performs a simple
+        passthrough operation (See
+        [BinningPassthrough][om.algorithms.generic.BinningPassthrough]). For this
+        algorithm, the function always returns False.
+
+        Returns:
+
+            Whether the algorithm performs a simple passthrough operation.
+        """
         return False
 
     def get_bin_size(self) -> int:
         """
         Gets the size of the binning area.
 
-        This value represents the size of the area in the original data that will end
-        up in the same pixel in the binned data. Specifically, an area of size
-        `bin size x bin size` ends up in a single binned pixel.
+        This function returns the size of the area in the original data that gets
+        transformed in a single pixel in the binned data. Specifically, the function
+        returns the length of the edge of the area: if an area of size
+        `bin size x bin size` in the original data ends up in a single binned pixel,
+        the function returns the value of `bin_size`.
 
         Returns:
 
-            The size of the edge of binning area.
+            The length of the edge of the binning area.
         """
         return self._bin_size
 
@@ -445,7 +409,7 @@ class Binning:
         """
         Gets the data layout information for the binned data frame.
 
-        This function returns information about the internal data layout of the binned
+        This function returns information about the internal data layout of a binned
         data frame generated by the algorithm.
 
         Returns:
@@ -466,13 +430,13 @@ class Binning:
         Computes a binned version of the detector data frame.
 
         This function generates a binned version of the provided detector data frame.
-        For each source region in the original data, the function initially computes
-        the average value of all pixels, excluding the ones that are marked to be
-        ignored. It then multiplies the average value by the total number of
+        For each binning area in the original data frame, the function initially
+        computes the average value of all pixels, excluding the ones that are marked to
+        be ignored. It then multiplies the average value by the total number of
         pixels in the region, and uses the result to fill, in the binned frame, the
         corresponding binned pixel. If, however, the binned pixel is determined to be
-        invalid (based on the `min_good_pix_count` argument provided when the algorithm
-        is initialized), a fallback value is used to fill it.
+        invalid (based on the `min_good_pix_count` parameter provided when the
+        algorithm is initialized), it is filled with a fallback value.
 
         Arguments:
 
@@ -513,23 +477,23 @@ class Binning:
         self, *, mask: Union[NDArray[numpy.int_], None]
     ) -> Union[NDArray[numpy.int_], None]:
         """
-        Computes a bad pixel map for the binned data frame.
+        Computes a bad pixel map for a binned data frame.
 
-        Starting from a map designed for the original detector frame, this function
-        calculates a bad pixel map that can be used with the binned data frame
-        generated by the algorithm.
+        Starting from a bad pixel map designed for the original detector frame, this
+        function calculates that can be used with a binned data frame generated by the
+        algorithm.
 
         In the binned map computed by this function, only pixels originating from
         good pixels in the original map are marked as good. If even a single bad pixel
-        in the original map ends up contributing to a pixel in the binned map, the
-        pixel n the binned map is marked as bad.
+        in the original map contributes to a pixel in the binned map, the binned pixel
+        is labelled as bad.
 
         Arguments:
 
             mask: An array storing a bad pixel map for the original data frame.
 
                 * The map must be a numpy array of the same shape as the data frame on
-                  which the binning algorithm will be applied.
+                  which the binning algorithm is be applied.
 
                 * Each pixel in the map must have a value of either 0, meaning that
                   the corresponding pixel in the data frame should be considered bad,
@@ -540,8 +504,8 @@ class Binning:
 
         Returns:
 
-            Either an array containing the binned map (if the input `mask` argument is
-                not None) or None.
+            Either an array containing the binned map or None if the `mask` input
+            argument is None.
         """
         if mask is None:
             return None
@@ -553,12 +517,13 @@ class Binning:
         Computes pixel maps for a binned data frame.
 
         Starting from pixel maps designed for the original detector frame, this
-        function bad calculates pixel maps that can be used with the binned data frame
+        function calculates pixel maps that can be used with a binned data frame
         generated by the algorithm.
 
         Arguments:
 
-            pixel_maps: A dictionary storing the pixel maps for the original data frame.
+            pixel_maps: A dictionary storing the pixel maps for the original data
+                frame.
 
         Returns:
 
@@ -589,7 +554,7 @@ class Binning:
         Computes peaks positions for a binned data frame.
 
         Starting from a list of peaks detected in the original data frame, this
-        function calculates the coordinates of the same peaks in the binned data frame
+        function calculates the coordinates of the same peaks in a binned data frame
         generated by the algorithm.
 
         Arguments:
@@ -599,8 +564,8 @@ class Binning:
 
         Returns:
 
-            A dictionary which stores the information about the detected peaks and can
-                be used with the binned frame.
+            A dictionary storing information about the detected peaks in the binned
+                data frame.
         """
         peak_index: int
         for peak_index in range(peak_list["num_peaks"]):
@@ -624,16 +589,17 @@ class BinningPassthrough:
         layout_info: TypeDetectorLayoutInformation,
     ) -> None:
         """
-        Binning of detector data frames.
+        Passthrough binning of detector data frames.
 
-        This algorithm has the same methods as the
-        [Binning][om.algorithms.generic.Binning] algorithm. The methods, however,
+        This algorithm has the same interface as the
+        [Binning][om.algorithms.generic.Binning] algorithm. All the functions, however,
         perform no operation at all, simply returning the original detector layout
         information, detector data frame, bad pixel map, or pixel maps.
 
-        This algorithm exists to avoid littering the code base with if statements that
+        This algorithm exists to avoid filling the code base with if statements that
         just check if binning is required and call the Binning algorithm accordingly.
-        With a single initial check of the form:
+
+        After a single initial check of the form:
 
         ```
         if binning_required:
@@ -643,17 +609,27 @@ class BinningPassthrough:
         ```
 
         The rest of the code can avoid performing checks and simply call the methods of
-        the `binning` instance, expecting the correct behavior.
+        the `binning` instance, and expect the correct behavior.
 
         Arguments:
 
             layout_info: An object storing information about the internal layout of the
-                detector data frame on which the algorithm will be applied (number and
-                size of ASICs, etc.).
+                detector data frame on which the algorithm is applied (number and size
+                of ASICs, etc.).
         """
         self._layout_info: TypeDetectorLayoutInformation = layout_info
 
     def is_passthrough(self) -> bool:
+        """
+        Whether the algorithm performs a passthrough operation.
+
+        This function returns information on whether the algorithm performs a simple
+        passthrough operation. For this algorithm, the function always returns True.
+
+        Returns:
+
+            Whether the algorithm performs a simple passthrough operation.
+        """
         return True
 
     def get_bin_size(self) -> int:

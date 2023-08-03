@@ -52,7 +52,7 @@ class OmDataExtractionError(OmException):
     """
 
 
-class OmEigerHttpInterfaceInitializationError(OmException):
+class OmHttpInterfaceInitializationError(OmException):
     """
     Raised if an error happens while OM is accessing Eiger http interface.
 
@@ -89,21 +89,13 @@ class OmHdf5PathError(OmException):
 
 class OmInvalidSourceError(OmException):
     """
-    Raised if the format of the source string is not valid.
-
+    Raised if the format of the source string or file is not valid.
     """
 
 
-class OmInvalidDataBroadcastUrl(OmException):
+class OmInvalidZmqUrl(OmException):
     """
-    Raised if the format of the data broadcasting socket's URL is not valid.
-
-    """
-
-
-class OmInvalidRespondingUrl(OmException):
-    """
-    Raised if the format of the responding socket's URL is not valid.
+    Raised if the format of a ZNQ socket's URL is not valid.
 
     """
 
@@ -135,7 +127,7 @@ class OmMissingDependencyError(OmException):
     """
 
 
-class OmMissingLayerModuleFileError(OmException):
+class OmMissingLayerModuleError(OmException):
     """
     Raised if the python implementation of an OM layer cannot be found on the system.
 

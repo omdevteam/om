@@ -8,6 +8,7 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
+from om.lib.exceptions import OmInvalidSourceError
 from om.lib.rich_console import console
 
 
@@ -46,7 +47,7 @@ def main(input: str, output: str, s: int) -> None:
         with open(input, "r") as fhandle:
             filelist: List[str] = [fn.strip() for fn in fhandle]
     except (IOError, OSError) as exc:
-        raise RuntimeError(f"Error reading the {input} source file.") from exc
+        raise OmInvalidSourceError(f"Error reading the {input} source file.") from exc
 
     n: int = 1024 * 512
     sd: NDArray[numpy.float_] = numpy.zeros((3, n), dtype=numpy.float64)

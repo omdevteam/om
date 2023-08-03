@@ -104,9 +104,7 @@ class SwaxsGui(OmGuiBase):
         self._hit_rate_widget.addLegend()
         self._hit_rate_widget.setTitle("Hit Rate vs. Events")
         self._hit_rate_widget.setLabel(axis="bottom", text="Events")
-        self._hit_rate_widget.setLabel(
-            axis="left", text="Hit Rate"
-        )
+        self._hit_rate_widget.setLabel(axis="left", text="Hit Rate")
         self._hit_rate_widget.showGrid(x=True, y=True)
         self._hit_rate_widget.setYRange(0, 1.0)
 
@@ -117,14 +115,6 @@ class SwaxsGui(OmGuiBase):
             symbolSize=3,
             name="Hit Rate",
         )
-
-        # self._digitizer_sum_plot: Any = self._hit_rate_widget.plot(
-        #     pen=None,
-        #     symbol="o",
-        #     symbolPen=pyqtgraph.mkPen("c"),
-        #     symbolSize=3,
-        #     name="Digitizer Sum",
-        # )
 
         self._roi_widget: Any = pyqtgraph.PlotWidget()
         self._roi_widget.addLegend()
@@ -152,7 +142,6 @@ class SwaxsGui(OmGuiBase):
             symbolSize=3,
             name="ROI2",
         )
-
 
         self._radial_stack_view: Any = pyqtgraph.ImageView()
         self._radial_stack_view.view.setAspectLocked(False)
@@ -220,7 +209,9 @@ class SwaxsGui(OmGuiBase):
             autoRange=False,
         )
 
-        self._hit_rate_plot.setData(tuple(range(-5000, 0)), local_data["hit_rate_history"])
+        self._hit_rate_plot.setData(
+            tuple(range(-5000, 0)), local_data["hit_rate_history"]
+        )
 
         self._roi1_plot.setData(tuple(range(-5000, 0)), local_data["roi1_int_history"])
         self._roi2_plot.setData(tuple(range(-5000, 0)), local_data["roi2_int_history"])

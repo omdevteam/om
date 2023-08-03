@@ -371,6 +371,10 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         data["timestamp"] = event["additional_info"]["timestamp"]

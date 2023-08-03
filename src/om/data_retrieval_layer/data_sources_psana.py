@@ -175,6 +175,10 @@ class CspadPsana(OmDataSourceProtocol):
         Returns:
 
             One detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         cspad_psana: Union[
             NDArray[numpy.float_], NDArray[numpy.int_]
@@ -280,6 +284,10 @@ class Epix10kaPsana(OmDataSourceProtocol):
         Returns:
 
             One detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         epixka2m_psana: Union[
             NDArray[numpy.float_], NDArray[numpy.int_]
@@ -369,6 +377,10 @@ class Jungfrau4MPsana(OmDataSourceProtocol):
         Returns:
 
             One detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         jungfrau_psana: Union[
             NDArray[numpy.float_], NDArray[numpy.int_]
@@ -458,6 +470,10 @@ class Epix100Psana(OmDataSourceProtocol):
         Returns:
 
             One detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         epix_psana: Union[
             NDArray[numpy.float_], NDArray[numpy.int_]
@@ -537,6 +553,10 @@ class RayonixPsana(OmDataSourceProtocol):
         Returns:
 
             One detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         rayonix_psana: NDArray[numpy.float_] = self._detector_interface.calib(
             event["data"]
@@ -615,12 +635,16 @@ class OpalPsana(OmDataSourceProtocol):
         Returns:
 
             One camera data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         opal_psana: NDArray[numpy.float_] = self._detector_interface.calib(
             event["data"]
         )
         if opal_psana is None:
-            raise OmDataExtractionError("Could not retrieve detector data from psana.")
+            raise OmDataExtractionError("Could not retrieve camera data from psana.")
 
         return opal_psana
 
@@ -797,6 +821,10 @@ class AssembledDetectorPsana(OmDataSourceProtocol):
         Returns:
 
             One detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         assembled_data: NDArray[numpy.float_] = self._detector_interface.image(
             event["data"]
@@ -1244,6 +1272,10 @@ class BeamEnergyFromEpicsVariablePsana(OmDataSourceProtocol):
         Returns:
 
             The beam energy.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         wavelength: Union[float, None] = self._beam_energy_epics_variable.get_data(
             event=event
@@ -1336,6 +1368,10 @@ class EvrCodesPsana(OmDataSourceProtocol):
         Returns:
 
             Whether the required event code has been emitted for the provided event.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
         """
         current_evr_codes: Union[List[int], None] = self._detector_interface.eventCodes(
             event["data"]
@@ -1432,6 +1468,13 @@ class LclsExtraPsana(OmDataSourceProtocol):
 
         * The third entry is string that assigns an OM identifier to data, within the
           collection of retrieved LCLS-specific data.
+
+
+        Raises:
+
+            OmWrongParameterTypeError" Raised when the `lcls_extra` entry in OM's
+                configuration parameters is not formatted correctly, or it requests
+                data that is not supported yet.
         """
         lcls_extra_items: List[List[str]] = self._monitor_parameters.get_parameter(
             group="data_retrieval_layer",

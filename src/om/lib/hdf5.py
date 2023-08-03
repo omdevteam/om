@@ -28,6 +28,7 @@ import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
 
+from om.lib.exceptions import OmHdf5FileReadingError
 from om.lib.parameters import get_parameter_from_parameter_group
 
 
@@ -35,7 +36,7 @@ def load_hdf5_data(
     *,
     hdf5_filename: str,
     hdf5_path: str,
-) -> Union[NDArray[numpy.int_], NDArray[numpy.float_]]:
+) -> Union[NDArray[numpy.int_], NDArray[numpy.float_], None]:
     """
     Loads data from an HDF5 file.
 
@@ -51,6 +52,11 @@ def load_hdf5_data(
     Returns:
 
         The loaded data array.
+
+    Raises:
+
+        OmHdf5FileReadingError: Raised when an error is encountered while reading the
+            file.
     """
 
     try:
@@ -61,7 +67,7 @@ def load_hdf5_data(
             ][:]
     except (IOError, OSError, KeyError) as exc:
         exc_type, exc_value = sys.exc_info()[:2]
-        raise RuntimeError(
+        raise OmHdf5FileReadingError(
             "The following error occurred while reading "  # type: ignore
             f"the {hdf5_path} field from the {hdf5_filename} dark "
             f"data HDF5 file: {exc_type.__name__}: {exc_value}"

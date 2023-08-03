@@ -26,7 +26,7 @@ from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
 
-from om.lib.exceptions import OmDataExtractionError
+from om.lib.exceptions import OmDataExtractionError, OmInvalidZmqUrl
 from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
@@ -170,7 +170,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         try:
             zmq_socket.connect(url)
         except zmq.error.ZMQError as exc:
-            raise RuntimeError(
+            raise R(
                 "The format of the provided URL is not valid. The URL must be in "
                 "the format tcp://hostname:port or in the format "
                 "ipc:///path/to/socket, and in the latter case the user must have the "
@@ -250,6 +250,10 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
                 * The corresponding dictionary value stores the data extracted from the
                 Data Source for the event being processed.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
         source_name: str
@@ -280,6 +284,11 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
         Jungfrau 1M's ZMQ data stream does not allow the retrieval of standalone data
         events, so this function has no implementation.
+
+        Raises:
+
+          NotImplementedError: This functionality has not been implemented for this
+                Data Event Handler.
         """
         raise NotImplementedError
 
@@ -300,5 +309,10 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         Returns:
 
             All data related to the requested detector data frame.
+
+        Raises:
+
+          NotImplementedError: This functionality has not been implemented for this
+                Data Event Handler.
         """
         raise NotImplementedError

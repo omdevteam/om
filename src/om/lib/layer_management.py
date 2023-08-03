@@ -29,7 +29,7 @@ from typing import Dict, List, Type, Union
 from om.lib.exceptions import (
     OmMissingDataSourceClassError,
     OmMissingLayerClassError,
-    OmMissingLayerModuleFileError,
+    OmMissingLayerModuleError,
 )
 from om.protocols.data_retrieval_layer import (
     OmDataRetrievalProtocol,
@@ -66,6 +66,14 @@ def import_class_from_layer(
     Returns:
 
         The imported class.
+
+    Raises:
+
+        OmMissingLayerClass: Raised when the requested class cannot be found in the
+            specified Python module.
+
+        OmMissingLayerModuleFile: Raised when the specified python module cannot be
+            found.
     """
 
     try:
@@ -88,7 +96,7 @@ def import_class_from_layer(
             exc_type, exc_value = sys.exc_info()[:2]
             # TODO: Fix types
             if exc_type is not None:
-                raise OmMissingLayerModuleFileError(
+                raise OmMissingLayerModuleError(
                     f"The python module file {layer_name}.py cannot be found or loaded"
                     f"due to the following error: "
                     f"{exc_type.__name__}: {exc_value}"
@@ -119,6 +127,12 @@ def filter_data_sources(
     Returns:
 
         A list of Data Source names containing only the required Data Sources.
+
+    Raises:
+
+         OmMissingDataSourceClassError: Raised when one of the required Data Source
+            class cannot be found in the list of Data Source classes currently
+            available for the Data Retrieval class being used.
     """
     required_data_sources: List[str] = []
     entry: str
