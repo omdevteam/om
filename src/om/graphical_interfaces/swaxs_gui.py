@@ -142,6 +142,15 @@ class SwaxsGui(OmGuiBase):
             symbolSize=3,
             name="ROI2",
         )
+        self._frame_mean_plot: Any = self._roi_widget.plot(
+            tuple(range(-5000, 0)),
+            [0.0] * 5000,
+            pen=None,
+            symbol="o",
+            symbolPen=pyqtgraph.mkPen("w"),
+            symbolSize=3,
+            name="Frame Mean",
+        )
 
         self._radial_stack_view: Any = pyqtgraph.ImageView()
         self._radial_stack_view.view.setAspectLocked(False)
@@ -215,6 +224,7 @@ class SwaxsGui(OmGuiBase):
 
         self._roi1_plot.setData(tuple(range(-5000, 0)), local_data["roi1_int_history"])
         self._roi2_plot.setData(tuple(range(-5000, 0)), local_data["roi2_int_history"])
+        self._frame_mean_plot.setData(tuple(range(-5000, 0)), local_data["image_sum_history"])
 
         QtWidgets.QApplication.processEvents()
 

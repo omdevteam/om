@@ -398,7 +398,8 @@ class RadialProfileAnalysis:
             # / downstream_intensity
         )
 
-        frame_has_jet: bool = data.sum() > self._total_intensity_jet_threshold
+        frame_sum = data.mean()
+        frame_has_jet: bool = frame_sum > self._total_intensity_jet_threshold
         if frame_has_jet:
             if self._sample_detection:
                 first_to_second_peak_ratio = float(roi1_intensity / roi2_intensity)
@@ -440,6 +441,7 @@ class RadialProfileAnalysis:
                 roi1_intensity,
                 roi2_intensity,
                 0.6,
+                frame_sum,
             )
         return (
             radial_profile,
@@ -449,6 +451,7 @@ class RadialProfileAnalysis:
             roi1_intensity,
             roi2_intensity,
             rg,
+            frame_sum,
         )
 
 
@@ -478,7 +481,27 @@ class RadialProfileAnalysisPlots:
             required=True,
         )
 
-        self._hit_rate_history: Union[Deque[bool], None] = None
+        self._num_radials_to_send: int = get_parameter_from_parameter_group(
+            group=radial_parameters,
+            parameter="num_radials_to_send",
+            parameter_type=int,
+            required=True,
+        )
+
+        self._num_events_to_plot: int = 5000
+
+        self._hit_rate_running_window: Deque[float] = deque(
+            [0.0] * self._running_average_window_size,
+            maxlen=self._running_average_window_size,
+        )
+        self._avg_hit_rate: int = 0
+        self._num_hits: int = 0
+        self._hit_rate_timestamp_history: Deque[float] = deque(
+            self._num_events_to_plot * [0.0], maxlen=self._num_events_to_plot
+        )
+        # self._hit_rate_history: Deque[float] = deque(5000 * [0.0], maxlen=5000)
+
+        self._hit_rate_history: Union[Deque[NDArray[numpy.float_]], None] = None
         self._q_history: Union[Deque[NDArray[numpy.float_]], None] = None
         self._radials_history: Union[Deque[NDArray[numpy.float_]], None] = None
         self._image_sum_history: Union[Deque[float], None] = None
@@ -516,37 +539,48 @@ class RadialProfileAnalysisPlots:
             num_radial_bins: int = len(radial_profile)
 
             self._hit_rate_history = deque(
-                [False] * self._running_average_window_size,
+                [False] * self._num_events_to_plot,
+                maxlen=self._num_events_to_plot,
+            )
+            self._hit_rate_running_window: Deque[float] = deque(
+                [0.0] * self._running_average_window_size,
                 maxlen=self._running_average_window_size,
             )
             self._q_history = deque(
-                [numpy.zeros(num_radial_bins)] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [numpy.zeros(num_radial_bins)] * self._num_radials_to_send,
+                maxlen=self._num_radials_to_send,
             )
             self._radials_history = deque(
-                [numpy.zeros(num_radial_bins)] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [numpy.zeros(num_radial_bins)] * self._num_radials_to_send,
+                maxlen=self._num_radials_to_send,
             )
             self._image_sum_history = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [0.0] * self._num_events_to_plot,
+                maxlen=self._num_events_to_plot,
             )
             self._downstream_intensity_history = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [0.0] * self._num_events_to_plot,
+                maxlen=self._num_events_to_plot,
             )
             self._roi1_intensity_history = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [0.0] * self._num_events_to_plot,
+                maxlen=self._num_events_to_plot,
             )
             self._roi2_intensity_history = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [0.0] * self._num_events_to_plot,
+                maxlen=self._num_events_to_plot,
             )
             self._rg_history = deque(
-                [0.0] * self._running_average_window_size,
-                maxlen=self._running_average_window_size,
+                [0.0] * self._num_events_to_plot,
+                maxlen=self._num_events_to_plot,
             )
+
+        self._hit_rate_running_window.append(float(sample_detected))
+        avg_hit_rate = (
+            sum(self._hit_rate_running_window) / self._running_average_window_size
+        )
+        # self._hit_rate_timestamp_history.append(timestamp)
+        self._hit_rate_history.append(avg_hit_rate * 100.0)
 
         self._q_history.append(q)
         self._radials_history.append(radial_profile)
@@ -554,7 +588,7 @@ class RadialProfileAnalysisPlots:
         self._downstream_intensity_history.append(downstream_intensity)
         self._roi1_intensity_history.append(roi1_intensity)
         self._roi2_intensity_history.append(roi2_intensity)
-        self._hit_rate_history.append(sample_detected)
+        # self._hit_rate_history.append(sample_detected)
         self._rg_history.append(rg)
 
         return (
@@ -572,17 +606,26 @@ class RadialProfileAnalysisPlots:
         """
         # TODO: Add documentation.
         """
-        self._hit_rate_history = deque([], maxlen=self._running_average_window_size)
-        self._q_history = deque([], maxlen=self._running_average_window_size)
-        self._radials_history = deque([], maxlen=self._running_average_window_size)
-        self._image_sum_history = deque([], maxlen=self._running_average_window_size)
+        # self._hit_rate_history = deque([], maxlen=self._running_average_window_size)
+        self._hit_rate_running_window = deque(
+            [0.0] * self._running_average_window_size,
+            maxlen=self._running_average_window_size,
+        )
+        self._avg_hit_rate = 0
+        self._num_hits = 0
+        self._hit_rate_timestamp_history = deque(self._num_events_to_plot * [0.0], maxlen=self._num_events_to_plot)
+        self._hit_rate_history = deque(self._num_events_to_plot * [0.0], maxlen=self._num_events_to_plot)
+
+        self._q_history = deque([], maxlen=self._num_radials_to_send)
+        self._radials_history = deque([], maxlen=self._num_radials_to_send)
+        self._image_sum_history = deque([], maxlen=self._num_events_to_plot)
         self._downstream_intensity_history = deque(
-            [], maxlen=self._running_average_window_size
+            [], maxlen=self._num_events_to_plot
         )
         self._roi1_intensity_history = deque(
-            [], maxlen=self._running_average_window_size
+            [], maxlen=self._num_events_to_plot
         )
         self._roi2_intensity_history = deque(
-            [], maxlen=self._running_average_window_size
+            [], maxlen=self._num_events_to_plot
         )
-        self._rg_history = deque([], maxlen=self._running_average_window_size)
+        self._rg_history = deque([], maxlen=self._num_events_to_plot)
