@@ -940,7 +940,7 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
                 elif bad_region_key == "panel":
                     curr_bad_region["panel"] = value
                 else:
-                    raise OmGeometryError"Unrecognized field: {}".format(key))
+                    raise OmGeometryError("Unrecognized field: {}".format(key))
             else:
                 panel_name: str = key_parts[0]
                 panel_key: str = key_parts[1]

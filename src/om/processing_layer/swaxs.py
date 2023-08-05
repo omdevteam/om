@@ -207,6 +207,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         roi1_intensity: float
         roi2_intensity: float
         rg: float
+        detector_data_sum: float
         (
             radial_profile,
             errors,
@@ -215,6 +216,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             roi1_intensity,
             roi2_intensity,
             rg,
+            detector_data_sum,
         ) = self._radial_profile_analysis.analyze_radial_profile(
             data=data["detector_data"],
             beam_energy=data["beam_energy"],
@@ -222,7 +224,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             downstream_intensity=data["post_sample_intensity"],
         )
 
-        detector_data_sum: float = data["detector_data"].sum()
+        # detector_data_sum: float = data["detector_data"].sum()
 
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
@@ -305,6 +307,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         downstream_intensity_history: Deque[float]
         roi1_intensity_history: Deque[float]
         roi2_intensity_history: Deque[float]
+        hit_rate_history: Deque[float]
         (
             q_history,
             radials_history,
@@ -350,6 +353,7 @@ class SwaxsProcessing(OmProcessingProtocol):
                 "roi1_int_history": numpy.array(roi1_intensity_history),
                 "roi2_int_history": numpy.array(roi2_intensity_history),
                 "hit_rate_history": numpy.array(hit_rate_history),
+                "image_sum_history": numpy.array(image_sum_history),
                 "rg": numpy.array(rg_history),
                 "timestamp": received_data["timestamp"],
                 "detector_distance": received_data["detector_distance"],
@@ -589,6 +593,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         roi1_intensity: float
         roi2_intensity: float
         rg: float
+        detector_data_sum: float
         (
             radial_profile,
             q,
@@ -596,6 +601,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             roi1_intensity,
             roi2_intensity,
             rg,
+            detector_data_sum,
         ) = self._radial_profile_analysis.analyze_radial_profile(
             data=data["detector_data"],
             beam_energy=data["beam_energy"],
@@ -603,7 +609,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             downstream_intensity=data["post_sample_intensity"],
         )
 
-        detector_data_sum: float = data["detector_data"].sum()
+        # detector_data_sum: float = data["detector_data"].sum()
 
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
@@ -695,6 +701,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             roi2_intensity_history,
             hit_rate_history,
             rg_history,
+
         ) = self._plots.update_plots(
             radial_profile=received_data["radial_profile"],
             detector_data_sum=received_data["detector_data_sum"],
@@ -704,6 +711,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             roi2_intensity=received_data["roi2_intensity"],
             sample_detected=received_data["sample_detected"],
             rg=received_data["rg"],
+            frame_sum=received_data["frame_sum"]
         )
 
         # Event counting
