@@ -208,7 +208,7 @@ class ZmqResponder:
                 raise OmInvalidZmqUrl(
                     "The setup of the data requesting socket failed. The requested"
                     "URL is not valid due to the following reason: "
-                    f"{exc_type.__name__}: {exc_value}.
+                    f"{exc_type.__name__}: {exc_value}."
                 ) from exc
 
         self._zmq_poller: Any = zmq.Poller()
