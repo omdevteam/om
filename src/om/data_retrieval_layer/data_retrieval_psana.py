@@ -38,6 +38,7 @@ from om.data_retrieval_layer.data_sources_psana import (
     RayonixPsana,
     TimestampPsana,
     Wave8Psana,
+    BeamlineDataPsana,
 )
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
@@ -95,7 +96,7 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
             "detector_data": Jungfrau4MPsana(
                 data_source_name="detector", monitor_parameters=monitor_parameters
             ),
-            "beam_energy": BeamEnergyPsana(
+            "beam_energy": BeamEnergyFromEpicsVariablePsana(
                 data_source_name="beam_energy", monitor_parameters=monitor_parameters
             ),
             "detector_distance": EpicsVariablePsana(
@@ -113,8 +114,8 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
-            "post_sample_intensity": Wave8Psana(
-                data_source_name="post_sample_intensity_wave8",
+            "post_sample_intensity": BeamlineDataPsana(
+                data_source_name="post_sample_intensity",
                 monitor_parameters=monitor_parameters,
             ),           
             "lcls_extra": LclsExtraPsana(

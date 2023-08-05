@@ -77,6 +77,23 @@ def _get_psana_detector_name(
         )
     return detector_name
 
+def _get_psana_beamline_data_name(
+    *, source_protocols_name: str, monitor_parameters: MonitorParameters
+) -> str:
+    # Helper function that retrieves an epics variable's name from the monitor
+    # configuration parameters or from the source base name, if the name begins with
+    # the string "psana-"".
+    if source_protocols_name.startswith("psana-"):
+        beamline_data_name: str = source_protocols_name.split("psana-")[1]
+    else:
+        beamline_data_name = monitor_parameters.get_parameter(
+            group="data_retrieval_layer",
+            parameter=f"psana_{source_protocols_name}_beamline_data_name",
+            parameter_type=str,
+            required=True
+        )
+    return beamline_data_name
+
 
 def _get_psana_data_retrieval_function(
     # Helper function that  picks the right psana data retrieval function
@@ -1563,3 +1580,51 @@ class LclsExtraPsana(OmDataSourceProtocol):
             data[name] = self._lcls_extra[name].get_data(event=event)
 
         return data
+
+class BeamlineDataPsana(OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParameters,
+    ):
+        """
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        """
+        beamline_data_variable_name: str = _get_psana_beamline_data_name(
+            source_protocols_name=self._data_source_name,
+            monitor_parameters=self._monitor_parameters,
+        )
+        self._detector_interface: Any = psana.Detector(beamline_data_variable_name)
+
+    def get_data(self, *, event: Dict[str, Any]) -> float:
+        """
+        Retrieves beam energy information from psana.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function retrieves from psana the beam energy information for the provided
+        event.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            The beam energy.
+        """
+        return cast(
+            float, self._detector_interface.get(event["data"]).TotalIntensity()
+        )
+
