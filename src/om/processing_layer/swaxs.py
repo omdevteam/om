@@ -448,14 +448,6 @@ class SwaxsProcessing(OmProcessingProtocol):
                     "peak_list_y_in_frame": [],
                 },
             )
-            if self._post_processing_binning.is_passthrough():
-                self._data_broadcast_socket.send_data(
-                    tag="omtweakingdata",
-                    message={
-                        "detector_data": received_data["detector_data"],
-                        "timestamp": received_data["timestamp"],
-                    },
-                )
 
         if self._event_counter.should_send_hit_frame():
             rank_for_request: int = self._event_counter.get_rank_for_frame_request()
