@@ -142,5 +142,4 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         # This function is called internally by this class every time the listening
         # thread receives data from an OM monitor. It makes a copy of the received data
         # which then made available to the main GUI thread for further processing.
-        print("data received")
         self._received_data = copy.deepcopy(received_data)
