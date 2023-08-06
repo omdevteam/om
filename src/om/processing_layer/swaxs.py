@@ -239,6 +239,34 @@ class SwaxsProcessing(OmProcessingProtocol):
         processed_data["event_id"] = data["event_id"]
         processed_data["rg"] = rg
 
+        # Frame sending
+        if "requests" in data:
+            if data["requests"] == "hit_frame":
+                self._send_hit_frame = True
+            if data["requests"] == "non_hit_frame":
+                self._send_non_hit_frame = True
+
+        print("hello!!")
+
+        send_detector_data: bool = (frame_is_hit and self._send_hit_frame) or (
+            not frame_is_hit and self._send_non_hit_frame
+        )
+
+        if send_detector_data:
+            data_to_send: Union[NDArray[numpy.int_], NDArray[numpy.float_]] = data[
+                "detector_data"
+            ]
+
+            data_to_send = self._post_processing_binning.bin_detector_data(
+                data=data_to_send
+            )
+
+            processed_data["detector_data"] = data_to_send
+            if sample_detected:
+                self._send_hit_frame = False
+            else:
+                self._send_non_hit_frame = False
+
         return (processed_data, node_rank)
 
     def wait_for_data(
@@ -367,6 +395,31 @@ class SwaxsProcessing(OmProcessingProtocol):
                 tag="omdata",
                 message=message,
             )
+
+        # Data broadcast
+        if "detector_data" in received_data:
+            # If detector frame data is found in the data received from the
+            # processing node, it must be broadcasted to visualization programs.
+
+            self._frame_data_img = self._data_visualizer.visualize_data(
+                data=received_data["detector_data"],
+            )
+
+            self._data_broadcast_socket.send_data(
+                tag="omframedata",
+                message={
+                    "frame_data": self._frame_data_img,
+                    "timestamp": received_data["timestamp"],
+                },
+            )
+            if self._post_processing_binning.is_passthrough():
+                self._data_broadcast_socket.send_data(
+                    tag="omtweakingdata",
+                    message={
+                        "detector_data": received_data["detector_data"],
+                        "timestamp": received_data["timestamp"],
+                    },
+                )
 
         self._event_counter.report_speed()
 
