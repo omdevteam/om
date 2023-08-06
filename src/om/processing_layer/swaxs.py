@@ -30,7 +30,7 @@ from numpy.typing import NDArray
 from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import HDF5Writer
 from om.lib.event_management import EventCounter
-from om.lib.geometry import GeometryInformation, DataVisualizer, TypePixelMaps
+from om.lib.geometry import DataVisualizer, GeometryInformation, TypePixelMaps
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.radial_profile import RadialProfileAnalysis, RadialProfileAnalysisPlots
 from om.lib.rich_console import console, get_current_timestamp
@@ -276,13 +276,11 @@ class SwaxsProcessing(OmProcessingProtocol):
         processed_data["rg"] = rg
 
         # Frame sending
-        # if "requests" in data:
-        #     if data["requests"] == "hit_frame":
-        #         self._send_hit_frame = True
-        #     if data["requests"] == "non_hit_frame":
-        #         self._send_non_hit_frame = True
-        self._send_hit_frame = True
-        self._send_non_hit_frame = True
+        if "requests" in data:
+            if data["requests"] == "hit_frame":
+                self._send_hit_frame = True
+            if data["requests"] == "non_hit_frame":
+                self._send_non_hit_frame = True
 
         send_detector_data: bool = (sample_detected and self._send_hit_frame) or (
             not sample_detected and self._send_non_hit_frame
@@ -458,6 +456,13 @@ class SwaxsProcessing(OmProcessingProtocol):
                         "timestamp": received_data["timestamp"],
                     },
                 )
+
+        if self._event_counter.should_send_hit_frame():
+            rank_for_request: int = self._event_counter.get_rank_for_frame_request()
+            return_dict[rank_for_request] = {"requests": "hit_frame"}
+        if self._event_counter.should_send_non_hit_frame():
+            rank_for_request = self._event_counter.get_rank_for_frame_request()
+            return_dict[rank_for_request] = {"requests": "non_hit_frame"}
 
         self._event_counter.report_speed()
 
@@ -792,7 +797,6 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             roi2_intensity_history,
             hit_rate_history,
             rg_history,
-
         ) = self._plots.update_plots(
             radial_profile=received_data["radial_profile"],
             detector_data_sum=received_data["detector_data_sum"],
@@ -802,7 +806,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             roi2_intensity=received_data["roi2_intensity"],
             sample_detected=received_data["sample_detected"],
             rg=received_data["rg"],
-            frame_sum=received_data["frame_sum"]
+            frame_sum=received_data["frame_sum"],
         )
 
         # Event counting
