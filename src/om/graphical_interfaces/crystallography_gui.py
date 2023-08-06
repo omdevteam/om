@@ -304,6 +304,7 @@ class CrystallographyGui(OmGuiBase):
             local_data = self._received_data
             self._received_data = {}
         else:
+            print("nothing happening...")
             # If no data has been received, returns without drawing anything.
             return
 

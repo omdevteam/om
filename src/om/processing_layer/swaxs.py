@@ -27,9 +27,10 @@ from typing import Any, Deque, Dict, Tuple, Union
 import numpy
 from numpy.typing import NDArray
 
+from om.algorithms.generic import Binning, BinningPassthrough
 from om.lib.cheetah import HDF5Writer
 from om.lib.event_management import EventCounter
-from om.lib.geometry import GeometryInformation
+from om.lib.geometry import GeometryInformation, DataVisualizer, TypePixelMaps
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.radial_profile import RadialProfileAnalysis, RadialProfileAnalysisPlots
 from om.lib.rich_console import console, get_current_timestamp
@@ -67,6 +68,24 @@ class SwaxsProcessing(OmProcessingProtocol):
                 required=True,
             )
         )
+
+        # Post-processing binning
+        binning_requested = get_parameter_from_parameter_group(
+            group=self._radial_parameters,
+            parameter="post_processing_binning",
+            parameter_type=bool,
+            default=False,
+        )
+
+        if binning_requested:
+            self._post_processing_binning: Union[Binning, BinningPassthrough] = Binning(
+                parameters=self._monitor_params.get_parameter_group(group="binning"),
+                layout_info=self._geometry_information.get_layout_info(),
+            )
+        else:
+            self._post_processing_binning = BinningPassthrough(
+                layout_info=self._geometry_information.get_layout_info()
+            )
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -135,6 +154,23 @@ class SwaxsProcessing(OmProcessingProtocol):
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
             parameters=self._monitor_params.get_parameter_group(group="radial")
+        )
+
+        self._detector_distance_offset: float = (
+            self._geometry_information.get_detector_distance_offset()
+        )
+
+        self._pixel_size = self._geometry_information.get_pixel_size()
+        pixel_maps: TypePixelMaps = self._geometry_information.get_pixel_maps()
+
+        self._pixel_size /= self._post_processing_binning.get_bin_size()
+        binned_pixel_maps = self._post_processing_binning.bin_pixel_maps(
+            pixel_maps=pixel_maps
+        )
+
+        # Data visualizer
+        self._data_visualizer: DataVisualizer = DataVisualizer(
+            pixel_maps=binned_pixel_maps
         )
 
         # Plots
@@ -238,6 +274,34 @@ class SwaxsProcessing(OmProcessingProtocol):
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["event_id"] = data["event_id"]
         processed_data["rg"] = rg
+
+        # Frame sending
+        # if "requests" in data:
+        #     if data["requests"] == "hit_frame":
+        #         self._send_hit_frame = True
+        #     if data["requests"] == "non_hit_frame":
+        #         self._send_non_hit_frame = True
+        self._send_hit_frame = True
+        self._send_non_hit_frame = True
+
+        send_detector_data: bool = (sample_detected and self._send_hit_frame) or (
+            not sample_detected and self._send_non_hit_frame
+        )
+
+        if send_detector_data:
+            data_to_send: Union[NDArray[numpy.int_], NDArray[numpy.float_]] = data[
+                "detector_data"
+            ]
+
+            data_to_send = self._post_processing_binning.bin_detector_data(
+                data=data_to_send
+            )
+
+            processed_data["detector_data"] = data_to_send
+            if sample_detected:
+                self._send_hit_frame = False
+            else:
+                self._send_non_hit_frame = False
 
         return (processed_data, node_rank)
 
@@ -367,6 +431,33 @@ class SwaxsProcessing(OmProcessingProtocol):
                 tag="omdata",
                 message=message,
             )
+
+        # Data broadcast
+        if "detector_data" in received_data:
+            # If detector frame data is found in the data received from the
+            # processing node, it must be broadcasted to visualization programs.
+
+            self._frame_data_img = self._data_visualizer.visualize_data(
+                data=received_data["detector_data"],
+            )
+
+            self._data_broadcast_socket.send_data(
+                tag="omframedata",
+                message={
+                    "frame_data": self._frame_data_img,
+                    "timestamp": received_data["timestamp"],
+                    "peak_list_x_in_frame": [],
+                    "peak_list_y_in_frame": [],
+                },
+            )
+            if self._post_processing_binning.is_passthrough():
+                self._data_broadcast_socket.send_data(
+                    tag="omtweakingdata",
+                    message={
+                        "detector_data": received_data["detector_data"],
+                        "timestamp": received_data["timestamp"],
+                    },
+                )
 
         self._event_counter.report_speed()
 
