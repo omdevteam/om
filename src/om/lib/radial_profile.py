@@ -125,6 +125,90 @@ def _calc_rg_by_guinier_peak(
     rg: float = (3.0 * d / 2.0) ** 0.5 / qpeak
     return rg
 
+def sphere_form_factor(radius, q_mags, check_divide_by_zero=True):
+    r"""
+    By Rick Kirian and Joe Chen, copied from reborn.simulate.form_factors with permission.
+    Form factor :math:`f(q)` for a sphere of radius :math:`r`, at given :math:`q` magnitudes.  The formula is
+
+    .. math::
+
+        f(q) = 4 \pi \frac{\sin(qr) - qr \cos(qr)}{q^3}
+
+    When :math:`q = 0`, the following limit is used:
+
+    .. math::
+
+        f(0) = \frac{4}{3} \pi r^3
+
+    Formula can be found, for example, in Table A.1 of |Guinier|.  There are no approximations in this formula beyond
+    the 1st Born approximation; it is not a small-angle formula.
+
+    Note that you need to multiply this by the electron density of the sphere if you want reasonable amplitudes.
+    E.g., water molecules have 10 electrons, a molecular weight of 18 g/mol and a density of 1 g/ml, so you can google
+    search the electron density of water, which is 10*(1 g/cm^3)/(18 g/6.022e23) = 3.346e29 per m^3 .
+
+    Arguments:
+        radius (float): In SI units of course.
+        q_mags (numpy array): Also in SI units.
+        check_divide_by_zero (bool): Check for divide by zero.  True by default.
+
+    Returns: numpy array
+    """
+    qr = q_mags*radius
+    if check_divide_by_zero is True:
+        amp = numpy.zeros_like(qr)
+        amp[qr == 0] = (4*numpy.pi*radius**3)/3
+        w = qr != 0
+        amp[w] = 4 * numpy.pi * radius ** 3 * (numpy.sin(qr[w]) - qr[w] * numpy.cos(qr[w])) / qr[w] ** 3
+    else:
+        amp = 4 * numpy.pi * radius ** 3 * (numpy.sin(qr) - qr * numpy.cos(qr)) / qr ** 3
+    return amp
+
+class SphericalDroplets:
+    """By Rick Kirian and Joe Chen, copied from reborn.analysis.optimize with permission."""
+
+    def __init__(self, q=None, r=None):
+        r"""
+        Initialise stuff
+        """
+        if q is None:
+            q = numpy.linspace(0,1e10,517)
+        if r is None:
+            r = numpy.linspace(50,3000,20) #set of spherical radii to test in angstroms
+        self.q = q.copy()
+        self.r = r.copy() # radius range of sphere to scan through
+
+        self.N = len(self.r)
+        self.I_R_precompute = numpy.zeros((self.N,len(self.q)))
+        for i in range(self.N):
+            self.I_R_precompute[i,:] = (sphere_form_factor(radius=self.r[i], q_mags=self.q, check_divide_by_zero=True))**2
+
+
+    def fit_profile(self, I_D, mask=None):
+        if mask is None:
+            mask = numpy.ones_like(I_D)
+
+        w = mask > 0
+
+        A_save = numpy.zeros(self.N)
+        error_vec = numpy.zeros(self.N)
+        for i in range(self.N):
+            I_R = self.I_R_precompute[i,:]
+            A = numpy.sum(I_D[w] * I_R[w]) / numpy.sum(I_R[w]**2)
+            diff_sq = (A*I_R[w] - I_D[w])**2
+            error_vec[i] = numpy.sum(diff_sq)
+            A_save[i] = A
+
+        ind_min = numpy.argmin(error_vec)
+
+        A_min = A_save[ind_min]
+        r_min = self.r[ind_min]
+        e_min = error_vec[ind_min]
+        I_R_min = self.I_R_precompute[ind_min,:]
+
+        r_dic = dict(A_min=A_min, e_min=e_min, error_vec=error_vec, I_R_min=I_R_min.copy())
+
+        return r_min, r_dic
 
 class RadialProfileAnalysis:
     """
@@ -267,12 +351,18 @@ class RadialProfileAnalysis:
         )
 
         if self._estimate_particle_size:
-            self._use_guinier_peak: float = get_parameter_from_parameter_group(
+            self._size_estimation_method: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
-                parameter="use_guinier_peak",
-                parameter_type=bool,
-                required=False,
+                parameter="size_estimation_method",
+                parameter_type=str,
+                required=True,
             )
+            # self._use_guinier_peak: float = get_parameter_from_parameter_group(
+            #     group=radial_parameters,
+            #     parameter="use_guinier_peak",
+            #     parameter_type=bool,
+            #     required=False,
+            # )
             self._guinier_qmin: float = get_parameter_from_parameter_group(
                 group=radial_parameters,
                 parameter="guinier_qmin",
@@ -302,6 +392,9 @@ class RadialProfileAnalysis:
         self._radial_profile_bad_pixel_map: Union[
             NDArray[numpy.bool_], None
         ] = self._radial_profile.get_bad_pixel_map()
+
+        #initialize spherical droplets
+        self._spherical_droplets = None
 
     def analyze_radial_profile(
         self,
@@ -418,7 +511,16 @@ class RadialProfileAnalysis:
                 if len(q_index[0]) != 0:
                     q_min_index: numpy.int_ = numpy.min(q_index)
                     q_max_index: numpy.int_ = numpy.max(q_index)
-                    if self._use_guinier_peak:
+                    if "spher" in self._size_estimation_method:
+                        # try to estimate radius using spherical droplets
+                        if self._spherical_droplets is None:
+                            #for the first frame, instantiate the class with now known q values
+                            #note: this assumes q does not change frame to frame.
+                            self._spherical_droplets = SphericalDroplets(q=q) #can add r=set of radii later
+                        #note, this is r, radius, not rg
+                        r, rdict = self._spherical_droplets.fit_profile(I_D=radial_profile, mask=None)
+                        rg = r #for simplicity since rg is returned below for guinier stuff.
+                    elif "peak" in self._size_estimation_method:
                         # try to estimate Rg using Guinier Peak method
                         rg: float = _calc_rg_by_guinier_peak(
                             q, radial_profile, nb=q_min_index, ne=q_max_index
