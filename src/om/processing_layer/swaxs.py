@@ -370,6 +370,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         roi1_intensity_history: Deque[float]
         roi2_intensity_history: Deque[float]
         hit_rate_history: Deque[float]
+        rg_history: Deque[float]
         (
             q_history,
             radials_history,
@@ -416,7 +417,7 @@ class SwaxsProcessing(OmProcessingProtocol):
                 "roi2_int_history": numpy.array(roi2_intensity_history),
                 "hit_rate_history": numpy.array(hit_rate_history),
                 "image_sum_history": numpy.array(image_sum_history),
-                "rg": numpy.array(rg_history),
+                "rg_history": numpy.array(rg_history),
                 "timestamp": received_data["timestamp"],
                 "detector_distance": received_data["detector_distance"],
                 "beam_energy": received_data["beam_energy"],
@@ -674,6 +675,9 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
                 entry is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
+
+        mask = self._radial_profile_analysis._radial_profile_bad_pixel_map
+        print(mask.sum(), mask.size)
 
         radial_profile: NDArray[numpy.float_]
         q: NDArray[numpy.float_]

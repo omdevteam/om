@@ -152,6 +152,24 @@ class SwaxsGui(OmGuiBase):
             name="Frame Mean",
         )
 
+        self._rg_widget: Any = pyqtgraph.PlotWidget()
+        self._rg_widget.addLegend()
+        self._rg_widget.setTitle("Particle Size vs. Events")
+        self._rg_widget.setLabel(axis="bottom", text="Events")
+        self._rg_widget.setLabel(axis="left", text="Particle Size")
+        self._rg_widget.showGrid(x=True, y=True)
+        self._rg_widget.setYRange(0, 1.0e3)
+
+        self._rg_plot: Any = self._rg_widget.plot(
+            tuple(range(-5000, 0)),
+            [0.0] * 5000,
+            pen=None,
+            symbol="o",
+            symbolPen=pyqtgraph.mkPen("y"),
+            symbolSize=3,
+            name="Particle Size",
+        )
+
         self._radial_stack_view: Any = pyqtgraph.ImageView()
         self._radial_stack_view.view.setAspectLocked(False)
         self._radial_stack_view.setLevels(0, 12.0)
@@ -171,6 +189,7 @@ class SwaxsGui(OmGuiBase):
         vertical_splitter.addWidget(self._radial_widget)
         vertical_splitter.addWidget(self._hit_rate_widget)
         vertical_splitter.addWidget(self._roi_widget)
+        vertical_splitter.addWidget(self._rg_widget)
         splitter_0.addWidget(vertical_splitter)
         horizontal_layout.addWidget(splitter_0)
         self._central_widget: Any = QtWidgets.QWidget()
@@ -225,6 +244,8 @@ class SwaxsGui(OmGuiBase):
         self._roi1_plot.setData(tuple(range(-5000, 0)), local_data["roi1_int_history"])
         self._roi2_plot.setData(tuple(range(-5000, 0)), local_data["roi2_int_history"])
         self._frame_mean_plot.setData(tuple(range(-5000, 0)), local_data["image_sum_history"])
+
+        self._rg_plot.setData(tuple(range(-5000, 0)), local_data["rg_history"])
 
         QtWidgets.QApplication.processEvents()
 
