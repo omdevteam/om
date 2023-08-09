@@ -591,6 +591,12 @@ class RadialProfileAnalysisPlots:
             required=True,
         )
 
+        self._num_hits_in_cum_radial_avg: int = get_parameter_from_parameter_group(
+            group=radial_parameters,
+            parameter="num_hits_in_cum_radial_avg",
+            parameter_type=int,
+        )
+
         self._num_events_to_plot: int = 5000
 
         self._hit_rate_running_window: Deque[float] = deque(
@@ -699,11 +705,15 @@ class RadialProfileAnalysisPlots:
         #only add to cumulative radial if a hit, i.e. sample detected
         if sample_detected:
             self._num_hits += 1
-            self._cumulative_hits_radial = cumulative_moving_average(
-                new_radial=radial_profile, 
-                previous_cumulative_avg = self._cumulative_hits_radial, 
-                num_events = self._num_hits
-                )
+            if self._num_hits > self._num_hits_in_cum_radial_avg:
+                #reset cumulative hits radial every N hits
+                self._cumulative_hits_radial = radial_profile
+            else:
+                self._cumulative_hits_radial = cumulative_moving_average(
+                    new_radial=radial_profile, 
+                    previous_cumulative_avg = self._cumulative_hits_radial, 
+                    num_events = self._num_hits
+                    )
 
         return (
             self._q_history,
