@@ -371,6 +371,7 @@ class SwaxsProcessing(OmProcessingProtocol):
         roi2_intensity_history: Deque[float]
         hit_rate_history: Deque[float]
         rg_history: Deque[float]
+        cumulative_hits_radial: NDArray[numpy.float_]
         (
             q_history,
             radials_history,
@@ -380,6 +381,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             roi2_intensity_history,
             hit_rate_history,
             rg_history,
+            cumulative_hits_radial
         ) = self._plots.update_plots(
             radial_profile=received_data["radial_profile"],
             detector_data_sum=received_data["detector_data_sum"],
@@ -412,6 +414,7 @@ class SwaxsProcessing(OmProcessingProtocol):
                         )
                     )
                 ),
+                "cumulative_hits_radial": numpy.array(cumulative_hits_radial),
                 "downstream_monitor_history": numpy.array(downstream_intensity_history),
                 "roi1_int_history": numpy.array(roi1_intensity_history),
                 "roi2_int_history": numpy.array(roi2_intensity_history),
