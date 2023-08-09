@@ -57,6 +57,8 @@ def _fit_by_least_squares(
     coefficients, _, _, _ = numpy.linalg.lstsq(a, b, rcond=None)
     return coefficients
 
+def cumulative_moving_average(new_radial, previous_cumulative_avg, num_events):
+    return ((previous_cumulative_avg * num_events) + new_radial) / (num_events + 1)
 
 def _calc_rg_by_guinier(
     q: NDArray[numpy.float_],
@@ -92,7 +94,6 @@ def _calc_rg_by_guinier(
                 break
     rg: float = (-3 * m) ** (0.5)
     return rg
-
 
 def _calc_rg_by_guinier_peak(
     q: NDArray[numpy.float_],
@@ -611,6 +612,7 @@ class RadialProfileAnalysisPlots:
         self._roi1_intensity_history: Union[Deque[float], None] = None
         self._roi2_intensity_history: Union[Deque[float], None] = None
         self._rg_history: Union[Deque[float], None] = None
+        self._cumulative_hits_radial = None
 
     def update_plots(
         self,
@@ -676,6 +678,8 @@ class RadialProfileAnalysisPlots:
                 [0.0] * self._num_events_to_plot,
                 maxlen=self._num_events_to_plot,
             )
+            #for the first event, the cumulative radial will just be the radial of that first event
+            self._cumulative_hits_radial = radial_profile
 
         self._hit_rate_running_window.append(float(sample_detected))
         avg_hit_rate = (
@@ -692,6 +696,14 @@ class RadialProfileAnalysisPlots:
         self._roi2_intensity_history.append(roi2_intensity)
         # self._hit_rate_history.append(sample_detected)
         self._rg_history.append(rg)
+        #only add to cumulative radial if a hit, i.e. sample detected
+        if sample_detected:
+            self._num_hits += 1
+            self._cumulative_hits_radial = cumulative_moving_average(
+                new_radial=radial_profile, 
+                previous_cumulative_avg = self._cumulative_hits_radial, 
+                num_events = self._num_hits
+                )
 
         return (
             self._q_history,
@@ -702,6 +714,7 @@ class RadialProfileAnalysisPlots:
             self._roi2_intensity_history,
             self._hit_rate_history,
             self._rg_history,
+            self._cumulative_hits_radial,
         )
 
     def clear_plots(self) -> None:
