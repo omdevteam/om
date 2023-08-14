@@ -16,8 +16,8 @@
 """
 Algorithms for the processing of x-ray emission spectroscopy data.
 
-This module contains algorithms that perform data processing operations related to
-x-ray emission spectroscopy (beam energy spectrum retrieval, etc.).
+This module contains algorithms that perform data processing operations for X-ray
+Emission Spectroscopy.
 """
 
 from typing import Any, Dict, Union, cast
@@ -42,16 +42,14 @@ class XesAnalysis:
         """
         Beam energy spectrum retrieval.
 
-        This algorithm stores all the parameters needed to extract beam energy
-        spectra from camera data frames. After the algorithm is initialized, it can be
-        invoked to extract a beam energy spectrum from a provided camera frame. The
-        algorithm initially rotates the camera image to align the beam information with
-        the vertical axis. It then computes the spectrum by integrating the beam
-        energy data in a direction parallel to the axis.
+        This algorithm stores all the parameters needed to extract beam energy spectra
+        from camera data frames. After the algorithm is initialized, it can be invoked
+        to extract a beam energy spectrum from a provided camera frame.
 
-        Optionally, an ADU threshold can be applied to the camera data. The algorithm
-        will compute the energy spectrum using only the pixels whose values exceeds the
-        threshold.
+        Warning:
+
+            This algorithm is designed to be applied to camera frames, rather than
+            data frames from multi-panel area detectors.
 
         Arguments:
 
@@ -60,20 +58,20 @@ class XesAnalysis:
                 entries:
 
                 * `intensity_threshold_in_ADU`: An intensity threshold, in ADU units,
-                  for pixels in the camera frame to be considered in the spectrum
-                  calculation.
+                    for pixels in the camera frame to be considered in the spectrum
+                    calculation. Pixel below this threshold are ignored.
 
-                * `rotation_in_degrees`: The rotation in degrees that should be applied
-                  to the camera image to align the spectrum information to the vertical
-                  axis.
+                * `rotation_in_degrees`: The rotation, in degrees, that should be
+                    applied to the to align the spectrum information with the vertical
+                    axis of the camera data frame.
 
-                * `min_row_in_pix_for_integration`: The row index defining the start of
-                  the region of the camera frame that contains the beam information
-                  (the area that will be integrated by the algorithm).
+                * `min_row_in_pix_for_integration`: The starting row index for the
+                    section of the camera data frame containing the spectrum
+                    information (pixels outside this area are ignored).
 
-                * `min_row_in_pix_for_integration`: The row index defining the end of
-                  the region of the camera frame that contains the beam information
-                  (the area that will be integrated by the algorithm).
+                * `min_row_in_pix_for_integration`: The ending row index for the
+                    section of the camera data frame containing the spectrum
+                    information (pixels outside this area are ignored).
         """
         self._intensity_threshold: float = get_parameter_from_parameter_group(
             group=parameters,
@@ -106,11 +104,20 @@ class XesAnalysis:
         self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
     ) -> Dict[str, NDArray[numpy.float_]]:
         """
-        Calculates beam energy spectrum information from a 2D camera data frame.
+        Calculates beam energy spectrum information from a camera data frame.
 
         This function extracts beam energy spectrum information from a provided camera
         data frame. It returns the raw spectrum information, plus a smoother, filtered
         version of it.
+
+        The function initially rotates the camera image to align the beam information
+        with the vertical axis of the camera data frame. It then computes the beam
+        energy spectrum by integrating the region where the beam energy is recorded
+        along the horizontal axis of the data frame.
+
+        Optionally, the algorithm can apply an ADU threshold can to the camera data. If
+        a threshold is provided when the algorithm is initialized, this function
+        excludes from the spectrum calculation all the pixels below the threshold.
 
         Arguments:
 

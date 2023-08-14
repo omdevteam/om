@@ -69,8 +69,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources class
-                instances.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -144,15 +143,14 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         """
         Retrieves Jungfrau 1M events from a ZMQ stream.
 
-
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved by this function corresponds to the content of an
-        individual ZMQ message, which stores a single detector frame with all the
-        associated data. The events are retrieved from a ZMQ data stream, and the
-        server broadcasting the stream takes care of distributing the events across all
-        processing nodes.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to the content of an individual ZMQ message, which stores a
+        single detector frame with all its associated data. The events are retrieved
+        from a ZMQ data stream, and the server broadcasting the stream takes care of
+        distributing the events across all processing nodes.
 
         Arguments:
 
@@ -170,7 +168,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         try:
             zmq_socket.connect(url)
         except zmq.error.ZMQError as exc:
-            raise R(
+            raise OmInvalidZmqUrl(
                 "The format of the provided URL is not valid. The URL must be in "
                 "the format tcp://hostname:port or in the format "
                 "ipc:///path/to/socket, and in the latter case the user must have the "
@@ -282,8 +280,8 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Jungfrau 1M's ZMQ data stream does not allow the retrieval of standalone data
-        events, so this function has no implementation.
+        Jungfrau 1M's ZMQ data stream does not allow the retrieval of single standalone
+        data events, so this function has no implementation.
 
         Raises:
 
@@ -299,8 +297,8 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Jungfrau 1M's ZMQ data stream does not allow the retrieval of standalone data
-        events, so this function has no implementation.
+        Jungfrau 1M's ZMQ data stream does not allow the retrieval of single standalone
+        data events, so this function has no implementation.
 
         Arguments:
 

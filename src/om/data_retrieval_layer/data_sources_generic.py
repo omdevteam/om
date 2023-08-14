@@ -58,16 +58,14 @@ class TimestampFromEvent(OmDataSourceProtocol):
         """
         Timestamp information from data events.
 
-        This class deals with the retrieval of the timestamp information stored in a
-        data event.
+        This class deals with the retrieval of the timestamp information stored in data
+        events. Several software frameworks provide direct timestamp information about
+        the events they generate. OM retrieves this information and stores it in the
+        data event structure. This class retrieves it from there.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        Several software frameworks provide direct timestamp information about the
-        events they generate. OM retrieves this information and stores it in the data
-        event structure. This class retrieves it from there.
 
         Arguments:
 
@@ -87,14 +85,14 @@ class TimestampFromEvent(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve timestamp information from a data
-        event, so this function actually does nothing.
+        No initialization is needed to retrieve timestamp information from data events,
+        so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        Retrieves timestamp information from a data event.
+        Retrieves the timestamp information from a data event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -127,15 +125,12 @@ class FloatEntryFromConfiguration(OmDataSourceProtocol):
         """
         Numerical values from configuration parameters.
 
-        This class deals with the retrieval of a numerical value from one of OM's
-        configuration parameters.
+        This class deals with the retrieval of numerical values from OM's configuration
+        parameters.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        This class retrieves the value of the `{data_source_name`} entry from OM's
-        `data_retrieval_layer` configuration parameter group. .
 
         Arguments:
 
@@ -170,13 +165,13 @@ class FloatEntryFromConfiguration(OmDataSourceProtocol):
 
     def get_data(self, *, event: Dict[str, Any]) -> float:
         """
-        Retrieves the numerical value.
+        Retrieves the numerical value of an OM's configuration parameter
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function returns the value of the configuration entry read by the Data
-        Source class.
+        This function returns the value of the configuration parameter retrieved by the
+        the Data Source.
 
         Arguments:
 

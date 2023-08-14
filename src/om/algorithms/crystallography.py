@@ -93,7 +93,7 @@ class Peakfinder8PeakDetection:
         """
         Peakfinder8 algorithm for peak detection.
 
-        This algorithm stores all the parameters required to perform peak-finding on a
+        This algorithm stores all the parameters required to detect Bragg peaks in a
         detector data frame using the `peakfinder8` strategy, described in the
         following publication:
 
@@ -133,24 +133,24 @@ class Peakfinder8PeakDetection:
 
                 * `minimum_snr`: The minimum signal-to-noise ratio for peak detection.
 
-                * `min_pixel_count`: The minimum size of a peak (in pixels).
+                * `min_pixel_count`: The minimum size of a peak in pixels.
 
-                * `max_pixel_count`: The maximum size of a peak (in pixels).
+                * `max_pixel_count`: The maximum size of a peak in pixels.
 
                 * `local_bg_radius`: The radius, in pixels, for the estimation of the
                   local background.
 
-                * `min_res`: The minimum distance (in pixels from the center of the
-                   detector) at which a peak can be located.
+                * `min_res`: The minimum distance at which a peak can be located, in
+                   pixels, from the center of the detector.
 
-                * `max_res`: The maximum distance (in pixels from the center of the
-                   detector) at which a peak can be located.
+                * `max_res`: The maximum distance at which a peak can be located, in
+                   pixels, from the center of the detector.
 
                 * `bad_pixel_map_filename`: The relative or absolute path to an HDF5
                    file containing a bad pixel map. The map can be used to exclude
                    regions of the data frame from the peak search. If the value of this
-                   entry is None, the search extends to the full frame. Defaults to
-                   None.
+                   entry is None, the peak search extends to the full frame. Defaults
+                   to None.
 
                     - The map must be a numpy array with the same shape as the data
                       frame on which the algorithm is applied.
@@ -305,7 +305,7 @@ class Peakfinder8PeakDetection:
         Gets the minimum ADC threshold for peak detection.
 
         This function returns the minimum ADC threshold currently used by the algorithm
-        for peak detection.
+        to detect peaks.
 
         Returns:
 
@@ -317,8 +317,8 @@ class Peakfinder8PeakDetection:
         """
         Sets the current minimum ADC threshold for peak detection.
 
-        This function sets the minimum ADC threshold used by the algorithm for peak
-        detection. Any future call to the
+        This function sets the minimum ADC threshold used by the algorithm to detect
+        peaks. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
         method will use, for the `adc_thresh` parameter, the value provided here.
 
@@ -333,7 +333,7 @@ class Peakfinder8PeakDetection:
         Gets the current minimum signal-to-noise ratio for peak detection.
 
         This function returns the minimum signal-to-noise ratio currently used by the
-        algorithm for peak detection.
+        algorithm to detect peaks.
 
         Returns:
 
@@ -345,8 +345,8 @@ class Peakfinder8PeakDetection:
         """
         Sets the minimum signal-to-noise ratio for peak detection.
 
-        This function sets the minimum signal-to-noise ratio used by the algorithm for
-        peak detection. Any future call to the
+        This function sets the minimum signal-to-noise ratio used by the algorithm to
+        detect peaks. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
         method will use, for the `minimum_snr` algorithm parameter, the value provided
         here.
@@ -360,20 +360,20 @@ class Peakfinder8PeakDetection:
 
     def get_min_pixel_count(self) -> int:
         """
-        Gets the current minimum size for a peak (in pixels).
+        Gets the current minimum size for a peak in pixels.
 
         This function returns the minimum size, in pixels, that the algorithm currently
         expects a peak to have.
 
         Returns:
 
-            The current minimum size for a peak (in pixels).
+            The current minimum size, in pixels, for a peak.
         """
         return self._min_pixel_count
 
     def set_min_pixel_count(self, *, min_pixel_count: int) -> None:
         """
-        Sets the minimum size for a peak (in pixels).
+        Sets the minimum size for a peak in pixels.
 
         This function sets the minimum size, in pixels, that the algorithm expects a
         peak to have. Any future call to the
@@ -382,26 +382,26 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            min_pixel_count: The new minimum size for a peak (in pixels).
+            min_pixel_count: The new minimum size for a peak in pixels.
         """
         self._min_pixel_count = min_pixel_count
 
     def get_max_pixel_count(self) -> int:
         """
-        Gets the current maximum size for a peak (in pixels).
+        Gets the current maximum size for a peak in pixels.
 
-        This function returns the maximum size, in pixels, that the algorithm
-        currently expects a peak to have.
+        This function returns the maximum size, in pixels, that the algorithm currently
+        expects a peak to have.
 
         Returns:
 
-            The current maximum size for a peak (in pixels).
+            The current maximum size, in pixels, for a peak.
         """
         return self._max_pixel_count
 
     def set_max_pixel_count(self, *, max_pixel_count: int) -> None:
         """
-        Sets the maximum size for a peak (in pixels).
+        Sets the maximum size for a peak in pixels.
 
         This function sets the maximum size, in pixels, that the algorithm expects a
         peak to have. Any future call to the
@@ -410,7 +410,7 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            max_pixel_count: The new maximum size for a peak (in pixels).
+            max_pixel_count: The new maximum size for a peak in pixels.
         """
         self._max_pixel_count = max_pixel_count
 
@@ -418,7 +418,7 @@ class Peakfinder8PeakDetection:
         """
         Gets the radius, in pixels, currently used to estimate the local background.
 
-        This function returns the radius (in pixels) currently used by the algorithm to
+        This function returns the radius, in pixels, currently used by the algorithm to
         estimate the local background.
 
         Returns:
@@ -432,44 +432,44 @@ class Peakfinder8PeakDetection:
         """
         Sets the radius, in pixels, for the estimation of the local background.
 
-        This function sets the radius (in pixels) used by the algorithm to estimate the
+        This function sets the radius, in pixels, used by the algorithm to estimate the
         local background. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
         method will use, for the `local_bg_radius` parameter, the value provided here.
 
         Arguments:
 
-            local_bg_radius: The new radius, in pixels, to be used or the estimation of
-                the local background.
+            local_bg_radius: The new radius, in pixels, to be used for the estimation
+                of the local background.
         """
         self._local_bg_radius = local_bg_radius
 
     def get_min_res(self) -> int:
         """
-        Gets the minimum distance from the detector's center for a peak (in pixels).
+        Gets the minimum distance for a peak from the detector's center in pixels.
 
-        This function returns the current minimum distance (in pixels) from the center
-        of the detector that the algorithm expects a peak to have.
+        This function returns the minimum distance from the center of the detector, in
+        pixels, that the algorithm currently expects a peak to have.
 
         Returns:
 
-            The current minimum distance (in pixels) from the detector's center for a
-            peak.
+            The current minimum distance, in pixels, for a peak from the detector's
+            center.
         """
         return self._min_res
 
     def set_min_res(self, *, min_res: int) -> None:
         """
-        Sets the minimum distance from the detector's center for a peak (in pixels).
+        Sets the minimum distance for a peak from the detector's center in pixels.
 
-        This function sets the minimum distance (in pixels) from the center of the
-        detector that the algorithm expects a peak to have. Any future call to the
+        This function sets the minimum distance from the center of the detector, in
+        pixels, that the algorithm expects a peak to have. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
         method will use, for the `min_res` parameter, the value provided here.
 
         Arguments:
 
-            min_res: The new minimum distance(in pixels) from the detector's center
+            min_res: The new minimum distance, in pixels, from the detector's center
                 for a peak.
         """
         self._min_res = min_res
@@ -477,30 +477,30 @@ class Peakfinder8PeakDetection:
 
     def get_max_res(self) -> int:
         """
-        Gets the maximum distance from the detector's center for a peak (in pixels).
+        Gets the maximum distance for a peak from the detector's center in pixels.
 
-        This function returns the current maximum distance (in pixels) from the center
-        of the detector that the algorithm expects a peak to have.
+        This function returns the maximum distance from the center of the detector, in
+        pixels, that the algorithm currently expects a peak to have.
 
         Returns:
 
-            The current maximum distance (in pixels) from the detector's center for a
-            peak.
+            The current maximum distance, in pixels, for a peak from the detector's
+            center.
         """
         return self._max_res
 
     def set_max_res(self, max_res: int) -> None:
         """
-        Sets the maximum resolution for a peak (in pixels).
+        Sets the maximum distance for a peak from the detector's center in pixels.
 
-        This function sets the maximum distance (in pixels) from the center of the
-        detector that the algorithm expects a peak to have. Any future call to the
+        This function sets the maximum distance from the center of the detector, in
+        pixels, that the algorithm expects a peak to have. Any future call to the
         [`find_peaks`][om.algorithms.crystallography.Peakfinder8PeakDetection.find_peaks]
-        method will use, for the `max_res` parameter, the value provided here.
+        method will use, for the `min_res` parameter, the value provided here.
 
         Arguments:
 
-            max_res: The new maximum distance(in pixels) from the detector's center
+            min_res: The new maximum distance, in pixels, from the detector's center
                 for a peak.
         """
         self._max_res = max_res

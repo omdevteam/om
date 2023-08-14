@@ -91,8 +91,7 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources class
-                instances.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -169,11 +168,12 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved by this function corresponds to the content of an
-        individual single-frame CBF file. The function tries to distribute the events
-        as evenly as possible across all the processing nodes, with each node ideally
-        processing the same number of events. If the total number of events cannot be
-        split evenly, the last last node will process fewer events then the others.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to the content of an individual single-frame CBF file. The
+        function tries to distribute the events as evenly as possible across all the
+        processing nodes, with each node ideally processing the same number of events.
+        If the total number of events cannot be split evenly, the last last node will
+        process fewer events than the others.
 
         Arguments:
 
@@ -235,8 +235,8 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         information about this method.
 
         This function opens the CBF file associated with the data event and stores its
-        content in the `event` dictionary, as the value corresponding to the `data`
-        key.
+        content in the provided `event` dictionary, as the value corresponding to the
+        `data` key.
 
         Arguments:
 
@@ -312,8 +312,8 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         """
         Initializes data data retrieval from Pilatus single-frame files.
 
-        This function initializes the retrieval of a single standalone data
-        events from Pilatus single-frame data files.
+        This function initializes the retrieval of single standalone data events from
+        Pilatus single-frame data files.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -342,8 +342,9 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        A Pilatus single-frame file event identifier corresponds to the relative or
-        absolute path to a file containing the event data.
+        This function retrieves all data related to the event specified by the provided
+        identifier. A Pilatus single-frame file event identifier corresponds to the
+        relative or absolute path to a file containing the event data.
 
         Arguments:
 
@@ -403,7 +404,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -480,12 +481,12 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved by this function corresponds to a single single detector
-        data frame with all the associated data. The function tries to distribute the
-        events as evenly as possible across all the processing nodes, with each node
-        ideally processing the same number of events. If the total number of events
-        cannot be split evenly, the last last node processes fewer events then the
-        others.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to a single single detector data frame with all its
+        associated data. The function tries to distribute the events as evenly as
+        possible across all the processing nodes, with each node ideally processing the
+        same number of events. If the total number of events cannot be split evenly,
+        the last last node processes fewer events than the others.
 
         Arguments:
 
@@ -581,9 +582,9 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         information about this method.
 
         Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which splits the frames across the processing nodes,
-        takes care of opening and closing the files. This function therefore does
-        nothing.
+        `event_generator` method, which distributes the frames across the processing
+        nodes, takes care of opening and closing the files. This function therefore
+        does nothing.
 
         Arguments:
 
@@ -599,9 +600,9 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         information about this method.
 
         Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which splits the frames across the processing nodes,
-        takes care of opening and closing the files. This function therefore does
-        nothing.
+        `event_generator` method, which distributes the frames across the processing
+        nodes, takes care of opening and closing the files. This function therefore
+        does nothing.
 
         Arguments:
 
@@ -662,7 +663,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         """
         Initializes event data retrieval from Jungfrau 1M HDF5 files.
 
-        This function initializes the retrieval of a single standalone data event from
+        This function initializes the retrieval of single standalone data events from
         Jungfrau 1M HDF5 files.
 
         Please see the documentation of the base Protocol class for additional
@@ -692,8 +693,9 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        The Jungfrau 1M unique event identifier is a string consisting of the absolute
-        or relative path to the master HDF5 file attached to the event, together with
+        This function retrieves all data related to the event specified by the provided
+        identifier. A Jungfrau 1M unique event identifier is a string consisting of the
+        absolute or relative path to the master HDF5 file attached to the event, and
         the index of the event within the file, separated by the '//' symbol.
 
         Arguments:
@@ -776,7 +778,7 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -853,12 +855,12 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved by this function corresponds to a single single detector
-        data frame with all the associated data. The function tries to distribute the
-        events as evenly as possible across all the processing nodes, with each node
-        ideally processing the same number of events. If the total number of events
-        cannot be split evenly, the last last node processes fewer events then the
-        others.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to a single detector data frame with all its associated
+        data. The function tries to distribute the events as evenly as possible across
+        all the processing nodes, with each node ideally processing the same number of
+        events. If the total number of events cannot be split evenly, the last node
+        processes fewer events than the others.
 
         Arguments:
 
@@ -923,9 +925,9 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         information about this method.
 
         Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which splits the frames across the processing nodes,
-        takes care of opening and closing the files. This function therefore does
-        nothing.
+        `event_generator` method, which distributes the frames across the processing
+        nodes, takes care of opening and closing the files. This function therefore
+        does nothing.
 
         Arguments:
 
@@ -941,9 +943,9 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         information about this method.
 
         Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which splits the frames across the processing nodes,
-        takes care of opening and closing the files. This function therefore does
-        nothing.
+        `event_generator` method, which distributes the frames across the processing
+        nodes, takes care of opening and closing the files. This function therefore
+        does nothing.
 
         Arguments:
 
@@ -1034,9 +1036,10 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        The Eiger unique event identifier is a string consisting of the absolute or
-        relative path to an HDF5 data file attached to the event, together with the
-        index of the event within the file, separated by '//' symbol.
+        This function retrieves all data related to the event specified by the provided
+        identifier. An Eiger event identifier is a string consisting of the absolute or
+        relative path to the HDF5 data file attached to the event, and the index of the
+        event within the file, separated by '//' symbol.
 
         Arguments:
 
@@ -1106,7 +1109,7 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -1146,8 +1149,7 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes Rayonix MX340-HS single-frame file event handling on the processing
-        nodes.
+        Initializes Rayonix MX340-HS file-based event handling on the processing nodes.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -1184,11 +1186,12 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved ny this function corresponds to the content of an
-        individual single-frame mccd file. The function tries to distribute the events
-        as evenly as possible across all the processing nodes, with each node ideally
-        processing the same number of events. If the total number of events cannot be
-        split evenly, the last last node processes fewer events then the others.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to the content of an individual single-frame mccd file. The
+        function tries to distribute the events as evenly as possible across all the
+        processing nodes, with each node ideally processing the same number of events.
+        If the total number of events cannot be split evenly, the last last node
+        processes fewer events than the others.
 
         Arguments:
 
@@ -1329,9 +1332,8 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         """
         Initializes event data retrievals from Rayonix MX340-HS single-frame files.
 
-        This function initializes the retrieval of a single standalone detector data
-        frame from a Rayonix MX340-HS single-frame file, with all the information that
-        refers to it.
+        This function initializes the retrieval of single standalone data events
+        from Rayonix MX340-HS single-frame files.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -1360,8 +1362,9 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        The Rayonix MX340-HS event identifier is the full absolute or relative path to
-        the mccd file associated with the event.
+        This function retrieves all data related to the event specified by the provided
+        identifier. A Rayonix MX340-HS event identifier is the full absolute or
+        relative path to the mccd file associated with the event.
 
         Arguments:
 
@@ -1422,7 +1425,7 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -1499,11 +1502,12 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        Each event retrieved from this function corresponds to a single detector frame
-        with all the associated data. The function tries to distribute the events as
-        evenly as possible across all the processing nodes, with each node ideally
-        processing the same number of events. If the total number of events cannot be
-        split evenly, the last last node processes fewer events then the others.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to a single detector frame with all its associated data. The
+        function tries to distribute the events as evenly as possible across all the
+        processing nodes, with each node ideally processing the same number of events.
+        If the total number of events cannot be split evenly, the last last node
+        processes fewer events than the others.
 
         Arguments:
 
@@ -1582,9 +1586,9 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         information about this method.
 
         Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which splits the frames across the processing nodes,
-        takes care of opening and closing the files. This function therefore does
-        nothing.
+        `event_generator` method, which distributes the frames across the processing
+        nodes, takes care of opening and closing the files. This function therefore
+        does nothing.
 
         Arguments:
 
@@ -1600,9 +1604,9 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         information about this method.
 
         Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which splits the frames across the processing nodes,
-        takes care of opening and closing the files. This function therefore does
-        nothing.
+        `event_generator` method, which distributes the frames across the processing
+        nodes, takes care of opening and closing the files. This function therefore
+        does nothing.
 
         Arguments:
 
@@ -1693,11 +1697,12 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        The Lambda 1.5M unique event identifier is a string consisting of two parts.
-        The first is the absolute or relative path to an HDF5 file storing the first
-        panel of the detector data attach to the event ("*_m01.nxs"), while the second
-        is the index of the event within the file. The two parts are separated by the
-        '//' symbol.
+        This function retrieves all data related to the event specified by the provided
+        identifier. A Lambda 1.5M unique event identifier is a string consisting of two
+        parts. The first part is the absolute or relative path to the HDF5 file storing
+        the first panel of the detector data frame attached to the event ("*_m01.nxs"),
+        while the second part is the index of the event within the file. The two parts
+        are separated by the '//' symbol.
 
         Arguments:
 

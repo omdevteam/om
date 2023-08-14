@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-ASAPO-related data sources.
+ASAP::O-related data sources.
 
 This module contains Data Source classes that deal with data retrieved from the ASAP::O
 software framework (used at the PETRA III facility).
@@ -51,9 +51,9 @@ class EigerAsapo(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Eiger 16M detector data from the ASAP::O at the PETRA III facility.
+        Eiger 16M detector data frames from ASAP::O at the PETRA III facility.
 
-        This class deals with the retrieval of a EIGER 16M detector data frame from the
+        This class deals with the retrieval of EIGER 16M detector data frames from the
         ASAPO software framework, as used at the PETRA III facility.
 
         This class implements the interface described by its base Protocol class.
@@ -73,12 +73,12 @@ class EigerAsapo(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ASAP::O Eiger 16M detector data source.
+        Initializes the ASAP::O Eiger 16M detector data frame source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve a detector data frame from ASAP::O, so
+        No initialization is needed to retrieve detector data frames from ASAP::O, so
         this function actually does nothing.
         """
         pass
@@ -102,7 +102,7 @@ class EigerAsapo(OmDataSourceProtocol):
 
         Returns:
 
-            One detector data frame.
+            A detector data frame.
         """
         # TODO: Fix type hinting
         return cast(
@@ -127,7 +127,7 @@ class TimestampAsapo(OmDataSourceProtocol):
         """
         Timestamp information from ASAP::O at the PETRA III facility.
 
-        This class deals with the retrieval of timestamp information from the ASAPO
+        This class deals with the retrieval of timestamp information from the ASAP::O
         software framework. ASAP::O provides this information for each event.
 
         This class implements the interface described by its base Protocol class.
@@ -152,7 +152,7 @@ class TimestampAsapo(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve timestamp information from ASAPO,
+        No initialization is needed to retrieve timestamp information from ASAP::O,
         so this function actually does nothing.
         """
         pass
@@ -190,18 +190,14 @@ class EventIdAsapo(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Data event identifier from ASAPO at the PETRA III facility.
+        Data event identifiers from ASAP::O at the PETRA III facility.
 
-        This class deals with the retrieval of a unique event identifier for
+        This class deals with the retrieval of unique event identifiers for
         ASAP::O-based data events.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        With ASAP::O, an OM's data event corresponds to the content of an individual
-        ASAP::O event. The combination of ASAPO stream name and ASAPO event ID is used
-        to generate an event identifier.
 
         Arguments:
 
@@ -221,25 +217,27 @@ class EventIdAsapo(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is required to retrieve an event identifier for a ASAPO-based
-        data event, so this function actually does nothing.
+        No initialization is required to retrieve event identifiers for ASAP::O, so
+        this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for an ASAP::O-based data event.
+        Retrieves an event identifier from ASAP::O.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function constructs the event identifier for the provided event by joining
-        the following elements in a single string, with the "//" symbol placed between
-        them.
+        This function retrieves a unique event identifier for the provided event.
+        Since an ASAP::O-based OM data event corresponds to the content of a single
+        ASAP::O event, the function constructs the event identifier by joining the
+        following elements in a single string, with the "//" symbol placed between
+        them:
 
         * The name of the ASAP::O stream.
 
-        * The ID of the event in the stream.
+        * The ID of the ASAP::O event in the stream.
 
         Arguments:
 
@@ -268,7 +266,7 @@ class BeamEnergyAsapo(OmDataSourceProtocol):
         """
         Beam energy information from ASAP::O at the PETRA III facility.
 
-        This class deals with the retrieval of beam energy information from ASAPO.
+        This class deals with the retrieval of beam energy information from ASAP::O.
         ASAP::O provides this information for each event.
 
         This class implements the interface described by its base Protocol class.
@@ -280,7 +278,7 @@ class BeamEnergyAsapo(OmDataSourceProtocol):
             data_source_name: A name that identifies the current data source. It is
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
-    
+
             monitor_parameters: An object storing OM's configuration parameters.
         """
         del data_source_name
@@ -293,8 +291,8 @@ class BeamEnergyAsapo(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is required to retrieve the beam energy for an ASAPO-based
-        data event, so this function actually does nothing.
+        No initialization is required to retrieve beam energy information from ASAP::O,
+        so this function actually does nothing.
         """
         pass
 
@@ -337,7 +335,7 @@ class DetectorDistanceAsapo(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector distance information from ASAPO at the PETRA III facility.
+        Detector distance information from ASAP::O at the PETRA III facility.
 
         This class deals with the retrieval of detector distance information from
         ASAP::O. ASAP::O provides this information for each event.
@@ -364,8 +362,8 @@ class DetectorDistanceAsapo(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is required to retrieve the detector distance for an
-        ASAP::O-based data event, so this function actually does nothing.
+        No initialization is required to retrieve detector distance information from
+        ASAP::O, so this function actually does nothing.
         """
         pass
 
@@ -376,7 +374,7 @@ class DetectorDistanceAsapo(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function retrieves from ASAP::O the detector distance information
+        This function retrieves from ASAP::O the detector distance information\
         associated with the provided event.
 
         Arguments:

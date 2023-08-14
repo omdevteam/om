@@ -18,10 +18,9 @@
 """
 OM's Data Retrieval Layer.
 
-This package contains OM's Data Retrieval Layer (which manages the retrieval of data
-and data events from various sources). Modules in the package contain Functions and
-classes for specific detectors, facilities and software frameworks. A separate  module
-contain utility functions and classes.
+This package contains OM's Data Retrieval Layer, which takes care of retrieving data
+and data events to be processed. Modules in this package contain Functions and classes
+for specific detectors, facilities or software frameworks.
 """
 
 from .data_retrieval_files import (  # noqa: F401

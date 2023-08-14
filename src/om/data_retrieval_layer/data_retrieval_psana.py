@@ -28,6 +28,7 @@ from om.data_retrieval_layer.data_sources_psana import (
     BeamEnergyFromEpicsVariablePsana,
     BeamEnergyPsana,
     CspadPsana,
+    DiodeTotalIntensityPsana,
     EpicsVariablePsana,
     Epix10kaPsana,
     Epix100Psana,
@@ -37,8 +38,6 @@ from om.data_retrieval_layer.data_sources_psana import (
     LclsExtraPsana,
     RayonixPsana,
     TimestampPsana,
-    Wave8Psana,
-    BeamlineDataPsana,
 )
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
@@ -55,11 +54,11 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval from psana at the CXI beamline (LCLS).
+        Data Retrieval from psana at the CXI beamline of the LCLS facility.
 
         This class implements OM's Data Retrieval Layer for the CXI beamline of the
-        LCLS facility, using the Jungfrau 4M x-ray detector, currently the main
-        detector used at this beamline.
+        LCLS facility, using the Jungfrau 4M x-ray detector. The Jungfrau 4M is
+        currently the main detector used at the CXI beamline.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -114,10 +113,10 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
-            "post_sample_intensity": BeamlineDataPsana(
+            "post_sample_intensity": DiodeTotalIntensityPsana(
                 data_source_name="post_sample_intensity",
                 monitor_parameters=monitor_parameters,
-            ),           
+            ),
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
                 monitor_parameters=monitor_parameters,
@@ -132,7 +131,7 @@ class CxiLclsDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -151,7 +150,7 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval from psana at the CXI beamline (LCLS), with the CSPAD detector.
+        Data Retrieval from psana at the CXI beamline of the LCLS facility (CSPAD).
 
         This class implements OM's Data Retrieval Layer for the CXI beamline of the
         LCLS facility, using the CSPAD x-ray detector. This detector was used at the
@@ -226,7 +225,8 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
+
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
@@ -244,11 +244,12 @@ class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval from psana at the CXI beamline (LCLS), with the ePix100 detector.
+        Data Retrieval from psana at the CXI beamline of the LCLS facility (ePix100).
 
         This class implements OM's Data Retrieval Layer for the CXI beamline of the
         LCLS facility, using the ePix100 x-ray detector. This detector is often used
-        to record beam energy spectrum information in XES experiments.
+        to record beam energy spectrum information in X-ray Emission Spectroscopy
+        experiments.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -316,7 +317,7 @@ class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -335,11 +336,11 @@ class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval from psana at the MFX beamline (LCLS).
+        Data Retrieval from psana at the MFX beamline of the LCLS facility.
 
         This class implements OM's Data Retrieval Layer for the MFX beamline of the
-        LCLS facility, using the Epix10KA 2M x-ray detector, currently the main
-        detector used at this beamline.
+        LCLS facility, using the Epix10KA 2M x-ray detector. The Epix10KA is currently
+        the main detector used at the MFX beamline.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -408,7 +409,7 @@ class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -427,7 +428,7 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval for events retrieved from psana at MFX (LCLS) with Rayonix.
+        Data Retrieval from psana at MFX beamline of the LCLS facility (Rayonix).
 
         This class implements OM's Data Retrieval Layer for the MFX beamline of the
         LCLS facility, using the Rayonix x-ray detector.
@@ -499,7 +500,7 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

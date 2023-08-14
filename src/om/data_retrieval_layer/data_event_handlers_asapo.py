@@ -18,8 +18,8 @@
 """
 Handling of ASAP::O-based data events.
 
-This module contains Data Event Handler classes that manipulate events originating from
-the ASAP::O software framework (used at the PETRA III facility).
+This module contains Data Event Handler classes that manipulate events originating 
+from the ASAP::O software framework (used at the PETRA III facility).
 """
 import sys
 import time
@@ -76,25 +76,24 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         the interface.
 
         * For this Event Handler, a data event corresponds to the content of an
-          individual ASAP::O event.
+            individual ASAP::O event.
 
         * The source string required by this Data Event Handler is either the ID of the
-          beamtime for which OM is being used (for online data retrieval) or the ID of
-          the beamtime and the name of the ASAP::O stream separated by a colon (for
-          offline data retrieval).
+            beamtime for which OM is being used (for online data retrieval) or the ID
+            of the beamtime and the name of the ASAP::O stream separated by a colon
+            (for offline data retrieval).
 
         Arguments:
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources class
-                instances.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                  that describes the source.
+                    [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                    that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
@@ -262,7 +261,8 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved by this function corresponds to a single ASAP::O event.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to a single ASAP::O event.
 
         Arguments:
 
@@ -400,8 +400,8 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         """
         Initializes event data retrievals from ASAP::O.
 
-        This function initializes the retrieval of single standalone data
-        events from ASAP::O.
+        This function initializes the retrieval of single standalone data events from
+        ASAP::O.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -430,8 +430,10 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        The ASAP::O event identifier corresponds to the ASAP::O stream name and the ID
-        of the ASAP::O event within the stream separated by the "//" symbol.
+        This function retrieves all data related to the event specified by the provided
+        identifier. An ASAP::O event identifier corresponds to the ASAP::O stream name
+        and the ID of the ASAP::O event within the stream, separated by the "//"
+        symbol.
 
         Arguments:
 

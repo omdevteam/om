@@ -53,16 +53,15 @@ class XesGui(OmGuiBase):
 
     def __init__(self, url: str, time_resolved: bool = False) -> None:
         """
-        OM graphical user interface for crystallography.
+        OM graphical user interface for XES.
 
         This class implements a graphical user interface for XES experiments.
-
-        This GUI receives reduced and aggregated data from an OnDA Monitor, but only
+        The GUI receives reduced and aggregated data from an OnDA Monitor, but only
         when it is tagged with the `view:omdata` label. The data must contain
-        information about collected XES spectra. The UI will then display the last
+        information about the collected XES spectra. The UI then displays the last
         observed XES spectrum, both in raw and smoothed form, plus an average of the
-        most recently collected spectra. For time resolved experiments, this GUI will
-        display average spectra for pumped and dark events separately, and also show
+        most recently collected spectra. For time resolved experiments, this GUI
+        displays average spectra for pumped and dark events separately, and also shows
         their difference.
 
         Arguments:
@@ -134,13 +133,13 @@ class XesGui(OmGuiBase):
 
     def update_gui(self) -> None:
         """
-        Updates elements of the XES GUI.
+        Updates the elements of the XES GUI.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
-        This method, which is called at regular intervals, updates the displayed
-        spectra.
+        This method, which is called at regular intervals, updates the plots showing
+        the spectrum information.
         """
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
@@ -191,10 +190,10 @@ def main(url: str, time_resolved: bool) -> None:
     """
     OM Graphical User Interface for X-ray Emission Spectroscopy. This program must
     connect to a running OnDA Monitor for X-ray Emission Spectroscopy. If the monitor
-    broadcasts the necessary information, this GUI will display the latest observed
+    broadcasts the necessary information, this GUI displays the latest observed
     XES spectrum, both in raw and smoothed form, and an average of the most recently
-    collected spectra. For time resolved experiments, the GUI will display separate
-    average spectra for pumped and dark events, and also show their difference.
+    collected spectra. For time resolved experiments, the GUI displays separate average
+    spectra for pumped and dark events, and also shows their difference.
 
     The graphical interface connects to and OnDA Monitor running at the IP address
     (or hostname) + port specified by the URL string. This is a string in the format

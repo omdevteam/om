@@ -18,12 +18,9 @@
 """
 OM's GUI for Crystallography.
 
-This module contains the implementation of a graphical interface that displays reduced
-and aggregated data in crystallography experiments.
+This module contains a graphical interface that displays reduced and aggregated data in
+wide-angle x-ray scattering experiments.
 """
-
-# TODO: Documentation of this whole file.
-
 import signal
 import sys
 import time
@@ -60,24 +57,24 @@ class SwaxsGui(OmGuiBase):
 
     def __init__(self, url: str) -> None:
         """
-        OM graphical user interface for crystallography.
+        OM graphical user interface for SWAXS.
 
-        This class implements a graphical user interface for crystallography
-        experiments. It is a subclass of the [OmGui]
-        [om.graphical_interfaces.base.OmGui] base class.
-
-        This GUI receives reduced and aggregated data from an OnDA Monitor for
-        Crystallography when it is tagged with the 'omdata' label. The data must
-        contain information about peaks detected in the frames recently processed by
-        the monitor and information about the current hit rate.
-
-        The GUI displays a plot showing the evolution of the hit rate over time, plus a
-        virtual powder pattern created using the detected peaks.
+        This class implements a graphical user interface for SWAXS experiments. The
+        GUI receives reduced and aggregated data from an OnDA Monitor, but only when it
+        is tagged with the `view:omdata` label. The data must contain information about
+        the most recently collected radial profiles, and about the current hit rate.
+        The GUI then displays a set of plots with information about the current state
+        of the experiment: a collection of the most recently collected radial profiles,
+        the latest observed profile, an average of the most recent profiles, the
+        intensities observed in two predefined regions of the radial profiles (used to
+        detect the presence of a sample droplet), and the estimated size of the sample
+        droplets, if sample droplets are detected. Additionally, the GUI shows the
+        evolution of the hit rate over time.
 
         Arguments:
 
-            url (str): the URL at which the GUI will connect and listen for data. This
-                must be a string in the format used by the ZeroMQ Protocol.
+            url: The URL at which the GUI should connect and listen for data. This must
+                be a string in the format used by the ZeroMQ protocol.
         """
         super(SwaxsGui, self).__init__(
             url=url,
@@ -210,7 +207,8 @@ class SwaxsGui(OmGuiBase):
         refer to the documentation of that class for more information.
 
         This function stores the data received from OM, and calls the internal
-        functions that update the hit rate history plot and the virtual power pattern.
+        functions that update the radial profile, hit rate, intensity, and droplet size
+        plots.
         """
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if
@@ -250,7 +248,9 @@ class SwaxsGui(OmGuiBase):
 
         self._roi1_plot.setData(tuple(range(-5000, 0)), local_data["roi1_int_history"])
         self._roi2_plot.setData(tuple(range(-5000, 0)), local_data["roi2_int_history"])
-        self._frame_mean_plot.setData(tuple(range(-5000, 0)), local_data["image_sum_history"])
+        self._frame_mean_plot.setData(
+            tuple(range(-5000, 0)), local_data["image_sum_history"]
+        )
 
         self._rg_plot.setData(tuple(range(-5000, 0)), local_data["rg_history"])
 
@@ -268,11 +268,14 @@ class SwaxsGui(OmGuiBase):
 @click.argument("url", type=str, required=False)
 def main(url: str) -> None:
     """
-    OM Graphical User Interface for Crystallography. This program must connect to a
-    running OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
-    information, this GUI will display the evolution of the hit rate over time, plus a
-    real-time virtual powder pattern created using the peaks detected in detector
-    frames processed by the monitor.
+    OM Graphical User Interface for Wide-angle X-ray Scattering. This program must
+    connect to a running OnDA Monitor for SWAXS. If the monitor broadcasts the
+    necessary information, this GUI displays the evolution of the hit rate over time,
+    plus a set of plots with further information about the current state of the
+    experiment: a collection of the most recently collected radial profiles, the latest
+    observed profile, an average of the most recent profiles, the intensities observed
+    in two predefined regions of the radial profiles, and the estimated size of the
+    sample droplets, if samples droplets are detected in the jet.
 
     The GUI connects to and OnDA Monitor running at the IP address (or hostname)
     specified by the URL string. This is a string in the format used by the ZeroMQ

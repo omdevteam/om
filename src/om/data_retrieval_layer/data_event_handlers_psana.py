@@ -100,8 +100,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources class
-                instances.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -211,15 +210,17 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved by this function corresponds to a single psana event. When
-        OM retrieves real-time data at the LCLS facility, each processing node receives
-        data from a shared memory server operated by the facility, running on the same
-        machine as the node. The sever takes care of distributing the data events. When
-        instead OM uses the psana framework to read offline data, this function tries
-        to distribute the events as evenly as possible across all the processing nodes,
-        with each node ideally processing the same number of events. If the total
-        number of events cannot be split evenly, the last last node processes fewer
-        events then the others.
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to a single psana event.
+
+        When OM retrieves real-time data at the LCLS facility, each processing node
+        receives data from a shared memory server operated by the facility, running on
+        the same machine as the node. The server takes care of distributing the data
+        events. When instead OM uses the psana framework to read offline data, this
+        function tries to distribute the events as evenly as possible across all the
+        processing nodes, with each node ideally processing the same number of events.
+        If the total number of events cannot be split evenly, the last last node
+        processes fewer events than the others.
 
         Arguments:
 
@@ -348,8 +349,8 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         """
         Initializes event data retrievals from psana.
 
-        This function initializes the retrieval of a single standalone data events
-        from psana.
+        This function initializes the retrieval of single standalone data events from
+        psana.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -379,8 +380,9 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        The psana unique event identifier is a string combining psana's timestamp and
-        fiducial information, with the following format:
+        This function retrieves all data related to the event specified by the provided
+        identifier. The psana unique event identifier is a string combining psana's
+        timestamp and fiducial information, with the following format:
         `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`.
 
         Arguments:

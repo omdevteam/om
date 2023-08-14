@@ -34,8 +34,10 @@ from om.lib.rich_console import console, get_current_timestamp
 
 class TypeFrameListData(NamedTuple):
     """
-    This named tuple is used to store frame data which is then written to frames.txt
-    file.
+    Cheetah frame list data.
+
+    This named tuple is used to store the detector frame data which is later written to
+    the `frames.txt` file.
 
     Arguments:
 
@@ -43,7 +45,7 @@ class TypeFrameListData(NamedTuple):
 
         event_id: The event ID of the frame.
 
-        frame_is_hit: A flag indicating whether the frame is a hit frame.
+        frame_is_hit: A flag indicating whether the frame is a labelled as a hit.
 
         filename: The name of the file containing the frame.
 
@@ -65,16 +67,19 @@ class TypeFrameListData(NamedTuple):
 
 class TypeClassSumData(TypedDict):
     """
-    A dictionary storing the number of detector frames belonging to a certain data
-    class, their sum and the virtual peak powder.
+    Cheetah data class frame sum data.
+
+    A dictionary storing the number of detector frames belonging to a specific data
+    class, their sum, and the virtual powder plot generated from the Bragg peaks
+    detected in them.
 
     Arguments:
 
-        num_frames: The number of detector frames belonging to a certain data class.
+        num_frames: The number of detector frames belonging to the data class.
 
-        sum_frames: The sum of the detector frames belonging to a certain data class.
+        sum_frames: The sum of the detector frames belonging to the class.
 
-        peak_powder: The virtual peak powder of a certain data class.
+        peak_powder: The virtual powder plot for the data class.
     """
 
     num_frames: int
@@ -95,7 +100,8 @@ class CheetahStatusFileWriter:
         """
         Cheetah status file writer.
 
-        This class writes a status file that the Cheetah GUI can inspect.
+        This class stores information about the current state of data processing in
+        Cheetah.
 
         Arguments:
 
@@ -103,7 +109,8 @@ class CheetahStatusFileWriter:
                 parameter group. The parameter group must contain the following
                 entries:
 
-                * `processed_directory`
+                * `directory_for_processed_data`: A relative or absolute path to the
+                  directory where the output files are be written.
 
         """
         directory_for_processed_data: str = get_parameter_from_parameter_group(
@@ -125,15 +132,20 @@ class CheetahStatusFileWriter:
         num_hits: int = 0,
     ) -> None:
         """
-        Writes a status file that the Cheetah GUI can inspect.
+        Writes a status file.
+
+        This function writes the information about the current state of data processing
+        to a status file. The the Cheetah GUI inspect this file to get information
+        about Cheetah's current state.
 
         Arguments:
 
-            status: A string describing the current status of the Cheetah processing.
+            status: A string describing the current status of the data processing in
+                Cheetah.
 
-            num_frames: The number of detector frames processed so far.
+            num_frames: The number of detector frames processed so far by Cheetah.
 
-            num_hits: The number of hits found so far.
+            num_hits: The number of hits found so far by Cheetah.
         """
         fh: TextIO
         time_string: str = time.strftime("%a %b %d %H:%M:%S %Y")
@@ -165,13 +177,15 @@ class CheetahListFilesWriter:
         """
         Cheetah list files writer.
 
-        This class writes "frames.txt", "cleaned.txt", "events.lst", "hits.lst" and
-        "peaks.txt" files required by the Cheetah GUI.
+        This class manages the information that gets written to the "frames.txt",
+        "cleaned.txt", "events.lst", "hits.lst" and "peaks.txt" files required by the
+        Cheetah GUI.
 
         #TODO: describe the files
 
         Arguments:
-            cheetah_parameters: The Cheetah parameters.
+
+            cheetah_parameters: An object storing Cheetah's configuration parameters.
         """
         processed_directory: pathlib.Path = pathlib.Path(
             get_parameter_from_parameter_group(
@@ -214,10 +228,16 @@ class CheetahListFilesWriter:
         """
         Adds a frame to the list files.
 
-        Arguments:
-            frame_data: The frame data.
+        This function adds information related to a single detector data frame to the
+        list files.
 
-            peak_list: The peak list.
+        Arguments:
+
+            frame_data: Information about the frame that must be added to the list
+                files.
+
+            peak_list: The list of peaks detected in the frame being added to the
+                files.
         """
         self._frame_list.append(frame_data)
 
@@ -254,6 +274,9 @@ class CheetahListFilesWriter:
     def flush_files(self) -> None:
         """
         Flushes the list files.
+
+        This function flushes the list files to disk, writing on storage media the
+        information still stored only in memory.
         """
         self._frames_file.flush()
         self._peaks_file.flush()
@@ -262,8 +285,12 @@ class CheetahListFilesWriter:
 
     def sort_frames_and_close_files(self) -> None:
         """
-        Sorts the frames by event ID, writes sorted data to frames.txt, cleaned.txt and
-        events.lst and closes all list files.
+        Performs final operations on the list files.
+
+        This functions performs some operations on the list files just before closing
+        them: it sorts the frames according to their event identifier and it writes the
+        sorted data to the `frames.txt`, `cleaned.txt` and `events.lst` files. The
+        function then closes all the list files.
         """
         frame_list: List[TypeFrameListData] = sorted(self._frame_list)
         self._frames_file.close()
@@ -313,15 +340,25 @@ class CheetahClassSumsAccumulator:
         num_classes: int = 2,
     ) -> None:
         """
-        Cheetah class sums accumulator.
+        Cheetah data class sum accumulator.
 
-        This class computes the sums of detector frames belonging to a certain data
-        class and its virtual peak powder.
+        This class accumulates information about the sum and virtual powder plot of
+        all detector frames belonging to a specific data class. After data frame
+        information has been added to the accumulator, the sum and virtual powder plot
+        for the data class can be retrieved from the accumulator, either after a
+        predefined number of frames has been added to the accumulator, or at will.
 
         Arguments:
-            cheetah_parameters: The Cheetah parameters.
 
-            num_classes: The number of data classes.
+            cheetah_parameters: A set of OM configuration parameters collected
+                together in a parameter group. The parameter group must contain the
+                following entries:
+
+                class_sums_sending_interval: The number of detector frames that the
+                    accumulator can receive before returning the sum and virtual
+                    powder plot information and resetting the accumulator.
+
+            num_classes: The total number of data classes currently managed by Cheetah.
         """
         self._sum_sending_interval: int = get_parameter_from_parameter_group(
             group=cheetah_parameters,
@@ -340,14 +377,19 @@ class CheetahClassSumsAccumulator:
         peak_list: TypePeakList,
     ) -> None:
         """
-        Adds a detector frame to the class sums.
+        Adds a detector frame to the accumulator.
+
+        This function adds information about a detector data frame to the accumulator.
 
         Arguments:
-            class_number: The class number of the frame.
 
-            frame_data: The detector frame data.
+            class_number: The data class number to which the frame being added belongs.
 
-            peak_list: The list of peaks found in the detector frame.
+            frame_data: Information about the detector data frame that must be added to
+                the accumulator.
+
+            peak_list: The list of peaks detected in the frame being added to the
+                accumulator.
         """
         if self._sum_sending_interval == -1:
             return
@@ -379,16 +421,19 @@ class CheetahClassSumsAccumulator:
         self, disregard_counter: bool = False
     ) -> Union[None, List[TypeClassSumData]]:
         """
-        Returns the class sums if the sending interval has been reached or if the
+        Retrieves sum and virtual powder plot data from the accumulator.
+
+        This function returns the data stored in the accumulator if the predefined
+        number of frames has been added to the accumulator, or if the
         `disregard_counter` argument is `True`. Otherwise, returns `None`.
 
         Arguments:
+
             disregard_counter: If `True`, the sending counter is disregarded and the
                 class sums are returned.
 
         Returns:
-            The class sums if the sending interval has been reached or if the
-            `disregard_counter` argument is `True`. Otherwise, `None`.
+            The sum and virtual powder plot stored by the accumulator, or None.
         """
         if self._sum_sending_counter >= self._sum_sending_interval or (
             self._sum_sending_counter > 0 and disregard_counter
@@ -408,18 +453,33 @@ class CheetahClassSumsCollector:
         self,
         *,
         cheetah_parameters: Dict[str, Any],
-        num_classes: int = 2,
+        num_classes: int,
     ) -> None:
         """
-        Cheetah class sums collector.
+        Cheetah data class sum collector.
 
-        This class collects the class sums from the different processes and calculates
-        the total class sums. The class sums are then saved to HDF5 files periodically.
+        This class collects accumulated data class information retrieved from the
+        processing nodes, and stores the cumulative total information associated with
+        the data class. The information collected by this class can optionally be
+        written to an HDF5 file.
 
         Arguments:
-            cheetah_parameters: The Cheetah parameters.
 
-            num_classes: The number of data classes.
+            cheetah_parameters: A set of OM configuration parameters collected together
+                in a parameter group. The parameter group must contain the following
+                entries:
+
+                * `write_class_sums`: Whether the information stored by the collector
+                  should be written to disk regularly.
+
+                * `class_sums_update_interval`: If the information stored by the
+                  collector must be written to disk (see the `write_class_sums`
+                  parameter), this parameter determines how many times the collector
+                  can be updated before the accumulated data is written to a file After
+                  the HDF5 has been written, the update count is reset.
+
+            num_classes: The total number of data classes currently managed by Cheetah.
+
         """
         self._num_classes: int = num_classes
 
@@ -453,11 +513,15 @@ class CheetahClassSumsCollector:
         class_sums: List[TypeClassSumData],
     ) -> None:
         """
-        Adds class sums to the collector. If the update interval has been reached, the
-        class sums are saved to HDF5 files.
+        Adds information to the collectors
+
+        Adds class sums information, retrieved from the processing nodes, to the
+        collector. If the predefined number of updates has been reached, the function
+        triggers the writing of the collector's data to an HDF5 file.
 
         Arguments:
-            class_sums: The class sums to be added.
+
+            class_sums: The information to be added to the collector.
         """
 
         if self._class_sum_update_counter == 0:
@@ -476,10 +540,11 @@ class CheetahClassSumsCollector:
 
     def save_sums(self) -> None:
         """
-        Saves the class sums to HDF5 files.
+        Saves the collector's data  to an HDF5 file.
 
-        This function is called automatically when the update interval has been
-        reached. It can also be called manually.
+        This function saves the collector's accumulated data to an HDF5 file. It is
+        called automatically by the collector when required, but can also be called
+        manually.
         """
         if self._write_class_sums and self._class_sum_update_counter > 0:
             class_number: int
@@ -503,11 +568,11 @@ class HDF5Writer:
         """
         HDF5 file writer for Cheetah.
 
-        This class creates HDF5 data files to store the information processed by the
-        Cheetah software package. For each event, this class saves into an HDF5 file
-        a processed detector data frame, the list of Bragg peaks detected in the
-        frame, and some additional information (timestamp, beam energy, detector
-        distance, pump laser state).
+        This class creates HDF5 data files to store the information processed by
+        Cheetah. For each data event, this class saves into an HDF5 file a processed
+        detector data frame, the list of Bragg peaks detected in the frame, and some
+        additional information (timestamp, beam energy, detector distance, pump laser
+        state).
 
         Arguments:
 
@@ -516,27 +581,27 @@ class HDF5Writer:
                 entries:
 
                 directory_for_processed_data: A relative or absolute path to the
-                    directory where the output files will be written.
+                    directory where the output files are written.
 
                 compression: The compression filter to be applied to the data in the
                     output file.
 
                 hdf5_fields: A dictionary storing information about the internal HDF5
-                    path where each data entry will be written.
+                    path where each data entry must be written.
 
                     * The keys in the dictionary must store the names of data entries
                       to write.
 
                     * The corresponding dictionary values must contain the internal
-                      HDF5 paths where the entries will be written.
+                      HDF5 paths where the entries must be written.
 
-                processed_filename_prefix: A string that will be prepended to the name
-                    of the output files. Optional. If the value of this entry is None,
-                    the string 'processed_' will be used as prefix. Defaults to None.
+                processed_filename_prefix: A string that is prepended to the name of
+                    the output files. Optional. If the value of this entry is None, the
+                    string 'processed_' will be used as prefix. Defaults to None.
 
-                processed_filename_extension: An extension string that will appended to
+                processed_filename_extension: An extension string that id appended to
                     the name of the output files. Optional. If the value of this entry
-                    is None, the string 'h5' will be used as extension. Defaults to
+                    is None, the string 'h5' is be used as extension. Defaults to
                     None.
 
                 compression_opts: The compression level to be used, if data compression
@@ -552,7 +617,7 @@ class HDF5Writer:
                 max_num_peaks: The maximum number of detected Bragg peaks that are
                     written in the HDF5 file for each event. Optional. If the value
                     of this entry is None, only the first 1024 peaks detected in each
-                    frame are be written to the output file. Defaults to None.
+                    frame are written to the output file. Defaults to None.
 
             node_rank: The rank of the OM node that writes the data in the output
                 files.
@@ -659,8 +724,8 @@ class HDF5Writer:
         self._num_frames: int = 0
 
     def _create_file_and_datasets(self, *, processed_data: Dict[str, Any]) -> None:
-        # This function is called when the first data comes. It opens output hdf5 file
-        # and creates all requested datasets.
+        # This function is called when the first data comes. It opens the output hdf5
+        # file and creates all the requested datasets.
         self._h5file = h5py.File(self._processed_filename, "w")
         if (
             "detector_data" in processed_data
@@ -772,7 +837,7 @@ class HDF5Writer:
     def _create_extra_datasets(
         self, *, group_name: str, extra_data: Dict[str, Any]
     ) -> None:
-        # Creates empty dataset in the extra data group for each item in extra_data
+        # Creates an empty dataset in the extra data group for each item in extra_data
         # dict using dict keys as dataset names. Supported data types: numpy arrays,
         # str, float, int and bool.
         key: str
@@ -816,6 +881,7 @@ class HDF5Writer:
                 )
 
     def _write_extra_data(self, *, group_name: str, extra_data: Dict[str, Any]) -> None:
+        # Writes the extra_data items.
         key: str
         value: Any
         for key, value in extra_data.items():
@@ -825,7 +891,7 @@ class HDF5Writer:
         """
         Writes data into an HDF5 data file.
 
-        This function writes the provided data into the HDF5 data file, assuming that
+        This function writes the provided data into an HDF5 data file, assuming that
         all the data belongs to the same processed data event.
 
         Arguments:
@@ -883,6 +949,8 @@ class HDF5Writer:
     def close(self) -> None:
         """
         Closes the file currently being written.
+
+        This function closes the HDF5 file that the class is currently writing.
         """
         if self._h5file is None:
             return
@@ -901,6 +969,9 @@ class HDF5Writer:
         """
         Retrieves the path to the file currently being written.
 
+        This function retrieves the full path to the file that the class is currently
+        writing.
+
         Returns:
 
             The path to the file currently being written.
@@ -909,11 +980,14 @@ class HDF5Writer:
 
     def get_num_written_frames(self) -> int:
         """
-        Retrieves the number frames that have already been saved into the current file.
+        Retrieves the number of data events already written to the current file.
+
+        This function retrieves the number of data events that the class has already
+        saved into the file that is currently writing.
 
         Returns:
 
-            The number of frames already written in the current file.
+            The number of data events already written in the current file.
         """
         return self._num_frames - 1
 
@@ -939,10 +1013,10 @@ class SumHDF5Writer:
         """
         HDF5 writer for sum of frames.
 
-        This class creates HDF5 data files to store the aggregated detector information
-        processed by the Cheetah software package. It saves sums of detector data
-        frames into HDF5 files,together with virtual powder patterns created using the
-        Bragg peaks detected in the frames.
+        This class creates HDF5 data files to store the aggregate information collected
+        by Cheetah. the function saves into HDF5 files sums of detector data frames,
+        together with virtual powder patterns created using the Bragg peaks detected in
+        them.
 
         Arguments:
 
@@ -970,7 +1044,7 @@ class SumHDF5Writer:
         )
 
     def _create_hdf5_file_and_datasets(self, *, data_shape: Tuple[int, ...]) -> None:
-        # Creates the HDF5 file and all datasets
+        # Creates the HDF5 file and all datasets.
         self._h5file: Any = h5py.File(self._filename, "w")
         self._h5file.create_dataset(
             name="/data/nframes",
@@ -997,9 +1071,12 @@ class SumHDF5Writer:
         """
         Writes aggregated detector frame data into an HDF5 file.
 
+        This function writes the provided aggregated data into an HDF5 data file.
+
         Arguments:
 
-            data: A dictionary containing the aggregated detector frame data.
+            data: A dictionary containing the aggregated data to write into the HDF5
+                file.
         """
         if not self._filename.exists():
             self._create_hdf5_file_and_datasets(data_shape=data["sum_frames"].shape)

@@ -18,7 +18,8 @@
 """
 ZMQ-based data sources.
 
-This module contains Data Source classes that deal with data from ZMQ data streams.
+This module contains Data Source classes that deal with data retrieved from ZMQ data
+streams.
 """
 from typing import Any, Dict, List, Tuple, Union, cast
 
@@ -43,9 +44,9 @@ class Jungfrau1MZmq(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector data frames from a Jungfrau 1M ZMQ data stream.
+        Detector data frames from a Jungfrau 1M's ZMQ data stream.
 
-        This class deals with the retrieval of a Jungfrau 1M detector data frame from
+        This class deals with the retrieval of Jungfrau 1M detector data frames from
         a ZMQ stream broadcast by the detector.
 
         This class implements the interface described by its base Protocol class.
@@ -65,7 +66,7 @@ class Jungfrau1MZmq(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Jungfrau 1M detector frame data source for ZMQ data streams.
+        Initializes the Jungfrau 1M's ZMQ stream detector frame data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -129,7 +130,7 @@ class Jungfrau1MZmq(OmDataSourceProtocol):
 
         Returns:
 
-            One detector data frame.
+            A detector data frame.
         """
         msg: Tuple[Dict[str, Any], Dict[str, Any]] = event["data"]
         data: NDArray[numpy.int_] = numpy.concatenate(
@@ -157,10 +158,10 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Timestamp information for Jungfrau 1M ZMQ-based events.
+        Timestamp information from a Jungfrau 1M's ZMQ data stream.
 
         This class deals with the retrieval of timestamp information for Jungfrau 1M
-        data events originating from a ZMQ stream.
+        data events originating from a ZMQ stream broadcast by the detector.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -179,7 +180,7 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ZMQ Jungfrau 1M timestamp data source.
+        Initializes the Jungfrau 1M's ZMQ stream timestamp data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -192,13 +193,13 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        Retrieves timestamp information for a Jungfrau 1M data event.
+        Retrieves timestamp information from a Jungfrau 1M's ZMQ data stream.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         This function returns the timestamp information associated, in the ZMQ data
-        stream, to the provided event.
+        stream broadcast by the detector, to the provided event.
 
         Arguments:
 
@@ -206,7 +207,7 @@ class TimestampJungfrau1MZmq(OmDataSourceProtocol):
 
         Returns:
 
-            The timestamp of the Jungfrau 1M ZMQ data event.
+            The timestamp for the data event.
         """
 
         return cast(numpy.float64, event["data"][0]["timestamp"])
@@ -224,10 +225,10 @@ class EventIdJungfrau1MZmq(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Event identifier for Jungfrau 1M ZMQ-based events.
+        Event identifiers from a Jungfrau 1M's ZMQ data stream..
 
-        This class deals with the retrieval of a unique identifier for Jungfrau 1M
-        data events originating from a ZMQ stream.
+        This class deals with the retrieval of unique identifiers for Jungfrau 1M
+        data events originating from a ZMQ stream broadcast by the detector.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -246,26 +247,26 @@ class EventIdJungfrau1MZmq(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ZMQ Jungfrau 1M event identifier data source.
+        Initializes the Jungfrau 1M's ZMQ stream event identifier data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve an event identifier for Jungfrau 1M
-        data events originating from a ZMQ stream, so this function actually does
-        nothing.
+        No initialization is needed to retrieve event identifiers for Jungfrau 1M
+        data events originating from a ZMQ stream broadcast by the detector, so this
+        function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for a Jungfrau 1M data event.
+        Retrieves an event identifier from a Jungfrau 1M's ZMQ data stream.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function returns the frame number associated, in the ZMQ data stream, to
-        the provided event.
+        This function returns the frame number associated, in the ZMQ data stream
+        broadcast by the detector to the provided event.
 
         Arguments:
 

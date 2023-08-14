@@ -51,10 +51,10 @@ class PilatusSingleFrameFiles(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector data from Pilatus single-frame CBF files.
+        Detector data frames from Pilatus single-frame CBF files.
 
-        This class deals with the retrieval of a Pilatus detector data frame from
-        a single-frame file written by the detector in CBF format.
+        This class deals with the retrieval of Pilatus detector data frames from
+        single-frame files written by the detector in CBF format.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -73,25 +73,26 @@ class PilatusSingleFrameFiles(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the cbf-file-based Pilatus detector data source.
+        Initializes CBF file-based Pilatus detector data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve a detector data frame from single-frame
+        No initialization is needed to retrieve detector data frames from single-frame
         CBF files, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.float_]:
         """
-        Retrieves a Pilatus detector data frame from cbf files.
+        Retrieves a Pilatus detector data frame from a file-based event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         This function retrieves the detector data frame associated with the provided
-        event, and returns the detector frame as a 2D array storing pixel information.
+        file-based event, and returns the detector frame as a 2D array storing pixel
+        information.
 
         Arguments:
 
@@ -116,18 +117,14 @@ class Jungfrau1MFiles(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector data from Jungfrau 1M HDF5 files.
+        Detector data frames from Jungfrau 1M HDF5 files.
 
-        This class deals with the retrieval of a Jungfrau 1M detector data frame from
+        This class deals with the retrieval of Jungfrau 1M detector data frame from
         files written by the detector in HDF5 format.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        The frame can be retrieved in calibrated or non-calibrated form, depending on
-        the value of the `{source_protocols_name}_calibration` entry in OM's
-        `data_retrieval_layer` configuration parameter group.
 
         Arguments:
 
@@ -142,7 +139,7 @@ class Jungfrau1MFiles(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the HDF5 file-based Jungfrau 1M detector data source.
+        Initializes the HDF5 file-based Jungfrau 1M detector data frame source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -189,16 +186,16 @@ class Jungfrau1MFiles(OmDataSourceProtocol):
         self, *, event: Dict[str, Any]
     ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
-        Retrieves a Jungfrau 1M detector data frame from HDF5 files.
+        Retrieves a Jungfrau 1M detector data frame from a file-based event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         This function retrieves the detector data frame associated with the provided
-        event, and returns the detector frame as a 2D array storing pixel information.
-        The data is retrieved in calibrated or non-calibrated form depending on the
-        value of the `{source_protocols_name}_calibration` entry in OM's
-        `data_retrieval_layer` configuration parameter group.
+        file-based event, and returns the detector frame as a 2D array storing pixel
+        information. The data is retrieved in calibrated or non-calibrated form
+        depending on the value of the `{source_protocols_name}_calibration` entry in
+        OM's `data_retrieval_layer` configuration parameter group.
 
         Arguments:
 
@@ -230,9 +227,9 @@ class Eiger16MFiles(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector data from Eiger 16M HDF5 files.
+        Detector data frames from Eiger 16M HDF5 files.
 
-        This class deals with the retrieval of an Eiger 16M detector data frame from
+        This class deals with the retrieval of Eiger 16M detector data frames from
         files written by the detector in HDF5 format.
 
         This class implements the interface described by its base Protocol class.
@@ -252,25 +249,26 @@ class Eiger16MFiles(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the HDF5 file-based Eiger 16M detector data source.
+        Initializes the HDF5 file-based Eiger 16M detector data frame source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve a detector data frame from files
+        No initialization is needed to retrieve detector data frames from files
         written by the Eiger 16M detector, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
         """
-        Retrieves an Eiger 16M detector data frame from HDF5 files.
+        Retrieves an Eiger 16M detector data frame from files.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         This function retrieves the detector data frame associated with the provided
-        event, and returns the detector frame as a 2D array storing pixel information.
+        file-based event, and returns the detector frame as a 2D array storing pixel
+        information.
 
         Arguments:
 
@@ -278,7 +276,7 @@ class Eiger16MFiles(OmDataSourceProtocol):
 
         Returns:
 
-            One detector data frame.
+            A detector data frame.
         """
         return cast(
             NDArray[numpy.int_],
@@ -300,9 +298,9 @@ class RayonixMccdSingleFrameFiles(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector data from Rayonix MX340-HS single-frame mccd files.
+        Detector data frames from Rayonix MX340-HS single-frame mccd files.
 
-        This class deals with the retrieval of a Rayonix detector data frame from
+        This class deals with the retrieval of Rayonix detector data frames from
         single-frame files written by the detector in MCCD format.
 
         This class implements the interface described by its base Protocol class.
@@ -322,25 +320,26 @@ class RayonixMccdSingleFrameFiles(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the mccd file-based Rayonix MX340-HS detector data source.
+        Initializes the mccd file-based Rayonix MX340-HS detector data frame source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve a detector data frame from single-frame
+        No initialization is needed to retrieve detector data frames from single-frame
         mccd files, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> NDArray[numpy.int_]:
         """
-        Retrieves a Rayonix MX340-HS detector data frame from mccd files.
+        Retrieves a Rayonix MX340-HS detector data frame from files.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         This function retrieves the detector data frame associated with the provided
-        event, and returns the detector frame as a 2D array storing pixel information.
+        file-based event, and returns the detector frame as a 2D array storing pixel
+        information.
 
         Arguments:
 
@@ -348,7 +347,7 @@ class RayonixMccdSingleFrameFiles(OmDataSourceProtocol):
 
         Returns:
 
-            One detector data frame.
+            A detector data frame.
         """
         img: Any
         with Image.open(event["additional_info"]["full_path"]) as img:
@@ -370,7 +369,7 @@ class Lambda1M5Files(OmDataSourceProtocol):
         """
         Detector data frames from Lambda 1.5M HDF5 files.
 
-        This class deals with the retrieval of a Lambda 1.5M detector data frame from
+        This class deals with the retrieval of Lambda 1.5M detector data frames from
         files written by the detector in HDF5 format.
 
         This class implements the interface described by its base Protocol class.
@@ -389,12 +388,12 @@ class Lambda1M5Files(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the HDF5 file-based Lambda 1.5M detector data source.
+        Initializes the HDF5 file-based Lambda 1.5M detector data frame source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve a detector data frame from files
+        No initialization is needed to retrieve detector data frames from files
         written by the Lambda 1.5M detector, so this function actually does nothing.
         """
         pass
@@ -403,13 +402,14 @@ class Lambda1M5Files(OmDataSourceProtocol):
         self, *, event: Dict[str, Any]
     ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
-        Retrieves a Lambda 1.5M detector data frame from HDF5 files.
+        Retrieves a Lambda 1.5M detector data frame from files.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         This function retrieves the detector data frame associated with the provided
-        event, and returns the detector frame as a 2D array storing pixel information.
+        file-based event, and returns the detector frame as a 2D array storing pixel
+        information.
 
         Arguments:
 
@@ -417,7 +417,7 @@ class Lambda1M5Files(OmDataSourceProtocol):
 
         Returns:
 
-            One detector data frame.
+            Detector data frame.
         """
         h5files: Tuple[Any, Any] = event["additional_info"]["h5files"]
         index: Tuple[int, int] = event["additional_info"]["index"]
@@ -467,13 +467,13 @@ class TimestampFromFileModificationTime(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the modification date timestamp data source.
+        Initializes the file modification date timestamp data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         No initialization is needed to retrieve timestamp information from the
-        modification date of a file, so this function actually does nothing.
+        modification date of files, so this function actually does nothing.
         """
         pass
 
@@ -485,8 +485,8 @@ class TimestampFromFileModificationTime(OmDataSourceProtocol):
         information about this method.
 
         This function retrieves the timestamp information associated with the provided
-        event. It uses as timestamp the last modification time of the file attached to
-        the event.
+        file-based event. It uses as timestamp the last modification time of the file
+        attached to the event.
 
         Arguments:
 
@@ -511,20 +511,19 @@ class TimestampJungfrau1MFiles(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Timestamp information for Jungfrau 1M detector data frames.
+        Timestamp information for Jungfrau 1M detector data events.
 
-        This class deals with the retrieval of timestamp information for a Jungfrau 1M
-        detector data frame. The files written by this detector do not record any
-        absolute timestamp information. However, they store the readout of the internal
-        detector clock for every frame they contain. As a first approximation, this
-        class takes the modification time of a data file as the timestamp of the first
-        frame stored in it, and computes the timestamp of all other frames according to
-        the recorded internal clock time difference.
+        This class deals with the retrieval of timestamp information for Jungfrau 1M
+        data events. The files written by this detector do not record any absolute
+        timestamp information. However, they store the readout of the internal detector
+        clock for every frame they contain. As a first approximation, this class takes
+        the modification time of a data file as the timestamp of the first frame stored
+        in it, and computes the timestamp of all other frames according to the recorded
+        internal clock time difference.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
 
         Arguments:
 
@@ -544,22 +543,22 @@ class TimestampJungfrau1MFiles(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve timestamp information for a Jungfrau 1M
-        data frame, so this function actually does nothing.
+        No initialization is needed to retrieve timestamp information for Jungfrau 1M
+        data events, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        Retrieves timestamp information for a Jungfrau 1M data frame from files.
+        Retrieves the timestamp information for a Jungfrau 1M data event from files.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         This function retrieves the timestamp information associated with the provided
-        event. It computes the timestamp using the last modification time of the
-        file attached to the event, adding the internal clock reading of the frame
-        being processed.
+        file-based event. It computes the timestamp using the last modification time of
+        the file attached to the event, modified by the internal clock reading of the
+        frame associated to the event.
 
         Arguments:
 
@@ -567,7 +566,7 @@ class TimestampJungfrau1MFiles(OmDataSourceProtocol):
 
         Returns:
 
-            The timestamp of the Jungfrau 1M data frame.
+            The timestamp for the Jungfrau 1M data event.
         """
 
         file_timestamp: numpy.float64 = numpy.float64(
@@ -596,9 +595,9 @@ class EventIdFromFilePath(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Event identifier from a file's full path.
+        Event identifiers from full path of files.
 
-        This class deals with the retrieval of a unique event identifier for file-based
+        This class deals with the retrieval of unique event identifiers for file-based
         data events that do not provide this information in any other way. It takes the
         full path to the data file as event identifier.
 
@@ -618,13 +617,13 @@ class EventIdFromFilePath(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the full path event identifier data source.
+        Initializes the full file path event identifier data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve an event identifier from a full
-        file path, so this function actually does nothing.
+        No initialization is needed to retrieve an event identifier from a full file
+        path, so this function actually does nothing.
         """
         pass
 
@@ -635,8 +634,8 @@ class EventIdFromFilePath(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function retrieves a unique event identifier for the provided event, using
-        as identifier the full path of the file attached to the provided data event.
+        This function retrieves a unique event identifier for the provided file-based\
+        event, using as identifier the full path of the file attached to the event.
 
         Arguments:
 
@@ -661,18 +660,14 @@ class EventIdJungfrau1MFiles(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Event identifier for Jungfrau 1M data events.
+        Event identifiers for Jungfrau 1M data events.
 
-        This class deals with the retrieval of a unique event identifier for a
-        Jungfrau 1M data event.
+        This class deals with the retrieval of unique event identifiers for Jungfrau 1M
+        file-based data events.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        For this detector, an individual event corresponds to a single frame stored in
-        an HDF5 data file. The combination of the full path to the data file and the
-        index of the frame within the file is used to generate the event identifier.
 
         Arguments:
 
@@ -692,21 +687,21 @@ class EventIdJungfrau1MFiles(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve an event identifier for a Jungfrau 1M
-        data event, so this function actually does nothing.
+        No initialization is needed to retrieve event identifiers for Jungfrau 1M
+        data events, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for a Jungfrau 1M data event.
+        Retrieves the event identifier for a Jungfrau 1M data event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function constructs the event identifier for the provided event by joining
-        the following elements in a single string, with the "//" symbol placed between
-        them.
+        This function constructs the event identifier for the provided file-based event
+        by joining the following elements in a single string, with the "//" symbol
+        placed between them.
 
         * The full path to the HDF5 file attached to the event.
 
@@ -737,18 +732,14 @@ class EventIdEiger16MFiles(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Event identifier for Eiger 16M data events.
+        Event identifiers for Eiger 16M data events.
 
-        This class deals with the retrieval of a unique event identifier for an Eiger
-        16M data event.
+        This class deals with the retrieval of unique event identifiers for an Eiger
+        16M file-based data events.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        For this detector, an individual event corresponds to a single frame stored in
-        an HDF5 file. The combination of the full path to the data file and the index
-        of the frame within the file is used to generate the event identifier.
 
         Arguments:
 
@@ -767,21 +758,21 @@ class EventIdEiger16MFiles(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve an event identifier for an Eiger 16M
-        data event, so this function actually does nothing.
+        No initialization is needed retrieve event identifiers for Eiger 16M data
+        events, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for an Eiger 16M data event.
+        Retrieves the event identifier for an Eiger 16M data event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function constructs the event identifier for the provided event by joining
-        the following elements in a single string, with the "//" symbol placed between
-        them.
+        This function constructs the event identifier for the provided file-based event
+        by joining the following elements in a single string, with the "//" symbol
+        placed between them.
 
         * The full path to the HDF5 file attached to the provided event.
 
@@ -812,20 +803,14 @@ class EventIdLambda1M5Files(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Event identifier for Lambda 1.5M data events.
+        Event identifiers for Lambda 1.5M data events.
 
-        This class deals with the retrieval of a unique event identifier for a Lambda
-        1.5M data event.
+        This class deals with the retrieval of unique event identifiers for a Lambda
+        1.5M data events.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        For this detector, an individual event corresponds to a single frame stored in
-        two separate HDF5 files written by two detector modules. The combination of the
-        full path to the data file corresponding to the first detector module
-        ("*_m01.nxs") and the index of the frame within the file is used to generate
-        the event identifier.
 
         Arguments:
 
@@ -845,21 +830,21 @@ class EventIdLambda1M5Files(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve an event identifier for an Lambda 1.5M
-        data event, so this function actually does nothing.
+        No initialization is needed to retrieve event identifiers for Lambda 1.5M
+        data events, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for an Lambda 1.5M data event.
+        Retrieves the event identifier for an Lambda 1.5M data event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function constructs the event identifier for the provided event by joining
-        the following elements in a single string, with the "//" symbol placed between
-        them.
+        This function constructs the event identifier for the provided file-based event
+        by joining the following elements in a single string, with the "//" symbol
+        placed between them.
 
         * The full path to the HDF5 file attached to the event and written by the first
           detector module,

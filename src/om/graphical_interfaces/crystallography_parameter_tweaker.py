@@ -65,17 +65,17 @@ class CrystallographyParameterTweaker(OmGuiBase):
         OM Parameter Tweaker for Crystallography.
 
         This class implements a graphical user interface that can be used to test new
-        peak finding parameters in real time in serial crystallography experiments. The
-        GUI receives data frames from an OnDA Monitor, but only when the data is tagged
-        with the `omframedata` label. The data must contain processed detector frames.
-        The GUI will then display the frame images, and allow a user to choose
-        a set of peak-finding  The
+        peak finding parameters in real time during Serial Crystallography experiments.
+        The GUI receives data from an OnDA Monitor, but only when is is tagged with the
+        `omtweakingdata` label. The data must contain calibrated detector data frames.
+        The GUI then displays the detector frames, and allows a user to choose a set of
+        peak-finding parameters. The chosen parameters are used to apply the
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm will be applied on the fly to each received frame, using the chosen
-        parameters, and the GUI will display the positions of all detected Bragg peaks
-        on each frame image. A data storage buffer allows the viewer to stop receiving
-        data from the OnDA Monitor, but still keep in memory the last 10 displayed
-        frames for re-inspection and re-processing (peak-finding with new parameters).
+        algorithm on the fly to each received frame. The GUI displays the positions of
+        all detected Bragg peaks on each frame image. A data storage buffer allows the
+        viewer to stop receiving data from the OnDA Monitor, but still keep in memory
+        the last 10 displayed frames for re-inspection and re-processing (peak-finding
+        with a new set of parameters).
 
         Arguments:
 
@@ -501,12 +501,12 @@ def main(*, url: str, config: str) -> None:
     """
     OM Parameter Tweaker for Crystallography. This program must connect to a running
     OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
-    information, this graphical interface will display detector frames received from
-    the monitor, and allow the user to choose a set of peak-finding parameters that
-    will be applied to each frame in real-time. The position of the detected Bragg
-    peaks will then be displayed over the detector image. The program can also
-    temporarily disconnect from the monitor, and any of the last 10 displayed frames
-    can be recalled and reprocessed.
+    information, this program displays detector frames received from the monitor.
+    Additionally, it allows the user to choose a set of peak-finding parameters that
+    is applied in real time to each received frame. The program displays the position
+    of the detected Bragg peaks on each displayed detector image. The program can
+    also temporarily disconnect from the monitor, and any of the last 10 displayed
+    frames can be recalled and reprocessed.
 
     The graphical interface connects to and OnDA Monitor running at the IP address
     (or hostname) + port specified by the URL string. This is a string in the format

@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's Frame Viewer for Crystallography.
+OM's Frame Viewer.
 
-This module contains a graphical interface that displays detector data frames and
-detected Bragg peaks in crystallography experiments.
+This module contains a graphical interface that displays detector data frames and,
+additional provided information.
 """
 import collections
 import copy
@@ -58,15 +58,16 @@ class CrystallographyFrameViewer(OmGuiBase):
 
     def __init__(self, *, url: str):
         """
-        OM frame viewer for crystallography.
+        OM frame viewer.
 
-        This class implements a frame viewer for serial crystallography experiments.
-        The viewer receives data frames from an OnDA Monitor, but only when the data is
-        tagged with the `view:omframedata` label. The data must contain processed
-        detector frames, and information on any detected Bragg peak. The viewer will
-        then display the frame images, and the position of each peak. A data storage
-        buffer allows the viewer to stop receiving data from the OnDA Monitor, but
-        still keep in memory the last 10 displayed frames for re-inspection.
+        This class implements a frame viewer. The viewer receives data from an OnDA
+        Monitor, but only when it is tagged with the `view:omframedata` label. The data
+        must contain calibrated detector data frames. The viewer then displays the
+        received frames. If additional information is included in the received data
+        (for example, the positions of detected Bragg peaks), the graphical interface
+        shows it on each displayed frame image. A data storage buffer allows the viewer
+        to stop receiving data from the OnDA Monitor, but still keep in memory the last
+        10 displayed frames for re-inspection.
 
         Arguments:
 
@@ -204,7 +205,7 @@ class CrystallographyFrameViewer(OmGuiBase):
         refer to the documentation of that class for more information.
 
         This method, which is called at regular intervals, updates the displayed
-        detector frame (and the position of the Bragg peaks) using the most recently
+        detector frame (and any additional shown information) using the most recently
         received data. Additionally, this function manages the data storage buffer that
         allows the last received detector frames to be re-inspected.
         """
@@ -286,10 +287,9 @@ class CrystallographyFrameViewer(OmGuiBase):
 @click.argument("url", type=str, required=False)
 def main(*, url: str) -> None:
     """
-    OM Frame Viewer for Crystallography. This program must connect to a running OnDA
-    Monitor for Crystallography. If the monitor broadcasts the necessary information,
-    this viewer will display the most recently received detector data frame, and will
-    also show, superimposed on the frame, the location of any detected Bragg peak.
+    OM Frame Viewer. This program must connect to a running OnDA Monitor. If the
+    monitor broadcasts the necessary information, the program displays the most
+    recently received detector data frame, and any additional related received data.
     The data stream from the monitor can also be temporarily paused, and any of 10 most
     recently displayed detector frames can be recalled for re-inspection.
 

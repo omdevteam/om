@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-This module contains a class that deals with the retrieval of single standalone events.
+This module contains classes that deals with the retrieval of single standalone events.
 """
 from typing import Any, Dict, Type, cast
 
@@ -35,14 +35,16 @@ class OmEventDataRetrieval:
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str) -> None:
         """
-        Retrieval of single detector frame data.
+        Retrieval of single standalone data events.
 
-        This class deals with the retrieval, from a data source, of a single
-        standalone data event, with all the information that refers to it.
+        This class deals with the retrieval of single standalone data events from a
+        data source.
 
-        The way this class works contrasts with the way OM usually works, retrieving a
-        series of events in sequence. An instance of this class can be created on any
-        type of OM node and even in a standalone program outside of an OnDA Monitor.
+        The way this class works is in contrast with the way OM usually works. OM
+        usually retrieves a series of events in sequence, while this class deals with
+        the retrieval of a single event separate from any other. An instance of this
+        class can be created on any type of OM node and even in a standalone program
+        outside of an OnDA Monitor.
 
         Arguments:
 
@@ -78,10 +80,17 @@ class OmEventDataRetrieval:
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data related to the requested detector frame.
+        Retrieves all data attached to the requested data event.
 
-        This function retrieves all the information attached to the event identified by
-        the provided id. The data is returned in the form of a dictionary.
+        This function retrieves all the information associated with the data event
+        specified by the provided identifier. The data is returned in the form of a
+        dictionary.
+
+        * Each dictionary key identifies a Data Source in the event for which
+          information has been retrieved.
+
+        * The corresponding dictionary values store the data associated with each
+          Data Source.
 
         Arguments:
 
@@ -91,10 +100,6 @@ class OmEventDataRetrieval:
 
             A dictionary storing all data related the retrieved event.
 
-                * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
 
-                * The corresponding dictionary value stores the data that could be
-                extracted for the frame being processed.
         """
         return self._data_event_handler.retrieve_event_data(event_id=event_id)

@@ -19,7 +19,7 @@
 Handling of HTTP/REST-based data events.
 
 This module contains Data Event Handler classes that manipulate events originating from
-the HTTP/REST interface used by detectors from the Dectris company.
+the HTTP/REST interface of detectors manufactured by company Dectris.
 """
 import sys
 import time
@@ -51,7 +51,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         monitor_parameters: MonitorParameters,
     ) -> None:
         """
-        Data Event Handler for events recovered from Eiger's HTTP/REST interface.
+        Data Event Handler for Eiger's HTTP/REST events.
 
         This class handles data events recovered from the HTTP/REST interface of an
         Eiger detector.
@@ -65,15 +65,14 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
           a single detector data frame)
 
         * The source string for this Data Event Handler is the base URL of the
-          'monitor' subsystem of the Eiger detector HTTP/REST interface, with the form:
-          `http://<address_of_dcu>/monitor/api/<version>`.
+          'monitor' subsystem of the Eiger detector HTTP/REST interface. The string has
+          the following format: `http://<address_of_dcu>/monitor/api/<version>`.
 
         Arguments:
 
             source: A string describing the data event source.
 
-            data_sources: A dictionary containing a set of Data Sources class
-                instances.
+            data_sources: A dictionary containing a set of Data Source class instances.
 
                 * Each dictionary key must define the name of a data source.
 
@@ -115,9 +114,6 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
-
-        This function initializes Eiger's HTTP/REST monitor mode and sets its
-        parameters.
 
         Arguments:
 
@@ -217,8 +213,9 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Each event retrieved by this function corresponds to a single event from
-        Eiger's HTTP/REST interface (a single detector data frame).
+        This function retrieves data events on the processing nodes. Each retrieved
+        event corresponds to a single event from Eiger's HTTP/REST interface (a single
+        detector data frame).
 
         Arguments:
 
@@ -261,13 +258,13 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
     def open_event(self, *, event: Dict[str, Any]) -> None:
         """
-        Opens an Eiger HTTP/REST event.
+        Opens an Eiger's HTTP/REST interface event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Eiger's HTTP/REST events do not need to be opened, so this function actually
-        does nothing.
+        Events from Eiger's HTTP/REST interface do not need to be opened, so this
+        function actually does nothing.
 
         Arguments:
 
@@ -277,13 +274,13 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
     def close_event(self, *, event: Dict[str, Any]) -> None:
         """
-        Closes an Eiger HTTP/REST event.
+        Closes an Eiger's HTTP/REST interface event.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        Eiger HTTP/REST events do not need to be closed, so this function actually does
-        nothing.
+        Events from Eiger's HTTP/REST interface do not need to be closed, so this
+        function actually does nothing.
 
         Arguments:
 
@@ -344,11 +341,11 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         """
         Initializes event data retrievals from from Eiger's HTTP/REST interface.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Eiger's HTTP/REST interface does not allow the retrieval of single standalone
+        data events, so this function has no implementation.
 
-        Eiger's HTTP/REST interface does not allow the retrieval of standalone data
-        events, so this function has no implementation.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Raises:
 
@@ -363,10 +360,6 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
-
-        The event identifier fot Eiger's HTTP/REST interface corresponds to a string
-        with the format: `{SeriesID_FrameID}`, where SeriesID and FrameID are two
-        values generated for each event by the HTTP/REST interface.
 
         Eiger's HTTP/REST interface does not allow the retrieval of standalone data
         events, so this function has no implementation.
