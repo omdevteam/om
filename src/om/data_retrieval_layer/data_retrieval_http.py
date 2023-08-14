@@ -19,7 +19,7 @@
 Retrieval and handling of data from the http/REST interface.
 
 This module contains Data Retrieval classes that deal with the HTTP/REST interface
-used by detectors from the Dectris company.
+used by detectors manufactured by the company Dectris.
 """
 from typing import Dict
 
@@ -47,8 +47,8 @@ class EigerHttpDataRetrieval(OmDataRetrievalProtocol):
         """
         Data Retrieval from Eiger's HTTP/REST interface.
 
-        This class implements OM's Data Retrieval Layer for an Eiger detector using the
-        detector 'S HTTP/REST interface.
+        This class implements OM's Data Retrieval Layer for the HTTPS/REST interface of
+        an Eiger detector.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -109,7 +109,7 @@ class EigerHttpDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

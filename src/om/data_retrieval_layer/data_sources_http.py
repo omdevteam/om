@@ -19,9 +19,9 @@
 HTTP-based data sources.
 
 This module contains Data Source classes that deal with data retrieved from the
-HTTP/REST interface used by detectors from the Dectris company.
+HTTP/REST interface of detectors manufactured by the company Dectris.
 """
-import time
+import datetime
 from typing import Any, Dict, Union
 
 import numpy
@@ -44,10 +44,10 @@ class Eiger16MHttp(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Detector frame data from Eiger 16M's HTTP/REST interface.
+        Detector data frames from Eiger 16M's HTTP/REST interface.
 
-        This class deals with the retrieval of Eiger 16M detector frame data from
-        events obtainedEiger 16M's HTTP/REST interface
+        This class deals with the retrieval of Eiger 16M detector data frames from the
+        detector's HTTP/REST interface.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -71,8 +71,8 @@ class Eiger16MHttp(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve data from Eiger 16M'S HTTP/REST
-        interface, so this function actually does nothing.
+        No initialization is needed to retrieve detector data frames from the Eiger
+        16M'S HTTP/REST- interface, so this function actually does nothing.
         """
         pass
 
@@ -85,9 +85,9 @@ class Eiger16MHttp(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function extracts the detector frame information from the provided
-        data event, where it is stored in the form of a TIFF image. This function
-        returns the detector frame as a 2D array storing pixel information.
+        This function extracts the detector data frame stored in the provided
+        HTTP/REST-based event. It returns the detector frame as a 2D array storing
+        pixel information.
 
         Arguments:
 
@@ -95,7 +95,7 @@ class Eiger16MHttp(OmDataSourceProtocol):
 
         Returns:
 
-            One frame of detector data.
+            A detector data frame.
         """
         image: Any = Image.open(event["additional_info"]["image_file"])
         return numpy.asarray(image, dtype=int)
@@ -115,8 +115,8 @@ class TimestampEiger16MHttp(OmDataSourceProtocol):
         """
         Timestamp information from Eiger's 16M HTTP/REST interface.
 
-        This class deals with the retrieval of timestamp information for events
-        obtained from Eiger 16M's HTTPS/REST interface.
+        This class deals with the retrieval of timestamp information for data events
+        originating from an Eiger 16M's HTTPS/REST interface.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -135,25 +135,25 @@ class TimestampEiger16MHttp(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Eiger 16M http/REST timestamp data source.
+        Initializes the Eiger 16M's HTTP/REST interface timestamp data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve timestamp information for an Eiger 16M
-        HTTP/REST event, so this function actually does nothing.
+        No initialization is needed to retrieve timestamp information from the Eiger
+        16M's HTTP/REST interface, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
-        Retrieves timestamp information for an Eiger 16M'S HTTP/REST event.
+        Retrieves timestamp information from an Eiger 16M'S HTTP/REST interface.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
         This function retrieves the timestamp information associated with the provided
-        Eiger 16M HTTPS/REST event.
+        HTTPS/REST-based event.
 
         Arguments:
 
@@ -165,15 +165,11 @@ class TimestampEiger16MHttp(OmDataSourceProtocol):
         """
         event["additional_info"]["image_file"].seek(162)
 
-        # temporary fix to get some realistic delays in the GUI because Eiger gives
-        # the same timestamp for all images in the run:
-        return numpy.float64(time.time())
-
-        # return numpy.float64(
-        #     datetime.strptime(
-        #         time_str[0:-3] + time_str[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
-        #     ).timestamp()
-        # )
+        return numpy.float64(
+            datetime.datetime.strptime(
+                time_str[0:-3] + time_str[-2:], "%Y-%m-%dT%H:%M:%S.%f%z"
+            ).timestamp()
+        )
 
 
 class EventIdEiger16MHttp(OmDataSourceProtocol):
@@ -190,17 +186,12 @@ class EventIdEiger16MHttp(OmDataSourceProtocol):
         """
         Event identifier from Eiger 16M's HTTP/REST interface.
 
-        This class deals with the retrieval of a unique event identifier for events
-        obtained from Eiger 16M's HTTP/REST interface.
+        This class deals with the retrieval of unique event identifiers for events
+        originating from an Eiger 16M's HTTP/REST interface.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
         the interface.
-
-        A data event retrieved from Eiger 16M's HTTP/REST interface contains detector
-        frame data in the format of a TIFF image. The combination of the series_id and
-        frame_id tags retrieved from the header of the TIFF image are used to
-        generate an event identifier.
 
         Arguments:
 
@@ -215,19 +206,19 @@ class EventIdEiger16MHttp(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the Eiger 16M event identifier data source.
+        Initializes the Eiger 16M's HTTP/REST interface event identifier data source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        No initialization is needed to retrieve an event identifier for Eiger 16M
-        event data, so this function actually does nothing.
+        No initialization is needed to retrieve event identifiers for Eiger 16M data
+        events, so this function actually does nothing.
         """
         pass
 
     def get_data(self, *, event: Dict[str, Any]) -> str:
         """
-        Retrieves an event identifier for a Eiger 16M data event.
+        Retrieves an event identifier from an Eiger 16M'S HTTP/REST interface.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -235,11 +226,7 @@ class EventIdEiger16MHttp(OmDataSourceProtocol):
         A data event retrieved from Eiger 16M's HTTP/REST interface contains detector
         frame data in the format of a TIFF image. The combination of the series_id and
         frame_id tags retrieved from the header of the TIFF image are used to
-        generate an event identifier.
-        This function constructs the event identifier for the provided event by joining
-        the content of the the series_id and frame_id tags of the TIFF image stored in
-        the event. The resulting identifier has the form:
-        `<series_id>_<frame_id>.
+        generate an event identifier, with the format: `<series_id>_<frame_id>.
 
         Arguments:
 

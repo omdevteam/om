@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of data from ASAP::O.
+Data retrieval from ASAP::O.
 
 This module contains Data Retrieval classes that deal with the ASAP::O software
 framework (used at the PETRA III facility).
@@ -46,10 +46,10 @@ class EigerAsapoDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval from ASAP::O at the PETRA III facility, with Eiger 16M detector.
+        Data retrieval for Eiger 16M from ASAP::O at the PETRA III facility.
 
         This class implements OM's Data Retrieval Layer for an Eiger 16M detector using
-        ASAP::O software framework.
+        the ASAP::O software framework.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -104,7 +104,7 @@ class EigerAsapoDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

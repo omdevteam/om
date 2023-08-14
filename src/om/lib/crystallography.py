@@ -18,9 +18,9 @@
 """
 Classes and function for processing of crystallography data.
 
-This module contains classes and functions that aggregate common data processing
-operations related to serial crystallography (peak finding, radial profile analysis,
-plot generation, etc.).
+This module contains classes and functions that perform common data processing
+operations for serial crystallography (peak finding, radial profile analysis, plot
+generation, etc.).
 """
 from collections import deque
 from typing import Any, Deque, Dict, List, Tuple, Union, cast
@@ -55,8 +55,8 @@ class CrystallographyPeakFinding:
         This class collects all the information required to perform crystallography
         Bragg peak detection on a detector data frame.
 
-        After the class has been initialized, the [find_peaks][find_peaks] method can
-        be invoked to detect peaks in a provided data frame.
+        After the class has been initialized, it can be invoked to detect peaks in a
+        data frame.
 
         Arguments:
 
@@ -64,26 +64,26 @@ class CrystallographyPeakFinding:
                 parameters must include a group called `crystallography`, which in
                 turn must contain the following entries:
 
-                * `peakfinding_algorithm`: The detection strategy that should be used to
-                    detect the Bragg peaks in a detector frame. Currently, the
+                * `peakfinding_algorithm`: The detection strategy that should be used
+                    to detect the Bragg peaks in a detector data frame. Currently, the
                     following strategies are available:
 
                     - `peakfinder8_peak_detection`: Instructs OM to use the
                       `peakfinder8` peak detection strategy. If this strategy is
                       selected, the set of OM's configuration parameters must include a
                       parameter group called `peakfinder8_peak_detection` with the
-                      entries required to fine-tune the peak-finding strategy. Pleas
+                      entries required to fine-tune the peak-finding strategy. Please
                       refer to the documentation of the
                       [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
                       algorithm).
 
                 * `min_num_peaks_for_hit`: The minimum number of peaks that must be
-                    identified in a detector data frame attached to an data event for
-                    the event to be considered a hit.
+                  identified in a detector data frame for the related data event to be
+                  considered a hit.
 
                 * `max_num_peaks_for_hit`: The maximum number of peaks that must be
-                    identified in a detector data frame attached to an data event for
-                    the event to be considered a hit.
+                  identified in a detector data frame for the related data event to be
+                  considered a hit.
         """
         crystallography_parameters = monitor_parameters.get_parameter_group(
             group="crystallography"
@@ -125,9 +125,9 @@ class CrystallographyPeakFinding:
         """
         Finds peaks in a detector data frame.
 
-        This function detects peaks in a provided detector data frame, using the
-        strategy that has been selected when the class was initialized. The function
-        returns information about the location, size and intensity of the peaks.
+        This function detects peaks in the provided detector data frame, using the
+        strategy that was selected when the class was initialized. The function returns
+        information about the location, size and intensity of the peaks.
 
         Arguments:
 
@@ -136,8 +136,7 @@ class CrystallographyPeakFinding:
 
         Returns:
 
-            A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
-                with information about the detected peaks.
+            A dictionary storing information about the detected peaks.
         """
         peak_list: TypePeakList = self._peak_detection.find_peaks(data=detector_data)
 
@@ -160,15 +159,15 @@ class CrystallographyPlots:
         """
         Plots for crystallography data.
 
-        This class stores all the information needed to generate and update plots that
-        summarize crystallography related data, specifically a Virtual Powder Pattern
-        plot, a Hit Rate History plot and a Peakogram plot. This class can generate
-        separate Hit Rate History plots for dark and pumped events in a pump-probe
-        experiment.
+        This class stores all the information needed to generate and update three
+        plots that summarize the state of a serial crystallography experiment: a
+        Virtual Powder Pattern plot, a Hit Rate History plot and a Peakogram plot.
+        Separate Hit Rate History plots for dark and pumped events can be generated for
+        pump-probe experiment.
 
-        After the class has been initialized, the [update_plots][update_plots] method
-        can be invoked to update the information displayed by the plots and recover
-        the plot data stored by this class.
+        After the class has been initialized, data event information can be added, and
+        the updated plots can be retrieved and sent to external programs for
+        visualization.
 
         Arguments:
 
@@ -183,7 +182,7 @@ class CrystallographyPlots:
                   radius bins in the Peakogram plot.
 
                 * `running_average_window_size`: The size, in number of processed
-                  events,  of the running window used to compute the smoothed Hit Rate
+                  events, of the running window used to compute the smoothed Hit Rate
                   History plot.
         """
         self._pump_probe_experiment: bool = pump_probe_experiment
@@ -288,10 +287,47 @@ class CrystallographyPlots:
         """
         Updates and recovers the crystallography data plots.
 
-        This function updates the crystallography data plots stored by this class with
-        the provided information. This function assumes that all the provided
-        information refers to the same data event. When called, the function returns all
-        the information to display the plots in a graphical interface.
+        This function uses the provided information to update all the crystallography
+        data plots generated by this class. The function assumes all that all the
+        provided information refers to the same data event.
+
+        After updating the crystallography plots, the function returns all the
+        information needed to display them in a graphical interface, in the format of
+        a tuple containing the following entries:
+
+        * A list of timestamps for the events in the Hit Rate History plot. For
+          pump-probe experiments, this list only includes events with an active optical
+          laser.
+
+        * The Hit Rate for all the events in the Hit Rate History plot. For pump-probe
+          experiments, this list only includes events with an active optical laser.
+
+        * A list of timestamps for events without an active optical laser in
+          pump-probe experiments. For non-pump-probe experiments, this list just stores
+          zero values.
+
+        * The Hit Rate for all the events without an active optical laser in the
+          Hit Rate History plot of a pump-probe experiment. For non-pump-probe
+          experiments, this list just stores zero values.
+
+        * A 2D array storing the pixel values of a Virtual Powder Plot image.
+
+        * A 2D array storing the pixel values of a Peakogram Plot image.
+
+        * The size, in degrees, for each of the radius bins in the Peakogram plot
+
+        * The size, in ADU units, for each of the intensity bins in the Peakogram
+          plot.
+
+        * A list storing the x visualization coordinate of each Bragg peak identified
+          in the data event provided to the update function . The coordinate refers to
+          an array storing the assembled detector image, with the origin in the top
+          left corner of the image.
+
+        * A list storing the y visualization coordinate of each Bragg peak identified
+          in the data event provided to the update function . The coordinate refers to
+          an array storing the assembled detector image, with the origin in the top
+          left corner of the image.
 
         Arguments:
 
@@ -309,45 +345,7 @@ class CrystallographyPlots:
 
         Returns:
 
-            The information needed to display the plot in a graphical interface, in the
-            format of a tuple containing the following entries, in this order:
-
-            * A list of timestamps for the events in the Hit Rate History plot. For
-              pump-probe experiments, this list only includes events with an active
-              optical laser.
-
-            * The Hit Rate for all the events in the Hit Rate History plot.  For
-              pump-probe experiments, this list only includes events with an active
-              optical laser.
-
-            * A list of timestamp for events without an active optical laser in a
-              pump-probe experiments. For non-pump-probe experiments, this list just
-              just store zero values.
-
-            * The Hit Rate for all the events without an active optical laser in the
-              Hit Rate History plot of a pump-probe experiments.  For non-pump-probe
-              experiments, this list just stores zero values.
-
-            * A 2D array storing the pixel values of a Virtual Powder Plot image.
-
-            * A 2D array storing the pixel values of a Peakogram Plot image.
-
-            * The size, in degrees, for each of the radius bins in the Peakogram plot
-
-            * The size, in ADU units, for each of the intensity bins in the Peakogram
-              plot.
-
-            * A list storing the x coordinate of each detected brag peak in a 2D array
-              storing assembled detector image information. The array is assumed to
-              contain pixel values that describe a detector data frame to which
-              geometry information has been applied, with the origin of the coordinate
-              system in the top left of the image.
-
-            * A list storing the y coordinate of each detected brag peak in a 2D array
-              storing assembled detector image information. The array is assumed to
-              contain pixel values that describe a detector data frame to which
-              geometry information has been applied, with the origin of the coordinate
-              system in the top left of the image.
+            The information needed to display the plot in a graphical interface.
         """
 
         if self._pump_probe_experiment:
@@ -478,107 +476,3 @@ class CrystallographyPlots:
         )
 
         self._peakogram = numpy.zeros_like(self._peakogram)
-
-
-# class SwaxsPlots:
-#     def __init__(
-#         self,
-#         *,
-#         swaxs__parameters: Dict[str, Any],
-#     ):
-#         self._droplet_detection_enabled: Union[
-#             bool, None
-#         ] = get_parameter_from_parameter_group(
-#             group=swaxs__parameters,
-#             parameter="droplet_detection_enabled",
-#             parameter_type=bool,
-#             default=False,
-#         )
-
-#         if self._droplet_detection_enabled:
-
-#             # self._save_radials: bool = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="save_radials",
-#             #     parameter_type=bool,
-#             #     required=True,
-#             # )
-
-#             # if self._save_radials:
-#             #     self._radials_filename: str = self._monitor_params.get_param(
-#             #         group="droplet_detection",
-#             #         parameter="radials_filename",
-#             #         parameter_type=str,
-#             #         required=True,
-#             #     )
-
-#             # droplet hit rate
-#             self._droplet_hit_rate_running_window: Deque[float] = deque(
-#                 [0.0] * self._running_average_window_size,
-#                 maxlen=self._running_average_window_size,
-#             )
-#             self._avg_droplet_hit_rate: int = 0
-#             self._droplet_hit_rate_timestamp_history: Deque[float] = deque(
-#                 5000 * [0.0], maxlen=5000
-#             )
-#             self._droplet_hit_rate_history: Deque[float] = deque(
-#                 5000 * [0.0], maxlen=5000
-#             )
-
-#             # self._q_to_save: List[numpy.ndarray] = []
-#             # self._image_sum_to_save: List[float] = []
-#             # self._radials_to_save: List[numpy.ndarray] = []
-#             # self._errors_to_save: List[numpy.ndarray] = []
-#             self._frame_is_droplet: List[bool] = []
-#             self._frame_is_crystal: List[bool] = []
-#             self._frame_is_jet: List[bool] = []
-#             self._q: List[numpy.ndarrray] = None
-
-#             # self._roi1_qmin: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="roi1_qmin",
-#             #     parameter_type=float,
-#             #     required=True,
-#             # )
-#             # self._roi1_qmax: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="roi1_qmax",
-#             #     parameter_type=float,
-#             #     required=True,
-#             # )
-#             # self._roi2_qmin: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="roi2_qmin",
-#             #     parameter_type=float,
-#             #     required=True,
-#             # )
-#             # self._roi2_qmax: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="roi2_qmax",
-#             #     parameter_type=float,
-#             #     required=True,
-#             # )
-#             # self._estimate_particle_size: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="estimate_particle_size",
-#             #     parameter_type=bool,
-#             #     required=True,
-#             # )
-#             # self._use_guinier_peak: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="use_guinier_peak",
-#             #     parameter_type=bool,
-#             #     required=False,
-#             # )
-#             # self._guinier_qmin: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="guinier_qmin",
-#             #     parameter_type=float,
-#             #     required=False,
-#             # )
-#             # self._guinier_qmax: float = self._monitor_params.get_param(
-#             #     group="droplet_detection",
-#             #     parameter="guinier_qmax",
-#             #     parameter_type=float,
-#             #     required=False,
-#             # )

@@ -46,7 +46,7 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval for a Jungfrau 1M's ZMQ stream.
+        Data Retrieval for Jungfrau 1M's ZMQ stream.
 
         This class implements OM's Data Retrieval Layer for a Jungfrau 1M detector
         broadcasting data via a ZMQ stream.
@@ -59,7 +59,8 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalProtocol):
           a single ZMQ message sent by the Jungfrau 1M. Each message sent by the
           detector stores data related to a single detector data frame.
 
-        * The ZMQ stream provides detector data, timestamp and frame ID for each event.
+        * The ZMQ stream provides detector data, timestamp and an event identifier for
+          each event.
 
         * Since Jungfrau 1M's ZMQ messages do not contain any detector distance or
           beam energy information, their values are retrieved from OM's configuration
@@ -107,7 +108,7 @@ class Jungfrau1MZmqDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

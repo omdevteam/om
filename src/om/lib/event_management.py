@@ -15,6 +15,12 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+"""
+Classes and function for handling data events.
+
+This module contains classes and functions that manage and count data events processed
+by OM.
+"""
 import sys
 import time
 from itertools import cycle
@@ -34,13 +40,12 @@ class EventCounter:
         Event count and management.
 
         This class stores all the information needed to count data events processed by
-        OM, to generate speed reports, and to determine when information should be
-        broadcast to external programs.
+        OM.
 
-        After this class is initialized, it provides methods updated the stored data
-        with information about the event processed by OM. Other methods can be invoked
-        to generate speed reports, or query whether the number of processed events
-        require data to be broadcast to external problems.
+        After this class has been initialized, it can be provided with information
+        about OM's processed data events. The class can then be invoked to generate
+        speed reports, and can be queried about whether the number of processed events
+        requires data to be broadcast to external programs.
 
         Arguments:
 
@@ -53,19 +58,19 @@ class EventCounter:
                 * `data_broadcast_interval`: The number of events that must pas
                   between consecutive data broadcasts from OM.
 
-                * `hit_frame_sending_interval`: This parameter determines how often the
-                  monitor sends full detector frames to external programs, when events
-                  are labelled as hits. If the value of this parameter is None, no hit
-                  frames are ever sent. If the value is a number, it is the average
-                  number of hit frames that OM skips before the next hit frame is
-                  broadcast. Defaults to None.
+                * `hit_frame_sending_interval`: How often the monitor should send
+                  full detector frames to external programs, when events are labelled
+                  as hits. If the value of this parameter is None, no hit frames are
+                  ever sent. If the value is a number, it is the average number of hit
+                  frames that OM skips before the next hit frame is broadcast to
+                  external programs. Defaults to None.
 
-                * `non_hit_frame_sending_interval`: This parameter determines how often
-                  the monitor sends full detector frames to external programs, when
-                  events are not labelled as hits. If the value of this parameter is
-                  None, no non-hits frames are ever sent. If the value is a number, it
-                  is the average number of non-hit frames that OM skips before the next
-                  non-hit frame is broadcast. Defaults to None.
+                * `non_hit_frame_sending_interval`: How often the monitor should send
+                  full detector frames to external programs, when events are labelled
+                  as non-hits. If the value of this parameter is None, no non-hit frames
+                  are ever sent. If the value is a number, it is the average number of
+                  non-hit frames that OM skips before the next non-hit frame is
+                  broadcast to external programs. Defaults to None.
 
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
@@ -108,8 +113,7 @@ class EventCounter:
         """
         Adds hit events to the event counter.
 
-        This function updates the number of events stored by this class by recording
-        an event labelled as hit.
+        This function updates the number of hit events counted by this class.
         """
         self._num_events += 1
         self._num_hits += 1
@@ -118,8 +122,7 @@ class EventCounter:
         """
         Adds non-hit events to the event counter.
 
-        This function updates the number of events stored by this class by recording
-        an event labelled as non-hit.
+        This function updates the number of non-hit events counted by this class.
         """
         self._num_events += 1
 
@@ -128,8 +131,8 @@ class EventCounter:
         Gets timestamp of class initialization.
 
         This function returns the time at which the event counter class was
-        initialized. This usually corresponds to the moment when the processing of
-        events starts.
+        initialized. This usually corresponds to the moment when OM started processing
+        events.
 
         Returns:
 
@@ -194,7 +197,7 @@ class EventCounter:
 
         This class keeps an internal index of the nodes from which images have been
         requested in the past, and attempts to spread requests in a round-robin fashion
-        amongst all processing node, with the goal of not overloading a single node
+        amongst all processing nodes, with the goal of not overloading a single node
         with requests and of getting a representative sample of the data frames
         processed by each node.
 

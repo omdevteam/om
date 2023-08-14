@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Base abstract classes for OM's graphical interfaces.
+Base classes for OM's graphical interfaces.
 
-This module contains base classes and functions used by several of OM's graphical user
-interfaces and viewers.
+This module contains common base classes and functions used by all of OM's graphical
+user interfaces and viewers.
 """
 import copy
 from abc import ABCMeta
@@ -55,22 +55,23 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         """
         Base class for OM's graphical user interfaces.
 
-        This class implements the common elements of all OM's graphical interfaces.
-        When initialized, this class creates a listening thread that receives data from
-        an OnDA Monitor (filtered according to a provided tag). It additionally lays
-        out the basic widget structure of the graphical interface. Finally, it makes
-        sure that a function that updates the graphical elements of the interface is
-        called at regular intervals.
+        This class implements elements that are common to all of OM's graphical
+        interfaces. When initialized, this class creates a listening thread that
+        receives data from an OnDA Monitor (filtered according to a provided tag). It
+        additionally lays out the basic widget structure of the interface. Finally, it
+        makes sure that a function that updates the graphical elements of the interface
+        is called at regular intervals.
 
         The class has methods to start and stop the listening thread, effectively
         attaching and detaching the graphical interface from the OnDA Monitor from
         which it receives data.
 
         This base class should be subclassed to create specific graphical interfaces.
-        Each derived class, which should always call the constructor of this class
-        during initialization. must provide its own specific implementation of the
-        abstract [update_gui][om.graphical_interfaces.common.OmGuiBase.update_gui]
-        method, which takes care of updating the elements of the graphical interface.
+        In particular, each derived class, which should always call the constructor of
+        this class during initialization, must provide its own specific implementation
+        of the abstract
+        [update_gui][om.graphical_interfaces.common.OmGuiBase.update_gui]
+        function.
 
         Arguments:
 
@@ -107,7 +108,7 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
 
     def start_listening(self) -> None:
         """
-        Connects to an OnDA Monitor and starts listening for broadcasted data.
+        Connects to an OnDA Monitor and starts listening for broadcast data.
 
         This function instructs the listening thread to connect to an OnDA Monitor
         and to start receiving data.
@@ -120,8 +121,8 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         """
         Disconnects from an OnDA Monitor and stops listening for data.
 
-        This function instructs the listening thread to disconnect from an
-        OnDA Monitor and to stop receiving data.
+        This function instructs the listening thread to disconnect from anOnDA Monitor
+        and to stop receiving data.
         """
         if self.listening:
             self.listening = False
@@ -132,11 +133,11 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         Updates GUI elements.
 
         This function is called at regular intervals by this class. It updates plots
-        and other elements of the graphical interface. It is an abstract method: each
-        graphical interface which derives from this class must provide its own
-        implementation of this function.
+        and other elements of the graphical interface.
+
+        This function is an abstract method: each graphical interface implementation
+        which derives from this class must provide its own implementation.
         """
-        pass
 
     def _data_received(self, received_data: Dict[str, Any]) -> None:
         # This function is called internally by this class every time the listening

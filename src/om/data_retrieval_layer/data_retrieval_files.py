@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Retrieval of data from files.
+Data retrieval from files.
 
 This module contains Data Retrieval classes that deal with files.
 """
@@ -58,7 +58,7 @@ class PilatusFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval for Pilatus single-frame CBF files.
+        Data retrieval for Pilatus' single-frame CBF files.
 
         This class implements OM's Data Retrieval Layer for a set of single-frame files
         written by a Pilatus detector in CBF format.
@@ -73,7 +73,7 @@ class PilatusFilesDataRetrieval(OmDataRetrievalProtocol):
         * The full path to the CBF file is used as event identifier.
 
         * Since Pilatus files do not contain any timestamp information, the
-          modification time of the each is taken as a first approximation of the
+          modification time of the each file is taken as a first approximation of the
           timestamp of the data it contains.
 
         * Since Pilatus files do not contain any detector distance or beam energy
@@ -120,7 +120,7 @@ class PilatusFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -139,7 +139,7 @@ class Jungfrau1MFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval for Jungfrau 1M HDF5 files.
+        Data Retrieval for Jungfrau 1M's HDF5 files.
 
         This class implements OM's Data Retrieval Layer for a set of files written by
         a Jungfrau 1M detector in HDF5 format.
@@ -148,11 +148,12 @@ class Jungfrau1MFilesDataRetrieval(OmDataRetrievalProtocol):
         Please see the documentation of that class for additional information about
         the interface.
 
-        * This class considers an individual data event as equivalent to an single
-          detector frame stored in an HDF5 file.
+        * This class considers an individual data event as equivalent to a single
+          detector frame stored in an HDF5 file, with all its attached information.
 
         * The full path to the file containing the frame and the index of the frame in
-          the file, combined into a single string, are used as event identifier.
+          the file, combined into a single string and separated by the '//' symbol, are
+          used as event identifier.
 
         * Jungfrau 1M files do not contain any absolute timestamp information, but they
           store the readout of the internal detector clock for every frame. As a first
@@ -207,7 +208,7 @@ class Jungfrau1MFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
@@ -226,7 +227,7 @@ class EigerFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval for Eiger 16M HDF5 files.
+        Data Retrieval for Eiger's HDF5 files.
 
         This class implements OM's Data Retrieval Layer for a set of files written by
         an Eiger detector in HDF5 format.
@@ -239,7 +240,8 @@ class EigerFilesDataRetrieval(OmDataRetrievalProtocol):
           detector frame stored in an HDF5 file.
 
         * The full path to the file containing the frame and the index of the frame in
-          the file, combined into a single string,  are used as event identifier.
+          the file, combined into a single string and separated by the '//' symbol, are
+          used as event identifier.
 
         * Since Eiger's files do not contain any absolute timestamp information, the
           modification time of a file is taken as a first approximation of the
@@ -291,8 +293,7 @@ class EigerFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
-
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -311,7 +312,7 @@ class RayonixMccdFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval for Rayonix MX340-HS single-frame mccd files.
+        Data Retrieval for Rayonix MX340-HS's single-frame mccd files.
 
         This class implements OM's Data Retrieval Layer for a set of single-frame files
         written by a Rayonix detector in mccd format.
@@ -375,7 +376,7 @@ class RayonixMccdFilesDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -394,7 +395,7 @@ class Lambda1M5FilesDataRetrieval(OmDataRetrievalProtocol):
 
     def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
         """
-        Data Retrieval for Lambda 1.5M HDF5 files.
+        Data Retrieval for Lambda 1.5M's HDF5 files.
 
         This class implements OM's Data Retrieval Layer for a set of files written by
         a Lambda 1.5M detector in HDF5 format.
@@ -404,12 +405,12 @@ class Lambda1M5FilesDataRetrieval(OmDataRetrievalProtocol):
         the interface.
 
         * This class considers an individual data event as equivalent to an single
-          detector frame stored in two separate HDF5 files written by two detector
-          modules.
+          detector frame, stored in two separate HDF5 files written by two detector
+          modules, together with its attached information.
 
         * The full path to the file written by the first detector module ("*_m01.nxs"),
-          and the index of the frame in the file, combined into a single string, are
-          used as event identifier.
+          and the index of the frame in the file, combined into a single string and
+          separated by '//' symbol, are used as event identifier.
 
         * Since Lambda 1.5M files do not contain any timestamp information, the
           modification time of each file is taken as a first approximation of the
@@ -464,7 +465,7 @@ class Lambda1M5FilesDataRetrieval(OmDataRetrievalProtocol):
 
     def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
         """
-        Retrieves the Data Event Handler used by the class.
+        Retrieves the Data Event Handler used by the Data Retrieval class.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
