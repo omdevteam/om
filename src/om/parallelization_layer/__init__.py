@@ -18,9 +18,9 @@
 """
 OM's Parallelization Layer.
 
-This package contains OM's Parallelization Layer (which manages the communication
-between the processing and collecting nodes). Each module in the package is
-dedicated to a different communication approach or technique.
+This package contains OM's Parallelization Layer, which manages the communication
+between the processing and collecting nodes. Modules in this package contain functions
+and classes for specific communication approaches or techniques.
 """
 
 try:

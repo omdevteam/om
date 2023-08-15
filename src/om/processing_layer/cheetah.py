@@ -18,8 +18,8 @@
 """
 Cheetah
 
-This module contains Cheetah, a data-processing program for serial x-ray
-crystallography, based on OM but not designed to be run in real time.
+This module contains Cheetah, a data-processing program for Serial X-ray
+Crystallography, based on OM but not designed to be run in real time.
 """
 import pathlib
 import sys
@@ -56,21 +56,20 @@ class CheetahProcessing(OmProcessingProtocol):
         Cheetah.
 
         This Processing class implements the Cheetah software package. Cheetah
-        processes detector data frames, optionally applying detector calibration, dark
-        correction and gain correction. It then detects Bragg peaks in each detector
-        frame using the
+        processes detector data frames, detecting Bragg peaks in each frame
+        using the
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm, retrieving information about the location, size, intensity, SNR
-        and maximum pixel value of each peak. Cheetah then saves the calibrated and
+        algorithm. It retrieves information about the location, size, intensity, SNR
+        and maximum pixel value of each peak, Cheetah then saves the calibrated and
         corrected detector data, plus all the information retrieved from the facility
-        or extracted from the data, in multi-event HDF5 files. In addition to saving
-        individual frames, Cheetah can optionally compute separate detector frame sums
-        for hit and non-hit frames. The sums are saved, together with corresponding
-        virtual powder patterns, in HDF5 sum files.
+        or extracted from the data, in multi-event HDF5 files. Cheetah can also
+        compute, and write to HDF5 sum files, sums of detector data frames (calculating
+        separate sums for hit and non-hit frames). The sums can saved together with
+        their corresponding Virtual Powder patterns.
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         # Parameters
         self._monitor_params: MonitorParameters = monitor_parameters
@@ -134,11 +133,11 @@ class CheetahProcessing(OmProcessingProtocol):
         """
         Initializes the processing nodes for Cheetah.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function initializes all the required algorithms (peak finding, binning,
+        etc.), plus some internal counters.
 
-        This function initializes the correction and peak finding algorithms, the
-        multi-frame HDF5 file writer, and some internal counters.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -187,12 +186,12 @@ class CheetahProcessing(OmProcessingProtocol):
         """
         Initializes the collecting node for Cheetah.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function initializes the data accumulation algorithms, the storage buffers
-        used to compute statistics on the detected Bragg peaks and, optionally, the sum
-        file writer.
+        used to compute statistics on the detected Bragg peaks and all the file
+        writers.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -232,7 +231,9 @@ class CheetahProcessing(OmProcessingProtocol):
 
         # Class sums collection
         self._class_sum_collector: CheetahClassSumsCollector = (
-            CheetahClassSumsCollector(cheetah_parameters=self._cheetah_parameters)
+            CheetahClassSumsCollector(
+                cheetah_parameters=self._cheetah_parameters, num_classes=2
+            )
         )
 
         # Console
@@ -245,14 +246,14 @@ class CheetahProcessing(OmProcessingProtocol):
         """
         Processes a detector data frame and saves the extracted data to HDF5 file.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function processes retrieved data events, extracting the Bragg peak
+        information. It also saves the frame-related processed data in an output
+        HDF5 file, if a frame is identified as a hit. Finally, it prepares the reduced
+        data (and optionally, the detector frame data) for transmission to the
+        collecting node.
 
-        This function processes retrieved data events, calibrating and correcting the
-        detector data frames and extracting the Bragg peak information. It also saves
-        the frame-related processed data in an output HDF5 file, if a frame is
-        identified as a hit. Finally, it prepares the peak-related data (and
-        optionally, the frame-related data) for transmission to the collecting node.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -345,10 +346,10 @@ class CheetahProcessing(OmProcessingProtocol):
         """
         Receives and handles requests from external programs.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function is not used in Cheetah, and therefore does nothing.
 
-        This function does nothing.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -369,19 +370,18 @@ class CheetahProcessing(OmProcessingProtocol):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
-        Computes statistics on aggregated data and optionally saves them to files.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Computes statistics on aggregated data and saves them to files.
 
         This function collects and accumulates frame- and peak-related information
-        received from the processing nodes. Optionally, it computes the sums of hit and
-        non-hit detector frames and the corresponding virtual powder patterns. If
-        required, it saves the sums and virtual powder patterns to sum files.
-        Additionally, this function can write information about the processing
-        statistics (number of processed events, number of found hits and the elapsed
-        time) in a status file at regular intervals. External programs can inspect the
-        file to determine the advancement of the data processing.
+        received from the processing nodes.  Optionally, it computes the sums of hit
+        and non-hit detector frames and the corresponding virtual powder patterns, and
+        saves them to file. Additionally, this function writes information about the
+        processing statistics (number of processed events, number of found hits and the
+        elapsed time) to a status file at regular intervals. External programs can
+        inspect the file to determine the advancement of the data processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -445,13 +445,13 @@ class CheetahProcessing(OmProcessingProtocol):
         node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing on the processing nodes.
+        Ends processing on the processing nodes for Cheetah.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
-        This function prints a message on the console, closes the  output HDF5 files
+        This function prints a message on the console, closes the output HDF5 files
         and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -484,13 +484,13 @@ class CheetahProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Ends processing on the collecting node.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the collecting node for Cheetah.
 
         This function prints a message on the console, writes the final information in
         the sum and status files, closes the files and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

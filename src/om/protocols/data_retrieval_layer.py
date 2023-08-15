@@ -18,7 +18,7 @@
 """
 Data Extraction Layer's Protocol classes.
 
-This module contains base Protocol classes for OM's Data Extraction Layer classes.
+This module contains base Protocol classes for OM's Data Extraction Layer.
 """
 
 from typing import Any, Dict, Generator, Protocol
@@ -41,9 +41,9 @@ class OmDataSourceProtocol(Protocol):
         Protocol for OM's Data Source classes.
 
         Data Sources are classes that perform all the operations needed to retrieve
-        data from a single specific sensor or detector. A Data Source class can refer
-        to anything from a simple diode or wave digitizer, to big x-ray or optical
-        detector.
+        data from a single specific sensor or detector. A Data Source class can be
+        associate to any type of detector,from a simple diode or wave digitizer, to a
+        big x-ray or optical detector.
 
         This class Protocol describes the interface that every Data Source class in OM
         must implement.
@@ -58,7 +58,7 @@ class OmDataSourceProtocol(Protocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         ...
 
@@ -134,7 +134,7 @@ class OmDataEventHandlerProtocol(Protocol):
                   [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         ...
 
@@ -189,7 +189,7 @@ class OmDataEventHandlerProtocol(Protocol):
         This function retrieves a series of data events from a source. OM calls this
         function on each processing node to start retrieving events. The function,
         which is a generator, returns an iterator over the events that the calling node
-        should process.
+        must process.
 
         Arguments:
 
@@ -243,15 +243,11 @@ class OmDataEventHandlerProtocol(Protocol):
         """
         Extracts data from a frame stored in an event.
 
-        This function extracts data from a frame stored in an event. It works by
-        calling, one after the other, all the functions that retrieve data from the
-        Data Sources associated with the event. The event is ...ed as input to each of
-        them. The data extracted by each function is then returned to the caller.
-
-        For data events with multiple frames, OM calls this function once for each
-        frame in the event. The function always passes the full event to each data
-        extracting function: an internal flag keeps track of which frame must be
-        processed in each particular call.
+        This function extracts data from a data event. It works by calling, one after
+        the other, the `get_data` function of each Data Source associated with the
+        event, passing the event itself as input each time. Each function call returns
+        the data extracted from the Data Source. All the retrieved data items are
+        finally aggregated and returned.
 
         Arguments:
 
@@ -262,10 +258,10 @@ class OmDataEventHandlerProtocol(Protocol):
             A dictionary storing the extracted data.
 
                 * Each dictionary key identifies a Data Source in the event for which
-                data has been retrieved.
+                  data has been retrieved.
 
                 * The corresponding dictionary value stores the data that could be
-                extracted for the frame being processed.
+                  extracted from the Data Source for the provided event.
         """
         ...
 
@@ -274,9 +270,10 @@ class OmDataEventHandlerProtocol(Protocol):
         Initializes frame data retrieval.
 
         This function initializes the retrieval of data for a single standalone data
-        event from a data event source, with all its related information. This is
-        completely different from the way OM usually operates, retrieving a series of
-        events in sequence.
+        event from a data event source, with all its related information. The way this
+        function operates is in contrast with the way OM usually works. OM usually
+        retrieves a series of events in sequence, one after the other. This function
+        retrieves a single event, separated from all others.
 
         This function can be called on any type of node in OM and even outside of an
         OnDA Monitor class instance. It prepares the system to retrieve the event data,
@@ -291,24 +288,24 @@ class OmDataEventHandlerProtocol(Protocol):
 
     def retrieve_event_data(self, event_id: str) -> Dict[str, Any]:
         """
-        Retrieves all data related to the requested detector frame.
+        Retrieves all data attached to the requested data event.
 
-        This function retrieves from a data event source all the data associated with a
-        single standalone event.
+        This function retrieves all the information associated with the data event
+        specified by the provided identifier. The data is returned in the form of a
+        dictionary.
 
         Before this function can be called, frame data retrieval must be initialized by
         calling the
         [`initialize_event_data_retrieval`][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.initialize_event_data_retrieval]
-        function. This function can then be used to retrieve all the data related to
-        the event specified by the provided identifiers.
+        function.
 
         Arguments:
 
-            event_id: a string that uniquely identifies a data event.
+            event_id: A string that uniquely identifies a data event.
 
         Returns:
 
-            All data related to the requested detector data frame.
+            All data related to the requested data event.
         """
         ...
 
@@ -339,7 +336,7 @@ class OmDataRetrievalProtocol(Protocol):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
 
             source: A string describing the data event source.
         """

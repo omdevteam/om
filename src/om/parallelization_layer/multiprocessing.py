@@ -124,9 +124,9 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
 
         This class implements a Parallelization Layer based on Python's multiprocessing
         module. Each processing node is spawned as a subprocess. The parent process
-        acts as a collecting node and additionally manages the child processes. This
-        method generates all the subprocesses, and sets up all the communication
-        channels through which data and control commands are received and dispatched.
+        acts as the collecting node and additionally manages the child processes. This
+        class manages all the subprocesses, and sets up all the communication channels
+        through which data and control commands are received and dispatched.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -193,7 +193,8 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         """
         Starts the multiprocessing parallelization.
 
-        The function starts the nodes and manages all of their interactions
+        The function starts the nodes and manages all of their interactions,organizing
+        the receiving and dispatching of data and control commands.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -278,7 +279,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
 
         This function stops OM, closing all the communication channels between the
         nodes and managing a controlled shutdown of OM's resources. Additionally, it
-        terminates the processing node subprocesses in an orderly fashion.
+        terminates all the subprocesses in an orderly fashion.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

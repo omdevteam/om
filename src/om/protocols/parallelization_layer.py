@@ -51,8 +51,8 @@ class OmParallelizationProtocol(Protocol):
           instance of a Data Retrieval class (see
           [OmDataRetrievalProtocol;][om.Protocols.data_retrieval_layer.OmDataRetrievalProtocol])  # noqa: E501
           and an instance of a Processing class (see
-          OmProcessingProtocol][om.Protocols.processing_layer.OmProcessingProtocol]) to
-          each node.
+          OmProcessingProtocol][om.Protocols.processing_layer.OmProcessingProtocol])
+          with  each node.
 
         * Each processing node retrieves an event from a data event source by calling
           the relevant Data Retrieval class methods. It then invokes the appropriate
@@ -103,8 +103,8 @@ class OmParallelizationProtocol(Protocol):
         When this function is called on a processing node, the processing node
         communicates to the collecting node that it is shutting down, then shuts down.
         When instead this function is called on the collecting node, the collecting
-        node tells every processing node to shut down, waits for all the processing
-        nodes to confirm that they have stopped operating, then shuts itself down.
+        node tells every processing node to shut down, waits for all the nodes to
+        confirm that they have stopped operating, then shuts itself down.
 
         Arguments:
 

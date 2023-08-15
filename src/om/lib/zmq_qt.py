@@ -63,11 +63,11 @@ class ZmqDataListener(QtCore.QObject):
         OnDA Monitor. The class must be initialized with the URL address, in ZeroMQ
         format, of the broadcasting socket of the monitor. It then creates a receiving
         socket that listens for data, but only when is tagged with a specific label,
-        which is also provided to the class when it is initialized. Every time th
-        socket receives data, this class emits a signal. The signal carries the
-        received data as payload. This class is designed to be run in a separate thread
-        from the main data-receiving program. The main program can listen for the
-        signal emitted by this class to determine when new data has been received.
+        provided to the class when it is initialized. Every time the socket receives
+        data, this class emits a Qt signal carrying the received data as payload. This
+        class is designed to be run in a separate thread from the main graphical
+        interface program. The main program can listen for the signal emitted by this
+        class to determine when new data has been received.
 
         This class is designed to be executed in a Qt thread. It creates a ZMQ SUB
         socket that connects to an OM's PUB socket, subscribing to a single specific
@@ -99,10 +99,14 @@ class ZmqDataListener(QtCore.QObject):
         """
         Connects to a OM's broadcasting socket and starts listening for data.
 
-        This function connects the listening socket to the URL with which the class was
-        initialized. The socket starts receiving data immediately.
+        This function connects the listening socket to a data source broadcasting at
+        the URL provided to the class at initialization. The socket starts receiving
+        data immediately.
 
-        Raises()
+        Raises:
+
+            OmInvalidZmqUrl: Raised if any error happens while the socket is being
+                connected to the data broadcasting source.
         """
         console.print(f"{get_current_timestamp()} Connecting to {self._url}")
         self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)

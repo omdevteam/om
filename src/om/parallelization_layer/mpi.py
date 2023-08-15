@@ -72,7 +72,7 @@ class MpiParallelization(OmParallelizationProtocol):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._data_event_handler: OmDataEventHandlerProtocol = (
             data_retrieval_layer.get_data_event_handler()
