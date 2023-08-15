@@ -110,7 +110,7 @@ class CheetahStatusFileWriter:
                 entries:
 
                 * `directory_for_processed_data`: A relative or absolute path to the
-                  directory where the output files are be written.
+                  directory where the output files are to be written.
 
         """
         directory_for_processed_data: str = get_parameter_from_parameter_group(
@@ -135,8 +135,8 @@ class CheetahStatusFileWriter:
         Writes a status file.
 
         This function writes the information about the current state of data processing
-        to a status file. The the Cheetah GUI inspect this file to get information
-        about Cheetah's current state.
+        to a status file. The Cheetah GUI inspect this file to get information about
+        Cheetah's current state.
 
         Arguments:
 
@@ -181,7 +181,26 @@ class CheetahListFilesWriter:
         "cleaned.txt", "events.lst", "hits.lst" and "peaks.txt" files required by the
         Cheetah GUI.
 
-        #TODO: describe the files
+        "frames.txt" contains a list of all the detector frames processed by Cheetah,
+        with information about the frame timestamp, event ID, whether the frame is a
+        hit, the name of the file containing the frame, the index of the frame in the
+        file, the number of peaks detected in the frame, and the average intensity of
+        the peaks in the frame.
+
+        "cleaned.txt" contains a list of all the detector frames that have been
+        identified as hits by Cheetah, with the same information as "frames.txt".
+
+        "events.lst" contains a list of all the event IDs of the detector frames
+        processed by Cheetah.
+
+        "hits.lst" contains a list of all the event IDs of the detector frames that
+        have been identified as hits by Cheetah.
+
+        "peaks.txt" contains a list of all the Bragg peaks detected by Cheetah, with
+        information about the event ID of the frame to which the peak belongs, the
+        number of peaks in the frame, the fast-scan and slow-scan coordinates of the
+        peak, the peak intensity, the number of pixels in the peak, the maximum pixel
+        intensity in the peak, and the signal-to-noise ratio of the peak.
 
         Arguments:
 
