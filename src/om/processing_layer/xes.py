@@ -28,12 +28,11 @@ from typing import Any, Dict, Tuple, Union
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms.xes import XesAnalysis
 from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
-from om.lib.xes import XesPlots
+from om.lib.xes import XesAnalysisAndPlots
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.protocols.processing_layer import OmProcessingProtocol
 
@@ -107,15 +106,6 @@ class XesProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        # Correction
-        self._correction = Correction(
-            parameters=self._monitor_params.get_parameter_group(group="correction")
-        )
-
-        self._xes_analysis = XesAnalysis(
-            parameters=self._monitor_params.get_parameter_group(group="xes")
-        )
-
         # Frame sending
         self._send_hit_frame: bool = False
         self._send_non_hit_frame: bool = False
@@ -153,7 +143,7 @@ class XesProcessing(OmProcessingProtocol):
         )
 
         # Plots
-        self._plots = XesPlots(
+        self._plots = XesAnalysisAndPlots(
             xes_parameters=self._monitor_params.get_parameter_group(group="xes"),
             time_resolved=self._time_resolved,
         )
@@ -235,9 +225,9 @@ class XesProcessing(OmProcessingProtocol):
             + 1,
         ] = 0
 
-        xes: Dict[str, NDArray[numpy.float_]] = self._xes_analysis.generate_spectrum(
-            data=corrected_camera_data
-        )
+        xes: Dict[
+            str, NDArray[numpy.float_]
+        ] = self._xes_analysis_and_Plots.generate_spectrum(data=corrected_camera_data)
 
         processed_data["timestamp"] = data["timestamp"]
         processed_data["spectrum"] = xes["spectrum"]
