@@ -178,27 +178,26 @@ class OmProcessingProtocol(Protocol):
         the processing node (the tuple returned by the
         [`process_data`][om.Protocols.processing_layer.OmProcessingProtocol.process_data]
         method of this class), and performs calculations that must be carried out on
-        data received from multiple nodes (computing aggregate statistics, preparing
-        data for external programs or visualization, etc.)
+        aggregated data (computing cumulative statistics, preparing data for external
+        programs or visualization, etc.)
 
         The function usually does not return any value, but can optionally return a
         nested dictionary (a dictionary whose values are other dictionaries). When this
         happens, the data in the dictionary is provided as feedback data to the
-        processing nodes.
+        processing nodes. The nested dictionary must have the following format:
 
         * The keys of the outer dictionary must match the OM rank numbers of the
-        processing nodes which will receive the feedback data. A key value of 0
-        can be used to send feedback data to all the processing nodes at the same
-        time.
+          processing nodes which receive the feedback data. A key value of 0 can be
+          used to send feedback data to all the processing nodes at the same time.
 
         * The value corresponding to each key of the outer dictionary must in turn be a
-        dictionary that stores the feedback data that must be sent to the node defined
-        by the key.
+          dictionary that stores the feedback data that is sent to the node defined by
+          the key.
 
-        * On each processing node, the feedback data dictionary, if received, will be
-        merged with the `data` argument of the
-        [`process_data`][om.Protocols.processing_layer.OmProcessingProtocol.process_data]
-        function the next time the function is called.
+        * On each processing node, the feedback data dictionary, when received, is
+          merged with the `data` argument of the
+          [`process_data`][om.Protocols.processing_layer.OmProcessingProtocol.process_data]
+          function the next time the function is called.
 
         Arguments:
 

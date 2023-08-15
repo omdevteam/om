@@ -18,8 +18,10 @@
 """
 Cheetah Streaming.
 
-This module contains Cheetah, a data-processing program for serial x-ray
-crystallography, based on OM but not designed to be run in real time.
+This module contains a specific version of Cheetah, a data-processing program for
+Serial X-ray Crystallography. Compare to Cheetah, this version processes data frames,
+but does not save the extracted data to files: it sends it to external programs for
+further processing.
 """
 import pathlib
 import sys
@@ -72,22 +74,27 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         """
         Cheetah Streaming.
 
-        This Processing class implements the Cheetah software package. Cheetah
-        processes detector data frames, optionally applying detector calibration, dark
-        correction and gain correction. It then detects Bragg peaks in each detector
-        frame using the
+        This Processing class implements the Cheetah Streaming software package. Cheetah
+        Streaming processes detector data frames, detecting Bragg peaks in each frame
+        using the
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm, retrieving information about the location, size, intensity, SNR
-        and maximum pixel value of each peak. Cheetah then saves the calibrated and
-        corrected detector data, plus all the information retrieved from the facility
-        or extracted from the data, in multi-event HDF5 files. In addition to saving
-        individual frames, Cheetah can optionally compute separate detector frame sums
-        for hit and non-hit frames. The sums are saved, together with corresponding
-        virtual powder patterns, in HDF5 sum files.
+        algorithm. It retrieves information about the location, size, intensity, SNR
+        and maximum pixel value of each peak, and then streams the information
+        retrieved from the facility or extracted from the data to external programs
+        for further processing. Optionally, it can also broadcast full detector data
+        frames. Cheetah Streaming can also compute, and write to HDF5 sum files, sums
+        of detector data frames (calculating separate sums for hit and non-hit frames).
+        The sums can saved together with their corresponding Virtual Powder patterns.
+        Cheetah Streaming can also respond to requests for data or change of behavior
+        from external programs (a control GUI, for example.)
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
 
         # Parameters
@@ -151,13 +158,13 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Initializes the processing nodes for Cheetah.
+        Initializes the processing nodes for Cheetah Streaming.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function initializes all the required algorithms (peak finding, binning,
+        etc.), plus some internal counters.
 
-        This function initializes the correction, peak finding and binning algorithms,
-        and some internal counters.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -205,13 +212,12 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         """
         Initializes the collecting node for Cheetah.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function initializes the data accumulation algorithms, the storage buffers
-        used to compute statistics on the detected Bragg peaks and, optionally, the sum
-        file writer. Additionally, it prepares the responding socket to send data to
-        external programs.
+        used to compute aggregated statistics on the processed data, and some internal
+        counters. Additionally, it prepares all the necessary network sockets.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -251,7 +257,9 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
 
         # Class sums collection
         self._class_sum_collector: CheetahClassSumsCollector = (
-            CheetahClassSumsCollector(cheetah_parameters=self._cheetah_parameters)
+            CheetahClassSumsCollector(
+                cheetah_parameters=self._cheetah_parameters, num_classes=2
+            )
         )
 
         # Streaming to CrystFEL
@@ -290,15 +298,14 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
-        Processes a detector data frame and saves the extracted data to HDF5 file.
+        Processes a detector data frame.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function processes retrieved data events, extracting the Bragg peak
+        information. It prepares the reduced data (and optionally, the detector frame
+        data) to be transmitted to the collecting node.
 
-        This function processes retrieved data events, calibrating and correcting the
-        detector data frames and extracting the Bragg peak information. Finally, it
-        prepares the Bragg peak data (and optionally, the detector frame data) for
-        transmission to to the collecting node.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -375,12 +382,12 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         """
         Receives and handles requests from external programs.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function receives requests from external programs over a network socket
         and reacts according to the nature of the request, sending data back to the
-        source of the request or modifying the internal behavior of the monitor.
+        source of the request or modifying the internal behavior of Cheetah Streaming.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -401,19 +408,19 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
-        Computes statistics on aggregated data and streams hits to external programs.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Computes statistics on aggregated data and broadcasts data to external programs.
 
         This function collects and accumulates frame- and peak-related information
-        received from the processing nodes. Optionally, it computes the sums of hit and
-        non-hit detector frames and the corresponding virtual powder patterns. If
-        required, it saves the sums and virtual powder patterns to sum files.
-        Additionally, this function can write information about the processing
-        statistics (number of processed events, number of found hits and the elapsed
-        time) in a status file at regular intervals. External programs can inspect the
-        file to determine the advancement of the data processing.
+        received from the processing nodes, and streams it to external programs.
+        Optionally, it computes the sums of hit and non-hit detector frames and the
+        corresponding virtual powder patterns, and saves them to file. Additionally,
+        this function writes information about the processing statistics (number of
+        processed events, number of found hits and the elapsed time) to a status file
+        at regular intervals. External programs can inspect the file to determine the
+        advancement of the data processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -503,12 +510,12 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         node_pool_size: int,
     ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing on the processing nodes.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the processing nodes for Cheetah Streaming.
 
         This function prints a message on the console and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -540,13 +547,13 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Ends processing on the collecting node.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the collecting node for Cheetah Streaming.
 
         This function prints a message on the console, writes the final information in
         the sum and status files, closes the files and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

@@ -40,15 +40,9 @@ class OmEventDataRetrieval:
         This class deals with the retrieval of single standalone data events from a
         data source.
 
-        The way this class works is in contrast with the way OM usually works. OM
-        usually retrieves a series of events in sequence, while this class deals with
-        the retrieval of a single event separate from any other. An instance of this
-        class can be created on any type of OM node and even in a standalone program
-        outside of an OnDA Monitor.
-
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
 
             source: A string describing the data event source.
         """
@@ -99,7 +93,5 @@ class OmEventDataRetrieval:
         Returns:
 
             A dictionary storing all data related the retrieved event.
-
-
         """
         return self._data_event_handler.retrieve_event_data(event_id=event_id)

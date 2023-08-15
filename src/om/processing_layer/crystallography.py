@@ -55,23 +55,26 @@ class CrystallographyProcessing(OmProcessingProtocol):
         """
         OnDA Monitor for Crystallography.
 
-        This Processing class implements an OnDA Monitor for serial crystallography
-        experiments. The monitor processes detector data frames, optionally applying
-        detector calibration, dark correction and gain correction. It then detects
-        Bragg peaks in each detector frame using the
+        This Processing class implements an OnDA Monitor for Serial Crystallography
+        experiments. The monitor processes detector data frames, detecting Bragg peaks
+        in each frame using the
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
-        algorithm, retrieving information about the location, size, intensity, SNR and
-        maximum pixel value of each peak. Additionally, the monitor calculates the
-        evolution of the hit rate over time. It can also optionally collect examples of
-        hit and non-hit calibrated detector data frames. All the information is
-        broadcast over a ZMQ socket for visualization by external programs like
+        algorithm, It retrieves information about the location, size, intensity, SNR
+        and maximum pixel value of each peak. The monitor also calculates the evolution
+        of the hit rate over time. and can additionally optionally collect examples of
+        hit and non-hit calibrated detector data frames. All the information retrieved
+        from the facility or extracted from the data is then streamed to external
+        programs (like
         [OM's Crystallography GUI][om.graphical_interfaces.crystallography_gui.CrystallographyGui]  # noqa: E501
         or
         [OM's Frame Viewer][om.graphical_interfaces.crystallography_frame_viewer.CrystallographyFrameViewer].  # noqa: E501
+        ) for visualization.
+        The monitor can also respond to requests for data or change of behavior from
+        external programs (a control GUI, for example.)
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
 
         # Parameters
@@ -122,11 +125,11 @@ class CrystallographyProcessing(OmProcessingProtocol):
         """
         Initializes the processing nodes for the Crystallography Monitor.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function initializes all the required algorithms (peak finding, binning,
+        etc.), plus some internal counters.
 
-        This function initializes the correction and peak finding algorithms, plus some
-        internal counters.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -171,12 +174,12 @@ class CrystallographyProcessing(OmProcessingProtocol):
         """
         Initializes the collecting node for the Crystallography Monitor.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function initializes the data accumulation algorithms and the storage
-        buffers used to compute statistics on the detected Bragg peaks. Additionally,
-        it prepares the data broadcasting socket to send data to external programs.
+        buffers used to compute statistics on the aggregated data. Additionally,
+        it prepares all the necessary network sockets.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -270,15 +273,14 @@ class CrystallographyProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], int]:
         """
-        Processes a detector data frame and extracts Bragg peak information.
+        Processes a detector data frame.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function processes retrieved data events, extracting the Bragg peak
+        information. It prepares the reduced data (and optionally, the detector frame
+        data) to be transmitted to the collecting node.
 
-        This function processes retrieved data events, calibrating and correcting the
-        detector data frames and extracting the Bragg peak information. Finally, it
-        prepares the Bragg peak data (and optionally, the detector frame data) for
-        transmission to to the collecting node.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -369,12 +371,12 @@ class CrystallographyProcessing(OmProcessingProtocol):
         """
         Receives and handles requests from external programs.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function receives requests from external programs over a network socket
         and reacts according to the nature of the request, sending data back to the
         source of the request or modifying the internal behavior of the monitor.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -395,15 +397,17 @@ class CrystallographyProcessing(OmProcessingProtocol):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
-        Computes statistics on aggregated data and broadcasts them.
+        Computes statistics on aggregated data and broadcasts data to external programs.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function collects and accumulates frame- and peak-related information
+        received from the processing nodes. It also computes a rolling average
+        estimation of the hit rate evolution over time. Additionally, it uses the
+        Bragg peak information to compute virtual powder pattern and a peakogram plot.
+        All the aggregated information is then broadcast to external programs for
+        visualization.
 
-        This function collects Bragg peak information (and optionally, frame data) from
-        the processing nodes. It computes a rolling average estimation of the hit rate
-        and a virtual powder pattern. It then broadcasts the aggregated information
-        over a network socket for visualization by external programs.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -555,12 +559,12 @@ class CrystallographyProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing actions on the processing nodes.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the processing nodes for the Crystallography Monitor.
 
         This function prints a message on the console and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -585,12 +589,12 @@ class CrystallographyProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Ends processing on the collecting node.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the collecting node for the Crystallography Monitor.
 
         This function prints a message on the console and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

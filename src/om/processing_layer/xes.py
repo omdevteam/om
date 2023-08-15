@@ -47,22 +47,24 @@ class XesProcessing(OmProcessingProtocol):
         """
         OnDA Monitor for X-ray Emission Spectroscopy.
 
-        This Processing class implements and OnDA Monitor for x-ray emission
-        spectroscopy experiments. The monitor processes detector data frames,
-        optionally applying detector calibration, dark correction and gain correction.
-        It then extracts a 1D XES spectrum from each of the data frames. The monitor
-        computes smoothed and averaged spectral data information and broadcasts it to
-        external programs, like
-        [OM's XES GUI][om.graphical_interfaces.xes_gui.XesGui], for visualization. In
-        time resolved experiments, the monitor can process spectra for pumped and dark
-        events separately, and compute their difference.
+        This Processing class implements and OnDA Monitor for X-ray Emission
+        Spectroscopy experiments. The monitor processes camera data frames,extracting
+        an energy spectrum from each of the data frames. The monitor computes smoothed
+        and averaged spectral data information and broadcasts it to
+        external programs (like [OM's XES GUI][om.graphical_interfaces.xes_gui.XesGui],
+        for visualization. In time resolved experiments, the monitor can process
+        spectra for pumped and dark events separately, and compute their difference.
 
         This monitor is designed to work with cameras or simple single-module
         detectors. It will not work with a segmented detector.
 
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         # Parameters
         self._monitor_params: MonitorParameters = monitor_parameters
@@ -91,11 +93,11 @@ class XesProcessing(OmProcessingProtocol):
         """
         Initializes the processing nodes for the XES Monitor.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function initializes the the spectrum extraction algorithm, plus some
+        internal counters.
 
-        This function initializes the correction algorithm and the spectrum extraction
-        algorithm, plus some internal counters.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -128,13 +130,12 @@ class XesProcessing(OmProcessingProtocol):
         """
         Initializes the collecting node for the XES Monitor.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function initializes the data accumulation algorithms and the storage
         buffers used to compute statistics on the aggregated spectral data.
-        Additionally, it prepares the data broadcasting socket to send data to
-        external programs.
+        Additionally, it prepares all the necessary network sockets.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -185,13 +186,12 @@ class XesProcessing(OmProcessingProtocol):
         """
         Processes a detector data frame and extracts spectrum information.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function processes retrieved data events, extracting an energy spectrum
+        from each of them. It additionally prepares the spectral data for transmission
+        to to the collecting node.
 
-        This function processes retrieved data events, calibrating and correcting
-        the detector data frames and extracting a XES spectrum from each of them. It
-        additionally prepares the spectral data for transmission to to the collecting
-        node.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -257,13 +257,14 @@ class XesProcessing(OmProcessingProtocol):
         node_pool_size: int,
     ) -> None:
         """
-        Performs operations on the processing node when no data is received.
+        Receives and handles requests from external programs.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function receives requests from external programs over a network socket
+        and reacts according to the nature of the request, sending data back to the
+        source of the request or modifying the internal behavior of the monitor.
 
-        This monitor does not need to perform any operation on the processing node if
-        no data is received, therefore this function does nothing.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -290,8 +291,11 @@ class XesProcessing(OmProcessingProtocol):
         refer to the documentation of that class for more information.
 
         This function computes aggregated statistics on spectral data received from the
-        processing nodes. It then broadcasts the results via a ZMQ socket for
-        visualization by external programs.
+        processing nodes. It then broadcasts the aggregated information to external
+        programs for visualization.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -360,12 +364,12 @@ class XesProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing actions on the processing nodes.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the processing nodes for the XES Monitor.
 
         This function prints a message on the console and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -390,12 +394,12 @@ class XesProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> None:
         """
-        Ends processing on the collecting node.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the collecting node for the XES Monitor.
 
         This function prints a message on the console and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

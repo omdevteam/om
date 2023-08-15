@@ -38,47 +38,55 @@ def get_parameter_from_parameter_group(
     default: Any = None,
 ) -> Any:
     """
-    Extracts an OM's configuration parameter from a parameter group.
+    Retrieves the value of an OM's configuration parameter from a parameter group.
 
-    This function extracts a single configuration parameter from a provided group of
-    parameters. Optionally, it validates the type of the parameter according to the
-    following rules:
+    This function retrieves the value of a single configuration parameter from a
+    provided group of configuration parameters. Optionally, it validates the type of
+    the parameter according to the following rules:
 
-    * If the `required` argument is True and the parameter cannot be found in the
-        parameter group, this function will raise an exception.
+    * If the value of the `required` argument is True and the parameter cannot be
+        found in OM's configuration file, this function raises an exception.
 
-    * If the `required` argument is False and the parameter cannot be found in the
-        parameter group, this function will return None.
+    * If the value of the `required` argument is False and the parameter cannot be
+        found in OM's configuration file, this function returns None, or the value
+        of the `default` argument, if it is provided.
 
-    * If a type is specified in the function call (the `parameter_type` argument
-        is not None), this function will raise an exception if the type of the
-        retrieved parameter does not match the specified one.
+    * If a type is specified for the parameter (the `parameter_type` argument is
+        not None) and the type of the retrieved parameter does not match the
+        specified one, this function raises an exception.
 
     Arguments:
 
-        group: the parameter group from which the parameter should be extracted.
+        group: The parameter group containing the parameter to retrieve.
 
-        parameter: The name of the parameter to retrieve.
+        parameter (str): The name of the parameter to retrieve.
 
-        parameter_type: The type of the parameter to retrieve. If a type is specified
-            here, the type of the retrieved parameter will be validated. Defaults to
-            None.
+        parameter_type: The type of the parameter to retrieve. If a type is
+            specified in this argument, the type of the retrieved parameter will be
+            validated. Defaults to None.
 
         required: True if the parameter is strictly required and must be present
-            in the parameter group. False otherwise. Defaults to False.
+            in OM's configuration file, False otherwise. Defaults to False.
+
+        default: The default value that this function should return if the
+            requested parameter cannot be found and the parameter is not strictly
+            required.
+
 
     Returns:
 
         The value of the requested parameter, or None, if the parameter was not
-            found in the parameter group (and it is not required).
+        found in OM's configuration file, it is not required, and a default value
+        has not been provided.
 
     Raises:
+
 
         OmMissingParameterError: Raised if the parameter is required but cannot be
             found in the parameter group.
 
         OmWrongParameterTypeError: Raised if the requested parameter type does not
-            match the type of the configuration parameter.
+            match the type of the retrieved configuration parameter.
     """
     ret: Any = group.get(parameter)
     if ret is None:
@@ -128,17 +136,16 @@ class MonitorParameters:
         node_pool_size: Union[int, None] = None,
     ) -> None:
         """
-        Storage, retrieval and validation of OnDA Monitor configuration parameters.
+        Storage, retrieval and validation of OM's configuration parameters.
 
         This class stores a set of OM's configuration parameters, subdivided in groups.
-        The parameters must be read from a configuration file written in YAML format.
-        The class allows then single parameters or group of parameters to be retrieved,
-        and optionally validated.
+        It is initialized with a set of parameters read from a configuration file
+        written in YAML format. It then allows single parameters or group of parameters
+        to be retrieved, and optionally validated.
 
-        This class takes as input the path to a YAML file storing the configuration
-        parameters. In addition to the parameters read from the file, this class stores
-        the path to the file itself, in a parameter named `configuration_file` within
-        the `om` parameter group.
+        In addition to the set of parameters read from the file, this class stores
+        the path to the configuration file itself, in a parameter named
+        `configuration_file` within the `om` parameter group.
 
         Arguments:
 
@@ -160,7 +167,9 @@ class MonitorParameters:
             raise exceptions.OmConfigurationFileReadingError(
                 f"Cannot open or read the configuration file {config}."
             )
-        except yaml.parser.ParserError as exc:  # pyright: ignore[reportGeneralTypeIssues]  # noqa: E501
+        except (
+            yaml.parser.ParserError
+        ) as exc:  # pyright: ignore[reportGeneralTypeIssues]  # noqa: E501
             raise exceptions.OmConfigurationFileSyntaxError(
                 f"Syntax error in the configuration file: {exc}."
             ) from exc
@@ -182,8 +191,8 @@ class MonitorParameters:
         """
         Retrieves an OM's configuration parameter group.
 
-        This function retrieves a configuration group from the full set of OM's
-        configuration parameters.
+        This function retrieves a configuration parameter group from the full set of
+        OM's configuration parameters.
 
         Arguments:
 
@@ -191,8 +200,7 @@ class MonitorParameters:
 
         Returns:
 
-            The parameter group, if it was found in the full set of configuration
-                parameters.
+            The parameter group.
 
         Raises:
 
@@ -222,19 +230,20 @@ class MonitorParameters:
         parameter, according to the following rules:
 
         * If the value of the `required` argument is True and the parameter cannot be
-          found in OM's configuration file, this function will raise an exception.
+          found in OM's configuration file, this function raises an exception.
 
         * If the value of the `required` argument is False and the parameter cannot be
-          found in OM's configuration file, this function will return None.
+          found in OM's configuration file, this function returns None, or the value
+          of the `default` argument, if it is provided.
 
-        * If a type is specified in the function call (i.e., the `parameter_type`
-          argument is not None), this function will raise an exception if the type of
-          the retrieved parameter does not match the specified one.
+        * If a type is specified for the parameter (the `parameter_type` argument is
+          not None) and the type of the retrieved parameter does not match the
+          specified one, this function raises an exception.
 
         Arguments:
 
-            group: The name of the parameter group to which the parameter to retrieve
-                belongs.
+            group: The name of the parameter group from which the parameter must be
+                retrieved.
 
             parameter (str): The name of the parameter to retrieve.
 
@@ -245,21 +254,26 @@ class MonitorParameters:
             required: True if the parameter is strictly required and must be present
                 in OM's configuration file, False otherwise. Defaults to False.
 
+            default: The default value that this function should return if the
+                requested parameter cannot be found and the parameter is not strictly
+                required.
+
         Returns:
 
             The value of the requested parameter, or None, if the parameter was not
-                found in OM's configuration file (and it is not required).
+            found in OM's configuration file, it is not required, and a default value
+            has not been provided.
 
         Raises:
 
             OmMissingParameterGroupError: Raised if the requested parameter group is
-                not present in the full set configuration parameters.
+                not present in the full set of OM's configuration parameters.
 
             OmMissingParameterError: Raised if the parameter is required but cannot be
-                found in the full set configuration parameters.
+                found in the full set of OM's configuration parameters.
 
             OmWrongParameterTypeError: Raised if the requested parameter type does not
-                match the type of the configuration parameter.
+                match the type of the retrieved configuration parameter.
         """
         return get_parameter_from_parameter_group(
             group=self.get_parameter_group(group=group),
@@ -280,10 +294,10 @@ class MonitorParameters:
 
         If the name of a data source is provided as an input parameter, this function
         adds it to the parameter set stored by this class, and makes it available as a
-        parameter with the name `source` within the `om` group. If, additionally, the
-        total number of  nodes in OM's node pool is provided as one of the input
-        parameters, this information will added to the parameter set and made available
-        as a parameter named `node_pool_size` within the `om` group.
+        parameter with the name `source` within the `om` group. If the total number of
+        nodes in OM's node pool is also provided, the information will added to the
+        parameter set and made available as a parameter named `node_pool_size` within
+        the `om` group.
 
         Arguments:
 

@@ -29,7 +29,7 @@ from scipy import ndimage  # type: ignore
 from om.lib.parameters import get_parameter_from_parameter_group
 
 
-class XesAnalysis:
+class EnergySpectrumRetrieval:
     """
     See documentation of the `__init__` function.
     """
@@ -42,9 +42,11 @@ class XesAnalysis:
         """
         Beam energy spectrum retrieval.
 
-        This algorithm stores all the parameters needed to extract beam energy spectra
-        from camera data frames. After the algorithm is initialized, it can be invoked
-        to extract a beam energy spectrum from a provided camera frame.
+        This algorithm stores all the parameters needed to extract energy spectra from
+        camera data frames.
+
+        After the algorithm has been initialized, it can be invoked to calculate an
+        energy spectrum from a data frame.
 
         Warning:
 
@@ -100,19 +102,19 @@ class XesAnalysis:
 
     # TODO: Enforce return dict content for the function below
 
-    def generate_spectrum(
+    def calculate_spectrum(
         self, *, data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
     ) -> Dict[str, NDArray[numpy.float_]]:
         """
         Calculates beam energy spectrum information from a camera data frame.
 
-        This function extracts beam energy spectrum information from a provided camera
-        data frame. It returns the raw spectrum information, plus a smoother, filtered
+        This function extracts energy spectrum information from a provided camera data
+        frame. It returns the raw spectrum information, plus a smoother, filtered
         version of it.
 
-        The function initially rotates the camera image to align the beam information
-        with the vertical axis of the camera data frame. It then computes the beam
-        energy spectrum by integrating the region where the beam energy is recorded
+        The function initially rotates the camera image to align the spectrum
+        information with the vertical axis of the camera data frame. It then computes
+        the beam energy spectrum by integrating the region where the energy is recorded
         along the horizontal axis of the data frame.
 
         Optionally, the algorithm can apply an ADU threshold can to the camera data. If
@@ -126,8 +128,8 @@ class XesAnalysis:
 
         Returns:
 
-            A dictionary storing the spectrum information extracted from the
-                camera frame.
+            A dictionary storing the spectrum information extracted from the camera
+                frame.
 
                 * The value corresponding to the key named `spectrum` is a 1D array
                 storing the raw spectrum information.

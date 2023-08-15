@@ -41,11 +41,15 @@ class TestProcessing(OmProcessingProtocol):
 
         This Processing class implements an OnDA Monitor that can be used for testing
         purposes. The monitor retrieves data events, but does not process the them. It
-        simply broadcasts the timestamp of each data event over a ZMQ socket.
+        simply broadcasts the timestamp of each data event to a network socket.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         self._monitor_params = monitor_parameters
 
@@ -55,10 +59,10 @@ class TestProcessing(OmProcessingProtocol):
         """
         Initializes the processing nodes for the Test Monitor.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function does not actually perform any task.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -77,11 +81,11 @@ class TestProcessing(OmProcessingProtocol):
         """
         Initializes the collecting node for the Test Monitor.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function simply initializes the some internal counters and prepares a
+        network socket.
 
-        This function simply initializes some internal counters and prepares the data
-        broadcasting socket.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -126,11 +130,11 @@ class TestProcessing(OmProcessingProtocol):
         """
         Processes a data event.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function processes data events but does nothing with them. It simply
         extracts the timestamp information for each data event.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -172,13 +176,12 @@ class TestProcessing(OmProcessingProtocol):
         node_pool_size: int,
     ) -> None:
         """
-        Performs operations on the processing node when no data is received.
+        Receives and handles requests from external programs.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        This function is not used in the Testing Monitor, and therefore does nothing.
 
-        This monitor does not need to perform any operation on the processing node if
-        no data is received, therefore this function does nothing.
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -200,14 +203,14 @@ class TestProcessing(OmProcessingProtocol):
         processed_data: Tuple[Dict[str, Any], int],
     ) -> Union[Dict[int, Dict[str, Any]], None]:
         """
-        Computes aggregated data and broadcasts it over the network.
+        Computes statistics on aggregated data and broadcasts data to external programs.
 
         This method overrides the corresponding method of the base class: please also
         refer to the documentation of that class for more information.
 
         This function receives data from the processing node, but does nothing with it.
-        It simply broadcasts over a socket the value of an event counter and the
-        timestamp of each received event.
+        It simply broadcasts the value of an event counter and the timestamp of each
+        received event over a network socket.
 
         Arguments:
 
@@ -259,12 +262,12 @@ class TestProcessing(OmProcessingProtocol):
         self, *, node_rank: int, node_pool_size: int
     ) -> Union[Dict[str, Any], None]:
         """
-        Ends processing on the processing nodes.
-
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
+        Ends processing on the processing nodes for the testing Monitor.
 
         This function prints a message on the console and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 
@@ -291,10 +294,10 @@ class TestProcessing(OmProcessingProtocol):
         """
         Ends processing on the collecting node.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function prints a message on the console and ends the processing.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

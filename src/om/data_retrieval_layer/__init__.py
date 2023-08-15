@@ -19,7 +19,7 @@
 OM's Data Retrieval Layer.
 
 This package contains OM's Data Retrieval Layer, which takes care of retrieving data
-and data events to be processed. Modules in this package contain Functions and classes
+and data events to be processed. Modules in this package contain functions and classes
 for specific detectors, facilities or software frameworks.
 """
 

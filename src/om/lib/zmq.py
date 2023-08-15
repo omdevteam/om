@@ -41,7 +41,7 @@ def get_current_machine_ip() -> str:
 
     Returns:
 
-        A string storing the IP address of the machine in the format XXX.XXX.XXX.XXX.
+        A string storing the IP address of the machine where the function was invoked.
     """
     ip: str = [
         (
@@ -69,10 +69,11 @@ class ZmqDataBroadcaster:
         Data-broadcasting socket for OnDA Monitors.
 
         This class manages a broadcasting socket that can be used by OnDA Monitors
-        to transmit data to outside programs. The class must be initialized with the
-        URL, in ZeroMQ format, were the socket should operate. Each data item broadcast
-        by the socket can be tagged with a different label, and external programs can
-        use this label to filter incoming data. The socket can transmit to multiple
+        to transmit data to external programs. The class must be initialized with the
+        URL, in ZeroMQ format, were the socket should operate. The created socket can
+        then be used to broadcast data. Each data item broadcast by the socket can be
+        tagged with a different label, and external programs can use this label to
+        filter their incoming data. The socket can also transmit to multiple
         clients at the same time but has no queuing system: broadcast data will be lost
         to the clients if not received before the next transmission takes place.
 
@@ -87,9 +88,9 @@ class ZmqDataBroadcaster:
 
                 * `url`: The URL where the socket will be opened. It must be a string
                 in the format used by ZeroMQ, or None. If the value of this argument is
-                None, the IP address of the local machine will be auto-detected, and
-                the socket will be opened at port 12321 using the 'tcp://' protocol.
-                Defaults to None.
+                None, the IP address of the local machine is auto-detected, and the
+                socket is opened at port 12321 using the 'tcp://' protocol. Defaults to
+                None.
         """
         url: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="data_broadcast_url", parameter_type=str
@@ -123,20 +124,20 @@ class ZmqDataBroadcaster:
         Broadcasts data from the ZMQ PUB socket.
 
         This function transmits the provided data from the broadcasting socket. The
-        data must have the format of a python dictionary. When broadcast, the data is
-        tagged with the specified label.
+        data must have the format of a python dictionary strictly containing only
+        Python objects. When broadcast, the data is tagged with the specified label.
 
         Arguments:
 
-            tag: The label that will be used to tag the data.
+            tag: The label used to tag the broadcast data.
 
             message: A dictionary storing the data to be transmitted.
 
                 * The dictionary keys must store the names of the data units being
                   broadcast.
 
-                * The corresponding dictionary values must store the data content to be
-                  transmitted (strictly in the format of Python objects).
+                * The corresponding dictionary values must store the data content,
+                  associated to each data unit, to be transmitted.
         """
         self._sock.send_string(tag, zmq.SNDMORE)
         self._sock.send_pyobj(message)
@@ -157,15 +158,15 @@ class ZmqResponder:
         ZMQ-based responding socket for OnDA Monitors.
 
         This class manages a socket that can be used by an OnDA Monitor to receive
-        requests from external programs, and respond to them. The class must be
+        requests from external programs, and to respond to them. The class must be
         initialized with the URL, in ZeroMQ format, were the socket should operate.
-        The socket can be of blocking or non-blocking type. In the first case, the
-        socket will wait for a request and will not allow the monitor to proceed until
-        one is received. In the second case, the socket will retrieve a request if one
-        is available, but proceed otherwise. Unless requested when the class is
-        initialized, a non-blocking socket will be created. After being initialized, a
-        socket will accept requests from external sources, and can also be used to
-        transmit data that satisfy them, if necessary.
+        The socket can then be used to receive requests and to satisfy them by sending
+        data, if necessary. The socket can be of blocking or non-blocking type. In the
+        first case, the socket waits for a request and does not allow the monitor to
+        proceed until one is received. In the second case, the socket retrieves a
+        request if one is available, but proceeds otherwise. Unless a blocking socket
+        is requested when the class is initialized, the class creates a non-blocking
+        socket.
 
         This class creates a ZMQ ROUTER socket that can accept requests from REQ
         sockets in external programs and respond to them.
@@ -178,9 +179,9 @@ class ZmqResponder:
 
                 * `url`: The URL where the socket will be opened. It must be a string
                 in the format used by ZeroMQ, or None. If the value of this argument is
-                None, the IP address of the local machine will be auto-detected, and
-                the socket will be opened at port 12321 using the 'tcp://' protocol.
-                Defaults to None.
+                None, the IP address of the local machine is auto-detected, and the
+                socket is opened at port 12321 using the 'tcp://' protocol. Defaults to
+                None.
 
             blocking: whether the socket should be of blocking type. Defaults to False.
         """
@@ -220,19 +221,19 @@ class ZmqResponder:
         """
         Gets a request from the responding socket, if present.
 
-        This function checks if a request has been received by the socket. If the
-        socket has been set up as blocking, this function will not return until a
-        request is received. The function will then returns a tuple storing the
+        This function checks if a request has been received by the responding socket.
+        If the socket has been set up as blocking, this function does not return until
+        a request is received. The function then returns a tuple storing the
         identity of the requester and the content of the request. If the socket is
-        instead non-blocking, the function will return the same information if a
-        request is available when the function is called, and None otherwise. The
-        identity of the requester must be stored and provided later to the
-        [send_data][om.library.zmq_collecting.ZmqResponder.send_data] function to answer the  # noqa: E501
-        request.
+        instead non-blocking, the function return the same information if a request is
+        present when the function is called, and None otherwise. The identity of the
+        requester must be stored by the program invoking the function and provided
+        later to the [send_data][om.library.zmq_collecting.ZmqResponder.send_data]
+        function to answer the request, if necessary.
 
         Returns:
 
-            request: If a request was received by the socket, a tuple storing th
+            request: If a request was received by the socket, a tuple storing the
                 identity of the caller as the first entry, and a string with the
                 request's content as the second entry. If no request has been received
                 by the socket, None.
@@ -264,6 +265,6 @@ class ZmqResponder:
                 information is returned by the
                 [get_request][om.library.zmq_collecting.ZmqResponder.get_request].
 
-            message: A dictionary containing information to be transmitted.
+            message: A dictionary containing the information to be transmitted.
         """
         self._sock.send_multipart((identity, b"", message))

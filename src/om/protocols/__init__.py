@@ -19,6 +19,6 @@
 OM's Protocols.
 
 This package contains the base Protocol classes that describe the interfaces
-implemented by the classes in OM's Data Retrieval, Parallelization, and Processing
-Layers. Each module in the package contains the Protocols for one of the three layers.
+of classes in OM's Data Retrieval, Parallelization, and Processing Layers. Each module
+in the package contains the Protocols for one of the three layers.
 """

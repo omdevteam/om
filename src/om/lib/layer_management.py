@@ -18,8 +18,8 @@
 """
 OM's layer management.
 
-This module contains classes and functions that allow OM monitors to assemble and
-import OM's various data processing and extraction layers.
+This module contains classes and functions that mange OM's various data processing and
+extraction layers.
 """
 import importlib
 import sys
@@ -53,9 +53,10 @@ def import_class_from_layer(
     This function imports a class, identified by the `class_name` argument, from a
     layer identified by the `layer_name` argument. The function looks for the python
     module containing the layer code in the current directory first. Specifically, it
-    looks for a python file with the same name as the layer. If the file is not found
-    in the current directory, this function tries to import the layer from the OM's
-    normal installation directories.
+    looks for a python file with the same name as the layer. If the function cannot
+    fine the file in the current directory, it imports the layer from the OM's normal
+    installation directories. It then proceeds to import the requested class from the
+    layer module.
 
     Arguments:
 
@@ -72,7 +73,7 @@ def import_class_from_layer(
         OmMissingLayerClass: Raised when the requested class cannot be found in the
             specified Python module.
 
-        OmMissingLayerModuleFile: Raised when the specified python module cannot be
+        OmMissingLayerModuleFile: Raised when the requested python module cannot be
             found.
     """
 
@@ -110,7 +111,7 @@ def filter_data_sources(
     required_data: List[str],
 ) -> List[str]:
     """
-    Selects only the required Data Sources.
+    Filters a list Data Sources.
 
     This function filters the list of all Data Sources associated with a
     Data Retrieval class, returning only the subset of Data Sources needed to retrieve
@@ -118,21 +119,21 @@ def filter_data_sources(
 
     Arguments:
 
-        data_sources: A list containing the names of all
-            Data Sources available for a Data Retrieval class.
+        data_sources: A list containing the names of all Data Sources available for a
+            Data Retrieval class.
 
         required_data: A list containing the names of the data items requested by the
             user.
 
     Returns:
 
-        A list of Data Source names containing only the required Data Sources.
+        A list of Data Source names containing only the needed Data Sources.
 
     Raises:
 
          OmMissingDataSourceClassError: Raised when one of the required Data Source
-            class cannot be found in the list of Data Source classes currently
-            available for the Data Retrieval class being used.
+            class cannot be found in the list of Data Source available for the Data
+            Retrieval.
     """
     required_data_sources: List[str] = []
     entry: str
