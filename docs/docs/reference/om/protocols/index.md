@@ -1,5 +1,5 @@
 ::: om.protocols
-    selection:
+    options:
       members: false 
 
   * [data_retrieval_layer](data_retrieval_layer.md)

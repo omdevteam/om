@@ -409,7 +409,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -783,7 +783,7 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -1114,7 +1114,7 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -1430,7 +1430,7 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.

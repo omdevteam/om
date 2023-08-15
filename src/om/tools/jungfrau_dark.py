@@ -53,7 +53,7 @@ def main(input: str, output: str, s: int) -> None:
     sd: NDArray[numpy.float_] = numpy.zeros((3, n), dtype=numpy.float64)
     nd: NDArray[numpy.float_] = numpy.zeros((3, n))
     for fn in filelist:
-        i: int = int(re.findall("_f(\d+)_", fn)[0])
+        i: int = int(re.findall("_f(\\d+)_", fn)[0])
         h5_data_path: str = "/data_" + f"f{i:012d}"
         f: Any
         with h5py.File(fn, "r") as f:

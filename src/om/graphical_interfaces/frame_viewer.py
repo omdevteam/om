@@ -51,7 +51,7 @@ except ImportError:
     )
 
 
-class CrystallographyFrameViewer(OmGuiBase):
+class FrameViewer(OmGuiBase):
     """
     See documentation of the `__init__` function.
     """
@@ -74,7 +74,7 @@ class CrystallographyFrameViewer(OmGuiBase):
             url: The URL at which the GUI will connect and listen for data. This must
                 be a string in the format used by the ZeroMQ protocol.
         """
-        super(CrystallographyFrameViewer, self).__init__(
+        super(FrameViewer, self).__init__(
             url=url,
             tag="omframedata",
         )
@@ -306,5 +306,5 @@ def main(*, url: str) -> None:
     if url is None:
         url = "tcp://127.0.0.1:12321"
     app: Any = QtWidgets.QApplication(sys.argv)
-    _ = CrystallographyFrameViewer(url=url)
+    _ = FrameViewer(url=url)
     sys.exit(app.exec_())

@@ -67,8 +67,8 @@ class CrystallographyProcessing(OmProcessingProtocol):
         programs (like
         [OM's Crystallography GUI][om.graphical_interfaces.crystallography_gui.CrystallographyGui]  # noqa: E501
         or
-        [OM's Frame Viewer][om.graphical_interfaces.crystallography_frame_viewer.CrystallographyFrameViewer].  # noqa: E501
-        ) for visualization.
+        [OM's Frame Viewer][om.graphical_interfaces.frame_viewer.FrameViewer]) for
+        visualization.
         The monitor can also respond to requests for data or change of behavior from
         external programs (a control GUI, for example.)
 

@@ -332,7 +332,7 @@ class TypeDetectorLayoutInformation(TypedDict, total=True):
     is needed by the
     [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
     algorithm, and is usually retrieved via the
-    [`get_peakfinder8_info`][om.algorithms.crystallography.get_peakfinder8_info]
+    [`get_layout_info`][om.lib.geometry.GeometryInformation.get_layout_info]
     function.
 
     Attributes:
@@ -1238,8 +1238,9 @@ class GeometryInformation:
         """
         Reads geometry description from file.
 
-        This class method initializes the [GeometryInformation][GeometryInformation]
-        class from a file, rather than from a block of text.
+        This class method initializes the
+        [GeometryInformation][om.lib.geometry.GeometryInformation] class from a file,
+        rather than from a block of text.
 
         Arguments:
 
@@ -1437,7 +1438,7 @@ class DataVisualizer:
 
         If a pre-existing visualization array is provided, with exactly the shape
         returned by the
-        [get_min_array_shape_for_visualization][get_min_array_shape_for_visualization]
+        [get_min_array_shape_for_visualization][om.lib.geometry.DataVisualizer.get_min_array_shape_for_visualization]
         function, this function can used it to store the pixel information. Otherwise
         the function creates a new array with the appropriate shape.
 

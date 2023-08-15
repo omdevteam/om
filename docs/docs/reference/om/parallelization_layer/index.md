@@ -1,5 +1,5 @@
 ::: om.parallelization_layer
-    selection:
+    options:
       members: false
 
   * [mpi](mpi.md)

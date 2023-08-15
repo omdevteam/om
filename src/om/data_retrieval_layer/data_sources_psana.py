@@ -1546,7 +1546,7 @@ class LclsExtraPsana(OmDataSourceProtocol):
 
         Raises:
 
-            OmWrongParameterTypeError" Raised when the `lcls_extra` entry in OM's
+            OmWrongParameterTypeError: Raised when the `lcls_extra` entry in OM's
                 configuration parameters is not formatted correctly, or it requests
                 data that is not supported yet.
         """

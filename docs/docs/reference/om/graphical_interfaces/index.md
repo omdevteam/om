@@ -1,5 +1,5 @@
 ::: om.graphical_interfaces
-    selection:
+    options:
       members: false
 
   * [common](common.md)

@@ -24,7 +24,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          rendering:
+          options:
             show_root_heading: true
             show_root_full_path: false
             show_root_toc_entry: false
@@ -48,13 +48,9 @@ nav:
   - Code Reference:
     - om:
       - __init__: reference/om/index.md
-      - Protocols:
-        - __init__: reference/om/Protocols/index.md
-        - data_retrieval_layer: reference/om/Protocols/data_retrieval_layer.md
-        - parallelization_layer: reference/om/Protocols/parallelization_layer.md
-        - processing_layer: reference/om/Protocols/processing_layer.md
       - algorithms:
         - __init__: reference/om/algorithms/index.md
+        - calibration: reference/om/algorithms/calibration.md
         - crystallography: reference/om/algorithms/crystallography.md
         - generic: reference/om/algorithms/generic.md
         - xes: reference/om/algorithms/xes.md
@@ -76,37 +72,44 @@ nav:
         - data_sources_generic: reference/om/data_retrieval_layer/data_sources_generic.md
         - data_sources_http: reference/om/data_retrieval_layer/data_sources_http.md
         - data_sources_zmq: reference/om/data_retrieval_layer/data_sources_zmq.md
-        - frame_retrieval: reference/om/data_retrieval_layer/frame_retrieval.md
-        - utils_generic: reference/om/data_retrieval_layer/utils_generic.md
+        - event_retrieval: reference/om/data_retrieval_layer/event_retrieval.md
       - graphical_interfaces:
         - __init__: reference/om/graphical_interfaces/index.md
         - common: reference/om/graphical_interfaces/common.md
         - crystallography_gui: reference/om/graphical_interfaces/crystallography_gui.md
-        - crystallography_frame_viewer: reference/om/graphical_interfaces/crystallography_frame_viewer.md
         - crystallography_parameter_tweaker: reference/om/graphical_interfaces/crystallography_parameter_tweaker.md
+        - frame_viewer: reference/om/graphical_interfaces/frame_viewer.md
         - xes_gui: reference/om/graphical_interfaces/xes_gui.md
       - lib:
         - __init__: reference/om/lib/index.md
-        - peakfinder8_extension: reference/om/lib/peakfinder8_extension.md
+        - cheetah: reference/om/lib/cheetah.md        
+        - crystallography: reference/om/lib/crystallography.md
+        - event_management: reference/om/lib/event_management.md
+        - exceptions: reference/om/lib/exceptions.md
+        - geometry: reference/om/lib/geometry.md
+        - hdf5: reference/om/lib/hdf5.md
+        - layer_management: reference/om/lib/layer_management.md
+        - parameters: reference/om/lib/parameters.md
+        - rich_console: reference/om/lib/rich_console.md
+        - xes: reference/om/lib/xes.md        
+        - zmq_qt: reference/om/lib/zmq_qt.md
+        - zmq: reference/om/lib/zmq.md
       - parallelization_layer:
         - __init__: reference/om/parallelization_layer/index.md
         - mpi: reference/om/parallelization_layer/mpi.md
         - multiprocessing: reference/om/parallelization_layer/multiprocessing.md
       - processing_layer:
         - __init__: reference/om/processing_layer/index.md
+        - cheetah_streaming: reference/om/processing_layer/cheetah_streaming.md
         - cheetah: reference/om/processing_layer/cheetah.md
         - crystallography: reference/om/processing_layer/crystallography.md
         - testing: reference/om/processing_layer/testing.md
         - xes: reference/om/processing_layer/xes.md
-      - utils:
-        - __init__: reference/om/utils/index.md
-        - crystfel_geometry: reference/om/utils/crystfel_geometry.md
-        - exceptions: reference/om/utils/exceptions.md
-        - hdf5_writers: reference/om/utils/hdf5_writers.md
-        - parameters: reference/om/utils/parameters.md
-        - rich_console: reference/om/utils/rich_console.md
-        - zmq_gui: reference/om/utils/zmq_gui.md
-        - zmq_collecting: reference/om/utils/zmq_collecting.md
+      - protocols:
+        - __init__: reference/om/protocols/index.md
+        - data_retrieval_layer: reference/om/protocols/data_retrieval_layer.md
+        - parallelization_layer: reference/om/protocols/parallelization_layer.md
+        - processing_layer: reference/om/protocols/processing_layer.md
       - monitor: reference/om/monitor.md
   - Quick Links:
     - OM's Configuration Parameters: parameters.md

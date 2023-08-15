@@ -29,7 +29,7 @@ import zmq
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
-from om.lib.zmq_collecting import get_current_machine_ip
+from om.lib.zmq import get_current_machine_ip
 from om.protocols.data_retrieval_layer import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -162,7 +162,7 @@ class ZmqParallelization(OmParallelizationProtocol):
 
             processing_layer: A class defining how retrieved data is processed.
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
 
         # self._subscription_string: str = tag

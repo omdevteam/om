@@ -1,5 +1,5 @@
 ::: om.algorithms
-    selection:
+    options:
       members: false 
 
   * [calibration](calibration.md)

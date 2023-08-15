@@ -51,7 +51,7 @@ class SwaxsProcessing(OmProcessingProtocol):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         # Parameters
         self._monitor_params: MonitorParameters = monitor_parameters
@@ -381,7 +381,7 @@ class SwaxsProcessing(OmProcessingProtocol):
             roi2_intensity_history,
             hit_rate_history,
             rg_history,
-            cumulative_hits_radial
+            cumulative_hits_radial,
         ) = self._plots.update_plots(
             radial_profile=received_data["radial_profile"],
             detector_data_sum=received_data["detector_data_sum"],
@@ -535,7 +535,7 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration
+            monitor_parameters: An object storing OM's configuration parameters.
         """
         # Parameters
         self._monitor_params: MonitorParameters = monitor_parameters

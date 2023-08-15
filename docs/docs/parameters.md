@@ -207,58 +207,6 @@ software package.
      Example: `true`
 
 
-## correction
-
-This parameter group contains parameters that control how OM applies corrections on
-detector data frames using the [`Correction`][om.algorithms.generic.Correction]
-algorithm.
-
-**dark_filename (str or None)**
-:  The relative or absolute path to an HDF5 file containing a dark data frame. If this
-   and the `dark_hdf5_path` parameters are not *None*, the dark data is loaded and
-   applied to the detector frame.
-   
-     Example: `run21_dark.h5`
-
-**dark_hdf5_path (str or None)**
-:  The internal HDF5 path to the data block where the dark data frame is located. If
-   the `dark_filename` parameter is not *None*, this parameter must also be provided,
-   and cannot be *None*. Otherwise it is ignored.
-   
-     Example: `/data/data`
-
-**gain_filename (str or None)**
-:  The relative or absolute path to an HDF5 file containing a gain map. If this and the
-   `gain_hdf5_path` parameters are not *None*, the gain map is loaded and applied to
-   the detector frame. Each pixel in the gain map must store the gain factor that will
-   be applied to the corresponding pixel in the detector frame.
-
-     Example: `files/cspad_gain_map.h5`
-
-**gain_hdf5_path (str or None)**
-:  The internal HDF5 path to the data block where the gain map data is located. If the
-   `gain_filename` parameter is not *None*, this parameter must also be provided, and
-   cannot be *None*. Otherwise it is ignored.
-  
-     Example: `/data/data`
-
-**mask_filename (str or None)**
-:  The relative or absolute path to an HDF5 file containing a mask. If this and the
-   `mask_hdf5_path` parameters are not *None*, the mask is loaded and applied to the
-   detector frame. The pixels in the mask must have a value of either 0, meaning that
-   the corresponding pixel in the detector frame must be set to 0, or 1, meaning that
-   the value of the corresponding pixel must be left alone.
-
-     Example: `files/run18_mask.h5`
-
-**mask_hdf5_path (str or None)**
-:  The internal HDF5 path to the data block where the mask data is located. If the
-   `mask_filename` parameter is not *None*, this parameter must also be provided, and
-   cannot be *None*. Otherwise it is ignored.
-     
-     Example: `/data/data`
-
-
 ## crystallography
 
 This parameter group contains parameters used specifically by the OnDA Monitor for
