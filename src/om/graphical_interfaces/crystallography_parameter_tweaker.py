@@ -35,7 +35,12 @@ from numpy.typing import NDArray
 from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.geometry import GeometryInformation, TypePixelMaps
+from om.lib.geometry import (
+    DataVisualizer,
+    GeometryInformation,
+    TypePixelMaps,
+    TypeVisualizationPixelMaps,
+)
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
@@ -99,7 +104,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         )
 
         # Geometry
-        self._geometry_info = GeometryInformation.from_file(
+        geometry_information: GeometryInformation = GeometryInformation.from_file(
             geometry_filename=get_parameter_from_parameter_group(
                 group=crystallography_parameters,
                 parameter="geometry_file",
@@ -107,40 +112,22 @@ class CrystallographyParameterTweaker(OmGuiBase):
                 required=True,
             ),
         )
-        bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-            Union[NDArray[numpy.int_], None],
-            parse_parameters_and_load_hdf5_data(
-                parameters=crystallography_parameters,
-                hdf5_filename_parameter="bad_pixel_map_filename",
-                hdf5_path_parameter="bad_pixel_map_hdf5_path",
-            ),
-        )
 
-        pixel_maps: TypePixelMaps = self._geometry_info.get_pixel_maps()
-        visual_pixel_maps: TypePixelMaps = (
-            self._geometry_info.get_visualization_pixel_maps()
-        )
-        visual_img_shape: Tuple[
-            int, int
-        ] = self._geometry_info.get_min_array_shape_for_visualization()
-
-        self._visual_pixel_map_x: NDArray[numpy.int_] = cast(
-            NDArray[numpy.int_], visual_pixel_maps["x"].flatten()
-        )
-        self._visual_pixel_map_y: NDArray[numpy.int_] = cast(
-            NDArray[numpy.int_], visual_pixel_maps["y"].flatten()
+        self._data_visualizer: DataVisualizer = DataVisualizer(
+            pixel_maps=self._geometry_info.get_pixel_maps()
         )
 
         self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
-            shape=visual_img_shape, dtype=numpy.float32
+            shape=self._data_visualizer.get_min_array_shape_for_visualization(),
+            dtype=numpy.float32,
         )
 
         self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-            crystallography_parameters=self._monitor_params.get_parameter_group(
+            crystallography_parameters=monitor_parameters.get_parameter_group(
                 group="peakfinder8_peak_detection"
             ),
-            radius_pixel_map=cast(NDArray[numpy.float_], pixel_maps["radius"]),
-            bad_pixel_map=bad_pixel_map,
+            radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
+            layout_info=geometry_information.get_layout_info(),
         )
 
         pyqtgraph.setConfigOption("background", 0.2)
@@ -390,8 +377,9 @@ class CrystallographyParameterTweaker(OmGuiBase):
 
         QtWidgets.QApplication.processEvents()
 
-        self._assembled_img[self._visual_pixel_map_y, self._visual_pixel_map_x] = (
-            current_data["detector_data"].ravel().astype(self._assembled_img.dtype)
+        self._assembled_img = self._data_visualizer.visualize_data(
+            data=current_data["detector_data"],
+            array_for_visualization=self._assembled_img,
         )
 
         self._image_view.setImage(
