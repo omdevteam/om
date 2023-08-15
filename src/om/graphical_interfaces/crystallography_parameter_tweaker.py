@@ -114,8 +114,15 @@ class CrystallographyParameterTweaker(OmGuiBase):
         )
 
         self._data_visualizer: DataVisualizer = DataVisualizer(
-            pixel_maps=self._geometry_info.get_pixel_maps()
+            pixel_maps=geometry_information.get_pixel_maps()
         )
+
+        self._visual_pixel_map_x: NDArray[
+            numpy.int_
+        ] = self._data_visualizer.get_visualization_pixel_maps()["x"].ravel()
+        self._visual_pixel_map_y: NDArray[
+            numpy.int_
+        ] = self._data_visualizer.get_visualization_pixel_maps()["y"].ravel()
 
         self._assembled_img: NDArray[numpy.float_] = numpy.zeros(
             shape=self._data_visualizer.get_min_array_shape_for_visualization(),

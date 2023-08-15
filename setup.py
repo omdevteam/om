@@ -152,8 +152,7 @@ setup(
         ],
         "gui_scripts": [
             "om_crystallography_gui.py=om.graphical_interfaces.crystallography_gui:main",
-            "om_crystallography_frame_viewer.py=om.graphical_interfaces."
-            "crystallography_frame_viewer:main",
+            "om_frame_viewer.py=om.graphical_interfaces.frame_viewer:main",
             "om_crystallography_parameter_tweaker.py=om.graphical_interfaces."
             "crystallography_parameter_tweaker:main",
             "om_xes_gui.py=om.graphical_interfaces." "xes_gui:main",
