@@ -19,7 +19,7 @@
 Classes and function for processing of crystallography data.
 
 This module contains classes and functions that perform common data processing
-operations for serial crystallography (peak finding, radial profile analysis, plot
+operations for Serial Crystallography (peak finding, radial profile analysis, plot
 generation, etc.).
 """
 from collections import deque
@@ -61,9 +61,9 @@ class CrystallographyPeakFinding:
 
         Arguments:
 
-            parameters: An object storing OM's configuration parameters. The set of
-                parameters must include a group called `crystallography`, which in
-                turn must contain the following entries:
+            monitor_parameters: An object storing OM's configuration parameters. The
+                set of parameters must include a group called `crystallography`, which
+                in turn must contain the following entries:
 
                 * `peakfinding_algorithm`: The detection strategy that should be used
                   to detect the Bragg peaks in a detector data frame. Currently, the
@@ -144,8 +144,8 @@ class CrystallographyPeakFinding:
 
         Arguments:
 
-            data: The detector data frame on which the peak-finding operation must be
-                performed.
+            detector_data: The detector data frame on which the peak-finding operation
+                must be performed.
 
         Returns:
 
@@ -173,7 +173,7 @@ class CrystallographyPlots:
         Plots for crystallography data.
 
         This class stores all the information needed to generate and update three
-        plots that summarize the state of a serial crystallography experiment: a
+        plots that summarize the state of a Serial Crystallography experiment: a
         Virtual Powder Pattern plot, a Hit Rate History plot and a Peakogram plot.
         Separate Hit Rate History plots for dark and pumped events can be generated for
         pump-probe experiment.

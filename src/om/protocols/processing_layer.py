@@ -145,7 +145,7 @@ class OmProcessingProtocol(Protocol):
 
         This function is called on the collecting node continuously, when the node is
         not receiving data from any processing node (When data is received, the
-        [`collect_data`][om.Protocols.processing_layer.OmProcessingProtocol.collect_data]
+        [`collect_data`][om.protocols.processing_layer.OmProcessingProtocol.collect_data]
         is invoked instead). This function can be used to perform operations that need
         to be carried out even when the data stream is not active (reacting to external
         commands and requests, updating graphical interfaces, etc.)
@@ -173,10 +173,10 @@ class OmProcessingProtocol(Protocol):
         This function is invoked on the collecting node every time data is received
         from a processing node (When data is not being received, the collecting node
         continuously calls the
-        [`wait_for_data`][om.Protocols.processing_layer.OmProcessingProtocol.wait_for_data]
+        [`wait_for_data`][om.protocols.processing_layer.OmProcessingProtocol.wait_for_data]
         function instead). The function accepts as input the data received from
         the processing node (the tuple returned by the
-        [`process_data`][om.Protocols.processing_layer.OmProcessingProtocol.process_data]
+        [`process_data`][om.protocols.processing_layer.OmProcessingProtocol.process_data]
         method of this class), and performs calculations that must be carried out on
         aggregated data (computing cumulative statistics, preparing data for external
         programs or visualization, etc.)
@@ -196,7 +196,7 @@ class OmProcessingProtocol(Protocol):
 
         * On each processing node, the feedback data dictionary, when received, is
           merged with the `data` argument of the
-          [`process_data`][om.Protocols.processing_layer.OmProcessingProtocol.process_data]
+          [`process_data`][om.protocols.processing_layer.OmProcessingProtocol.process_data]
           function the next time the function is called.
 
         Arguments:

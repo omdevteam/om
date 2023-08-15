@@ -228,8 +228,8 @@ class ZmqResponder:
         instead non-blocking, the function return the same information if a request is
         present when the function is called, and None otherwise. The identity of the
         requester must be stored by the program invoking the function and provided
-        later to the [send_data][om.library.zmq_collecting.ZmqResponder.send_data]
-        function to answer the request, if necessary.
+        later to the [send_data][om.lib.zmq.ZmqResponder.send_data] function to answer
+        the request, if necessary.
 
         Returns:
 
@@ -263,7 +263,7 @@ class ZmqResponder:
 
             identity: The identity of the requester to which the data should sent. This
                 information is returned by the
-                [get_request][om.library.zmq_collecting.ZmqResponder.get_request].
+                [get_request][om.lib.zmq.ZmqResponder.get_request].
 
             message: A dictionary containing the information to be transmitted.
         """

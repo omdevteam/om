@@ -72,8 +72,8 @@ class ZmqDataListener(QtCore.QObject):
         This class is designed to be executed in a Qt thread. It creates a ZMQ SUB
         socket that connects to an OM's PUB socket, subscribing to a single specific
         topic. When the socket receives data, this class emits a
-        [`zmqmessage`][om.library.zmq_gui.ZmqDataListener.zmqmessage] Qt signal that
-        other threads can listen to. The signal carries the received data.
+        [`zmqmessage`][om.lib.zmq_qt.ZmqDataListener.zmqmessage] Qt signal that other
+        threads can listen to. The signal carries the received data.
 
         Arguments:
 
@@ -138,8 +138,8 @@ class ZmqDataListener(QtCore.QObject):
 
         This function completely disconnects the listening socket from the broadcasting
         source. The socket needs to be reconnected (using the
-        [`start_listening`][om.library.zmq_gui.ZmqDataListener.start_listening]
-        function) to start receiving data again.
+        [`start_listening`][om.lib.zmq_qt.ZmqDataListener.start_listening] function) to
+        start receiving data again.
         """
         self._listening_timer.stop()
         console.print(f"{get_current_timestamp()} Disconnecting from {self._url}.")

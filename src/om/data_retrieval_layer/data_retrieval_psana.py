@@ -177,9 +177,7 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
 
         Arguments:
 
-            monitor_parameters: A [MonitorParameters]
-                [om.library.MonitorParameters] object storing the OM monitor
-                parameters from the configuration file.
+            monitor_parameters: An object OM's configuration parameters.
 
             source: A string describing the data event source.
         """

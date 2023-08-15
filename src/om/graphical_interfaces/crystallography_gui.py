@@ -19,7 +19,7 @@
 OM's GUI for Crystallography.
 
 This module contains a graphical interface that displays reduced and aggregated data in
-serial crystallography experiments.
+Serial Crystallography experiments.
 """
 import signal
 import sys
@@ -59,14 +59,14 @@ class CrystallographyGui(OmGuiBase):
         """
         OM graphical user interface for crystallography.
 
-        This class implements a graphical user interface for serial crystallography
+        This class implements a graphical user interface for Serial Crystallography
         experiments. The GUI receives reduced and aggregated data from an OnDA Monitor,
-        but only when it is tagged with the `view:omdata` label. The data must contain
-        information about the position of detected Bragg peaks, together with
-        information about the current hit rate. The GUI then displays a plot showing
-        the evolution of the hit rate over time, a virtual powder pattern generated
-        using the positions of the detected Bragg peaks, and a peakogram plot
-        calculated from the Bragg peak information.
+        but only when it is tagged with the `omdata` label. The data must contain
+        information about the position of detected Bragg peaks, and about the hit rate
+        of the experiment. The GUI then displays a plot showing the evolution of the
+        hit rate over time, a virtual powder pattern generated using the positions of
+        the detected Bragg peaks, and a peakogram plot calculated from the Bragg peak
+        information.
 
         Arguments:
 
@@ -295,7 +295,7 @@ class CrystallographyGui(OmGuiBase):
         refer to the documentation of that class for more information.
 
         This method, which is called at regular intervals, updates the hit rate history
-        plot, the virtual powder pattern and the peakogram plot.
+        plot, the virtual powder pattern plot and the peakogram plot.
         """
 
         if self._received_data:
@@ -412,7 +412,7 @@ def main(*, url: str) -> None:
     running OnDA Monitor for Crystallography. If the monitor broadcasts the necessary
     information, this GUI displays the evolution of the hit rate over time, a
     real-time virtual powder pattern created using the positions of detected Bragg
-    peaks, and a peakogram plot computed from the peak information.
+    peaks, and a peakogram plot computed from the Bragg peak information.
 
     The GUI connects to and OnDA Monitor running at the IP address (or hostname) + port
     specified by the URL string. This is a string in the format used by the ZeroMQ

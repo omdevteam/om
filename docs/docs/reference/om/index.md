@@ -1,5 +1,5 @@
 ::: om
-    selection:
+    options:
       members: false
 
   * [algorithms](algorithms/index.md)

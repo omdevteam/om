@@ -131,7 +131,7 @@ class OmDataEventHandlerProtocol(Protocol):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                  [Data Source class][om.Protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
@@ -211,7 +211,7 @@ class OmDataEventHandlerProtocol(Protocol):
 
         This function processes a data event and makes its content accessible for OM.
         OM calls this function on each processing node before the
-        [extract_data][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
+        [extract_data][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
         function.
 
         Arguments:
@@ -226,7 +226,7 @@ class OmDataEventHandlerProtocol(Protocol):
 
         This function processes a data event and prepares it to be discarded by OM. OM
         calls this function on each processing node after the
-        [extract_data][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
+        [extract_data][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
         function.
 
         Arguments:
@@ -281,7 +281,7 @@ class OmDataEventHandlerProtocol(Protocol):
 
         After this function has been called, data for single events can be retrieved by
         invoking the
-        [`retrieve_event_data`][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.retrieve_event_data]
+        [`retrieve_event_data`][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.retrieve_event_data]
         function.
         """
         ...
@@ -296,7 +296,7 @@ class OmDataEventHandlerProtocol(Protocol):
 
         Before this function can be called, frame data retrieval must be initialized by
         calling the
-        [`initialize_event_data_retrieval`][om.Protocols.data_retrieval_layer.OmDataEventHandlerProtocol.initialize_event_data_retrieval]
+        [`initialize_event_data_retrieval`][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.initialize_event_data_retrieval]
         function.
 
         Arguments:

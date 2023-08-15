@@ -121,9 +121,9 @@ class Peakfinder8PeakDetection:
                 detector data frame on which the algorithm is applied (number and size
                 of ASICs, etc.).
 
-            parameters: A set of OM configuration parameters collected together in a
-                parameter group. The parameter group must contain the following
-                entries:
+            crystallography_parameters: A set of OM configuration parameters collected
+                together in a parameter group. The parameter group must contain the
+                following entries:
 
                 * `max_num_peaks`: The maximum number of peaks that the algorithm
                    should retrieve from each  data frame. Additional peaks will be
@@ -500,7 +500,7 @@ class Peakfinder8PeakDetection:
 
         Arguments:
 
-            min_res: The new maximum distance, in pixels, from the detector's center
+            max_res: The new maximum distance, in pixels, from the detector's center
                 for a peak.
         """
         self._max_res = max_res

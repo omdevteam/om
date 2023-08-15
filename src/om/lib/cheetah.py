@@ -39,7 +39,7 @@ class TypeFrameListData(NamedTuple):
     This named tuple is used to store the detector frame data which is later written to
     the `frames.txt` file.
 
-    Arguments:
+    Attributes:
 
         timestamp: The timestamp of the frame.
 
@@ -73,7 +73,7 @@ class TypeClassSumData(TypedDict):
     class, their sum, and the virtual powder plot generated from the Bragg peaks
     detected in them.
 
-    Arguments:
+    Attributes:
 
         num_frames: The number of detector frames belonging to the data class.
 

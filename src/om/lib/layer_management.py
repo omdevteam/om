@@ -131,7 +131,7 @@ def filter_data_sources(
 
     Raises:
 
-         OmMissingDataSourceClassError: Raised when one of the required Data Source
+        OmMissingDataSourceClassError: Raised when one of the required Data Source
             class cannot be found in the list of Data Source available for the Data
             Retrieval.
     """

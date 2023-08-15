@@ -63,23 +63,22 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         is called at regular intervals.
 
         The class has methods to start and stop the listening thread, effectively
-        attaching and detaching the graphical interface from the OnDA Monitor from
-        which it receives data.
+        attaching and detaching the graphical interface from the OnDA Monitor
+        broadcasting the data
 
         This base class should be subclassed to create specific graphical interfaces.
-        In particular, each derived class, which should always call the constructor of
-        this class during initialization, must provide its own specific implementation
+        Each derived class should always call the constructor of this class during
+        initialization, and must additionally provide its own specific implementation
         of the abstract
-        [update_gui][om.graphical_interfaces.common.OmGuiBase.update_gui]
-        function.
+        [update_gui][om.graphical_interfaces.common.OmGuiBase.update_gui] function.
 
         Arguments:
 
             url: The URL at which the GUI will connect and listen for data. This must
                 be a string in the format used by the ZeroMQ protocol.
 
-            tag: A string used to filter the data received from an OnDA Monitor. Only
-                data whose tag matches this argument will be received by the GUI.
+            tag: A string used to filter the data received from an OnDA Monitor. The
+                GUI only receives data whose tag matches this argument.
         """
         super(OmGuiBase, self).__init__()
 
@@ -110,8 +109,8 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         """
         Connects to an OnDA Monitor and starts listening for broadcast data.
 
-        This function instructs the listening thread to connect to an OnDA Monitor
-        and to start receiving data.
+        This function instructs the listening thread to connect to an OnDA Monitor and
+        start receiving data.
         """
         if not self.listening:
             self.listening = True
@@ -121,8 +120,8 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         """
         Disconnects from an OnDA Monitor and stops listening for data.
 
-        This function instructs the listening thread to disconnect from anOnDA Monitor
-        and to stop receiving data.
+        This function instructs the listening thread to disconnect from an OnDA Monitor
+        and stop receiving data.
         """
         if self.listening:
             self.listening = False
@@ -135,8 +134,8 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         This function is called at regular intervals by this class. It updates plots
         and other elements of the graphical interface.
 
-        This function is an abstract method: each graphical interface implementation
-        which derives from this class must provide its own implementation.
+        This function is an abstract method of this base class: each derived graphical
+        interface class must provide its own implementation.
         """
 
     def _data_received(self, received_data: Dict[str, Any]) -> None:

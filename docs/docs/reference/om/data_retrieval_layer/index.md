@@ -1,5 +1,5 @@
 ::: om.data_retrieval_layer
-    selection:
+    options:
       members: false
 
   * [data_event_handlers_asapo](data_event_handlers_asapo.md)
@@ -18,4 +18,4 @@
   * [data_sources_http](data_sources_http.md)
   * [data_sources_psana](data_sources_psana.md)
   * [data_sources_zmq](data_sources_zmq.md)
-  * [frame_retrieval](frame_retrieval.md)
+  * [event_retrieval](event_retrieval.md)

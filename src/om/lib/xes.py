@@ -25,26 +25,6 @@ import numpy
 from numpy.typing import NDArray
 
 from om.algorithms.xes import EnergySpectrumRetrieval
-from om.lib.parameters import MonitorParameters
-
-
-class XesAnalysis:
-    """
-    See documentation for the `__init__` function.
-    """
-
-    def __init__(self, *, parameters: MonitorParameters):
-        """
-        Energy spectrum analysis
-
-
-        After the class has been initialized, it can be invoked to calculate an energy
-        spectrum from a data frame, and to analyze it.
-
-        Arguments:
-
-
-        """
 
 
 class XesAnalysisAndPlots:
