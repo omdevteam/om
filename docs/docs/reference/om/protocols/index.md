@@ -1,4 +1,4 @@
-::: om.Protocols
+::: om.protocols
     selection:
       members: false 
 
