@@ -41,15 +41,15 @@ class OmDataSourceProtocol(Protocol):
         Protocol for OM's Data Source classes.
 
         Data Sources are classes that perform all the operations needed to retrieve
-        data from a single specific sensor or detector. A Data Source class can be
-        associate to any type of detector,from a simple diode or wave digitizer, to a
+        data from a single specific sensor or detector. A Data Source class can refer
+        to any type of detector, from a simple diode or wave digitizer, to a
         big x-ray or optical detector.
 
         This class Protocol describes the interface that every Data Source class in OM
         must implement.
 
         A Data Source class must be initialized with the full set of OM's configuration
-        parameters, from which information about the sensor will be extracted. An
+        parameters, from which it extracts information about the sensor or detector. An
         identifying name for the sensor must also be provided.
 
         Arguments:
@@ -132,7 +132,7 @@ class OmDataEventHandlerProtocol(Protocol):
 
                 * The corresponding dictionary value must store the instance of the
                   [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                  that describes the source.
+                  that describes the data source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
