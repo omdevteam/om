@@ -55,17 +55,16 @@ class CheetahProcessing(OmProcessingProtocol):
         """
         Cheetah.
 
-        This Processing class implements the Cheetah software package. Cheetah
-        processes detector data frames, detecting Bragg peaks in each frame
-        using the
-        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        This Processing class implements the Cheetah software package. This program
+        processes detector data frames, detecting Bragg peaks in each frame using the
+        [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
         algorithm. It retrieves information about the location, size, intensity, SNR
-        and maximum pixel value of each peak, Cheetah then saves the calibrated and
+        and maximum pixel value of each peak, and then saves the calibrated and
         corrected detector data, plus all the information retrieved from the facility
         or extracted from the data, in multi-event HDF5 files. Cheetah can also
-        compute, and write to HDF5 sum files, sums of detector data frames (calculating
-        separate sums for hit and non-hit frames). The sums can saved together with
-        their corresponding Virtual Powder patterns.
+        compute, and write to HDF5 sum files, sums of detector data frames, together
+        with their corresponding virtual powder patterns. Separate sums are computed
+        for hit and non-hit frames.
 
         Arguments:
 
@@ -187,8 +186,8 @@ class CheetahProcessing(OmProcessingProtocol):
         Initializes the collecting node for Cheetah.
 
         This function initializes the data accumulation algorithms, the storage buffers
-        used to compute statistics on the detected Bragg peaks and all the file
-        writers.
+        used to compute statistics on the processed data, and some internal counters.
+        Additionally, it prepares all the file writers.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -247,10 +246,10 @@ class CheetahProcessing(OmProcessingProtocol):
         Processes a detector data frame and saves the extracted data to HDF5 file.
 
         This function processes retrieved data events, extracting the Bragg peak
-        information. It also saves the frame-related processed data in an output
-        HDF5 file, if a frame is identified as a hit. Finally, it prepares the reduced
-        data (and optionally, the detector frame data) for transmission to the
-        collecting node.
+        information. It saves the frame-related processed data in an output HDF5 file,
+        if a frame is identified as a hit. Finally, it prepares the reduced data
+        (and optionally, the detector frame data) for transmission to the collecting
+        node.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

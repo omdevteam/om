@@ -18,7 +18,7 @@
 """
 OnDA Monitor for X-ray Emission Spectroscopy.
 
-This module contains an OnDA Monitor for x-ray emission spectroscopy experiments.
+This module contains an OnDA Monitor for X-ray Emission Spectroscopy experiments.
 """
 from __future__ import absolute_import, division, print_function
 
@@ -48,15 +48,16 @@ class XesProcessing(OmProcessingProtocol):
         OnDA Monitor for X-ray Emission Spectroscopy.
 
         This Processing class implements and OnDA Monitor for X-ray Emission
-        Spectroscopy experiments. The monitor processes camera data frames,extracting
-        an energy spectrum from each of the data frames. The monitor computes smoothed
-        and averaged spectral data information and broadcasts it to
-        external programs (like [OM's XES GUI][om.graphical_interfaces.xes_gui.XesGui],
-        for visualization. In time resolved experiments, the monitor can process
-        spectra for pumped and dark events separately, and compute their difference.
+        Spectroscopy experiments. The monitor processes camera data frames, extracting
+        energy spectrum information. It then computes cumulative raw and smoothed
+        spectral data information, broadcasting it to external programs (like
+        [OM's XES GUI][om.graphical_interfaces.xes_gui.XesGui], for visualization. In
+        time resolved experiments, the monitor can process spectra for pumped and dark
+        events separately, and compute their difference. The monitor additionally
+        computes and broadcasts sums of detector data frames.
 
         This monitor is designed to work with cameras or simple single-module
-        detectors. It will not work with a segmented detector.
+        detectors. It will not work with a segmented area detector.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -93,8 +94,7 @@ class XesProcessing(OmProcessingProtocol):
         """
         Initializes the processing nodes for the XES Monitor.
 
-        This function initializes the the spectrum extraction algorithm, plus some
-        internal counters.
+        This function just initializes some internal counters.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -127,8 +127,8 @@ class XesProcessing(OmProcessingProtocol):
         """
         Initializes the collecting node for the XES Monitor.
 
-        This function initializes the data accumulation algorithms and the storage
-        buffers used to compute statistics on the aggregated spectral data.
+        This function initializes the data analysis and accumulation algorithms and the
+        storage buffers used to compute statistics on the aggregated spectral data.
         Additionally, it prepares all the necessary network sockets.
 
         Please see the documentation of the base Protocol class for additional
@@ -150,26 +150,24 @@ class XesProcessing(OmProcessingProtocol):
         )
 
         # Plots
-        self._plots = XesAnalysisAndPlots(
+        self._xes_analysis_and_plots = XesAnalysisAndPlots(
             parameters=self._monitor_params.get_parameter_group(group="xes"),
             time_resolved=self._time_resolved,
         )
 
         # Data broadcast
         self._data_broadcast_socket: ZmqDataBroadcaster = ZmqDataBroadcaster(
-            parameters=self._monitor_params.get_parameter_group(group="crystallography")
+            parameters=self._monitor_params.get_parameter_group(group="xes")
         )
 
         # Responding socket
         self._responding_socket: ZmqResponder = ZmqResponder(
-            parameters=self._monitor_params.get_parameter_group(group="crystallography")
+            parameters=self._monitor_params.get_parameter_group(group="xes")
         )
 
         # Event counting
         self._event_counter: EventCounter = EventCounter(
-            om_parameters=self._monitor_params.get_parameter_group(
-                group="crystallography"
-            ),
+            om_parameters=self._monitor_params.get_parameter_group(group="xes"),
             node_pool_size=node_pool_size,
         )
 
@@ -183,9 +181,8 @@ class XesProcessing(OmProcessingProtocol):
         """
         Processes a detector data frame and extracts spectrum information.
 
-        This function processes retrieved data events, extracting an energy spectrum
-        from each of them. It additionally prepares the spectral data for transmission
-        to to the collecting node.
+        This function processes retrieved data events and prepares the data for
+        transmission to to the collecting node.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

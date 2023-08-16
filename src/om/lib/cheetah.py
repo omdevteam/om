@@ -15,6 +15,13 @@
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
+"""
+Cheetah classes and functions.
+
+This module contains classes and functions used by Cheetah, a data-processing program
+for Serial X-ray Crystallography, based on OM but not designed to be run in real time.
+"""
+
 
 import pathlib
 import sys
@@ -36,16 +43,17 @@ class TypeFrameListData(NamedTuple):
     """
     Cheetah frame list data.
 
-    This named tuple is used to store the detector frame data which is later written to
-    the `frames.txt` file.
+    This named tuple is used to store the detector frame data which is later written
+    into the `frames.txt` file.
 
     Attributes:
 
         timestamp: The timestamp of the frame.
 
-        event_id: The event ID of the frame.
+        event_id: A unique identifier for the event attached to the frame.
 
-        frame_is_hit: A flag indicating whether the frame is a labelled as a hit.
+        frame_is_hit: A flag indicating whether the event attached to the frame is
+            labelled as a hit.
 
         filename: The name of the file containing the frame.
 
@@ -53,7 +61,8 @@ class TypeFrameListData(NamedTuple):
 
         num_peaks: The number of peaks in the frame.
 
-        average_intensity: The average intensity of the peaks in the frame.
+        average_intensity: The average intensity of the Bragg peaks detected in the
+            frame.
     """
 
     timestamp: numpy.float64
@@ -67,10 +76,10 @@ class TypeFrameListData(NamedTuple):
 
 class TypeClassSumData(TypedDict):
     """
-    Cheetah data class frame sum data.
+    Cheetah data class sum data.
 
     A dictionary storing the number of detector frames belonging to a specific data
-    class, their sum, and the virtual powder plot generated from the Bragg peaks
+    class, their sum, and the virtual powder pattern generated from the Bragg peaks
     detected in them.
 
     Attributes:
@@ -79,7 +88,7 @@ class TypeClassSumData(TypedDict):
 
         sum_frames: The sum of the detector frames belonging to the class.
 
-        peak_powder: The virtual powder plot for the data class.
+        peak_powder: The virtual powder pattern for the data class.
     """
 
     num_frames: int
@@ -100,8 +109,13 @@ class CheetahStatusFileWriter:
         """
         Cheetah status file writer.
 
-        This class stores information about the current state of data processing in
-        Cheetah.
+        This class stores information about the current status of data processing in
+        Cheetah (number of processed frames, number of hits, etc.).
+
+        After the class has been initialized, the information it stores can be updated
+        with new data processing statistics. Upon receiving them, this class writes
+        the updated data processing information to a "status" file, which can then
+        be inspected by external programs.
 
         Arguments:
 
@@ -115,7 +129,7 @@ class CheetahStatusFileWriter:
         """
         directory_for_processed_data: str = get_parameter_from_parameter_group(
             group=parameters,
-            parameter="processed_directory",
+            parameter="directory_for_processed_data",
             parameter_type=str,
             required=True,
         )
@@ -132,11 +146,12 @@ class CheetahStatusFileWriter:
         num_hits: int = 0,
     ) -> None:
         """
-        Writes a status file.
+        Updates the data processing information and writes the status to a file.
 
-        This function writes the information about the current state of data processing
-        to a status file. The Cheetah GUI inspect this file to get information about
-        Cheetah's current state.
+        This function updates the data stored by this class with the provided data
+        processing information. Additionally, it writes the updated data processing
+        statistics to a `status file`. External program, like the Cheetah GUI, can
+        inspect this file to get information about Cheetah's current state.
 
         Arguments:
 
@@ -177,30 +192,30 @@ class CheetahListFilesWriter:
         """
         Cheetah list files writer.
 
-        This class manages the information that gets written to the "frames.txt",
-        "cleaned.txt", "events.lst", "hits.lst" and "peaks.txt" files required by the
+        This class manages the information that gets written to the `frames.txt`,
+        `cleaned.txt`, `events.lst`, `hits.lst` and `peaks.txt` files, required by the
         Cheetah GUI.
 
-        "frames.txt" contains a list of all the detector frames processed by Cheetah,
-        with information about the frame timestamp, event ID, whether the frame is a
-        hit, the name of the file containing the frame, the index of the frame in the
-        file, the number of peaks detected in the frame, and the average intensity of
-        the peaks in the frame.
+        * `frames.txt` contains a list of all the detector frames processed by Cheetah,
+          with information about the frame timestamp, event ID, whether the frame is a
+          hit, the name of the file containing the frame, the index of the frame in the
+          file, the number of peaks detected in the frame, and the average intensity of
+          the peaks in the frame.
 
-        "cleaned.txt" contains a list of all the detector frames that have been
-        identified as hits by Cheetah, with the same information as "frames.txt".
+        * `cleaned.txt` contains a list of all the detector frames that have been
+          identified as hits by Cheetah, with the same information as `frames.txt`.
 
-        "events.lst" contains a list of all the event IDs of the detector frames
-        processed by Cheetah.
+        * `events.lst` contains a list of all the event identifiers for the detector
+          frames processed by Cheetah.
 
-        "hits.lst" contains a list of all the event IDs of the detector frames that
-        have been identified as hits by Cheetah.
+        * `hits.lst` contains a list of all the event identifiers for the detector
+          frames that have been identified as hits by Cheetah.
 
-        "peaks.txt" contains a list of all the Bragg peaks detected by Cheetah, with
-        information about the event ID of the frame to which the peak belongs, the
-        number of peaks in the frame, the fast-scan and slow-scan coordinates of the
-        peak, the peak intensity, the number of pixels in the peak, the maximum pixel
-        intensity in the peak, and the signal-to-noise ratio of the peak.
+        * `peaks.txt` contains a list of all the Bragg peaks detected by Cheetah, with
+           information about the event ID of the frame to which the peak belongs, the
+           number of peaks in the frame, the fast-scan and slow-scan coordinates of the
+           peak, the peak intensity, the number of pixels in the peak, the maximum
+           pixel intensity in the peak, and the signal-to-noise ratio of the peak.
 
         Arguments:
 
@@ -356,16 +371,18 @@ class CheetahClassSumsAccumulator:
         self,
         *,
         cheetah_parameters: Dict[str, Any],
-        num_classes: int = 2,
+        num_classes: int,
     ) -> None:
         """
         Cheetah data class sum accumulator.
 
-        This class accumulates information about the sum and virtual powder plot of
-        all detector frames belonging to a specific data class. After data frame
-        information has been added to the accumulator, the sum and virtual powder plot
-        for the data class can be retrieved from the accumulator, either after a
-        predefined number of frames has been added to the accumulator, or at will.
+        This class accumulates information about the sum and virtual powder pattern of
+        all detector frames belonging to a specific data class.
+
+        After the accumulator has been initialized, data frame information can be added
+        to it. The cumulative sum and virtual powder pattern for the data in the class
+        can be retrieved from the accumulator either after a predefined number of
+        frames have been added, or on-demand.
 
         Arguments:
 
@@ -373,9 +390,10 @@ class CheetahClassSumsAccumulator:
                 together in a parameter group. The parameter group must contain the
                 following entries:
 
-                class_sums_sending_interval: The number of detector frames that the
-                    accumulator can receive before returning the sum and virtual
-                    powder plot information and resetting the accumulator.
+                class_sums_sending_interval: The maximum number of detector frames that
+                    the accumulator can receive before returning the sum and virtual
+                    powder plot information. After the data is returned, the frame
+                    counter is reset.
 
             num_classes: The total number of data classes currently managed by Cheetah.
         """
@@ -440,18 +458,20 @@ class CheetahClassSumsAccumulator:
         self, disregard_counter: bool = False
     ) -> Union[None, List[TypeClassSumData]]:
         """
-        Retrieves sum and virtual powder plot data from the accumulator.
+        Retrieves the frame sum and virtual powder pattern from the accumulator.
 
         This function returns the data stored in the accumulator if the predefined
         number of frames has been added to the accumulator, or if the
-        `disregard_counter` argument is `True`. Otherwise, returns `None`.
+        `disregard_counter` argument is `True`. Otherwise, it returns `None`.
 
         Arguments:
 
-            disregard_counter: If `True`, the sending counter is disregarded and the
-                class sums are returned.
+            disregard_counter: If the value of this argument is True, the accumulator's
+                internal frame counter is ignored, and the class sum and virtual powder
+                pattern are returned. The frame counter is then reset.
 
         Returns:
+
             The sum and virtual powder plot stored by the accumulator, or None.
         """
         if self._sum_sending_counter >= self._sum_sending_interval or (
@@ -494,8 +514,8 @@ class CheetahClassSumsCollector:
                 * `class_sums_update_interval`: If the information stored by the
                   collector must be written to disk (see the `write_class_sums`
                   parameter), this parameter determines how many times the collector
-                  can be updated before the accumulated data is written to a file After
-                  the HDF5 has been written, the update count is reset.
+                  can be updated before the accumulated data is written to a file.
+                  After the file has been written, the update count is reset.
 
             num_classes: The total number of data classes currently managed by Cheetah.
 
@@ -585,10 +605,10 @@ class HDF5Writer:
         cheetah_parameters: Dict[str, Any],
     ) -> None:
         """
-        HDF5 file writer for Cheetah.
+        Event data writer.
 
-        This class creates HDF5 data files to store the information processed by
-        Cheetah. For each data event, this class saves into an HDF5 file a processed
+        This class creates HDF5 data files that store the event information processed
+        by Cheetah. For each data event, this class saves into an HDF5 file a processed
         detector data frame, the list of Bragg peaks detected in the frame, and some
         additional information (timestamp, beam energy, detector distance, pump laser
         state).
@@ -618,7 +638,7 @@ class HDF5Writer:
                     the output files. Optional. If the value of this entry is None, the
                     string 'processed_' will be used as prefix. Defaults to None.
 
-                processed_filename_extension: An extension string that id appended to
+                processed_filename_extension: An extension string that is appended to
                     the name of the output files. Optional. If the value of this entry
                     is None, the string 'h5' is be used as extension. Defaults to
                     None.
@@ -631,10 +651,10 @@ class HDF5Writer:
 
                 compression_shuffle: Whether the `shuffle` filter is applied. If the
                     value of this entry is True, the filter is applied to the data
-                    being written, otherwise it is not. Defaults to None.
+                    being written, otherwise it is not. Defaults to False.
 
-                max_num_peaks: The maximum number of detected Bragg peaks that are
-                    written in the HDF5 file for each event. Optional. If the value
+                max_num_peaks: The maximum number of detected Bragg peaks that must be
+                    written to the HDF5 file for each event. Optional. If the value
                     of this entry is None, only the first 1024 peaks detected in each
                     frame are written to the output file. Defaults to None.
 
@@ -727,6 +747,7 @@ class HDF5Writer:
             parameter_type=bool,
             default=False,
         )
+        # TODO: Check
 
         # Max number of peaks
         self._max_num_peaks: int = get_parameter_from_parameter_group(
@@ -1030,19 +1051,21 @@ class SumHDF5Writer:
         cheetah_parameters: Dict[str, Any],
     ) -> None:
         """
-        HDF5 writer for sum of frames.
+        Frame sum writer.
 
         This class creates HDF5 data files to store the aggregate information collected
-        by Cheetah. the function saves into HDF5 files sums of detector data frames,
-        together with virtual powder patterns created using the Bragg peaks detected in
-        them.
+        by Cheetah. The function saves into an HDF5 file a sum of detector data frames,
+        together with a virtual powder pattern created using the Bragg peaks detected
+        in the frames. Different sum writers are usually created for different data
+        classes.
 
         Arguments:
 
-            powder_class: A unique identifier for the sum of frames and virtual powder
-                pattern being saved.
+            powder_class: A unique identifier for the data class to which the data
+                being written belongs.
 
-            cheetah_parameters: A dictionary containing the Cheetah parameters.
+            cheetah_parameters: A dictionary containing Cheetah's configuration
+                parameters.
         """
         sum_filename_prefix: str = get_parameter_from_parameter_group(
             group=cheetah_parameters,
@@ -1088,14 +1111,13 @@ class SumHDF5Writer:
         data: TypeClassSumData,
     ) -> None:
         """
-        Writes aggregated detector frame data into an HDF5 file.
+        Writes aggregated frame data into an HDF5 file.
 
-        This function writes the provided aggregated data into an HDF5 data file.
+        This function writes the provided aggregated frame data into an HDF5 file.
 
         Arguments:
 
-            data: A dictionary containing the aggregated data to write into the HDF5
-                file.
+            data: A dictionary containing the aggregated data to write into the file.
         """
         if not self._filename.exists():
             self._create_hdf5_file_and_datasets(data_shape=data["sum_frames"].shape)

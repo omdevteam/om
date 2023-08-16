@@ -522,7 +522,7 @@ class Peakfinder8PeakDetection:
 
         Returns:
 
-            A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
+            A [`TypePeakList`][om.algorithms.crystallography.TypePeakList] dictionary
                 with information about the detected peaks.
         """
         if self._mask is None:

@@ -16,7 +16,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-ZMQ utilities to broadcast data from an OnDA Monitor.
+ZMQ utilities to broadcast data from OnDA Monitors.
 
 This module contains classes and functions that allow OnDA Monitors to broadcast data
 to external programs over a ZMQ socket.
@@ -41,7 +41,7 @@ def get_current_machine_ip() -> str:
 
     Returns:
 
-        A string storing the IP address of the machine where the function was invoked.
+        A string storing the IP address of the machine where the function is invoked.
     """
     ip: str = [
         (
@@ -68,14 +68,14 @@ class ZmqDataBroadcaster:
         """
         Data-broadcasting socket for OnDA Monitors.
 
-        This class manages a broadcasting socket that can be used by OnDA Monitors
-        to transmit data to external programs. The class must be initialized with the
-        URL, in ZeroMQ format, were the socket should operate. The created socket can
-        then be used to broadcast data. Each data item broadcast by the socket can be
-        tagged with a different label, and external programs can use this label to
-        filter their incoming data. The socket can also transmit to multiple
-        clients at the same time but has no queuing system: broadcast data will be lost
-        to the clients if not received before the next transmission takes place.
+        This class manages a broadcasting socket that can be used by OnDA Monitors to
+        transmit data to external programs. The class must be initialized with the URL,
+        in ZeroMQ format, were the socket should operate. The created socket can then
+        be used to broadcast data. Each data item broadcast by the socket can be tagged
+        with a different label, and external programs can use this label to filter
+        their incoming data. The socket can transmit to multiple clients at the same
+        time but has no queuing system: broadcast data will be lost to the clients if
+        not received before the next transmission takes place.
 
         This class creates a ZMQ PUB socket that accepts connections from ZMQ PUB
         sockets.
@@ -86,11 +86,11 @@ class ZmqDataBroadcaster:
                 parameter group. The parameter group must contain the following
                 entries:
 
-                * `url`: The URL where the socket will be opened. It must be a string
-                in the format used by ZeroMQ, or None. If the value of this argument is
-                None, the IP address of the local machine is auto-detected, and the
-                socket is opened at port 12321 using the 'tcp://' protocol. Defaults to
-                None.
+                * `data_broadcast_url`: The URL where the socket will be opened. It
+                must be a string in the format used by ZeroMQ, or None. If the value of
+                this argument is None, the IP address of the local machine is
+                auto-detected, and the socket is opened at port 12321 using the
+                'tcp://' protocol. Defaults to None.
         """
         url: Union[str, None] = get_parameter_from_parameter_group(
             group=parameters, parameter="data_broadcast_url", parameter_type=str
@@ -123,8 +123,8 @@ class ZmqDataBroadcaster:
         """
         Broadcasts data from the ZMQ PUB socket.
 
-        This function transmits the provided data from the broadcasting socket. The
-        data must have the format of a python dictionary strictly containing only
+        This function transmits the provided data through the broadcasting socket. The
+        data must have the format of a python dictionary, strictly containing only
         Python objects. When broadcast, the data is tagged with the specified label.
 
         Arguments:
@@ -136,8 +136,8 @@ class ZmqDataBroadcaster:
                 * The dictionary keys must store the names of the data units being
                   broadcast.
 
-                * The corresponding dictionary values must store the data content,
-                  associated to each data unit, to be transmitted.
+                * The corresponding dictionary values must store the data content
+                  associated to each data unit.
         """
         self._sock.send_string(tag, zmq.SNDMORE)
         self._sock.send_pyobj(message)
@@ -177,11 +177,11 @@ class ZmqResponder:
                 parameter group. The parameter group must contain the following
                 entries:
 
-                * `url`: The URL where the socket will be opened. It must be a string
-                in the format used by ZeroMQ, or None. If the value of this argument is
-                None, the IP address of the local machine is auto-detected, and the
-                socket is opened at port 12321 using the 'tcp://' protocol. Defaults to
-                None.
+                * `responding_url`: The URL where the socket will be opened. It must be
+                a string in the format used by ZeroMQ, or None. If the value of this
+                argument is None, the IP address of the local machine is auto-detected,
+                and the socket is opened at port 12321 using the 'tcp://' protocol.
+                Defaults to None.
 
             blocking: whether the socket should be of blocking type. Defaults to False.
         """
@@ -226,10 +226,10 @@ class ZmqResponder:
         a request is received. The function then returns a tuple storing the
         identity of the requester and the content of the request. If the socket is
         instead non-blocking, the function return the same information if a request is
-        present when the function is called, and None otherwise. The identity of the
-        requester must be stored by the program invoking the function and provided
-        later to the [send_data][om.lib.zmq.ZmqResponder.send_data] function to answer
-        the request, if necessary.
+        present when the function is called, but returns  None otherwise. The identity
+        of the requester must be stored by the program invoking the function and
+        provided later to the [send_data][om.lib.zmq.ZmqResponder.send_data] function
+        to answer the request, if necessary.
 
         Returns:
 

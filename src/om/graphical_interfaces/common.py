@@ -70,7 +70,7 @@ class OmGuiBase(QtWidgets.QMainWindow, metaclass=_QtMetaclass):
         Each derived class should always call the constructor of this class during
         initialization, and must additionally provide its own specific implementation
         of the abstract
-        [update_gui][om.graphical_interfaces.common.OmGuiBase.update_gui] function.
+        [`update_gui`][om.graphical_interfaces.common.OmGuiBase.update_gui] function.
 
         Arguments:
 

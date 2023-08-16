@@ -40,7 +40,7 @@ class TypeBeam(TypedDict, total=True):
 
         photon_energy: The photon energy of the beam in eV.
 
-        photon_energy_from: The internal path to the photon energy information in an
+        photon_energy_from: The internal path for the photon energy information in an
             HDF5 data file, in case the beam energy information is extracted from it.
 
         photon_energy_scale: The scaling factor to be applied to the photon energy, in
@@ -268,12 +268,12 @@ class TypeDetector(TypedDict):
         panels: The panels in the detector. The value corresponding to this key is
             dictionary containing information about the panels that make up the
             detector. In the dictionary, the keys are the panel names, and the values
-            are [TypePanel][om.lib.geometry.TypePanel] dictionaries.
+            are [`TypePanel`][om.lib.geometry.TypePanel] dictionaries.
 
         bad: The bad regions in the detector. The value corresponding to this key is a
             dictionary containing information about the bad regions in the detector. In
             the dictionary, the keys are bad region names, and the values are
-            [TypeBadRegion][om.lib.geometry.TypeBadRegion] dictionaries.
+            [`TypeBadRegion`][om.lib.geometry.TypeBadRegion] dictionaries.
 
         mask_bad: The value used in a bad pixel mask to label a pixel as bad.
 
@@ -327,9 +327,8 @@ class TypeDetectorLayoutInformation(TypedDict, total=True):
     """
     Detector layout information for the peakfinder8 algorithm.
 
-    This typed dictionary stores information about the internal data layout of a
-    detector data frame (number and size of ASICs, etc.). The information
-    is needed by the
+    A dictionary storing information about the internal layout of a detector data frame
+    for a specific detector. The information is needed by the
     [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
     algorithm, and is usually retrieved via the
     [`get_layout_info`][om.lib.geometry.GeometryInformation.get_layout_info]
@@ -356,9 +355,9 @@ class TypePixelMaps(TypedDict):
     """
     A dictionary storing a set of pixel maps
 
-    This dictionary stores a set of look-up pixels maps. Each map stores, for each
-    pixel in a detector data frame, the value of a specific coordinate. All coordinates
-    in this set of maps are assumed to be relative to the detector's reference system.
+    This dictionary stores a set of look-up pixels maps. Each map stores the value of a
+    specific coordinate for eac pixel in a detector data frame. All coordinates in this
+    set of maps are assumed to be relative to the detector's reference system.
 
     Attributes:
 
@@ -369,10 +368,10 @@ class TypePixelMaps(TypedDict):
         z: A pixel map for the z coordinate.
 
         radius: A pixel map storing the distance of each pixel from the center of the
-            detector reference system.
+            reference system (usually the center of the detector).
 
         phi: A pixel map storing, for each pixel, the amplitude of the angle drawn by
-            the pixel, the center of the detector reference system, and the x axis.
+            the pixel, the center of the reference system, and the x axis.
     """
 
     x: NDArray[numpy.float_]
@@ -388,11 +387,12 @@ class TypeVisualizationPixelMaps(TypedDict):
 
     A dictionary storing a set of pixel maps used for visualization.
 
-    This dictionary stores a set of look-up pixels maps. Each map stores, for each
-    pixel in a detector data frame, the value of a specific coordinate. This set of
-    pixel maps is supposed to be used for visualization: all coordinates are assumed to
+    This dictionary stores a set of look-up pixels maps. Each map stores the value of
+    a specific coordinate for each pixel in a detector data frame. This set of pixel
+    maps is supposed to be used for visualization: all coordinates are assumed to
     refer to a cartesian reference system mapped on a 2D array storing pixel
-    information, with origin in the top left corner of the array
+    information for an assembled detector image, with the origin in the top left
+    corner.
 
     Attributes:
 
@@ -734,48 +734,32 @@ def _read_crystfel_geometry_from_text(  # noqa: C901
     *,
     text_lines: List[str],
 ) -> Tuple[TypeDetector, TypeBeam, str]:  # noqa: C901
-    """
-    Reads CrystFEL geometry information from text data.
+    # This function is a Python re-implementation of the `get_detector_geometry_2` C
+    # function from CrystFEL. It reads some CrystFEL geometry information provided in the
+    # form of text data (and encoded using a format fully documented in CrystFEL's
+    # relevant
+    # [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),
+    # and returns a set of nested dictionaries whose content matches CrystFEL's internal
+    # representation of the information in the file.
 
-    This function is a Python re-implementation of the `get_detector_geometry_2` C
-    function from CrystFEL. It reads some CrystFEL geometry information provided in the
-    form of text data (and encoded using a format fully documented in the relevant
-    [man page](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),
-    and returns a set of nested dictionaries whose content matches CrystFEL's internal
-    representation of the information in the file.
+    # This function expects the geometry data to be provided in the format of lines of
+    # text. It is designed for cases in which the content of a CrystFEL geometry file has
+    # already been read and has been stored in memory in text format.
 
-    This function expects instead the geometry data to be provided in the format of
-    lines of text. It is designed for cases in which the content of a CrystFEL geometry
-    file has already been read and has been stored in memory in text format.
+    # The function returns the geometry information in the format of a tuple with the
+    # following entries:
 
-    Arguments:
+    # * A TypeDetector][om.lib.geometry.TypeDetector] dictionary storing information
+    #   related to the detector geometry.
 
-        text_lines: a list of strings with geometry information in text format (usually
-            corresponding to the content of a CrystFEL geometry file).
+    # * A [TypeBeam][om.lib.geometry.TypeBeam] dictionary storing information about
+    #   the x-ray beam.
 
-    Returns:
-
-        A tuple with the information loaded from the file.
-
-            * The first entry in the tuple is a
-              [TypeDetector][om.lib.geometry.TypeDetector] dictionary storing
-              information related to the detector geometry.
-
-            * The second entry in the tuple is a
-              [TypeBeam] om.lib.geometry.TypeBeam] dictionary storing information about
-              the x-ray beam.
-
-            * The third entry is the internal path, in an HDF5 data file, of the
-              location where Bragg peak information can be found. This is only used if
-              CrystFEL extracts Bragg peak information from files. If the geometry
-              file does not provide this information, this entry is just an empty
-              string.
-
-    Raises:
-
-        OmGeometryError: Raised when an error is encountered during the parsing of the
-            geometry information.
-    """
+    # * A string storing the internal path, in an HDF5 data file, of the location where
+    #   Bragg peak information can be found. This is only used if CrystFEL extracts
+    #   Bragg peak information from files. This information is not always present in
+    #   the geometry file. If it is not available, this entry is just an empty
+    #   string.
     beam: TypeBeam = {
         "photon_energy": 0.0,
         "photon_energy_from": "",
@@ -1177,11 +1161,12 @@ class GeometryInformation:
 
         This class stores the all the information describing the geometry of an area
         detector. It is initialized with a block of text containing the description of
-        the geometry of thr detector (usually the content of a geometry file), and with
+        the geometry of the detector (usually the content of a geometry file), and with
         a string specifying the format of the provided information.
 
         Once the class has been initialized, methods can be invoked to recover
-        information about the geometry: lookup-pixel maps, detector's pixel size, etc.
+        information about the geometry of the area detector: lookup-pixel maps,
+        size of the detector's pixels, etc.
 
         Arguments:
 
@@ -1239,7 +1224,7 @@ class GeometryInformation:
         Reads geometry description from file.
 
         This class method initializes the
-        [GeometryInformation][om.lib.geometry.GeometryInformation] class from a file,
+        [`GeometryInformation`][om.lib.geometry.GeometryInformation] class from a file,
         rather than from a block of text.
 
         Arguments:
@@ -1247,7 +1232,7 @@ class GeometryInformation:
             geometry_filename: the relative or absolute path to file containing the
                 description of the geometry of an area detector
 
-            geometry_format: a string describing the format of the geometry
+            geometry_format: a string describing the format of the provided geometry
                 description. Currently the following formats are supported:
 
                 * `crystfel`: the geometry format used by the CrystFEL software
@@ -1300,8 +1285,8 @@ class GeometryInformation:
 
         This function retrieves information about the internal layout of a detector
         data frame (number and size of ASICs, etc.). This information is needed by the
-        [peakfinder8][om.algorithms.crystallography.Peakfinder8PeakDetection] peak
-        detection algorithm.
+        [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        peak detection algorithm.
 
         Returns:
 
@@ -1314,14 +1299,14 @@ class GeometryInformation:
         Retrieves detector distance offset information.
 
         This function retrieves the offset that should be added to the nominal
-        detector distance provided by the facility to obtain the real detector distance
+        detector distance reported by a facility to obtain the real detector distance
         (i.e., the distance between the sample interaction point and the area detector
-        where data is recorded. This value is often stored together with the geometry
-        information, but if it is not available, the function returns None.
+        where data is recorded). This value is often stored together with the geometry
+        information, but if it is not available, the function returns 0.
 
         Returns:
 
-            The detector distance offset in meters, or None if the information is not
+            The detector distance offset in meters, or 0 if the information is not
             available.
         """
         return self._detector_distance_offset
@@ -1409,10 +1394,10 @@ class DataVisualizer:
         Retrieves the minimum shape of an array that can store a detector frame image.
 
         Computes the minimum size of an array that can hold the pixel information for
-        the image representation of a detector data frame. The size of the array is
-        enough to include the full representation of the data frame with geometry
-        applied. The size of the array also calculated assuming that the center of the
-        detector's reference system is kept at the center of the detector image.
+        the image representation of a detector data frame. The size of the array
+        computed by this function is enough to include the full representation of the
+        data frame with geometry applied, but it is also calculated assuming that the
+        center of the detector's reference system is kept at the center of image.
 
         Returns:
 
@@ -1438,8 +1423,8 @@ class DataVisualizer:
 
         If a pre-existing visualization array is provided, with exactly the shape
         returned by the
-        [get_min_array_shape_for_visualization][om.lib.geometry.DataVisualizer.get_min_array_shape_for_visualization]
-        function, this function can used it to store the pixel information. Otherwise
+        [`get_min_array_shape_for_visualization`][om.lib.geometry.DataVisualizer.get_min_array_shape_for_visualization]
+        function, it used by the function to store the pixel information. Otherwise
         the function creates a new array with the appropriate shape.
 
         Arguments:

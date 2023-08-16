@@ -42,8 +42,8 @@ class OmDataSourceProtocol(Protocol):
 
         Data Sources are classes that perform all the operations needed to retrieve
         data from a single specific sensor or detector. A Data Source class can refer
-        to any type of detector, from a simple diode or wave digitizer, to a
-        big x-ray or optical detector.
+        to any type of detector, from a simple diode or wave digitizer, to a big x-ray
+        or optical detector.
 
         This class Protocol describes the interface that every Data Source class in OM
         must implement.
@@ -211,7 +211,7 @@ class OmDataEventHandlerProtocol(Protocol):
 
         This function processes a data event and makes its content accessible for OM.
         OM calls this function on each processing node before the
-        [extract_data][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
+        [`extract_data`][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
         function.
 
         Arguments:
@@ -226,7 +226,7 @@ class OmDataEventHandlerProtocol(Protocol):
 
         This function processes a data event and prepares it to be discarded by OM. OM
         calls this function on each processing node after the
-        [extract_data][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
+        [`extract_data`][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
         function.
 
         Arguments:

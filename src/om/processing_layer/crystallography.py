@@ -18,7 +18,7 @@
 """
 OnDA Monitor for Crystallography.
 
-This module contains an OnDA Monitor for serial x-ray crystallography experiments.
+This module contains an OnDA Monitor for Serial X-ray Crystallography experiments.
 """
 import sys
 from collections import deque
@@ -58,13 +58,13 @@ class CrystallographyProcessing(OmProcessingProtocol):
         This Processing class implements an OnDA Monitor for Serial Crystallography
         experiments. The monitor processes detector data frames, detecting Bragg peaks
         in each frame using the
-        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
         algorithm, It retrieves information about the location, size, intensity, SNR
         and maximum pixel value of each peak. The monitor also calculates the evolution
-        of the hit rate over time. and can additionally optionally collect examples of
+        of the hit rate over time, and can additionally optionally collect examples of
         hit and non-hit calibrated detector data frames. All the information retrieved
-        from the facility or extracted from the data is then streamed to external
-        programs (like
+        from the facility or extracted from the data is streamed to external programs
+        (like
         [OM's Crystallography GUI][om.graphical_interfaces.crystallography_gui.CrystallographyGui]  # noqa: E501
         or
         [OM's Frame Viewer][om.graphical_interfaces.frame_viewer.FrameViewer]) for
@@ -276,8 +276,8 @@ class CrystallographyProcessing(OmProcessingProtocol):
         Processes a detector data frame.
 
         This function processes retrieved data events, extracting the Bragg peak
-        information. It prepares the reduced data (and optionally, the detector frame
-        data) to be transmitted to the collecting node.
+        information. It also prepares the reduced data (and optionally, the detector
+        frame data) to be transmitted to the collecting node.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -402,9 +402,9 @@ class CrystallographyProcessing(OmProcessingProtocol):
         This function collects and accumulates frame- and peak-related information
         received from the processing nodes. It also computes a rolling average
         estimation of the hit rate evolution over time. Additionally, it uses the
-        Bragg peak information to compute virtual powder pattern and a peakogram plot.
-        All the aggregated information is then broadcast to external programs for
-        visualization.
+        Bragg peak information to compute a virtual powder pattern and a peakogram plot.
+        All the aggregated information (and optionally, examples of hit and non-hit
+        detector data frames) is then broadcast to external programs for visualization.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.

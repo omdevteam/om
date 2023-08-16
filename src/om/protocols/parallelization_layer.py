@@ -49,9 +49,9 @@ class OmParallelizationProtocol(Protocol):
         * When OM start, a Parallelization class instance initializes several
           processing nodes, plus a single collecting node. The class then associates an
           instance of a Data Retrieval class (see
-          [OmDataRetrievalProtocol;][om.protocols.data_retrieval_layer.OmDataRetrievalProtocol])  # noqa: E501
+          [`OmDataRetrievalProtocol`][om.protocols.data_retrieval_layer.OmDataRetrievalProtocol])  # noqa: E501
           and an instance of a Processing class (see
-          OmProcessingProtocol][om.protocols.processing_layer.OmProcessingProtocol])
+          [`OmProcessingProtocol`][om.protocols.processing_layer.OmProcessingProtocol])
           with  each node.
 
         * Each processing node retrieves an event from a data event source by calling

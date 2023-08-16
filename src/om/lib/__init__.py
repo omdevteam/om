@@ -19,6 +19,6 @@
 OM's utility functions and classes.
 
 This package contains functions and classes that perform common operations needed by
-other modules and packages in OM. They are split into into modules according to the
-type of functionality they provide.
+other modules and packages in OM. The classes and functions are split into into modules
+according to the type of functionality they provide.
 """

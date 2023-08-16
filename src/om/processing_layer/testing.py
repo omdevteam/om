@@ -41,7 +41,7 @@ class TestProcessing(OmProcessingProtocol):
 
         This Processing class implements an OnDA Monitor that can be used for testing
         purposes. The monitor retrieves data events, but does not process the them. It
-        simply broadcasts the timestamp of each data event to a network socket.
+        simply broadcasts the timestamp of each data event through a network socket.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -205,12 +205,12 @@ class TestProcessing(OmProcessingProtocol):
         """
         Computes statistics on aggregated data and broadcasts data to external programs.
 
-        This method overrides the corresponding method of the base class: please also
-        refer to the documentation of that class for more information.
-
         This function receives data from the processing node, but does nothing with it.
         It simply broadcasts the value of an event counter and the timestamp of each
-        received event over a network socket.
+        received event through a network socket.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
 
         Arguments:
 

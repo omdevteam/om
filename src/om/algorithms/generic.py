@@ -379,7 +379,7 @@ class Binning:
 
         This function returns information on whether the algorithm performs a simple
         passthrough operation (See
-        [BinningPassthrough][om.algorithms.generic.BinningPassthrough]). For this
+        [`BinningPassthrough`][om.algorithms.generic.BinningPassthrough]). For this
         algorithm, the function always returns False.
 
         Returns:
@@ -591,9 +591,9 @@ class BinningPassthrough:
         Passthrough binning of detector data frames.
 
         This algorithm has the same interface as the
-        [Binning][om.algorithms.generic.Binning] algorithm. All the functions, however,
-        perform no operation at all, simply returning the original detector layout
-        information, detector data frame, bad pixel map, or pixel maps.
+        [`Binning`][om.algorithms.generic.Binning] algorithm. All the functions,
+        however, perform no operation at all, simply returning the original detector
+        layout information, detector data frame, bad pixel map, or pixel maps.
 
         This algorithm exists to avoid filling the code base with if statements that
         just check if binning is required and call the Binning algorithm accordingly.

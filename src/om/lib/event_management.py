@@ -50,12 +50,13 @@ class EventCounter:
         Arguments:
 
             om_parameters: A set of OM configuration parameters collected together in a
-                parameter group. The parameter group must contain the following entries:
+                parameter group. The parameter group must contain the following
+                entries:
 
                 * `speed_report_interval`: The number of events that must pass between
                   consecutive speed reports from OM.
 
-                * `data_broadcast_interval`: The number of events that must pas
+                * `data_broadcast_interval`: The number of events that must pass
                   between consecutive data broadcasts from OM.
 
                 * `hit_frame_sending_interval`: How often the monitor should send
@@ -111,7 +112,7 @@ class EventCounter:
 
     def add_hit_event(self) -> None:
         """
-        Adds hit events to the event counter.
+        Adds a hit event to the event counter.
 
         This function updates the number of hit events counted by this class.
         """
@@ -120,7 +121,7 @@ class EventCounter:
 
     def add_non_hit_event(self) -> None:
         """
-        Adds non-hit events to the event counter.
+        Adds a non-hit event to the event counter.
 
         This function updates the number of non-hit events counted by this class.
         """
@@ -144,8 +145,8 @@ class EventCounter:
         """
         Whether data should be broadcast to external programs.
 
-        This function computes if the number of processed events requires data to be
-        broadcast to external programs.
+        This function computes whether the number of processed events requires data to
+        be broadcast to external programs.
 
         Returns:
 
@@ -160,8 +161,8 @@ class EventCounter:
         """
         Whether a hit detector data frame should be broadcast to external programs.
 
-        This function computes if the number of processed hit events requires a hit
-        detector data frame to be broadcast to external programs.
+        This function computes whether the number of processed hit events requires a
+        hit detector data frame to be broadcast to external programs.
 
         Returns:
 
@@ -176,8 +177,8 @@ class EventCounter:
         """
         Whether a non-hit detector data frame should be broadcast to external programs.
 
-        This function computes if the number of processed non-hit events requires a
-        non-hit detector data frame to be broadcast to external programs.
+        This function computes whether the number of processed non-hit events requires
+        a non-hit detector data frame to be broadcast to external programs.
 
         Returns:
 
@@ -195,11 +196,12 @@ class EventCounter:
         This function returns the rank of the processing node from which a hit or
         non-hit detector data frame should be requested for external broadcast.
 
-        This class keeps an internal index of the nodes from which images have been
-        requested in the past, and attempts to spread requests in a round-robin fashion
-        amongst all processing nodes, with the goal of not overloading a single node
-        with requests and of getting a representative sample of the data frames
-        processed by each node.
+        Om should invoke this function to determine which node should provide a
+        data frame to send to external programs. This event counter class keeps an
+        internal index of the nodes from which frames have been requested in the past,
+        and attempts to spread requests in a round-robin fashion amongst all processing
+        nodes, with the goal of not overloading a single node with requests and of
+        getting a representative sample of the data frames processed by each node.
 
         Returns:
 

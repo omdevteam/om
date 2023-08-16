@@ -127,7 +127,7 @@ Writing a monitoring program consists mainly in writing a Python class (a *Monit
 class), that lives in the Processing Layer and implements a data analysis pipeline.
 The whole processing logic should be implemented in this class, which must be a
 subclass of the
-[OmProcessingProtocol][om.protocols.processing_layer.OmProcessingProtocol] abstract
+[`OmProcessingProtocol`][om.protocols.processing_layer.OmProcessingProtocol] abstract
 class.
 
 The Monitor class must implement all the methods that are abstract in the base class.
