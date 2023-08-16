@@ -1193,7 +1193,7 @@ class GeometryInformation:
                 * `crystfel`: the geometry format used by the CrystFEL software
                   package.processing of crystallography data. The format is fully
                   documented in CrystFEL's
-                  [man pages](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),  # noqa: E501
+                  [man pages](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
 
         Raises:
 
@@ -1252,7 +1252,7 @@ class GeometryInformation:
 
                 * `crystfel`: the geometry format used by the CrystFEL software
                   package. The format is fully documented in the CrystFEL's
-                  [man pages](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)),  # noqa: E501
+                  [man pages](http://www.desy.de/~twhite/crystfel/manual-crystfel_geometry.html)
 
         Raises:
 

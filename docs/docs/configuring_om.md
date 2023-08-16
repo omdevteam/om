@@ -13,7 +13,7 @@ are instead stored in a configuration file that OM reads before starting.
 ##  The Source String
 
 The source string contains information about the origin of the data events that OM will
-process. The information is encoded in a string that is ...ed as a command line
+process. The information is encoded in a string that is passed as a command line
 argument to the `om_monitor.py` script:
 
 ``` bash
@@ -80,14 +80,6 @@ OM's configuration parameters can be **required** or **optional**.
   algorithms and are not strictly required in the configuration file. When an
   optional parameter is not listed in the file, its  default value is usually assumed
   to be *false* or *null*.
- 
-An alphabetical list of all the configuration parameters, grouped by parameter group,
-is provided in the following document:
-
-* [List of all parameters and parameters groups](parameters.md)
-
-A brief description is provided for each parameter. The description clearly states if
-the parameter is optional or required.
 
 Please be aware that depending on which OM monitor is being run, not all the parameter
 groups need to be present in the configuration file at the same time. Conversely,
@@ -95,6 +87,4 @@ custom OM monitors might introduce additional parameter and even parameter group
 are not described in the linked document.
 
 A missing parameter or parameter group, or the wrong choice of a value for a parameter
-can cause OM to emit error messages. Please see
-[this paragraph](running_om.md#error-messages) for an in-depth discussion of OM's error
-reporting.
+can cause OM to emit error messages.
