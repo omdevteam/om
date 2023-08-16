@@ -61,13 +61,13 @@ class FrameViewer(OmGuiBase):
         OM frame viewer.
 
         This class implements a frame viewer. The viewer receives data from an OnDA
-        Monitor, but only when it is tagged with the `view:omframedata` label. The data
-        must contain calibrated detector data frames. The viewer then displays the
-        received frames. If additional information is included in the received data
-        (for example, the positions of detected Bragg peaks), the graphical interface
-        shows it on each displayed frame image. A data storage buffer allows the viewer
-        to stop receiving data from the OnDA Monitor, but still keep in memory the last
-        10 displayed frames for re-inspection.
+        Monitor, but only when it is tagged with the `omframedata` label. The data must
+        contain calibrated detector frames, which the viewer displays. If additional
+        information is included in the received data (for example, the positions of
+        detected Bragg peaks), the graphical interface shows it on each displayed
+        frame image. A data storage buffer allows the viewer to stop receiving data
+        from the OnDA Monitor, but still keep in memory the last 10 displayed frames
+        for re-inspection.
 
         Arguments:
 
@@ -289,9 +289,10 @@ def main(*, url: str) -> None:
     """
     OM Frame Viewer. This program must connect to a running OnDA Monitor. If the
     monitor broadcasts the necessary information, the program displays the most
-    recently received detector data frame, and any additional related received data.
-    The data stream from the monitor can also be temporarily paused, and any of 10 most
-    recently displayed detector frames can be recalled for re-inspection.
+    recently received detector data frame, and any additional related received
+    information (Bragg peaks positions, etc.) The data stream from the monitor can also
+    be temporarily paused, and any of 10 most recently displayed detector frames can be
+    recalled for re-inspection.
 
     The viewer connects to and OnDA Monitor running at the IP address (or hostname)
     + port specified by the URL string. This is a string in the format used by the

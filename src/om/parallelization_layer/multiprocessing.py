@@ -193,7 +193,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         """
         Starts the multiprocessing parallelization.
 
-        The function starts the nodes and manages all of their interactions,organizing
+        The function starts the nodes and manages all of their interactions, organizing
         the receiving and dispatching of data and control commands.
 
         Please see the documentation of the base Protocol class for additional

@@ -50,7 +50,7 @@ class OmDataExtractionError(OmException):
 
 class OmHttpInterfaceInitializationError(OmException):
     """
-    Raised if an error happens while OM is accessing an HTTP/REST interface.
+    Raised if an error happens while OM is accessing a HTTP/REST interface.
     """
 
 

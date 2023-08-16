@@ -16,10 +16,10 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-OM's GUI for x-ray emission spectroscopy.
+OM's GUI for X-ray Emission Spectroscopy.
 
 This module contains a graphical interface that displays reduced and aggregated data
-in x-ray emission spectroscopy experiments.
+in X-ray Emission Spectroscopy experiments.
 """
 import signal
 import sys
@@ -57,16 +57,16 @@ class XesGui(OmGuiBase):
 
         This class implements a graphical user interface for XES experiments.
         The GUI receives reduced and aggregated data from an OnDA Monitor, but only
-        when it is tagged with the `view:omdata` label. The data must contain
-        information about the collected XES spectra. The UI then displays the last
-        observed XES spectrum, both in raw and smoothed form, plus an average of the
-        most recently collected spectra. For time resolved experiments, this GUI
+        when it is tagged with the `omdata` label. The data must contain information
+        about the collected XES spectra. The UI displays the last observed XES
+        spectrum, both in raw and smoothed form, plus an average of the most recently
+        collected spectra. For time resolved experiments, the graphical interface
         displays average spectra for pumped and dark events separately, and also shows
         their difference.
 
         Arguments:
 
-            url: The URL at which the GUI will connect and listen for data. This must
+            url: The URL where the GUI should connect and listen for data. This must
                 be a string in the format used by the ZeroMQ protocol.
         """
         super(XesGui, self).__init__(
@@ -139,7 +139,7 @@ class XesGui(OmGuiBase):
         refer to the documentation of that class for more information.
 
         This method, which is called at regular intervals, updates the plots showing
-        the spectrum information.
+        the energy spectrum information.
         """
         if self._received_data:
             # Resets the 'received_data' attribute to None. One can then check if

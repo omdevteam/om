@@ -14,7 +14,7 @@
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
-Algorithms for the processing of x-ray emission spectroscopy data.
+Algorithms for the processing of X-ray Emission Spectroscopy data.
 
 This module contains algorithms that perform data processing operations for X-ray
 Emission Spectroscopy.

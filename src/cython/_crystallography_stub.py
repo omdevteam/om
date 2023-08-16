@@ -96,22 +96,22 @@ def peakfinder_8(
 
         asic_nx: The fs size, in pixels, of each detector panel in the data frame (Can
             be retrieved from a
-            [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+            [`TypePeakfinder8Info`][om.algorithms.crystallography.TypePeakfinder8Info]
             dictionary).
 
         asic_ny: The ss size, in pixels, of each detector panel in the data frame (Can
             be retrieved from a
-            [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+            [`TypePeakfinder8Info`][om.algorithms.crystallography.TypePeakfinder8Info]
             dictionary).
 
         nasics_x: The number of panels along the fs axis of the data frame (Can be
             retrieved from a
-            [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+            [`TypePeakfinder8Info`][om.algorithms.crystallography.TypePeakfinder8Info]
             dictionary).
 
         nasics_y: The number of panels along the ss axis of the data frame (Can be
             retrieved from a
-            [TypePeakfinder8Info][om.algorithms.crystallography.TypePeakfinder8Info]
+            [`TypePeakfinder8Info`][om.algorithms.crystallography.TypePeakfinder8Info]
             dictionary).
 
         adc_thresh: The minimum ADC threshold for peak detection.

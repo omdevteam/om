@@ -51,12 +51,11 @@ def import_class_from_layer(
     Imports a class from an OM's layer.
 
     This function imports a class, identified by the `class_name` argument, from a
-    layer identified by the `layer_name` argument. The function looks for the python
-    module containing the layer code in the current directory first. Specifically, it
-    looks for a python file with the same name as the layer. If the function cannot
-    fine the file in the current directory, it imports the layer from the OM's normal
-    installation directories. It then proceeds to import the requested class from the
-    layer module.
+    layer identified by the `layer_name` argument. The function looks for a python
+    module containing the layer code in the current working directory first.
+    Specifically, it looks for a python file with the same name as the layer. If the
+    function cannot find the file, it imports the layer from OM's normal installation
+    directories. It then proceeds to import the requested class from the layer module.
 
     Arguments:
 
@@ -70,10 +69,10 @@ def import_class_from_layer(
 
     Raises:
 
-        OmMissingLayerClass: Raised when the requested class cannot be found in the
+        OmMissingLayerClass: Raised if the requested class cannot be found in the
             specified Python module.
 
-        OmMissingLayerModuleFile: Raised when the requested python module cannot be
+        OmMissingLayerModuleFile: Raised if the requested python module cannot be
             found.
     """
 

@@ -19,7 +19,7 @@
 ZMQ utilities to receive data from OnDA Monitors.
 
 This module contains classes and functions that allow external programs to receive data
-from an OnDA Monitor over a ZMQ socket.
+from OnDA Monitors over a ZMQ socket.
 """
 from builtins import str as unicode_str
 from typing import Any, Dict, Union

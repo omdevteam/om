@@ -70,7 +70,7 @@ class CrystallographyGui(OmGuiBase):
 
         Arguments:
 
-            url: The URL at which the GUI should connect and listen for data. This must
+            url: The URL where the GUI should connect and listen for data. This must
                 be a string in the format used by the ZeroMQ protocol.
         """
         super(CrystallographyGui, self).__init__(

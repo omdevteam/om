@@ -18,8 +18,8 @@
 """
 HDF5 writing.
 
-This module contains classes and functions that allow OM to write data to files in HDF5
-format.
+This module contains classes and functions that allow OM to load data from files in
+HDF5 format.
 """
 import sys
 from typing import Any, Dict, Union
@@ -52,11 +52,11 @@ def load_hdf5_data(
 
     Returns:
 
-        The loaded data array.
+        The loaded data.
 
     Raises:
 
-        OmHdf5FileReadingError: Raised when an error is encountered while reading the
+        OmHdf5FileReadingError: Raised if an error is encountered while reading the
             file.
     """
 
@@ -87,7 +87,6 @@ def parse_parameters_and_load_hdf5_data(
 
     This function retrieves the path to a data file, and the internal HDF5 path to a
     block storing data, from a set of configuration parameters, then loads the data.
-
 
     Arguments:
 

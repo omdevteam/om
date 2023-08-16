@@ -66,19 +66,19 @@ class CrystallographyParameterTweaker(OmGuiBase):
         This class implements a graphical user interface that can be used to test new
         peak finding parameters in real time during Serial Crystallography experiments.
         The GUI receives data from an OnDA Monitor, but only when is is tagged with the
-        `omtweakingdata` label. The data must contain calibrated detector data frames.
-        The GUI then displays the detector frames, and allows a user to choose a set of
-        peak-finding parameters. The chosen parameters are used to apply the
-        [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
+        `omtweakingdata` label. The data must contain calibrated detector frames, which
+        the GUI displays. However, the GUI  also allows users to choose a set of
+        peak-finding parameters. It then uses the chosen parameters to apply the
+        [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
         algorithm on the fly to each received frame. The GUI displays the positions of
         all detected Bragg peaks on each frame image. A data storage buffer allows the
-        viewer to stop receiving data from the OnDA Monitor, but still keep in memory
-        the last 10 displayed frames for re-inspection and re-processing (peak-finding
-        with a new set of parameters).
+        GUI to stop receiving data from the OnDA Monitor, but still keep in memory the
+        last 10 displayed frames for re-inspection and re-processing (peak-finding with
+        a different set of parameters).
 
         Arguments:
 
-            url: The URL at which the GUI will connect and listen for data. This must
+            url: The URL where the GUI should connect and listen for data. This must
                 be a string in the format used by the ZeroMQ protocol.
         """
         super(CrystallographyParameterTweaker, self).__init__(
@@ -412,9 +412,9 @@ class CrystallographyParameterTweaker(OmGuiBase):
 
         This method, which is called at regular intervals, performs the hit finding
         with the current chosen parameters, and updates the displayed detector frame
-        and the positions of the detected Bragg peaks. Additionally, this function
-        manages the data storage buffer that allows the last received frames to be
-        re-inspected and re-processed.
+        and the shown positions of the detected Bragg peaks. Additionally, this
+        function manages the data storage buffer that allows the last received frames
+        to be re-inspected and re-processed.
         """
         # Makes sure that the data shown by the viewer is updated if data is
         # received.
@@ -493,9 +493,9 @@ def main(*, url: str, config: str) -> None:
     information, this program displays detector frames received from the monitor.
     Additionally, it allows the user to choose a set of peak-finding parameters that
     is applied in real time to each received frame. The program displays the position
-    of the detected Bragg peaks on each displayed detector image. The program can
+    of the detected Bragg peaks on each displayed detector frame image. The program can
     also temporarily disconnect from the monitor, and any of the last 10 displayed
-    frames can be recalled and reprocessed.
+    frames can be recalled and re-processed.
 
     The graphical interface connects to and OnDA Monitor running at the IP address
     (or hostname) + port specified by the URL string. This is a string in the format

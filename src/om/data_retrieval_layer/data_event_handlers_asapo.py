@@ -92,8 +92,8 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 * Each dictionary key must define the name of a data source.
 
                 * The corresponding dictionary value must store the instance of the
-                    [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
-                    that describes the source.
+                  [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
+                  that describes the source.
 
             monitor_parameters: An object storing OM's configuration parameters.
         """

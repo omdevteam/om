@@ -19,9 +19,9 @@
 Cheetah Streaming.
 
 This module contains a specific version of Cheetah, a data-processing program for
-Serial X-ray Crystallography. Compare to Cheetah, this version processes data frames,
-but does not save the extracted data to files: it sends it to external programs for
-further processing.
+Serial X-ray Crystallography based on OM, but not designed to be . Compared to plain Cheetah, this version processes data
+frames, but does not save the extracted data to files: it sends it to external programs
+for further processing.
 """
 import pathlib
 import sys
@@ -74,19 +74,19 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         """
         Cheetah Streaming.
 
-        This Processing class implements the Cheetah Streaming software package. Cheetah
-        Streaming processes detector data frames, detecting Bragg peaks in each frame
-        using the
+        This Processing class implements the Cheetah Streaming software package.
+        This program processes detector data frames, detecting Bragg peaks in each
+        frame using the
         [Peakfinder8PeakDetection][om.algorithms.crystallography.Peakfinder8PeakDetection]
         algorithm. It retrieves information about the location, size, intensity, SNR
-        and maximum pixel value of each peak, and then streams the information
+        and maximum pixel value of each peak, and then streams all the information
         retrieved from the facility or extracted from the data to external programs
         for further processing. Optionally, it can also broadcast full detector data
         frames. Cheetah Streaming can also compute, and write to HDF5 sum files, sums
-        of detector data frames (calculating separate sums for hit and non-hit frames).
-        The sums can saved together with their corresponding Virtual Powder patterns.
-        Cheetah Streaming can also respond to requests for data or change of behavior
-        from external programs (a control GUI, for example.)
+        of detector data frames, together with their corresponding virtual powder
+        patterns. Separate sums are computed for hit and non-hit frames. Cheetah
+        Streaming can also respond to requests for data or change of behavior from
+        external programs (a control GUI, for example.)
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -197,6 +197,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         self._class_sum_accumulator: CheetahClassSumsAccumulator = (
             CheetahClassSumsAccumulator(
                 cheetah_parameters=self._cheetah_parameters,
+                num_classes=2,
             )
         )
 
@@ -301,8 +302,8 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         Processes a detector data frame.
 
         This function processes retrieved data events, extracting the Bragg peak
-        information. It prepares the reduced data (and optionally, the detector frame
-        data) to be transmitted to the collecting node.
+        information. It also prepares the reduced data (and optionally, the detector
+        frame data) to be transmitted to the collecting node.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -413,7 +414,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         This function collects and accumulates frame- and peak-related information
         received from the processing nodes, and streams it to external programs.
         Optionally, it computes the sums of hit and non-hit detector frames and the
-        corresponding virtual powder patterns, and saves them to file. Additionally,
+        corresponding virtual powder patterns, and saves them to files. Additionally,
         this function writes information about the processing statistics (number of
         processed events, number of found hits and the elapsed time) to a status file
         at regular intervals. External programs can inspect the file to determine the
