@@ -70,11 +70,17 @@ affecting the former.
 
 This clean separation is the reason why a developer who wants to write a monitoring
 program for a supported facility does not need to worry how data is retrieved, or
-...ed around the nodes. All he or she needs to learn is how the data can be accessed
+passed around the nodes. All he or she needs to learn is how the data can be accessed
 and manipulated in the Processing Layer. No knowledge of the other two layers is
 required. Furthermore, a monitoring program written for a facility can in most cases be
 run at other facilities just by switching to different implementations of the Data
 Retrieval and Parallelization layers, keeping the same Processing Layer.
+
+Layers are usually implemented as Python classes. All the available Processing layer
+classes can be found in the `om.processing_layer` module. All the available
+Data Retrieval layer classes can be found in the `om.data_retrieval_layer` module, and
+of course all the available Parallelization Layer classes can be found in the
+`om.parallelization_layer` module.
 
 
 ## OM's Workflow
@@ -88,34 +94,33 @@ At start-up, each node reads the configuration file. By default, OM looks for a 
 called `monitor.yaml` in the current working directory (or a for a different file
 specified by the user via a command-line argument).
 
-Every node imports the Python modules for the Parallelization, Processing and Data
-Retrieval layers, as specified in the configuration file. The Data Event Handler and
-Monitor implementations requested in the configuration file are then retrieved from the
-DataRetrievalLayer, and Processing Layer respectively. OM can then finally start.
+Every node imports the Python classes for the Parallelization, Processing and Data
+Retrieval layers, the configuration file
 
-The processing nodes start retrieving *data events* from the data source. After
-retrieving and unpacking an event, each processing node extracts all the data requested
-by the configuration file (specified in the `required_data` entry in the
-`data_retrieval_layer` parameter group). It then stores the retrieved data in a Python
-dictionary and calls the `process_data` function implemented by the Monitor, ...ing
-the dictionary as an argument.
+. The Data Event Handler and OM can then finally start.
+
+The processing nodes start retrieving *data events* from the data source, as dictated
+by the Data Retrieval Layer After retrieving and unpacking an event, each processing
+node extracts all the data requested by the configuration file (specified in the
+`required_data` entry in the `data_retrieval_layer` parameter group). It then stores
+the retrieved data in a Python dictionary and calls the `process_data` function
+implemented in the Processing Layer, passing the dictionary as an argument.
 
 When the function finishes running and processing the data, the processing node
 transmits the returned Python tuple to the collecting node. How the nodes communicate
 with each other, and which protocol they use to do so (MPI, ZMQ, etc.) is determined by
-the Parallelization Engine, retrieved on each node from the Processing Layer at
-startup.
+the Parallelization Layer.
 
 Once a processing node  has transferred the data to the collecting node, it retrieves
 the next data event and the cycle begins again.
 
-The collecting node executes the `collect_data` function implemented by the Monitor
-every time it receives data from a processing node, ...ing the received tuple as an
-argument to the function.
+The collecting node executes the `collect_data` function, implemented in the Processing
+Layer, every time it receives data from a processing node, passing the received tuple
+as input to the function.
 
 This process continues indefinitely, or until the data stream ends. In the latter case,
-some end-of-processing functions, implemented in the Monitor, are called on all nodes.
-OM then shuts down.
+some end-of-processing functions, implemented in the Processing Layer, are called on
+all nodes. OM then shuts down.
 
 
 ## Analyzing Data in the Processing Layer
@@ -150,7 +155,7 @@ The methods are:
     external programs are usually opened and initialized in this function.
 
   * **process_data**: this function is executed on each processing node when data is
-    retrieved from the data source. The retrieved data gets ...ed to this function as
+    retrieved from the data source. The retrieved data gets passed to this function as
     an argument.
 
     All the logic related to the processing of a single data event should be
@@ -165,7 +170,7 @@ The methods are:
    
   * **collect_data**: this function is executed on the collecting node every time data
     is received from a processing node. The data received from the processing node is
-    ...ed to this function as an argument.
+    passed to this function as an argument.
 
     This function should implement all the processing logic that involves more than one
     event (for example: averaging over many events, accumulation of events, etc.).

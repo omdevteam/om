@@ -111,8 +111,3 @@ nav:
         - parallelization_layer: reference/om/protocols/parallelization_layer.md
         - processing_layer: reference/om/protocols/processing_layer.md
       - monitor: reference/om/monitor.md
-  - Quick Links:
-    - OM's Configuration Parameters: parameters.md
-    - OM's Error Messages: errors.md
-    - Available Data Types For Each Data Event Handler: data.md
-    - Example Geometry Files: geometry.md   

@@ -12,9 +12,9 @@ The current core development team includes the following people:
 
 * **Valerio Mariani** (corresponding developer:
   [valmar@slac.stanford.edu](mailto:valmar@slac.stanford.edu))
-* Anton Barty
-* Thomas Grant
 * Alexandra Tolstikova
+* Thomas Grant
+
 
 ## Contributors
 
@@ -23,6 +23,7 @@ with code, bug reports, ideas, etc. Some still do, occasionally. The following l
 might not be exhaustive:
 
 * Steve Aplin
+* Anton Barty
 * Henry Chapman
 * Jason Koglin
 * Manuela Kuhn
