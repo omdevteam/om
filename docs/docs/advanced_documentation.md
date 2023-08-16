@@ -95,9 +95,7 @@ called `monitor.yaml` in the current working directory (or a for a different fil
 specified by the user via a command-line argument).
 
 Every node imports the Python classes for the Parallelization, Processing and Data
-Retrieval layers, the configuration file
-
-. The Data Event Handler and OM can then finally start.
+Retrieval layers listed in the configuration file.
 
 The processing nodes start retrieving *data events* from the data source, as dictated
 by the Data Retrieval Layer After retrieving and unpacking an event, each processing

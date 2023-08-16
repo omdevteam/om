@@ -1,4 +1,4 @@
-site_name: OnDA Monitor - v21.5.0
+site_name: OnDA Monitor - v23.8.0
 site_dir: ../docs/html
 extra_css:
   - assets/css/extra.css
@@ -16,7 +16,7 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.tabbed
-copyright: Copyright &copy; 2020-2021 OM Development Team
+copyright: Copyright &copy; 2020-2023 OM Development Team
 repo_url: https://github.com/omdevteam/om
 edit_uri: ''
 repo_name: omdevteam/om
