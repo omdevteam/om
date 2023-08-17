@@ -131,6 +131,7 @@ setup(
         "pyyaml",
         "pyzmq",
         "rich",
+        "ruamel.yaml",
         "scipy",
     ],
     extras_require={
