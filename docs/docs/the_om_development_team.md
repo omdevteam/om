@@ -22,6 +22,7 @@ Several people have, over the years, contributed to the development and testing 
 with code, bug reports, ideas, etc. Some still do, occasionally. The following list
 might not be exhaustive:
 
+* Abdullah Al Maruf
 * Steve Aplin
 * Anton Barty
 * Henry Chapman
