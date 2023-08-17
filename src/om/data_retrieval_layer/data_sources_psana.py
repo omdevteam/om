@@ -828,7 +828,7 @@ class AssembledDetectorPsana(OmDataSourceProtocol):
 
         Returns:
 
-            An assembled etector data frame.
+            An assembled detector data frame.
 
         Raises:
 
@@ -884,7 +884,7 @@ class Wave8TotalIntensityPsana(OmDataSourceProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
 
-        This function initializes the intenisty data retrieval for the Wave8 detector
+        This function initializes the intensity data retrieval for the Wave8 detector
         whose psana name matches the `psana_{source_protocols_name}_name` entry in OM's
         `data_retrieval_layer` configuration parameter group, or for the detector with
         a given psana name, if the `source_protocols_name` argument has the format

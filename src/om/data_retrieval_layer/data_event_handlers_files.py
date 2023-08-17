@@ -188,9 +188,9 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
-            fhandle: TextIO
-            with open(self._source, "r") as fhandle:
-                filelist: List[str] = fhandle.readlines()
+            file_handle: TextIO
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = file_handle.readlines()
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
@@ -501,9 +501,9 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         # processing node getting a smaller number of events if the number of events to
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
-            fhandle: TextIO
-            with open(self._source, "r") as fhandle:
-                filelist: List[str] = fhandle.readlines()  # type
+            file_handle: TextIO
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = file_handle.readlines()  # type
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
@@ -875,9 +875,9 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
-            fhandle: TextIO
-            with open(self._source, "r") as fhandle:
-                filelist: List[str] = fhandle.readlines()  # type
+            file_handle: TextIO
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = file_handle.readlines()  # type
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
@@ -1206,9 +1206,9 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         # processing node getting a smaller number of files if the number of files to
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
-            fhandle: TextIO
-            with open(self._source, "r") as fhandle:
-                filelist: List[str] = fhandle.readlines()
+            file_handle: TextIO
+            with open(self._source, "r") as file_handle:
+                filelist: List[str] = file_handle.readlines()
         except (IOError, OSError) as exc:
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
@@ -1522,11 +1522,11 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         # processing node getting a smaller number of events if the number of events to
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
-            fhandle: TextIO
-            with open(self._source, "r") as fhandle:
+            file_: TextIO
+            with open(self._source, "r") as file_handle:
                 filelist: List[str] = []
                 line: str
-                for line in fhandle:
+                for line in file_handle:
                     filename: str = line.strip()
                     # input filename must be a 'm01' nexus file
                     if re.match(r".+_m01(_.+)?\.nxs", filename):

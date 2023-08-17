@@ -11,14 +11,14 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 -2021 SLAC National Accelerator Laboratory
+# Copyright 2020 -2023 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
 """
 Handling of ASAP::O-based data events.
 
-This module contains Data Event Handler classes that manipulate events originating 
+This module contains Data Event Handler classes that manipulate events originating
 from the ASAP::O software framework (used at the PETRA III facility).
 """
 import sys

@@ -48,12 +48,6 @@ def _om_processing_node(
     processing_layer: OmProcessingProtocol,
     monitor_params: MonitorParameters,
 ) -> None:
-    num_frames_in_event_to_process: int = monitor_params.get_parameter(
-        group="data_retrieval_layer",
-        parameter="num_frames_in_event_to_process",
-        parameter_type=int,
-    )
-
     context = zmq.Context()
 
     sender_push = context.socket(zmq.PUSH)
