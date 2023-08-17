@@ -8,4 +8,5 @@ pillow
 pyyaml
 pyzmq
 rich
+ruamel.yaml
 scipy

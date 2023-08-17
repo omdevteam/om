@@ -31,7 +31,7 @@ the requirements of specific experiments.
 
 OM also aims to keep its code base **simple and as small**. The focus is on providing
 useful core functionality, while allowing the framework to be expanded with external
-software. The goal is to avoid reimplementing algorithms that are already better
+software. The goal is to avoid re-implementing algorithms that are already better
 optimized in other software packages.
 
 
@@ -48,6 +48,8 @@ new publication for OM is available:
 
 ## The OM Development Team
 
+### Active Developers
+
 OM is currently developed at the Linac Coherent Light Source facility
 [(LCLS)](https://lcls.slac.stanford.edu) of the SLAC National Accelerator Laboratory.
 
@@ -58,15 +60,19 @@ The current core development team includes the following people:
 
 * **Valerio Mariani** (corresponding developer:
   [valmar@slac.stanford.edu](mailto:valmar@slac.stanford.edu))
-* Anton Barty
-* Thomas Grant
 * Alexandra Tolstikova
+* Thomas Grant
+
+
+### Contributors
 
 Several people have, over the years, contributed to the development and testing of OM
 with code, bug reports, ideas, etc. Some still do, occasionally. The following list
 might not be exhaustive:
 
+*  Abdullah Al Maruf
 * Steve Aplin
+* Anton Barty
 * Henry Chapman
 * Jason Koglin
 * Manuela Kuhn
