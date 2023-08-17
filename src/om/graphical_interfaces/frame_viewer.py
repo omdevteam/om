@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 -2021 SLAC National Accelerator Laboratory
+# Copyright 2020 -2023 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
@@ -168,7 +168,7 @@ class FrameViewer(OmGuiBase):
         try:
             current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
-            # If the framebuffer is empty, returns without drawing anything.
+            # If the frame buffer is empty, returns without drawing anything.
             return
 
         QtWidgets.QApplication.processEvents()

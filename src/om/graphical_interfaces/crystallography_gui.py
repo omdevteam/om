@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 -2021 SLAC National Accelerator Laboratory
+# Copyright 2020 -2023 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
@@ -78,7 +78,7 @@ class CrystallographyGui(OmGuiBase):
             tag="omdata",
         )
 
-        self._virt_powd_plot_img: Union[NDArray[numpy.int_], None] = None
+        self._virtual_powder_plot_img: Union[NDArray[numpy.int_], None] = None
         self._img_center_x: int = 0
         self._img_center_y: int = 0
 
@@ -186,7 +186,7 @@ class CrystallographyGui(OmGuiBase):
         self.show()
 
     def _update_resolution_rings_status(self) -> None:
-        if self._virt_powd_plot_img is None:
+        if self._virtual_powder_plot_img is None:
             return
         new_state = self._resolution_rings_check_box.isChecked()
         if self._resolution_rings_enabled is True and new_state is False:
@@ -202,7 +202,7 @@ class CrystallographyGui(OmGuiBase):
             self._draw_resolution_rings()
 
     def _update_resolution_rings_radii(self) -> None:
-        if self._virt_powd_plot_img is None:
+        if self._virtual_powder_plot_img is None:
             return
 
         was_enabled: bool = self._resolution_rings_check_box.isChecked()
@@ -231,7 +231,7 @@ class CrystallographyGui(OmGuiBase):
     def _draw_resolution_rings(self) -> None:  # noqa: C901
         # Draws the resolution rings.
         # If there is no data, returns without drawing anything.
-        if self._virt_powd_plot_img is None:
+        if self._virtual_powder_plot_img is None:
             return
 
         if self._resolution_rings_enabled is False:
@@ -313,24 +313,24 @@ class CrystallographyGui(OmGuiBase):
         self._last_beam_energy = local_data["beam_energy"]
         self._last_detector_distance_offset = local_data["detector_distance_offset"]
 
-        virt_powd_plot_img_shape: Tuple[int, int] = local_data[
+        virtual_powder_plot_img_shape: Tuple[int, int] = local_data[
             "virtual_powder_plot"
         ].shape
 
         if (
-            self._virt_powd_plot_img is None
-            or self._virt_powd_plot_img.shape != virt_powd_plot_img_shape
+            self._virtual_powder_plot_img is None
+            or self._virtual_powder_plot_img.shape != virtual_powder_plot_img_shape
         ):
-            self._img_center_x = int(virt_powd_plot_img_shape[1] / 2)
-            self._img_center_y = int(virt_powd_plot_img_shape[0] / 2)
-            self._virt_powd_plot_img = local_data["virtual_powder_plot"]
+            self._img_center_x = int(virtual_powder_plot_img_shape[1] / 2)
+            self._img_center_y = int(virtual_powder_plot_img_shape[0] / 2)
+            self._virtual_powder_plot_img = local_data["virtual_powder_plot"]
             if (
                 self._resolution_rings_check_box.isEnabled()
                 and self._resolution_rings_check_box.isChecked() is True
             ):
                 self._update_resolution_rings_status()
         else:
-            self._virt_powd_plot_img = local_data["virtual_powder_plot"]
+            self._virtual_powder_plot_img = local_data["virtual_powder_plot"]
 
         QtWidgets.QApplication.processEvents()
 
@@ -366,9 +366,9 @@ class CrystallographyGui(OmGuiBase):
 
         QtWidgets.QApplication.processEvents()
 
-        if self._virt_powd_plot_img is not None:
+        if self._virtual_powder_plot_img is not None:
             self._image_view.setImage(
-                self._virt_powd_plot_img.T,
+                self._virtual_powder_plot_img.T,
                 autoHistogramRange=False,
                 autoLevels=False,
                 autoRange=False,

@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 -2021 SLAC National Accelerator Laboratory
+# Copyright 2020 -2023 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
@@ -274,7 +274,7 @@ class CrystallographyPlots:
             self._hit_rate_timestamp_history_dark = deque(5000 * [0.0], maxlen=5000)
             self._hit_rate_history_dark = deque(5000 * [0.0], maxlen=5000)
 
-        self._virt_powd_plot_img: NDArray[numpy.int_] = cast(
+        self._virtual_powder_plot_img: NDArray[numpy.int_] = cast(
             NDArray[numpy.int_], numpy.zeros(plot_shape, dtype=numpy.int_)
         )
 
@@ -431,7 +431,9 @@ class CrystallographyPlots:
             ]
             peak_list_x_in_frame.append(x_in_frame)
             peak_list_y_in_frame.append(y_in_frame)
-            self._virt_powd_plot_img[int(y_in_frame), int(x_in_frame)] += peak_value
+            self._virtual_powder_plot_img[
+                int(y_in_frame), int(x_in_frame)
+            ] += peak_value
 
             peak_radius: float = (
                 self._bin_size
@@ -454,7 +456,7 @@ class CrystallographyPlots:
             self._hit_rate_history,
             self._hit_rate_timestamp_history_dark,
             self._hit_rate_history_dark,
-            self._virt_powd_plot_img,
+            self._virtual_powder_plot_img,
             self._peakogram,
             self._peakogram_radius_bin_size,
             self._peakogram_intensity_bin_size,
@@ -484,8 +486,8 @@ class CrystallographyPlots:
             self._hit_rate_timestamp_history_dark = deque(5000 * [0.0], maxlen=5000)
             self._hit_rate_history_dark = deque(5000 * [0.0], maxlen=5000)
 
-        self._virt_powd_plot_img = numpy.zeros_like(
-            self._virt_powd_plot_img, dtype=numpy.int32
+        self._virtual_powder_plot_img = numpy.zeros_like(
+            self._virtual_powder_plot_img, dtype=numpy.int32
         )
 
         self._peakogram = numpy.zeros_like(self._peakogram)

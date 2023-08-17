@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with OM.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright 2020 -2021 SLAC National Accelerator Laboratory
+# Copyright 2020 -2023 SLAC National Accelerator Laboratory
 #
 # Based on OnDA - Copyright 2014-2019 Deutsches Elektronen-Synchrotron DESY,
 # a research centre of the Helmholtz Association.
@@ -26,7 +26,7 @@ import copy
 import signal
 import sys
 import time
-from typing import Any, Deque, Dict, List, Tuple, Union, cast
+from typing import Any, Deque, Dict, List, Tuple, Union
 
 import click
 import numpy
@@ -35,13 +35,7 @@ from numpy.typing import NDArray
 from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.geometry import (
-    DataVisualizer,
-    GeometryInformation,
-    TypePixelMaps,
-    TypeVisualizationPixelMaps,
-)
-from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
+from om.lib.geometry import DataVisualizer, GeometryInformation
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 
@@ -341,7 +335,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         try:
             current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
-            # If the framebuffer is empty, returns without drawing anything.
+            # If the frame buffer is empty, returns without drawing anything.
             return
 
         peak_list: TypePeakList = self._peak_detection.find_peaks(
@@ -379,7 +373,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         try:
             current_data: Dict[str, Any] = self._frame_list[self._current_frame_index]
         except IndexError:
-            # If the framebuffer is empty, returns without drawing anything.
+            # If the frame buffer is empty, returns without drawing anything.
             return
 
         QtWidgets.QApplication.processEvents()

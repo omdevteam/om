@@ -164,6 +164,7 @@ class TimestampEiger16MHttp(OmDataSourceProtocol):
             The timestamp of the Jungfrau 1M data event.
         """
         event["additional_info"]["image_file"].seek(162)
+        time_str: str = event["additional_info"]["image_file"].read(29).decode()
 
         return numpy.float64(
             datetime.datetime.strptime(
