@@ -28,6 +28,7 @@ from typing import Any, Dict, Tuple, Union
 import numpy
 from numpy.typing import NDArray
 
+from om.algorithms.xes import EnergySpectrumRetrieval
 from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
 from om.lib.parameters import MonitorParameters
@@ -110,6 +111,12 @@ class XesProcessing(OmProcessingProtocol):
         self._send_hit_frame: bool = False
         self._send_non_hit_frame: bool = False
 
+        self._energy_spectrum_retrieval: EnergySpectrumRetrieval = (
+            EnergySpectrumRetrieval(
+                parameters=self._monitor_params.get_parameter_group(group="xes"),
+            )
+        )
+
         # Console
         console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
         sys.stdout.flush()
@@ -144,7 +151,7 @@ class XesProcessing(OmProcessingProtocol):
 
         # Plots
         self._plots = XesAnalysisAndPlots(
-            xes_parameters=self._monitor_params.get_parameter_group(group="xes"),
+            parameters=self._monitor_params.get_parameter_group(group="xes"),
             time_resolved=self._time_resolved,
         )
 
@@ -208,32 +215,24 @@ class XesProcessing(OmProcessingProtocol):
                 entry is the OM rank number of the node that processed the information.
         """
         processed_data: Dict[str, Any] = {}
-        corrected_camera_data: NDArray[
-            numpy.float_
-        ] = self._correction.apply_correction(data=data["detector_data"])
+        camera_data: NDArray[numpy.float_] = data["detector_data"]
 
         # Mask the camera edges
-        corrected_camera_data[
-            corrected_camera_data.shape[0] // 2
-            - 1 : corrected_camera_data.shape[0] // 2
-            + 1
-        ] = 0
-        corrected_camera_data[
+        camera_data[camera_data.shape[0] // 2 - 1 : camera_data.shape[0] // 2 + 1] = 0
+        camera_data[
             :,
-            corrected_camera_data.shape[1] // 2
-            - 1 : corrected_camera_data.shape[1] // 2
-            + 1,
+            camera_data.shape[1] // 2 - 1 : camera_data.shape[1] // 2 + 1,
         ] = 0
 
         xes: Dict[
             str, NDArray[numpy.float_]
-        ] = self._xes_analysis_and_Plots.generate_spectrum(data=corrected_camera_data)
+        ] = self._energy_spectrum_retrieval.calculate_spectrum(data=camera_data)
 
         processed_data["timestamp"] = data["timestamp"]
         processed_data["spectrum"] = xes["spectrum"]
         processed_data["beam_energy"] = data["beam_energy"]
         processed_data["data_shape"] = data["detector_data"].shape
-        processed_data["detector_data"] = corrected_camera_data
+        processed_data["detector_data"] = camera_data
         if self._time_resolved:
             processed_data["optical_laser_active"] = data["optical_laser_active"]
         else:
