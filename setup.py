@@ -123,6 +123,7 @@ setup(
         "click",
         "cython",
         "fabio",
+        "hdf5plugin",
         "h5py",
         "msgpack",
         "msgpack_numpy",
