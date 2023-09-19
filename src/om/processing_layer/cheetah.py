@@ -169,6 +169,7 @@ class CheetahProcessing(OmProcessingProtocol):
         self._class_sum_accumulator: CheetahClassSumsAccumulator = (
             CheetahClassSumsAccumulator(
                 cheetah_parameters=self._cheetah_parameters,
+                num_classes=2,
             )
         )
 
