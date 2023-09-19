@@ -54,7 +54,10 @@ except ModuleNotFoundError:
 try:
     import asapo_consumer  # type: ignore  # noqa: F401
 
-    from .data_retrieval_asapo import EigerAsapoDataRetrieval  # noqa: F401
+    from .data_retrieval_asapo import (  # noqa: F401
+        EigerAsapoDataRetrieval,
+        PilatusAsapoDataRetrieval,
+    )
 except ModuleNotFoundError:
     ...
 
