@@ -129,7 +129,7 @@ class CheetahStatusFileWriter:
         """
         directory_for_processed_data: str = get_parameter_from_parameter_group(
             group=parameters,
-            parameter="directory_for_processed_data",
+            parameter="processed_directory",
             parameter_type=str,
             required=True,
         )
