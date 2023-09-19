@@ -39,7 +39,7 @@ except ImportError:
     )
 
 
-class EigerAsapo(OmDataSourceProtocol):
+class DetectorDataAsapo(OmDataSourceProtocol):
     """
     See documentation of the `__init__` function.
     """
@@ -51,10 +51,10 @@ class EigerAsapo(OmDataSourceProtocol):
         monitor_parameters: MonitorParameters,
     ):
         """
-        Eiger 16M detector data frames from ASAP::O at the PETRA III facility.
+        Detector data frames from ASAP::O at the PETRA III facility.
 
-        This class deals with the retrieval of EIGER 16M detector data frames from the
-        ASAPO software framework, as used at the PETRA III facility.
+        This class deals with the retrieval of detector data frames from the ASAP::O
+        software framework, as used at the PETRA III facility.
 
         This class implements the interface described by its base Protocol class.
         Please see the documentation of that class for additional information about
@@ -73,7 +73,7 @@ class EigerAsapo(OmDataSourceProtocol):
 
     def initialize_data_source(self) -> None:
         """
-        Initializes the ASAP::O Eiger 16M detector data frame source.
+        Initializes the ASAP::O detector data frame source.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
@@ -87,7 +87,7 @@ class EigerAsapo(OmDataSourceProtocol):
         self, *, event: Dict[str, Any]
     ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
         """
-        Retrieves an Eiger 16M detector data frame from ASAP::O.
+        Retrieves a detector data frame from ASAP::O.
 
         Please see the documentation of the base Protocol class for additional
         information about this method.
