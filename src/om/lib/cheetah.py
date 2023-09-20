@@ -109,7 +109,7 @@ class CheetahStatusFileWriter:
                 parameter group. The parameter group must contain the following
                 entries:
 
-                * `directory_for_processed_data`: A relative or absolute path to the
+                * `processed_directory`: A relative or absolute path to the
                   directory where the output files are to be written.
 
         """
@@ -599,8 +599,8 @@ class HDF5Writer:
                 in a parameter group. The parameter group must contain the following
                 entries:
 
-                directory_for_processed_data: A relative or absolute path to the
-                    directory where the output files are written.
+                processed_directory: A relative or absolute path to the directory where
+                    the output files are written.
 
                 compression: The compression filter to be applied to the data in the
                     output file.
