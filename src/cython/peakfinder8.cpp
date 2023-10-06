@@ -477,7 +477,7 @@ int peak_search(int peak_pix, int panel_num, const DetData& img_data,
     int pidx = panel_offset + curr_fs + (curr_ss * img_data.fs_size);
 
     int curr_radius = static_cast<int>(rint(img_data.radius[pidx]));
-    int curr_threshold = rstats.rthreshold[pidx];
+    int curr_threshold = rstats.rthreshold[curr_radius];
 
     // Check if above thresholds
     if (img_data.data[pidx] > curr_threshold
