@@ -36,7 +36,15 @@ from om.lib.parameters import get_parameter_from_parameter_group
 
 from ._crystallography import peakfinder_8  # type: ignore
 
+import torch
+from peaknet import app_om
+from peaknet.plugins import apply_mask
 
+<<<<<<< HEAD
+=======
+import time
+
+>>>>>>> feature/peaknet
 class TypePeakList(TypedDict, total=True):
     """
     Detected peaks information.
@@ -558,3 +566,112 @@ class Peakfinder8PeakDetection:
             "max_pixel_intensity": peak_list[5],
             "snr": peak_list[6],
         }
+
+
+class PeakNetPeakDetection:
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        parameters: Dict[str, Any],
+      ) -> None:
+        """
+        PeakNet algorithm for peak detection.
+
+        `parameters` contains:
+        - path_model_weight
+        - path_config
+        """
+        # Unpack parameters...
+        path_model_weight = parameters['path_model_weight']
+        path_config       = parameters['path_config']
+
+        # Attempt to load the yaml config...
+        self.peaknet_config = PeakFinder.get_default_config()
+        if path_config is not None:
+            with open(path_config, 'r') as fh:
+                self.peaknet_config = yaml.safe_load(fh)
+
+        # Load param: bad pixel map
+        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+            Union[NDArray[numpy.int_], None],
+            parse_parameters_and_load_hdf5_data(
+                parameters=parameters,
+                hdf5_filename_parameter="bad_pixel_map_filename",
+                hdf5_path_parameter="bad_pixel_map_hdf5_path",
+            ),
+        )
+        print(f"No bad pixel map: {self._bad_pixel_map is None}")
+
+        # Load param: cheetah geom
+        self._cheetah_geom: Union(str, None) = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="cheetah_geom",
+            parameter_type=str,
+        )
+
+        # Load param: cheetah geom
+        self._min_num_peaks: Union(int, None) = get_parameter_from_parameter_group(
+            group=parameters,
+            parameter="min_num_peaks",
+            parameter_type=int,
+        )
+
+        # Initialize peak finder
+        self.peak_finder = app.PeakFinder(path_chkpt = path_model_weight, config = self.peaknet_config)
+        self.device = self.peak_finder.device
+        print(f"Device: {self.device}")
+
+
+    def find_peaks(
+        self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
+    ) -> TypePeakList:
+        """
+        Finds peaks in a detector data frame.
+
+        This function detects peaks in a provided detector data frame, and returns
+        information about their location, size and intensity.
+
+        Arguments:
+
+            data: The detector data frame on which the peak-finding operation must be
+                performed.
+
+        Returns:
+
+            A [TypePeakList][om.algorithms.crystallography.TypePeakList] dictionary
+                with information about the detected peaks.
+
+        """
+        if self._bad_pixel_map is not None:
+            data = apply_mask(data, self._bad_pixel_map, mask_value = 0)
+
+        # Put data into a torch tensor...
+        data = torch.tensor(data)[None,None,].to(self.device, non_blocking = True)
+
+        # Use peaknet peak finding...
+        peak_list = self.peak_finder.find_peak_w_softmax(data,
+                                                         ## min_num_peaks          = self.peaknet_config['app']['min_num_peaks'],
+                                                         min_num_peaks          = 10,
+                                                         uses_geom              = False,
+                                                         returns_prediction_map = False,
+                                                         uses_mixed_precision   = True)
+
+        # Adapt the peak array to the psocake convention...
+        x=[entry[1] for entry in peak_list]
+        y=[entry[2] for entry in peak_list]
+        peak_list = [ y, x, [0]*len(y), [0]*len(y), [0]*len(y), [0]*len(y), [0]*len(y) ] # for seg, y, x in peak_list ]
+        # peak_list = numpy.round(peak_list).astype(numpy.int64)
+
+        return {
+            "num_peaks": len(peak_list[0]),
+            "fs": peak_list[0],
+            "ss": peak_list[1],
+            "intensity": peak_list[2],
+            "num_pixels": peak_list[4],
+            "max_pixel_intensity": peak_list[5],
+            "snr": peak_list[6],
+        }
+
