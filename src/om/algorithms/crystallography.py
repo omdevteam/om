@@ -38,7 +38,7 @@ from om.lib.parameters import get_parameter_from_parameter_group
 from ._crystallography import peakfinder_8  # type: ignore
 
 import torch
-from peaknet import app
+from peaknet import app_om
 from peaknet.plugins import apply_mask
 
 import time
@@ -862,7 +862,20 @@ class PeakNetPeakDetection:
         """
         PeakNet algorithm for peak detection.
 
+        `parameters` contains:
+        - path_model_weight
+        - path_config
         """
+        # Unpack parameters...
+        path_model_weight = parameters['path_model_weight']
+        path_config       = parameters['path_config']
+
+        # Attempt to load the yaml config...
+        self.peaknet_config = PeakFinder.get_default_config()
+        if path_config is not None:
+            with open(path_config, 'r') as fh:
+                self.peaknet_config = yaml.safe_load(fh)
+
         # Load param: bad pixel map
         self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
             Union[NDArray[numpy.int_], None],
@@ -889,8 +902,8 @@ class PeakNetPeakDetection:
         )
 
         # Initialize peak finder
-        self.peaknet = app.PeakFinder(path_chkpt = None, path_cheetah_geom = self._cheetah_geom)
-        self.device = self.peaknet.device
+        self.peak_finder = app.PeakFinder(path_chkpt = path_model_weight, config = self.peaknet_config)
+        self.device = self.peak_finder.device
         print(f"Device: {self.device}")
 
 
@@ -921,7 +934,12 @@ class PeakNetPeakDetection:
         data = torch.tensor(data)[None,None,].to(self.device, non_blocking = True)
 
         # Use peaknet peak finding...
-        peak_list = self.peaknet.find_peak_w_softmax(data, min_num_peaks = self._min_num_peaks, uses_geom = True, returns_prediction_map = False, uses_mixed_precision = True)
+        peak_list = self.peak_finder.find_peak_w_softmax(data,
+                                                         ## min_num_peaks          = self.peaknet_config['app']['min_num_peaks'],
+                                                         min_num_peaks          = 10,
+                                                         uses_geom              = False,
+                                                         returns_prediction_map = False,
+                                                         uses_mixed_precision   = True)
 
         # Adapt the peak array to the psocake convention...
         x=[entry[1] for entry in peak_list]
