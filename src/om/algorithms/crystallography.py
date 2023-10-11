@@ -37,14 +37,10 @@ from om.lib.parameters import get_parameter_from_parameter_group
 from ._crystallography import peakfinder_8  # type: ignore
 
 import torch
-from peaknet import app_om
+from peaknet import app_om as app
 from peaknet.plugins import apply_mask
+from ruamel.yaml import YAML
 
-<<<<<<< HEAD
-=======
-import time
-
->>>>>>> feature/peaknet
 class TypePeakList(TypedDict, total=True):
     """
     Detected peaks information.
@@ -589,10 +585,12 @@ class PeakNetPeakDetection:
         path_config       = parameters['path_config']
 
         # Attempt to load the yaml config...
-        self.peaknet_config = PeakFinder.get_default_config()
+        self.peaknet_config = app.PeakFinder.get_default_config()
         if path_config is not None:
             with open(path_config, 'r') as fh:
-                self.peaknet_config = yaml.safe_load(fh)
+                yaml_content=YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
+                yaml_content.load(fh)
+                self.peaknet_config = yaml_content
 
         # Load param: bad pixel map
         self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
@@ -603,7 +601,7 @@ class PeakNetPeakDetection:
                 hdf5_path_parameter="bad_pixel_map_hdf5_path",
             ),
         )
-        print(f"No bad pixel map: {self._bad_pixel_map is None}")
+        print(f"DEBUG: No bad pixel map: {self._bad_pixel_map is None}")
 
         # Load param: cheetah geom
         self._cheetah_geom: Union(str, None) = get_parameter_from_parameter_group(
@@ -622,7 +620,7 @@ class PeakNetPeakDetection:
         # Initialize peak finder
         self.peak_finder = app.PeakFinder(path_chkpt = path_model_weight, config = self.peaknet_config)
         self.device = self.peak_finder.device
-        print(f"Device: {self.device}")
+        print(f"DEBUG: Device: {self.device}")
 
 
     def find_peaks(
