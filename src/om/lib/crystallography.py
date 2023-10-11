@@ -108,15 +108,7 @@ class CrystallographyPeakFinding:
 
         if peakfinder_algorithm == "peakfinder8":
             self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
-<<<<<<< HEAD
                 crystallography_parameters=monitor_parameters.get_parameter_group(
-                    group="peakfinder8_peak_detection"
-=======
-<<<<<<< HEAD
-                parameters=parameters.get_parameter_group(
-=======
-                crystallography_parameters=monitor_parameters.get_parameter_group(
->>>>>>> bfd0d67 (New radial profile library and swaxs processing layer)
                     group="peakfinder8_peak_detection"
                 ),
                 radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
@@ -128,7 +120,6 @@ class CrystallographyPeakFinding:
             self._peak_detection = PeakNetPeakDetection(
                 parameters=parameters.get_parameter_group(
                     group="peaknet_peak_detection"
->>>>>>> feature/peaknet
                 ),
             )
 
