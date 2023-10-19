@@ -32,7 +32,7 @@ from om.lib.geometry import TypeDetectorLayoutInformation, TypePixelMaps
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import get_parameter_from_parameter_group
 
-from ._generic import bin_detector_data  # type: ignore
+from ._generic_cython import bin_detector_data  # type: ignore
 
 A = TypeVar("A", numpy.float_, numpy.int_)
 

@@ -32,16 +32,16 @@ else:
     ext = ".c"
 
 peakfinder8_ext = Extension(
-    name="om.algorithms._crystallography",
+    name="om.algorithms._crystallography_cython",
     include_dirs=[numpy.get_include()],
     libraries=["stdc++"],
     sources=[
         "src/cython/peakfinder8.cpp",
-        "src/cython/_crystallography.pyx",
+        "src/cython/_crystallography_cython.pyx",
     ]
     if OM_USE_CYTHON
     else [
-        "src/cython/_crystallography.cpp",
+        "src/cython/_crystallography_cython.cpp",
         "src/cython/peakfinder8.cpp",
     ],
     language="c++",
@@ -49,15 +49,15 @@ peakfinder8_ext = Extension(
 peakfinder8_ext.cython_directives = {"embedsignature": True}
 
 binning_ext = Extension(
-    name="om.algorithms._generic",
+    name="om.algorithms._generic_cython",
     libraries=["stdc++"],
     sources=[
         "src/cython/binning.cpp",
-        "src/cython/_generic.pyx",
+        "src/cython/_generic_cython.pyx",
     ]
     if OM_USE_CYTHON
     else [
-        "src/cython/_generic.cpp",
+        "src/cython/_generic_cython.cpp",
         "src/cython//binning.cpp",
     ],
     language="c++",
