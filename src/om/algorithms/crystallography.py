@@ -40,8 +40,6 @@ import torch
 from peaknet import app
 from peaknet.plugins import apply_mask
 
-import time
-
 class TypePeakList(TypedDict, total=True):
     """
     Detected peaks information.
@@ -856,17 +854,11 @@ class PeakNetPeakDetection:
 
         `parameters` contains:
         - path_model_weight
-        - path_config
+        - path_yaml_config
         """
         # Unpack parameters...
         path_model_weight = parameters['path_model_weight']
-        path_config       = parameters['path_config']
-
-        # Attempt to load the yaml config...
-        self.peaknet_config = PeakFinder.get_default_config()
-        if path_config is not None:
-            with open(path_config, 'r') as fh:
-                self.peaknet_config = yaml.safe_load(fh)
+        path_yaml_config  = parameters['path_yaml_config']
 
         # Load param: bad pixel map
         self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
@@ -894,7 +886,7 @@ class PeakNetPeakDetection:
         )
 
         # Initialize peak finder
-        self.peak_finder = app.PeakFinder(path_chkpt = path_model_weight, config = self.peaknet_config)
+        self.peak_finder = app.PeakFinder(path_chkpt = path_model_weight, path_yaml_config = path_yaml_config)
         self.device = self.peak_finder.device
         print(f"Device: {self.device}")
 
@@ -927,7 +919,7 @@ class PeakNetPeakDetection:
 
         # Use peaknet peak finding...
         peak_list = self.peak_finder.find_peak_w_softmax(data,
-                                                         min_num_peaks          = self.peaknet_config.OM.MIN_NUM_PEAKS,
+                                                         min_num_peaks          = self.peak_finder.config.OM.MIN_NUM_PEAKS,
                                                          uses_geom              = False,
                                                          returns_prediction_map = False,
                                                          uses_mixed_precision   = True)
