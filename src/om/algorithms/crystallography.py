@@ -37,7 +37,7 @@ from om.lib.parameters import get_parameter_from_parameter_group
 from ._crystallography import peakfinder_8  # type: ignore
 
 import torch
-from peaknet import app_om
+from peaknet import app
 from peaknet.plugins import apply_mask
 
 import time
@@ -563,7 +563,6 @@ class Peakfinder8PeakDetection:
             "max_pixel_intensity": peak_list[5],
             "snr": peak_list[6],
         }
-<<<<<<< HEAD
 
 
 # class RadialProfileAnalysisWithSampleDetection:
@@ -928,8 +927,7 @@ class PeakNetPeakDetection:
 
         # Use peaknet peak finding...
         peak_list = self.peak_finder.find_peak_w_softmax(data,
-                                                         ## min_num_peaks          = self.peaknet_config['app']['min_num_peaks'],
-                                                         min_num_peaks          = 10,
+                                                         min_num_peaks          = self.peaknet_config.OM.MIN_NUM_PEAKS,
                                                          uses_geom              = False,
                                                          returns_prediction_map = False,
                                                          uses_mixed_precision   = True)
@@ -949,8 +947,3 @@ class PeakNetPeakDetection:
             "max_pixel_intensity": peak_list[5],
             "snr": peak_list[6],
         }
-
-
-
-=======
->>>>>>> bfd0d67 (New radial profile library and swaxs processing layer)
