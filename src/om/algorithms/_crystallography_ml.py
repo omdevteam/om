@@ -24,9 +24,8 @@ from typing import Any, Dict, Union, cast
 import numpy
 import torch
 from numpy.typing import NDArray
-from peaknet import app_om as app
+from peaknet import app
 from peaknet.plugins import apply_mask
-from ruamel.yaml import YAML
 
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import get_parameter_from_parameter_group
@@ -48,7 +47,7 @@ class PeakNetPeakDetection:
 
         `parameters` contains:
         - path_model_weight
-        - path_config
+        - path_yaml_config
         """
         # Unpack parameters...
         path_model_weight = get_parameter_from_parameter_group(
@@ -56,21 +55,13 @@ class PeakNetPeakDetection:
             parameter="path_model_weight",
             parameter_type=str,
         )
-        path_config = get_parameter_from_parameter_group(
+        path_yaml_config = get_parameter_from_parameter_group(
             group=parameters,
-            parameter="path_config",
+            parameter="path_yaml_config",
             parameter_type=str,
         )
 
         print("DEBUG: Using peaknet!!!")
-
-        # Attempt to load the yaml config...
-        self.peaknet_config = app.PeakFinder.get_default_config()
-        if path_config is not None:
-            with open(path_config, "r") as fh:
-                yaml_content = YAML(typ="safe")
-                yaml_content.load(fh)
-                self.peaknet_config = yaml_content
 
         # Load param: bad pixel map
         self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
@@ -99,7 +90,7 @@ class PeakNetPeakDetection:
 
         # Initialize peak finder
         self.peak_finder = app.PeakFinder(
-            path_chkpt=path_model_weight, config=self.peaknet_config
+            path_chkpt=path_model_weight, path_yaml_config=path_yaml_config
         )
         self.device = self.peak_finder.device
         print(f"DEBUG: Device: {self.device}")
@@ -133,33 +124,59 @@ class PeakNetPeakDetection:
         ].to(self.device, non_blocking=True)
 
         # Use peaknet peak finding...
-        peak_list = self.peak_finder.find_peak_w_softmax(
-            data,
-            min_num_peaks=10,
-            uses_geom=False,
-            returns_prediction_map=False,
-            uses_mixed_precision=True,
+        peak_list, _ = self.peak_finder.find_peak_w_softmax(data,
+            min_num_peaks          = self.peak_finder.config.OM.MIN_NUM_PEAKS,
+            uses_geom              = False,
+            returns_prediction_map = False,
+            uses_mixed_precision   = self.peak_finder.config.OM.USES_MIXED_PRECISION
         )
 
-        # Adapt the peak array to the Cheetah convention...
-        x = [entry[1] for entry in peak_list]
-        y = [entry[2] for entry in peak_list]
-        peak_list = [
-            y,
-            x,
-            [0] * len(y),
-            [0] * len(y),
-            [0] * len(y),
-            [0] * len(y),
-            [0] * len(y),
-        ]
+        # Adapt the peak array to the psocake convention...
+        # peak_list: (B, 3), where 3 means seg, y, x
+        y, x = [], []
+        peak_list = numpy.array(peak_list)
+        num_peaks = peak_list.shape[0]
+        if num_peaks > 0:
+            y, x = peak_list.transpose(1, 0)[1:]
 
         return {
-            "num_peaks": len(peak_list[0]),
-            "fs": peak_list[0],
-            "ss": peak_list[1],
-            "intensity": peak_list[2],
-            "num_pixels": peak_list[4],
-            "max_pixel_intensity": peak_list[5],
-            "snr": peak_list[6],
+            "num_peaks"          : num_peaks,
+            "fs"                 : x,
+            "ss"                 : y,
+            "intensity"          : [0] * num_peaks,
+            "num_pixels"         : [0] * num_peaks,
+            "max_pixel_intensity": [0] * num_peaks,
+            "snr"                : [0] * num_peaks,
         }
+
+        ## # Use peaknet peak finding...
+        ## peak_list = self.peak_finder.find_peak_w_softmax(
+        ##     data,
+        ##     min_num_peaks=10,
+        ##     uses_geom=False,
+        ##     returns_prediction_map=False,
+        ##     uses_mixed_precision=True,
+        ## )
+
+        ## # Adapt the peak array to the Cheetah convention...
+        ## x = [entry[1] for entry in peak_list]
+        ## y = [entry[2] for entry in peak_list]
+        ## peak_list = [
+        ##     y,
+        ##     x,
+        ##     [0] * len(y),
+        ##     [0] * len(y),
+        ##     [0] * len(y),
+        ##     [0] * len(y),
+        ##     [0] * len(y),
+        ## ]
+
+        ## return {
+        ##     "num_peaks": len(peak_list[0]),
+        ##     "fs": peak_list[0],
+        ##     "ss": peak_list[1],
+        ##     "intensity": peak_list[2],
+        ##     "num_pixels": peak_list[4],
+        ##     "max_pixel_intensity": peak_list[5],
+        ##     "snr": peak_list[6],
+        ## }
