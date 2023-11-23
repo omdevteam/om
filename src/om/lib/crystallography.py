@@ -28,14 +28,18 @@ from typing import Any, Deque, Dict, List, Tuple, Union, cast
 import numpy
 from numpy.typing import NDArray
 
-from om.algorithms.crystallography import Peakfinder8PeakDetection, PeakNetPeakDetection, TypePeakList
-from om.lib.geometry import (
-    DataVisualizer,
-    GeometryInformation,
-    TypePixelMaps,
-    TypeVisualizationPixelMaps,
-)
+from om.algorithms.crystallography import Peakfinder8PeakDetection
+from om.lib.exceptions import OmMissingDependencyError
+from om.lib.geometry import DataVisualizer, GeometryInformation
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
+from om.typing import TypePeakList, TypePixelMaps, TypeVisualizationPixelMaps
+
+try:
+    from om.algorithms.crystallography_ml import PeakNetPeakDetection
+
+    ml_available: bool = True
+except ImportError:
+    ml_available = False
 
 
 class CrystallographyPeakFinding:
@@ -75,15 +79,15 @@ class CrystallographyPeakFinding:
                       parameter group called `peakfinder8_peak_detection` with the
                       entries required to fine-tune the peak-finding strategy. Please
                       refer to the documentation of the
-                      [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]
+                      [`Peakfinder8PeakDetection`][om.algorithms.crystallography.Peakfinder8PeakDetection]W
                       algorithm).
 
                     - `peaknet_peak_detection`: Instructs OM to use the
-                      `peaknet` machine-learning-based peak detection strategy. If this strategy is
-                      selected, the set of OM's configuration parameters must include a
-                      parameter group called `peaknet_peak_detection` with the
-                      entries required to fine-tune the peak-finding strategy. Please
-                      refer to the documentation of the
+                      `peaknet` machine-learning-based peak detection strategy. If this
+                      strategy is selected, the set of OM's configuration parameters
+                      must include a parameter group called `peaknet_peak_detection`
+                      with the entries required to fine-tune the peak-finding strategy.
+                      Please refer to the documentation of the
                       [`PeaknetPeakDetection`][om.algorithms.crystallography.PeaknetPeakDetection]
                       algorithm).
 
@@ -107,18 +111,23 @@ class CrystallographyPeakFinding:
         )
 
         if peakfinder_algorithm == "peakfinder8":
-            self._peak_detection: Peakfinder8PeakDetection = Peakfinder8PeakDetection(
+            # TODO: Type self._peak_detection
+            self._peak_detection = Peakfinder8PeakDetection(
                 crystallography_parameters=monitor_parameters.get_parameter_group(
                     group="peakfinder8_peak_detection"
                 ),
                 radius_pixel_map=geometry_information.get_pixel_maps()["radius"],
                 layout_info=geometry_information.get_layout_info(),
             )
-        else:
-            # Put PeakNet peak finder's initialization here
+        elif peakfinder_algorithm == "peaknet":
+            if not ml_available:
+                raise OmMissingDependencyError(
+                    "Some dependencies needed to run the Peaknet peak detection "
+                    "algorithm are not installed"
+                )
 
             self._peak_detection = PeakNetPeakDetection(
-                parameters=parameters.get_parameter_group(
+                parameters=monitor_parameters.get_parameter_group(
                     group="peaknet_peak_detection"
                 ),
             )

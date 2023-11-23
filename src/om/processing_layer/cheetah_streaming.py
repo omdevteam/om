@@ -19,9 +19,9 @@
 Cheetah Streaming.
 
 This module contains a specific version of Cheetah, a data-processing program for
-Serial X-ray Crystallography based on OM, but not designed to be . Compared to plain Cheetah, this version processes data
-frames, but does not save the extracted data to files: it sends it to external programs
-for further processing.
+Serial X-ray Crystallography based on OM, but not designed to be . Compared to plain
+Cheetah, this version processes data frames, but does not save the extracted data to
+files: it sends it to external programs for further processing.
 """
 import pathlib
 import sys
@@ -47,7 +47,7 @@ from om.lib.geometry import GeometryInformation, TypeDetectorLayoutInformation
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import ZmqResponder
-from om.protocols.processing_layer import OmProcessingProtocol
+from om.typing import OmProcessingProtocol
 
 try:
     import msgpack  # type: ignore

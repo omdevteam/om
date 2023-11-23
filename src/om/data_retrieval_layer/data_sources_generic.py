@@ -26,7 +26,7 @@ from typing import Any, Dict, Union, cast
 import numpy
 
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataSourceProtocol
+from om.typing import OmDataSourceProtocol
 
 
 def get_calibration_request(

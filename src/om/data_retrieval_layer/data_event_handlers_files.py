@@ -24,7 +24,7 @@ import pathlib
 import re
 import sys
 from datetime import datetime
-from typing import Any, Dict, Generator, List, TextIO, Tuple, TypedDict
+from typing import Any, Dict, Generator, List, TextIO, Tuple
 
 import h5py  # type: ignore
 import numpy
@@ -37,9 +37,10 @@ from om.lib.exceptions import (
 )
 from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import (
+from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataSourceProtocol,
+    TypeJungfrau1MFrameInfo,
 )
 
 try:
@@ -48,14 +49,6 @@ except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: fabio"
     )
-
-
-class _TypeJungfrau1MFrameInfo(TypedDict):
-    # This typed dictionary is used internally to store additional information
-    # required to retrieve Jungfrau 1M frame data.
-    h5file: Any
-    index: int
-    file_timestamp: float
 
 
 class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
@@ -508,7 +501,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
             raise OmInvalidSourceError(
                 f"Error reading the {self._source} source file."
             ) from exc
-        frame_list: List[_TypeJungfrau1MFrameInfo] = []
+        frame_list: List[TypeJungfrau1MFrameInfo] = []
         line: str
         for line in filelist:
             filename: str = line.strip()
@@ -545,7 +538,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         num_frames_curr_node: int = int(
             numpy.ceil(len(frame_list) / float(node_pool_size - 1))
         )
-        frames_curr_node: List[_TypeJungfrau1MFrameInfo] = frame_list[
+        frames_curr_node: List[TypeJungfrau1MFrameInfo] = frame_list[
             ((node_rank - 1) * num_frames_curr_node) : (
                 node_rank * num_frames_curr_node
             )
@@ -561,7 +554,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         data_event: Dict[str, Any] = {}
         data_event["additional_info"] = {}
 
-        entry: _TypeJungfrau1MFrameInfo
+        entry: TypeJungfrau1MFrameInfo
         for entry in frames_curr_node:
             data_event["additional_info"].update(entry)
             data_event["additional_info"]["num_frames_curr_node"] = len(
@@ -640,7 +633,6 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
-        f_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:
@@ -983,7 +975,6 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
             OmDataExtractionError: Raised when data cannot be extracted from the event.
         """
         data: Dict[str, Any] = {}
-        f_name: str
         data["timestamp"] = event["additional_info"]["timestamp"]
         for source_name in self._required_data_sources:
             try:
@@ -1522,7 +1513,6 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         # processing node getting a smaller number of events if the number of events to
         # be processed cannot be exactly divided by the number of processing nodes.
         try:
-            file_: TextIO
             with open(self._source, "r") as file_handle:
                 filelist: List[str] = []
                 line: str

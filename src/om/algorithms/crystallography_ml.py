@@ -19,7 +19,7 @@
 #TODO: Docstring
 """
 
-from typing import Any, Dict, Union, cast
+from typing import Any, Dict, List, Union, cast
 
 import numpy
 import torch
@@ -31,7 +31,7 @@ from ruamel.yaml import YAML
 from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
 from om.lib.parameters import get_parameter_from_parameter_group
 
-from ._crystallography import TypePeakList
+from .crystallography import TypePeakList
 
 
 class PeakNetPeakDetection:
@@ -127,14 +127,15 @@ class PeakNetPeakDetection:
         if self._bad_pixel_map is not None:
             data = apply_mask(data, self._bad_pixel_map, mask_value=0)
 
-        data = torch.tensor(data)[
+        tensor_data: torch.Tensor = torch.tensor(data)[
             None,
             None,
         ].to(self.device, non_blocking=True)
 
         # Use peaknet peak finding...
+        # TODO: What's the type of peak list here?
         peak_list = self.peak_finder.find_peak_w_softmax(
-            data,
+            tensor_data,
             min_num_peaks=10,
             uses_geom=False,
             returns_prediction_map=False,
@@ -144,7 +145,7 @@ class PeakNetPeakDetection:
         # Adapt the peak array to the Cheetah convention...
         x = [entry[1] for entry in peak_list]
         y = [entry[2] for entry in peak_list]
-        peak_list = [
+        peak_list: List[float] = [
             y,
             x,
             [0] * len(y),

@@ -30,9 +30,11 @@ import click
 from om.lib.layer_management import import_class_from_layer
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, set_custom_theme, set_null_theme
-from om.protocols.data_retrieval_layer import OmDataRetrievalProtocol
-from om.protocols.parallelization_layer import OmParallelizationProtocol
-from om.protocols.processing_layer import OmProcessingProtocol
+from om.typing import (
+    OmDataRetrievalProtocol,
+    OmParallelizationProtocol,
+    OmProcessingProtocol,
+)
 
 
 @click.command()

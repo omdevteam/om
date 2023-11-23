@@ -34,10 +34,7 @@ from om.lib.exceptions import (
 from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
-from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerProtocol,
-    OmDataSourceProtocol,
-)
+from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
     import psana  # type: ignore

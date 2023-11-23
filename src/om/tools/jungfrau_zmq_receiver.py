@@ -24,7 +24,7 @@ def listen(
     # Get first message, store timestamp and clock value
     msg: List[str] = socket.recv_multipart()
     timestamp_start: float = time.time()
-    header: Dict[Any] = json.loads(msg[0])
+    header: Dict[str, Any] = json.loads(msg[0])
     clock_start: int = header["timestamp"]
 
     clock_period: float = 1.0e-7  # seconds
@@ -108,7 +108,8 @@ def main(input_url: str, output_url: str) -> None:
 
     max_buffer_len: int = 10
 
-    # Start listening process for each panel, process keeps last max_buffer_len frames in buffer list
+    # Start listening process for each panel, process keeps last max_buffer_len frames
+    # in buffer list
     p0: Any = threading.Thread(
         target=listen, args=(input_url[0], data_buffer_p0, max_buffer_len, 0)
     )

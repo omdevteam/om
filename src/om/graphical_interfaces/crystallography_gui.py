@@ -96,7 +96,6 @@ class CrystallographyGui(OmGuiBase):
             4.0,
             3.0,
         ]
-        x: float
         self._resolution_rings_text_items: List[Any] = [
             pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8), color=(255, 0, 0))
             for x in self._resolution_rings_in_a
@@ -210,14 +209,12 @@ class CrystallographyGui(OmGuiBase):
 
         items: List[str] = str(self._resolution_rings_line_edit.text()).split(",")
         if items:
-            item: str
             self._resolution_rings_in_a = [
                 float(item) for item in items if item != "" and float(item) != 0.0
             ]
         else:
             self._resolution_rings_in_a = []
 
-        x: float
         self._resolution_rings_text_items = [
             pyqtgraph.TextItem(text=f"{x}A", anchor=(0.5, 0.8), color=(255, 0, 0))
             for x in self._resolution_rings_in_a
@@ -244,7 +241,6 @@ class CrystallographyGui(OmGuiBase):
                 constants.h * constants.c / (self._last_beam_energy * constants.e)
             )
             resolution_rings_in_pix: List[float] = [1.0]
-            resolution: float
             resolution_rings_in_pix.extend(
                 [
                     2.0

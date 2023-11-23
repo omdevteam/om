@@ -31,10 +31,7 @@ from numpy.typing import NDArray
 from om.lib.exceptions import OmDataExtractionError, OmMissingDependencyError
 from om.lib.layer_management import filter_data_sources
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerProtocol,
-    OmDataSourceProtocol,
-)
+from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
     import asapo_consumer  # type: ignore

@@ -33,10 +33,10 @@ import hdf5plugin
 import numpy
 from numpy.typing import DTypeLike, NDArray
 
-from om.algorithms.crystallography import TypePeakList
 from om.lib.exceptions import OmHdf5UnsupportedDataFormat
 from om.lib.parameters import get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
+from om.typing import TypeClassSumData, TypePeakList
 
 
 class TypeFrameListData(NamedTuple):
@@ -72,28 +72,6 @@ class TypeFrameListData(NamedTuple):
     index_in_file: int
     num_peaks: int
     average_intensity: numpy.float64
-
-
-class TypeClassSumData(TypedDict):
-    """
-    Cheetah data class sum data.
-
-    A dictionary storing the number of detector frames belonging to a specific data
-    class, their sum, and the virtual powder pattern generated from the Bragg peaks
-    detected in them.
-
-    Attributes:
-
-        num_frames: The number of detector frames belonging to the data class.
-
-        sum_frames: The sum of the detector frames belonging to the class.
-
-        peak_powder: The virtual powder pattern for the data class.
-    """
-
-    num_frames: int
-    sum_frames: NDArray[numpy.float_]
-    peak_powder: NDArray[numpy.float_]
 
 
 class CheetahStatusFileWriter:
@@ -530,7 +508,6 @@ class CheetahClassSumsCollector:
             required=True,
         )
         if self._write_class_sums:
-            class_number: int
             self._sum_writers: Dict[int, SumHDF5Writer] = {
                 class_number: SumHDF5Writer(
                     powder_class=class_number,
@@ -1141,3 +1118,25 @@ class SumHDF5Writer:
             "failed. Cannot update the file.",
             style="warning",
         )
+
+
+class TypeClassSumData(TypedDict):
+    """
+    Cheetah data class sum data.
+
+    A dictionary storing the number of detector frames belonging to a specific data
+    class, their sum, and the virtual powder pattern generated from the Bragg peaks
+    detected in them.
+
+    Attributes:
+
+        num_frames: The number of detector frames belonging to the data class.
+
+        sum_frames: The sum of the detector frames belonging to the class.
+
+        peak_powder: The virtual powder pattern for the data class.
+    """
+
+    num_frames: int
+    sum_frames: NDArray[numpy.float_]
+    peak_powder: NDArray[numpy.float_]

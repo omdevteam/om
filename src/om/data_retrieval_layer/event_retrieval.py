@@ -22,10 +22,7 @@ from typing import Any, Dict, Type, cast
 
 from om.lib.layer_management import import_class_from_layer
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import (
-    OmDataEventHandlerProtocol,
-    OmDataRetrievalProtocol,
-)
+from om.typing import OmDataEventHandlerProtocol, OmDataRetrievalProtocol
 
 
 class OmEventDataRetrieval:

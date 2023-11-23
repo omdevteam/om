@@ -24,16 +24,16 @@ framework (used at the PETRA III facility).
 from typing import Dict
 
 from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler
-from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
 from om.data_retrieval_layer.data_sources_asapo import (
     BeamEnergyAsapo,
-    DetectorDistanceAsapo,
     DetectorDataAsapo,
+    DetectorDistanceAsapo,
     EventIdAsapo,
     TimestampAsapo,
 )
+from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import (
+from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,

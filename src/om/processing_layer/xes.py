@@ -35,7 +35,7 @@ from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.xes import XesAnalysisAndPlots
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
-from om.protocols.processing_layer import OmProcessingProtocol
+from om.typing import OmProcessingProtocol
 
 
 class XesProcessing(OmProcessingProtocol):
@@ -316,7 +316,7 @@ class XesProcessing(OmProcessingProtocol):
             spectra_cumulative_sum_pumped,
             spectra_cumulative_sum_dark,
             spectra_cumulative_sum_difference,
-        ) = self._plots.update_plots(
+        ) = self._xes_analysis_and_plots.update_plots(
             detector_data=received_data["detector_data"],
             optical_laser_active=received_data["optical_laser_active"],
         )

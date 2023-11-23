@@ -29,7 +29,7 @@ from scipy import constants  # type: ignore
 
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import OmDataSourceProtocol
+from om.typing import OmDataSourceProtocol
 
 try:
     import seedee  # type: ignore

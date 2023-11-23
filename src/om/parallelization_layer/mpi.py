@@ -28,12 +28,12 @@ from mpi4py import MPI
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
-from om.protocols.data_retrieval_layer import (
+from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
+    OmParallelizationProtocol,
+    OmProcessingProtocol,
 )
-from om.protocols.parallelization_layer import OmParallelizationProtocol
-from om.protocols.processing_layer import OmProcessingProtocol
 
 # Define some labels for internal MPI communication (just some syntactic sugar).
 _DIE_TAG: int = 999

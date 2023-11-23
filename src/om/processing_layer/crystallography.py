@@ -36,7 +36,7 @@ from om.lib.geometry import DataVisualizer, GeometryInformation, TypePixelMaps
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
-from om.protocols.processing_layer import OmProcessingProtocol
+from om.typing import OmProcessingProtocol
 
 try:
     import msgpack  # type: ignore

@@ -30,12 +30,12 @@ from om.lib.exceptions import OmDataExtractionError
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import get_current_machine_ip
-from om.protocols.data_retrieval_layer import (
+from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
+    OmParallelizationProtocol,
+    OmProcessingProtocol,
 )
-from om.protocols.parallelization_layer import OmParallelizationProtocol
-from om.protocols.processing_layer import OmProcessingProtocol
 
 
 def _om_processing_node(

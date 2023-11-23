@@ -31,12 +31,12 @@ from om.lib.exceptions import (
     OmMissingLayerClassError,
     OmMissingLayerModuleError,
 )
-from om.protocols.data_retrieval_layer import (
+from om.typing import (
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,
+    OmParallelizationProtocol,
+    OmProcessingProtocol,
 )
-from om.protocols.parallelization_layer import OmParallelizationProtocol
-from om.protocols.processing_layer import OmProcessingProtocol
 
 
 def import_class_from_layer(

@@ -62,7 +62,7 @@ def main(input: str, output: str, s: int) -> None:
             frame: NDArray[numpy.int_]
             for frame in f[h5_data_path][s:]:
                 d: NDArray[numpy.int_] = frame.flatten()
-                where_gain: List[Tuple[NDArray[numpy.int_]]] = [
+                where_gain: List[Tuple[NDArray[numpy.int_], ...]] = [
                     numpy.where((d & 2**14 == 0) & (d > 0)),
                     numpy.where((d & (2**14) > 0) & (d & 2**15 == 0)),
                     numpy.where(d & 2**15 > 0),
@@ -77,7 +77,7 @@ def main(input: str, output: str, s: int) -> None:
     if numpy.any(nd == 0):
         console.print("Some pixels don't have data in all gains:", style="warning")
         for i in range(3):
-            where: List[Tuple[NDArray[numpy.int_]]] = numpy.where(nd[i] == 0)
+            where: List[Tuple[NDArray[numpy.int_], ...]] = numpy.where(nd[i] == 0)
             dark[i][where] = const_dark[i]
             console.print(
                 f"{len(where[0])} pixels in gain {i} are set to {const_dark[i]}",

@@ -32,7 +32,7 @@ from om.data_retrieval_layer.data_sources_zmq import (
     TimestampJungfrau1MZmq,
 )
 from om.lib.parameters import MonitorParameters
-from om.protocols.data_retrieval_layer import (
+from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
     OmDataSourceProtocol,

@@ -118,8 +118,8 @@ class XesAnalysisAndPlots:
           entry is just the value None.
 
         * For pump-probe experiments, the cumulative sum of all observed energy spectra
-          for events without an active optical laser.  For non pump-probe experiments, this
-          entry is just the value None.
+          for events without an active optical laser.  For non pump-probe experiments,
+          this entry is just the value None.
 
         * For pump-probe experiments, the the difference between the cumulative sum of
           all observed energy spectra observed for events with and without an active

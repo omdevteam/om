@@ -27,7 +27,7 @@ from typing import Any, Dict, Tuple, Union
 from om.lib.parameters import MonitorParameters
 from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
-from om.protocols.processing_layer import OmProcessingProtocol
+from om.typing import OmProcessingProtocol
 
 
 class TestProcessing(OmProcessingProtocol):
