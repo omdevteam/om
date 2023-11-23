@@ -90,7 +90,6 @@ def _om_processing_node(
             else:
                 feedback_dict = message
 
-        data_event_handler.open_event(event=event)
         try:
             data: Dict[str, Any] = data_event_handler.extract_data(event=event)
         except OmDataExtractionError as exc:
@@ -105,7 +104,6 @@ def _om_processing_node(
         )
         sender_push.send_pyobj(processed_data)
         # Makes sure that the last MPI message has processed.
-        data_event_handler.close_event(event=event)
 
     # After finishing iterating over the events to process, calls the
     # end_processing function, and if the function returns something, sends it

@@ -214,7 +214,6 @@ class MpiParallelization(OmParallelizationProtocol):
                 if MPI.COMM_WORLD.Iprobe(source=0, tag=_FEEDBACK_TAG):
                     feedback_dict = MPI.COMM_WORLD.recv(source=0, tag=_FEEDBACK_TAG)
 
-                self._data_event_handler.open_event(event=event)
                 try:
                     data: Dict[str, Any] = self._data_event_handler.extract_data(
                         event=event
@@ -238,7 +237,6 @@ class MpiParallelization(OmParallelizationProtocol):
                 # Makes sure that the last MPI message has processed.
                 if req:
                     req.Wait()
-                self._data_event_handler.close_event(event=event)
 
             # After finishing iterating over the events to process, calls the
             # end_processing function, and if the function returns something, sends it

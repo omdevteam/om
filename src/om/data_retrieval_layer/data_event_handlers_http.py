@@ -253,38 +253,6 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
                 print(f"Processing node {node_rank}: {msg}")
                 time.sleep(0.5)
 
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens an Eiger's HTTP/REST interface event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Events from Eiger's HTTP/REST interface do not need to be opened, so this
-        function actually does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes an Eiger's HTTP/REST interface event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Events from Eiger's HTTP/REST interface do not need to be closed, so this
-        function actually does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
     def extract_data(
         self,
         *,

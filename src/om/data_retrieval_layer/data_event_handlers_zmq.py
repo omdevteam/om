@@ -189,38 +189,6 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
             yield data_event
 
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens a Jungfrau 1M ZMQ event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Jungfrau 1M data events retrieved from a ZMQ stream do not need to be opened,
-        so this function actually does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes a Jungfrau 1M ZMQ event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Jungfrau 1M data events retrieved from a ZMQ stream do not need to be closed,
-        so this function actually does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
     def extract_data(
         self,
         *,

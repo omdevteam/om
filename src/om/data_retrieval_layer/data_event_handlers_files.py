@@ -218,39 +218,9 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
                 "timestamp"
             ].get_data(event=data_event)
 
+            data_event["data"] = fabio.open(data_event["additional_info"]["full_path"])
+
             yield data_event
-
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens a Pilatus single-frame file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        This function opens the CBF file associated with the data event and stores its
-        content in the provided `event` dictionary, as the value corresponding to the
-        `data` key.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        event["data"] = fabio.open(event["additional_info"]["full_path"])
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes a Pilatus single-frame file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        CBF files don't need to be closed, so this function does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
 
     def extract_data(
         self,
@@ -567,42 +537,6 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
 
             yield data_event
 
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens a Jungfrau 1M file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which distributes the frames across the processing
-        nodes, takes care of opening and closing the files. This function therefore
-        does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes a Jungfrau 1M file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which distributes the frames across the processing
-        nodes, takes care of opening and closing the files. This function therefore
-        does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
     def extract_data(
         self,
         *,
@@ -909,42 +843,6 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
                 data_event["additional_info"]["index"] = index
                 yield data_event
 
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens a Eiger file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which distributes the frames across the processing
-        nodes, takes care of opening and closing the files. This function therefore
-        does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes a Eiger file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which distributes the frames across the processing
-        nodes, takes care of opening and closing the files. This function therefore
-        does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
     def extract_data(
         self,
         *,
@@ -1235,40 +1133,6 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
             ].get_data(event=data_event)
 
             yield data_event
-
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens a Rayonix MX340-HS single-frame file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since detector_data is the only event data which is retrieved from the mccd
-        files, the Data Source that handles this type of data takes care of opening and
-        closing the files. This function therefore does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes a Rayonix MX340-HS single-frame file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since detector_data is the only event data which is retrieved from the mccd
-        files, the Data Source that handles this type of data takes care of opening and
-        closing the files. This function therefore does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
 
     def extract_data(
         self,
@@ -1567,42 +1431,6 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
                     "timestamp"
                 ].get_data(event=data_event)
                 yield data_event
-
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens a Lambda 1.5M file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which distributes the frames across the processing
-        nodes, takes care of opening and closing the files. This function therefore
-        does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes a Lambda 1.5M file event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Since each detector frame in each HDF5 file is considered a separate event, the
-        `event_generator` method, which distributes the frames across the processing
-        nodes, takes care of opening and closing the files. This function therefore
-        does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
 
     def extract_data(
         self,

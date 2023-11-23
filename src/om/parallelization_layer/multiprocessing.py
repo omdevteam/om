@@ -73,7 +73,6 @@ def _om_processing_node(
             else:
                 feedback_dict = message
 
-        data_event_handler.open_event(event=event)
         try:
             data: Dict[str, Any] = data_event_handler.extract_data(event=event)
         except OmDataExtractionError as exc:
@@ -87,7 +86,6 @@ def _om_processing_node(
             node_rank=rank, node_pool_size=node_pool_size, data=data
         )
         data_queue.put(processed_data)
-        data_event_handler.close_event(event=event)
 
     # After finishing iterating over the events to process, calls the
     # end_processing function, and if the function returns something, sends it

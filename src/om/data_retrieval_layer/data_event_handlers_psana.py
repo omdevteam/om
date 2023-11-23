@@ -263,36 +263,6 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
             yield data_event
 
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens a psana event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Psana events do not need to be opened, so this function actually does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes a psana event.
-
-        Please see the documentation of the base Protocol class for additional
-        information about this method.
-
-        Psana events do not need to be closed, so this function actually does nothing.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        pass
-
     def extract_data(
         self,
         *,

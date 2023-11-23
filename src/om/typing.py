@@ -654,6 +654,8 @@ class OmDataEventHandlerProtocol(Protocol):
         which is a generator, returns an iterator over the events that the calling node
         must process.
 
+        #TODO: Fix documentation
+
         Arguments:
 
             node_rank: The rank, in the OM pool, of the processing node calling the
@@ -665,36 +667,6 @@ class OmDataEventHandlerProtocol(Protocol):
         Yields:
 
             A dictionary storing the data for the current event.
-        """
-        ...
-
-    def open_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Opens an event.
-
-        This function processes a data event and makes its content accessible for OM.
-        OM calls this function on each processing node before the
-        [`extract_data`][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
-        function.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
-        """
-        ...
-
-    def close_event(self, *, event: Dict[str, Any]) -> None:
-        """
-        Closes an event.
-
-        This function processes a data event and prepares it to be discarded by OM. OM
-        calls this function on each processing node after the
-        [`extract_data`][om.protocols.data_retrieval_layer.OmDataEventHandlerProtocol.extract_data]
-        function.
-
-        Arguments:
-
-            event: A dictionary storing the event data.
         """
         ...
 
