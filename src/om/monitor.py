@@ -23,13 +23,13 @@ This module contains the main function that tarts an OnDA Monitor.
 
 import signal
 import sys
-from typing import Dict, Type, Union, cast
+from typing import Type, cast
 
 import click
 
 from om.lib.layer_management import import_class_from_layer
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters
-from om.lib.rich_console import console, set_custom_theme, set_null_theme
 from om.typing import (
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,
@@ -73,25 +73,25 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
 
     monitor_parameters: MonitorParameters = MonitorParameters(config=config)
 
-    colors_in_rich_console: Union[bool, None] = monitor_parameters.get_parameter(
-        group="om",
-        parameter="colors_in_rich_console",
-        parameter_type=bool,
-    )
+    # colors_in_rich_console: Union[bool, None] = monitor_parameters.get_parameter(
+    #     group="om",
+    #     parameter="colors_in_rich_console",
+    #     parameter_type=bool,
+    # )
 
-    if colors_in_rich_console is False:
-        set_null_theme()
-    else:
-        custom_rich_console_colors: Union[
-            Dict[str, str], None
-        ] = monitor_parameters.get_parameter(
-            group="om",
-            parameter="custom_rich_console_colors",
-            parameter_type=dict,
-        )
+    # if colors_in_rich_console is False:
+    #     set_null_theme()
+    # else:
+    #     custom_rich_console_colors: Union[
+    #         Dict[str, str], None
+    #     ] = monitor_parameters.get_parameter(
+    #         group="om",
+    #         parameter="custom_rich_console_colors",
+    #         parameter_type=dict,
+    #     )
 
-        if custom_rich_console_colors is not None:
-            set_custom_theme(theme_dict=custom_rich_console_colors)
+    #     if custom_rich_console_colors is not None:
+    #         set_custom_theme(theme_dict=custom_rich_console_colors)
 
     parallelization_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
@@ -109,28 +109,25 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
 
             if node_pool_size != 0:
                 if mpi_rank == 0:
-                    console.print(
+                    log.warning(
                         "OM Warning: ignoring --node-pool-size or -n option to this "
                         "script and using the number of nodes defined by MPI "
                         f"({mpi_size}).",
-                        style="warning",
                     )
 
             node_pool_size = mpi_size
 
         except ImportError:
-            console.print(
+            log.error(
                 "OM ERROR: mpi parallelization selected, but mpi4py failed to import.",
-                style="error",
             )
             sys.exit(1)
     else:
         if node_pool_size == 0:
-            console.print(
+            log.error(
                 "OM ERROR: When not using the mpi parallelization layer, the "
                 "number of nodes must be specified using the --node-pool-size or "
                 "-n option to this script.",
-                style="error",
             )
             sys.exit(1)
 

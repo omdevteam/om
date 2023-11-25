@@ -21,13 +21,12 @@ Classes and function for handling data events.
 This module contains classes and functions that manage and count data events processed
 by OM.
 """
-import sys
 import time
 from itertools import cycle
 from typing import Any, Dict, Iterator, Union
 
+from om.lib.logging import log
 from om.lib.parameters import get_parameter_from_parameter_group
-from om.lib.rich_console import console, get_current_timestamp
 
 
 class EventCounter:
@@ -245,9 +244,8 @@ class EventCounter:
                 events_per_second: float = float(self._speed_report_interval) / float(
                     now_time - self._old_time
                 )
-                console.print(
-                    f"{get_current_timestamp()} Processed: {self._num_events} in "
+                log.info(
+                    f"Processed: {self._num_events} in "
                     f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
                 )
-                sys.stdout.flush()
                 self._old_time = now_time

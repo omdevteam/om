@@ -9,7 +9,7 @@ import numpy
 from numpy.typing import NDArray
 
 from om.lib.exceptions import OmInvalidSourceError
-from om.lib.rich_console import console
+from om.lib.logging import log
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -58,7 +58,7 @@ def main(input: str, output: str, s: int) -> None:
         f: Any
         with h5py.File(fn, "r") as f:
             n_frames: int = f[h5_data_path].shape[0]
-            console.print("%s frames in %s" % (n_frames, fn))
+            log.info("%s frames in %s" % (n_frames, fn))
             frame: NDArray[numpy.int_]
             for frame in f[h5_data_path][s:]:
                 d: NDArray[numpy.int_] = frame.flatten()
@@ -75,13 +75,12 @@ def main(input: str, output: str, s: int) -> None:
         dark: NDArray[numpy.float_] = (sd / nd).astype(numpy.float32)
 
     if numpy.any(nd == 0):
-        console.print("Some pixels don't have data in all gains:", style="warning")
+        log.warning("Some pixels don't have data in all gains")
         for i in range(3):
             where: List[Tuple[NDArray[numpy.int_], ...]] = numpy.where(nd[i] == 0)
             dark[i][where] = const_dark[i]
-            console.print(
+            log.warning(
                 f"{len(where[0])} pixels in gain {i} are set to {const_dark[i]}",
-                style="warning",
             )
 
     with h5py.File(output, "w") as f:

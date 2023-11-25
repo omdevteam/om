@@ -22,7 +22,6 @@ This module contains an OnDA Monitor for X-ray Emission Spectroscopy experiments
 """
 from __future__ import absolute_import, division, print_function
 
-import sys
 from typing import Any, Dict, Tuple, Union
 
 import numpy
@@ -31,8 +30,8 @@ from numpy.typing import NDArray
 from om.algorithms.xes import EnergySpectrumRetrieval
 from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters
-from om.lib.rich_console import console, get_current_timestamp
 from om.lib.xes import XesAnalysisAndPlots
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.typing import OmProcessingProtocol
@@ -118,8 +117,7 @@ class XesProcessing(OmProcessingProtocol):
         )
 
         # Console
-        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -172,8 +170,7 @@ class XesProcessing(OmProcessingProtocol):
         )
 
         # Console
-        console.print(f"{get_current_timestamp()} Starting the monitor...")
-        sys.stdout.flush()
+        log.info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
@@ -370,10 +367,7 @@ class XesProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
-        )
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -395,8 +389,7 @@ class XesProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing finished. OM has processed "
+        log.info(
+            "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
-        sys.stdout.flush()

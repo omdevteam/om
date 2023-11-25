@@ -24,7 +24,6 @@ for Serial X-ray Crystallography, based on OM but not designed to be run in real
 
 
 import pathlib
-import sys
 import time
 from typing import Any, Dict, List, NamedTuple, Set, TextIO, Tuple, TypedDict, Union
 
@@ -34,8 +33,8 @@ import numpy
 from numpy.typing import DTypeLike, NDArray
 
 from om.lib.exceptions import OmHdf5UnsupportedDataFormat
+from om.lib.logging import log
 from om.lib.parameters import get_parameter_from_parameter_group
-from om.lib.rich_console import console, get_current_timestamp
 from om.typing import TypeClassSumData, TypePeakList
 
 
@@ -976,11 +975,7 @@ class HDF5Writer:
             self._processed_filename_extension
         )
         self._processed_filename.rename(final_filename)
-        console.print(
-            f"{get_current_timestamp()} {self._num_frames} frames saved in "
-            f"{final_filename} file."
-        )
-        sys.stdout.flush()
+        log.info(f"{self._num_frames} frames saved in " f"{final_filename} file.")
 
     def get_current_filename(self) -> pathlib.Path:
         """
@@ -1112,11 +1107,9 @@ class SumHDF5Writer:
             except OSError:
                 time.sleep(2)
                 ...
-        console.print(
-            f"{get_current_timestamp()} Another application is reading the file "
-            f"{self._filename} exclusively. Five attempts to open the files "
-            "failed. Cannot update the file.",
-            style="warning",
+        log.warning(
+            f'Another application is reading the file "{self._filename} exclusively. '
+            "Five attempts to open the files failed. Cannot update the file."
         )
 
 

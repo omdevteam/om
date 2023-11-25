@@ -20,7 +20,6 @@ OnDA Monitor for Crystallography.
 
 This module contains an OnDA Monitor for Serial X-ray Crystallography experiments.
 """
-import sys
 from collections import deque
 from typing import Any, Deque, Dict, List, Tuple, Union
 
@@ -33,8 +32,8 @@ from om.lib.crystallography import CrystallographyPeakFinding, CrystallographyPl
 from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.geometry import DataVisualizer, GeometryInformation, TypePixelMaps
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
-from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.typing import OmProcessingProtocol
 
@@ -165,8 +164,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         self._send_non_hit_frame: bool = False
 
         # Console
-        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -266,8 +264,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
         )
 
         # Console
-        console.print(f"{get_current_timestamp()} Starting the monitor...")
-        sys.stdout.flush()
+        log.info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
@@ -579,10 +576,7 @@ class CrystallographyProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
-        )
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -604,11 +598,10 @@ class CrystallographyProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing finished. OM has processed "
+        log.info(
+            "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
-        sys.stdout.flush()
 
     def _handle_external_requests(self) -> None:
         # This function handles external requests sent to the crystallography monitor
@@ -622,17 +615,14 @@ class CrystallographyProcessing(OmProcessingProtocol):
             if request[1] == b"next":
                 self._request_list.append(request)
             elif request[1] == b"resetplots":
-                console.print(
-                    f"{get_current_timestamp()} OM Warning: Resetting plots.",
-                    style="warning",
+                log.warning(
+                    "OM Warning: Resetting plots.",
                 )
                 self._plots.clear_plots()
 
                 self._responding_socket.send_data(identity=request[0], message=b"Ok")
             else:
-                console.print(
-                    f"{get_current_timestamp()} OM Warning: Could not understand "
-                    f"request '{str(request[1])}'.",
-                    style="warning",
+                log.warning(
+                    f"OM Warning: Could not understand request '{str(request[1])}'.",
                 )
                 self._responding_socket.send_data(identity=request[0], message=b"What?")

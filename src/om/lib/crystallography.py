@@ -131,6 +131,10 @@ class CrystallographyPeakFinding:
                     group="peaknet_peak_detection"
                 ),
             )
+        else:
+            raise RuntimeError(
+                f"Unrecognized peak finding algorithm: {peakfinder_algorithm}"
+            )
 
         self._min_num_peaks_for_hit: int = get_parameter_from_parameter_group(
             group=crystallography_parameters,

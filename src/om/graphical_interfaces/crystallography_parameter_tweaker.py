@@ -36,8 +36,8 @@ from om.algorithms.crystallography import Peakfinder8PeakDetection, TypePeakList
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.geometry import DataVisualizer, GeometryInformation
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
-from om.lib.rich_console import console, get_current_timestamp
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
@@ -439,10 +439,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        console.print(
-            f"{get_current_timestamp()} Showing frame "
-            f"{self._current_frame_index} in the buffer"
-        )
+        log.info(f"{self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _forward_button_clicked(self) -> None:
@@ -450,10 +447,7 @@ class CrystallographyParameterTweaker(OmGuiBase):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        console.print(
-            f"{get_current_timestamp()} Showing frame "
-            f"{self._current_frame_index} in the buffer"
-        )
+        log.info(f"{self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _stop_stream(self) -> None:

@@ -27,7 +27,7 @@ from typing import Any, Dict, Union
 import zmq
 
 from om.lib.exceptions import OmInvalidZmqUrl, OmMissingDependencyError
-from om.lib.rich_console import console, get_current_timestamp
+from om.lib.logging import log
 
 try:
     from PyQt5 import QtCore
@@ -108,7 +108,7 @@ class ZmqDataListener(QtCore.QObject):
             OmInvalidZmqUrl: Raised if any error happens while the socket is being
                 connected to the data broadcasting source.
         """
-        console.print(f"{get_current_timestamp()} Connecting to {self._url}")
+        log.info(f"Connecting to {self._url}")
         self._zmq_subscribe = self._zmq_context.socket(zmq.SUB)
         try:
             self._zmq_subscribe.connect(self._url)
@@ -142,7 +142,7 @@ class ZmqDataListener(QtCore.QObject):
         start receiving data again.
         """
         self._listening_timer.stop()
-        console.print(f"{get_current_timestamp()} Disconnecting from {self._url}.")
+        log.info(f"Disconnecting from {self._url}.")
         self._zmq_subscribe.disconnect(f"{self._url}")
         self._zmq_poller = None
         self._zmq_subscribe = None

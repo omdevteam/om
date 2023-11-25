@@ -34,7 +34,7 @@ from numpy.typing import NDArray
 
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.rich_console import console, get_current_timestamp
+from om.lib.logging import log
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
@@ -231,10 +231,7 @@ class FrameViewer(OmGuiBase):
         self._stop_stream()
         if self._current_frame_index > 0:
             self._current_frame_index -= 1
-        console.print(
-            f"{get_current_timestamp()} Showing frame "
-            f"{self._current_frame_index} in the buffer"
-        )
+        log.info(f"Showing frame " f"{self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _forward_button_clicked(self) -> None:
@@ -242,7 +239,7 @@ class FrameViewer(OmGuiBase):
         self._stop_stream()
         if (self._current_frame_index + 1) < len(self._frame_list):
             self._current_frame_index += 1
-        console.print(f"Showing frame {self._current_frame_index} in the buffer")
+        log.info(f"Showing frame {self._current_frame_index} in the buffer")
         self._update_image_and_peaks()
 
     def _hist_range_changed(self) -> None:

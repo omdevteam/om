@@ -26,8 +26,8 @@ from multiprocessing import Pipe, Process, Queue, connection, queues
 from typing import Any, Dict, List, Tuple, Union
 
 from om.lib.exceptions import OmDataExtractionError
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters
-from om.lib.rich_console import console, get_current_timestamp
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -67,7 +67,7 @@ def _om_processing_node(
         if message_pipe.poll():
             message: Dict[str, Any] = message_pipe.recv()
             if "stop" in message:
-                console.print(f"{get_current_timestamp()} Shutting down RANK: {rank}.")
+                log.info(f"Shutting down RANK: {rank}.")
                 data_queue.put(({"stopped": True}, rank))
                 return
             else:
@@ -76,10 +76,8 @@ def _om_processing_node(
         try:
             data: Dict[str, Any] = data_event_handler.extract_data(event=event)
         except OmDataExtractionError as exc:
-            console.print(f"{get_current_timestamp()} {exc}", style="warning")
-            console.print(
-                f"{get_current_timestamp()} Skipping event...", style="warning"
-            )
+            log.warning(f"{exc}")
+            log.info("Skipping event...")
             continue
         data.update(feedback_dict)
         processed_data: Tuple[Dict[str, Any], int] = processing_layer.process_data(
@@ -197,10 +195,11 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        console.rule(
+        log.info(
             "You are using an OM real-time monitor. Please cite: "
             "Mariani et al., J Appl Crystallogr. 2016 May 23;49(Pt 3):1073-1080",
         )
+        log.info("---")
         for processing_node in self._processing_nodes:
             processing_node.start()
 
@@ -217,19 +216,13 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                         # If the received message announces that a processing node has
                         # finished processing data, keeps track of how many processing
                         # nodes have already finished.
-                        console.print(
-                            f"{get_current_timestamp()} Finalizing {received_data[1]}"
-                        )
+                        log.info(f"Finalizing {received_data[1]}")
                         self._num_no_more += 1
                         # When all processing nodes have finished, calls the
                         # 'end_processing_on_collecting_node' function then shuts down.
                         if self._num_no_more == self._node_pool_size - 1:
-                            console.print(
-                                f"{get_current_timestamp()} All processing nodes have "
-                                "run out of events."
-                            )
-                            console.print(f"{get_current_timestamp()} Shutting down.")
-                            sys.stdout.flush()
+                            log.info("All processing nodes have run out of events.")
+                            log.info("Shutting down.")
                             self._processing_layer.end_processing_on_collecting_node(
                                 node_rank=self._rank,
                                 node_pool_size=self._node_pool_size,
@@ -265,11 +258,10 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
                     )
 
             except KeyboardInterrupt as exc:
-                console.print(f"{get_current_timestamp()} Received keyboard sigterm...")
-                console.print(f"{get_current_timestamp()} {str(exc)}")
-                console.print(f"{get_current_timestamp()} Shutting down.")
+                log.info("Received keyboard sigterm...")
+                log.info(f"{str(exc)}")
+                log.info("Shutting down.")
                 self.shutdown()
-                sys.stdout.flush()
 
     def shutdown(self, *, msg: str = "Reason not provided.") -> None:
         """
@@ -286,8 +278,7 @@ class MultiprocessingParallelization(OmParallelizationProtocol):
 
             msg: Reason for shutting down. Defaults to "Reason not provided".
         """
-        console.print(f"{get_current_timestamp()} Shutting down: {msg}")
-        sys.stdout.flush()
+        log.info(f"Shutting down: {msg}")
         if self._rank == 0:
             # Tells all the processing nodes that they need to shut down, then waits
             # for confirmation. During the whole process, keeps receiving normal MPI

@@ -24,7 +24,6 @@ Cheetah, this version processes data frames, but does not save the extracted dat
 files: it sends it to external programs for further processing.
 """
 import pathlib
-import sys
 from collections import deque
 from typing import Any, Deque, Dict, Tuple, Union
 
@@ -44,8 +43,8 @@ from om.lib.crystallography import CrystallographyPeakFinding
 from om.lib.event_management import EventCounter
 from om.lib.exceptions import OmMissingDependencyError
 from om.lib.geometry import GeometryInformation, TypeDetectorLayoutInformation
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
-from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import ZmqResponder
 from om.typing import OmProcessingProtocol
 
@@ -206,8 +205,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
             self._processed_data_shape, dtype=numpy.float32
         )
 
-        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
@@ -292,8 +290,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
         )
 
         # Console
-        console.print(f"{get_current_timestamp()} Starting the monitor...")
-        sys.stdout.flush()
+        log.info("Starting the monitor...")
 
     def process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
@@ -531,10 +528,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
-        )
-        sys.stdout.flush()
+        log.info("Processing node {node_rank} shutting down.")
 
         # Send last class sums to the collecting node
         return {
@@ -577,11 +571,10 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
             num_hits=self._event_counter.get_num_hits(),
         )
 
-        console.print(
-            f"{get_current_timestamp()} Processing finished. OM has processed "
+        log.info(
+            "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
-        sys.stdout.flush()
 
     def _handle_external_requests(self) -> None:
         # This function handles external requests sent to the crystallography monitor
@@ -593,9 +586,7 @@ class StreamingCheetahProcessing(OmProcessingProtocol):
             if request[1] == b"next":
                 self._request_list.append(request)
             else:
-                console.print(
-                    f"{get_current_timestamp()} OM Warning: Could not understand "
-                    f"request '{str(request[1])}'.",
-                    style="warning",
+                log.warning(
+                    f"OM Warning: Could not understand request '{str(request[1])}'."
                 )
                 self._responding_socket.send_data(identity=request[0], message=b"What?")

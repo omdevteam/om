@@ -20,12 +20,11 @@ OnDA Test Monitor.
 
 This module contains an OnDA Monitor that can be used for testing.
 """
-import sys
 import time
 from typing import Any, Dict, Tuple, Union
 
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters
-from om.lib.rich_console import console, get_current_timestamp
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.typing import OmProcessingProtocol
 
@@ -72,8 +71,7 @@ class TestProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -121,8 +119,7 @@ class TestProcessing(OmProcessingProtocol):
         self._old_time: float = time.time()
         self._time: Union[float, None] = None
 
-        console.print(f"{get_current_timestamp()} Starting the monitor...")
-        sys.stdout.flush()
+        log.info("Starting the monitor...")
 
     def process_data(
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
@@ -162,8 +159,8 @@ class TestProcessing(OmProcessingProtocol):
         """
         processed_data: Dict[str, Any] = {}
 
-        console.print(f"{get_current_timestamp()} Processing Node - Retrieved data")
-        console.print(f"{get_current_timestamp()}   Timestamp: {data['timestamp']}")
+        log.info("Processing Node - Retrieved data")
+        log.info(f"  Timestamp: {data['timestamp']}")
 
         processed_data["timestamp"] = data["timestamp"]
 
@@ -228,10 +225,8 @@ class TestProcessing(OmProcessingProtocol):
         received_data: Dict[str, Any] = processed_data[0]
         self._num_events += 1
 
-        console.print(f"{get_current_timestamp()} Collecting Node - Received data")
-        console.print(
-            f"{get_current_timestamp()}   Timestamp: {received_data['timestamp']}"
-        )
+        log.info("Collecting Node - Received data")
+        log.info(f"Timestamp: {received_data['timestamp']}")
 
         if self._num_events % self._data_broadcast_interval == 0:
             self._data_broadcast_socket.send_data(
@@ -248,12 +243,11 @@ class TestProcessing(OmProcessingProtocol):
             events_per_second: float = float(self._speed_report_interval) / float(
                 now_time - self._old_time
             )
-            console.print(
-                f"{get_current_timestamp()} Processed: {self._num_events} in "
+            log.info(
+                f"Processed: {self._num_events} in "
                 f"{time_diff:.2f} seconds ({events_per_second:.3f} Hz)"
             )
 
-            sys.stdout.flush()
             self._old_time = now_time
 
         return {0: {"timestamp_of_last_event": received_data["timestamp"]}}
@@ -282,10 +276,7 @@ class TestProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
-        )
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} shutting down.")
         return None
 
     def end_processing_on_collecting_node(
@@ -307,8 +298,7 @@ class TestProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing finished. OM has processed "
+        log.info(
+            "Processing finished. OM has processed "
             f"{self._num_events} events in total."
         )
-        sys.stdout.flush()

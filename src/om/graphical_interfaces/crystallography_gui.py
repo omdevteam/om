@@ -33,7 +33,7 @@ from scipy import constants  # type: ignore
 
 from om.graphical_interfaces.common import OmGuiBase
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.rich_console import console, get_current_timestamp
+from om.lib.logging import log
 
 try:
     from PyQt5 import QtCore, QtGui, QtWidgets
@@ -256,10 +256,9 @@ class CrystallographyGui(OmGuiBase):
                 ]
             )
         except TypeError:
-            console.print(
-                f"{get_current_timestamp()} Beam energy or detector distance"
-                "information is not available. Resolution rings cannot be drawn.",
-                style="warning",
+            log.warning(
+                "Beam energy or detector distance information is not available."
+                "Resolution rings cannot be drawn.",
             )
             self._resolution_rings_check_box.setChecked(False)
         else:

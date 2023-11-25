@@ -32,8 +32,8 @@ from om.lib.exceptions import (
     OmMissingDependencyError,
 )
 from om.lib.layer_management import filter_data_sources
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters
-from om.lib.rich_console import console, get_current_timestamp
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
@@ -126,10 +126,8 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         if psana_calib_dir is not None:
             psana.setOption("psana.calib-dir", psana_calib_dir)
         else:
-            console.print(
-                f"{get_current_timestamp} OM Warning: Calibration directory not "
-                "provided or not found.",
-                style="warning",
+            log.warning(
+                "OM Warning: Calibration directory not provided or not found.",
             )
 
         psana_source: Any = psana.DataSource(self._source)

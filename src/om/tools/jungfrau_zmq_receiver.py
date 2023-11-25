@@ -9,7 +9,7 @@ from typing import Any, Deque, Dict, List
 import click
 import zmq
 
-from om.lib.rich_console import console
+from om.lib.logging import log
 
 
 def listen(
@@ -65,9 +65,9 @@ def listen(
         # speed reporting
         i += 1
         if i % 100 == 0:
-            console.print(
-                "Worker %d: %d frames, %.1f s since start timestamp, %.2f s delay"
-                % (panel_id, i, timestamp - timestamp_start, time.time() - timestamp)
+            log.info(
+                f"Worker {panel_id}: {i} frames, {timestamp-timestamp_start}, s since"
+                f"start timestamp, {time.time()-timestamp} s delay"
             )
 
         # Receive next message
@@ -135,9 +135,9 @@ def main(input_url: str, output_url: str) -> None:
                     and fr0["frame_number"] not in matched
                 ):
                     if i % 200 == 0:
-                        console.print(
-                            "Master: last matched frame id %d, %.2f s delay"
-                            % (fr0["acq_index"], time.time() - fr0["timestamp"])
+                        log.info(
+                            f'Master: last matched frame id {fr0["acq_index"]}, '
+                            f'{time.time() - fr0["timestamp"]} s delay'
                         )
                     i += 1
                     matched.append(fr0["frame_number"])

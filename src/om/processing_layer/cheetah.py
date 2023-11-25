@@ -22,7 +22,6 @@ This module contains Cheetah, a data-processing program for Serial X-ray
 Crystallography, based on OM but not designed to be run in real time.
 """
 import pathlib
-import sys
 from typing import Any, Dict, Tuple, Union
 
 import numpy
@@ -41,8 +40,8 @@ from om.lib.cheetah import (
 from om.lib.crystallography import CrystallographyPeakFinding
 from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation, TypeDetectorLayoutInformation
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters, get_parameter_from_parameter_group
-from om.lib.rich_console import console, get_current_timestamp
 from om.typing import OmProcessingProtocol
 
 
@@ -179,8 +178,7 @@ class CheetahProcessing(OmProcessingProtocol):
             node_rank=node_rank,
         )
 
-        console.print(f"{get_current_timestamp()} Processing node {node_rank} starting")
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} starting")
 
     def initialize_collecting_node(self, node_rank: int, node_pool_size: int) -> None:
         """
@@ -237,8 +235,7 @@ class CheetahProcessing(OmProcessingProtocol):
         )
 
         # Console
-        console.print(f"{get_current_timestamp()} Starting the monitor...")
-        sys.stdout.flush()
+        log.info("Starting the monitor...")
 
     def process_data(  # noqa: C901
         self, *, node_rank: int, node_pool_size: int, data: Dict[str, Any]
@@ -466,10 +463,7 @@ class CheetahProcessing(OmProcessingProtocol):
             Usually nothing. Optionally, a dictionary storing information to be sent to
                 the processing node.
         """
-        console.print(
-            f"{get_current_timestamp()} Processing node {node_rank} shutting down."
-        )
-        sys.stdout.flush()
+        log.info(f"Processing node {node_rank} shutting down.")
         self._file_writer.close()
 
         # Send last class sums to the collecting node
@@ -513,8 +507,7 @@ class CheetahProcessing(OmProcessingProtocol):
             num_hits=self._event_counter.get_num_hits(),
         )
 
-        console.print(
-            f"{get_current_timestamp()} Processing finished. OM has processed "
+        log.info(
+            "Processing finished. OM has processed "
             f"{self._event_counter.get_num_events()} events in total."
         )
-        sys.stdout.flush()

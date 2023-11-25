@@ -28,8 +28,8 @@ from typing import Any, Dict, Tuple, Union
 import zmq
 
 from om.lib.exceptions import OmInvalidZmqUrl
+from om.lib.logging import log
 from om.lib.parameters import get_parameter_from_parameter_group
-from om.lib.rich_console import console, get_current_timestamp
 
 
 def get_current_machine_ip() -> str:
@@ -116,8 +116,7 @@ class ZmqDataBroadcaster:
                     "URL is not valid due to the following reason: "
                     f"{exc_type.__name__}: {exc_value}."
                 ) from exc
-        console.print(f"{get_current_timestamp()} Broadcasting data at {url}")
-        sys.stdout.flush()
+        log.info(f"Broadcasting data at {url}")
 
     def send_data(self, *, tag: str, message: Dict[str, Any]) -> None:
         """
@@ -214,8 +213,7 @@ class ZmqResponder:
 
         self._zmq_poller: Any = zmq.Poller()
         self._zmq_poller.register(self._sock, zmq.POLLIN)
-        console.print(f"{get_current_timestamp()} Answering requests at {url}")
-        sys.stdout.flush()
+        log.info(f"Answering requests at {url}")
 
     def get_request(self) -> Union[Tuple[bytes, bytes], None]:
         """

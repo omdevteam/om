@@ -28,8 +28,8 @@ import zmq
 
 from om.lib.exceptions import OmDataExtractionError, OmInvalidZmqUrl
 from om.lib.layer_management import filter_data_sources
+from om.lib.logging import log
 from om.lib.parameters import MonitorParameters
-from om.lib.rich_console import console, get_current_timestamp
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 
@@ -159,7 +159,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         """
         url: str = self._source
         zmq_context: Any = zmq.Context()
-        console.print(f"{get_current_timestamp()} Node {node_rank} connecting to {url}")
+        log.info(f"Node {node_rank} connecting to {url}")
         zmq_socket: Any = zmq_context.socket(zmq.PULL)
         zmq_socket.setsockopt(zmq.CONFLATE, 1)
         try:
