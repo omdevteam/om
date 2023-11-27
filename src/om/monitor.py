@@ -23,7 +23,7 @@ This module contains the main function that tarts an OnDA Monitor.
 
 import signal
 import sys
-from typing import Dict, Type, Union, cast
+from typing import Dict, Type, Union, cast, Optional
 
 import click
 
@@ -33,6 +33,7 @@ from om.lib.rich_console import console, set_custom_theme, set_null_theme
 from om.protocols.data_retrieval_layer import OmDataRetrievalProtocol
 from om.protocols.parallelization_layer import OmParallelizationProtocol
 from om.protocols.processing_layer import OmProcessingProtocol
+from om.data_retrieval_layer.data_retrieval_event_list import EventListDataRetrieval
 
 
 @click.command()
@@ -45,6 +46,14 @@ from om.protocols.processing_layer import OmProcessingProtocol
     "working directory)",
 )
 @click.option(
+    "--event-list",
+    "-e",
+    nargs=1,
+    type=click.Path(),
+    required=False,
+    help="The path to a file containing a list of event IDs to be processed.",
+)
+@click.option(
     "--node-pool-size",
     "-n",
     default=0,
@@ -55,7 +64,9 @@ from om.protocols.processing_layer import OmProcessingProtocol
     ),
 )
 @click.argument("source", type=str)
-def main(*, source: str, node_pool_size: int, config: str) -> None:
+def main(
+    *, source: str, event_list: Optional[str], node_pool_size: int, config: str
+) -> None:
     """
     OnDA Monitor. This script starts an OnDA Monitor whose behavior is defined by the
     configuration parameters read from a provided file. The monitor retrieves data
@@ -137,33 +148,11 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
         node_pool_size=node_pool_size,
     )
 
-    data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
-        group="om",
-        parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
-    )
-
     processing_layer_class_name: str = monitor_parameters.get_parameter(
         group="om",
         parameter="processing_layer",
         parameter_type=str,
         required=True,
-    )
-
-    parallelization_layer_class: Type[OmParallelizationProtocol] = cast(
-        Type[OmParallelizationProtocol],
-        import_class_from_layer(
-            layer_name="parallelization_layer",
-            class_name=parallelization_layer_class_name,
-        ),
-    )
-    data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
-        Type[OmDataRetrievalProtocol],
-        import_class_from_layer(
-            layer_name="data_retrieval_layer",
-            class_name=data_retrieval_layer_class_name,
-        ),
     )
     processing_layer_class: Type[OmProcessingProtocol] = cast(
         Type[OmProcessingProtocol],
@@ -172,13 +161,41 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
             class_name=processing_layer_class_name,
         ),
     )
-
     processing_layer: OmProcessingProtocol = processing_layer_class(
         monitor_parameters=monitor_parameters
     )
-    data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
-        monitor_parameters=monitor_parameters,
-        source=source,
+
+    if event_list is None:
+        data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
+            group="om",
+            parameter="data_retrieval_layer",
+            parameter_type=str,
+            required=True,
+        )
+        data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
+            Type[OmDataRetrievalProtocol],
+            import_class_from_layer(
+                layer_name="data_retrieval_layer",
+                class_name=data_retrieval_layer_class_name,
+            ),
+        )
+        data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
+            monitor_parameters=monitor_parameters,
+            source=source,
+        )
+    else:
+        data_retrieval_layer = EventListDataRetrieval(
+            monitor_parameters=monitor_parameters,
+            source=source,
+            event_list_file=event_list,
+        )
+
+    parallelization_layer_class: Type[OmParallelizationProtocol] = cast(
+        Type[OmParallelizationProtocol],
+        import_class_from_layer(
+            layer_name="parallelization_layer",
+            class_name=parallelization_layer_class_name,
+        ),
     )
     parallelization_layer: OmParallelizationProtocol = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
