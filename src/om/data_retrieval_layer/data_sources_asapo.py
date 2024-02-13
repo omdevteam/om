@@ -28,7 +28,6 @@ from numpy.typing import NDArray
 from scipy import constants  # type: ignore
 
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.parameters import MonitorParameters
 from om.typing import OmDataSourceProtocol
 
 try:
@@ -48,7 +47,7 @@ class DetectorDataAsapo(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector data frames from ASAP::O at the PETRA III facility.
@@ -66,10 +65,10 @@ class DetectorDataAsapo(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -122,7 +121,7 @@ class TimestampAsapo(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Timestamp information from ASAP::O at the PETRA III facility.
@@ -140,10 +139,10 @@ class TimestampAsapo(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -187,7 +186,7 @@ class EventIdAsapo(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Data event identifiers from ASAP::O at the PETRA III facility.
@@ -205,10 +204,10 @@ class EventIdAsapo(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -261,7 +260,7 @@ class BeamEnergyAsapo(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Beam energy information from ASAP::O at the PETRA III facility.
@@ -279,10 +278,10 @@ class BeamEnergyAsapo(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         del data_source_name
-        del monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -332,7 +331,7 @@ class DetectorDistanceAsapo(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector distance information from ASAP::O at the PETRA III facility.
@@ -350,10 +349,10 @@ class DetectorDistanceAsapo(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         del data_source_name
-        del monitor_parameters
 
     def initialize_data_source(self) -> None:
         """

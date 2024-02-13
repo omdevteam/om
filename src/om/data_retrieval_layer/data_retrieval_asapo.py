@@ -21,7 +21,7 @@ Data retrieval from ASAP::O.
 This module contains Data Retrieval classes that deal with the ASAP::O software
 framework (used at the PETRA III facility).
 """
-from typing import Dict
+from typing import Any, Dict
 
 from om.data_retrieval_layer.data_event_handlers_asapo import AsapoDataEventHandler
 from om.data_retrieval_layer.data_sources_asapo import (
@@ -32,7 +32,6 @@ from om.data_retrieval_layer.data_sources_asapo import (
     TimestampAsapo,
 )
 from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
-from om.lib.parameters import MonitorParameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -45,7 +44,7 @@ class EigerAsapoDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data retrieval for Eiger 16M from ASAP::O at the PETRA III facility.
 
@@ -79,27 +78,25 @@ class EigerAsapoDataRetrieval(OmDataRetrievalProtocol):
 
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampAsapo(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
-            "event_id": EventIdAsapo(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
+            "event_id": EventIdAsapo(data_source_name="eventid", parameters=parameters),
             "detector_data": DetectorDataAsapo(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
             "beam_energy": BeamEnergyAsapo(
                 data_source_name="beam_energy",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "detector_distance": DetectorDistanceAsapo(
                 data_source_name="detector_distance",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = AsapoDataEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 
@@ -122,7 +119,7 @@ class PilatusAsapoDataRetrieval(OmDataRetrievalProtocol):
     See documentation of the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+    def __init__(self, *, parameters: Dict[str, Any], source: str):
         """
         Data retrieval for Pilatus detector from ASAP::O at the PETRA III facility.
 
@@ -161,27 +158,25 @@ class PilatusAsapoDataRetrieval(OmDataRetrievalProtocol):
 
         data_sources: Dict[str, OmDataSourceProtocol] = {
             "timestamp": TimestampAsapo(
-                data_source_name="timestamp", monitor_parameters=monitor_parameters
+                data_source_name="timestamp", parameters=parameters
             ),
-            "event_id": EventIdAsapo(
-                data_source_name="eventid", monitor_parameters=monitor_parameters
-            ),
+            "event_id": EventIdAsapo(data_source_name="eventid", parameters=parameters),
             "detector_data": DetectorDataAsapo(
-                data_source_name="detector", monitor_parameters=monitor_parameters
+                data_source_name="detector", parameters=parameters
             ),
             "beam_energy": FloatEntryFromConfiguration(
                 data_source_name="fallback_beam_energy_in_eV",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
             "detector_distance": FloatEntryFromConfiguration(
                 data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
+                parameters=parameters,
             ),
         }
 
         self._data_event_handler: OmDataEventHandlerProtocol = AsapoDataEventHandler(
             source=source,
-            monitor_parameters=monitor_parameters,
+            parameters=parameters,
             data_sources=data_sources,
         )
 

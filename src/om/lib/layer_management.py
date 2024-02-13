@@ -24,7 +24,7 @@ extraction layers.
 import importlib
 import sys
 from types import ModuleType
-from typing import Dict, List, Type, Union
+from typing import Dict, List, Literal, Type, Union, overload
 
 from om.lib.exceptions import (
     OmMissingDataSourceClassError,
@@ -39,13 +39,39 @@ from om.typing import (
 )
 
 
+@overload
 def import_class_from_layer(
-    *, layer_name: str, class_name: str
+    *, layer_name: Literal["processing_layer"], class_name: str
+) -> Type[OmProcessingProtocol]:
+    ...
+
+
+@overload
+def import_class_from_layer(
+    *, layer_name: Literal["data_retrieval_layer"], class_name: str
+) -> Type[OmDataRetrievalProtocol]:
+    ...
+
+
+@overload
+def import_class_from_layer(
+    *, layer_name: Literal["parallelization_layer"], class_name: str
+) -> Type[OmParallelizationProtocol]:
+    ...
+
+
+def import_class_from_layer(
+    *,
+    layer_name: Union[
+        Literal["parallelization_layer"],
+        Literal["data_retrieval_layer"],
+        Literal["processing_layer"],
+    ],
+    class_name: str,
 ) -> Union[
     Type[OmParallelizationProtocol],
-    Type[OmProcessingProtocol],
     Type[OmDataRetrievalProtocol],
-    None,
+    Type[OmProcessingProtocol],
 ]:
     """
     Imports a class from an OM's layer.
@@ -82,11 +108,9 @@ def import_class_from_layer(
         try:
             imported_layer = importlib.import_module(f"om.{layer_name}")
             try:
-                imported_class: Union[
-                    Type[OmParallelizationProtocol],
-                    Type[OmProcessingProtocol],
-                    Type[OmDataRetrievalProtocol],
-                ] = getattr(imported_layer, class_name)
+                imported_class: Type[OmParallelizationProtocol] = getattr(
+                    imported_layer, class_name
+                )
                 return imported_class
             except AttributeError:
                 raise OmMissingLayerClassError(
@@ -101,7 +125,6 @@ def import_class_from_layer(
                     f"due to the following error: "
                     f"{exc_type.__name__}: {exc_value}"
                 ) from exc
-    return None
 
 
 def filter_data_sources(

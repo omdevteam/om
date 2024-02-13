@@ -39,8 +39,8 @@ terminal console output, using the Rich python library.
 #     """
 #     Gets the current timestamp formatted for console output.
 
-#     This function returns the current timestamp, with seconds precision, formatted in a
-#     style that is fit to be printed in the rich console.
+#     This function returns the current timestamp, with seconds precision, formatted in
+#     a style that is fit to be printed in the rich console.
 
 #     Returns:
 
@@ -65,11 +65,12 @@ terminal console output, using the Rich python library.
 #     Sets a custom theme for OM's rich console.
 
 #     This function configures OM's rich console to use a custom theme. The dictionary
-#     provided to this function must store the theme definition, using the syntax adopted
-#     by the python
+#     provided to this function must store the theme definition, using the syntax
+#     adopted by the python
 #     [Rich library][https://rich.readthedocs.io/en/stable/style.html].
 #     The custom theme is applied on top of OM's base rich console's theme: the console
-#     will fall back to the base theme for any entry not defined in the input dictionary.
+#     will fall back to the base theme for any entry not defined in the input
+#     dictionary.
 
 #     Arguments:
 

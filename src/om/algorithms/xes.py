@@ -24,9 +24,17 @@ from typing import Any, Dict, Union, cast
 
 import numpy
 from numpy.typing import NDArray
+from pydantic import BaseModel, Field
 from scipy import ndimage  # type: ignore
 
-from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.parameters import validate_parameters
+
+
+class _EnergySpectrumRetrievalParameters(BaseModel):
+    intensity_threshold: float
+    rotation_in_degrees: float
+    min_row_in_pix_for_integration: int
+    max_row_in_pix_for_integration: int
 
 
 class EnergySpectrumRetrieval:
@@ -75,29 +83,22 @@ class EnergySpectrumRetrieval:
                     section of the camera data frame containing the spectrum
                     information (pixels outside this area are ignored).
         """
-        self._intensity_threshold: float = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="intensity_threshold_in_ADU",
-            parameter_type=float,
+
+        energy_spectrum_retrieval_parameters: _EnergySpectrumRetrievalParameters = (
+            validate_parameters(
+                model=_EnergySpectrumRetrievalParameters, parameter_group=parameters
+            )
         )
 
-        self._rotation: float = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="rotation_in_degrees",
-            parameter_type=float,
-            required=True,
+        self._intensity_threshold: float = (
+            energy_spectrum_retrieval_parameters.intensity_threshold
         )
-        self._min_row: int = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="min_row_in_pix_for_integration",
-            parameter_type=int,
-            required=True,
+        self._rotation: float = energy_spectrum_retrieval_parameters.rotation_in_degrees
+        self._min_row: int = (
+            energy_spectrum_retrieval_parameters.min_row_in_pix_for_integration
         )
-        self._max_row: int = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="max_row_in_pix_for_integration",
-            parameter_type=int,
-            required=True,
+        self._max_row: int = (
+            energy_spectrum_retrieval_parameters.max_row_in_pix_for_integration
         )
 
     # TODO: Enforce return dict content for the function below

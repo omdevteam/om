@@ -23,18 +23,29 @@ This module contains the main function that tarts an OnDA Monitor.
 
 import signal
 import sys
-from typing import Type, cast
+from typing import Any, Dict, Type
 
 import click
+from pydantic import BaseModel
 
 from om.lib.layer_management import import_class_from_layer
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
+from om.lib.parameters import (
+    get_parameter_group,
+    load_configuration_parameters,
+    validate_parameters,
+)
 from om.typing import (
     OmDataRetrievalProtocol,
     OmParallelizationProtocol,
     OmProcessingProtocol,
 )
+
+
+class _MonitorParameters(BaseModel):
+    parallelization_layer: str
+    data_retrieval_layer: str
+    processing_layer: str
 
 
 @click.command()
@@ -71,36 +82,25 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
     # above becomes the help string for the script.
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    monitor_parameters: MonitorParameters = MonitorParameters(config=config)
-
-    # colors_in_rich_console: Union[bool, None] = monitor_parameters.get_parameter(
-    #     group="om",
-    #     parameter="colors_in_rich_console",
-    #     parameter_type=bool,
-    # )
-
-    # if colors_in_rich_console is False:
-    #     set_null_theme()
-    # else:
-    #     custom_rich_console_colors: Union[
-    #         Dict[str, str], None
-    #     ] = monitor_parameters.get_parameter(
-    #         group="om",
-    #         parameter="custom_rich_console_colors",
-    #         parameter_type=dict,
-    #     )
-
-    #     if custom_rich_console_colors is not None:
-    #         set_custom_theme(theme_dict=custom_rich_console_colors)
-
-    parallelization_layer_class_name: str = monitor_parameters.get_parameter(
-        group="om",
-        parameter="parallelization_layer",
-        parameter_type=str,
-        required=True,
+    configuration_parameters: Dict[str, Dict[str, Any]] = load_configuration_parameters(
+        config=config
     )
 
-    if parallelization_layer_class_name == "MpiParallelization":
+    om_parameter_group: Dict[str, Any] = get_parameter_group(
+        configuration_parameters=configuration_parameters, group_name="om"
+    )
+
+    data_retrieval_layer_parameter_group: Dict[str, Any] = get_parameter_group(
+        configuration_parameters=configuration_parameters,
+        group_name="data_retrieval_layer",
+    )
+
+    monitor_parameters: _MonitorParameters = validate_parameters(
+        model=_MonitorParameters,
+        parameter_group=om_parameter_group,
+    )
+
+    if monitor_parameters.parallelization_layer == "MpiParallelization":
         try:
             from mpi4py import MPI
 
@@ -131,58 +131,34 @@ def main(*, source: str, node_pool_size: int, config: str) -> None:
             )
             sys.exit(1)
 
-    monitor_parameters.add_source_and_node_pool_size_information(
-        source=source,
-        node_pool_size=node_pool_size,
-    )
+    configuration_parameters["om"]["source"] = source
+    configuration_parameters["om"]["node_pool_size"] = node_pool_size
 
-    data_retrieval_layer_class_name: str = monitor_parameters.get_parameter(
-        group="om",
-        parameter="data_retrieval_layer",
-        parameter_type=str,
-        required=True,
+    parallelization_layer_class: Type[
+        OmParallelizationProtocol
+    ] = import_class_from_layer(
+        layer_name="parallelization_layer",
+        class_name=monitor_parameters.parallelization_layer,
     )
-
-    processing_layer_class_name: str = monitor_parameters.get_parameter(
-        group="om",
-        parameter="processing_layer",
-        parameter_type=str,
-        required=True,
+    data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = import_class_from_layer(
+        layer_name="data_retrieval_layer",
+        class_name=monitor_parameters.data_retrieval_layer,
     )
-
-    parallelization_layer_class: Type[OmParallelizationProtocol] = cast(
-        Type[OmParallelizationProtocol],
-        import_class_from_layer(
-            layer_name="parallelization_layer",
-            class_name=parallelization_layer_class_name,
-        ),
-    )
-    data_retrieval_layer_class: Type[OmDataRetrievalProtocol] = cast(
-        Type[OmDataRetrievalProtocol],
-        import_class_from_layer(
-            layer_name="data_retrieval_layer",
-            class_name=data_retrieval_layer_class_name,
-        ),
-    )
-    processing_layer_class: Type[OmProcessingProtocol] = cast(
-        Type[OmProcessingProtocol],
-        import_class_from_layer(
-            layer_name="processing_layer",
-            class_name=processing_layer_class_name,
-        ),
+    processing_layer_class: Type[OmProcessingProtocol] = import_class_from_layer(
+        layer_name="processing_layer", class_name=monitor_parameters.processing_layer
     )
 
     processing_layer: OmProcessingProtocol = processing_layer_class(
-        monitor_parameters=monitor_parameters
+        monitor_parameters=configuration_parameters
     )
     data_retrieval_layer: OmDataRetrievalProtocol = data_retrieval_layer_class(
-        monitor_parameters=monitor_parameters,
+        parameters=data_retrieval_layer_parameter_group,
         source=source,
     )
     parallelization_layer: OmParallelizationProtocol = parallelization_layer_class(
         data_retrieval_layer=data_retrieval_layer,
         processing_layer=processing_layer,
-        monitor_parameters=monitor_parameters,
+        monitor_parameters=configuration_parameters,
     )
 
     parallelization_layer.start()

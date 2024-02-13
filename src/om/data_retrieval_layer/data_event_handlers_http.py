@@ -27,11 +27,17 @@ from io import BytesIO
 from typing import Any, Dict, Generator, List, Literal, Union, cast
 
 import requests  # type: ignore
+from pydantic import BaseModel
 
 from om.lib.exceptions import OmDataExtractionError, OmHttpInterfaceInitializationError
 from om.lib.layer_management import filter_data_sources
-from om.lib.parameters import MonitorParameters
+from om.lib.parameters import validate_parameters
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
+
+
+class _HttpDataEventHandlerParameters(BaseModel):
+    required_data: List[str]
+    buffer_size: int
 
 
 class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
@@ -45,7 +51,7 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for Eiger's HTTP/REST events.
@@ -77,11 +83,22 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
                   [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        eiger_http_event_handler_parameters: _HttpDataEventHandlerParameters = (
+            validate_parameters(
+                model=_HttpDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=eiger_http_event_handler_parameters.required_data,
+        )
+
+        self._buffer_size: int = eiger_http_event_handler_parameters.buffer_size
 
     def _check_detector_monitor_mode(
         self, count_down: int = 12, wait_time: int = 5
@@ -148,14 +165,8 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
                 "Cannot enable 'overwrite buffer' mode of the detector."
             )
 
-        buffer_size: int = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="eiger_monitor_buffer_size",
-            parameter_type=int,
-            required=True,
-        )
         response = requests.put(
-            f"{self._source}/config/buffer_size", json={"value": buffer_size}
+            f"{self._source}/config/buffer_size", json={"value": self._buffer_size}
         )
         if not response.status_code == 200:
             raise OmHttpInterfaceInitializationError(
@@ -183,18 +194,6 @@ class EigerHttpDataEventHandler(OmDataEventHandlerProtocol):
 
             An optional initialization token.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
-
         while self._check_detector_monitor_mode() != "enabled":
             time.sleep(0.5)
 

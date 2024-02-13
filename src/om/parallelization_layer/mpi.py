@@ -27,7 +27,6 @@ from mpi4py import MPI
 
 from om.lib.exceptions import OmDataExtractionError
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataRetrievalProtocol,
@@ -52,7 +51,7 @@ class MpiParallelization(OmParallelizationProtocol):
         *,
         data_retrieval_layer: OmDataRetrievalProtocol,
         processing_layer: OmProcessingProtocol,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         MPI-based Parallelization Layer for OM.
@@ -74,11 +73,11 @@ class MpiParallelization(OmParallelizationProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_event_handler: OmDataEventHandlerProtocol = (
             data_retrieval_layer.get_data_event_handler()
         )
         self._processing_layer: OmProcessingProtocol = processing_layer
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._mpi_size: int = MPI.COMM_WORLD.Get_size()
         self._rank: int = MPI.COMM_WORLD.Get_rank()
 

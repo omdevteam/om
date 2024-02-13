@@ -25,12 +25,17 @@ import sys
 from typing import Any, Dict, Generator, List, Tuple
 
 import zmq
+from pydantic import BaseModel
 
 from om.lib.exceptions import OmDataExtractionError, OmInvalidZmqUrl
 from om.lib.layer_management import filter_data_sources
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
+from om.lib.parameters import validate_parameters
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
+
+
+class _ZmqDataEventHandlerParameters(BaseModel):
+    required_data: List[str]
 
 
 class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
@@ -43,7 +48,7 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M's ZMQ stream.
@@ -76,9 +81,19 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        zmq_event_handler_parameters: _ZmqDataEventHandlerParameters = (
+            validate_parameters(
+                model=_ZmqDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
+
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=zmq_event_handler_parameters.required_data,
+        )
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -119,17 +134,8 @@ class Jungfrau1MZmqDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
 
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
+    pass
 
     def event_generator(
         self,

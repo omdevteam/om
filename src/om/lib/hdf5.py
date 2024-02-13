@@ -29,7 +29,6 @@ import numpy
 from numpy.typing import NDArray
 
 from om.lib.exceptions import OmHdf5FileReadingError
-from om.lib.parameters import get_parameter_from_parameter_group
 
 
 def load_hdf5_data(
@@ -74,61 +73,3 @@ def load_hdf5_data(
             f"data HDF5 file: {exc_type.__name__}: {exc_value}"
         ) from exc
     return data
-
-
-def parse_parameters_and_load_hdf5_data(
-    *,
-    parameters: Dict[str, Any],
-    hdf5_filename_parameter: str,
-    hdf5_path_parameter: str,
-) -> Union[NDArray[numpy.int_], NDArray[numpy.float_], None]:
-    """
-    Reads data from an HDF5 file identified by a set of configuration parameters.
-
-    This function retrieves the path to a data file, and the internal HDF5 path to a
-    block storing data, from a set of configuration parameters, then loads the data.
-
-    Arguments:
-
-        parameters: A set of OM configuration parameters collected together in a
-            parameter group. The parameter group must contain the following
-            entries:
-
-            * An entry, whose name is specified by the `hdf5_filename_parameter`
-              argument of this function, storing the relative of absolute path to an
-              HDF5 file containing the data to load.
-
-            * An entry, whose name is specified by the `hdf5_path_parameter` argument
-              argument of this function, storing the internal path, within the HDF5
-              file, to the block storing the data to load.
-
-        hdf5_filename_parameter: The name of the entry in the parameter set that
-            stores the path to the data file.
-
-        hdf5_path_parameter: The name of the entry in the parameter set that stores
-            the internal HDF5 path to the block storing the data.
-
-    Returns:
-
-        The loaded data.
-    """
-    # Bad pixel map
-    hdf5_filename: Union[str, None] = get_parameter_from_parameter_group(
-        group=parameters,
-        parameter=hdf5_filename_parameter,
-        parameter_type=str,
-    )
-    if hdf5_filename is not None:
-        hdf5_path: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter=hdf5_path_parameter,
-            parameter_type=str,
-            required=True,
-        )
-
-        if hdf5_path is not None:
-            return load_hdf5_data(hdf5_filename=hdf5_filename, hdf5_path=hdf5_path)
-        else:
-            return None
-    else:
-        return None

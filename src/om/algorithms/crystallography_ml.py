@@ -26,12 +26,34 @@ import torch
 from numpy.typing import NDArray
 from peaknet import app_om as app
 from peaknet.plugins import apply_mask
+from pydantic import BaseModel, Field, model_validator
 from ruamel.yaml import YAML
 
-from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
-from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.hdf5 import load_hdf5_data
+from om.lib.parameters import validate_parameters
 
 from .crystallography import TypePeakList
+
+
+class _PeakNetPeakDetectionParameters(BaseModel):
+    path_model_weight: str = Field(default=None)
+    path_config: str = Field(default=None)
+    cheetah_geom: str
+    min_num_peaks: int
+    bad_pixel_map_filename: Union[str, None] = Field(default=None)
+    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+
+    @model_validator(mode="after")
+    def check_hd5_path(self) -> "_PeakNetPeakDetectionParameters":
+        if (
+            self.bad_pixel_map_filename is not None
+            and self.bad_pixel_map_hdf5_path is None
+        ):
+            raise ValueError(
+                "If the bad_pixel_map_filename parameter is specified, "
+                "the bad_pixel_map_hdf5_path must also be provided"
+            )
+        return self
 
 
 class PeakNetPeakDetection:
@@ -50,59 +72,40 @@ class PeakNetPeakDetection:
         - path_model_weight
         - path_config
         """
-        # Unpack parameters...
-        path_model_weight = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="path_model_weight",
-            parameter_type=str,
-        )
-        path_config = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="path_config",
-            parameter_type=str,
-        )
 
-        print("DEBUG: Using peaknet!!!")
+        peaknet_parameters: _PeakNetPeakDetectionParameters = validate_parameters(
+            model=_PeakNetPeakDetectionParameters,
+            parameter_group=parameters,
+        )
 
         # Attempt to load the yaml config...
         self.peaknet_config = app.PeakFinder.get_default_config()
-        if path_config is not None:
-            with open(path_config, "r") as fh:
+        if peaknet_parameters.path_config is not None:
+            with open(peaknet_parameters.path_config, "r") as fh:
                 yaml_content = YAML(typ="safe")
                 yaml_content.load(fh)
                 self.peaknet_config = yaml_content
 
         # Load param: bad pixel map
-        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-            Union[NDArray[numpy.int_], None],
-            parse_parameters_and_load_hdf5_data(
-                parameters=parameters,
-                hdf5_filename_parameter="bad_pixel_map_filename",
-                hdf5_path_parameter="bad_pixel_map_hdf5_path",
-            ),
-        )
-        print(f"DEBUG: No bad pixel map: {self._bad_pixel_map is None}")
-
-        # Load param: cheetah geom
-        self._cheetah_geom: Union[str, None] = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="cheetah_geom",
-            parameter_type=str,
-        )
-
-        # Load param: cheetah geom
-        self._min_num_peaks: Union[int, None] = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="min_num_peaks",
-            parameter_type=int,
-        )
+        if (
+            peaknet_parameters.bad_pixel_map_filename is not None
+            and peaknet_parameters.bad_pixel_map_hdf5_path is not None
+        ):
+            self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+                Union[NDArray[numpy.int_], None],
+                load_hdf5_data(
+                    hdf5_filename=peaknet_parameters.bad_pixel_map_filename,
+                    hdf5_path=peaknet_parameters.bad_pixel_map_hdf5_path,
+                ),
+            )
+        else:
+            self._bad_pixel_map = None
 
         # Initialize peak finder
         self.peak_finder = app.PeakFinder(
-            path_chkpt=path_model_weight, config=self.peaknet_config
+            path_chkpt=peaknet_parameters.path_model_weight, config=self.peaknet_config
         )
         self.device = self.peak_finder.device
-        print(f"DEBUG: Device: {self.device}")
 
     def find_peaks(
         self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]

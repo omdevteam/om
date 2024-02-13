@@ -29,6 +29,7 @@ from typing import Any, Dict, Generator, List, TextIO, Tuple
 import h5py  # type: ignore
 import numpy
 from numpy.typing import NDArray
+from pydantic import BaseModel
 
 from om.lib.exceptions import (
     OmDataExtractionError,
@@ -36,7 +37,7 @@ from om.lib.exceptions import (
     OmMissingDependencyError,
 )
 from om.lib.layer_management import filter_data_sources
-from om.lib.parameters import MonitorParameters
+from om.lib.parameters import validate_parameters
 from om.typing import (
     OmDataEventHandlerProtocol,
     OmDataSourceProtocol,
@@ -51,6 +52,10 @@ except ImportError:
     )
 
 
+class _FileDataEventHandlerParameters(BaseModel):
+    required_data: List[str]
+
+
 class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
     """
     See documentation of the `__init__` function.
@@ -61,7 +66,7 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for Pilatus single-frame files.
@@ -94,9 +99,19 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        pilatus_file_event_handler_parameters: _FileDataEventHandlerParameters = (
+            validate_parameters(
+                model=_FileDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
+
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=pilatus_file_event_handler_parameters.required_data,
+        )
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -137,17 +152,7 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
+        pass
 
     def event_generator(
         self,
@@ -281,18 +286,6 @@ class PilatusFilesEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
-
         self._data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:
@@ -343,7 +336,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for Jungfrau 1M files.
@@ -377,9 +370,19 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        jungfrau1m_files_event_handler_parameters: _FileDataEventHandlerParameters = (
+            validate_parameters(
+                model=_FileDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
+
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=jungfrau1m_files_event_handler_parameters.required_data,
+        )
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -420,17 +423,7 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
+        pass
 
     def event_generator(  # noqa: C901
         self,
@@ -595,18 +588,6 @@ class Jungfrau1MFilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
-
         self._data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:
@@ -680,7 +661,7 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for Eiger files.
@@ -714,9 +695,19 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        eiger_files_event_handler_parameters: _FileDataEventHandlerParameters = (
+            validate_parameters(
+                model=_FileDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
+
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=eiger_files_event_handler_parameters.required_data,
+        )
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -757,17 +748,7 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
+        pass
 
     def event_generator(
         self,
@@ -901,18 +882,6 @@ class EigerFilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
-
         self._data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:
@@ -975,7 +944,7 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for Rayonix MX340-HS single-frame files.
@@ -1008,9 +977,19 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        rayonix_mccd_files_event_handler_parameters: _FileDataEventHandlerParameters = (
+            validate_parameters(
+                model=_FileDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
+
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=rayonix_mccd_files_event_handler_parameters.required_data,
+        )
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -1051,17 +1030,7 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
+        pass
 
     def event_generator(
         self,
@@ -1193,18 +1162,6 @@ class RayonixMccdFilesEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
-
         self._data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:
@@ -1254,7 +1211,7 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for Lambda 1.5M files.
@@ -1288,11 +1245,21 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
                   [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        lambda1m5f_files_event_handler_parameters: _FileDataEventHandlerParameters = (
+            validate_parameters(
+                model=_FileDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
+
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=lambda1m5f_files_event_handler_parameters.required_data,
+        )
 
     def initialize_event_handling_on_collecting_node(
         self, *, node_rank: int, node_pool_size: int
@@ -1333,17 +1300,7 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
+        pass
 
     def event_generator(  # noqa: C901
         self,
@@ -1491,18 +1448,6 @@ class Lambda1M5FilesDataEventHandler(OmDataEventHandlerProtocol):
         Please see the documentation of the base Protocol class for additional
         information about this method.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
-
         self._data_sources["timestamp"].initialize_data_source()
         source_name: str
         for source_name in self._required_data_sources:

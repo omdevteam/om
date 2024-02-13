@@ -29,13 +29,41 @@ import numpy
 
 # import scipy  # type: ignore
 from numpy.typing import NDArray
+from pydantic import BaseModel, Field, model_validator
 
 from om.lib.geometry import TypeDetectorLayoutInformation
-from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
-from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.hdf5 import load_hdf5_data
+from om.lib.parameters import validate_parameters
 from om.typing import TypePeakList
 
 from ._crystallography_cython import peakfinder_8  # type: ignore
+
+
+class _Peakfinder8PeakDetectionParameters(BaseModel):
+    max_num_peaks: int
+    adc_thresh: float
+    minimum_snr: float
+    min_pixel_count: int
+    max_pixel_count: int
+    local_bg_radius: int
+    min_res: int
+    max_res: int
+    fast_mode: bool = Field(default=False)
+    number_of_pixel_per_bin_in_radial_statistics: int = Field(default=100)
+    bad_pixel_map_filename: Union[str, None] = Field(default=None)
+    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+
+    @model_validator(mode="after")
+    def check_hd5_path(self) -> "_Peakfinder8PeakDetectionParameters":
+        if (
+            self.bad_pixel_map_filename is not None
+            and self.bad_pixel_map_hdf5_path is None
+        ):
+            raise ValueError(
+                "If the bad_pixel_map_filename parameter is specified, "
+                "the bad_pixel_map_hdf5_path must also be provided"
+            )
+        return self
 
 
 class Peakfinder8PeakDetection:
@@ -48,7 +76,7 @@ class Peakfinder8PeakDetection:
         *,
         radius_pixel_map: NDArray[numpy.float_],
         layout_info: TypeDetectorLayoutInformation,
-        crystallography_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Peakfinder8 algorithm for peak detection.
@@ -81,9 +109,9 @@ class Peakfinder8PeakDetection:
                 detector data frame on which the algorithm is applied (number and size
                 of ASICs, etc.).
 
-            crystallography_parameters: A set of OM configuration parameters collected
-                together in a parameter group. The parameter group must contain the
-                following entries:
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
+                entries:
 
                 * `max_num_peaks`: The maximum number of peaks that the algorithm
                    should retrieve from each  data frame. Additional peaks will be
@@ -131,90 +159,50 @@ class Peakfinder8PeakDetection:
                       ignored.
 
         """
+        peakfinder8_parameters: _Peakfinder8PeakDetectionParameters = (
+            validate_parameters(
+                model=_Peakfinder8PeakDetectionParameters, parameter_group=parameters
+            )
+        )
+
         self._asic_nx: int = layout_info["asic_nx"]
         self._asic_ny: int = layout_info["asic_ny"]
         self._nasics_x: int = layout_info["nasics_x"]
         self._nasics_y: int = layout_info["nasics_y"]
-        self._max_num_peaks: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="max_num_peaks",
-            parameter_type=int,
-            required=True,
-        )
-        self._adc_thresh: float = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="adc_threshold",
-            parameter_type=float,
-            required=True,
-        )
-        self._minimum_snr: float = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="minimum_snr",
-            parameter_type=float,
-            required=True,
-        )
-        self._min_pixel_count: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="min_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        self._max_pixel_count: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="max_pixel_count",
-            parameter_type=int,
-            required=True,
-        )
-        self._local_bg_radius: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="local_bg_radius",
-            parameter_type=int,
-            required=True,
-        )
-        self._min_res: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="min_res",
-            parameter_type=int,
-            required=True,
-        )
-        self._max_res: int = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="max_res",
-            parameter_type=int,
-            required=True,
-        )
+        self._max_num_peaks: float = peakfinder8_parameters.max_num_peaks
+        self._adc_thresh: float = peakfinder8_parameters.adc_thresh
+        self._minimum_snr: float = peakfinder8_parameters.minimum_snr
+        self._min_pixel_count: int = peakfinder8_parameters.min_pixel_count
+        self._max_pixel_count: int = peakfinder8_parameters.max_pixel_count
+        self._local_bg_radius: int = peakfinder8_parameters.local_bg_radius
+        self._min_res: int = peakfinder8_parameters.min_res
+        self._max_res: int = peakfinder8_parameters.max_res
 
-        self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-            Union[NDArray[numpy.int_], None],
-            parse_parameters_and_load_hdf5_data(
-                parameters=crystallography_parameters,
-                hdf5_filename_parameter="bad_pixel_map_filename",
-                hdf5_path_parameter="bad_pixel_map_hdf5_path",
-            ),
-        )
+        if (
+            peakfinder8_parameters.bad_pixel_map_filename is not None
+            and peakfinder8_parameters.bad_pixel_map_hdf5_path is not None
+        ):
+            self._bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+                Union[NDArray[numpy.int_], None],
+                load_hdf5_data(
+                    hdf5_filename=peakfinder8_parameters.bad_pixel_map_filename,
+                    hdf5_path=peakfinder8_parameters.bad_pixel_map_hdf5_path,
+                ),
+            )
+        else:
+            self._bad_pixel_map = None
+
         self._mask: Union[NDArray[numpy.int_], None] = None
         self._radius_pixel_map: NDArray[numpy.float_] = radius_pixel_map
 
         self._radial_stats_pixel_index: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_radius: Union[None, NDArray[numpy.int_]] = None
         self._radial_stats_num_pixels: int = 0
-        self._fast_mode: bool = get_parameter_from_parameter_group(
-            group=crystallography_parameters,
-            parameter="fast_mode",
-            parameter_type=bool,
-            default=False,
-        )
 
-        if self._fast_mode is True:
-            self._num_pixels_per_bin: int = get_parameter_from_parameter_group(
-                group=crystallography_parameters,
-                parameter="number_of_pixel_per_bin_in_radial_statistics",
-                parameter_type=int,
-                required=False,
-                default=100,
-            )
-            self._compute_radial_stats_pixels(
-                num_pixels_per_bin=self._num_pixels_per_bin
+        self._fast_mode: bool = peakfinder8_parameters.fast_mode
+        if peakfinder8_parameters.fast_mode is True:
+            self._num_pixels_per_bin = (
+                peakfinder8_parameters.number_of_pixel_per_bin_in_radial_statistics
             )
 
     def _compute_radial_stats_pixels(self, *, num_pixels_per_bin: int) -> None:

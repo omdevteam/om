@@ -24,11 +24,12 @@ from typing import Any, Dict, List, Tuple, Union, cast
 
 import numpy
 from numpy.typing import NDArray
+from pydantic import Field, create_model, model_validator
+from typing_extensions import Self
 
 from om.algorithms.calibration import Jungfrau1MCalibration
-from om.data_retrieval_layer.data_sources_generic import get_calibration_request
 from om.lib.exceptions import OmMissingDependencyError
-from om.lib.parameters import MonitorParameters
+from om.lib.parameters import validate_parameters
 from om.typing import OmDataSourceProtocol
 
 try:
@@ -48,7 +49,7 @@ class PilatusSingleFrameFiles(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector data frames from Pilatus single-frame CBF files.
@@ -66,10 +67,10 @@ class PilatusSingleFrameFiles(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -114,7 +115,7 @@ class Jungfrau1MFiles(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector data frames from Jungfrau 1M HDF5 files.
@@ -132,10 +133,69 @@ class Jungfrau1MFiles(OmDataSourceProtocol):
                 used, for example, in communications with the user or for the retrieval
                 of a sensor's initialization parameters.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
-        self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
+
+        def check_calibration_parameters(self, *, data_source_name: str) -> Self:
+            if self._calibration and (
+                self._dark_filenames is None
+                or self._gain_filenames is None
+                or self._photon_energy_kev is None
+            ):
+                raise ValueError(
+                    "If calibration is requested for detector {data_source_name}, the "
+                    "following entries must be present in the [data retrieval_layer] "
+                    "section, and cannot have values of None: "
+                    f"{data_source_name}_dark_filenames, "
+                    f"{data_source_name}_gain_filenames, "
+                    f"{data_source_name}_photon_energy_kev"
+                )
+            return self
+
+        param_dict: Dict[str, Tuple[Any, Any]] = {
+            "calibration": (
+                bool,
+                Field(default=True, validation_alias=f"{data_source_name}_calibration"),
+            ),
+            "dark_filenames": (
+                Union[List[str], None],
+                Field(
+                    default=None, validation_alias=f"{data_source_name}_dark_filenames"
+                ),
+            ),
+            "gain_filenames": (
+                Union[List[str], None],
+                Field(
+                    default=None, validation_alias=f"{data_source_name}_gain_filenames"
+                ),
+            ),
+            "photon_energy_kev": (
+                Union[float, None],
+                Field(
+                    default=None,
+                    validation_alias=f"{data_source_name}_photon_energy_kev",
+                ),
+            ),
+        }
+
+        Jungfrau1MFilesDynamicParameters = create_model(
+            "Jungfrau1MFilesParameters",
+            **param_dict,
+            __validators__={
+                "check_calibration_parameters": model_validator(mode="after")(
+                    check_calibration_parameters
+                )
+            },
+        )
+
+        calibration_parameters: Jungfrau1MCalibration = validate_parameters(
+            model=Jungfrau1MFilesDynamicParameters, parameter_group=parameters
+        )
+
+        self._calibrated_data_required = calibration_parameters.calibration
+        self._dark_filenames = calibration_parameters.dark_filenames
+        self._gain_filenames = calibration_parameters.gain_filenames
+        self._photon_energy_kev = calibration_parameters.photon_energy_kev
 
     def initialize_data_source(self) -> None:
         """
@@ -152,34 +212,12 @@ class Jungfrau1MFiles(OmDataSourceProtocol):
         the required calibration constants from the entries `dark_filenames` and
         `gain_filenames` in the `calibration` parameter group.
         """
-        self._calibrated_data_required: bool = get_calibration_request(
-            source_protocols_name=self._data_source_name,
-            monitor_parameters=self._monitor_parameters,
-        )
         if self._calibrated_data_required:
-            dark_filenames: List[str] = self._monitor_parameters.get_parameter(
-                group="data_retrieval_layer",
-                parameter=f"{self._data_source_name}_dark_filenames",
-                parameter_type=list,
-                required=True,
-            )
-            gain_filenames: List[str] = self._monitor_parameters.get_parameter(
-                group="data_retrieval_layer",
-                parameter=f"{self._data_source_name}_gain_filenames",
-                parameter_type=list,
-                required=True,
-            )
-
-            photon_energy_kev: float = self._monitor_parameters.get_parameter(
-                group="data_retrieval_layer",
-                parameter=f"{self._data_source_name}_photon_energy_kev",
-                parameter_type=float,
-            )
 
             self._calibration = Jungfrau1MCalibration(
-                dark_filenames=dark_filenames,
-                gain_filenames=gain_filenames,
-                photon_energy_kev=photon_energy_kev,
+                dark_filenames=self._dark_filenames,
+                gain_filenames=self._gain_filenames,
+                photon_energy_kev=self._photon_energy_kev,
             )
 
     def get_data(
@@ -224,7 +262,7 @@ class Eiger16MFiles(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector data frames from Eiger 16M HDF5 files.
@@ -244,8 +282,8 @@ class Eiger16MFiles(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -295,7 +333,7 @@ class RayonixMccdSingleFrameFiles(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector data frames from Rayonix MX340-HS single-frame mccd files.
@@ -315,8 +353,8 @@ class RayonixMccdSingleFrameFiles(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -364,7 +402,7 @@ class Lambda1M5Files(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Detector data frames from Lambda 1.5M HDF5 files.
@@ -383,8 +421,8 @@ class Lambda1M5Files(OmDataSourceProtocol):
                 of a sensor's initialization parameters.
 
             monitor_parameters: An object storing OM's configuration parameters."""
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -441,7 +479,7 @@ class TimestampFromFileModificationTime(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Timestamp information from the modification date of files.
@@ -462,8 +500,8 @@ class TimestampFromFileModificationTime(OmDataSourceProtocol):
                 of a sensor's initialization parameters.
 
             monitor_parameters: An object storing OM's configuration parameters."""
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """
@@ -508,7 +546,7 @@ class TimestampJungfrau1MFiles(OmDataSourceProtocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ):
         """
         Timestamp information for Jungfrau 1M detector data events.
@@ -533,8 +571,8 @@ class TimestampJungfrau1MFiles(OmDataSourceProtocol):
 
             monitor_parameters: An object storing OM's configuration parameters.
         """
+        del parameters
         self._data_source_name = data_source_name
-        self._monitor_parameters = monitor_parameters
 
     def initialize_data_source(self) -> None:
         """

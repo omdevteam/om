@@ -25,8 +25,6 @@ from typing import Any, Dict, Generator, List, Protocol, Tuple, TypedDict, Union
 import numpy
 from numpy.typing import NDArray
 
-from om.lib.parameters import MonitorParameters
-
 
 class TypePeakList(TypedDict, total=True):
     """
@@ -465,30 +463,6 @@ class TypeClassSumData(TypedDict):
     peak_powder: NDArray[numpy.float_]
 
 
-# class CrystallographyPeakDetectionProtocol(Protocol):
-#     """
-#     See documentation of the `__init__` function.
-#     """
-
-#     def __init__(
-#         self,
-#         *,
-#         data_source_name: str,
-#         monitor_parameters: MonitorParameters,
-#     ) -> None:
-#         """
-#         Protocol for Bragg peak detection algorithm.
-
-#         Peak detections algorithms identify Bragg peaks in X-ray diffraction images.
-
-#         This Protocol class describes the interface that every algorithm of this kind
-#         in OM must implement, in order to be fully integrated in OM's Serial
-#         Crystallography data processing pipeline
-
-
-#         """
-
-
 class OmDataSourceProtocol(Protocol):
     """
     See documentation of the `__init__` function.
@@ -498,7 +472,7 @@ class OmDataSourceProtocol(Protocol):
         self,
         *,
         data_source_name: str,
-        monitor_parameters: MonitorParameters,
+        monitor_parameters: Dict[str, Any],
     ) -> None:
         """
         Protocol for OM's Data Source classes.
@@ -569,7 +543,7 @@ class OmDataEventHandlerProtocol(Protocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Protocol class for OM's Data Event Handler classes.
@@ -597,7 +571,7 @@ class OmDataEventHandlerProtocol(Protocol):
                   [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the data source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
         ...
 
@@ -753,7 +727,7 @@ class OmDataRetrievalProtocol(Protocol):
     def __init__(
         self,
         *,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
         source: str,
     ) -> None:
         """
@@ -771,7 +745,7 @@ class OmDataRetrievalProtocol(Protocol):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
 
             source: A string describing the data event source.
         """
@@ -1043,7 +1017,7 @@ class OmParallelizationProtocol(Protocol):
         *,
         data_retrieval_layer: OmDataRetrievalProtocol,
         processing_layer: OmProcessingProtocol,
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Protocol for OM's Parallelization classes.
@@ -1082,7 +1056,7 @@ class OmParallelizationProtocol(Protocol):
 
             processing_layer: A class instance defining how retrieved data is processed.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
         ...
 

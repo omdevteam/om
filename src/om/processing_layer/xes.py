@@ -26,15 +26,21 @@ from typing import Any, Dict, Tuple, Union
 
 import numpy
 from numpy.typing import NDArray
+from pydantic import BaseModel
 
 from om.algorithms.xes import EnergySpectrumRetrieval
 from om.lib.event_management import EventCounter
 from om.lib.geometry import GeometryInformation
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
+from om.lib.parameters import validate_parameters
 from om.lib.xes import XesAnalysisAndPlots
 from om.lib.zmq import ZmqDataBroadcaster, ZmqResponder
 from om.typing import OmProcessingProtocol
+
+
+class _XesProcessingParameters(BaseModel):
+    geometry_file: str
+    time_resolved: bool
 
 
 class XesProcessing(OmProcessingProtocol):
@@ -42,7 +48,7 @@ class XesProcessing(OmProcessingProtocol):
     See documentation for the `__init__` function.
     """
 
-    def __init__(self, *, monitor_parameters: MonitorParameters) -> None:
+    def __init__(self, *, parameters: Dict[str, Any]) -> None:
         """
         OnDA Monitor for X-ray Emission Spectroscopy.
 
@@ -64,28 +70,20 @@ class XesProcessing(OmProcessingProtocol):
 
         Arguments:
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
         # Parameters
-        self._monitor_params: MonitorParameters = monitor_parameters
+        xes_processing_parameters = validate_parameters(
+            model=_XesProcessingParameters, parameter_group=parameters
+        )
 
         # Geometry
         self._geometry_information = GeometryInformation.from_file(
-            geometry_filename=self._monitor_params.get_parameter(
-                group="xes",
-                parameter="geometry_file",
-                parameter_type=str,
-                required=True,
-            ),
+            geometry_filename=xes_processing_parameters.geometry_file
         )
 
         # Pump probe
-        self._time_resolved: bool = self._monitor_params.get_parameter(
-            group="xes",
-            parameter="time_resolved",
-            parameter_type=bool,
-            required=True,
-        )
+        self._time_resolved: bool = xes_processing_parameters.time_resolved
 
     def initialize_processing_node(
         self, *, node_rank: int, node_pool_size: int
@@ -140,12 +138,6 @@ class XesProcessing(OmProcessingProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        self._time_resolved = self._monitor_params.get_parameter(
-            group="xes",
-            parameter="time_resolved",
-            parameter_type=bool,
-            required=True,
-        )
 
         # Plots
         self._xes_analysis_and_plots = XesAnalysisAndPlots(

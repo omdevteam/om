@@ -25,6 +25,7 @@ import sys
 from typing import Any, Dict, Generator, List
 
 import numpy
+from pydantic import BaseModel
 
 from om.lib.exceptions import (
     OmDataExtractionError,
@@ -33,7 +34,7 @@ from om.lib.exceptions import (
 )
 from om.lib.layer_management import filter_data_sources
 from om.lib.logging import log
-from om.lib.parameters import MonitorParameters
+from om.lib.parameters import validate_parameters
 from om.typing import OmDataEventHandlerProtocol, OmDataSourceProtocol
 
 try:
@@ -42,6 +43,11 @@ except ImportError:
     raise OmMissingDependencyError(
         "The following required module cannot be imported: psana"
     )
+
+
+class _PsanaDataEventHandlerParameters(BaseModel):
+    required_data: List[str]
+    psana_calibration_directory: str
 
 
 def _psana_offline_event_generator(
@@ -75,7 +81,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         *,
         source: str,
         data_sources: Dict[str, OmDataSourceProtocol],
-        monitor_parameters: MonitorParameters,
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Data Event Handler for psana events.
@@ -105,12 +111,28 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
                   [Data Source class][om.protocols.data_retrieval_layer.OmDataSourceProtocol]  # noqa: E501
                   that describes the source.
 
-            monitor_parameters: An object storing OM's configuration parameters.
+            parameters: An object storing OM's configuration parameters.
         """
+        psana_event_handler_parameters: _PsanaDataEventHandlerParameters = (
+            validate_parameters(
+                model=_PsanaDataEventHandlerParameters, parameter_group=parameters
+            )
+        )
 
         self._source: str = source
-        self._monitor_params: MonitorParameters = monitor_parameters
         self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._source: str = source
+        self._data_sources: Dict[str, OmDataSourceProtocol] = data_sources
+
+        self._required_data_sources: List[str] = filter_data_sources(
+            data_sources=self._data_sources,
+            required_data=psana_event_handler_parameters.required_data,
+        )
+
+        self._psana_calib_dir: str = (
+            psana_event_handler_parameters.psana_calibration_directory
+        )
 
     def _initialize_psana_data_source(self) -> Any:
         # This private method contains all the common psana initialization code needed
@@ -118,13 +140,9 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
 
         # If the psana calibration directory is provided in the configuration file, it
         # is added as an option to psana before the DataSource is set.
-        psana_calib_dir: str = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="psana_calibration_directory",
-            parameter_type=str,
-        )
-        if psana_calib_dir is not None:
-            psana.setOption("psana.calib-dir", psana_calib_dir)
+
+        if self._psana_calib_dir is not None:
+            psana.setOption("psana.calib-dir", self._psana_calib_dir)
         else:
             log.warning(
                 "OM Warning: Calibration directory not provided or not found.",
@@ -181,17 +199,7 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
             node_pool_size: The total number of nodes in the OM pool, including all the
                 processing nodes and the collecting node.
         """
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
+        pass
 
     def event_generator(
         self,
@@ -322,18 +330,6 @@ class PsanaDataEventHandler(OmDataEventHandlerProtocol):
         """
         if self._source[-4:] != ":idx":
             self._source += ":idx"
-
-        required_data: List[str] = self._monitor_params.get_parameter(
-            group="data_retrieval_layer",
-            parameter="required_data",
-            parameter_type=list,
-            required=True,
-        )
-
-        self._required_data_sources = filter_data_sources(
-            data_sources=self._data_sources,
-            required_data=required_data,
-        )
 
         psana_source: Any = self._initialize_psana_data_source()
         self._run = next(psana_source.runs())

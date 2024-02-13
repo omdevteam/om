@@ -26,15 +26,34 @@ from typing import Any, Dict, TypeVar, Union, cast
 
 import numpy
 from numpy.typing import DTypeLike, NDArray
+from pydantic import BaseModel, Field, model_validator
 
 from om.algorithms.crystallography import TypePeakList
 from om.lib.geometry import TypeDetectorLayoutInformation, TypePixelMaps
-from om.lib.hdf5 import parse_parameters_and_load_hdf5_data
-from om.lib.parameters import get_parameter_from_parameter_group
+from om.lib.hdf5 import load_hdf5_data
+from om.lib.parameters import validate_parameters
 
 from ._generic_cython import bin_detector_data  # type: ignore
 
 A = TypeVar("A", numpy.float_, numpy.int_)
+
+
+class _RadialProfileParameters(BaseModel):
+    bad_pixel_map_filename: Union[str, None] = Field(default=None)
+    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+    radius_bin_size: float
+
+    @model_validator(mode="after")
+    def check_hd5_path(self) -> "_RadialProfileParameters":
+        if (
+            self.bad_pixel_map_filename is not None
+            and self.bad_pixel_map_hdf5_path is None
+        ):
+            raise ValueError(
+                "If the bad_pixel_map_filename parameter is specified, "
+                "the bad_pixel_map_hdf5_path must also be provided"
+            )
+        return self
 
 
 class RadialProfile:
@@ -46,7 +65,7 @@ class RadialProfile:
         self,
         *,
         radius_pixel_map: NDArray[numpy.float_],
-        radial_parameters: Dict[str, Any],
+        parameters: Dict[str, Any],
     ) -> None:
         """
         Radial average calculation.
@@ -67,8 +86,8 @@ class RadialProfile:
                   the data frame, its distance (in pixels) from the origin of the
                   detector reference system (usually the center of the detector).
 
-            radial_parameters: A set of OM configuration parameters collected together
-                in a parameter group. The parameter group must contain the following
+            parameters: A set of OM configuration parameters collected together in a
+                parameter group. The parameter group must contain the following
                 entries:
 
                 * `radius_bin_size`: The width, in pixels, of each radius bin in the
@@ -99,31 +118,37 @@ class RadialProfile:
                       ignored.
         """
 
-        bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-            Union[NDArray[numpy.int_], None],
-            parse_parameters_and_load_hdf5_data(
-                parameters=radial_parameters,
-                hdf5_filename_parameter="bad_pixel_map_filename",
-                hdf5_path_parameter="bad_pixel_map_hdf5_path",
-            ),
+        radial_profile_parameters: BaseModel = validate_parameters(
+            model=_RadialProfileParameters, parameter_group=parameters
         )
+
+        if (
+            radial_profile_parameters.bad_pixel_map_filename is not None
+            and radial_profile_parameters.bad_pixel_map_hdf5_path is not None
+        ):
+            bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+                Union[NDArray[numpy.int_], None],
+                load_hdf5_data(
+                    hdf5_filename=radial_profile_parameters.bad_pixel_map_filename,
+                    hdf5_path=radial_profile_parameters.bad_pixel_map_hdf5_path,
+                ),
+            )
+        else:
+            bad_pixel_map = None
 
         if bad_pixel_map is None:
             self._mask: Union[NDArray[numpy.bool_], bool] = True
         else:
             self._mask = bad_pixel_map.astype(bool)
 
-        radius_step: float = get_parameter_from_parameter_group(
-            group=radial_parameters,
-            parameter="radius_bin_size",
-            parameter_type=float,
-            required=True,
-        )
-
         # Calculates the radial bins
-        self._num_bins: int = int(radius_pixel_map.max() / radius_step)
+        self._num_bins: int = int(
+            radius_pixel_map.max() / radial_profile_parameters.radius_bin_size
+        )
         radial_bins: NDArray[numpy.float_] = numpy.linspace(
-            0, self._num_bins * radius_step, self._num_bins + 1
+            0,
+            self._num_bins * radial_profile_parameters.radius_bin_size,
+            self._num_bins + 1,
         )
 
         # Creates an array that labels each pixel according to the bin to which it
@@ -200,6 +225,26 @@ class RadialProfile:
         return radial_average
 
 
+class _BinningParameters(BaseModel):
+    bin_size: int
+    min_good_pix_count: Union[int, None] = Field(default=None)
+    bad_pixel_value: Union[int, float, None] = Field(default=None)
+    bad_pixel_map_filename: Union[str, None] = Field(default=None)
+    bad_pixel_map_hdf5_path: Union[str, None] = Field(default=None)
+
+    @model_validator(mode="after")
+    def check_hd5_path(self) -> "_BinningParameters":
+        if (
+            self.bad_pixel_map_filename is not None
+            and self.bad_pixel_map_hdf5_path is None
+        ):
+            raise ValueError(
+                "If the bad_pixel_map_filename parameter is specified, "
+                "the bad_pixel_map_hdf5_path must also be provided"
+            )
+        return self
+
+
 class Binning:
     """
     See documentation of the `__init__` function.
@@ -266,28 +311,17 @@ class Binning:
                   are excluded by the calculation). Defaults to `MAXINT` if the data to
                   bin is of integer type, otherwise defaults to `numpy.nan`.
         """
-        self._layout_info: TypeDetectorLayoutInformation = layout_info
-        self._bin_size: int = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="bin_size",
-            parameter_type=int,
-            required=True,
-        )
-        min_good_pix_count: Union[int, None] = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="min_good_pix_count",
-            parameter_type=int,
-        )
-        if min_good_pix_count is None:
-            self._min_good_pix_count: int = self._bin_size**2
-        else:
-            self._min_good_pix_count = min_good_pix_count
 
-        self._bad_pixel_value: Union[int, float] = get_parameter_from_parameter_group(
-            group=parameters,
-            parameter="bad_pixel_value",
-            parameter_type=int,
+        binning_parameters: _BinningParameters = validate_parameters(
+            model=_BinningParameters, parameter_group=parameters
         )
+
+        self._layout_info: TypeDetectorLayoutInformation = layout_info
+
+        if binning_parameters.min_good_pix_count is None:
+            self._min_good_pix_count: int = binning_parameters.bin_size**2
+        else:
+            self._min_good_pix_count = binning_parameters.min_good_pix_count
 
         self._original_asic_nx: int = self._layout_info["asic_ny"]
         self._original_asic_ny: int = self._layout_info["asic_nx"]
@@ -297,20 +331,29 @@ class Binning:
         self._original_ny: int = (
             self._layout_info["asic_nx"] * self._layout_info["nasics_x"]
         )
-        bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
-            Union[NDArray[numpy.int_], None],
-            parse_parameters_and_load_hdf5_data(
-                parameters=parameters,
-                hdf5_filename_parameter="bad_pixel_map_filename",
-                hdf5_path_parameter="bad_pixel_map_hdf5_path",
-            ),
-        )
+
+        if (
+            binning_parameters.bad_pixel_map_filename is not None
+            and binning_parameters.bad_pixel_map_hdf5_path is not None
+        ):
+            bad_pixel_map: Union[NDArray[numpy.int_], None] = cast(
+                Union[NDArray[numpy.int_], None],
+                load_hdf5_data(
+                    hdf5_filename=binning_parameters.bad_pixel_map_filename,
+                    hdf5_path=binning_parameters.bad_pixel_map_hdf5_path,
+                ),
+            )
+        else:
+            bad_pixel_map = None
+
         if bad_pixel_map is None:
             self._mask: NDArray[numpy.int_] = numpy.ones(
                 (self._original_nx, self._original_ny), dtype=numpy.int8
             )
         else:
             self._mask = bad_pixel_map.astype(numpy.int8)
+
+        self._bin_size: int = binning_parameters.bin_size
 
         self._extended_asic_nx: int = (
             int(numpy.ceil(self._original_asic_nx / self._bin_size)) * self._bin_size
