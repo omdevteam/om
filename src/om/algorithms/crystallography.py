@@ -502,7 +502,10 @@ class Peakfinder8PeakDetection:
         self._mask = None
 
     def find_peaks(
-        self, *, data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
+        self,
+        *,
+        data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
+        outliers: Union[NDArray[numpy.int_], None] = None,
     ) -> TypePeakList:
         """
         Finds peaks in a detector data frame.
@@ -529,25 +532,48 @@ class Peakfinder8PeakDetection:
             self._mask[numpy.where(self._radius_pixel_map < self._min_res)] = 0
             self._mask[numpy.where(self._radius_pixel_map > self._max_res)] = 0
 
-        peak_list: Tuple[List[float], ...] = peakfinder_8(
-            self._max_num_peaks,
-            data.astype(numpy.float32),
-            self._mask,
-            self._radius_pixel_map,
-            self._radial_stats_num_pixels,
-            self._radial_stats_pixel_index,
-            self._radial_stats_radius,
-            int(self._fast_mode),
-            self._asic_nx,
-            self._asic_ny,
-            self._nasics_x,
-            self._nasics_y,
-            self._adc_thresh,
-            self._minimum_snr,
-            self._min_pixel_count,
-            self._max_pixel_count,
-            self._local_bg_radius,
-        )
+        if outliers is None:
+            peak_list: Tuple[List[float], ...] = peakfinder_8(
+                self._max_num_peaks,
+                data.astype(numpy.float32, copy=False),
+                self._mask,
+                self._radius_pixel_map,
+                self._radial_stats_num_pixels,
+                self._radial_stats_pixel_index,
+                self._radial_stats_radius,
+                int(self._fast_mode),
+                self._asic_nx,
+                self._asic_ny,
+                self._nasics_x,
+                self._nasics_y,
+                self._adc_thresh,
+                self._minimum_snr,
+                self._min_pixel_count,
+                self._max_pixel_count,
+                self._local_bg_radius,
+                None,
+            )
+        else:
+            peak_list: Tuple[List[float], ...] = peakfinder_8(
+                self._max_num_peaks,
+                data.astype(numpy.float32),
+                self._mask,
+                self._radius_pixel_map,
+                self._radial_stats_num_pixels,
+                self._radial_stats_pixel_index,
+                self._radial_stats_radius,
+                int(self._fast_mode),
+                self._asic_nx,
+                self._asic_ny,
+                self._nasics_x,
+                self._nasics_y,
+                self._adc_thresh,
+                self._minimum_snr,
+                self._min_pixel_count,
+                self._max_pixel_count,
+                self._local_bg_radius,
+                outliers,
+            )
 
         return {
             "num_peaks": len(peak_list[0]),

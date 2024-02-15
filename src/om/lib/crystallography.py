@@ -121,7 +121,9 @@ class CrystallographyPeakFinding:
         )
 
     def find_peaks(
-        self, detector_data: Union[NDArray[numpy.int_], NDArray[numpy.float_]]
+        self,
+        detector_data: Union[NDArray[numpy.int_], NDArray[numpy.float_]],
+        outliers: Union[NDArray[numpy.int_], None] = None,
     ) -> TypePeakList:
         """
         Finds peaks in a detector data frame.
@@ -139,7 +141,9 @@ class CrystallographyPeakFinding:
 
             A dictionary storing information about the detected peaks.
         """
-        peak_list: TypePeakList = self._peak_detection.find_peaks(data=detector_data)
+        peak_list: TypePeakList = self._peak_detection.find_peaks(
+            data=detector_data, outliers=outliers
+        )
 
         return peak_list
 
@@ -193,9 +197,9 @@ class CrystallographyPlots:
         visualization_pixel_maps: TypeVisualizationPixelMaps = (
             data_visualizer.get_visualization_pixel_maps()
         )
-        plot_shape: Tuple[
-            int, int
-        ] = data_visualizer.get_min_array_shape_for_visualization()
+        plot_shape: Tuple[int, int] = (
+            data_visualizer.get_min_array_shape_for_visualization()
+        )
 
         self._flattened_visualization_pixel_map_y = visualization_pixel_maps[
             "y"

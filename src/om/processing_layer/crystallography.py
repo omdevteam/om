@@ -309,14 +309,23 @@ class CrystallographyProcessing(OmProcessingProtocol):
 
         processed_data: Dict[str, Any] = {}
 
+        outliers: NDArray[numpy.int_] = numpy.zeros_like(
+            data["detector_data"], dtype=numpy.int8
+        )
+
         # Peak-finding
         peak_list: TypePeakList = self._peak_detection.find_peaks(
-            detector_data=data["detector_data"]
+            detector_data=data["detector_data"], outliers=outliers
         )
 
         peak_list = self._post_processing_binning.bin_peak_positions(
             peak_list=peak_list
         )
+
+        # console.print(
+        #     f"DEBUG: Outliers - Sum: {outliers.sum()} - Max: {outliers.max()} - "
+        #     f"Min: {outliers.min()}"
+        # )
 
         frame_is_hit: bool = (
             self._min_num_peaks_for_hit
@@ -505,9 +514,9 @@ class CrystallographyProcessing(OmProcessingProtocol):
                 "peakogram_intensity_bin_size": peakogram_intensity_bin_size,
             }
             if self._pump_probe_experiment:
-                omdata_message[
-                    "hit_rate_timestamp_history_dark"
-                ] = curr_hit_rate_timestamp_history_dark
+                omdata_message["hit_rate_timestamp_history_dark"] = (
+                    curr_hit_rate_timestamp_history_dark
+                )
                 omdata_message["hit_rate_history_dark"] = curr_hit_rate_history_dark
 
             self._data_broadcast_socket.send_data(
@@ -615,9 +624,9 @@ class CrystallographyProcessing(OmProcessingProtocol):
         # over the responding network socket. It either changes the state of the
         # monitor (resetting accumulated data, for example) or returns some data to the
         # requesting party.
-        request: Union[
-            Tuple[bytes, bytes], None
-        ] = self._responding_socket.get_request()
+        request: Union[Tuple[bytes, bytes], None] = (
+            self._responding_socket.get_request()
+        )
         if request:
             if request[1] == b"next":
                 self._request_list.append(request)
