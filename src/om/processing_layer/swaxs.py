@@ -260,8 +260,6 @@ class SwaxsProcessing(OmProcessingProtocol):
             downstream_intensity=data["post_sample_intensity"],
         )
 
-        # detector_data_sum: float = data["detector_data"].sum()
-
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
         processed_data["q"] = q
@@ -680,7 +678,6 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
         processed_data: Dict[str, Any] = {}
 
         mask = self._radial_profile_analysis._radial_profile_bad_pixel_map
-        print(mask.sum(), mask.size)
 
         radial_profile: NDArray[numpy.float_]
         q: NDArray[numpy.float_]
@@ -703,8 +700,6 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             detector_distance=data["detector_distance"],
             downstream_intensity=data["post_sample_intensity"],
         )
-
-        # detector_data_sum: float = data["detector_data"].sum()
 
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum

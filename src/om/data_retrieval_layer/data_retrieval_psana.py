@@ -39,6 +39,7 @@ from om.data_retrieval_layer.data_sources_psana import (
     RayonixPsana,
     TimestampPsana,
 )
+from om.data_retrieval_layer.data_sources_generic import FloatEntryFromConfiguration
 from om.lib.parameters import MonitorParameters
 from om.protocols.data_retrieval_layer import (
     OmDataEventHandlerProtocol,
@@ -198,6 +199,10 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="detector_distance",
                 monitor_parameters=monitor_parameters,
             ),
+            "detector_distance": FloatEntryFromConfiguration(
+                data_source_name="fallback_detector_distance_in_mm",
+                monitor_parameters=monitor_parameters,
+            ),
             "timetool_data": EpicsVariablePsana(
                 data_source_name="timetool", monitor_parameters=monitor_parameters
             ),
@@ -209,6 +214,10 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
+            "post_sample_intensity": BeamlineDataPsana(
+                data_source_name="post_sample_intensity",
+                monitor_parameters=monitor_parameters,
+            ),           
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
                 monitor_parameters=monitor_parameters,
