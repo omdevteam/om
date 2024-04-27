@@ -214,10 +214,10 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
-            "post_sample_intensity": BeamlineDataPsana(
+            "post_sample_intensity": DiodeTotalIntensityPsana(
                 data_source_name="post_sample_intensity",
                 monitor_parameters=monitor_parameters,
-            ),           
+            ),
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
                 monitor_parameters=monitor_parameters,
@@ -308,6 +308,10 @@ class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
             ),
             "xrays_active": EvrCodesPsana(
                 data_source_name="active_xrays",
+                monitor_parameters=monitor_parameters,
+            ),
+            "post_sample_intensity": DiodeTotalIntensityPsana(
+                data_source_name="post_sample_intensity",
                 monitor_parameters=monitor_parameters,
             ),
             "lcls_extra": LclsExtraPsana(
@@ -402,6 +406,10 @@ class MfxLclsDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
+            "post_sample_intensity": DiodeTotalIntensityPsana(
+                data_source_name="post_sample_intensity",
+                monitor_parameters=monitor_parameters,
+            ),
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
                 monitor_parameters=monitor_parameters,
@@ -493,6 +501,10 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="active_xrays",
                 monitor_parameters=monitor_parameters,
             ),
+            "post_sample_intensity": DiodeTotalIntensityPsana(
+                data_source_name="post_sample_intensity",
+                monitor_parameters=monitor_parameters,
+            ),
             "lcls_extra": LclsExtraPsana(
                 data_source_name="lcls_extra",
                 monitor_parameters=monitor_parameters,
@@ -517,3 +529,4 @@ class MfxLclsRayonixDataRetrieval(OmDataRetrievalProtocol):
             The Data Event Handler used by the Data Retrieval class.
         """
         return self._data_event_handler
+
