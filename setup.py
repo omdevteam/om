@@ -123,6 +123,7 @@ setup(
         "click",
         "cython",
         "fabio",
+        "hdf5plugin",
         "h5py",
         "msgpack",
         "msgpack_numpy",
@@ -131,6 +132,7 @@ setup(
         "pyyaml",
         "pyzmq",
         "rich",
+        "ruamel.yaml",
         "scipy",
     ],
     extras_require={
