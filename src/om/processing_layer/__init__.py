@@ -27,3 +27,4 @@ from .cheetah_streaming import StreamingCheetahProcessing  # noqa: F401
 from .crystallography import CrystallographyProcessing  # noqa: F401
 from .testing import TestProcessing  # noqa: F401
 from .xes import XesProcessing  # noqa: F401
+from .swaxs import SwaxsProcessing
