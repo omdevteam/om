@@ -257,13 +257,13 @@ class SwaxsProcessing(OmProcessingProtocol):
             data=data["detector_data"],
             beam_energy=data["beam_energy"],
             detector_distance=data["detector_distance"],
-            downstream_intensity=data["post_sample_intensity"],
+            downstream_intensity=1.0 #data["post_sample_intensity"],
         )
 
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
         processed_data["q"] = q
-        processed_data["downstream_intensity"] = data["post_sample_intensity"]
+        processed_data["downstream_intensity"] = 1.0 #data["post_sample_intensity"]
         processed_data["roi1_intensity"] = roi1_intensity
         processed_data["roi2_intensity"] = roi2_intensity
         processed_data["sample_detected"] = sample_detected
@@ -698,13 +698,13 @@ class SwaxsCheetahProcessing(OmProcessingProtocol):
             data=data["detector_data"],
             beam_energy=data["beam_energy"],
             detector_distance=data["detector_distance"],
-            downstream_intensity=data["post_sample_intensity"],
+            downstream_intensity=1.0 #data["post_sample_intensity"],
         )
 
         processed_data["radial_profile"] = radial_profile
         processed_data["detector_data_sum"] = detector_data_sum
         processed_data["q"] = q
-        processed_data["downstream_intensity"] = data["post_sample_intensity"]
+        processed_data["downstream_intensity"] = 1.0 #data["post_sample_intensity"]
         processed_data["roi1_intensity"] = roi1_intensity
         processed_data["roi2_intensity"] = roi2_intensity
         processed_data["sample_detected"] = sample_detected

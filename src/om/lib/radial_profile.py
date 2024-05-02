@@ -461,6 +461,20 @@ class RadialProfileAnalysis:
                 default="guinier",
             )
 
+            self._guinier_qmin: float = get_parameter_from_parameter_group(
+                group=radial_parameters,
+                parameter="roi2_qmin",
+                parameter_type=float,
+                default=0.0,
+            )
+            self._guinier_qmax: float = get_parameter_from_parameter_group(
+                group=radial_parameters,
+                parameter="guinier_qmax",
+                parameter_type=float,
+                default=0.1,
+            )
+
+
         self._coffset = geometry_information.get_detector_distance_offset()
         self._pixel_size = geometry_information.get_pixel_size()
 
@@ -798,7 +812,7 @@ class RadialProfileAnalysisPlots:
                 # reset cumulative hits radial every N hits
                 self._cumulative_hits_radial = radial_profile
             else:
-                self._cumulative_hits_radial = cumulative_moving_average(
+                self._cumulative_hits_radial = _cumulative_moving_average(
                     new_radial=radial_profile,
                     previous_cumulative_avg=self._cumulative_hits_radial,
                     num_events=self._num_hits,
