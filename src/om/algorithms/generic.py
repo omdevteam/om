@@ -148,6 +148,9 @@ class RadialProfile:
         """
         return self._radial_bin_labels
 
+    def get_num_radial_bins(self):
+            return self._num_bins
+
     def get_bad_pixel_map(self) -> Union[NDArray[numpy.bool_], None]:
         """
         Gets the bad pixel map provided to the algorithm.

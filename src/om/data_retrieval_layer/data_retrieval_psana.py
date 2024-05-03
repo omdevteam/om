@@ -31,6 +31,7 @@ from om.data_retrieval_layer.data_sources_psana import (
     DiodeTotalIntensityPsana,
     EpicsVariablePsana,
     Epix10kaPsana,
+    Epix10kaSinglePanelPsana,
     Epix100Psana,
     EventIdPsana,
     EvrCodesPsana,
@@ -199,10 +200,10 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
                 data_source_name="detector_distance",
                 monitor_parameters=monitor_parameters,
             ),
-            "detector_distance": FloatEntryFromConfiguration(
-                data_source_name="fallback_detector_distance_in_mm",
-                monitor_parameters=monitor_parameters,
-            ),
+            # "detector_distance": FloatEntryFromConfiguration(
+            #     data_source_name="fallback_detector_distance_in_mm",
+            #     monitor_parameters=monitor_parameters,
+            # ),
             "timetool_data": EpicsVariablePsana(
                 data_source_name="timetool", monitor_parameters=monitor_parameters
             ),
@@ -243,6 +244,203 @@ class CxiLclsCspadDataRetrieval(OmDataRetrievalProtocol):
         """
         return self._data_event_handler
 
+class CxiLclsEpix10kaDataRetrieval(OmDataRetrievalProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+        """
+        Data Retrieval from psana at the CXI beamline of the LCLS facility (CSPAD).
+
+        This class implements OM's Data Retrieval Layer for the CXI beamline of the
+        LCLS facility, using the CSPAD x-ray detector. This detector was used at the
+        beamline until early 2020.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        * This class considers an individual data event as equivalent to the content of
+          a psana event, which stores data related to a single detector frame.
+
+        * A string combining psana's timestamp and fiducial information, with the
+          following format:
+          `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`, is used as event
+          identifier.
+
+        * Psana provides timestamp, beam energy and detector distance data for each
+          event, retrieved from various sensors in the system.
+
+        * The source string required by this Data Retrieval class is a string of the
+          type used by psana to identify specific runs, experiments, or live data
+          streams.
+
+        Arguments:
+
+            monitor_parameters: An object OM's configuration parameters.
+
+            source: A string describing the data event source.
+        """
+        data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": TimestampPsana(
+                data_source_name="timestamp", monitor_parameters=monitor_parameters
+            ),
+            "event_id": EventIdPsana(
+                data_source_name="eventid", monitor_parameters=monitor_parameters
+            ),
+            "detector_data": Epix10kaPsana(
+                data_source_name="detector", monitor_parameters=monitor_parameters
+            ),
+            "beam_energy": BeamEnergyPsana(
+                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+            ),
+            "detector_distance": EpicsVariablePsana(
+                data_source_name="detector_distance",
+                monitor_parameters=monitor_parameters,
+            ),
+            # "detector_distance": FloatEntryFromConfiguration(
+            #     data_source_name="fallback_detector_distance_in_mm",
+            #     monitor_parameters=monitor_parameters,
+            # ),
+            "timetool_data": EpicsVariablePsana(
+                data_source_name="timetool", monitor_parameters=monitor_parameters
+            ),
+            "optical_laser_active": EvrCodesPsana(
+                data_source_name="active_optical_laser",
+                monitor_parameters=monitor_parameters,
+            ),
+            "xrays_active": EvrCodesPsana(
+                data_source_name="active_xrays",
+                monitor_parameters=monitor_parameters,
+            ),
+            "post_sample_intensity": DiodeTotalIntensityPsana(
+                data_source_name="post_sample_intensity",
+                monitor_parameters=monitor_parameters,
+            ),
+            "lcls_extra": LclsExtraPsana(
+                data_source_name="lcls_extra",
+                monitor_parameters=monitor_parameters,
+            ),
+        }
+
+        self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
+            source=source,
+            monitor_parameters=monitor_parameters,
+            data_sources=data_sources,
+        )
+
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
+        """
+        Retrieves the Data Event Handler used by the Data Retrieval class.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Returns:
+
+            The Data Event Handler used by the Data Retrieval class.
+        """
+        return self._data_event_handler
+
+class CxiLclsEpix10kaSinglePanelDataRetrieval(OmDataRetrievalProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(self, *, monitor_parameters: MonitorParameters, source: str):
+        """
+        Data Retrieval from psana at the CXI beamline of the LCLS facility (CSPAD).
+
+        This class implements OM's Data Retrieval Layer for the CXI beamline of the
+        LCLS facility, using the CSPAD x-ray detector. This detector was used at the
+        beamline until early 2020.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        * This class considers an individual data event as equivalent to the content of
+          a psana event, which stores data related to a single detector frame.
+
+        * A string combining psana's timestamp and fiducial information, with the
+          following format:
+          `{timestamp: seconds}-{timestamp: nanoseconds}-{fiducials}`, is used as event
+          identifier.
+
+        * Psana provides timestamp, beam energy and detector distance data for each
+          event, retrieved from various sensors in the system.
+
+        * The source string required by this Data Retrieval class is a string of the
+          type used by psana to identify specific runs, experiments, or live data
+          streams.
+
+        Arguments:
+
+            monitor_parameters: An object OM's configuration parameters.
+
+            source: A string describing the data event source.
+        """
+        data_sources: Dict[str, OmDataSourceProtocol] = {
+            "timestamp": TimestampPsana(
+                data_source_name="timestamp", monitor_parameters=monitor_parameters
+            ),
+            "event_id": EventIdPsana(
+                data_source_name="eventid", monitor_parameters=monitor_parameters
+            ),
+            "detector_data": Epix10kaSinglePanelPsana(
+                data_source_name="detector", monitor_parameters=monitor_parameters
+            ),
+            "beam_energy": BeamEnergyPsana(
+                data_source_name="beam_energy", monitor_parameters=monitor_parameters
+            ),
+            "detector_distance": EpicsVariablePsana(
+                data_source_name="detector_distance",
+                monitor_parameters=monitor_parameters,
+            ),
+            # "detector_distance": FloatEntryFromConfiguration(
+            #     data_source_name="fallback_detector_distance_in_mm",
+            #     monitor_parameters=monitor_parameters,
+            # ),
+            "timetool_data": EpicsVariablePsana(
+                data_source_name="timetool", monitor_parameters=monitor_parameters
+            ),
+            "optical_laser_active": EvrCodesPsana(
+                data_source_name="active_optical_laser",
+                monitor_parameters=monitor_parameters,
+            ),
+            "xrays_active": EvrCodesPsana(
+                data_source_name="active_xrays",
+                monitor_parameters=monitor_parameters,
+            ),
+            "post_sample_intensity": DiodeTotalIntensityPsana(
+                data_source_name="post_sample_intensity",
+                monitor_parameters=monitor_parameters,
+            ),
+            "lcls_extra": LclsExtraPsana(
+                data_source_name="lcls_extra",
+                monitor_parameters=monitor_parameters,
+            ),
+        }
+
+        self._data_event_handler: OmDataEventHandlerProtocol = PsanaDataEventHandler(
+            source=source,
+            monitor_parameters=monitor_parameters,
+            data_sources=data_sources,
+        )
+
+    def get_data_event_handler(self) -> OmDataEventHandlerProtocol:
+        """
+        Retrieves the Data Event Handler used by the Data Retrieval class.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        Returns:
+
+            The Data Event Handler used by the Data Retrieval class.
+        """
+        return self._data_event_handler
 
 class LclsEpix100DataRetrieval(OmDataRetrievalProtocol):
     """
