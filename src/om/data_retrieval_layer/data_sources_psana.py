@@ -322,6 +322,97 @@ class Epix10kaPsana(OmDataSourceProtocol):
 
         return epixka2m_reshaped
 
+class Epix10kaSinglePanelPsana(OmDataSourceProtocol):
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(
+        self,
+        *,
+        data_source_name: str,
+        monitor_parameters: MonitorParameters,
+    ):
+        """
+        Epix10KA 2M detector data frames  from psana at the LCLS facility.
+
+        This class deals with the retrieval of Epix10Ka 2M detector data frames from
+        the psana software framework.
+
+        This class implements the interface described by its base Protocol class.
+        Please see the documentation of that class for additional information about
+        the interface.
+
+        Arguments:
+
+            data_source_name: A name that identifies the current data source. It is
+                used, for example, in communications with the user or for the retrieval
+                of a sensor's initialization parameters.
+
+            monitor_parameters: An object storing OM's configuration parameters.
+        """
+        self._data_source_name = data_source_name
+        self._monitor_parameters = monitor_parameters
+
+    def initialize_data_source(self) -> None:
+        """
+        Initializes the Epix10KA 2M detector frame data source.
+
+        Please see the documentation of the base Protocol class for additional
+        information about this method.
+
+        This function initializes data retrieval for the detector whose psana name
+        matches the `psana_{source_protocols_name}_name` entry in OM's
+        `data_retrieval_layer` configuration parameter group, or for the detector with
+        a given psana name, if the `source_protocols_name` argument has the format
+        `psana-{psana detector name}`.
+        """
+        self._data_retrieval_function: Callable[
+            [Any], Any
+        ] = _get_psana_data_retrieval_function(
+            source_protocols_name=self._data_source_name,
+            monitor_parameters=self._monitor_parameters,
+        )
+
+    def get_data(
+        self, *, event: Dict[str, Any]
+    ) -> Union[NDArray[numpy.float_], NDArray[numpy.int_]]:
+        """
+        Retrieves an Epix10KA 2M detector data frame from psana.
+
+        This method overrides the corresponding method of the base class: please also
+        refer to the documentation of that class for more information.
+
+        This function retrieves from psana the detector data frame associated with the
+        provided event. It returns the frame as a 2D array storing pixel information.
+        Data is retrieved in calibrated or non-calibrated form depending on the
+        value of the `{source_protocols_name}_calibration` entry in OM's
+        `data_retrieval_layer` configuration parameter group.
+
+        Arguments:
+
+            event: A dictionary storing the event data.
+
+        Returns:
+
+            A detector data frame.
+
+        Raises:
+
+            OmDataExtractionError: Raised when data cannot be retrieved from psana.
+        """
+        epixka2m_psana: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = self._data_retrieval_function(event["data"])
+        if epixka2m_psana is None:
+            raise OmDataExtractionError("Could not retrieve detector data from psana.")
+
+        # Rearranges the data into 'slab' format.
+        epixka2m_reshaped: Union[
+            NDArray[numpy.float_], NDArray[numpy.int_]
+        ] = epixka2m_psana.reshape(352, 384)
+
+        return epixka2m_reshaped
 
 class Jungfrau4MPsana(OmDataSourceProtocol):
     """

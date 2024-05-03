@@ -30,6 +30,7 @@ from om.algorithms.crystallography import TypePeakList
 from om.lib.exceptions import OmHdf5UnsupportedDataFormat
 from om.lib.parameters import get_parameter_from_parameter_group
 from om.lib.rich_console import console, get_current_timestamp
+from om.lib.geometry import TypeDetector
 
 
 class TypeFrameListData(NamedTuple):
@@ -1017,6 +1018,453 @@ class HDF5Writer:
             dataset.resize(self._num_frames + extension_size, axis=0)
         self._num_frames += extension_size
 
+class SwaxsHDF5Writer:
+    """
+    See documentation of the `__init__` function.
+    """
+
+    def __init__(  # noqa: C901
+        self,
+        *,
+        node_rank: int,
+        cheetah_parameters: Dict[str, Any],
+        num_radial_bins: int,
+    ) -> None:
+        """
+        HDF5 file writer for Cheetah.
+
+        This class creates HDF5 data files to store the information processed by
+        Cheetah. For each data event, this class saves into an HDF5 file a processed
+        detector data frame, the list of Bragg peaks detected in the frame, and some
+        additional information (timestamp, beam energy, detector distance, pump laser
+        state).
+
+        Arguments:
+
+            cheetah_parameters: A set of OM configuration parameters collected together
+                in a parameter group. The parameter group must contain the following
+                entries:
+
+                directory_for_processed_data: A relative or absolute path to the
+                    directory where the output files are written.
+
+                compression: The compression filter to be applied to the data in the
+                    output file.
+
+                hdf5_fields: A dictionary storing information about the internal HDF5
+                    path where each data entry must be written.
+
+                    * The keys in the dictionary must store the names of data entries
+                      to write.
+
+                    * The corresponding dictionary values must contain the internal
+                      HDF5 paths where the entries must be written.
+
+                processed_filename_prefix: A string that is prepended to the name of
+                    the output files. Optional. If the value of this entry is None, the
+                    string 'processed_' will be used as prefix. Defaults to None.
+
+                processed_filename_extension: An extension string that id appended to
+                    the name of the output files. Optional. If the value of this entry
+                    is None, the string 'h5' is be used as extension. Defaults to
+                    None.
+
+                compression_opts: The compression level to be used, if data compression
+                    is applied to the output files. The information in this entry only
+                    applies if the corresponding `compression` entry is not None,
+                    otherwise, it is ignored. Optional. If the value of this entry is
+                    None, the compression level is set to 4. Defaults to None.
+
+                compression_shuffle: Whether the `shuffle` filter is applied. If the
+                    value of this entry is True, the filter is applied to the data
+                    being written, otherwise it is not. Defaults to None.
+
+                max_num_peaks: The maximum number of detected Bragg peaks that are
+                    written in the HDF5 file for each event. Optional. If the value
+                    of this entry is None, only the first 1024 peaks detected in each
+                    frame are written to the output file. Defaults to None.
+
+            node_rank: The rank of the OM node that writes the data in the output
+                files.
+        """
+        # Output file
+        directory_for_processed_data: str = get_parameter_from_parameter_group(
+            group=cheetah_parameters,
+            parameter="processed_directory",
+            parameter_type=str,
+            required=True,
+        )
+        processed_filename_prefix: Union[
+            str, None
+        ] = get_parameter_from_parameter_group(
+            group=cheetah_parameters,
+            parameter="processed_filename_prefix",
+            parameter_type=str,
+        )
+        if processed_filename_prefix is None:
+            processed_filename_prefix = "processed"
+        self._processed_filename: pathlib.Path = (
+            pathlib.Path(directory_for_processed_data).resolve()
+            / f"{processed_filename_prefix}_{node_rank}.inprogress"
+        )
+        processed_filename_extension: Union[
+            str, None
+        ] = get_parameter_from_parameter_group(
+            group=cheetah_parameters,
+            parameter="processed_filename_extension",
+            parameter_type=str,
+        )
+        if processed_filename_extension is None:
+            processed_filename_extension = "h5"
+        self._processed_filename_extension: str = f".{processed_filename_extension}"
+
+        # HDF5 fields
+        self._hdf5_fields = get_parameter_from_parameter_group(
+            group=cheetah_parameters,
+            parameter="hdf5_fields",
+            parameter_type=dict,
+        )
+
+        # Data format
+        self._data_type: Union[
+            str, DTypeLike, None
+        ] = get_parameter_from_parameter_group(
+            group=cheetah_parameters,
+            parameter="hdf5_file_data_type",
+            parameter_type=str,
+        )
+
+        # Compression
+        compression: Union[str, None] = get_parameter_from_parameter_group(
+            group=cheetah_parameters,
+            parameter="hdf5_file_compression",
+            parameter_type=str,
+        )
+        if compression not in ("gzip", "bitshuffle_with_zstd"):
+            # TODO: print a warning or an error for unsupported compression type
+            # If a warning say no compression will be applied
+            compression = None
+        if compression == "gzip":
+            compression_level: int = get_parameter_from_parameter_group(
+                group=cheetah_parameters,
+                parameter="hdf5_file_gzip_compression_level",
+                parameter_type=int,
+                default=4,
+            )
+            self._compression_kwargs: Dict[str, Any] = {
+                "compression": "gzip",
+                "compression_opts": compression_level,
+            }
+        elif compression == "bitshuffle_with_zstd":
+            compression_level: int = get_parameter_from_parameter_group(
+                group=cheetah_parameters,
+                parameter="hdf5_file_zstd_compression_level",
+                parameter_type=int,
+                default=3,
+            )
+            self._compression_kwargs = dict(
+                hdf5plugin.Bitshuffle(cname="zstd", clevel=compression_level)
+            )
+        else:
+            self._compression_kwargs = {}
+        self._compression_kwargs["shuffle"] = get_parameter_from_parameter_group(
+            group=cheetah_parameters,
+            parameter="hdf5_file_compression_shuffle",
+            parameter_type=bool,
+            default=False,
+        )
+
+        if self._data_type is None:
+            detector_data_type: numpy.ndarray = numpy.float32
+        else:
+            detector_data_type = numpy.dtype(self._data_type)
+
+        # TODO: decide what to do if file exists
+        self._h5file: Any = h5py.File(self._processed_filename, "w")
+
+        self._resizable_datasets: Dict[str, Any] = {}
+
+        # compression = self._compression_kwargs["compression"]
+        compression_opts = None #self._compression_kwargs["compression_opts"]
+        compression_shuffle = None #self._compression_kwargs["shuffle"]
+
+        if "detector_data" in self._hdf5_fields.keys():
+            self._resizable_datasets["detector_data"] = self._h5file.create_dataset(
+                name=self._hdf5_fields["detector_data"],
+                shape=(0,) + detector_data_shape,
+                maxshape=(None,) + detector_data_shape,
+                dtype=detector_data_type,
+                chunks=(1,) + detector_data_shape,
+                compression=compression,
+                compression_opts=compression_opts,
+                shuffle=compression_shuffle,
+            )
+        if "event_id" in self._hdf5_fields.keys():
+            self._resizable_datasets["event_id"] = self._h5file.create_dataset(
+                name=self._hdf5_fields["event_id"],
+                shape=(0,),
+                maxshape=(None,),
+                dtype=h5py.special_dtype(vlen=str),
+            )
+        if "optical_laser_active" in self._hdf5_fields.keys():
+            self._resizable_datasets[
+                "optical_laser_active"
+            ] = self._h5file.create_dataset(
+                name=self._hdf5_fields["optical_laser_active"],
+                shape=(0,),
+                maxshape=(None,),
+                dtype=numpy.bool,
+            )
+
+        radial_shape = (num_radial_bins,)
+        if "q" in self._hdf5_fields.keys():
+            self._resizable_datasets["q"] = self._h5file.create_dataset(
+                name=self._hdf5_fields["q"],
+                shape=(0,) + radial_shape,
+                maxshape=(None,) + radial_shape,
+                dtype=detector_data_type,
+                chunks=(1,) + radial_shape,
+                compression=compression,
+                compression_opts=compression_opts,
+                shuffle=compression_shuffle,
+            )
+        if "radial" in self._hdf5_fields.keys():
+            self._resizable_datasets["radial"] = self._h5file.create_dataset(
+                name=self._hdf5_fields["radial"],
+                shape=(0,) + radial_shape,
+                maxshape=(None,) + radial_shape,
+                dtype=detector_data_type,
+                chunks=(1,) + radial_shape,
+                compression=compression,
+                compression_opts=compression_opts,
+                shuffle=compression_shuffle,
+            )
+        if "errors" in self._hdf5_fields.keys():
+            self._resizable_datasets["errors"] = self._h5file.create_dataset(
+                name=self._hdf5_fields["errors"],
+                shape=(0,) + radial_shape,
+                maxshape=(None,) + radial_shape,
+                dtype=detector_data_type,
+                chunks=(1,) + radial_shape,
+                compression=compression,
+                compression_opts=compression_opts,
+                shuffle=compression_shuffle,
+            )
+        if "image_sum" in self._hdf5_fields.keys():
+            self._resizable_datasets[
+                "image_sum"
+            ] = self._h5file.create_dataset(
+                name=self._hdf5_fields["image_sum"],
+                shape=(0,),
+                maxshape=(None,),
+                dtype=numpy.bool,
+            )
+        if "frame_is_droplet" in self._hdf5_fields.keys():
+            self._resizable_datasets[
+                "frame_is_droplet"
+            ] = self._h5file.create_dataset(
+                name=self._hdf5_fields["frame_is_droplet"],
+                shape=(0,),
+                maxshape=(None,),
+                dtype=numpy.bool,
+            )
+        if "frame_is_crystal" in self._hdf5_fields.keys():
+            self._resizable_datasets[
+                "frame_is_crystal"
+            ] = self._h5file.create_dataset(
+                name=self._hdf5_fields["frame_is_crystal"],
+                shape=(0,),
+                maxshape=(None,),
+                dtype=numpy.bool,
+            )
+        # Creating all requested 1D float64 datasets:
+        key: str
+        for key in ("timestamp", "beam_energy", "pixel_size", "detector_distance", "post_sample_intensity"):
+            if key in self._hdf5_fields.keys():
+                self._resizable_datasets[key] = self._h5file.create_dataset(
+                    name=self._hdf5_fields[key],
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=numpy.float64,
+                )
+
+        self._extra_groups: Dict[str, Any] = {}
+
+        self._requested_datasets: Set[str] = set(self._hdf5_fields.keys())
+
+        self._num_frames: int = 0
+
+    def _create_extra_datasets(
+        self, group_name: str, extra_data: Dict[str, Any]
+    ) -> None:
+        # Creates empty dataset in the extra data group for each item in extra_data dict
+        # using dict keys as dataset names. Supported data types: numpy.ndarray, str,
+        # float, int and bool
+        key: str
+        value: Any
+        for key, value in extra_data.items():
+            if isinstance(value, numpy.ndarray):
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
+                    name=key,
+                    shape=(0, *value.shape),
+                    maxshape=(None, *value.shape),
+                    dtype=value.dtype,
+                )
+            elif isinstance(value, str):
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
+                    name=key,
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=h5py.special_dtype(vlen=str),
+                )
+            elif (
+                numpy.issubdtype(type(value), numpy.integer)
+                or numpy.issubdtype(type(value), numpy.floating)
+                or numpy.issubdtype(type(value), numpy.bool_)
+            ):
+                self._resizable_datasets[group_name + "/" + key] = self._extra_groups[
+                    group_name
+                ].create_dataset(
+                    name=key,
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=type(value),
+                )
+            else:
+                raise exceptions.OmHdf5UnsupportedDataFormat(
+                    "Cannot write the '{}' data entry into the output HDF5: "
+                    "its format is not supported.".format(key)
+                )
+
+    def _write_extra_data(self, group_name: str, extra_data: Dict[str, Any]) -> None:
+        key: str
+        value: Any
+        for key, value in extra_data.items():
+            self._extra_groups[group_name][key][self._num_frames - 1] = extra_data[key]
+
+    def write_frame(self, processed_data: Dict[str, Any]) -> None:
+        """
+        Writes one data frame to the HDF5 file.
+
+        Arguments:
+
+            processed_data: A dictionary containing the data to write in the HDF5 file.
+        """
+        # Datasets to write:
+        fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
+
+        extra_group_name: str
+        if self._num_frames == 0:
+            for extra_group_name in self._extra_groups:
+                if extra_group_name in fields:
+                    self._create_extra_datasets(
+                        extra_group_name, processed_data[extra_group_name]
+                    )
+
+        self._resize_datasets()
+        frame_num: int = self._num_frames - 1
+        dataset_dict_keys_to_write: List[
+            Literal[
+                "detector_data",
+                "event_id",
+                "timestamp",
+                "beam_energy",
+                "detector_distance",
+                "post_sample_intensity",
+                "optical_laser_active",
+                "q",
+                "radial",
+                "errors",
+                "image_sum",
+                "frame_is_droplet",
+                "frame_is_crystal"
+            ]
+        ] = [
+            "detector_data",
+            "event_id",
+            "timestamp",
+            "beam_energy",
+            "detector_distance",
+            "post_sample_intensity",
+            "optical_laser_active",
+            "q",
+            "radial",
+            "errors",
+            "image_sum",
+            "frame_is_droplet",
+            "frame_is_crystal"
+        ]
+        dataset_dict_key: str
+        for dataset_dict_key in dataset_dict_keys_to_write:
+            if dataset_dict_key in fields:
+                self._resizable_datasets[dataset_dict_key][frame_num] = processed_data[
+                    dataset_dict_key
+                ]
+
+        if "peak_list" in fields:
+            peak_list: cryst_algs.TypePeakList = processed_data["peak_list"]
+            n_peaks: int = min(peak_list["num_peaks"], self._max_num_peaks)
+            self._resizable_datasets["npeaks"][frame_num] = n_peaks
+            peak_dict_keys_to_write: List[
+                Literal[
+                    "fs", "ss", "intensity", "num_pixels", "max_pixel_intensity", "snr"
+                ]
+            ] = ["fs", "ss", "intensity", "num_pixels", "max_pixel_intensity", "snr"]
+            peak_dict_key: str
+            for peak_dict_key in peak_dict_keys_to_write:
+                self._resizable_datasets[peak_dict_key][
+                    frame_num, :n_peaks
+                ] = peak_list[peak_dict_key][:n_peaks]
+
+        for extra_group_name in self._extra_groups:
+            if extra_group_name in fields:
+                self._write_extra_data(
+                    extra_group_name,
+                    processed_data[extra_group_name],
+                )
+
+    def close(self) -> None:
+        """
+        Closes the file being written.
+        """
+        self._h5file.close()
+        print(
+            "{0} frames saved in {1} file.".format(
+                self._num_frames, self._processed_filename
+            )
+        )
+        sys.stdout.flush()
+
+    def get_current_filename(self) -> pathlib.Path:
+        """
+        Retrieves the path to the file being written.
+
+        Returns:
+
+            The path to the file currently being written.
+        """
+        return self._processed_filename
+
+    def get_num_written_frames(self) -> int:
+        """
+        Retrieves the number of already written frames.
+
+        Returns:
+
+            The number of frames already written in the current file.
+        """
+        return self._num_frames - 1
+
+    def _resize_datasets(self, extension_size: int = 1) -> None:
+        # Extends all resizable datasets by the specified extension size
+        dataset: Any
+        for dataset in self._resizable_datasets.values():
+            dataset.resize(self._num_frames + extension_size, axis=0)
+        self._num_frames += extension_size
 
 class SumHDF5Writer:
     """

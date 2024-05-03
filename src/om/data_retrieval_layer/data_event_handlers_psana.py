@@ -56,7 +56,7 @@ def _psana_offline_event_generator(
     # processing node is assigned the residual events.
     run: Any
     for run in psana_source.runs():
-        times: Any = run.times()
+        times: Any = run.times()#[:100]
         num_events_curr_node: int = int(
             numpy.ceil(len(times) / float(mpi_pool_size - 1))
         )
