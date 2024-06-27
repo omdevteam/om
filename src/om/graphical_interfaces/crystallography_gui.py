@@ -248,7 +248,7 @@ class CrystallographyGui(OmGuiBase):
             resolution_rings_in_pix.extend(
                 [
                     2.0
-                    * self._last_pixel_size
+                    / self._last_pixel_size
                     * (
                         self._last_detector_distance * 1e-3
                         + self._last_detector_distance_offset
