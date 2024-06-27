@@ -188,6 +188,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
             except (
                 asapo_consumer.AsapoEndOfStreamError,
                 asapo_consumer.AsapoNoDataError,
+                asapo_consumer.AsapoDataNotInCacheError,
             ):
                 stream_list = consumer.get_stream_list(detailed=False)
                 current_stream = stream_list[-1]["name"]
@@ -294,9 +295,9 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         source_items: List[str] = self._source.split(":")
         if len(source_items) > 1:
             stream_name: str = ":".join(source_items[1:])
-            asapo_events: Generator[
-                _TypeAsapoEvent, None, None
-            ] = self._offline_event_generator(consumer, consumer_group_id, stream_name)
+            asapo_events: Generator[_TypeAsapoEvent, None, None] = (
+                self._offline_event_generator(consumer, consumer_group_id, stream_name)
+            )
         else:
             asapo_events = self._online_event_generator(consumer, consumer_group_id)
 
