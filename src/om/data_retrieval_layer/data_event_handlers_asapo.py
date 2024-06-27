@@ -172,7 +172,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
         stream_list: List[Any] = []
         while len(stream_list) == 0:
             time.sleep(1)
-            stream_list = consumer.get_stream_list()
+            stream_list = consumer.get_stream_list(detailed=False)
         last_stream: str = stream_list[-1]["name"]
         stream_metadata: Dict[str, Any] = consumer.get_stream_meta(last_stream)
         event_data: Union[NDArray[numpy.float_], NDArray[numpy.int_]]
@@ -189,7 +189,7 @@ class AsapoDataEventHandler(OmDataEventHandlerProtocol):
                 asapo_consumer.AsapoEndOfStreamError,
                 asapo_consumer.AsapoNoDataError,
             ):
-                stream_list = consumer.get_stream_list()
+                stream_list = consumer.get_stream_list(detailed=False)
                 current_stream = stream_list[-1]["name"]
                 if current_stream == last_stream:
                     time.sleep(1)
