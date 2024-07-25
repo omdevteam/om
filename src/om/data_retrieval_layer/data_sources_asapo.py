@@ -21,7 +21,7 @@ ASAP::O-related data sources.
 This module contains Data Source classes that deal with data retrieved from the ASAP::O
 software framework (used at the PETRA III facility).
 """
-from typing import Any, Dict, Union, cast
+from typing import Any, Dict, Union, Optional, cast
 
 import numpy
 from numpy.typing import NDArray
@@ -155,7 +155,12 @@ class TimestampAsapo(OmDataSourceProtocol):
         No initialization is needed to retrieve timestamp information from ASAP::O,
         so this function actually does nothing.
         """
-        pass
+        self._metadata_key: Optional[str] = self._monitor_parameters.get_parameter(
+            group="data_retrieval_layer",
+            parameter="asapo_timestamp_metadata_key",
+            parameter_type=str,
+            required=False,
+        )
 
     def get_data(self, *, event: Dict[str, Any]) -> numpy.float64:
         """
@@ -175,7 +180,11 @@ class TimestampAsapo(OmDataSourceProtocol):
 
             The timestamp for the data event.
         """
-        return cast(numpy.float64, event["metadata"]["timestamp"] / 1e9)
+        if self._metadata_key is not None:
+            timestamp: float = event["metadata"]["meta"][self._metadata_key] / 1e9
+        else:
+            timestamp = event["metadata"]["timestamp"] / 1e9
+        return cast(numpy.float64, timestamp)
 
 
 class EventIdAsapo(OmDataSourceProtocol):
