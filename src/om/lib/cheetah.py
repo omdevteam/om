@@ -308,8 +308,8 @@ class CheetahListFilesWriter:
 
         This functions performs some operations on the list files just before closing
         them: it sorts the frames according to their event identifier and it writes the
-        sorted data to the `frames.txt`, `cleaned.txt` and `events.lst` files. The
-        function then closes all the list files.
+        sorted data to the `frames.txt`, `cleaned.txt`, `events.lst` and `hits.lst`
+        files. The function then closes all the list files.
         """
         frame_list: List[TypeFrameListData] = sorted(self._frame_list)
         self._frames_file.close()
@@ -322,6 +322,10 @@ class CheetahListFilesWriter:
             frame: TypeFrameListData
             for frame in frame_list:
                 fh.write(f"{frame.event_id}\n")
+        with open(self._hits_filename, "w") as fh:
+            for frame in frame_list:
+                if frame.frame_is_hit:
+                    fh.write(f"{frame.event_id}\n")
         with open(self._frames_filename, "w") as fh:
             fh.write(
                 "# timestamp, event_id, hit, filename, index, num_peaks, "
@@ -648,12 +652,12 @@ class HDF5Writer:
             parameter_type=str,
             required=True,
         )
-        processed_filename_prefix: Union[
-            str, None
-        ] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="processed_filename_prefix",
-            parameter_type=str,
+        processed_filename_prefix: Union[str, None] = (
+            get_parameter_from_parameter_group(
+                group=cheetah_parameters,
+                parameter="processed_filename_prefix",
+                parameter_type=str,
+            )
         )
         if processed_filename_prefix is None:
             processed_filename_prefix = "processed"
@@ -661,12 +665,12 @@ class HDF5Writer:
             pathlib.Path(directory_for_processed_data).resolve()
             / f"{processed_filename_prefix}_{node_rank}.inprogress"
         )
-        processed_filename_extension: Union[
-            str, None
-        ] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="processed_filename_extension",
-            parameter_type=str,
+        processed_filename_extension: Union[str, None] = (
+            get_parameter_from_parameter_group(
+                group=cheetah_parameters,
+                parameter="processed_filename_extension",
+                parameter_type=str,
+            )
         )
         if processed_filename_extension is None:
             processed_filename_extension = "h5"
@@ -680,12 +684,12 @@ class HDF5Writer:
         )
 
         # Data format
-        self._data_type: Union[
-            str, DTypeLike, None
-        ] = get_parameter_from_parameter_group(
-            group=cheetah_parameters,
-            parameter="hdf5_file_data_type",
-            parameter_type=str,
+        self._data_type: Union[str, DTypeLike, None] = (
+            get_parameter_from_parameter_group(
+                group=cheetah_parameters,
+                parameter="hdf5_file_data_type",
+                parameter_type=str,
+            )
         )
 
         # Compression
@@ -769,13 +773,13 @@ class HDF5Writer:
                 dtype=h5py.special_dtype(vlen=str),
             )
         if "optical_laser_active" in self._hdf5_fields.keys():
-            self._resizable_datasets[
-                "optical_laser_active"
-            ] = self._h5file.create_dataset(
-                name=self._hdf5_fields["optical_laser_active"],
-                shape=(0,),
-                maxshape=(None,),
-                dtype=numpy.bool_,
+            self._resizable_datasets["optical_laser_active"] = (
+                self._h5file.create_dataset(
+                    name=self._hdf5_fields["optical_laser_active"],
+                    shape=(0,),
+                    maxshape=(None,),
+                    dtype=numpy.bool_,
+                )
             )
 
         # Creating all requested 1D float64 datasets:
@@ -954,9 +958,9 @@ class HDF5Writer:
                 "max_pixel_intensity",
                 "snr",
             ):
-                self._resizable_datasets[peak_dict_key][
-                    frame_num, :n_peaks
-                ] = peak_list[peak_dict_key][:n_peaks]
+                self._resizable_datasets[peak_dict_key][frame_num, :n_peaks] = (
+                    peak_list[peak_dict_key][:n_peaks]
+                )
 
         for extra_group_name in self._extra_groups:
             if extra_group_name in fields:
