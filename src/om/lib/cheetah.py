@@ -924,6 +924,8 @@ class HDF5Writer:
         """
         # Datasets to write:
         fields: Set[str] = set(processed_data.keys()) & self._requested_datasets
+        if len(fields) == 0:
+            return
 
         # When the first data comes create output file and all requested datasets:
         if self._num_frames == 0:
